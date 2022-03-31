@@ -1,4 +1,13 @@
 (function($) {
+    if (typeof $.ui.autocomplete !== "undefined") {
+        $.extend($.ui.autocomplete.prototype, {
+            _renderItem: function(ul, item) {
+                return $("<li></li>")
+                    .append("<a>" + item.label + "</a>")
+                    .appendTo(ul);
+            }
+        });
+    }
 
     var default_error_handler = function(r) {
         if (console) {

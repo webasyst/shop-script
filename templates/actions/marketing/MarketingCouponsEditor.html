@@ -13,7 +13,7 @@
 
         <h1>
             {$coupon.code|escape}
-            {if $coupon.id && !$is_enabled}<span class="hint">[`Expired`]</span>{/if}
+            {if $coupon.id && !$is_enabled}<span class="hint">[`Unavailable`]</span>{/if}
         </h1>
 
         {if $coupon.id}

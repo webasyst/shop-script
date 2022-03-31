@@ -2526,8 +2526,8 @@ SQL;
                     }
                 }
 
-                if (!empty($product['count_denominator'])) {
-                    $product['count_denominator'] = shopFrac::isEnabled() ? 1.0 / $product['count_denominator'] : 1;
+                foreach (['order_multiplicity_factor', 'stock_base_ratio', 'order_count_min', 'order_count_step'] as $product_field) {
+                    $product[$product_field] = shopFrac::discardZeros($product[$product_field]);
                 }
 
                 # tags
@@ -2800,7 +2800,7 @@ SQL;
             $product['skus'] = array(-1 => $sku);
             foreach (['stock_base_ratio', 'order_count_min', 'order_count_step'] as $product_field) {
                 if (isset($sku[$product_field])) {
-                    $product[$product_field] = $sku[$product_field];
+                    $product[$product_field] = shopFrac::discardZeros($sku[$product_field]);
                 }
             }
         }

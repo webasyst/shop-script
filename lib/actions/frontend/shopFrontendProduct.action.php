@@ -57,8 +57,12 @@ class shopFrontendProductAction extends shopFrontendAction
                 $skus[$sku_id]['count'] = shopFrac::formatQuantityWithMultiplicity($sku['count'], $product['order_multiplicity_factor']);
             }
             foreach ($sku['stock'] as $stock_id => $stock_value) {
-                if ($stock_value !== null && $stock_value < $order_count_min) {
-                    $skus[$sku_id]['stock'][$stock_id] = 0;
+                if ($stock_value !== null) {
+                    if ($stock_value < $order_count_min) {
+                        $skus[$sku_id]['stock'][$stock_id] = 0;
+                    } else {
+                        $skus[$sku_id]['stock'][$stock_id] = shopFrac::formatQuantityWithMultiplicity($stock_value, $product['order_multiplicity_factor']);
+                    }
                 }
             }
             // Public virtual stock counts for each SKU

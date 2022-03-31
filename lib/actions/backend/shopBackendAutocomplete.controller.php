@@ -31,6 +31,23 @@ class shopBackendAutocompleteController extends waController
             } else {
                 $data = $this->productsAutocomplete($q);
             }
+
+            /**
+             * @event backend_autocomplete
+             * Modify and append to $params['data'] to change results in backend search autocomplete dropdown.
+             *
+             * @param string $params['type']    which search form it is called from
+             * @param string $params['limit']   maximum number of results
+             * @param string $params['data']    list of autocomplete results
+             * @since 9.1.0
+             */
+            wa('shop')->event('backend_autocomplete', ref([
+                'type' => $type,
+                'limit' => $this->limit,
+                'data' => &$data,
+            ]));
+
+            $data = array_slice(array_values($data), 0, $this->limit);
             $data = $this->formatData($data, $type);
         }
         echo json_encode($data);

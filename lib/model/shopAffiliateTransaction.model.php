@@ -69,9 +69,9 @@ class shopAffiliateTransactionModel extends waModel
                 } catch (Exception $e) {}
 
                 if ($amount > 0) {
-                    $text = sprintf_wp('Affiliate balance of %1$s is increased by amount %2$s', $contact_name, $amount);
+                    $text = sprintf_wp('Affiliate balance of %1$s is increased by amount %2$s', $contact_name, round($amount, 4));
                 } else {
-                    $text = sprintf_wp('Affiliate balance of %1$s is decreased by amount %2$s', $contact_name, -$amount);
+                    $text = sprintf_wp('Affiliate balance of %1$s is decreased by amount %2$s', $contact_name, round(-$amount, 4));
                 }
 
                 if ($comment) {
@@ -95,5 +95,11 @@ class shopAffiliateTransactionModel extends waModel
     {
         $sql = "SELECT * FROM ".$this->table." WHERE contact_id = i:0 AND order_id = i:1 ORDER BY id DESC";
         return $this->query($sql, $contact_id, $order_id)->fetch();
+    }
+
+    public function isCanceledTransaction($order_id)
+    {
+        $sql = "SELECT id FROM ".$this->table." WHERE `order_id` = i:0 AND `amount` > 0 AND type = s:1";
+        return (bool)$this->query($sql, $order_id, shopAffiliateTransactionModel::TYPE_ORDER_CANCEL)->fetch();
     }
 }

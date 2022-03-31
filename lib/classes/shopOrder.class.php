@@ -1719,6 +1719,12 @@ class shopOrder implements ArrayAccess
                     if (is_array($fld_data) && isset($fld_data[0])) {
                         $fld_data = $fld_data[0];
                     }
+                    // do not clear the filled data if the user is not logged in
+                    if (!wa()->getUser()->isAuth() && is_string($fld_data) && strlen(trim($fld_data)) === 0
+                        && is_string($this->contact[$fld_id]) && strlen($this->contact[$fld_id])
+                    ) {
+                        continue;
+                    }
                     $this->contact[$fld_id] = $fld_data;
                 }
 

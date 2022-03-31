@@ -111,6 +111,16 @@
                                         <p class="hint">[`Limits the maximum % of order amount that can be paid with bonus (i.e. maximum discount a customer can get by applying the bonus).`]</p>
                                     </div>
                                 </div>
+                                <div class="field">
+                                    <div class="name">[`Округление бонусов`]</div>
+                                    <div class="value no-shift">
+                                        <input type="hidden" name="conf[affiliate_rounding]" value="0">
+                                        <label>
+                                            <input type="checkbox" name="conf[affiliate_rounding]" {if !empty($conf.affiliate_rounding)}checked{/if}> [`Целые баллы`]
+                                        </label>
+                                        <p class="hint">[`Начисление будет происходить только целыми балами. Один бал за полную сумму, указанную в настройках. На остаток, который меньше этой суммы начисление балов не будет происходить.`]</p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="field-group"{if !$enabled} style="display:none;"{/if}>
                                 <div class="field">

@@ -129,7 +129,7 @@ class shopTutorialActions extends waViewActions
             ),
             'products' => array(
                 'href'     => $backend_url.$tutorial_url.'#/products/',
-                'name'     => _w('Add products '),
+                'name'     => _w('Add products'),
                 'complete' => false,
             ),
             'design'   => array(

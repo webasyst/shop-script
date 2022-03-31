@@ -226,8 +226,10 @@ class shopFrontendOrderCartActions extends waJsonActions
                 'sku_id' => 1,
                 'quantity' => 1,
             ]);
-            if (count($new_item) !== 3) {
+            if (!isset($new_item['product_id']) || !isset($new_item['sku_id'])) {
                 $errors[] = _w('Incorrect input data');
+            } elseif (!isset($new_item['quantity'])) {
+                $new_item['quantity'] = $this->getProductMinimalCount($new_item);
             }
 
             $new_item += [
@@ -285,6 +287,25 @@ class shopFrontendOrderCartActions extends waJsonActions
                 }
                 $this->response['just_added_item'] = $new_item;
             }
+        }
+    }
+
+    /**
+     * @param array $data
+     * @return bool|mixed
+     * @throws waDbException
+     */
+    protected function getProductMinimalCount($data)
+    {
+        if (!shopFrac::isEnabled()) {
+            return 1;
+        } else {
+            $sql = "SELECT IF(ISNULL(ps.order_count_min), p.order_count_min, ps.order_count_min) as `order_count_min`
+                FROM shop_product_skus ps
+                    JOIN shop_product p ON p.id = ps.product_id
+                WHERE ps.product_id = i:product_id AND ps.id = i:sku_id";
+            $product_skus_model = new shopProductSkusModel();
+            return $product_skus_model->query($sql, $data)->fetchField('order_count_min');
         }
     }
 

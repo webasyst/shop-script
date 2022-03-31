@@ -29,7 +29,7 @@ class shopProductGetInfoMethod extends shopApiMethod
             foreach ($sku['stock'] as $stock_id => $count) {
                 $stocks[] = array(
                     'id'    => $stock_id,
-                    'count' => $count
+                    'count' => shopFrac::discardZeros($count)
                 );
             }
             unset($sku['stock']);

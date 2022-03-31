@@ -19,13 +19,19 @@ class shopInstallerEnd_installationHandler extends waEventHandler
         wa('installer');
         $plugins_data = installerHelper::getStoreProductsData(array_column($install_data, 'real_slug'), ['tags'], true);
         foreach ($plugins_data as $key => $plugin_data) {
-            $plugins_data[$plugin_data['slug']] = $plugin_data;
-            unset($plugins_data[$key]);
+            foreach ($install_data as &$inst_data) {
+                if ($plugin_data['slug'] == $inst_data['real_slug']) {
+                    $inst_data['app_id'] = $plugin_data['app_id'];
+                    $inst_data['id']     = $plugin_data['ext_id'];
+                    $inst_data['type']   = $plugin_data['type'];
+                    $inst_data['tags']   = $plugin_data['tags'];
+                }
+            }
         }
         foreach ($install_data as $data) {
-            $app_id       = ifset($data, 'info', 'app_id', null);
-            $plugin_id    = ifset($data, 'info', 'id', null);
-            $tags         = ifset($plugins_data, $data['real_slug'], 'tags', []);
+            $app_id       = ifset($data, 'app_id', null);
+            $plugin_id    = ifset($data, 'id', null);
+            $tags         = ifset($data, 'tags', []);
             $support_frac = shopHelper::getShopSupportJson($data['target']);
 
             if (in_array(shopSettingsCompatibilityAction::TAG_SHOP_PREMIUM_YES, $tags)) {
@@ -43,11 +49,14 @@ class shopInstallerEnd_installationHandler extends waEventHandler
                 && (shopFrac::isEnabled() || shopUnits::isEnabled())
             ) {
                 /**
-                 * отключение плагина
-                 * installerHelper::pluginSetStatus($app_id, $plugin_id);
-                 * возвращает true или сообщение об ошибке
+                 * отключение продукта
+                 * возвращается true или сообщение об ошибке
                  */
-                installerHelper::pluginSetStatus($app_id, $plugin_id);
+                if ($data['type'] === 'PLUGIN') {
+                    installerHelper::pluginSetStatus($app_id, $plugin_id);
+                } else {
+                    installerHelper::appSetStatus($app_id, true);
+                }
                 $redirect = true;
             }
         }

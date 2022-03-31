@@ -1,0 +1,70 @@
+{strip}
+
+{* ДАННЫЕ *}
+
+{$_page_title = _w("Маркетплейсы")}
+
+{/strip}
+
+<div class="s-settings-marketplaces-page blank block double-padded" id="js-settings-marketplaces-page" style="visibility: hidden;">
+    {* @event backend_settings_premium.top *}
+    {if !empty($backend_settings_marketplaces)}{foreach $backend_settings_marketplaces as $_}{ifset($_.top)}{/foreach}{/if}
+
+    {* HEADER *}
+    <div class="s-page-header">
+        <h1 class="s-title">{$_page_title}</h1>
+        <ul>
+            <li>[`Здесь перечислены плагины, с помощью которых можно подключить интернет-магазин к маркетплейсам.`]</li>
+            <li>[`Выберите и установите плагины тех маркетплейсов, с которыми вы планируете сотрудничать.`]</li>
+            <li>[`После установки плагинов в разных частях панели управления магазина появятся дополнительные настройки для работы с ними.`]</li>
+            <li>[`Инструкция по работе с каждым из плагинов доступна на странице с его описанием в магазине Webasyst.`]</li>
+        </ul>
+    </div>
+
+    {* BODY *}
+    <div class="s-page-body js-vue-section">
+        {* @event backend_settings_marketplaces.middle *}
+        {if !empty($backend_settings_marketplaces)}{foreach $backend_settings_marketplaces as $_}{ifset($_.middle)}{/foreach}{/if}
+
+        <div class="s-marketplace-wrapper">
+            <h2 class="s-title">[`Плагины маркетплейсов`]</h2>
+            <div class="s-frame-wrapper " id="js-marketplace-plugins"></div>
+            <script>( function($) {
+                var plugins_url = sessionStorage.getItem("shop/settings/marketplaces");
+                plugins_url = (plugins_url ? plugins_url : {$marketplace_plugins_url|json_encode});
+                $("#js-marketplace-plugins").html('<i class="icon16 loading"></i>').load(plugins_url);
+            })(jQuery);</script>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+
+            document.title = {$_page_title|json_encode} + ' — ' + {$wa->accountName()|json_encode};
+
+            var sources = [{
+                id: "wa-settings-marketplaces-css",
+                type: "css",
+                uri: "{$wa_app_static_url}css/backend/settings/marketplaces.css?v={$wa->version()}"
+            }, {
+                id: "wa-settings-marketplaces-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/settings/marketplaces/marketplaces.js?v={$wa->version()}"
+            }];
+
+            $.shop.loadSources(sources).then(init, function() {
+                alert("Page Loading Error");
+            });
+
+            function init() {
+                window.initShopMarketplacesSettingsPage({
+                    $wrapper: $("#js-settings-marketplaces-page")
+                });
+            }
+
+        })(jQuery);
+    </script>
+
+    {* @event backend_settings_marketplaces.bottom *}
+    {if !empty($backend_settings_marketplaces)}{foreach $backend_settings_marketplaces as $_}{ifset($_.bottom)}{/foreach}{/if}
+</div>

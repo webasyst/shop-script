@@ -542,6 +542,10 @@ class shopProductReviewsModel extends waNestedSetModel
             // If moderation is enabled and the review has been deleted, then transfer it to moderated status
             if ($review['status'] === self::STATUS_DELETED && wa()->getSetting('moderation_reviews', 0)) {
                 $status = shopProductReviewsModel::STATUS_MODERATION;
+            } elseif ($review['status'] === self::STATUS_MODERATION && $status === self::STATUS_PUBLISHED) {
+                // ничего не делаем, оставляем статус прежним self::STATUS_PUBLISHED
+                // во время одобрения на модерации не нужно пересчитывать рейтинг товара,
+                // потому что оценка уже была учтена во время добавления отзыва
             } else {
                 $this->recalcProductRating($review['product_id'], $review['rate']);
             }

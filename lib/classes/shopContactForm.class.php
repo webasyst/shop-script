@@ -58,7 +58,7 @@ HTML;
                     $is_spam = true;
                 }
                 if ($is_spam) {
-                    $this->errors['spam'] = _w('Something went wrong while processing your data. Please contact store team directly regarding your order. A notification about this error has been sent to the store admin.');
+                    $this->errors['spam'] = _w('Something went wrong during the processing of your data. A notification about this error has been sent to the store administrator. Please contact our support team regarding your order.');
                 }
             }
             return empty($this->errors['spam']) && empty($this->errors['captcha']);

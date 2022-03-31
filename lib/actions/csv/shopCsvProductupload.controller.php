@@ -22,12 +22,6 @@ class shopCsvProductuploadController extends shopUploadController
                 'type_name'                 => _w('Product type'),
                 'tags'                      => _w('Tags'),
                 'tax_name'                  => _w('Taxable'),
-                'order_multiplicity_factor' => _w('Add-to-cart step'),
-                'stock_unit_id'             => _w('Stock quantity unit'),
-                'base_unit_id'              => _w('Base quantity unit'),
-                'stock_base_ratio'          => _w('Stock to base quantity units ratio'),
-                'order_count_min'           => _w('Minimum orderable quantity'),
-                'order_count_step'          => _w('Quantity adjustment value via “+/-” buttons'),
                 'meta_title'                => _w('Title'),
                 'meta_keywords'             => _w('META Keyword'),
                 'meta_description'          => _w('META Description'),
@@ -62,6 +56,18 @@ class shopCsvProductuploadController extends shopUploadController
             ),
             'sku_custom_fields'     => array(),
         );
+
+        $premium_fields = [
+            'order_multiplicity_factor' => _w('Add-to-cart step'),
+            'stock_unit_id'             => _w('Stock quantity unit'),
+            'base_unit_id'              => _w('Base quantity unit'),
+            'stock_base_ratio'          => _w('Stock to base quantity units ratio'),
+            'order_count_min'           => _w('Minimum orderable quantity'),
+            'order_count_step'          => _w('Quantity adjustment value via “+/-” buttons'),
+        ];
+        if (shopFrac::isEnabled()) {
+            $fields['product'] += $premium_fields;
+        }
 
         if ($extra_fields) {
             $product_model = new shopProductModel();
@@ -101,7 +107,16 @@ class shopCsvProductuploadController extends shopUploadController
                 'stock_base_ratio',
                 'order_count_min',
                 'order_count_step',
+                'count_denominator',
             );
+
+            if (!shopFrac::isEnabled()) {
+                $black_list = array_merge($black_list, [
+                    'order_multiplicity_factor',
+                    'stock_unit_id',
+                    'base_unit_id',
+                ]);
+            }
 
             $white_list = array(
                 'id_1c' => 'Идентификатор 1С',

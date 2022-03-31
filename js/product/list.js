@@ -457,6 +457,8 @@
 
         initInlineEditor: function() { "use strict";
             var self = this;
+            var stock_count = 0;
+            if (self.options.stocks && self.options.stocks.length) { stock_count = self.options.stocks.length; }
 
             $.product_list.highlightInlineEditorCells();
             $.product_list.container.on('append_product_list', function() {
@@ -509,12 +511,14 @@
                         }));
                     } else {
                         var stocks = $tr.data('stocks');
-                        if (!stocks || typeof stocks != 'object') {
+                        if (!stock_count) {
+                            if (!stocks || typeof stocks === "object") { stocks = ""; }
                             $td.html(tmpl('template-list-stock-editor-one', {
                                 product_id: $tr.data('product-id'),
-                                value: stocks || ''
+                                value: stocks
                             }));
                         } else {
+                            if (!stocks || typeof stocks !== "object") { stocks = {}; }
                             $td.html(tmpl('template-list-stock-editor-many', {
                                 product_id: $tr.data('product-id'),
                                 values: stocks

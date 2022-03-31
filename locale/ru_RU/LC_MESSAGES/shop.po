@@ -6022,8 +6022,8 @@ msgstr "Если вы получаете поток заказов, и ни од
 msgid "Spammy order alert"
 msgstr "Отклоненная попытка заказа"
 
-msgid "Something went wrong while processing your data. Please contact store team directly regarding your order. A notification about this error has been sent to the store admin."
-msgstr "Что-то прошло не так при обработке вашего запроса. Уведомление о попытке заказа отправлено в отдел продаж Пожалуйста, свяжитесь со отделом продаж напрямую, чтобы подтвердить ваш заказ."
+msgid "Something went wrong during the processing of your data. A notification about this error has been sent to the store administrator. Please contact our support team regarding your order."
+msgstr "Что-то прошло не так при обработке ваших данных. Уведомление об этой ошибке отправлено администратору магазина. Пожалуйста, обратитесь в нашу службу поддержки, чтобы подтвердить ваш заказ."
 
 msgid "The following order attempt was REJECTED because user acted like a bot. Order record has not been created yet. If this is a valid order, you will need to confirm it with the customer and manually place the order in your store backend."
 msgstr "Попытка заказа была ОТКЛОНЕНА, так как пользователь вел себя, как бот. Заказ не был сохранен. Если это реальный заказ, подтвержденный покупателем, добавьте заказ вручную в бекенде вашего интернет-магазина."
@@ -11819,3 +11819,6 @@ msgstr "за"
 
 msgid "No information"
 msgstr "Нет информации"
+
+msgid "Unavailable"
+msgstr "Недоступен"

@@ -290,6 +290,12 @@ class shopNotifications
                     foreach (array('thumb_url', 'big_url', 'crop_url') as $url_type) {
                         $p['image'][$url_type] = $d.substr($p['image'][$url_type], $root_url_len);
                     }
+                } elseif (wa()->getEnv() === 'cli') {
+                    foreach (array('thumb_url', 'big_url', 'crop_url') as $url_type) {
+                        $p['image'][$url_type] = parse_url($p['frontend_url'], PHP_URL_SCHEME).'://'
+                            .parse_url($p['frontend_url'], PHP_URL_HOST)
+                            .parse_url($p['image'][$url_type],  PHP_URL_PATH);
+                    }
                 }
             }
         }

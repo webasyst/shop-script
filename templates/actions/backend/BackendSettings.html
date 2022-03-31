@@ -15,6 +15,11 @@
                     <i class="icon16 ss schedule-bw"></i>[`Working schedule`]
                 </a>
             </li>
+            <li>
+                <a href="?action=settings#/marketplaces/">
+                    <i class="icon16 ss marketplaces"></i>[`Маркетплейсы`]
+                </a>
+            </li>
 
             <!-- plugin hook: 'backend_settings.sidebar_top_li' -->
             {* @event backend_settings.%plugin_id%.sidebar_top_li *}
@@ -111,20 +116,21 @@
                     <i class="icon16 ss dashboard-bw"></i>[`Analytics`]
                 </a>
             </li>
+
             {if $wa->locale() == 'ru_RU'}
-            <li>
-                <a href="?action=settings#/premium/">
-                    <i class="icon16 ss compatibility"></i>[`PREMIUM license functionality`]
-                </a>
-            </li>
+                <li>
+                    <a href="?action=settings#/premium/">
+                        <i class="icon16 ss compatibility"></i>[`PREMIUM license functionality`]
+                    </a>
+                </li>
             {/if}
 
             {if $wa->user()->isAdmin()}
-            <li class="top-padded">
-                <a href="?action=settings#/reset/">
-                    <i class="icon16 ss reset-bw"></i>[`Reset`]
-                </a>
-            </li>
+                <li class="top-padded">
+                    <a href="?action=settings#/reset/">
+                        <i class="icon16 ss reset-bw"></i>[`Reset`]
+                    </a>
+                </li>
             {/if}
             <!-- plugin hook: 'backend_settings.sidebar_bottom_li' -->
             {* @event backend_settings.%plugin_id%.sidebar_bottom_li *}

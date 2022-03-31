@@ -1164,7 +1164,7 @@ class shopProduct implements ArrayAccess
         // cross selling on (using similar setting for type)
         if ($cross_selling == 1 || $cross_selling === null) {
             $type = $this->getType();
-            if ($type['cross_selling']) {
+            if (!empty($type['cross_selling'])) {
                 $hash = $type['cross_selling'].($type['cross_selling'] == 'alsobought' ? '/'.$this->getId() : '');
                 $collection = new shopProductsCollection($hash);
                 if ($type['cross_selling'] != 'alsobought') {

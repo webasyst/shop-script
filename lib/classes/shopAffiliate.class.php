@@ -118,7 +118,14 @@ class shopAffiliate
             }
         }
 
-        return $affiliatable_total / $credit_rate;
+        $is_rounding = wa()->getSetting('affiliate_rounding', 0, 'shop');
+
+        $final_bonus = $affiliatable_total / $credit_rate;
+        if ($is_rounding) {
+            $final_bonus = floor($final_bonus);
+        }
+
+        return $final_bonus;
     }
 
     public static function applyBonus($order_or_id)

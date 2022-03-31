@@ -568,6 +568,12 @@
             var $wrapper = $("#js-settings-type-add-dialog").removeAttr("id"),
                 dialog = $wrapper.data("dialog");
 
+            {if ($type.count <= 0)}
+            setTimeout(function () {
+               $wrapper.find('input[name="name"]').focus();
+            }, 150);
+            {/if}
+
             dialog.options.initDialog({
                 $wrapper: $wrapper,
                 dialog: dialog,

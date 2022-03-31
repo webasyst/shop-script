@@ -2663,6 +2663,7 @@
                             .done( function(server_data) {
                                 var product_id = server_data.id;
                                 if (product_id) {
+                                    that.$wrapper.trigger("change_product_name", [server_data.name]);
                                     var is_new = location.href.indexOf("/new/general/") >= 0;
                                     if (is_new) {
                                         var url = location.href.replace("/new/general/", "/"+product_id+"/general/");

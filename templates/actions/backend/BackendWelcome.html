@@ -84,7 +84,7 @@
                         </div>
                         <div class="s-demo-sources-wrapper">
                             {$_sources_html = []}
-                            
+
                             {$_can_work = $shop_demo_importer_can_work.status}
                             {$_reason   = $shop_demo_importer_can_work.reason}
 
@@ -181,10 +181,13 @@
         </div>
     </form>
 
+    {* Hack for Firefox, preload image *}
+    <div style="position: absolute; visibility: hidden; width: 0; height: 0; overflow: hidden;"><img src="{$wa_url}wa-apps/shop/img/backend/tutorial/loading.svg?v=1" alt=""></div>
+
     {capture assign="_loading_html"}
         <div class="s-loading-wrapper">
             <div class="s-loading-body">
-                <img class="s-loading-image" src="{$wa_url}wa-apps/shop/img/backend/tutorial/loading.svg" alt="">
+                <img class="s-loading-image" src="{$wa_url}wa-apps/shop/img/backend/tutorial/loading.svg?v=1" alt="">
                 <div class="s-loading-text">
                     {if $_is_ru}
                         Подождите немного,<br>мы добавляем примеры товаров в ваш интернет-магазин.

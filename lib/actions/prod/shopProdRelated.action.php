@@ -71,12 +71,12 @@ class shopProdRelatedAction extends waViewAction
     protected function getCrossSelling($product, $type)
     {
         $products = [];
-        $active_option_value = $product['cross_selling'] == null ? '1' : $product['cross_selling'];
-        $view_type = $product["cross_selling"] == null || $product["cross_selling"] == 1 ? "auto" : "manual";
 
         if ($product["cross_selling"] == null) {
-            $product["cross_selling"] = $type["cross_selling"] ? 1 : 0;
+            $product["cross_selling"] = $type["cross_selling"] ? '1' : '0';
         }
+        $active_option_value = $product['cross_selling'] == null ? '1' : $product['cross_selling'];
+        $view_type = $product["cross_selling"] == 1 ? "auto" : "manual";
 
         if ($product["cross_selling"] == 2) {
             $related_model = new shopProductRelatedModel();
@@ -126,12 +126,12 @@ class shopProdRelatedAction extends waViewAction
     protected function getUpselling($product, $type)
     {
         $products = [];
-        $active_option_value = $product['upselling'] == null ? '0' : $product['upselling'];
-        $view_type = $product["upselling"] == null || $product["upselling"] != 1 ? "manual" : "auto";
 
         if ($product["upselling"] == null) {
-            $product["upselling"] = $type["upselling"] ? 1 : 0;
+            $product["upselling"] = $type["upselling"] ? '1' : '0';
         }
+        $active_option_value = $product['upselling'] == null ? '1' : $product['upselling'];
+        $view_type = $product["upselling"] == 1 ? "auto" : "manual";
 
         if ($product["upselling"] == 2) {
             $related_model = new shopProductRelatedModel();

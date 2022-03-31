@@ -81,6 +81,8 @@ class shopOrdersAction extends shopOrderListAction
                     $counters['state_counters'][$st] = (int) $this->model->getStateCounters($st);
                 }
             }
+        } elseif (isset($filter_params['storefront'])) {
+            $counters['storefront_counters'][$filter_params['storefront']] = count($orders);
         } else {
             $counters['common_counters'] = array(
                 'all' => $this->model->countAll()

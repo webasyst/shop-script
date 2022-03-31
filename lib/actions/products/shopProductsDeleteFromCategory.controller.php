@@ -18,15 +18,16 @@ class shopProductsDeleteFromCategoryController extends waJsonController
         }
 
         $collection = new shopProductsCollection($hash);
-        $offset = 0;
+        $processed = 0;
         $count = 100;
         $total_count = $collection->count();
         $all_updated_products = [];
-        while ($offset < $total_count) {
+        while ($processed < $total_count) {
+            $offset = $total_count - $count - $processed < 0 ? 0 : $total_count - $count - $processed;
             $product_ids = array_keys($collection->getProducts('*', $offset, $count));
             $model->deleteProducts($category_id, $product_ids);
             $all_updated_products += $product_ids;
-            $offset += count($product_ids);
+            $processed += count($product_ids);
             if (!$product_ids) {
                 break;
             }
