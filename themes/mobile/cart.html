@@ -21,7 +21,11 @@
             {foreach $cart.items as $item}
 
             <!-- cart item -->
-            <div class="cart-product-item row" data-id="{$item.id}">
+            <div class="cart-product-item row"
+                 data-id="{$item.id}"
+                 data-count-min="{$item.order_count_min}"
+                 data-count-step="{$item.order_count_step}"
+            >
 
                 <div class="col item-name">
                     <a href="{$wa->shop->productUrl($item.product)}" class="bold">{$item.product.name|escape}</a>

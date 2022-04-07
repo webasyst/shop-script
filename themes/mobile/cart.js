@@ -19,15 +19,16 @@
 
     var changeVolume = function(type, $product) {
         var $volumeInput = $product.find(".item-qty input.qty"),
-            current_val = parseInt($volumeInput.val()),
+            current_val = parseFloat($volumeInput.val()),
             is_disabled = ($volumeInput.attr("disabled") === "disabled"),
             disable_time = 800,
-            new_val;
+            new_val,
+            count_step = parseFloat( $product.data('count-step') );
 
         if (type === "positive") {
-            new_val = current_val + 1;
+            new_val = current_val + count_step;
         } else if (type === "negative") {
-            new_val = current_val - 1;
+            new_val = current_val - count_step;
         }
 
         // Set new value
@@ -105,11 +106,23 @@ $(function () {
     });
 
     $(".cart input.qty").change(function () {
-        var that = $(this);
-        if (that.val() > 0) {
-            var row = that.closest('div.row');
+        var that = $(this),
+            product_quantity = parseFloat( that.val() ),
+            row = that.closest('div.row'),
+            count_step = parseFloat( row.data('count-step') ),
+            count_min = parseFloat( row.data('count-min') );
 
-            $.post('save/', {html: 1, id: row.data('id'), quantity: that.val()}, function (response) {
+        if ( isNaN( product_quantity ) || product_quantity < count_min) {
+            product_quantity = count_min;
+        }
+        if ((product_quantity - count_min) % count_step !== 0) {
+            var round_up = Math.ceil((product_quantity - count_min) / count_step);
+            product_quantity = count_min + round_up * count_step;
+        }
+        that.val(product_quantity);
+
+        if (that.val() >= count_min) {
+            $.post('save/', {html: 1, id: row.data('id'), quantity: product_quantity}, function (response) {
                 row.find('.item-total').html(response.data.item_total);
                 if (response.data.q) {
                     that.val(response.data.q);
@@ -128,8 +141,6 @@ $(function () {
                 }
             }, "json");
 
-        } else {
-            that.closest("div.row").find("a.delete").click();
         }
     });
 
