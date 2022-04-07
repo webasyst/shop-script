@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="sidebar" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:sidebar" version="2.1.14">
+<theme id="sidebar" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:sidebar" version="2.1.15">
     <name locale="en_US">Sidebar 2.0</name>
     <name locale="ru_RU">Sidebar 2.0</name>
     <files>
@@ -219,7 +219,7 @@
         </setting>
         <setting var="homepage_bullet_body_3" control_type="text">
             <value locale="en_US">If you are in SF or LA, you may pick up an order in one of our stores. Give us a call!</value>
-            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Крымский Вал, д. 3. +7 (495) 123-45-00</value>
+            <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Город, ул. Улица, д. 3. +7 (495) 123-45-00</value>
             <name locale="en_US">Storefront homepage bullet #3 body</name>
             <name locale="ru_RU">Текст на главной странице №3</name>
         </setting>
