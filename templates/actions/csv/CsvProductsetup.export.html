@@ -42,7 +42,7 @@
             <option value="0" {if empty($profile.config.export_mode)}selected="selected"{/if}>[`Default mode`]</option>
             <option value="1" {if !empty($profile.config.export_mode)}selected="selected"{/if}>[`SKU as product`]</option>
         </select>
-        <p class="hint {if !empty($profile.config.export_mode)}hidden{/if}">[`For a product with <em>multiple</em> SKUs, a separate row is exported with product-related data and additional rows are exported with the product‘s SKUs. A product with <em>one</em> SKU is exported in one row.`]</p>
+        <p class="hint {if !empty($profile.config.export_mode)}hidden{/if}">[`For a product with <em>multiple</em> SKUs, a separate row is exported with product-related data and additional rows are exported with the product’s SKUs. A product with <em>one</em> SKU is exported in one row.`]</p>
         <div class="block-hint {if empty($profile.config.export_mode)}hidden{/if}">
             <span>[`For each product SKU, a separate row, containing that SKU’s properties, is added to a file. If some SKU property is empty but has a value stored in the common product data then such a common property value is exported to an SKU row. No separate row with common product data is exported.`]</span>
             <div class="wa-csv-message wa-small error flexbox">

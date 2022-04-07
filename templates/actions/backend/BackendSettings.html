@@ -15,11 +15,13 @@
                     <i class="icon16 ss schedule-bw"></i>[`Working schedule`]
                 </a>
             </li>
-            <li>
-                <a href="?action=settings#/marketplaces/">
-                    <i class="icon16 ss marketplaces"></i>[`Маркетплейсы`]
-                </a>
-            </li>
+            {if !empty($show_marketplaces)}
+                <li>
+                    <a href="?action=settings#/marketplaces/">
+                        <i class="icon16 ss marketplaces"></i>[`Online marketplaces`]
+                    </a>
+                </li>
+            {/if}
 
             <!-- plugin hook: 'backend_settings.sidebar_top_li' -->
             {* @event backend_settings.%plugin_id%.sidebar_top_li *}

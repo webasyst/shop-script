@@ -109,7 +109,7 @@ return array(
         'og_url'            => array(
             'name'        => _w('Social sharing URL (og:url)'),
             'type'        => 'input',
-            'description' => _w('If at least one og: value above is not empty, then you may keep this field empty for og:url meta tag to contain this storefront‘s URL by default. Or type a custom og:url value manually, if necessary.'),
+            'description' => _w('If at least one og: value above is not empty, then you may keep this field empty for og:url meta tag to contain this storefront’s URL by default. Or type a custom og:url value manually, if necessary.'),
         ),
         _w('Products'),
         'url_type'          => array(
@@ -336,7 +336,7 @@ return array(
             '$customer->get(\'address:zip\', \'default\')|escape '     => _w('Customer’s ZIP code'),
             '$customer->get(\'address:region\', \'value|default\')|escape '  => _w('Customer’s region name'),
             '$customer->get(\'address:country\', \'value|default\')|escape ' => _w('Customer’s country name'),
-            '$customer.affiliate_bonus'                                => _w('Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings. To show a limited number of decimal digits, add a modified as shown in the example: <em>{$customer.affiliate_bonus|wa_format_number:0}</em> (no decimal digits).'),
+            '$customer.affiliate_bonus'                                => _w('Amount of customer’s bonuses accumulated with the “Loyalty program” enabled in store settings. To show a limited number of decimal digits, add a modified as shown in the example: <em>{$customer.affiliate_bonus|wa_format_number:0}</em> (no decimal digits).'),
             '$customer.total_spent'                                    => _w('Total amount of money spent by a customer calculated in default currency. To add formatted amount expressed in the order currency, use <code>{shop_currency($customer.total_spent, null, $order.currency)}</code>.'),
             '$customer.number_of_orders'                               => _w('Number of orders placed by a customer.'),
             '$customer.last_order_id'                                  => _w('ID of last order placed by a customer. To add formatted order ID, use <code>{shopHelper::encodeOrderId($customer.last_order_id)}</code>.'),
@@ -413,7 +413,7 @@ return array(
             '$order.items[].price'                                        => _w('Item price'),
             '$order.items[].quantity'                                     => _w('Ordered item quantity'),
             '$order.items[].download_link'                                => _w('Item download link (SKU attachment)'),
-            '$wa->shop->productImgUrl($item, $size)'                      => _w('Relative URL of ordered product‘s main image with specified size.').'<br>'.
+            '$wa->shop->productImgUrl($item, $size)'                      => _w('Relative URL of ordered product’s main image with specified size.').'<br>'.
                 _w('<code>$item</code> must be an item of <code>$order.items</code> array.').'<br>'.
                 _w('<code>$size</code> must contain one of size values described in the <a href="https://www.shop-script.com/help/43/image-thumbnails-in-shop-script-5-storefront/" target="_blank">documentation</a>; e.g., "200" or "200x0", etc. Default image size, if not specified, is "750x0".').'<br>'.
                 _w('To obtain an absolute image URL, use <code>{$wa-&gt;domainUrl()}</code>.').'<br>'.
@@ -462,7 +462,7 @@ return array(
             '$customer->get(\'address:zip\', \'default\')|escape '     => _w('Customer’s ZIP code'),
             '$customer->get(\'address:region\', \'value|default\')|escape '  => _w('Customer’s region name'),
             '$customer->get(\'address:country\', \'value|default\')|escape ' => _w('Customer’s country name'),
-            '$customer.affiliate_bonus'                                => _w('Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings. To show a limited number of decimal digits, add a modified as shown in the example: <em>{$customer.affiliate_bonus|wa_format_number:0}</em> (no decimal digits).'),
+            '$customer.affiliate_bonus'                                => _w('Amount of customer’s bonuses accumulated with the “Loyalty program” enabled in store settings. To show a limited number of decimal digits, add a modified as shown in the example: <em>{$customer.affiliate_bonus|wa_format_number:0}</em> (no decimal digits).'),
             '$customer.total_spent'                                    => _w('Total amount of money spent by a customer calculated in default currency. To add formatted amount expressed in the order currency, use <code>{shop_currency($customer.total_spent, null, $order.currency)}</code>.'),
             '$customer.number_of_orders'                               => _w('Number of orders placed by a customer.'),
             '$customer.last_order_id'                                  => _w('ID of last order placed by a customer. To add formatted order ID, use <code>{shopHelper::encodeOrderId($customer.last_order_id)}</code>.'),
@@ -503,7 +503,7 @@ return array(
             '$order.items[].price'                                        => _w('Item price'),
             '$order.items[].quantity'                                     => _w('Ordered item quantity'),
             '$order.items[].download_link'                                => _w('Item download link (SKU attachment)'),
-            '$wa->shop->productImgUrl($item, $size)'                      => _w('Relative URL of ordered product‘s main image with specified size.').'<br>'.
+            '$wa->shop->productImgUrl($item, $size)'                      => _w('Relative URL of ordered product’s main image with specified size.').'<br>'.
                 _w('<code>$item</code> must be an item of <code>$order.items</code> array.').'<br>'.
                 _w('<code>$size</code> must contain one of size values described in the <a href="https://www.shop-script.com/help/43/image-thumbnails-in-shop-script-5-storefront/" target="_blank">documentation</a>; e.g., "200" or "200x0", etc. Default image size, if not specified, is "750x0".').'<br>'.
                 _w('To obtain an absolute image URL, use <code>{$wa-&gt;domainUrl()}</code>.').'<br>'.
@@ -552,7 +552,7 @@ return array(
             '$customer->get(\'address:zip\', \'default\')|escape '        => _w('Customer’s ZIP code'),
             '$customer->get(\'address:region\', \'value|default\')|escape '     => _w('Customer’s region name'),
             '$customer->get(\'address:country\', \'value|default\')|escape '    => _w('Customer’s country name'),
-            '$customer.affiliate_bonus'                                   => _w('Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings. To show a limited number of decimal digits, add a modified as shown in the example: <em>{$customer.affiliate_bonus|wa_format_number:0}</em> (no decimal digits).'),
+            '$customer.affiliate_bonus'                                   => _w('Amount of customer’s bonuses accumulated with the “Loyalty program” enabled in store settings. To show a limited number of decimal digits, add a modified as shown in the example: <em>{$customer.affiliate_bonus|wa_format_number:0}</em> (no decimal digits).'),
             '$customer.total_spent'                                       => _w('Total amount of money spent by a customer calculated in default currency. To add formatted amount expressed in the order currency, use <code>{shop_currency($customer.total_spent, null, $order.currency)}</code>.'),
             '$customer.number_of_orders'                                  => _w('Number of orders placed by a customer.'),
             '$customer.last_order_id'                                     => _w('ID of last order placed by a customer. To add formatted order ID, use <code>{shopHelper::encodeOrderId($customer.last_order_id)}</code>.'),

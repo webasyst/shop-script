@@ -12,7 +12,7 @@ class shopSettingsMarketplacesAction extends waViewAction
         }
 
         $installer_url = wa()->getConfig()->getBackendUrl(true);
-        $marketplace_plugins_url = $installer_url . 'installer/?module=plugins&action=view&filter[tag]=marketplaces';
+        $marketplace_plugins_url = $installer_url . 'installer/?module=plugins&action=view&slug=shop&filter[tag]=marketplaces';
 
         $this->view->assign([
             "marketplace_plugins_url" => $marketplace_plugins_url,

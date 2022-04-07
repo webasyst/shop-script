@@ -82,17 +82,18 @@ class shopProductSkusModel extends shopSortableModel implements shopProductStora
         // get aggregated info of skus for this product
         $sql = <<<SQL
         SELECT
-  COUNT(`id`) AS `cnt`,
-  MAX(`price`) AS `max_price`,
-  MIN(`price`) AS `min_price`,
-  MAX(`price` / `stock_base_ratio`) AS `max_base_price`,
-  MIN(`price` / `stock_base_ratio`) AS `min_base_price`,
-  SUM(IF((`count` < 0) OR (`available` != 1), 0, `count`)) `count`
-FROM `{$this->table}`
+    COUNT(ps.`id`) AS `cnt`,
+    MAX(ps.`price`) AS `max_price`,
+    MIN(ps.`price`) AS `min_price`,
+    MAX(ps.`price` / IFNULL(ps.`stock_base_ratio`, p.`stock_base_ratio`)) AS `max_base_price`,
+    MIN(ps.`price` / IFNULL(ps.`stock_base_ratio`, p.`stock_base_ratio`)) AS `min_base_price`,
+    SUM(IF((ps.`count` < 0) OR (ps.`available` != 1), 0, ps.`count`)) AS `count`
+FROM `{$this->table}` ps
+LEFT JOIN shop_product p on p.id = ps.product_id
 WHERE
-  (`product_id` = {$product['id']})
+  (ps.`product_id` = {$product['id']})
   AND
-  (`id` != {$sku_id})
+  (ps.`id` != {$sku_id})
 SQL;
         $data = $this->query($sql)->fetchAssoc();
 
@@ -113,14 +114,15 @@ SQL;
         $update = array(
             'max_price' => $currency != $primary ? $this->convertPrice($data['max_price'], $currency) : $data['max_price'],
             'min_price' => $currency != $primary ? $this->convertPrice($data['min_price'], $currency) : $data['min_price'],
-            'max_base_price' => $data['max_base_price'],
-            'min_base_price' => $data['min_base_price'],
+            'max_base_price' => $currency != $primary ? $this->convertPrice($data['max_base_price'], $currency) : $data['max_base_price'],
+            'min_base_price' => $currency != $primary ? $this->convertPrice($data['min_base_price'], $currency) : $data['min_base_price'],
             'sku_count' => $data['cnt']
         );
 
-        $sql = "SELECT `price` / `stock_base_ratio` AS `base_price`
-                FROM `{$this->table}`
-                WHERE `product_id` = {$product['id']}";
+        $sql = "SELECT ps.`price` / IFNULL(ps.`stock_base_ratio`, p.`stock_base_ratio`) AS `base_price`
+                FROM `{$this->table}` ps
+                LEFT JOIN shop_product p on p.id = ps.product_id
+                WHERE ps.`product_id` = {$product['id']}";
         if ($product['sku_id'] == $sku_id) {
             $item = $this->query("SELECT id AS sku_id, price FROM `{$this->table}` WHERE product_id = {$product['id']} AND id != {$sku_id} LIMIT 1")->fetchAssoc();
             if (!$item) {
@@ -131,9 +133,9 @@ SQL;
             }
             $update += $item;
 
-            $sql .= ' ORDER BY `id` LIMIT 1';
+            $sql .= ' ORDER BY ps.`id` LIMIT 1';
         } else {
-            $sql .= " AND `id` = {$product['sku_id']}";
+            $sql .= " AND ps.`id` = {$product['sku_id']}";
         }
 
         $base_price = $this->query($sql)->fetchField('base_price');

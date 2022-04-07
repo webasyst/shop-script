@@ -18,7 +18,7 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '9.1.0', // developer preview
+    'version'          => '9.1.0',
     'critical'         => '9.0.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,

@@ -981,9 +981,9 @@ class shopProductModel extends waModel
         $update_product_data['sku_count'] = count($skus);
         $update_product_data['min_price'] = $currency_model->convert(min($price), $product['currency'], $currency);
         $update_product_data['max_price'] = $currency_model->convert(max($price), $product['currency'], $currency);
-        $update_product_data['base_price'] = $product_base_price;
-        $update_product_data['min_base_price'] = min($base_prices);
-        $update_product_data['max_base_price'] = max($base_prices);
+        $update_product_data['base_price'] = $currency_model->convert($product_base_price, $product['currency'], $currency);
+        $update_product_data['min_base_price'] = $currency_model->convert(min($base_prices), $product['currency'], $currency);
+        $update_product_data['max_base_price'] = $currency_model->convert(max($base_prices), $product['currency'], $currency);
         $update_product_data['price'] = $currency_model->convert($skus[$product['sku_id']]['price'], $product['currency'], $currency);
         if (isset($skus[$product['sku_id']]['compare_price'])) {
             $update_product_data['compare_price'] = $currency_model->convert($skus[$product['sku_id']]['compare_price'], $product['currency'], $currency);

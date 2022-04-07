@@ -2602,7 +2602,7 @@ msgstr "Название для внутреннего использовани�
 msgid "Sending rules"
 msgstr "Правила отправки"
 
-msgid "Send for customer‘s first paid order only"
+msgid "Send for customer’s first paid order only"
 msgstr "Отправлять только для первого оплаченного заказа покупателя"
 
 msgid "HTML + Smarty"
@@ -6738,7 +6738,7 @@ msgstr "Конец интервала времени доставки"
 msgid "Shipping date and time, for example: February 16, 10:00 - 20:30"
 msgstr "Дата и время доставки, например: 16 февраля, 10:00 - 20:30"
 
-msgid "Relative URL of ordered product‘s main image with specified size."
+msgid "Relative URL of ordered product’s main image with specified size."
 msgstr "Относительный URL основного изображения заказанного товара с указанием размера."
 
 msgid "<code>$item</code> must be an item of <code>$order.items</code> array."
@@ -6759,10 +6759,10 @@ msgstr "Отправлять, только если статус заказа, �
 msgid "Social sharing URL (og:url)"
 msgstr "Ссылка для соцсетей (og:url)"
 
-msgid "If at least one og: value above is not empty, then you may keep this field empty for og:url meta tag to contain this storefront‘s URL by default. Or type a custom og:url value manually, if necessary."
+msgid "If at least one og: value above is not empty, then you may keep this field empty for og:url meta tag to contain this storefront’s URL by default. Or type a custom og:url value manually, if necessary."
 msgstr "Если хотя бы одно из значений метатегов og: выше заполнено, то это поле можно оставить пустым — в метатег og:url по умолчанию подставится URL витрины. Или вручную отредактируйте значение og:url, если необходимо."
 
-msgid "Amount of customer‘s bonuses accumulated with the “Loyalty program” enabled in store settings. To show a limited number of decimal digits, add a modified as shown in the example: <em>{$customer.affiliate_bonus|wa_format_number:0}</em> (no decimal digits)."
+msgid "Amount of customer’s bonuses accumulated with the “Loyalty program” enabled in store settings. To show a limited number of decimal digits, add a modified as shown in the example: <em>{$customer.affiliate_bonus|wa_format_number:0}</em> (no decimal digits)."
 msgstr "Количество бонусов, накопленных покупателем в рамках «Бонусной программы», включенной в настройках магазина. Чтобы показать ограниченное количество знаков после запятой, добавьте модификатор, как показано в примере: <em>{$customer.affiliate_bonus|wa_format_number:0}</em> (не показывать цифры после запятой)."
 
 msgid "Total amount of money spent by a customer calculated in default currency. To add formatted amount expressed in the order currency, use <code>{shop_currency($customer.total_spent, null, $order.currency)}</code>."
@@ -7083,7 +7083,7 @@ msgstr "Выберите параметры, которые будут дост�
 msgid "Show all"
 msgstr "Показать все"
 
-msgid "To edit countries and regions, you need to access the “Settings” app‘s."
+msgid "To edit countries and regions, you need to have access to the Settings app."
 msgstr "Чтобы редактировать страны и регионы, вам необходимо получить доступ к приложению «Настройки»."
 
 msgid "Working schedule"
@@ -8325,7 +8325,7 @@ msgstr "Редактирование заказов, добавленных вр
 msgid "Select which fields must available for the editing of orders with selected order source “%s”."
 msgstr "Выберите, какие поля должны быть доступны при редактировании заказов, для которых выбран источник «%s»."
 
-msgid "If a storefront is selected as an order‘s source then that storefront’s checkout settings define which fields are available for order editing."
+msgid "If a storefront is selected as an order’s source then that storefront’s checkout settings define which fields are available for order editing."
 msgstr "Если в качестве источника заказа выбрана витрина, то при редактировании заказа доступны поля, включенные в настройках оформления заказа для этой витрины."
 
 msgid "Use custom settings"
@@ -10920,7 +10920,7 @@ msgstr "Стандартный режим"
 msgid "SKU as product"
 msgstr "Артикул как товар"
 
-msgid "For a product with <em>multiple</em> SKUs, a separate row is exported with product-related data and additional rows are exported with the product‘s SKUs. A product with <em>one</em> SKU is exported in one row."
+msgid "For a product with <em>multiple</em> SKUs, a separate row is exported with product-related data and additional rows are exported with the product’s SKUs. A product with <em>one</em> SKU is exported in one row."
 msgstr "Для товара с <em>несколькими</em> артикулами отдельно экспортируется строка с информацией о товаре и отдельно — строки с информацией о каждом артикуле. Товар с <em>одним</em> артикулом экспортируется в виде одной строки."
 
 msgid "For each product SKU, a separate row, containing that SKU’s properties, is added to a file. If some SKU property is empty but has a value stored in the common product data then such a common property value is exported to an SKU row. No separate row with common product data is exported."
@@ -11822,3 +11822,33 @@ msgstr "Нет информации"
 
 msgid "Unavailable"
 msgstr "Недоступен"
+
+msgid "Online marketplaces"
+msgstr "Маркетплейсы"
+
+msgid "Below are listed plugins for connecting your online store to various online marketplaces."
+msgstr "Ниже перечислены плагины, с помощью которых можно подключить интернет-магазин к различным маркетплейсам."
+
+msgid "Select and install the plugins for the online marketplaces you want to work with."
+msgstr "Выберите и установите плагины тех маркетплейсов, с которыми вы планируете сотрудничать."
+
+msgid "After the plugins have been installed, their additional settings will become available in various backend sections."
+msgstr "После установки плагинов в разных частях панели управления магазина появятся дополнительные настройки для работы с ними."
+
+msgid "Please find the user manual to learn how to work with each of the plugins on its page in the Webasyst Store."
+msgstr "Инструкция по работе с каждым из плагинов доступна на странице с его описанием в магазине Webasyst."
+
+msgid "Online marketplaces plugins"
+msgstr "Плагины маркетплейсов"
+
+msgid "Bonus points rounding"
+msgstr "Округление бонусов"
+
+msgid "Integer points"
+msgstr "Целые баллы"
+
+msgid "The precision of this value must not exceed<br>that of the product’s add-to-cart step value."
+msgstr "Точность значения не должна превышать<br>точность шага добавления в корзину для этого товара."
+
+msgid "Accruals will be made only by integer bonus points—one point per whole amount specified in the “%s” field. For a remainder below that amount no points will be accrued."
+msgstr "Начисление будет выполняться только целыми баллами: один балл за полную сумму, указанную в поле «%s». На остаток меньше этой суммы баллы начисляться не будут."

@@ -2,7 +2,7 @@
 
 {* ДАННЫЕ *}
 
-{$_page_title = _w("Маркетплейсы")}
+{$_page_title = _w("Online marketplaces")}
 
 {/strip}
 
@@ -14,10 +14,10 @@
     <div class="s-page-header">
         <h1 class="s-title">{$_page_title}</h1>
         <ul>
-            <li>[`Здесь перечислены плагины, с помощью которых можно подключить интернет-магазин к маркетплейсам.`]</li>
-            <li>[`Выберите и установите плагины тех маркетплейсов, с которыми вы планируете сотрудничать.`]</li>
-            <li>[`После установки плагинов в разных частях панели управления магазина появятся дополнительные настройки для работы с ними.`]</li>
-            <li>[`Инструкция по работе с каждым из плагинов доступна на странице с его описанием в магазине Webasyst.`]</li>
+            <li>[`Below are listed plugins for connecting your online store to various online marketplaces.`]</li>
+            <li>[`Select and install the plugins for the online marketplaces you want to work with.`]</li>
+            <li>[`After the plugins have been installed, their additional settings will become available in various backend sections.`]</li>
+            <li>[`Please find the user manual to learn how to work with each of the plugins on its page in the Webasyst Store.`]</li>
         </ul>
     </div>
 
@@ -27,12 +27,13 @@
         {if !empty($backend_settings_marketplaces)}{foreach $backend_settings_marketplaces as $_}{ifset($_.middle)}{/foreach}{/if}
 
         <div class="s-marketplace-wrapper">
-            <h2 class="s-title">[`Плагины маркетплейсов`]</h2>
+            <h2 class="s-title">[`Online marketplaces plugins`]</h2>
             <div class="s-frame-wrapper " id="js-marketplace-plugins"></div>
             <script>( function($) {
                 var plugins_url = sessionStorage.getItem("shop/settings/marketplaces");
                 plugins_url = (plugins_url ? plugins_url : {$marketplace_plugins_url|json_encode});
                 $("#js-marketplace-plugins").html('<i class="icon16 loading"></i>').load(plugins_url);
+                sessionStorage.removeItem("shop/settings/marketplaces");
             })(jQuery);</script>
         </div>
     </div>
