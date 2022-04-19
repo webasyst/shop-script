@@ -63,7 +63,7 @@
                         {% if (file.responseText) { %}
                             {%#file.responseText%}
                         {% } else { %}
-                            {%=$_('Failed to upload. Most probably, there were not enough memory to create thumbnails.')%}.
+                            {%=$_('Failed to upload. Most probably, there is not enough memory to create thumbnails.')%}.
                         {% } %}
                     {% } else { %}
                         {%=file.error%}
@@ -117,7 +117,7 @@ $(function() {
             }{/literal}));
 
             enable_2x && $('#s-product-image-list img').retina();
-            
+
             // update images for sku settings blocks
             var sku_settings_blocks = $('#shop-productprofile .js-sku-settings');
             sku_settings_blocks.each(function() {

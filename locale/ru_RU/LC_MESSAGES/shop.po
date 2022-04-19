@@ -892,7 +892,7 @@ msgstr "Прервать"
 msgid "Files uploaded with errors"
 msgstr "Файлы, загруженные с ошибками"
 
-msgid "Failed to upload. Most probably, there were not enough memory to create thumbnails."
+msgid "Failed to upload. Most probably, there is not enough memory to create thumbnails."
 msgstr "Не удалось загрузить. Вероятно, недостаточно памяти для создания эскизов изображений."
 
 msgid "Page settings"

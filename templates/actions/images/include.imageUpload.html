@@ -109,7 +109,7 @@
                         {% if (file.responseText) { %}
                             {%#file.responseText%}
                         {% } else { %}
-                            {%=$_('Failed to upload. Most probably, there were not enough memory to create thumbnails.')%}.
+                            {%=$_('Failed to upload. Most probably, there is not enough memory to create thumbnails.')%}.
                         {% } %}
                     {% } else { %}
                         {%=file.error%}
@@ -142,7 +142,7 @@
 
 <script type="text/javascript">
 $(function() {
-    
+
     // Support css-transition. Used by fileupload-ui
     $.support.transition = (function () {
         var transitionEnd = (function () {
@@ -164,12 +164,12 @@ $(function() {
           end: transitionEnd
         }
       })();
-    
+
     // Updated version of $.Widget factory require _destroy methods
     if ($.type($.ui.autocomplete.prototype._destroy) === 'undefined') {
         $.extend($.ui.autocomplete.prototype, {
             _destroy: function() {
-                
+
             }
         });
     }
@@ -177,7 +177,7 @@ $(function() {
     if ($.type($.ui.sortable.prototype._destroy) === 'undefined') {
         $.extend($.ui.sortable.prototype, {
             _destroy: function() {
-                
+
             }
         });
     }
@@ -193,7 +193,7 @@ $(function() {
                 maxFileSize: {waRequest::getUploadMaxFilesize()}
             }
         ]
-    });    
+    });
 });
 </script>
 

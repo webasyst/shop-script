@@ -229,14 +229,19 @@
 
             $field.val(variant_id).trigger("change");
 
-            var feature = getFeature(),
-                sku_id = feature.id,
-                sku = that.skus[sku_id];
+            var feature = getFeature();
+            if (feature) {
+                var sku_id = feature.id,
+                    sku = that.skus[sku_id];
 
-            if (sku) {
-                that.changeSKU(sku, feature.available);
+                if (sku) {
+                    that.updateAvailable(true);
+                    that.changeSKU(sku, feature.available);
+                } else {
+                    that.DEBUG("SKU id error", "error");
+                }
             } else {
-                that.DEBUG("SKU id error", "error");
+                that.updateAvailable(false);
             }
 
             function getFeature() {
@@ -252,8 +257,6 @@
                 var feature = that.features[feature_id];
                 if (feature) {
                     result = feature;
-                } else {
-                    that.DEBUG("Feature error", "error");
                 }
 
                 return result;
@@ -349,7 +352,7 @@
                 var $stock = $(this),
                     stock_sku_id = $stock.data("sku-id");
 
-                if (stock_sku_id + "" === sku_id + "") {
+                if (sku_id && (stock_sku_id + "" === sku_id + "")) {
                     $stock.show();
                 } else {
                     $stock.hide();
@@ -433,6 +436,18 @@
 
                 return services_price;
             }
+        };
+
+        Product.prototype.updateAvailable = function(available) {
+            var that = this;
+
+            that.updateStocks(null);
+
+            that.$wrapper.find(".sku-not-available").css("display", (available ? "none" : ""));
+
+            that.$wrapper.find(".wa-prices-wrapper").css("display", (!available ? "none" : ""));
+
+            that.$button.attr("disabled", !available);
         };
 
         return Product;

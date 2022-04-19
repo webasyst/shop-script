@@ -186,6 +186,8 @@
                             {/function}
 
                             <div class="wa-stocks-list">
+                                <span class="wa-text stock-critical sku-not-available" style="display: none;">[`Товар с выбранным набором характеристик недоступен для покупки`]</span>
+
                                 {foreach $product.skus as $sku}
                                     <div class="wa-stock-wrapper" data-sku-count="{$sku.count|escape}" data-sku-id="{$sku.id|escape}" {if $sku.id != $product.sku_id}style="display:none"{/if}>
                                         {if $sku.stock}

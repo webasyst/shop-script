@@ -119,13 +119,11 @@
                 </a>
             </li>
 
-            {if $wa->locale() == 'ru_RU'}
-                <li>
-                    <a href="?action=settings#/premium/">
-                        <i class="icon16 ss compatibility"></i>[`PREMIUM license functionality`]
-                    </a>
-                </li>
-            {/if}
+            <li>
+                <a href="?action=settings#/premium/">
+                    <i class="icon16 ss compatibility"></i>[`PREMIUM license functionality`]
+                </a>
+            </li>
 
             {if $wa->user()->isAdmin()}
                 <li class="top-padded">

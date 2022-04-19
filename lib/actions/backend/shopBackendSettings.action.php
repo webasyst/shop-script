@@ -20,7 +20,7 @@ class shopBackendSettingsAction extends waViewAction
 
         $model = new waAppSettingsModel();
         $locale = $model->get('webasyst', 'locale');
-        $show_marketplaces = ($locale === "ru_RU");
+        $show_marketplaces = (ifempty($locale, wa()->getLocale()) === "ru_RU");
 
         $this->view->assign([
             "show_marketplaces" => $show_marketplaces,
