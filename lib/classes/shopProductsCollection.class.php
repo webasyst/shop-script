@@ -3048,9 +3048,9 @@ SQL;
      *
      * @param string|array $table Table name to be used in JOIN clause.
      *     Alternatively an associative array may be specified containing values for all method parameters.
-     *     In this case $on and $where parameters are ignored.
-     * @param string $on ON condition FOR JOIN, must not include 'ON' keyword
-     * @param string $where WHERE condition for SELECT, must not include 'WHERE' keyword
+     *     In this case `$on` and $where parameters are ignored.
+     * @param string|null $on ON condition FOR JOIN, must not include 'ON' keyword
+     * @param string|null $where WHERE condition for SELECT, must not include 'WHERE' keyword
      * @return string Specified table's alias to be used in SQL query
      */
     public function addJoin($table, $on = null, $where = null)
@@ -3065,10 +3065,18 @@ SQL;
             if (isset($table['type'])) {
                 $join_type = $table['type'];
             }
+           if (isset($table['alias'])) {
+                $alias = $table['alias'];
+            }
             $table = $table['table'];
         }
 
-        $alias = $this->getAlias($table);
+        if (!isset($alias)) {
+            $alias = $this->getAlias($table);
+            if (is_array($table)) {
+                $table = $table['table'];
+            }
+        }
 
         if (!isset($this->join_index[$alias])) {
             $this->join_index[$alias] = 1;
@@ -3077,10 +3085,10 @@ SQL;
         }
         $alias .= $this->join_index[$alias];
 
-        $join = array(
+        $join = [
             'table' => $table,
             'alias' => $alias,
-        );
+        ];
         if ($on) {
             $join['on'] = str_replace(':table', $alias, $on);
         }
@@ -3091,14 +3099,15 @@ SQL;
         if ($where) {
             $this->where[] = str_replace(':table', $alias, $where);
         }
+
         return $alias;
     }
 
     /**
-     * Returns alias for current table
+     * Returns alias for given table.
      *
-     * @param $table
-     * @return mixed|string
+     * @param array|string $table Table name or associative array with 'table' and 'alias' keys
+     * @return string
      */
     protected function getAlias($table)
     {
@@ -3111,21 +3120,16 @@ SQL;
             $table = $table['table'];
         }
 
-        if (!$alias) {
-            $t = explode('_', $table);
-            foreach ($t as $tp) {
-                if ($tp == 'shop') {
+        if (empty($alias)) {
+            foreach (explode('_', $table) as $key => $value) {
+                if ($key === 0 && $value === 'shop') {
                     continue;
                 }
-                $alias .= substr($tp, 0, 1);
+                $alias .= substr($value, 0, 1);
             }
         }
 
-        if (!$alias) {
-            $alias = $table;
-        }
-
-        return $alias;
+        return (string) $alias;
     }
 
 
