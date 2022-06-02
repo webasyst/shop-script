@@ -171,7 +171,11 @@
     {$_active_sku = $product["skus"][$product["item"]["sku_id"]]|default:null}
     {$_stock_unit = null}
     {if $fractional_config["stock_units_enabled"]}
-        {$_stock_unit = $formatted_units[$product["stock_unit_id"]]}
+        {if isset($product["stock_unit_id"])}
+            {$_stock_unit = $formatted_units[$product["stock_unit_id"]]}
+        {else}
+            {$_stock_unit = $formatted_units[$product["item"]["stock_unit_id"]]}
+        {/if}
     {/if}
 
     <tr data-product-id="{$product.id}" data-index="{$index}" data-item-id="{$product.item.id}" class="s-order-item">
@@ -275,12 +279,12 @@
         <td class="valign-top align-right nowrap">
 
             <div class="s-quantity-section" id="js-quantity-section">
-                {$_order_count_step = $product["order_count_step"]}
+                {$_order_count_step = $product["order_count_step"]|default:1}
                 {if !empty($_active_sku["order_count_step"])}
                     {$_order_count_step = $_active_sku["order_count_step"]}
                 {/if}
 
-                {$_order_count_min = $product["order_count_min"]}
+                {$_order_count_min = $product["order_count_min"]|default:1}
                 {if !empty($_active_sku["order_count_min"])}
                     {$_order_count_min = $_active_sku["order_count_min"]}
                 {/if}
@@ -309,7 +313,7 @@
                     <div class="s-section-footer small" style="margin-top: 4px;">
                         <div class="s-step">
                             <span class="s-label">[`Step`]=</span>
-                            <span class="s-value">{$product["order_multiplicity_factor"]|floatval}</span>
+                            <span class="s-value">{$product["order_multiplicity_factor"]|default:1|floatval}</span>
                             {if !empty($_stock_unit)}
                                 <span class="s-unit">{$_stock_unit["name_short"]}</span>
                             {/if}
@@ -330,9 +334,9 @@
                             $wrapper: $("#js-quantity-section").removeAttr("id"),
                             denominator: {$product["order_multiplicity_factor"]|default:1|floatval|json_encode},
                             step: {$_order_count_step|floatval|json_encode},
-                            min: {$_order_count_min|floatval|json_encode},
-                            max: {$_max|floatval|json_encode}
+                            min: {$_order_count_min|floatval|json_encode}
                         });
+                        {* max: {$_max|floatval|json_encode} *}
                     })(jQuery);
                 </script>
             </div>

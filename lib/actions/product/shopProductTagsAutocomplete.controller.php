@@ -18,11 +18,19 @@ class shopProductTagsAutocompleteController extends waController
         }
 
         $tags = array();
-        foreach ($tag_model->select('name')->where($where)->limit($limit)->fetchAll() as $tag) {
-            $tags[] = array(
-                'value' => $tag['name'],
-                'label' => htmlspecialchars($tag['name'])
-            );
+        try {
+            foreach ($tag_model->select('name')->where($where)->limit($limit)->fetchAll() as $tag) {
+                $tags[] = array(
+                    'value' => $tag['name'],
+                    'label' => htmlspecialchars($tag['name'])
+                );
+            }
+        } catch (waDbException $dbe) {
+            if ($dbe->getCode() === 1267) {
+                $tags = [];
+            } else {
+                throw $dbe;
+            }
         }
         echo json_encode($tags);
     }

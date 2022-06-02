@@ -1281,24 +1281,19 @@ class shopOrder implements ArrayAccess
     {
         $usage = array();
         foreach ($items as $i) {
-            switch ($i['type']) {
-                case 'product':
-                    $sku_id = intval($i['sku_id']);
-                    $stock_id = intval($i['stock_id']);
-                    if (!isset($usage[$sku_id][$stock_id])) {
-                        $usage[$sku_id][$stock_id] = 0;
-                    }
-                    $usage[$sku_id][$stock_id] += $i['quantity'];
-                    $sku_ids[$sku_id] = $sku_id;
-                    break;
+            if ($i['type'] == 'product') {
+                $sku_id = intval($i['sku_id']);
+                if (!isset($usage[$sku_id])) {
+                    $usage[$sku_id] = 0;
+                }
+                $usage[$sku_id] += $i['quantity'];
+                $sku_ids[$sku_id] = $sku_id;
             }
         }
+
         return $usage;
     }
 
-    /**
-     * @todo complete & test validation code
-     */
     private function validateStockExceed()
     {
         $this->product_skus_model = new shopProductSkusModel();
@@ -1308,71 +1303,39 @@ class shopOrder implements ArrayAccess
         // calc current quantity usage
         $usage = $this->getStockUsage($this->data['items'], $sku_ids);
 
-        // calc old quantity usage of this order (if order is new, than array will be empty)
+        // calc old quantity usage of this order (if order is new, then array will be empty)
         $old_usage = $this->getStockUsage($this->initOriginalItems(), $sku_ids);
 
         // calc stock counts
         $sku_stocks = $this->stocks();
 
-        $skus = $this->product_skus_model->getByField('id', $sku_ids, 'id');
         $counts = array();
 
-        foreach ($sku_stocks as $sku_id => &$stock) {
+        foreach ($sku_stocks as $sku_id => $stock) {
             if (!is_array($stock)) {
-                $counts[$sku_id][0] = $stock;
+                $counts[$sku_id] = $stock;
             } else {
-                foreach ($stock as $stock_id => $st) {
-                    $counts[$sku_id][$stock_id] = $st['count'];
-                }
-            }
-        }
-
-        // summarize stock counts with old usage as if temporary return items to stocks
-        foreach ($old_usage as $sku_id => $ou) {
-            if (!isset($counts[$sku_id])) {
-                continue;
-            }
-            if (!is_array($counts[$sku_id])) {
-                $cnt = array_sum((array)$ou);
-                if ($counts[$sku_id] !== null) {
-                    $counts[$sku_id] += $cnt;
-                }
-            } else {
-                if (is_array($ou)) {
-                    foreach ($ou as $stock_id => $cnt) {
-                        if (isset($counts[$sku_id][$stock_id])) {
-                            $counts[$sku_id][$stock_id] += $cnt;
-                        }
+                foreach ($stock as $st) {
+                    if (!isset($counts[$sku_id])) {
+                        $counts[$sku_id] = 0;
                     }
-                } else {
-                    $stock_ids = array_keys($counts[$sku_id]);
-                    $first_stock_id = reset($stock_ids);
-                    $counts[$sku_id][$first_stock_id] += $ou;
+                    if (!isset($st['count'])) {
+                        $counts[$sku_id] = $st['count'];
+                        break;
+                    } else {
+                        $counts[$sku_id] += $st['count'];
+                    }
                 }
             }
         }
 
-        // AND NOW check CURRENT USAGE does not exceed COUNT in stocks
         $error_sku_id = array();
-        foreach ($usage as $sku_id => $u) {
-            if (!isset($counts[$sku_id])) {
+        foreach ($usage as $sku_id => $cnt) {
+            if (!isset($counts[$sku_id]) || (isset($old_usage[$sku_id]) && $old_usage[$sku_id] == $cnt)) {
                 continue;
             }
-            if (is_array($u)) {
-                foreach ($u as $stock_id => $cnt) {
-                    if (isset($old_usage[$sku_id][$stock_id]) && $old_usage[$sku_id][$stock_id] == $cnt) {
-                        continue;
-                    }
-                    if (isset($counts[$sku_id][$stock_id]) && $cnt > $counts[$sku_id][$stock_id]) {
-                        $error_sku_id[] = $sku_id;
-                        break 2;
-                    }
-                }
-            } else {
-                if ($counts[$sku_id] !== null && $u > $counts[$sku_id]) {
-                    $error_sku_id[] = $sku_id;
-                    break;
-                }
+            if ($cnt > $counts[$sku_id]) {
+                $error_sku_id[] = $sku_id;
             }
         }
 

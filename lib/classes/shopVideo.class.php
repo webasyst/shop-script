@@ -107,7 +107,7 @@ class shopVideo
 
     public static function checkVideo($url, &$site = null, &$id = null)
     {
-        if (!preg_match('!^(?:https?://)?(?:www.)?(youtube\.com|youtu\.be|vimeo\.com)/(?:watch\?v=)?([a-z0-9\-_]+)!i', $url, $m)) {
+        if (!preg_match('!^(?:https?://)?(?:www.)?(youtube\.com|youtu\.be|vimeo\.com|rutube\.ru\/video)/(?:watch\?v=|shorts/)?([a-z0-9\-_]+)!i', $url, $m)) {
             return null;
         }
         $site = strtolower($m[1]);
@@ -138,11 +138,17 @@ class shopVideo
             try {
                 if ($site == 'youtube.com' || $site == 'youtu.be') {
                     $file_url = 'http://img.youtube.com/vi/'.$id.'/0.jpg';
-                } else {
+                } elseif ($site == 'vimeo.com') {
                     $n = new waNet(array('format' => waNet::FORMAT_JSON));
                     $desc = $n->query('http://vimeo.com/api/v2/video/'.$id.'.json');
                     if ($desc && !empty($desc[0]['thumbnail_large'])) {
                         $file_url = $desc[0]['thumbnail_large'];
+                    }
+                } else {
+                    $n = new waNet(array('format' => waNet::FORMAT_JSON));
+                    $desc = $n->query('http://rutube.ru/api/video/'.$id);
+                    if ($desc && !empty($desc['thumbnail_url'])) {
+                        $file_url = $desc['thumbnail_url'];
                     }
                 }
 

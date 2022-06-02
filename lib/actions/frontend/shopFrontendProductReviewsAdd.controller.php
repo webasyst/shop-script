@@ -265,12 +265,12 @@ class shopFrontendProductReviewsAddController extends waJsonController
      */
     protected function isValidImage($file)
     {
-        $allowed = array('jpg', 'jpeg', 'png', 'gif');
+        $allowed = array('jpg', 'jpeg', 'png', 'gif', 'webp');
 
         if (!$file->uploaded() || $file->error) {
             return false;
         } elseif (!in_array(strtolower($file->extension), $allowed)) {
-            $this->errors[] = _w("Files with extensions *.gif, *.jpg, *.jpeg, *.png are allowed only.");
+            $this->errors[] = _w("Files with extensions *.gif, *.jpg, *.jpeg, *.png, *.webp are allowed only.");
             return false;
         }
         return true;

@@ -41,8 +41,6 @@
     <script>
         ( function($) {
 
-            document.title = {$_page_title|json_encode} + ' — ' + {$wa->accountName()|json_encode};
-
             var sources = [{
                 id: "wa-settings-marketplaces-css",
                 type: "css",
@@ -61,6 +59,25 @@
                 window.initShopMarketplacesSettingsPage({
                     $wrapper: $("#js-settings-marketplaces-page")
                 });
+            }
+
+            setTitle({$_page_title|json_encode} + ' — ' + {$wa->accountName()|json_encode});
+
+            {*
+             * @description iFrame через внутреннюю магию подменяет title при загрузке плагинов.
+             * Код ниже отслеживает изменения document.title, если он поменялся, то возвращает прежнее значение.
+             *}
+            function setTitle(title) {
+                document.title = title;
+
+                var target = document.querySelector("title");
+                var observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (document.title !== title) { document.title = title; }
+                    });
+                });
+                var config = { childList: true };
+                observer.observe(target, config);
             }
 
         })(jQuery);

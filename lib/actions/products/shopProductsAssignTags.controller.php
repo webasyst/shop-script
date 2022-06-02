@@ -15,7 +15,7 @@ class shopProductsAssignTagsController extends waJsonController
             return;
         }
 
-        $hash = $this->getHash();
+        $hash = shopProductsAddToCategoriesController::getHash();
         $all_product_ids = null;
 
         // delete tags of selected products
@@ -116,7 +116,7 @@ class shopProductsAssignTagsController extends waJsonController
      */
     protected function getDeniedMessage($collection_count)
     {
-        $hash = $this->getHash();
+        $hash = shopProductsAddToCategoriesController::getHash();
 
         if ($hash === 'all') {
             $shop_products_model = new shopProductModel();
@@ -140,13 +140,5 @@ class shopProductsAssignTagsController extends waJsonController
     protected function getProductsId()
     {
         return waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
-    }
-
-    /**
-     * @return string
-     */
-    protected function getHash()
-    {
-        return waRequest::post('hash', '');
     }
 }

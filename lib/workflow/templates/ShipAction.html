@@ -129,6 +129,12 @@
             numberOfMonths: 2,
             stepMonths: 2
         }).datepicker('setDate', date).datepicker('widget').hide();
+
+        $datepicker_text_input.on('change', function () {
+            if ($(this).val() === '') {
+                $hidden_input.val('');
+            }
+        });
     }());
 
     // Time picker

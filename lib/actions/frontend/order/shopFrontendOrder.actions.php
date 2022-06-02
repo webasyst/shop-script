@@ -569,7 +569,14 @@ class shopFrontendOrderActions extends waJsonActions
         }
         $this->action = $action;
         $this->preExecute();
-        $this->execute($this->action);
+        try {
+            $this->execute($this->action);
+        } catch (waException $e) {
+            $default_controller = new waDefaultViewController();
+            $default_controller->executeAction(new shopFrontendPageAction());
+            $default_controller->display();
+            return;
+        }
         $this->postExecute();
 
         if ($this->action == $action) {

@@ -155,7 +155,7 @@
                                         {/foreach}
                                         {capture "template-services-new-product"}{literal}
                                         <tr data-product-id="{%#o.product.id%}" class="s-new-product">
-                                            <td><a href="{%#'{/literal}{shopHelper::getBackendEditorUrl('@s', $edit_rights, ['@r' => null])}{literal}'.replace('@s', o.product.id).replace('@r', o.service_id)%}">{%=o.product.name%}</a></td>
+                                            <td><a href="{%#'{/literal}{shopHelper::getBackendEditorUrl('@s', 'services', ['@r' => null])}{literal}'.replace('@s', o.product.id).replace('@r', o.service_id)%}">{%=o.product.name%}</a></td>
                                             <td class="min-width">
                                                 <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
                                                 <input type="hidden" name="product[]" value="{%#o.product.id%}">

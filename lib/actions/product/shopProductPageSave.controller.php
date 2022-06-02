@@ -38,16 +38,25 @@ class shopProductPageSaveController extends waJsonController
             throw new waException(_w("Access denied"));
         }
 
-        if ($id) {
-            if (!$this->pages_model->update($id, $data)) {
-                $this->errors[] = _w('Error saving product page');
-                return;
+        try {
+            if ($id) {
+                if (!$this->pages_model->update($id, $data)) {
+                    $this->errors[] = _w('Error saving product page');
+                    return;
+                }
+            } else {
+                $id = $this->pages_model->add($data);
+                if (!$id) {
+                    $this->errors[] = _w('Error saving product page');
+                    return;
+                }
             }
-        } else {
-            $id = $this->pages_model->add($data);
-            if (!$id) {
-                $this->errors[] = _w('Error saving product page');
+        } catch (waDbException $dbe) {
+            if ($dbe->getCode() === 1366) {
+                $this->setError(_w('Добавьте поддержку эмодзи'));
                 return;
+            } else {
+                throw $dbe;
             }
         }
 

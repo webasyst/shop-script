@@ -35,7 +35,7 @@ class shopProductAddToListController extends waJsonController
     {
         $model = $this->getProductsModel($type);
         if ($model) {
-            $hash = waRequest::post('hash', '');    // hash of 'source' list (which provides products)
+            $hash = shopProductsAddToCategoriesController::getHash();    // hash of 'source' list (which provides products)
             if (!$hash) {
                 $product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
                 if (!$product_ids) {

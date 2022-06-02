@@ -50,7 +50,7 @@
                 <tr class="s-summary-row">
                     <td style="width:50px;"></td>
                     <td></td>
-                    <td class="align-right nowrap s-wider-cell">{_w('%d item', '%d items', $total_stock)}</td>
+                    <td class="align-right nowrap s-wider-cell">{if !shopUnits::stockUnitsEnabled()}{_w('%d item', '%d items', $total_stock)}{else}{$total_stock}{/if}</td>
                     <td class="nowrap s-wider-cell align-right">{wa_currency_html($purchase_worth, $def_cur)}</td>
                     <td class="s-profit-cell nowrap s-wider-cell align-right">{wa_currency_html($net_worth, $def_cur)}</td>
                     <td style="position: relative;"><div style="position: absolute; left:0;right:0;top:-2px;bottom:-5px;background:#fff;"><!-- hoax element for hiding <tr> shadow --></div></td>
@@ -74,7 +74,7 @@
                             {else}
                                 <i class="icon10 status-red"></i>
                             {/if}
-                            {$p.count}
+                            {$p.count} {if isset($p.count) && shopUnits::stockUnitsEnabled()}{$p.stock_unit|escape}{/if}
                         </td>
                         <td class="align-right nowrap s-wider-cell">{wa_currency_html($p.purchase_worth, $def_cur)}</td>
                         <td class="align-right nowrap s-wider-cell">{wa_currency_html($p.net_worth, $def_cur)}</td>

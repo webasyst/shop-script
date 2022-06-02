@@ -802,7 +802,7 @@
                         var self = this;
 
                         var file_size = file.size,
-                            image_type = /^image\/(png|jpe?g|gif)$/,
+                            image_type = /^image\/(png|jpe?g|gif|webp)$/,
                             is_image_type = (file.type.match(image_type)),
                             is_image = false;
 
@@ -811,7 +811,7 @@
 
                         ext = ext.toLowerCase();
 
-                        var white_list = ["png", "jpg", "jpeg", "gif"];
+                        var white_list = ["png", "jpg", "jpeg", "gif", "webp"];
                         if (is_image_type && white_list.indexOf(ext) >= 0) {
                             is_image = true;
                         }

@@ -8,7 +8,7 @@ class shopProductsAssociatePromoDialogAction extends waViewAction
         $active_promos = $promo_model->getList(['status' => shopPromoModel::STATUS_ACTIVE]);
         $planned_promos = $promo_model->getList(['status' => shopPromoModel::STATUS_PLANNED]);
 
-        $products_hash = waRequest::post('products_hash', null, waRequest::TYPE_STRING_TRIM);
+        $products_hash = shopProductsAddToCategoriesController::getHash(waRequest::TYPE_STRING_TRIM, 'products_hash');
         $collection = new shopProductsCollection($products_hash);
         $products = $collection->getProducts();
 

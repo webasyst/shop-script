@@ -176,7 +176,7 @@
     "select_category" => _w("Please select a category"),
     "storefront_changed" =>  _w('Product publication URL has changed. Storefronts’ addresses will be updated after you click “Save”.'),
     "modification_wysiwyg_message" => _ws('WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?'),
-    "file_type" => _w("Unsupported image type. Use PNG, GIF and JPEG image files only."),
+    "file_type" => _w("Unsupported image type. Use PNG, GIF, WEBP and JPEG image files only."),
     "file_size" => "{_w("Each file’s size cannot be greater than")} {$_max_file_size_mb}{_w("KB")}.",
     "post_size" => "{_w("Total size of selected files cannot be greater than")} {$_max_post_size_mb}{_w("KB")}.",
     "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
@@ -277,7 +277,7 @@
                                     {$_show_toggle = ($_count > $_limit)}
 
                                     {$_locales["storefronts_show"] = _w("Show %d storefront on which the product is available", "Show %d storefronts on which the product is available", $_count)}
-                                    {$_locales["storefronts_hide"] = _w("Hide %d storefront on which the product is available", "Hide %d storefronts on which the product is available", $_count)}
+                                    {$_locales["storefronts_hide"] = _w("Hide storefront list")}
 
                                     <ul class="wa-list space-12 s-storefronts-list js-storefronts-list">
                                         {if !empty($_show_toggle)}

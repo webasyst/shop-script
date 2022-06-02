@@ -19,6 +19,7 @@ class shopCustomersSearchFormAction extends waViewAction
             'utm_campagns' => $this->getUtmCampaigns(),
             'product_name' => $this->getProductName($hash),
             'storefronts' => $this->getStorefronts(),
+            'storefront' => $this->getStorefront($hash),
             'referers' => $this->getReferers()
         ));
     }
@@ -196,6 +197,14 @@ class shopCustomersSearchFormAction extends waViewAction
             $refers[$source_id] = $source_id;
         }
         return array_values($refers);
+    }
+
+    protected function getStorefront($hash)
+    {
+        if (isset($hash['app']['storefront']['val'])) {
+            return stripslashes($hash['app']['storefront']['val']);
+        }
+        return '';
     }
 
 }

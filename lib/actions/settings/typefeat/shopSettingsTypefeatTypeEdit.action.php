@@ -107,6 +107,12 @@ class shopSettingsTypefeatTypeEditAction extends waViewAction
             ]
         ];
 
+        if (!$type) {
+            // Paranoid mode: make sure code does not throw notices
+            $type_model = new shopTypeModel();
+            $type = $type_model->getEmptyRow();
+        }
+
         // значение поля "default" = (string) - Значение поля при отключении параметров (поумолчанию пустота)
         // значение поля "value" = (string) - Значение поля или селекта: значение по умолчанию для товаров этого типа
         // значение поля "status" = (boolean) true|false — Активно на уровне магазина или задизейблено

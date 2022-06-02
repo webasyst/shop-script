@@ -7,7 +7,7 @@
     ],
     "product-media-photo-main" => [
         "id" => "product-media-photo-main",
-        "html" => _w("The main image is selected in the product’s main variant.")
+        "html" => _w("Главным является первое изображение в списке. Для изменения главного изображения передвиньте нужное изображение на первое место.")
     ]
 ]}
 
@@ -132,8 +132,8 @@
                     <template v-else>
                         {strip}
                         <div class="inlinebox top space-16">
-                            <input class="size-medium" type="text"
-                                   placeholder="{_w("Video URL on YouTube or Vimeo")|escape}"
+                            <input class="size-long" type="text"
+                                   placeholder="{_w("Адрес видео на RUTUBE, YouTube или Vimeo")|escape}"
                                    v-bind:class="{ 'wa-error-field': !!errors['product_video_add'] }"
                                    v-on:input="removeError('product_video_add')"
                                    v-model="video.model">
@@ -234,12 +234,6 @@
                     </div>
 
                     <div class="s-photos-list">
-                        <template v-for="file in files">
-                            <div v-bind:data-id="file.id" class="s-photo-wrapper is-new" v-bind:key="file.id">
-                                <component-loading-file v-bind:file="file" v-on:photo_added="onAddedPhoto"></component-loading-file>
-                            </div>
-                        </template>
-
                         <template v-for="photo in photos">
                             <div class="s-photo-wrapper"
                                  v-bind:key="photo.render_key"
@@ -301,6 +295,13 @@
                                         <span class="s-label">[`Not used`]</span>
                                     </template>
                                 </div>
+                            </div>
+                        </template>
+
+                        <template v-for="file in files">
+                            <div v-bind:data-id="file.id" class="s-photo-wrapper is-new" v-bind:key="file.id">
+                                <div class="s-photo-label"></div>
+                                <component-loading-file v-bind:file="file" v-on:photo_added="onAddedPhoto"></component-loading-file>
                             </div>
                         </template>
                     </div>
@@ -366,7 +367,7 @@
                     templates: {$_templates|json_encode},
                     components: {$_components|json_encode},
                     locales: {
-                        "file_type": {_w("Unsupported image type. Use PNG, GIF and JPEG image files only.")|json_encode},
+                        "file_type": {_w("Unsupported image type. Use PNG, GIF, WEBP and JPEG image files only.")|json_encode},
                         "file_size": {_w("Each file’s size cannot be greater than")|json_encode} + " " + {$_max_file_size_mb|json_encode} + {_w("KB")|json_encode} + ".",
                         "post_size": {_w("Total size of selected files cannot be greater than")|json_encode} + " " + {$_max_post_size_mb|json_encode} + {_w("KB")|json_encode} + ".",
                         "use_in_sku_forms": [

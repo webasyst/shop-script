@@ -77,10 +77,19 @@ class shopProdPageSaveController extends waJsonController
                 return;
             }
 
-            $page_id = $this->pages_model->add($page);
-            if (empty($page_id)) {
-                $this->errors[] = _w('Error saving product page');
-                return;
+            try {
+                $page_id = $this->pages_model->add($page);
+                if (empty($page_id)) {
+                    $this->errors[] = _w('Error saving product page');
+                    return;
+                }
+            } catch (waDbException $dbe) {
+                if ($dbe->getCode() === 1366) {
+                    $this->errors[] = ['id' => 'pages', 'text' => _w('Добавьте поддержку эмодзи')];
+                    return;
+                } else {
+                    throw $dbe;
+                }
             }
         } else {
             /** случай обновления данных о подстранице */
@@ -97,9 +106,18 @@ class shopProdPageSaveController extends waJsonController
                 return;
             }
 
-            if (!$this->pages_model->update($page['id'], $page)) {
-                $this->errors[] = _w('Error saving product page');
-                return;
+            try {
+                if (!$this->pages_model->update($page['id'], $page)) {
+                    $this->errors[] = _w('Error saving product page');
+                    return;
+                }
+            } catch (waDbException $dbe) {
+                if ($dbe->getCode() === 1366) {
+                    $this->errors[] = ['id' => 'pages', 'text' => _w('Добавьте поддержку эмодзи')];
+                    return;
+                } else {
+                    throw $dbe;
+                }
             }
             $page_id = $page['id'];
         }

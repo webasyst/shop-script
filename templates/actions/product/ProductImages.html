@@ -50,31 +50,9 @@
 
     <div id="s-product-video-block">
 
-        {if $wa->locale() === 'ru_RU'}
-            <div class="s-alert">
-                <a href="#" class="s-alert-close">&times;</a>
-                Если вы указали адрес видео на YouTube или Vimeo, но не видите этого видео на страницах товаров на витрине, вам необходимо добавить в шаблон дизайна product.html код для отображения видео (код появился при обновлении до Shop-Script 7). Подробная инструкция: <a href="https://www.shop-script.ru/help/12167/add-new-features-7/" target="_blank">https://www.shop-script.ru/help/12167/add-new-features-7/</a>
-            </div>
-            <script>
-                // one-time help block
-                (function() { "use strict";
-                    var $alert_block = $('#s-product-video-block .s-alert')
-                    if ($.storage.get('shop/product/video_alert_hidden')) {
-                        $alert_block.hide();
-                    } else {
-                        $alert_block.show();
-                        $alert_block.find('.s-alert-close').click(function() {
-                            $alert_block.hide();
-                            $.storage.set('shop/product/video_alert_hidden', 1);
-                        });
-                    }
-                })();
-            </script>
-        {/if}
-
-        <form id="s-product-video">
+        <form id="s-product-video" style="margin-top: 1rem;">
             <div>
-                <input type="text" name="url" value="{$product.video_url|escape}" placeholder="[`Video URL on YouTube or Vimeo`]" class="long">
+                <input type="text" name="url" value="{$product.video_url|escape}" placeholder="{_w("Адрес видео на RUTUBE, YouTube или Vimeo")|escape}" class="long">
                 <input type="submit" value="[`Link video`]">
                 <i class="icon16 loading" style="display: none; margin-top: 5px;"></i>
                 <i class="icon16 yes" style="margin-top: 5px;{if !$product.video_url} display: none;{/if}"></i>

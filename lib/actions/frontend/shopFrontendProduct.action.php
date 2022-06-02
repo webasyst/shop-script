@@ -42,7 +42,6 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         $skus = $product->skus;
-
         foreach ($skus as $sku_id => $sku) {
             if (empty($sku['status'])) {
                 unset($skus[$sku_id]);
@@ -52,22 +51,44 @@ class shopFrontendProductAction extends shopFrontendAction
             if ($sku['compare_price'] && ($sku['price'] >= $sku['compare_price'])) {
                 $skus[$sku_id]['compare_price'] = 0.0;
             }
-            $order_count_min = !empty($sku['order_count_min']) ? $sku['order_count_min'] : $product['order_count_min'];
             if ($sku['count'] !== null) {
                 $skus[$sku_id]['count'] = shopFrac::formatQuantityWithMultiplicity($sku['count'], $product['order_multiplicity_factor']);
             }
             foreach ($sku['stock'] as $stock_id => $stock_value) {
                 if ($stock_value !== null) {
-                    if ($stock_value < $order_count_min) {
-                        $skus[$sku_id]['stock'][$stock_id] = 0;
-                    } else {
-                        $skus[$sku_id]['stock'][$stock_id] = shopFrac::formatQuantityWithMultiplicity($stock_value, $product['order_multiplicity_factor']);
-                    }
+                    $skus[$sku_id]['stock'][$stock_id] = shopFrac::formatQuantityWithMultiplicity($stock_value, $product['order_multiplicity_factor']);
                 }
             }
             // Public virtual stock counts for each SKU
             if (!empty($skus[$sku_id]['stock'])) {
                 $skus[$sku_id]['stock'] = shopHelper::fillVirtulStock($skus[$sku_id]['stock']);
+            }
+        }
+
+        if (wa('shop')->getSetting('limit_main_stock')) {
+            $public_stocks = [waRequest::param('stock_id')];
+        } else {
+            $public_stocks = waRequest::param('public_stocks');
+            if (!is_array($public_stocks)) {
+                $public_stocks = $this->getVisibleStocks();
+            }
+        }
+
+        if (!empty($public_stocks) && !$this->getConfig()->getGeneralSettings('ignore_stock_count')) {
+            $count = $this->countOfSelectedStocks($public_stocks, $skus);
+            if ($count === 0.0) {
+                $product->status = 0;
+            }
+        }
+
+        foreach ($skus as $sku_id => $sku) {
+            $order_count_min = !empty($sku['order_count_min']) ? $sku['order_count_min'] : $product['order_count_min'];
+            foreach ($sku['stock'] as $stock_id => $stock_value) {
+                if ($stock_value !== null) {
+                    if ($stock_value < $order_count_min) {
+                        $skus[$sku_id]['stock'][$stock_id] = 0.0;
+                    }
+                }
             }
         }
         $product->skus = $skus;
@@ -134,16 +155,42 @@ class shopFrontendProductAction extends shopFrontendAction
         wa('shop')->event('frontend_products', $event_params);
         $product['skus'] = $skus;
 
-        $public_stocks = waRequest::param('public_stocks');
+        $product->tags = array_map('htmlspecialchars', $product->tags);
+    }
 
-        if (!empty($public_stocks)) {
-            $count = $this->countOfSelectedStocks($public_stocks, $product->skus);
-            if ($count === 0 && !$this->getConfig()->getGeneralSettings('ignore_stock_count')) {
-                $product->status = 0;
+    /**
+     * Gets all the stocks visible to the storefront.
+     * If all stocks are visible, then the recalculation is not needed
+     * @return array|null
+     */
+    protected function getVisibleStocks()
+    {
+        $all_stocks = shopHelper::getStocks();
+        $visible_stocks = [];
+        $is_all_visible = true;
+
+        if ($all_stocks) {
+            foreach ($all_stocks as $id => $stock) {
+                if ($stock['public'] == 0) {
+                    $is_all_visible = false;
+                    continue;
+                }
+
+                //if it is virtual stock
+                if (!wa_is_int($id) && is_array($stock['substocks'])) {
+                    $visible_stocks = array_merge($visible_stocks, $stock['substocks']);
+                    continue;
+                }
+                $visible_stocks[] = $id;
             }
+
         }
 
-        $product->tags = array_map('htmlspecialchars', $product->tags);
+        if ($is_all_visible) {
+            return null;
+        }
+
+        return array_unique($visible_stocks);
     }
 
     protected function assignFeaturesSelectable(shopProduct $product)
@@ -528,11 +575,36 @@ class shopFrontendProductAction extends shopFrontendAction
 
         /** Settings of features that are used in product. This does not necessarily contains all features used in SKUs. */
         $product_features = array_intersect_key($all_features, $product_feature_values);
+        $this->deleteLastDividers($product_features);
 
         /** Settings of all features used in product or SKUs */
         $used_features = array_intersect_key($all_features, $used_feature_codes);
+        $this->deleteLastDividers($used_features);
 
         return [$product_features, $used_features, $skus_with_features];
+    }
+
+    /**
+     * @param array $features
+     */
+    protected function deleteLastDividers(&$features)
+    {
+        if (is_array($features)) {
+            $keys = array_keys($features);
+            foreach ($keys as $i => $key) {
+                if (isset($features[$key]['type']) && $features[$key]['type'] == shopFeatureModel::TYPE_DIVIDER) {
+                    $next_key = isset($keys[$i+1]) ? $keys[$i+1] : '';
+                    if (strlen($next_key) && isset($features[$next_key]['type']) && $features[$next_key]['type'] == shopFeatureModel::TYPE_DIVIDER) {
+                        unset($features[$key]);
+                    } else {
+                        $last_element = end($features);
+                        if (isset($last_element['type']) && $last_element['type'] == shopFeatureModel::TYPE_DIVIDER) {
+                            array_pop($features);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

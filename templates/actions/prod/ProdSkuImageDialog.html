@@ -29,12 +29,6 @@
                     </div>
 
                     <div class="s-photos-list">
-                        <template v-for="file in files">
-                            <div class="s-photo-wrapper is-new" v-bind:key="file.id">
-                                <component-loading-file v-bind:file="file" v-on:photo_added="onAddedPhoto"></component-loading-file>
-                            </div>
-                        </template>
-
                         <template v-for="photo in photos">
                             <div class="s-photo-wrapper" v-bind:class="{ 'is-active' : (active_photo && photo.id === active_photo.id) }">
                                 <div class="s-photo"
@@ -55,6 +49,12 @@
                                         </div>
                                     </form>
                                 </div>
+                            </div>
+                        </template>
+
+                        <template v-for="file in files">
+                            <div class="s-photo-wrapper is-new" v-bind:key="file.id">
+                                <component-loading-file v-bind:file="file" v-on:photo_added="onAddedPhoto"></component-loading-file>
                             </div>
                         </template>
                     </div>

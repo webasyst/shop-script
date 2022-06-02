@@ -25,10 +25,20 @@ class shopProdSaveSeoController extends waJsonController
         }
 
         if (!$this->errors) {
-            $product->save($product_data, true, $errors);
+            try {
+                $product->save($product_data, true, $errors);
+            } catch (waDbException $dbe) {
+                if ($dbe->getCode() === 1366) {
+                    $this->errors[] = ['text' => _w('Добавьте поддержку эмодзи')];
+                } else {
+                    throw $dbe;
+                }
+            }
             if (!$errors) {
-                $this->logAction('product_edit', $product_data['id']);
-                $this->response['product_id'] = $product->getId();
+                if (!$this->errors) {
+                    $this->logAction('product_edit', $product_data['id']);
+                    $this->response['product_id'] = $product->getId();
+                }
             } else {
                 // !!! TODO format errors properly, if any happened
                 $this->errors[] = [

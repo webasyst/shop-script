@@ -126,10 +126,21 @@ class shopFrontendCategoryAction extends shopFrontendAction
         }
         $this->view->assign('category', $category);
 
+        $simple_collection = new shopProductsCollection('category/'.$category['id']);
+        $this->setCollectionParams($simple_collection, false);
+        $full_sql = "SELECT DISTINCT p.stock_unit_id " . $simple_collection->getSQL();
+        $filtered_stock_unit_ids = $this->getModel()->query($full_sql)->fetchAll('stock_unit_id');
+        $filtered_stock_unit_ids = array_keys($filtered_stock_unit_ids);
+        $sort = waRequest::get('sort', null, waRequest::TYPE_STRING_TRIM);
+        $this->view->assign('filtered_stock_unit_ids', $filtered_stock_unit_ids);
+        $additional_filters = [];
+        if (count($filtered_stock_unit_ids) == 1 && $sort == 'base_price') {
+            $additional_filters['sort'] = 'price';
+        }
+
         // products
         $collection = new shopProductsCollection('category/'.$category['id']);
-
-        $this->setCollection($collection);
+        $this->setCollection($collection, $additional_filters);
 
         $filter_data = waRequest::get();
         $filters = array();
@@ -153,6 +164,9 @@ class shopFrontendCategoryAction extends shopFrontendAction
                             'min' => shop_currency($range['min'], null, null, false),
                             'max' => shop_currency($range['max'], null, null, false),
                         );
+                        if (($filters['price']['max'] - $filters['price']['min']) <= 1) {
+                            $filters['price']['max'] +=2;
+                        }
                     }
                 }
                 elseif (isset($features[$fid]) && isset($category_value_ids[$fid])) {
@@ -345,6 +359,31 @@ class shopFrontendCategoryAction extends shopFrontendAction
 
         $units = shopHelper::getUnits();
         $this->view->assign('units', $units);
+        $product_units_prices = $this->getProductUnitIds($collection);
+        if ($product_units_prices) {
+            foreach ($product_units_prices as &$unit) {
+                $range = $collection->getPriceRange($unit['id']);
+                if ($range['min'] != $range['max']) {
+                    $unit += [
+                        'min' => shop_currency($range['min'], null, null, false),
+                        'max' => shop_currency($range['max'], null, null, false),
+                    ];
+                } else {
+                    $unit_min = min('0', shop_currency($range['min'], null, null, false));
+                    $unit_max = max('0', shop_currency($range['max'], null, null, false));
+                    $unit += [
+                        'min' => $unit_min,
+                        'max' => $unit_max,
+                    ];
+                }
+                if (($unit['max'] - $unit['min']) <= 1) {
+                    $unit['max'] +=2;
+                }
+            }
+            unset($unit);
+        }
+        $this->view->assign('product_units_prices', $product_units_prices);
+
         $this->view->assign('formatted_units', shopFrontendProductAction::formatUnits($units));
         $this->view->assign('fractional_config', shopFrac::getFractionalConfig());
 
@@ -374,5 +413,19 @@ class shopFrontendCategoryAction extends shopFrontendAction
             return 0;
         }
         return ($a['sort'] < $b['sort']) ? -1 : 1;
+    }
+
+    /**
+     * @param shopProductsCollection $collection
+     * @return array
+     * @throws waException
+     */
+    protected function getProductUnitIds($collection)
+    {
+        list($stock_units_ids, $base_units_ids, $all_base_unit_ids) = $collection->getAllUnitIds();
+        $unique_units_ids = $stock_units_ids + $all_base_unit_ids;
+        $unit_model = new shopUnitModel();
+        $units = $unit_model->select('id')->where('`status` = 1')->fetchAll('id');
+        return array_intersect_key($units, $unique_units_ids);
     }
 }

@@ -1656,7 +1656,15 @@ SQL;
     public static function isProductUrlInUse($product)
     {
         $col = new shopProductsCollection("search/url={$product['url']}&id!={$product['id']}");
-        $count = $col->count();
+        try {
+            $count = $col->count();
+        } catch (waDbException $dbe) {
+            if ($dbe->getCode() === 1267) {
+                return _w('Добавьте поддержку эмодзи');
+            } else {
+                throw $dbe;
+            }
+        }
         if ($count <= 0) {
             return '';
         }

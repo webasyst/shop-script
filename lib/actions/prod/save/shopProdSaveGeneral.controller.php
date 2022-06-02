@@ -22,7 +22,16 @@ class shopProdSaveGeneralController extends waJsonController
 
         if (!$this->errors) {
             /** @var shopProduct $product */
-            $product = $this->saveProduct($product, $product_data);
+            try {
+                $product = $this->saveProduct($product, $product_data);
+            } catch (waDbException $dbe) {
+                $ex_code = $dbe->getCode();
+                if (in_array($ex_code, [1267, 1366])) {
+                    $this->errors[] = ['text' => _w('Добавьте поддержку эмодзи')];
+                } else {
+                    throw $dbe;
+                }
+            }
         }
 
         if (!$this->errors) {
@@ -316,41 +325,74 @@ class shopProdSaveGeneralController extends waJsonController
 
     public static function updateMainImage(&$product_data, $product_id, $type_id)
     {
-        // Image of the main SKU must also be set as main product image.
-        $sku = null;
-        if (isset($product_data['sku_id']) && isset($product_data['skus'][$product_data['sku_id']])) {
-            $sku = $product_data['skus'][$product_data['sku_id']];
-        } elseif (isset($product_data['skus']) && count($product_data['skus']) == 1) {
-            $sku = reset($product_data['skus']);
-        }
-        $is_simple_product = true;
-        $has_features_values = shopProdSkuAction::checkProductFeaturesValues($product_id, $type_id);
-        if ($sku && (count($product_data['skus']) > 1 || $has_features_values
-                || ifempty($product_data, 'params', 'multiple_sku', null)
-                || !empty($product_data['features_selectable_ids']))
-        ) {
-            $is_simple_product = false;
-        }
-        if (!empty($sku['image_id'])) {
+        if ($product_id > 0) {
+            $original_product = new shopProduct($product_id);
+            $features_selectable_model = new shopProductFeaturesSelectableModel();
+            $is_simple_product = self::isSimpleProduct($product_data, $product_id, $type_id);
+            $original_product_data = [
+                'skus' => $original_product->getSkus(),
+                'params' => $original_product->params,
+                'features_selectable_ids' => $features_selectable_model->getByProduct($product_id)
+            ];
+            $is_simple_product_before_save = self::isSimpleProduct($original_product_data, $product_id, $original_product->type_id);
+
             $product_images_model = new shopProductImagesModel();
-            $image = $product_images_model->getById($sku['image_id']);
+            $image = null;
+            if ($is_simple_product) {
+                if ($is_simple_product_before_save) {
+                    $main_sku = reset($product_data['skus']);
+                    if (!empty($main_sku['image_id'])) {
+                        $image = $product_images_model->getById($main_sku['image_id']);
+                        if ($image) {
+                            $product_images_model->updateByField([
+                                'product_id' => $product_id,
+                                'sort' => 0
+                            ], ['sort' => $image['sort']]);
+                            $product_images_model->updateByField([
+                                'product_id' => $product_id,
+                                'id' => $image['id']
+                            ], ['sort' => 0]);
+                        }
+                    }
+                } else {
+                    $image = $product_images_model->select('id, filename, ext')->where('product_id = ?', (int)$product_id)->order('sort')->limit(1)->fetchAssoc();
+                }
+                foreach ($product_data['skus'] as $sku_id => $sku_data) {
+                    if (isset($sku_data['image_id'])) {
+                        $product_data['skus'][$sku_id]['image_id'] = null;
+                    }
+                }
+            } else {
+                $image = $product_images_model->select('id, filename, ext')->where('product_id = ?', (int)$product_id)->order('sort')->limit(1)->fetchAssoc();
+            }
+
             if ($image) {
                 $product_data = array_merge($product_data, [
                     'image_filename' => $image['filename'],
                     'image_id' => $image['id'],
                     'ext' => $image['ext'],
                 ]);
-                if ($is_simple_product) {
-                    $product_images_model->updateByField([
-                        'product_id' => $product_id,
-                        'sort' => 0
-                    ], ['sort' => $image['sort']]);
-                    $product_images_model->updateByField([
-                        'product_id' => $product_id,
-                        'id' => $image['id']
-                    ], ['sort' => 0]);
-                }
             }
         }
+    }
+
+    protected static function isSimpleProduct($product_data, $product_id, $type_id)
+    {
+        $is_simple_product = true;
+        $has_features_values = shopProdSkuAction::checkProductFeaturesValues($product_id, $type_id);
+        $count_skus = 0;
+
+        foreach ($product_data['skus'] as $sku_data) {
+            if (!empty($sku_data)) {
+                $count_skus++;
+            }
+        }
+        if ($count_skus > 1 || $has_features_values || ifempty($product_data, 'params', 'multiple_sku', null)
+            || !empty($product_data['features_selectable_ids'])
+        ) {
+            $is_simple_product = false;
+        }
+
+        return $is_simple_product;
     }
 }

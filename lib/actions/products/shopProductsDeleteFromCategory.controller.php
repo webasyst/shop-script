@@ -9,7 +9,7 @@ class shopProductsDeleteFromCategoryController extends waJsonController
         }
 
         $model = new shopCategoryProductsModel();
-        $hash = waRequest::post('hash', '');
+        $hash = shopProductsAddToCategoriesController::getHash();
         $category_id = waRequest::get('id');
 
         if (!$hash) {

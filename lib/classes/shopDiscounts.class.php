@@ -1008,8 +1008,9 @@ HTML;
 
         if ($item['discount']) {
             $item['discount'] = min(max(0, $item['discount']), shop_currency($item['price'], ifempty($item, 'currency', $currency), $currency, false) * $item['quantity']);
-            // round discount per one item
-            if ($item['quantity'] > 1) {
+            // modify discount, making sure discount per one item is a whole number of cents,
+            // unless shop is set up to split one of the order items into two in such cases
+            if ($item['quantity'] > 1 && !wa()->getSetting('discount_distrbution_split', 0)) {
                 $round_discount = $item['quantity'] * shop_currency($item['discount'] / $item['quantity'], $currency, $currency, false);
                 if (($round_discount != $item['discount']) && waSystemConfig::isDebug()) {
                     $log = array(
@@ -1021,6 +1022,12 @@ HTML;
                     );
                     waLog::log(var_export($log, true), 'shop/discounts_per_item.rounding.log');
                 }
+
+                // Never decrease discount, only allowed to increase it
+                if ($round_discount < $item['discount']) {
+                    $round_discount += 0.01 * $item['quantity'];
+                }
+
                 $item['discount'] = $round_discount;
             }
 

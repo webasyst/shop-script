@@ -294,7 +294,7 @@ class shopImportexportHelper
                 }
             }
             foreach ($categories as $id => $root_category) {
-                if ($root_category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
+                if ($root_category['type'] == shopCategoryModel::TYPE_DYNAMIC && empty($params['show_top_level'])) {
                     if (empty($category_ids) || (!in_array($id, $category_ids, true) && empty($root_category['childs']))) {
                         unset($categories[$id]);
                     }

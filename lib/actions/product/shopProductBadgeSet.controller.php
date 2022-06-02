@@ -11,7 +11,7 @@ class shopProductBadgeSetController extends waJsonController
 
         $product_model = new shopProductModel();
 
-        $hash = waRequest::post('hash', '', 'string');
+        $hash = shopProductsAddToCategoriesController::getHash(waRequest::TYPE_STRING);
         $all_product_ids = null;
 
         if (!$hash) {

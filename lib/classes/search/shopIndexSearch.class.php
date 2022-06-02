@@ -190,12 +190,22 @@ class shopIndexSearch extends shopSearch
         $result = array();
         $word_model = $this->getWordModel();
         if ($only_exist) {
-            return $word_model->getIds($words, $this->options['by_part']);
+            try {
+                return $word_model->getIds($words, $this->options['by_part']);
+            } catch (waDbException $dbe) {
+                // ignore emoji encoding exceptions and any other problem, too
+                return [];
+            }
         }
         foreach ($words as $w) {
             if ($w) {
-                if ($w_id = $word_model->getId(shopSearch::stem($w))) {
-                    $result[] = $w_id;
+                try {
+                    if ($w_id = $word_model->getId(shopSearch::stem($w))) {
+                        $result[] = $w_id;
+                    }
+                } catch (waDbException $dbe) {
+                    // ignore emoji encoding exceptions and any other problem, too
+                    continue;
                 }
             }
         }

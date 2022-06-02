@@ -812,7 +812,7 @@ class shopConfig extends waAppConfig
                 $products_edit_params = explode('$', $l['params']);
                 $count_edit_products = $products_edit_params[0];
                 $url = $app_url . "?action=products#/products/hash=id/" . rtrim($products_edit_params[1], ', ');
-                $logs[$l_id]['params_html'] = "<div class='activity-target'><a href='$url'>" . _w('products') . " ($count_edit_products)</a></div>";
+                $logs[$l_id]['params_html'] = "<div class='activity-target'><a href='$url'>" . _wd('shop', 'products') . " ($count_edit_products)</a></div>";
             }
         }
         return $logs;

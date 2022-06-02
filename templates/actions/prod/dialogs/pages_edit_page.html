@@ -109,7 +109,9 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="wa-error-text" v-if="!!errors['pages']">
+                    { { errors['pages'].text } }
+                </div>
                 <section class="s-editor-section js-editor-section">
                     <div class="s-section-header">
                         {strip}

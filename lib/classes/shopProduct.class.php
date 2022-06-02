@@ -487,6 +487,13 @@ class shopProduct implements ArrayAccess
                     $url = '//player.vimeo.com/video/'.$match[1];
                 }
                 break;
+            case 'rutube.ru':
+                $video['width'] = 560;
+                $video['height'] = 315;
+                if (preg_match('/rutube\.ru\/video\/([^&\?]+)/i', $video['url'], $match)) {
+                    $url = '//rutube.ru/play/embed/'.$match[1];
+                }
+                break;
         }
 
         if ($url && shopVideo::checkVideoThumb($this->getId(), $video['url'])) {
@@ -897,16 +904,19 @@ class shopProduct implements ArrayAccess
             }
         }
         if ($name == 'base_unit_id') {
+            $this->dependent_fields['stock_base_ratio'] = true;
+            $this->dependent_fields['skus_stock_base_ratio'] = true;
             if ($type['base_unit_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
                 $value = $type['base_unit_id'];
-            } elseif ($type['base_unit_fixed'] == shopTypeModel::PARAM_DISABLED) {
-                $value = $this->getData('stock_unit_id'); // base unit is the same as stock unit
-                $this->dependent_fields['base_unit_id'] = true;
-            } elseif (!is_numeric($value)) {
-                // $value == '' or $value === null means disable base units for this product;
+            } elseif ($type['base_unit_fixed'] == shopTypeModel::PARAM_DISABLED || !is_numeric($value)) {
+                // $value == '' or $value === null or the base unit is disabled in the type means disable base units for this product;
                 // base unit being the same as stock unit means base unit is disabled
                 $value = $this->getData('stock_unit_id');
                 $this->dependent_fields['base_unit_id'] = true;
+                // reset the ratio of units to eliminate the situation when the ratio of units was not transferred to save
+                $this->data['stock_base_ratio'] = 1;
+                $this->is_dirty['stock_base_ratio'] = true;
+                $this->resetSkusStockBaseRatio([], true);
             }
         }
         if ($name == 'order_multiplicity_factor') {
@@ -937,12 +947,46 @@ class shopProduct implements ArrayAccess
         if ($name == 'stock_base_ratio') {
             if ($type['stock_base_ratio_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
                 $value = $type['stock_base_ratio'];
-            } elseif ($type['stock_base_ratio_fixed'] == shopTypeModel::PARAM_DISABLED) {
+            } elseif ($type['stock_base_ratio_fixed'] == shopTypeModel::PARAM_DISABLED
+                || (!empty($this->dependent_fields['stock_base_ratio'])
+                    && $this->getData('stock_unit_id') == $this->getData('base_unit_id'))
+            ) {
+                // reset the ratio of units only if the base unit has been updated and disabled or the base unit is disabled in the type
                 $value = 1;
+                $this->dependent_fields['stock_base_ratio'] = false;
+                $this->resetSkusStockBaseRatio([], true);
             }
+        }
+        if ($name == 'skus') {
+            $value = $this->resetSkusStockBaseRatio($value);
         }
 
         return $value;
+    }
+
+    protected function resetSkusStockBaseRatio($skus = [], $check_skus = false)
+    {
+        if ($check_skus) {
+            $skus = $this->getData('skus');
+        }
+        if (!empty($skus) && is_array($skus) && !empty($this->dependent_fields['skus_stock_base_ratio'])
+            && $this->getData('stock_unit_id') == $this->getData('base_unit_id')
+        ) {
+            foreach ($skus as &$sku) {
+                if (!empty($sku['stock_base_ratio'])) {
+                    $sku['stock_base_ratio'] = null;
+                }
+            }
+            unset($sku);
+            $this->dependent_fields['skus_stock_base_ratio'] = false;
+
+            if ($check_skus) {
+                $this->data['skus'] = $skus;
+                $this->is_dirty['skus'] = true;
+            }
+        }
+
+        return $skus;
     }
 
     /**

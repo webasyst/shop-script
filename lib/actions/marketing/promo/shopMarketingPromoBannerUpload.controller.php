@@ -2,7 +2,7 @@
 
 class shopMarketingPromoBannerUploadController extends waJsonController
 {
-    const ALLOWED_EXT = ['gif', 'jpg', 'jpeg', 'png'];
+    const ALLOWED_EXT = ['gif', 'jpg', 'jpeg', 'png', 'webp'];
 
     /**
      * @var waRequestFileIterator
@@ -52,7 +52,7 @@ class shopMarketingPromoBannerUploadController extends waJsonController
         if (!in_array($ext, self::ALLOWED_EXT)) {
             $this->errors[] = [
                 'name' => 'image',
-                'text' => _w('Files with extensions *.gif, *.jpg, *.jpeg, *.png are allowed only.'),
+                'text' => _w('Files with extensions *.gif, *.jpg, *.jpeg, *.png, *.webp are allowed only.'),
             ];
             return;
         }

@@ -343,18 +343,25 @@ class shopProdSaveSkuController extends waJsonController
             }
 
         } catch (Exception $ex) {
-            $message = $ex->getMessage();
-            if (SystemConfig::isDebug()) {
-                if ($ex instanceof waException) {
-                    $message .= "\n".$ex->getFullTraceAsString();
-                } else {
-                    $message .= "\n".$ex->getTraceAsString();
+            if (get_class($ex) === 'waDbException' && $ex->getCode() === 1366) {
+                $this->errors[] = [
+                    'id'   => 'general',
+                    'text' => _w('Добавьте поддержку эмодзи')
+                ];
+            } else {
+                $message = $ex->getMessage();
+                if (SystemConfig::isDebug()) {
+                    if ($ex instanceof waException) {
+                        $message .= "\n".$ex->getFullTraceAsString();
+                    } else {
+                        $message .= "\n".$ex->getTraceAsString();
+                    }
                 }
+                $this->errors[] = [
+                    'id' => "general",
+                    'text' => _w('Unable to save product.').' '.$message,
+                ];
             }
-            $this->errors[] = [
-                'id' => "general",
-                'text' => _w('Unable to save product.').' '.$message,
-            ];
         }
 
         if ($errors) {

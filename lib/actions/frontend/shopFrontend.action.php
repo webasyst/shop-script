@@ -40,23 +40,11 @@ class shopFrontendAction extends waViewAction
      * @param shopProductsCollection $collection
      * @throws waException
      */
-    protected function setCollection(shopProductsCollection $collection)
+    protected function setCollection(shopProductsCollection $collection, $additional_filters = [])
     {
         list($stock_units_ids, $base_units_ids, $all_base_unit_ids) = $collection->getAllUnitIds();
-        $this->assignUnits($stock_units_ids, $base_units_ids, $all_base_unit_ids);
+        $this->setCollectionParams($collection, true, $additional_filters);
 
-        $filters = waRequest::get();
-        if (isset($filters['sort_unit'])) {
-            $sort = ifset($filters, 'sort', '');
-            if ($sort == 'price' && !isset($filters['stock_unit_id'])) {
-                $filters['stock_unit_id'] = $filters['sort_unit'];
-            } else if ($sort == 'base_price' && !isset($filters['base_unit_id'])) {
-                $filters['base_unit_id'] = $filters['sort_unit'];
-            }
-            unset($filters['sort_unit']);
-        }
-
-        $collection->filters($filters);
         $limit = (int)waRequest::cookie('products_per_page');
         if (!$limit || $limit < 0 || $limit > 500) {
             $limit = (int)waRequest::param('products_per_page');
@@ -71,14 +59,12 @@ class shopFrontendAction extends waViewAction
         }
         $offset = ($page - 1) * $limit;
 
-        $collection->setOptions(array(
-            'overwrite_product_prices' => true,
-        ));
         $skus_field = 'skus_filtered';
         if (wa()->getConfig()->getOption('frontend_collection_all_skus') === false) {
             $skus_field = 'sku_filtered';
         }
         $products = $collection->getProducts('*,skus_image,' . $skus_field, $offset, $limit);
+        $this->assignUnits($stock_units_ids, $base_units_ids, $all_base_unit_ids);
 
         $count = $collection->count();
 
@@ -87,6 +73,25 @@ class shopFrontendAction extends waViewAction
 
         $this->view->assign('products', $products);
         $this->view->assign('products_count', $count);
+    }
+
+    protected function setCollectionParams(shopProductsCollection $collection, $with_sort_unit = true, $additional_filters = [])
+    {
+        $filters = array_merge(waRequest::get(), $additional_filters);
+        if (isset($filters['sort_unit']) && $with_sort_unit) {
+            $sort = ifset($filters, 'sort', '');
+            if ($sort == 'price' && !isset($filters['stock_unit_id'])) {
+                $filters['stock_unit_id'] = $filters['sort_unit'];
+            } elseif ($sort == 'base_price' && !isset($filters['base_unit_id'])) {
+                $filters['base_unit_id'] = $filters['sort_unit'];
+            }
+            unset($filters['sort_unit']);
+        }
+
+        $collection->filters($filters);
+        $collection->setOptions([
+            'overwrite_product_prices' => true,
+        ]);
     }
 
     public function execute()
@@ -185,10 +190,6 @@ class shopFrontendAction extends waViewAction
 
     protected function assignUnits($stock_units_ids, $base_units_ids, $all_base_unit_ids)
     {
-        $units = array();
-        $stock_units = array();
-        $base_units = array();
-
         $unique_units_ids = $stock_units_ids + $all_base_unit_ids;
         $shop_units = shopHelper::getUnits(true);
         $units = array_intersect_key($shop_units, $unique_units_ids);
@@ -196,14 +197,12 @@ class shopFrontendAction extends waViewAction
         $base_units = array_intersect_key($shop_units, $base_units_ids);
         $all_base_units = array_intersect_key($shop_units, $all_base_unit_ids);
 
-        if (count($stock_units) === 1) {
+        $filter_unit = null;
+        $filter_unit_id = waRequest::get("unit", null, "int");
+        if ($filter_unit_id && isset($units[$filter_unit_id])) {
+            $filter_unit = $units[$filter_unit_id];
+        } elseif (count($stock_units) === 1) {
             $filter_unit = reset($stock_units);
-        } else {
-            $filter_unit = null;
-            $filter_unit_id = waRequest::get("unit", null, "int");
-            if ($filter_unit_id && isset($units[$filter_unit_id])) {
-                $filter_unit = $units[$filter_unit_id];
-            }
         }
 
         $this->view->assign('filter_unit', $filter_unit);

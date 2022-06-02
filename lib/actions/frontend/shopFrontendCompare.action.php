@@ -13,7 +13,7 @@ class shopFrontendCompareAction extends waViewAction
             $ids = waRequest::cookie('shop_compare', array(), waRequest::TYPE_ARRAY_INT);
         }
         $collection = new shopProductsCollection('id/'.implode(',', $ids));
-        $products = $collection->getProducts('*,skus_filtered');
+        $products = $collection->getProducts('*,skus_filtered,reviews_count');
 
         $all_features  = [];
         $features_prod = [];

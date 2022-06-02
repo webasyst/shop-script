@@ -233,6 +233,7 @@ class shopReportsproductsActions extends waViewActions
                 if ($p['est'] < $max_est) {
                     $p['est_bar'] = 100 * $p['est'] / $max_est;
                 }
+                $p['stock_unit'] = $this->getStockUnit($p);
             }
             unset($p);
         }
@@ -291,7 +292,7 @@ class shopReportsproductsActions extends waViewActions
         }
 
         // Get top-100 products by margin
-        $sql = "SELECT p.id, p.name, p.image_id, p.image_filename, p.ext, p.sku_count, p.create_datetime, p.count_denominator,
+        $sql = "SELECT p.id, p.name, p.image_id, p.image_filename, p.ext, p.sku_count, p.create_datetime, p.count_denominator, p.stock_unit_id,  
                     GROUP_CONCAT(s.id SEPARATOR ',') AS sku_ids,
                     GROUP_CONCAT(s.name SEPARATOR ', ') AS sku_names,
                     (s.price - s.purchase_price)*c.rate AS margin,
@@ -329,6 +330,7 @@ class shopReportsproductsActions extends waViewActions
                 'purchase' => (float) $p['purchase'],
                 'sku_count' => (int) $p['sku_count'],
                 'count' => shopFrac::discardZeros($p['count']),
+                'stock_unit' => $this->getStockUnit($p),
             ) + $p + array(
                 'sold' => 0,
                 'image_url' => shopImage::getUrl(array(
@@ -385,6 +387,15 @@ class shopReportsproductsActions extends waViewActions
             'products' => $products,
             'limit' => $limit,
         ));
+    }
+
+    protected function getStockUnit(&$product)
+    {
+        static $units = null;
+        if ($units === null) {
+            $units = shopHelper::getUnits();
+        }
+        return ifset($units, $product['stock_unit_id'], 'short_name', _w('items'));
     }
 }
 

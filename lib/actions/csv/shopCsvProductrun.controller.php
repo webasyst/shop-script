@@ -3,6 +3,7 @@
 class shopCsvProductrunController extends waLongActionController
 {
     const STAGE_CATEGORY = 'category';
+    const STAGE_DYNAMIC_CATEGORY = 'dynamic_category';
     const STAGE_PRODUCT = 'product';
     const STAGE_VARIANT = 'variant';
     const STAGE_PRODUCT_VARIANT = 'product_variant';
@@ -41,6 +42,9 @@ class shopCsvProductrunController extends waLongActionController
         'images',
         'images_descriptions',
         'params',
+        'stock_unit_id',
+        'base_unit_id',
+        'order_multiplicity_factor'
     );
 
     protected function preExecute()
@@ -357,6 +361,7 @@ class shopCsvProductrunController extends waLongActionController
         } else {
             $this->data['export_category'] = false;
         }
+        $this->data['exported_products'] = [];
 
 
         $this->data['timestamp'] = time();
@@ -428,7 +433,18 @@ class shopCsvProductrunController extends waLongActionController
                 }
 
             } else {
-                $features = $features_model->getFeatures(true);
+                $types = $this->getCollection()->getProducts('type_id');
+                $type_ids = waUtils::getFieldValues($types, 'type_id');
+                /** @var shopTypeFeaturesModel $type_features_model */
+                $type_features_model = $this->model('type_features');
+                $type_features = [];
+                $features = [];
+                if ($type_ids) {
+                    $type_features = $type_features_model->select('feature_id')->where('type_id IN (?)', [$type_ids])->fetchAll('feature_id');
+                }
+                if ($type_features) {
+                    $features = $features_model->getById(array_keys($type_features));
+                }
             }
             if ($features) {
                 $options['features'] = true;
@@ -533,30 +549,19 @@ SQL;
                 $category_id = intval($matches[1]);
                 $category = $model->getById($category_id);
                 if ($category) {
-                    if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-                        $this->data['count'][self::STAGE_CATEGORY] = 0;
-                        $this->data['export_category'] = false;
-                    } else {
-                        $this->data['count'][self::STAGE_CATEGORY] = count($model->getPath($category_id)) + 1;
-                        if (!empty($category['include_sub_categories']) || $this->data['config']['include_sub_categories']) {
-                            $route = null;
-                            $categories = $model->getTree($category_id, null, false, $route);
-                            $categories = array_filter(
-                                $categories,
-                                function ($c) {
-                                    return $c['type'] == shopCategoryModel::TYPE_STATIC;
-                                }
-                            );
-                            $this->data['include_sub_categories'] = array_keys($categories);
-                            array_shift($categories);
-                            $this->data['count'][self::STAGE_CATEGORY] += count($categories);
-                        }
+                    $this->data['count'][self::STAGE_CATEGORY] = count($model->getPath($category_id)) + 1;
+                    if (!empty($category['include_sub_categories']) || $this->data['config']['include_sub_categories']) {
+                        $route = null;
+                        $categories = $model->getTree($category_id, null, false, $route);
+                        $this->data['include_sub_categories'] = array_keys($categories);
+                        array_shift($categories);
+                        $this->data['count'][self::STAGE_CATEGORY] += count($categories);
                     }
                 } else {
                     throw new waException(sprintf('Category with id %d', $category_id), 404);
                 }
             } else {
-                $this->data['count'][self::STAGE_CATEGORY] = $model->countByField('type', shopCategoryModel::TYPE_STATIC);
+                $this->data['count'][self::STAGE_CATEGORY] = $model->countAll();
             }
         }
 
@@ -593,7 +598,11 @@ SQL;
      */
     private function getCollection()
     {
-        static $id = null;
+        static $id = null, $dynamic_categories = null;
+        if ($dynamic_categories === null) {
+            $category_model = new shopCategoryModel();
+            $dynamic_categories = $category_model->getByField('type', $category_model::TYPE_DYNAMIC, 'id');
+        }
 
         if ($this->data['export_category'] && ($id !== ifset($this->data['map'][self::STAGE_CATEGORY], null))) {
             $this->collection = null;
@@ -605,15 +614,24 @@ SQL;
                 //hash is * or category/id
                 #rebuild hash with current category id
                 $id = $this->data['map'][self::STAGE_CATEGORY];
+                $dynamic_category = isset($dynamic_categories[$id]) ? $dynamic_categories[$id] : null;
                 if ($this->data['hash'] == '*') {
-                    $hash = 'search/category_id='.($id ? $id : '=null');
+                    if ($dynamic_category) {
+                        $hash = 'category/0';
+                    } else {
+                        $hash = 'search/category_id=' . ($id ?: '=null');
+                    }
                 } else {
                     #hash = category/%id%
                     if (($this->data['export_category'] !== true) && ($this->data['export_category'] == $id)) {
                         $this->data['export_category'] = true;
                     }
                     if ($this->data['export_category'] === true) {
-                        $hash = 'search/category_id='.($id ? $id : '=null');
+                        if ($dynamic_category) {
+                            $hash = 'category/'. ($dynamic_category['depth'] > 0 && $this->data['hash'] != "category/$id" ? 0 : $id);
+                        } else {
+                            $hash = 'search/category_id=' . ($id ?: '=null');
+                        }
                     } else {
                         //this hash always return empty collection
                         //used to skip parent categories entries
@@ -1263,7 +1281,7 @@ SQL;
                                 $data['skus'][-1]['features'][$feature] = $values[0]['value'];
                             }
                         }
-                        if (!isset($data['row_type']) || (isset($data['row_type']) && $data['row_type'] == self::STAGE_PRODUCT_VARIANT)) {
+                        if (!isset($data['row_type']) || $data['row_type'] == self::STAGE_PRODUCT_VARIANT) {
                             unset($data['skus']);
                         }
                     }
@@ -1518,11 +1536,21 @@ SQL;
             $current_id = ifset($this->data['map'][self::STAGE_PRODUCT]);
             $id = $product->getId();
             if ($this->emulate()) {
+                // checking import options (step 1)
                 $target = $id ? 'found' : 'add';
                 $target_sku = 'add';
             } else {
+                // import (step 2)
                 $target = $id ? 'update' : 'new';
                 $target_sku = 'new';
+            }
+
+            if (!empty($this->data['last_wrong_product']) && (($this->data['last_wrong_product']['field'] == 'id' && $id == $this->data['last_wrong_product']['value'])
+                    || ($this->data['last_wrong_product']['field'] == $this->data['primary']
+                        && isset($data[$this->data['primary']]) && $data[$this->data['primary']] == $this->data['last_wrong_product']['value']))
+            ) {
+                // ignore the product line and its modifications
+                return false;
             }
 
             $key = null;
@@ -1690,7 +1718,7 @@ SQL;
                 }
             }
 
-            // sku id is only used for identification, never to insert or update actual value of an id
+            $has_negative_prices = false;
             if (!empty($data['skus'])) {
                 foreach ($data['skus'] as $sku_key => $sku) {
                     if (isset($sku['status']) && !($sku['status'] == '0' || $sku['status'] == '1')) {
@@ -1699,10 +1727,46 @@ SQL;
                         }
                         unset($data['skus'][$sku_key]['status']);
                     }
+                    $has_negative_prices = $this->hasNegativePrices($sku);
+                    // sku id is only used for identification, never to insert or update actual value of an id
                     unset($data['skus'][$sku_key]['id']);
                 }
             }
+            if (!$has_negative_prices) {
+                $has_negative_prices = $this->hasNegativePrices($data, true);
+            }
+            if ($has_negative_prices) {
+                if ($sku_only || $this->data['primary'] === null) {
+                    $target_sku = 'skip';
+                    $item_sku_id = false;
+                } else {
+                    $target = 'skip';
+                }
+            }
             $this->setDefaultUnitFeature($data);
+
+            $correct_units = $this->validateUnits($data, $product);
+            if ($correct_units === false) {
+                if ($id) {
+                    $this->data['last_wrong_product'] = [
+                        'field' => 'id',
+                        'value' => $id
+                    ];
+                    return false;
+                } elseif (isset($data[$this->data['primary']])) {
+                    $this->data['last_wrong_product'] = [
+                        'field' => $this->data['primary'],
+                        'value' => $data[$this->data['primary']]
+                    ];
+                    return false;
+                } elseif (isset($data['url'])) {
+                    $this->data['last_wrong_product'] = [
+                        'field' => 'url',
+                        'value' => $data['url']
+                    ];
+                    return false;
+                }
+            }
 
             shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT);
             if ($sku_only || ($this->data['primary'] === null)) {
@@ -1800,38 +1864,41 @@ SQL;
                 }
             } else {
                 $is_updated_new_product = false;
-                if (!$this->emulate($product->__hash, $key)) {
-                    try {
-                        if ($product_exists && isset($data['row_type']) && $data['row_type'] == self::STAGE_PRODUCT) {
-                            unset($data['skus'][-1]);
-                        }
-                        $not_added = !$product->getId();
-                        if ($product->save($data)) {
-                            if ('cli' === php_sapi_name() && $not_added) {
-                                self::$save_product_ids[] = $product->getId();
+                if ($target != 'skip') {
+                    if (!$this->emulate($product->__hash, $key)) {
+                        try {
+                            if ($product_exists && isset($data['row_type']) && $data['row_type'] == self::STAGE_PRODUCT) {
+                                unset($data['skus'][-1]);
                             }
-                            $is_updated_new_product = !empty($this->data['last_saved_product_id_without_skus']) && $this->data['last_saved_product_id_without_skus'] == $product->getId();
-                            $this->afterSaveProduct($data, $product, $saved_features, $product_exists);
-                        } else {
-                            $target = 'validate';
+                            $not_added = !$product->getId();
+                            if ($product->save($data)) {
+                                if ('cli' === php_sapi_name() && $not_added) {
+                                    self::$save_product_ids[] = $product->getId();
+                                }
+                                $is_updated_new_product = !empty($this->data['last_saved_product_id_without_skus']) && $this->data['last_saved_product_id_without_skus'] == $product->getId();
+                                $this->afterSaveProduct($data, $product, $saved_features, $product_exists);
+                            } else {
+                                $target = 'validate';
+                            }
+
+                            $this->checkMainSku($product);
+
+                            $this->data['map'][self::STAGE_PRODUCT] = $product->getId();
+                            $this->data['map'][self::STAGE_VARIANT] = null;
+                            if (!empty($data['images'])) {
+                                $this->data['map'][self::STAGE_IMAGE] = $data['images'];
+                                $this->data['map'][self::STAGE_IMAGE_DESCRIPTION] = ifempty($data['images_descriptions'], array());
+                                $this->data['count'][self::STAGE_IMAGE] += is_array($data['images']) ? count($data['images']) : 1;
+                            }
+                        } catch (waDbException $ex) {
+                            $this->writeImportError($ex->getMessage());
+                            $target = 'error';
+                            $target_sku = 'error';
                         }
 
-                        $this->checkMainSku($product);
-
-                        $this->data['map'][self::STAGE_PRODUCT] = $product->getId();
-                        if (!empty($data['images'])) {
-                            $this->data['map'][self::STAGE_IMAGE] = $data['images'];
-                            $this->data['map'][self::STAGE_IMAGE_DESCRIPTION] = ifempty($data['images_descriptions'], array());
-                            $this->data['count'][self::STAGE_IMAGE] += is_array($data['images']) ? count($data['images']) : 1;
-                        }
-                    } catch (waDbException $ex) {
-                        $this->writeImportError($ex->getMessage());
-                        $target = 'error';
-                        $target_sku = 'error';
+                    } else {
+                        $this->data['map'][self::STAGE_PRODUCT] = $product->__hash;
                     }
-
-                } else {
-                    $this->data['map'][self::STAGE_PRODUCT] = $product->__hash;
                 }
                 if (!($is_updated_new_product && $target == 'update')) {
                     $this->data['processed_count'][self::STAGE_PRODUCT][$target]++;
@@ -1976,6 +2043,9 @@ SQL;
             $stack = array();
             $parent_id = 0;
         }
+        if (isset($data['row_type']) && $data['row_type'] == self::STAGE_DYNAMIC_CATEGORY) {
+            $data['type'] = shopCategoryModel::TYPE_DYNAMIC;
+        }
         $primary = $this->data['primary'];
         if (strpos($primary, 'skus:') === 0) {
             $primary = 'name';
@@ -2094,14 +2164,14 @@ SQL;
     {
         if (isset($data['row_type'])) {
             $row_type = mb_strtolower(trim($data['row_type']));
-            $types = [self::STAGE_CATEGORY, self::STAGE_PRODUCT, self::STAGE_PRODUCT_VARIANT, self::STAGE_VARIANT];
+            $types = [self::STAGE_CATEGORY, self::STAGE_DYNAMIC_CATEGORY, self::STAGE_PRODUCT, self::STAGE_PRODUCT_VARIANT, self::STAGE_VARIANT];
             $found_type = array_search($row_type, $types);
             if ($found_type === false) {
                 $data['row_type'] = self::STAGE_VARIANT;
                 throw new waException($row_type);
             } else {
                 $data['row_type'] = $row_type;
-                $type = $row_type == self::STAGE_CATEGORY ? self::STAGE_CATEGORY : self::STAGE_VARIANT;
+                $type = $row_type == self::STAGE_CATEGORY || $row_type == self::STAGE_DYNAMIC_CATEGORY ? self::STAGE_CATEGORY : self::STAGE_VARIANT;
             }
         } else {
             static $non_category_fields = [
@@ -2399,15 +2469,8 @@ SQL;
                 }
 
             } else {
-                $categories = $model->getFullTree('*', true);
+                $categories = $model->getFullTree('*');
             }
-
-            $categories = array_filter(
-                $categories,
-                function ($c) {
-                    return $c['type'] == shopCategoryModel::TYPE_STATIC;
-                }
-            );
 
             if (count($categories) != $count[self::STAGE_CATEGORY]) {
                 throw new waException(sprintf('Invalid category count. Expected %d but get %d', $this->data['count'][self::STAGE_CATEGORY], count($categories)));
@@ -2442,7 +2505,7 @@ SQL;
                 $category['params'] = $this->paramsToString($category['params']);
             }
 
-            $category['row_type'] = self::STAGE_CATEGORY;
+            $category['row_type'] = $category['type'] == shopCategoryModel::TYPE_STATIC ? self::STAGE_CATEGORY : self::STAGE_DYNAMIC_CATEGORY;
             $this->writer->write($category);
             array_shift($categories);
 
@@ -2453,7 +2516,6 @@ SQL;
             $this->data['map'][self::STAGE_PRODUCT] = $current_stage[self::STAGE_PRODUCT];
 
             $count[self::STAGE_PRODUCT] += $this->getCollection()->count();
-            //$this->collection = null;
         }
         return ($current_stage[self::STAGE_CATEGORY] < $count[self::STAGE_CATEGORY]);
     }
@@ -2485,7 +2547,10 @@ SQL;
             /* check category match*/
             $category_match = !$this->data['export_category'] || ($category_id === $this->data['map'][self::STAGE_CATEGORY]);
 
-            $extra_category_record = false;
+            $is_duplicate_product = false;
+            if (isset($this->data['exported_products'][$product['id']]) && $this->data['config']['extra_categories']) {
+                $is_duplicate_product = true;
+            }
 
             if (!$category_match) {
 
@@ -2506,13 +2571,12 @@ SQL;
                 /* check extra categories match */
                 if (!$category_match && $this->data['config']['extra_categories']) {
                     $category_match = true;
-                    $extra_category_record = true;
                 }
             }
 
             if ($rights && $category_match) {
                 $shop_product = new shopProduct($product, ['format_fractional_values' => true]);
-                if (!empty($this->data['options']['features']) && !$extra_category_record) {
+                if (!empty($this->data['options']['features']) && !$is_duplicate_product) {
                     if (!isset($product['features'])) {
                         /** @var shopProductFeaturesModel $product_feature_model */
                         $product_feature_model = $this->model('product_features');
@@ -2531,7 +2595,7 @@ SQL;
                 }
 
                 # tags
-                if (!isset($product['tags']) && !$extra_category_record) {
+                if (!isset($product['tags']) && !$is_duplicate_product) {
                     /** @var shopProductTagsModel $tags_model */
                     $tags_model = $this->model('product_tags');
                     $product['tags'] = $this->writeRow($tags_model->getTags($product['id']));
@@ -2573,6 +2637,21 @@ SQL;
                     $product['features'] = array();
                 }
 
+                $units = $this->getUnits();
+                $not_specified = false;
+                if ($product['stock_unit_id'] == $product['base_unit_id']) {
+                    $product['base_unit_id'] = _w('Not specified');
+                    $not_specified = true;
+                }
+                foreach ($units as $unit) {
+                    if ($unit['id'] == $product['stock_unit_id']) {
+                        $product['stock_unit_id'] = $unit['okei_code'];
+                    }
+                    if (!$not_specified && $unit['id'] == $product['base_unit_id']) {
+                        $product['base_unit_id'] = $unit['okei_code'];
+                    }
+                }
+
                 #skus
                 $skus = $shop_product->skus;
                 $skus_exist = !empty($skus);
@@ -2604,19 +2683,19 @@ SQL;
                 }
 
                 if (!$this->data['config']['export_mode']) {
-                    $this->exportProductRow($product, $sku, false, !$extra_category_record, $simple_product);
+                    $this->exportProductRow($product, $sku, false, !$is_duplicate_product, $simple_product);
                 }
 
-                if ((!$extra_category_record && !$simple_product) || $this->data['config']['export_mode']) {
+                if ((!$is_duplicate_product && !$simple_product) || $this->data['config']['export_mode']) {
                     foreach ($skus as $sku_id => $sku) {
                         if (!empty($this->data['config']['primary_sku'])) {
                             $sku['_primary'] = ($primary_sku_id == $sku_id) ? '1' : '';
                         }
 
-                        $exported_product = $this->exportProductRow($product, $sku, true, !$extra_category_record, $simple_product);
+                        $exported_product = $this->exportProductRow($product, $sku, true, !$is_duplicate_product, $simple_product);
 
                         ++$current_stage[self::STAGE_VARIANT];
-                        if (!$extra_category_record) {
+                        if (!$is_duplicate_product) {
                             ++$processed[self::STAGE_VARIANT];
                             if (isset($exported_product['images'])) {
                                 $processed[self::STAGE_IMAGE] += count($exported_product['images']);
@@ -2632,7 +2711,7 @@ SQL;
 
             array_shift($products);
             ++$current_stage[self::STAGE_PRODUCT];
-            if ($exported && !$extra_category_record) {
+            if ($exported && !$is_duplicate_product) {
                 ++$processed[self::STAGE_PRODUCT];
             }
         }
@@ -2732,12 +2811,241 @@ SQL;
         }
     }
 
+    protected function getUnits()
+    {
+        static $units = null;
+
+        if ($units === null) {
+            $units_model = new shopUnitModel();
+            $piece = $units_model::getPc();
+            $units = $units_model->select('id, okei_code, status')->fetchAll('id');
+            $units += [
+                $piece['id'] => $piece,
+            ];
+        }
+
+        return $units;
+    }
+
+    /**
+     * @param $data
+     * @param $product shopProduct
+     * @param $sku_only
+     * @return bool
+     * @throws waException
+     */
+    protected function validateUnits($data, $product)
+    {
+        static $types = null;
+        if ($types === null) {
+            $type_model = new shopTypeModel();
+            $types = $type_model->getAll('id');
+        }
+
+        if (isset($data['row_type']) && in_array($data['row_type'], [self::STAGE_PRODUCT, self::STAGE_PRODUCT_VARIANT, self::STAGE_VARIANT])) {
+            $is_update_product = $product->getId() > 0;
+            $units = $this->getUnits();
+            if (isset($data['type_id']) && isset($types[$data['type_id']])) {
+                $current_type = $types[$data['type_id']];
+            } elseif (isset($current_type[$product->type_id])) {
+                $current_type = $current_type[$product->type_id];
+            } else {
+                $current_type = reset($types);
+            }
+            $units_fields = ['stock_unit_id' => false, 'base_unit_id' => false];
+            if ($current_type) {
+                if ($current_type['stock_unit_fixed'] == shopTypeModel::PARAM_ALL_PRODUCTS) {
+                    $units_fields['stock_unit_id'] = true;
+                }
+                if ($current_type['base_unit_fixed'] == shopTypeModel::PARAM_ALL_PRODUCTS) {
+                    $units_fields['base_unit_id'] = true;
+                }
+            }
+            if ($data['row_type'] != self::STAGE_VARIANT) {
+                $correct_stock_unit = $this->validateStockUnit($units_fields, $data, $product, $is_update_product, $units, $current_type);
+                if ($correct_stock_unit === false) {
+                    return false;
+                }
+                $correct_base_unit = $this->validateBaseUnit($units_fields, $data, $is_update_product, $units, $current_type);
+                if ($correct_base_unit === false) {
+                    return false;
+                }
+            }
+
+            if (!isset($data['stock_base_ratio']) || $data['stock_base_ratio'] === '') {
+                if ($is_update_product || $data['row_type'] == self::STAGE_VARIANT) {
+                    unset($data['stock_base_ratio']);
+                } else {
+                    $data['stock_base_ratio'] = $current_type['stock_base_ratio'];
+                }
+            } else {
+                if ($data['stock_unit_id'] == $data['base_unit_id']) {
+                    $data['stock_base_ratio'] = 1;
+                } elseif ($data['stock_base_ratio'] < 0.00000001 || $data['stock_base_ratio'] > 99999999.99999999) {
+                    if ($is_update_product) {
+                        $this->writeImportError(_w('Значение соотношения складской и базовой единиц не было обновлено. Т.к. его значение должно быть от 0,00000001 до 99.999.999,99999999 — не более 8 знаков после запятой'));
+                        unset($data['stock_base_ratio']);
+                    } else {
+                        $this->writeImportError(_w('Значение соотношения складской и базовой единиц должно быть от 0,00000001 до 99.999.999,99999999 — не более 8 знаков после запятой'));
+                        return false;
+                    }
+                }
+            }
+
+            foreach (['order_multiplicity_factor', 'order_count_min', 'order_count_step'] as $field) {
+                if ($field == 'order_multiplicity_factor' && $data['row_type'] == self::STAGE_VARIANT) {
+                    continue;
+                }
+                if (!isset($data[$field]) || $data[$field] === '') {
+                    if ($is_update_product || $data['row_type'] == self::STAGE_VARIANT) {
+                        unset($data[$field]);
+                    } else {
+                        $data[$field] = $current_type[$field];
+                    }
+                } elseif ($current_type[$field.'_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                    $data[$field] = $current_type[$field];
+                } elseif ($data[$field] < 0.001 || $data[$field] > 999999.999) {
+                    if ($field == 'order_multiplicity_factor') {
+                        $warning_message = _w('Значение шага не было обновлено. Т.к. его значение должно быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
+                        $error_message = _w('Значение шага (кратности) должно быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
+                    } elseif ($field == 'order_count_min') {
+                        $warning_message = _w('Значение минимума должно делиться без остатка на шаг добавления товара в корзину. И быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
+                        $error_message = _w('Значение минимума должно делиться без остатка на шаг добавления товара в корзину. И быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
+                    } else {
+                        $warning_message = _w('Значение +/- должно делиться без остатка на шаг добавления товара в корзину. И быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
+                        $error_message = _w('Значение +/- должно делиться без остатка на шаг добавления товара в корзину. И быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
+                    }
+                    if ($is_update_product) {
+                        $this->writeImportError($warning_message);
+                        unset($data[$field]);
+                    } else {
+                        $this->writeImportError($error_message);
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    protected function validateStockUnit($units_fields, &$data, $product, $is_update_product, $units, $current_type)
+    {
+        if ($is_update_product && (!isset($data['stock_unit_id']) || $data['stock_unit_id'] === '')) {
+            unset($data['stock_unit_id']);
+            return true;
+        } elseif ($current_type && (!$units_fields['stock_unit_id'] || !isset($data['stock_unit_id']) || $data['stock_unit_id'] === '')) {
+            $data['stock_unit_id'] = $current_type['stock_unit_id'];
+            if ($is_update_product && !$units_fields['stock_unit_id']) {
+                $this->writeImportError(_w('Значение складской единицы не было обновлено, т.к. его запрещено менять на уровне типа товара.'));
+            }
+        } else {
+            $is_first_code = true;
+            $found_unit = false;
+            $data_unit = $data['stock_unit_id'];
+            foreach ($units as $unit) {
+                if ($unit['okei_code'] == $data_unit && $unit['status']) {
+                    if ($is_first_code === true) {
+                        if ($is_update_product) {
+                            if ((!$units_fields['base_unit_id'] && isset($product['base_unit_id']) && $product['base_unit_id'] == $data['stock_unit_id'])
+                                || (isset($data['base_unit_id']) && $data['base_unit_id'] == $data['stock_unit_id'])
+                            ) {
+                                unset($data['stock_unit_id']);
+                                $this->writeImportError(_w('Значение складской единицы не было обновлено, т.к. оно не должно совпадать со значением базовой единицы.'));
+                                return true;
+                            }
+                        } elseif (isset($data['base_unit_id']) && $data['base_unit_id'] == $data['stock_unit_id']) {
+                            $this->writeImportError(_w('Значения для складской и базовой единиц должны отличаться.'));
+                            return false;
+                        }
+                        $data['stock_unit_id'] = $unit['id'];
+                        $found_unit = true;
+                    } else {
+                        $this->writeImportError(_w('В справочнике единиц больше одной единицы соответствующей коду складской единицы, была импортирована первая попавшаяся единица'));
+                    }
+                    $is_first_code = false;
+                }
+            }
+            if (!$found_unit) {
+                if ($is_update_product) {
+                    unset($data['stock_unit_id']);
+                    $this->writeImportError(_w('Значение складской единицы не было обновлено, т.к. среди включенных единиц измерения отсутствует значение, заданное в строке для складской единицы.'));
+                } else {
+                    $this->writeImportError(_w('Среди включенных единиц измерения отсутсвует значение, заданное в строке для складской единиц.'));
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    protected function validateBaseUnit($units_fields, &$data, $is_update_product, $units, $current_type)
+    {
+        if ($is_update_product && (!isset($data['base_unit_id']) || $data['base_unit_id'] === '')) {
+            unset($data['base_unit_id']);
+            return true;
+        } elseif ($current_type && (!$units_fields['base_unit_id'] || !isset($data['base_unit_id']) || $data['base_unit_id'] === '')) {
+            if (isset($current_type['base_unit_id'])) {
+                $data['base_unit_id'] = $current_type['base_unit_id'];
+            } else {
+                $data['base_unit_id'] = $data['stock_unit_id'];
+            }
+            if ($is_update_product && !$units_fields['base_unit_id']) {
+                $this->writeImportError(_w('Значение базовой единицы не было обновлено, т.к. его запрещено менять на уровне типа товара.'));
+            }
+        } else {
+            $is_first_code = true;
+            $found_unit = false;
+            $data_unit = $data['base_unit_id'];
+            $not_specified = mb_strtolower(_w(trim($data_unit))) == mb_strtolower(_w('Not specified'));
+            foreach ($units as $unit) {
+                if (($unit['okei_code'] == $data_unit && $unit['status']) || $not_specified) {
+                    if ($is_first_code === true) {
+                       if ($data['stock_unit_id'] == $data_unit) {
+                            if ($is_update_product) {
+                                $this->writeImportError(_w('Значение базовой единицы не было обновлено, т.к. оно не должно совпадать со значением складской единицы'));
+                                unset($data['base_unit_id']);
+                                return true;
+                            } else {
+                                $this->writeImportError(_w('Значения для складской и базовой единиц должны отличаться.'));
+                                return false;
+                            }
+                        }
+                        if ($not_specified) {
+                            $data['base_unit_id'] = $data['stock_unit_id'];
+                        } else {
+                            $data['base_unit_id'] = $unit['id'];
+                        }
+                        $found_unit = true;
+                    } else {
+                        $this->writeImportError(_w('В справочнике единиц больше одной единицы соответствующей коду базовой единицы, была импортирована первая попавшаяся единица'));
+                    }
+                    $is_first_code = false;
+                }
+            }
+            if (!$found_unit) {
+                if ($is_update_product) {
+                    $this->writeImportError(_w('Значение базовой единицы не было обновлено, т.к. среди включенных единиц измерения отсутствует значение, заданное в строке для базовой единицы.'));
+                    unset($data['base_unit_id']);
+                } else {
+                    $data['base_unit_id'] = $data['stock_unit_id'];
+                    $this->writeImportError(_w('Значение базовой единицы не было задано, т.к. среди включенных единиц измерения отсутствует значение, заданное в строке для базовой единицы.'));
+                }
+            }
+        }
+        return true;
+    }
+
     private function exportProductRow($original_product, $sku, $sku_mode, $full, $simple_product = false)
     {
         $product = $original_product;
         if ($sku_mode && !$simple_product && !$this->data['config']['export_mode']) {
             foreach (self::$non_sku_fields as $field) {
                 if (isset($product[$field])) {
+                    unset($product[$field]);
+                }
+            }
+            foreach (['stock_base_ratio', 'order_count_min', 'order_count_step'] as $field) {
+                if (!isset($sku[$field])) {
                     unset($product[$field]);
                 }
             }
@@ -2812,6 +3120,10 @@ SQL;
             $product['row_type'] = $sku_mode ? self::STAGE_VARIANT : self::STAGE_PRODUCT;
         }
         $this->writer->write($product);
+
+        if (!isset($this->data['exported_products'][$product['id']])) {
+            $this->data['exported_products'][$product['id']] = true;
+        }
 
         return $product;
     }
@@ -3184,5 +3496,37 @@ SQL;
             $main_sku_message = _w('The main SKU cannot be hidden; therefore, the visibility in the storefront is always enabled for it.');
             $this->writeImportError($main_sku_message);
         }
+    }
+
+    /**
+     * @param array $data
+     * @param bool $is_product
+     * @return bool
+     * @throws waException
+     */
+    protected function hasNegativePrices($data, $is_product = false)
+    {
+        if ($is_product) {
+            $price_fields = [
+                'base_price_selectable' => _w('Price'),
+                'purchase_price_selectable' => _w('Compare at price'),
+                'compare_price_selectable' => _w('Purchase price'),
+            ];
+        } else {
+            $price_fields = [
+                'price' => _w('Price'),
+                'compare_price' => _w('Compare at price'),
+                'purchase_price' => _w('Purchase price'),
+            ];
+        }
+        $has_error = false;
+        foreach ($price_fields as $field => $name) {
+            if (isset($data[$field]) && $data[$field] < 0) {
+                $this->writeImportError(sprintf_wp('The value of the “%s” field can be only 0 or greater than zero.', $name));
+                $has_error = true;
+            }
+        }
+
+        return $has_error;
     }
 }

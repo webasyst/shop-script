@@ -29,6 +29,15 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
                 $params['shipping_end_datetime'] = date('Y-m-d', $ts).' '.$shipping_time_to.':00';
                 $update['shipping_datetime'] = $params['shipping_end_datetime'];
             }
+        } elseif (strlen($shipping_date) === 0 && strlen($shipping_time_from) === 0 && strlen($shipping_time_to) === 0) {
+            $params = $this->order_params_model->get($order_id);
+            list($saved_shipping_date, $saved_shipping_time_start, $saved_shipping_time_end) = shopHelper::getOrderShippingInterval($params);
+            if ($saved_shipping_date && $saved_shipping_time_start && $saved_shipping_time_end) {
+                $text[] = _w('Дата и время доставки курьером были удалены');
+                $params['shipping_start_datetime'] = null;
+                $params['shipping_end_datetime'] = null;
+                $update['shipping_datetime'] = null;
+            }
         }
 
         // Tracking number

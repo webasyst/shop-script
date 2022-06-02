@@ -1470,6 +1470,7 @@ SQL;
             'sales_30days',
             'stock_worth',
             'stock_counts',
+            'reviews_count',
             'sku',
             'sku_filtered',
             'skus_filtered',
@@ -2575,6 +2576,10 @@ SQL;
                 }
             }
 
+            $reviews_count = [];
+            if (isset($fields['reviews_count'])) {
+                $reviews_count = $this->getCountProductReviews($products);
+            }
             foreach ($products as $p_id => $p) {
                 if (isset($p['price'])) {
                     $products[$p_id]['original_price'] = $p['price'];
@@ -2590,6 +2595,10 @@ SQL;
                 // See also: shopCartItemsModel->checkAvailability()
                 if (!empty($public_stocks)) {
                     $products[$p_id]['count'] = $this->countOfSelectedStocks($public_stocks, ifempty($stock_counts, $p_id, null));
+                }
+
+                if (isset($reviews_count[$p_id])) {
+                    $products[$p_id]['reviews_count'] = $reviews_count[$p_id]['reviews_count'];
                 }
             }
         }
@@ -2696,6 +2705,28 @@ SQL;
                 }
             }
         }
+    }
+
+    /**
+     * Gets the number of reviews for each product
+     * @param array $products
+     * @return array
+     */
+    protected function getCountProductReviews($products)
+    {
+        $product_ids = array_map('intval', array_keys($products));
+        $reviews_count = [];
+        if ($product_ids) {
+            $reviews_model = new shopProductReviewsModel();
+            $review_where = "`review_id` = 0 AND `status` = '" . $reviews_model::STATUS_PUBLISHED . "' AND `product_id` IN (?)";
+            $sql = "SELECT `product_id`, COUNT(`id`) AS `reviews_count`
+                    FROM {$reviews_model->getTableName()}
+                    WHERE {$review_where}
+                    GROUP BY `product_id`";
+            $reviews_count = $reviews_model->query($sql, [$product_ids])->fetchAll('product_id');
+        }
+
+        return $reviews_count;
     }
 
     /**
@@ -3327,9 +3358,10 @@ SQL;
      * )
      * @throws waException
      */
-    public function getPriceRange()
+    public function getPriceRange($unit_id = null)
     {
         // Check promo prices
+        $promo_prices_tmp_alias = '';
         $this->loadPromoPrices();
         if (!empty($this->storefront_context) && !empty($this->promo_prices[$this->storefront_context])) {
             $promo_prices_tmp_alias = $this->getPromoPricesTmpAlias();
@@ -3342,12 +3374,40 @@ SQL;
             }
         }
 
-        $sql = $this->getSQL();
-        $full_sql = "SELECT MIN(p.min_price) min, MAX(p.max_price) max ".$sql;
-        if (!empty($promo_prices_tmp_alias)) {
-            $full_sql = "SELECT MIN(IFNULL({$promo_prices_tmp_alias}.primary_price, p.min_price)) min, MAX(IFNULL({$promo_prices_tmp_alias}.primary_price, p.max_price)) max ".$sql;
+        static $skus_alias = '';
+        if ($unit_id && is_numeric($unit_id)) {
+            $unit_id = (int)$unit_id;
+            foreach ($this->where as $where_key => $condition) {
+                if (strpos($condition, '(p.stock_unit_id = ') === 0
+                    || strpos($condition, 'p.base_unit_id = ') === 0
+                    || strpos($condition, 'p.stock_unit_id = ') === 0
+                ) {
+                    unset($this->where[$where_key]);
+                }
+            }
+            $this->addWhere("(p.stock_unit_id = $unit_id OR p.base_unit_id = $unit_id)");
+
+            if (!$skus_alias) {
+                $skus_alias = $this->addJoin([
+                    'table' => 'shop_product_skus',
+                    'on' => ':table.product_id = p.id',
+                    'where' => ':table.available > 0 AND :table.status > 0',
+                ]);
+            }
+            if (!empty($promo_prices_tmp_alias)) {
+                $price_field = "(IFNULL($promo_prices_tmp_alias.primary_price, $skus_alias.primary_price))";
+            } else {
+                $price_field = "$skus_alias.primary_price";
+            }
+            $values = "IF(p.stock_unit_id = $unit_id, $price_field, $price_field / IFNULL($skus_alias.stock_base_ratio, p.stock_base_ratio))";
+            $select = "SELECT MIN($values) min, MAX($values) max ";
+        } elseif (!empty($promo_prices_tmp_alias)) {
+            $select = "SELECT MIN(IFNULL({$promo_prices_tmp_alias}.primary_price, p.min_price)) min, MAX(IFNULL({$promo_prices_tmp_alias}.primary_price, p.max_price)) max ";
+        } else {
+            $select = "SELECT MIN(p.min_price) min, MAX(p.max_price) max ";
         }
 
+        $full_sql = $select.$this->getSQL();
         $data = $this->getModel()->query($full_sql)->fetch();
         return array(
             'min' => (double)(isset($data['min']) ? $data['min'] : 0),

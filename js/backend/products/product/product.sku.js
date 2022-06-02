@@ -2556,7 +2556,7 @@
                             html: that.templates["dialog_photo_manager"],
                             options: {
                                 onPhotoAdd: function(photo) {
-                                    that.product.photos.unshift(photo);
+                                    that.product.photos.push(photo);
                                     if (that.product.photos.length === 1) {
                                         self.setProductPhoto(photo, sku_mod);
                                     }
@@ -5844,8 +5844,18 @@
                         mounted: function() {
                             var self = this;
 
-                            var $bar = $(self.$el).find(".wa-progressbar").waProgressbar({ type: "circle", "stroke-width": 4.8, display_text: false }),
+                            var $wrapper = $(self.$el);
+
+                            var $bar = $wrapper.find(".wa-progressbar").waProgressbar({ type: "circle", "stroke-width": 4.8, display_text: false }),
                                 instance = $bar.data("progressbar");
+
+                            var $content = $dialog.find(".dialog-content");
+                            self.$nextTick( function() {
+                                $content
+                                    .addClass("is-scroll-animated")
+                                    .scrollTop( $content[0].offsetHeight + 1000 )
+                                    .removeClass("is-scroll-animated");
+                            });
 
                             loadPhoto(self.file)
                                 .done( function(response) {
@@ -5985,7 +5995,7 @@
                         if (index >= 0) { self.files.splice(index, 1); }
 
                         // Добавляем фотку в модели данных
-                        self.photos.unshift(photo);
+                        self.photos.push(photo);
                         dialog.options.onPhotoAdd(photo);
 
                         self.setPhoto(photo);
@@ -5996,7 +6006,7 @@
                         var self = this;
 
                         var file_size = file.size,
-                            image_type = /^image\/(png|jpe?g|gif)$/,
+                            image_type = /^image\/(png|jpe?g|gif|webp)$/,
                             is_image_type = (file.type.match(image_type)),
                             is_image = false;
 
@@ -6005,7 +6015,7 @@
 
                         ext = ext.toLowerCase();
 
-                        var white_list = ["png", "jpg", "jpeg", "gif"];
+                        var white_list = ["png", "jpg", "jpeg", "gif", "webp"];
                         if (is_image_type && white_list.indexOf(ext) >= 0) {
                             is_image = true;
                         }

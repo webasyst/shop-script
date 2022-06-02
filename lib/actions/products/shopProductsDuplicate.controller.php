@@ -4,7 +4,7 @@ class shopProductsDuplicateController extends waJsonController
 {
     public function execute()
     {
-        $hash = waRequest::post('hash', '');
+        $hash = shopProductsAddToCategoriesController::getHash();
         $new_ids = array();
         if (!$hash) {
             $product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);

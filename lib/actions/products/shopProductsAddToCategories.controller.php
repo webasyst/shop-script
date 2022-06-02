@@ -40,7 +40,7 @@ class shopProductsAddToCategoriesController extends waJsonController
         }
 
         // add products to categories
-        $hash = $this->getHash();
+        $hash = self::getHash();
         if (!$hash) {
             $all_product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
             $hash = 'id/'.join(',', $all_product_ids);
@@ -132,9 +132,9 @@ class shopProductsAddToCategoriesController extends waJsonController
         ));
     }
 
-    public function getHash()
+    public static function getHash($type = null, $name = 'hash')
     {
-        $hash = waRequest::post('hash', '');
+        $hash = waRequest::post($name, '', $type);
         $hash_decoded = urldecode($hash);
         if ($hash_decoded) {
             $hash = $hash_decoded;

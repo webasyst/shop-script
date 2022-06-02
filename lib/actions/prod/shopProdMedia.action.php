@@ -47,11 +47,19 @@ class shopProdMediaAction extends waViewAction
     {
         $photos = self::getPhotos($product);
 
+        $first_photo = [];
+        if ($photos) {
+            $first_photo = reset($photos);
+        }
+
         foreach ($product["skus"] as $_sku) {
             if (!empty($_sku["image_id"])) {
-                // Добавляем информацию о главной фотке
-                if (($_sku["id"] === $product["sku_id"])) {
+                // совместимость с товарами у которых главное фото не на первом месте
+                if ($_sku["id"] === $product["sku_id"] && $first_photo && $product['image_id'] != $first_photo['id']) {
                     $product["image_id"] = $_sku["image_id"];
+                    $fake_main_photo = $photos[$_sku['image_id']];
+                    unset($photos[$_sku['image_id']]);
+                    array_unshift($photos, $fake_main_photo);
                 }
                 // Считаем кол-во использований фотки
                 if (!empty($photos[$_sku["image_id"]])) {
@@ -133,6 +141,7 @@ class shopProdMediaAction extends waViewAction
                 "name" => $_image["original_filename"],
                 "width" => $_image["width"],
                 "height" => $_image["height"],
+                'sort' => $_image['sort'],
                 "uses_count" => 0
             ];
         }

@@ -32,7 +32,7 @@ class shopBackendLocAction extends waViewAction
             'Saved',
             'Empty result',
             'Please select at least one product',
-            'Files with extensions *.gif, *.jpg, *.jpeg, *.png are allowed only.',
+            'Files with extensions *.gif, *.jpg, *.jpeg, *.png, *.webp are allowed only.',
             'New customer',
             'contain',
             'is the same',

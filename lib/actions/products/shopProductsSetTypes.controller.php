@@ -24,7 +24,7 @@ class shopProductsSetTypesController extends waJsonController
             return;
         }
 
-        $hash = waRequest::post('hash', '', waRequest::TYPE_STRING_TRIM);
+        $hash = shopProductsAddToCategoriesController::getHash(waRequest::TYPE_STRING_TRIM);
         $all_product_ids = null;
 
         if (!$hash) {

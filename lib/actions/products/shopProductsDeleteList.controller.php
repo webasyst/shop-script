@@ -6,7 +6,7 @@ class shopProductsDeleteListController extends waJsonController
     {
         $this->getStorage()->close();
 
-        $hash = waRequest::post('hash', '');
+        $hash = shopProductsAddToCategoriesController::getHash();
         if ($hash) {
             $hash = explode('/', $hash);
             $remove = waRequest::post('remove', array());

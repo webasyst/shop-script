@@ -14,7 +14,14 @@ class shopProdGeneralAction extends waViewAction
         }
         $product_model = new shopProductModel();
         if (!$product_model->checkRights($product_id)) {
-            throw new waException(_w('Access denied'));
+            if (waRequest::isXMLHttpRequest() && !waRequest::request('section')) {
+                throw new waException(_w('Access denied'), 403);
+            } else {
+                $this->redirect(
+                    '/'.wa()->getConfig()->getBackendUrl().'/shop/'
+                    .shopHelper::getBackendEditorUrl($product_id, 'prices')
+                );
+            }
         }
 
         list($frontend_urls, $total_storefronts_count, $url_template) = $this->getFrontendUrls($product, false);

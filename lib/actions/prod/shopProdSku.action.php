@@ -242,21 +242,16 @@ class shopProdSkuAction extends waViewAction
                 ];
             }
 
-
             // SKU photo
             $modification["photo"] = null;
-            if ( !empty($modification["image_id"]) ) {
-                if ($modification["id"] === $product["sku_id"]) {
-                    $product["image_id"] = $modification["image_id"];
-                }
-                if ( !empty($photos[$modification["image_id"]]) ) {
+            if (!empty($modification["image_id"]) && $_normal_mode_switch) {
+                if (!empty($photos[$modification["image_id"]])) {
                     $modification["photo"] = $photos[$modification["image_id"]];
                 }
-            } else if (!empty($product["image_id"])) {
-                if ($modification["id"] === $product["sku_id"]) {
-                    $modification["image_id"] = $product["image_id"];
-                    $modification["photo"] = $photos[$modification["image_id"]];
-                }
+            } elseif (!empty($product["image_id"]) && !$_normal_mode_switch && $modification["id"] === $product["sku_id"]) {
+                /* Код устанавливает фото продукта, если это главный артикул и у него нет фото. Для простого товара */
+                $modification["image_id"] = $product["image_id"];
+                $modification["photo"] = $photos[$modification["image_id"]];
             }
 
             // SELECTABLE_FEATURES
@@ -370,16 +365,6 @@ class shopProdSkuAction extends waViewAction
         }
 
         $photo = ( !empty($photos) ? $photos[$product["image_id"]] : null );
-
-        // When product has a photo and only one modification with no photo,
-        // use product image as photo for the modification.
-        if ($photo && count($product['skus']) == 1 && $skus) {
-            $sku_key = array_keys($skus)[0];
-            if (empty($skus[$sku_key]['modifications'][0]['photo']) && !empty($skus[$sku_key]['modifications'][0])) {
-                $skus[$sku_key]['modifications'][0]['image_id'] = $photo['id'];
-                $skus[$sku_key]['modifications'][0]['photo'] = $photo;
-            }
-        }
 
         // Корректируем названия модификаций, потому что они отличаются (баг) от названий артикулов.
         foreach ($skus as &$sku) {

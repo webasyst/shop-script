@@ -181,7 +181,11 @@ class shopProductSaveController extends waJsonController
 
             }
         } catch (Exception $ex) {
-            $this->setError($ex->getMessage());
+            if (get_class($ex) === 'waDbException' && in_array($ex->getCode(),  [1267, 1366])) {
+                $this->setError(_w('Добавьте поддержку эмодзи'));
+            } else {
+                $this->setError($ex->getMessage());
+            }
         }
     }
 

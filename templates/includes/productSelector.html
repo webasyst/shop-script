@@ -9,7 +9,7 @@
     <div class="name">
         {_wd('shop',"Select products")}
     </div>
-    {$hash = shopImportexportHelper::parseHash($hash)}
+    {$hash = shopImportexportHelper::parseHash($hash, ['show_top_level' => true])}
     <div class="value">
         <div class="sidebar left200px">
             <ul class="menu-v">

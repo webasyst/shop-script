@@ -128,6 +128,7 @@ class shopFeatureModel extends waModel
             if (!self::isCodeAllowed($code)) {
                 $code = ($code === '_' ? 'f' : 'f_').$code;
             }
+            $search_code = substr($code, 0, $max_length - 10);
             $code = substr($code, 0, $max_length);
 
             $sql = <<<SQL
@@ -136,7 +137,7 @@ class shopFeatureModel extends waModel
             WHERE (`id` != i:id) AND (`code` LIKE s:c)
 SQL;
             $params = array(
-                'c'  => $this->escape($code, 'like').'%',
+                'c'  => $this->escape($search_code, 'like').'%',
                 'id' => $id,
             );
             $codes = $this->query($sql, $params)->fetchAll('id', true);

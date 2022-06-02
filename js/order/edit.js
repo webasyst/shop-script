@@ -199,9 +199,9 @@ $.order_edit = {
                         $wrapper: item.find("#js-quantity-section").removeAttr("id"),
                         denominator: product["order_multiplicity_factor"],
                         step: (active_sku.order_count_step || product.order_count_step),
-                        min: (active_sku.order_count_min || product.order_count_min),
-                        max: active_sku.count
+                        min: (active_sku.order_count_min || product.order_count_min)
                     });
+                    /*max: active_sku.count*/
 
                     $('#s-order-comment-edit').show();
                     $.order_edit.updateTotal();

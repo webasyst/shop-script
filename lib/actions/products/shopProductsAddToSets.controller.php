@@ -41,7 +41,7 @@ class shopProductsAddToSetsController extends waJsonController
         }
 
         // add products to sets
-        $hash = waRequest::post('hash', '');
+        $hash = shopProductsAddToCategoriesController::getHash();
         if (!$hash) {
             $all_product_ids = waRequest::post('product_id', array(), waRequest::TYPE_ARRAY_INT);
             $hash = 'id/'.join(',', $all_product_ids);
