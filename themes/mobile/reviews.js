@@ -166,7 +166,7 @@ var ReviewImagesSection = ( function($) {
         var that = this,
             file_size = file.size;
 
-        var image_type = /^image\/(png|jpe?g|gif)$/,
+        var image_type = /^image\/(png|jpe?g|gif|webp)$/,
             is_image = (file.type.match(image_type));
 
         if (!is_image) {
