@@ -85,7 +85,7 @@ class shopProdPageSaveController extends waJsonController
                 }
             } catch (waDbException $dbe) {
                 if ($dbe->getCode() === 1366) {
-                    $this->errors[] = ['id' => 'pages', 'text' => _w('Добавьте поддержку эмодзи')];
+                    $this->errors[] = ['id' => 'pages', 'text' => _w('Enable the emoji support in system settings.')];
                     return;
                 } else {
                     throw $dbe;
@@ -113,7 +113,7 @@ class shopProdPageSaveController extends waJsonController
                 }
             } catch (waDbException $dbe) {
                 if ($dbe->getCode() === 1366) {
-                    $this->errors[] = ['id' => 'pages', 'text' => _w('Добавьте поддержку эмодзи')];
+                    $this->errors[] = ['id' => 'pages', 'text' => _w('Enable the emoji support in system settings.')];
                     return;
                 } else {
                     throw $dbe;

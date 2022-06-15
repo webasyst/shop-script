@@ -115,6 +115,7 @@
             <td class="short align-center nowrap" colspan="{%#stock_count%}">
                 {%#sku.count_icon_html%}
                 <input class="small instock"
+                       oninput="this.value = $.shop.validate('number-negative', this.value)"
                        name="product[{%#product.id%}][sku][{%#sku.id%}][count]"
                        {% if (sku.count === null) { %}
                             placeholder="∞" value=""
@@ -132,6 +133,7 @@
                     {% var count = sku.stock[stock.id].count; %}
                     {%#sku.stock[stock.id].icon_html%}
                     <input class="short small instock"
+                           oninput="this.value = $.shop.validate('number-negative', this.value)"
                            name="product[{%#product.id%}][sku][{%#sku.id%}][stock][{%#stock.id%}]"
                            {% if (count === null) { %}
                                 placeholder="∞" value=""

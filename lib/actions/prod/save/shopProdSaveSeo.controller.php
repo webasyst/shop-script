@@ -29,7 +29,7 @@ class shopProdSaveSeoController extends waJsonController
                 $product->save($product_data, true, $errors);
             } catch (waDbException $dbe) {
                 if ($dbe->getCode() === 1366) {
-                    $this->errors[] = ['text' => _w('Добавьте поддержку эмодзи')];
+                    $this->errors[] = ['text' => _w('Enable the emoji support in system settings.')];
                 } else {
                     throw $dbe;
                 }

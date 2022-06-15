@@ -346,7 +346,7 @@ class shopProdSaveSkuController extends waJsonController
             if (get_class($ex) === 'waDbException' && $ex->getCode() === 1366) {
                 $this->errors[] = [
                     'id'   => 'general',
-                    'text' => _w('Добавьте поддержку эмодзи')
+                    'text' => _w('Enable the emoji support in system settings.')
                 ];
             } else {
                 $message = $ex->getMessage();

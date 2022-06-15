@@ -52,7 +52,7 @@
 
         <form id="s-product-video" style="margin-top: 1rem;">
             <div>
-                <input type="text" name="url" value="{$product.video_url|escape}" placeholder="{_w("Адрес видео на RUTUBE, YouTube или Vimeo")|escape}" class="long">
+                <input type="text" name="url" value="{$product.video_url|escape}" placeholder="{_w("Video URL on YouTube, Vimeo or Rutube")|escape}" class="long">
                 <input type="submit" value="[`Link video`]">
                 <i class="icon16 loading" style="display: none; margin-top: 5px;"></i>
                 <i class="icon16 yes" style="margin-top: 5px;{if !$product.video_url} display: none;{/if}"></i>

@@ -932,7 +932,10 @@ class shopProductModel extends waModel
             $sku_price = $this->castValue('decimal', $sku['price']);
             $price[] = $sku_price;
             $stock_base_ratio = isset($sku['stock_base_ratio']) ? $sku['stock_base_ratio'] : $product['stock_base_ratio'];
-            $base_price = $sku_price / $this->castValue('double', $stock_base_ratio);
+            $base_price = 0;
+            if ($stock_base_ratio > 0) {
+                $base_price = $sku_price / $this->castValue('double', $stock_base_ratio);
+            }
             $base_price = min(99999999999.9999, max(0.0001, $base_price));
             $base_prices[] = $base_price;
             if ($main_sku_id == $sku['id']) {

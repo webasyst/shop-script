@@ -38,7 +38,7 @@ class shopCsvProductuploadController extends shopUploadController
                         'multiple' => true,
                     ),
                 ),
-                'video_url'           => _w('Video URL on YouTube or Vimeo'),
+                'video_url'           => _w('Video URL on YouTube, Vimeo or Rutube'),
                 'params'              => _w('Custom parameters'),
             ),
             'product_custom_fields' => array(),
@@ -57,16 +57,21 @@ class shopCsvProductuploadController extends shopUploadController
             'sku_custom_fields'     => array(),
         );
 
-        $premium_fields = [
-            'order_multiplicity_factor' => _w('Add-to-cart step'),
-            'stock_unit_id'             => _w('Stock quantity unit'),
-            'base_unit_id'              => _w('Base quantity unit'),
-            'stock_base_ratio'          => _w('Stock to base quantity units ratio'),
-            'order_count_min'           => _w('Minimum orderable quantity'),
-            'order_count_step'          => _w('Quantity adjustment value via “+/-” buttons'),
-        ];
         if (shopFrac::isEnabled()) {
-            $fields['product'] += $premium_fields;
+            $fields['product'] += [
+                'order_multiplicity_factor' => _w('Add-to-cart step'),
+                'order_count_min'           => _w('Minimum orderable quantity'),
+                'order_count_step'          => _w('Quantity adjustment value via “+/-” buttons'),
+            ];
+        }
+        if (shopUnits::stockUnitsEnabled()) {
+            $fields['product']['stock_unit_id'] = _w('Stock quantity unit');
+        }
+        if (shopUnits::baseUnitsEnabled()) {
+            $fields['product'] += [
+                 'base_unit_id'     => _w('Base quantity unit'),
+                 'stock_base_ratio' => _w('Stock to base quantity units ratio'),
+            ];
         }
 
         if ($extra_fields) {

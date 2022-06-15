@@ -1566,8 +1566,6 @@ SQL;
                 $saved_features += $feature_model->getByField(array('code' => array_keys($missing_keys)), 'code');
             }
 
-            $this->updateProductRemovalBehavior($data, $id);
-
             if ($id && isset($data['skus'][-1])) {
                 if (in_array($this->data['previous_type'], array(self::STAGE_VARIANT, null), true)
                     && ($this->emulate() ? ($product->__hash == $current_id) : ($id == $current_id))
@@ -1745,28 +1743,36 @@ SQL;
             }
             $this->setDefaultUnitFeature($data);
 
-            $correct_units = $this->validateUnits($data, $product);
-            if ($correct_units === false) {
-                if ($id) {
-                    $this->data['last_wrong_product'] = [
-                        'field' => 'id',
-                        'value' => $id
-                    ];
-                    return false;
-                } elseif (isset($data[$this->data['primary']])) {
-                    $this->data['last_wrong_product'] = [
-                        'field' => $this->data['primary'],
-                        'value' => $data[$this->data['primary']]
-                    ];
-                    return false;
-                } elseif (isset($data['url'])) {
-                    $this->data['last_wrong_product'] = [
-                        'field' => 'url',
-                        'value' => $data['url']
-                    ];
-                    return false;
+            if (shopFrac::isEnabled()) {
+                $correct_units = $this->validateUnits($data, $product, $item_sku_id);
+                if ($correct_units === false) {
+                    if ($data['row_type'] == self::STAGE_PRODUCT) {
+                        if ($id) {
+                            $this->data['last_wrong_product'] = [
+                                'field' => 'id',
+                                'value' => $id
+                            ];
+                            return false;
+                        } elseif (isset($data[$this->data['primary']])) {
+                            $this->data['last_wrong_product'] = [
+                                'field' => $this->data['primary'],
+                                'value' => $data[$this->data['primary']]
+                            ];
+                            return false;
+                        } elseif (isset($data['url'])) {
+                            $this->data['last_wrong_product'] = [
+                                'field' => 'url',
+                                'value' => $data['url']
+                            ];
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
                 }
             }
+
+            $this->updateProductRemovalBehavior($data, $id);
 
             shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_IMPORT);
             if ($sku_only || ($this->data['primary'] === null)) {
@@ -2830,11 +2836,11 @@ SQL;
     /**
      * @param $data
      * @param $product shopProduct
-     * @param $sku_only
+     * @param $item_sku_id
      * @return bool
      * @throws waException
      */
-    protected function validateUnits($data, $product)
+    protected function validateUnits(&$data, $product, $item_sku_id)
     {
         static $types = null;
         if ($types === null) {
@@ -2843,7 +2849,11 @@ SQL;
         }
 
         if (isset($data['row_type']) && in_array($data['row_type'], [self::STAGE_PRODUCT, self::STAGE_PRODUCT_VARIANT, self::STAGE_VARIANT])) {
-            $is_update_product = $product->getId() > 0;
+            if ($data['row_type'] == self::STAGE_VARIANT) {
+                $is_update_product = is_numeric($item_sku_id) && $item_sku_id > 0;
+            } else {
+                $is_update_product = $product->getId() > 0;
+            }
             $units = $this->getUnits();
             if (isset($data['type_id']) && isset($types[$data['type_id']])) {
                 $current_type = $types[$data['type_id']];
@@ -2862,58 +2872,85 @@ SQL;
                 }
             }
             if ($data['row_type'] != self::STAGE_VARIANT) {
-                $correct_stock_unit = $this->validateStockUnit($units_fields, $data, $product, $is_update_product, $units, $current_type);
-                if ($correct_stock_unit === false) {
-                    return false;
+                if (shopUnits::stockUnitsEnabled()) {
+                    $correct_stock_unit = $this->validateStockUnit($units_fields, $data, $product, $is_update_product, $units, $current_type);
+                    if ($correct_stock_unit === false) {
+                        return false;
+                    }
                 }
-                $correct_base_unit = $this->validateBaseUnit($units_fields, $data, $is_update_product, $units, $current_type);
-                if ($correct_base_unit === false) {
-                    return false;
+                if (shopUnits::baseUnitsEnabled()) {
+                    $correct_base_unit = $this->validateBaseUnit($units_fields, $data, $is_update_product, $units, $current_type);
+                    if ($correct_base_unit === false) {
+                        return false;
+                    }
+                }
+                $this->data['equal_units'] = false;
+                if (isset($data['stock_unit_id']) && isset($data['base_unit_id']) && $data['stock_unit_id'] == $data['base_unit_id']) {
+                    $this->data['equal_units'] = true;
                 }
             }
 
-            if (!isset($data['stock_base_ratio']) || $data['stock_base_ratio'] === '') {
-                if ($is_update_product || $data['row_type'] == self::STAGE_VARIANT) {
-                    unset($data['stock_base_ratio']);
-                } else {
-                    $data['stock_base_ratio'] = $current_type['stock_base_ratio'];
-                }
-            } else {
-                if ($data['stock_unit_id'] == $data['base_unit_id']) {
-                    $data['stock_base_ratio'] = 1;
-                } elseif ($data['stock_base_ratio'] < 0.00000001 || $data['stock_base_ratio'] > 99999999.99999999) {
-                    if ($is_update_product) {
-                        $this->writeImportError(_w('Значение соотношения складской и базовой единиц не было обновлено. Т.к. его значение должно быть от 0,00000001 до 99.999.999,99999999 — не более 8 знаков после запятой'));
+            if (shopUnits::baseUnitsEnabled()) {
+                if (!isset($data['stock_base_ratio']) || $data['stock_base_ratio'] === '') {
+                    if ($data['row_type'] == self::STAGE_VARIANT) {
                         unset($data['stock_base_ratio']);
                     } else {
-                        $this->writeImportError(_w('Значение соотношения складской и базовой единиц должно быть от 0,00000001 до 99.999.999,99999999 — не более 8 знаков после запятой'));
-                        return false;
+                        if ($is_update_product) {
+                            unset($data['stock_base_ratio']);
+                        } else {
+                            $data['stock_base_ratio'] = $current_type['stock_base_ratio'];
+                        }
+                    }
+                } else {
+                    if ($data['row_type'] != self::STAGE_VARIANT && $data['stock_unit_id'] == $data['base_unit_id']) {
+                        $data['stock_base_ratio'] = 1;
+                    } elseif ($data['row_type'] == self::STAGE_VARIANT && !empty($this->data['equal_units'])) {
+                        $data['stock_base_ratio'] = null;
+                    } elseif ($data['stock_base_ratio'] < 0.00000001 || $data['stock_base_ratio'] > '99999999.99999999'
+                        || !$this->isCorrectFractionalPart($data['stock_base_ratio'], 8)
+                    ) {
+                        if ($is_update_product) {
+                            $this->writeImportError(_w('The stock to base quantity units ratio was not updated because its value must be in the range from 0.00000001 and 99,999,999.99999999 and may contain a maximum of 8 decimal digits.'));
+                            unset($data['stock_base_ratio']);
+                        } else {
+                            $this->writeImportError(_w('The stock to base quantity units ratio must be in the range from 0.00000001 and 99,999,999.99999999 and may contain a maximum of 8 decimal digits.'));
+                            return false;
+                        }
                     }
                 }
             }
 
             foreach (['order_multiplicity_factor', 'order_count_min', 'order_count_step'] as $field) {
-                if ($field == 'order_multiplicity_factor' && $data['row_type'] == self::STAGE_VARIANT) {
-                    continue;
+                if ($field == 'order_multiplicity_factor') {
+                    if ($data['row_type'] == self::STAGE_VARIANT) {
+                        continue;
+                    } elseif ($is_update_product) {
+                        $this->data['product_order_multiplicity_factor'] = ifset($product, 'order_multiplicity_factor', null);
+                    } else {
+                        $this->data['product_order_multiplicity_factor'] = ifset($data, 'order_multiplicity_factor', null);
+                    }
                 }
-                if (!isset($data[$field]) || $data[$field] === '') {
+                if (!isset($data[$field]) || $data[$field] === '' || $current_type[$field.'_fixed'] == shopTypeModel::PARAM_DISABLED) {
                     if ($is_update_product || $data['row_type'] == self::STAGE_VARIANT) {
                         unset($data[$field]);
                     } else {
                         $data[$field] = $current_type[$field];
                     }
-                } elseif ($current_type[$field.'_fixed'] == shopTypeModel::PARAM_DISABLED) {
-                    $data[$field] = $current_type[$field];
-                } elseif ($data[$field] < 0.001 || $data[$field] > 999999.999) {
+                } elseif (!is_numeric($data[$field]) || $data[$field] < 0.001 || $data[$field] > 999999.999
+                    || ($field != 'order_multiplicity_factor'
+                        && !empty($this->data['product_order_multiplicity_factor'])
+                        && !empty(explode('.', $data[$field] / $this->data['product_order_multiplicity_factor'])[1]))
+                    || !$this->isCorrectFractionalPart($data[$field], 3)
+                ) {
                     if ($field == 'order_multiplicity_factor') {
-                        $warning_message = _w('Значение шага не было обновлено. Т.к. его значение должно быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
-                        $error_message = _w('Значение шага (кратности) должно быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
+                        $warning_message = _w('The add-to-cart step value was not updated because it must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
+                        $error_message = _w('The add-to-cart step value must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
                     } elseif ($field == 'order_count_min') {
-                        $warning_message = _w('Значение минимума должно делиться без остатка на шаг добавления товара в корзину. И быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
-                        $error_message = _w('Значение минимума должно делиться без остатка на шаг добавления товара в корзину. И быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
+                        $warning_message = _w('The minimum orderable quantity must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
+                        $error_message = _w('The minimum orderable quantity must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
                     } else {
-                        $warning_message = _w('Значение +/- должно делиться без остатка на шаг добавления товара в корзину. И быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
-                        $error_message = _w('Значение +/- должно делиться без остатка на шаг добавления товара в корзину. И быть от 0,001 до 999 999,999. Не более 3 знаков после запятой');
+                        $warning_message = _w('The quantity adjustment value via “+/-” buttons must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
+                        $error_message = _w('The quantity adjustment value via “+/-” buttons must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
                     }
                     if ($is_update_product) {
                         $this->writeImportError($warning_message);
@@ -2934,10 +2971,10 @@ SQL;
             unset($data['stock_unit_id']);
             return true;
         } elseif ($current_type && (!$units_fields['stock_unit_id'] || !isset($data['stock_unit_id']) || $data['stock_unit_id'] === '')) {
-            $data['stock_unit_id'] = $current_type['stock_unit_id'];
-            if ($is_update_product && !$units_fields['stock_unit_id']) {
-                $this->writeImportError(_w('Значение складской единицы не было обновлено, т.к. его запрещено менять на уровне типа товара.'));
+            if ($is_update_product && !$units_fields['stock_unit_id'] && $data['stock_unit_id'] != $current_type['stock_unit_id']) {
+                $this->writeImportError(_w('The stock quantity unit was not updated because it may not be changed according to product type settings.'));
             }
+            $data['stock_unit_id'] = $current_type['stock_unit_id'];
         } else {
             $is_first_code = true;
             $found_unit = false;
@@ -2950,17 +2987,17 @@ SQL;
                                 || (isset($data['base_unit_id']) && $data['base_unit_id'] == $data['stock_unit_id'])
                             ) {
                                 unset($data['stock_unit_id']);
-                                $this->writeImportError(_w('Значение складской единицы не было обновлено, т.к. оно не должно совпадать со значением базовой единицы.'));
+                                $this->writeImportError(_w('The stock quantity unit was not updated because it may not be the same as the base unit.'));
                                 return true;
                             }
                         } elseif (isset($data['base_unit_id']) && $data['base_unit_id'] == $data['stock_unit_id']) {
-                            $this->writeImportError(_w('Значения для складской и базовой единиц должны отличаться.'));
+                            $this->writeImportError(_w('The stock and the base quantity units must be different.'));
                             return false;
                         }
                         $data['stock_unit_id'] = $unit['id'];
                         $found_unit = true;
                     } else {
-                        $this->writeImportError(_w('В справочнике единиц больше одной единицы соответствующей коду складской единицы, была импортирована первая попавшаяся единица'));
+                        $this->writeImportError(_w('The quantity units configuration table contains more than one unit having the specified stock quantity unit code. One of those units, randomly selected, was imported.'));
                     }
                     $is_first_code = false;
                 }
@@ -2968,9 +3005,9 @@ SQL;
             if (!$found_unit) {
                 if ($is_update_product) {
                     unset($data['stock_unit_id']);
-                    $this->writeImportError(_w('Значение складской единицы не было обновлено, т.к. среди включенных единиц измерения отсутствует значение, заданное в строке для складской единицы.'));
+                    $this->writeImportError(_w('The stock quantity unit was not updated because the value specified for a stock quantity unit is missing in the list of enabled quantity units.'));
                 } else {
-                    $this->writeImportError(_w('Среди включенных единиц измерения отсутсвует значение, заданное в строке для складской единиц.'));
+                    $this->writeImportError(_w('The value specified for a stock quantity unit is missing in the list of enabled quantity units.'));
                     return false;
                 }
             }
@@ -2985,52 +3022,62 @@ SQL;
             return true;
         } elseif ($current_type && (!$units_fields['base_unit_id'] || !isset($data['base_unit_id']) || $data['base_unit_id'] === '')) {
             if (isset($current_type['base_unit_id'])) {
+                if ($is_update_product && !$units_fields['base_unit_id'] && $data['base_unit_id'] != $current_type['base_unit_id']) {
+                    $this->writeImportError(_w('The base quantity unit was not updated because it may not be changed according to product type settings.'));
+                }
                 $data['base_unit_id'] = $current_type['base_unit_id'];
             } else {
                 $data['base_unit_id'] = $data['stock_unit_id'];
-            }
-            if ($is_update_product && !$units_fields['base_unit_id']) {
-                $this->writeImportError(_w('Значение базовой единицы не было обновлено, т.к. его запрещено менять на уровне типа товара.'));
             }
         } else {
             $is_first_code = true;
             $found_unit = false;
             $data_unit = $data['base_unit_id'];
             $not_specified = mb_strtolower(_w(trim($data_unit))) == mb_strtolower(_w('Not specified'));
-            foreach ($units as $unit) {
-                if (($unit['okei_code'] == $data_unit && $unit['status']) || $not_specified) {
-                    if ($is_first_code === true) {
-                       if ($data['stock_unit_id'] == $data_unit) {
-                            if ($is_update_product) {
-                                $this->writeImportError(_w('Значение базовой единицы не было обновлено, т.к. оно не должно совпадать со значением складской единицы'));
-                                unset($data['base_unit_id']);
-                                return true;
-                            } else {
-                                $this->writeImportError(_w('Значения для складской и базовой единиц должны отличаться.'));
-                                return false;
+            if ($not_specified) {
+                $data['base_unit_id'] = $data['stock_unit_id'];
+                $found_unit = true;
+            } else {
+                foreach ($units as $unit) {
+                    if ($unit['okei_code'] == $data_unit && $unit['status']) {
+                        if ($is_first_code === true) {
+                            if ($data['stock_unit_id'] == $data_unit) {
+                                if ($is_update_product) {
+                                    $this->writeImportError(_w('The base quantity unit was not updated because it may not be the same as the stock unit.'));
+                                    unset($data['base_unit_id']);
+                                    return true;
+                                } else {
+                                    $this->writeImportError(_w('The stock and the base quantity units must be different.'));
+                                    return false;
+                                }
                             }
-                        }
-                        if ($not_specified) {
-                            $data['base_unit_id'] = $data['stock_unit_id'];
-                        } else {
                             $data['base_unit_id'] = $unit['id'];
+                            $found_unit = true;
+                        } else {
+                            $this->writeImportError(_w('The quantity units configuration table contains more than one unit having the specified base quantity unit code. One of those units, randomly selected, was imported.'));
                         }
-                        $found_unit = true;
-                    } else {
-                        $this->writeImportError(_w('В справочнике единиц больше одной единицы соответствующей коду базовой единицы, была импортирована первая попавшаяся единица'));
+                        $is_first_code = false;
                     }
-                    $is_first_code = false;
                 }
             }
             if (!$found_unit) {
                 if ($is_update_product) {
-                    $this->writeImportError(_w('Значение базовой единицы не было обновлено, т.к. среди включенных единиц измерения отсутствует значение, заданное в строке для базовой единицы.'));
+                    $this->writeImportError(_w('The base quantity unit was not updated because the value specified for a base quantity unit is missing in the list of enabled quantity units.'));
                     unset($data['base_unit_id']);
                 } else {
                     $data['base_unit_id'] = $data['stock_unit_id'];
-                    $this->writeImportError(_w('Значение базовой единицы не было задано, т.к. среди включенных единиц измерения отсутствует значение, заданное в строке для базовой единицы.'));
+                    $this->writeImportError(_w('The base quantity unit was not set because the value specified for a base quantity unit is missing in the list of enabled quantity units.'));
                 }
             }
+        }
+        return true;
+    }
+
+    function isCorrectFractionalPart($value, $sign_count)
+    {
+        $number_parts = explode('.', $value);
+        if (isset($number_parts[1]) && mb_strlen($number_parts[1]) > $sign_count) {
+            return false;
         }
         return true;
     }
@@ -3171,6 +3218,8 @@ SQL;
     private function writeImportError($message)
     {
         try {
+            // information for tests
+            $this->data['error_messages'][$this->reader->key()] = $message;
             $current = [
                 'import_line_number' => $this->reader->key(),
                 'error_message' => $message,
@@ -3522,7 +3571,7 @@ SQL;
         $has_error = false;
         foreach ($price_fields as $field => $name) {
             if (isset($data[$field]) && $data[$field] < 0) {
-                $this->writeImportError(sprintf_wp('The value of the “%s” field can be only 0 or greater than zero.', $name));
+                $this->writeImportError(sprintf_wp('The value of the “%s” field can be only 0 or greater than 0.', $name));
                 $has_error = true;
             }
         }

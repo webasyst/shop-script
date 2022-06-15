@@ -33,7 +33,7 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
             $params = $this->order_params_model->get($order_id);
             list($saved_shipping_date, $saved_shipping_time_start, $saved_shipping_time_end) = shopHelper::getOrderShippingInterval($params);
             if ($saved_shipping_date && $saved_shipping_time_start && $saved_shipping_time_end) {
-                $text[] = _w('Дата и время доставки курьером были удалены');
+                $text[] = _w('Courier delivery date and time were deleted.');
                 $params['shipping_start_datetime'] = null;
                 $params['shipping_end_datetime'] = null;
                 $update['shipping_datetime'] = null;

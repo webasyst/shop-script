@@ -182,7 +182,7 @@ class shopProductSaveController extends waJsonController
             }
         } catch (Exception $ex) {
             if (get_class($ex) === 'waDbException' && in_array($ex->getCode(),  [1267, 1366])) {
-                $this->setError(_w('Добавьте поддержку эмодзи'));
+                $this->setError(_w('Enable the emoji support in system settings.'));
             } else {
                 $this->setError($ex->getMessage());
             }

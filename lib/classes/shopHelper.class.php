@@ -1660,7 +1660,7 @@ SQL;
             $count = $col->count();
         } catch (waDbException $dbe) {
             if ($dbe->getCode() === 1267) {
-                return _w('Добавьте поддержку эмодзи');
+                return _w('Enable the emoji support in system settings.');
             } else {
                 throw $dbe;
             }

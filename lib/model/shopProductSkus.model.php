@@ -110,6 +110,8 @@ SQL;
         if ($product['currency'] && $product['currency'] != $primary) {
             $currency = $product['currency'];
         }
+        $data['max_base_price'] = $this->validateBasePrice($data['max_base_price']);
+        $data['min_base_price'] = $this->validateBasePrice($data['min_base_price']);
         // info for updating product when sku will be deleted
         $update = array(
             'max_price' => $currency != $primary ? $this->convertPrice($data['max_price'], $currency) : $data['max_price'],
@@ -139,6 +141,7 @@ SQL;
         }
 
         $base_price = $this->query($sql)->fetchField('base_price');
+        $base_price = $this->validateBasePrice($base_price);
         $update['base_price'] = $currency != $primary ? $this->convertPrice($base_price, $currency) : $base_price;
 
         if (($sku['count'] !== null) && ($product['count'] !== null)) {
@@ -279,6 +282,11 @@ SQL;
         }
 
         return $this->currency_model->convert($price, $from, $this->primary_currency);
+    }
+
+    private function validateBasePrice($base_price)
+    {
+        return min(99999999999.9999, max(0.0, $base_price));
     }
 
     protected static function castStock($count)

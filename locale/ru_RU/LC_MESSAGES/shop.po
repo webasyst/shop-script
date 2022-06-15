@@ -6223,8 +6223,8 @@ msgstr "Изображение товара"
 msgid "Widget code"
 msgstr "Код виджета"
 
-msgid "Video URL on YouTube or Vimeo"
-msgstr "Адрес видео на YouTube или Vimeo"
+msgid "Video URL on YouTube, Vimeo or Rutube"
+msgstr "Адрес видео на Rutube, YouTube или Vimeo"
 
 msgid "Link video"
 msgstr "Добавить видео"
@@ -11852,3 +11852,69 @@ msgstr "Точность значения не должна превышать<b
 
 msgid "Accruals will be made only by integer bonus points—one point per whole amount specified in the “%s” field. For a remainder below that amount no points will be accrued."
 msgstr "Начисление будет выполняться только целыми баллами: один балл за полную сумму, указанную в поле «%s». На остаток меньше этой суммы баллы начисляться не будут."
+
+msgid "The first image in the list is the main product image. To set another main image, move it to the beginning of the list."
+msgstr "Главным является первое изображение в списке. Чтобы выбрать другое главное изображение, передвиньте его на первое место."
+
+msgid "Courier delivery date and time were deleted."
+msgstr "Дата и время доставки курьером были удалены."
+
+msgid "The stock to base quantity units ratio was not updated because its value must be in the range from 0.00000001 and 99,999,999.99999999 and may contain a maximum of 8 decimal digits."
+msgstr "Соотношение складской и базовой единиц не было обновлено, потому что это значение должно быть в диапазоне от 0,00000001 до 99.999.999,99999999 и должно содержать не более 8 знаков после запятой."
+
+msgid "The stock to base quantity units ratio must be in the range from 0.00000001 and 99,999,999.99999999 and may contain a maximum of 8 decimal digits."
+msgstr "Соотношение складской и базовой единиц должно быть в диапазоне от 0,00000001 до 99.999.999,99999999 и содержать не более 8 знаков после запятой."
+
+msgid "The add-to-cart step value was not updated because it must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits."
+msgstr "Значение шага добавления в корзину не было обновлено, потому что оно должно быть в диапазоне от 0,001 до 999 999,999 и содержать не более 3 знаков после запятой."
+
+msgid "The add-to-cart step value must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits."
+msgstr "Значение шага (кратности) должно быть в диапазоне от 0,001 до 999 999,999 и должно содержать не более 3 знаков после запятой."
+
+msgid "The minimum orderable quantity must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits."
+msgstr "Минимальное количество для заказа должно делиться без остатка на шаг добавления товара в корзину, быть в диапазоне от 0,001 до 999 999,999 и содержать не более 3 знаков после запятой."
+
+msgid "The quantity adjustment value via “+/-” buttons must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits."
+msgstr "Значение изменения количества кнопками «+/-» должно делиться без остатка на шаг добавления товара в корзину, быть в диапазоне от 0,001 до 999 999,999 и содержать не более 3 знаков после запятой."
+
+msgid "The stock quantity unit was not updated because it may not be changed according to product type settings."
+msgstr "Складская единица не была обновлена, потому что ее запрещено изменять в настройках типа товаров."
+
+msgid "The stock quantity unit was not updated because it may not be the same as the base unit."
+msgstr "Складская единица не была обновлена, потому что она не должна совпадать с базовой единицей."
+
+msgid "The stock and the base quantity units must be different."
+msgstr "Складская и базовая единицы измерения количества должны быть разными."
+
+msgid "The quantity units configuration table contains more than one unit having the specified stock quantity unit code. One of those units, randomly selected, was imported."
+msgstr "В справочнике единиц измерения количества присутствует более одной единицы с указанным кодом складской единицы. Была импортирована одна из этих единиц, выбранная случайным образом."
+
+msgid "The stock quantity unit was not updated because the value specified for a stock quantity unit is missing in the list of enabled quantity units."
+msgstr "Складская единица не была обновлена, потому что среди включенных единиц измерения количества отсутствует значение, указанное в строке для складской единицы."
+
+msgid "The value specified for a stock quantity unit is missing in the list of enabled quantity units."
+msgstr "Среди включенных единиц измерения количества отсутствует значение, указанное в строке для складской единицы."
+
+msgid "The base quantity unit was not updated because it may not be changed according to product type settings."
+msgstr "Базовая единица не была обновлена, потому что ее запрещено изменять в настройках типа товаров."
+
+msgid "The base quantity unit was not updated because it may not be the same as the stock unit."
+msgstr "Базовая единица не была обновлена, потому что она не должна совпадать со складской единицей."
+
+msgid "The quantity units configuration table contains more than one unit having the specified base quantity unit code. One of those units, randomly selected, was imported."
+msgstr "В справочнике единиц измерения количества присутствует более одной единицы с указанным кодом базовой единицы. Была импортирована одна из этих единиц, выбранная случайным образом."
+
+msgid "The base quantity unit was not updated because the value specified for a base quantity unit is missing in the list of enabled quantity units."
+msgstr "Базовая единица не была обновлена, потому что среди включенных единиц измерения количества отсутствует значение, указанное в строке для базовой единицы."
+
+msgid "The base quantity unit was not set because the value specified for a base quantity unit is missing in the list of enabled quantity units."
+msgstr "Базовая единица не была установлена, потому что среди включенных единиц измерения количества отсутствует значение, указанное в строке для базовой единицы."
+
+msgid "The value of the “%s” field can be only 0 or greater than 0."
+msgstr "Значение поля «%s» может быть только равным 0 либо выше 0."
+
+msgid "Will be imported as a dynamic category"
+msgstr "Будет импортировано в качестве динамической категории"
+
+msgid "Enable the emoji support in system settings."
+msgstr "Включите поддержку эмодзи в системных настройках."

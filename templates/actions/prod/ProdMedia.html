@@ -7,7 +7,7 @@
     ],
     "product-media-photo-main" => [
         "id" => "product-media-photo-main",
-        "html" => _w("Главным является первое изображение в списке. Для изменения главного изображения передвиньте нужное изображение на первое место.")
+        "html" => _w("The first image in the list is the main product image. To set another main image, move it to the beginning of the list.")
     ]
 ]}
 
@@ -133,7 +133,7 @@
                         {strip}
                         <div class="inlinebox top space-16">
                             <input class="size-long" type="text"
-                                   placeholder="{_w("Адрес видео на RUTUBE, YouTube или Vimeo")|escape}"
+                                   placeholder="{_w("Video URL on YouTube, Vimeo or Rutube")|escape}"
                                    v-bind:class="{ 'wa-error-field': !!errors['product_video_add'] }"
                                    v-on:input="removeError('product_video_add')"
                                    v-model="video.model">

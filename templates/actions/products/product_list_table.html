@@ -163,7 +163,7 @@
             <input type="hidden" name="product_id" value="{%=o.product_id%}">
         {/literal}
         {foreach $stocks as $s}
-            <input type="text" class="short small number" name="stock[{$s.id}]" {literal}value="{%=o.values[{/literal}{$s.id}{literal}]||''%}"{/literal} placeholder="∞">
+            <input oninput="this.value = $.shop.validate('number-negative', this.value)" type="text" class="short small number" name="stock[{$s.id}]" {literal}value="{%=o.values[{/literal}{$s.id}{literal}]||''%}"{/literal} placeholder="∞">
             <span class="hint">@{$s.name|escape}</span><br>
         {/foreach}
         <br>
@@ -175,7 +175,7 @@
 <script id="template-list-stock-editor-one" type="text/html">
     <form><div class="nowrap">{strip}{literal}
         <input type="hidden" name="product_id" value="{%=o.product_id%}">
-        <input type="text" class="short number" name="stock" value="{%=o.value%}" placeholder="∞">
+        <input oninput="this.value = $.shop.validate('number-negative', this.value)" type="text" class="short number" name="stock" value="{%=o.value%}" placeholder="∞">
         <br>
         <input type="submit" value="[`Save`]">
         <a href="javascript:void(0)" class="cancel gray large">&times;</a>

@@ -27,7 +27,7 @@ class shopProdSaveGeneralController extends waJsonController
             } catch (waDbException $dbe) {
                 $ex_code = $dbe->getCode();
                 if (in_array($ex_code, [1267, 1366])) {
-                    $this->errors[] = ['text' => _w('Добавьте поддержку эмодзи')];
+                    $this->errors[] = ['text' => _w('Enable the emoji support in system settings.')];
                 } else {
                     throw $dbe;
                 }

@@ -914,7 +914,9 @@
                                             <span data-stock="0" class="s-product-stock-icon">
                                             {%# sku.stock_icon[0] %}
                                             </span>
-                                            <input class="short {% if (empty(sku.available) || empty(sku.status)) { %}grey{% } %}" type="text" name="skus[{%=sku_id%}][stock][0]"value="{% if(sku.count !== null) { %}{%=''+sku.count%}{% } %}" placeholder="∞"> <span class="small">[`items`]</span>
+                                            <input
+                                                oninput="this.value = $.shop.validate('number-negative', this.value)"
+                                                class="short {% if (empty(sku.available) || empty(sku.status)) { %}grey{% } %}" type="text" name="skus[{%=sku_id%}][stock][0]"value="{% if(sku.count !== null) { %}{%=''+sku.count%}{% } %}" placeholder="∞"> <span class="small">[`items`]</span>
                                             {% if(!$.isEmptyObject(stocks)) { %}
                                                 <br><a href="#/product/{%=sku.product_id%}/edit/main/sku/stock/{%=sku_id%}/" class="small gray inline-link js-action"><b><i>[`Multiple stocks`]</i></b></a>
                                             </div>
