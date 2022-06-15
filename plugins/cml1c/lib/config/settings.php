@@ -321,6 +321,12 @@ return array(
             ),
         ),
     ),
+    'import_business_ru' => array(
+        'value'        => false,
+        'control_type' => waHtmlControl::CHECKBOX,
+        'title'        => 'Импорт из «Бизнес.ру»',
+        'description'  => 'В качестве основного артикула импортируется первый артикул товара.'
+    ),
     'create_unique_product_url' => array(
         'value'        => false,
         'title'        => 'Формировать уникальные URL для импортируемых товаров',

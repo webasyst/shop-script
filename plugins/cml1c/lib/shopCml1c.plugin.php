@@ -713,4 +713,57 @@ HTML;
         }
         return null;
     }
+
+    /**
+     * @param $params
+     * @return array
+     */
+    public function prodHandler($params)
+    {
+        $content_id = ifset($params, 'content_id', '');
+        $id_1c = ifset($params, 'product', 'id_1c', '');
+        $html = <<<HTML
+<div class="wa-field">
+    <div class="name"><div class="wa-label">
+        Идентификатор «1С»
+    </div></div>
+    <div class="value">{$id_1c}</div>
+</div>
+HTML;
+
+        return [
+            'form_top' => ($content_id === 'general' ? $html : '')
+        ];
+    }
+
+    /**
+     * @param $params
+     * @return array
+     */
+    public function prodSkuFieldsHandler($params)
+    {
+        /** Цены и характеристики */
+        $product = $params['product'];
+        $plugin_fields = [[
+            'type'          => 'help',
+            'id'            => 'id_1c',
+            'name'          => 'Идентификатор «1С»',
+            'placement'     => 'bottom',
+            'tooltip'       => '',
+            'css_class'     => '',
+            'default_value' => ''
+        ]];
+
+        foreach ($product['skus'] as $sku_id => $sku) {
+            foreach ($plugin_fields as $i => $field) {
+                $id_1c_sku = ifempty($sku, 'id_1c', '');
+                $id_1c_prod = ifempty($product, 'id_1c', '');
+                if (!empty($id_1c_sku) && !empty($id_1c_prod)) {
+                    $plugin_fields[$i]['sku_values'][$sku_id] = "$id_1c_prod#$id_1c_sku";
+                }
+            }
+        }
+
+        return $plugin_fields;
+    }
 }
