@@ -10,6 +10,14 @@ class shopProdSaveVideoController extends waJsonController
         $id = waRequest::request('id', '', 'int');
         $url = waRequest::request('url', '', 'string_trim');
 
+        $product = new shopProduct($id);
+        if (!$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
         // check rights
         $product_model = new shopProductModel();
         if (!$product_model->checkRights($id)) {
@@ -17,8 +25,6 @@ class shopProdSaveVideoController extends waJsonController
         }
 
         $data = ['video_url' => $url];
-
-        $product = new shopProduct($id);
         $this->throwPreSaveEvent($product, $data);
 
         $product->save($data);

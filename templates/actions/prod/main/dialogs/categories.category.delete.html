@@ -1,0 +1,72 @@
+<div class="wa-dialog s-category-delete-dialog" id="js-category-delete-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>{sprintf(_w("Удалить категорию «%s»"), "{ { category.name } }")}</h3>
+            </div>
+            <div class="dialog-content">
+
+                <p v-if="!categories_count && !products_count">[`Подтвердите удаление категории`]</p>
+
+                <div class="s-options-section">
+                    <div class="wa-fields">
+                        <div class="wa-field" v-if="categories_count">
+                            <div class="name unshifted size-small">
+                                <span class="s-label">[`Удаление вложенных категорий`]</span>
+                            </div>
+                            <div class="value">
+                                <div class="flexbox space-12">
+                                    <div class="s-switch-wrapper">
+                                        <component-switch v-model="remove_categories"></component-switch>
+                                    </div>
+                                    <div class="s-text-wrapper">
+                                        <template v-if="remove_categories">
+                                            <div class="s-title color-black">{_w("Удалить вложенные категории.")}</div>
+                                            <div class="s-description hint">[`Все вложенные категории будут удалены, независимо от их уровня вложенности.`]</div>
+                                        </template>
+                                        <template v-else>
+                                            <div class="s-title color-black">{_w("Не удалять вложенные категории.")}</div>
+                                            <div class="s-description hint">[`Вложенные категории будут перемещены на уровень выше.`]</div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wa-field" v-if="products_count">
+                            <div class="name unshifted size-small">
+                                <span class="s-label">[`Удаление товаров`]</span>
+                            </div>
+                            <div class="value">
+                                <div class="flexbox space-12">
+                                    <div class="s-switch-wrapper">
+                                        <component-switch v-model="remove_products"></component-switch>
+                                    </div>
+                                    <div class="s-text-wrapper">
+                                        <template v-if="remove_products">
+                                            <div class="s-title color-black">{sprintf(_w("Удалить товары (%s)"), "{ { products_count } }")}</div>
+                                            <div class="s-description hint">[`Все товары, привязанные к удаляемой категории, будут удалены без возможности восстановления.`]</div>
+                                        </template>
+                                        <template v-else>
+                                            <div class="s-title color-black">[`Don’t delete products`]</div>
+                                            <div class="s-description hint">[`Товары, привязанные к удаляемой категории, не будут удалены. Будет только удалена информация о привязке к удаляемой категории.`]</div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button red" type="button" v-on:click.prevent="removeCategory"v-bind:disabled="locked">
+                    <span class="s-icon icon size-14" v-if="locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name">[`Delete`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+</div>

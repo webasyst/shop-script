@@ -1,0 +1,829 @@
+{$_lang = substr($wa->locale(), 0, 2)}
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_tooltips = [
+    "error-category-name" => [
+        "id" => "error-category-name",
+        "html" => _w("Это поле должно содержать не более 255 символов.")
+    ],
+    "category-name" => [
+        "id" => "category-name",
+        "html" => _w("Наименование категории, которое покупатели увидят в меню сайта и в заголовке страницы категории.")
+    ],
+    "category-url" => [
+        "id" => "category-url",
+        "html" => _w("Редактируемая часть адреса страницы категории.")
+    ],
+    "category-url-copy" => [
+        "id" => "category-url-copy",
+        "html" => _w("Скопировать адрес страницы категории.")
+    ],
+    "category-url-refresh" => [
+        "id" => "category-url-refresh",
+        "html" => _w("Сформировать ЧПУ из наименования категории.")
+    ],
+    "category-url-params" => [
+        "id" => "category-url-params",
+        "html" => _w("Настройка влияет на отображение ссылки в меню сайта и не влияет на публикацию страницы категории. Может использоваться плагинами для определения параметров публикации товаров на сторонних площадках.")
+    ],
+    "category-params" => [
+        "id" => "category-params",
+        "html" => _w("В категорию будут автоматически собраны товары, удовлетворяющие настроенным условиям.")
+    ],
+    "category-publication" => [
+        "id" => "category-publication",
+        "html" => _w("Выберите витрины, на которых будет доступна страница категории. Для витрин, которые не будут отмечены на страницы категории будет выводиться ошибка 404.")
+    ]
+]}
+
+{$_locales = [
+    "error_category_name_empty" => _w("Заполните наименование категории"),
+    "error_category_name" => "{_w("Invalid value")} <span class=\"s-icon\" data-tooltip-id=\"error-category-name\"><i class=\"fas fa-question-circle\"></i></span>",
+    "incorrect_url" => _w("Incorrect URL format."),
+    "modification_wysiwyg_message" => _ws('WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?'),
+    "show_visible_storefronts_forms" => [
+        _w("Показать %d витрину, на которой опубликована категория.", "Показать %d витрину, на которых опубликована категория.", 1, false),
+        _w("Показать %d витрину, на которой опубликована категория.", "Показать %d витрины, на которых опубликована категория.", 2, false),
+        _w("Показать %d витрину, на которой опубликована категория.", "Показать %d витрин, на которых опубликована категория.", 5, false)
+    ],
+    "letter_forms" => [
+        _w("%d character.", "%d characters.", 1, false),
+        _w("%d character.", "%d characters.", 2, false),
+        _w("%d character.", "%d characters.", 5, false)
+    ],
+    "no_results" => _w("Nothing found")
+]}
+
+{$_templates = []}
+
+{capture assign="_template_category_filter_autocomplete_item"}
+    <li class="ui-menu-item-html">
+        <div>
+            <span class="s-icon icon size-12 shift-up-1"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
+            <span class="s-name">%name%</span>
+            <span class="s-code hint">%code%</span>
+        </div>
+    </li>
+{/capture}
+{$_templates["component-category-filter-autocomplete-item"] = $_template_category_filter_autocomplete_item|trim}
+
+{capture assign="_template_category_filter_autocomplete_item_sku"}
+    <li class="ui-menu-item-html">
+        <div>
+            <span class="s-icon icon size-12 shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
+            <span class="s-name">%name%</span>
+            <span class="s-code hint">%code%</span>
+        </div>
+    </li>
+{/capture}
+{$_templates["component-category-filter-autocomplete-item-sku"] = $_template_category_filter_autocomplete_item_sku|trim}
+
+{$_components = []}
+
+{capture assign="_component_category_visible_storefronts"}
+    <div class="s-storefronts-section">
+        <div class="s-storefronts-toggle hover-blue" v-on:click="toggle">
+            <span class="s-text" v-if="!states.expanded" v-html="selected_storefronts_string"></span>
+            <span class="s-text" v-else>[`Hide storefront list`]</span>
+        </div>
+        <div class="s-storefronts-list" v-if="states.expanded">
+            <template v-for="storefront in selected_storefronts">
+                <div class="s-storefront-wrapper">
+                    <a class="hover-blue" v-bind:href="storefront.url" v-text="storefront.name" target="_blank"></a>
+                </div>
+            </template>
+            <div class="s-storefronts-toggle hover-blue" v-on:click="toggle(false)">
+                <span class="s-text">[`Hide storefronts`]</span>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-category-visible-storefronts"] = $_component_category_visible_storefronts|trim}
+
+{capture assign="_component_category_filter_section"}
+    <div class="s-category-filter-section">
+        <div class="s-search-section">
+            <div class="s-field-wrapper">
+                <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Начните набирать название характеристики.")|escape}">
+                <div class="s-loading-wrapper" v-if="states.is_loading">
+                    <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
+                </div>
+            </div>
+            <div class="s-description hint flexbox space-8">
+                <div class="s-icon">
+                    <span class="icon"><i class="fas fa-info-circle"></i></span>
+                </div>
+                <div class="s-text">[`Если вы не нашли какую-то характеристику, введите более подробный поисковый запрос, чтобы получить более точные результаты.`]</div>
+            </div>
+        </div>
+        <div class="s-filter-list">
+            <template v-for="filter_id in category.explode_feature_ids">
+                <component-category-filter-item
+                    v-bind:filter="category.allow_filter_data[filter_id]"></component-category-filter-item>
+            </template>
+        </div>
+    </div>
+{/capture}
+{$_components["component-category-filter-section"] = $_component_category_filter_section|trim}
+
+{capture assign="_component_category_filter_item"}
+    <div class="s-filter-wrapper flexbox"
+         v-bind:key="filter.id"
+         v-bind:data-id="filter.id"
+         v-bind:class="item_class">
+        <div class="s-column-toggle">
+            <div class="s-toggle-wrapper cursor-move js-filter-move-toggle" draggable="true">
+                <span class="s-icon icon shift-0"><i class="fas fa-bars"></i></span>
+            </div>
+        </div>
+        <div class="s-column-name wide">
+            <template v-if="filter.code.length">
+                <span class="s-icon icon size-12 shift-inherit" v-if="filter.available_for_sku"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
+                <span class="s-icon icon size-12 shift-inherit color-gray-light" v-else><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
+            </template>
+            <span class="s-name">{ { filter.name } }</span>
+            <span class="s-code hint" v-if="filter.code">{ { filter.code } }</span>
+        </div>
+        <div class="s-column-actions">
+            <div class="s-action nowrap cursor-pointer hover-red" v-on:click="removeItem">
+                <span class="s-icon icon shift-0"><i class="fas fa-times"></i></span>
+                <span class="s-name">[`Убрать`]</span>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-category-filter-item"] = $_component_category_filter_item|trim}
+
+{capture assign="_component_category_storefronts_section"}
+    <div class="wa-fields">
+        <div class="wa-field">
+            <div class="name">
+                <span class="s-name">[`Публикация категории на витринах`]</span>
+                <span class="s-icon icon" data-tooltip-id="category-publication"><i class="fas fa-question-circle gray"></i></span>
+            </div>
+            <div class="value">
+
+                <div class="s-options-section">
+                    <div class="s-options-group">
+                        <div class="s-radio-wrapper">
+                            <label class="flexbox middle space-8">
+                                <component-radio v-model="type"
+                                                 v-bind:val="'all'"
+                                                 v-bind:name="radio_name"></component-radio>
+                                <span class="s-label">[`Все витрины`]</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="s-options-group">
+                        <div class="s-radio-wrapper">
+                            <label class="flexbox middle space-8">
+                                <component-radio v-model="type"
+                                                 v-bind:val="'selection'"
+                                                 v-bind:name="radio_name"></component-radio>
+                                <span class="s-label">{_w("Выбранные витрины")|escape} ({ { selected_storefronts.length } })</span>
+                            </label>
+                        </div>
+                        <div class="s-options-list" v-if="type === 'selection'">
+                            <div class="s-option">
+                                <label class="flexbox middle space-8">
+                                    <component-checkbox v-bind:label="false" v-bind:value="all_selected" v-on:change="selectAll"></component-checkbox>
+                                    <span class="s-label">[`все витрины`]</span>
+                                </label>
+                            </div>
+                            <template v-for="storefront in storefronts">
+                                <div class="s-option">
+                                    <label class="flexbox middle space-8" v-bind:title="storefront.name">
+                                        <component-checkbox v-bind:label="false" v-model="storefront.states.active"></component-checkbox>
+                                        <span class="s-label">{ { storefront.name } }</span>
+                                    </label>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="s-overwrite-wrapper">
+                    <label class="flexbox space-8">
+                    <span class="s-checkbox">
+                        <component-checkbox
+                            v-bind:label="false"
+                            v-model="root_states.update_storefronts_at_subcategories"></component-checkbox>
+                    </span>
+                        <span class="s-text">[`При сохранении проставить аналогичное настройки публикации на витринах у всех вложенных категорий.`]</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-category-storefronts-section"] = $_component_category_storefronts_section|trim}
+
+{capture assign="_component_category_description_redactor"}
+    <div class="s-category-description-redactor">
+        <section class="s-editor-section js-editor-section">
+            <div class="s-section-header">
+                {strip}
+                    <div class="toggle tabs-mode js-editor-type-toggle">
+                        <span data-id="wysiwyg">[`WYSIWYG`]</span>
+                        <span data-id="html">[`HTML`]</span>
+                    </div>
+                {/strip}
+            </div>
+
+            <div class="s-section-body">
+                <div class="s-wysiwyg-editor js-wysiwyg-editor">
+                    <textarea class="js-product-description-textarea" v-bind:value="value"></textarea>
+                </div>
+                <div class="s-html-editor js-html-editor"></div>
+            </div>
+        </section>
+    </div>
+{/capture}
+{$_components["component-category-description-redactor"] = $_component_category_description_redactor|trim}
+
+<div class="wa-dialog s-category-edit-dialog" id="js-category-edit-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <div class="flexbox space-12">
+                    <div class="s-title-wrapper wide">
+                        <h3 class="s-title">
+                            <span v-if="category.id" v-once>{sprintf(_w("Редактирование категории «%s»"), "{ { category.name } }")}</span>
+                            <span v-else>{_w("Создание категории")}</span>
+                        </h3>
+                    </div>
+                    <div class="s-category-ident nowrap" v-if="category.id">
+                        <span class="s-label">id:</span>
+                        <span class="s-id">{ { category.id } }</span>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-category-form">
+                    <div class="wa-fields s-category-main-section">
+                        {* NAME *}
+                        <div class="wa-field s-field-wrapper">
+                            <div class="name for-input">
+                                <span class="s-name">[`Наименование`]</span>
+                                <span class="s-icon icon" data-tooltip-id="category-name"><i class="fas fa-question-circle gray"></i></span>
+                            </div>
+                            <div class="value">
+                                <div class="s-field-wrapper">
+                                    <component-textarea
+                                        class="s-category-name-field bold full-width js-autofocus"
+                                        placeholder="{_w("Наименование категории")|escape}"
+                                        v-model="category.name"
+                                        v-bind:class="{ 'wa-error-field' : errors['category_name'] }"
+                                        v-on:input="onChangeName"></component-textarea>
+                                </div>
+                                <div class="wa-error-text"
+                                     v-if="errors['category_name']"
+                                     v-html="errors['category_name'].text"></div>
+                            </div>
+                        </div>
+
+                        {* URL *}
+                        <div class="wa-field s-field-wrapper s-field-ulr-wrapper">
+                            <div class="name shift-0">
+                                <div class="wa-label for-input">
+                                    <div>
+                                        <span class="s-name">[`Страница категории`]</span>
+                                        <span class="s-icon icon" data-tooltip-id="category-url"><i class="fas fa-question-circle gray"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="value">
+                                <div class="flexbox middle space-16">
+
+                                    <div class="s-field-wrapper wide">
+                                        <div class="s-url-field-wrapper" v-bind:class="{ 'is-focus' : states.category_url_focus }">
+                                            <span class="s-tail" v-text="category.frontend_base_url"></span>
+                                            <input type="text" class="s-field full-width"
+                                                   v-model="category.url"
+                                                   v-on:focus="states.category_url_focus = true"
+                                                   v-on:blur="states.category_url_focus = false">
+                                        </div>
+                                    </div>
+                                    <div class="s-actions flexbox space-12">
+                                        <div class="s-action cursor-pointer"
+                                             v-if="states.copy_locked">
+                                            <span class="s-icon icon color-gray" v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
+                                        </div>
+                                        <div class="s-action cursor-pointer"
+                                             v-else
+                                             v-on:click="onCopyUrl">
+                                            <span class="s-icon icon color-gray hover-blue" v-bind:key="'fa-copy'"><i class="fas fa-copy"></i></span>
+                                        </div>
+
+                                        <div class="s-action"
+                                             v-bind:class="{ 'cursor-pointer' : name_is_changed }"
+                                             v-on:click="onSyncUrl">
+
+                                            <template v-if="(states.url_sync_started || states.transliterate_xhr !== null)">
+                                                <span class="s-icon icon color-gray" v-bind:key="'spin'"><i class="fas fa-sync fa-spin"></i></span>
+                                            </template>
+                                            <template v-else>
+                                                <span class="s-icon icon" v-bind:class="{ 'color-gray hover-blue' : name_is_changed, 'color-gray-light' : !name_is_changed }" v-bind:key="'sync'"><i class="fas fa-sync"></i></span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <template v-if="category.frontend_urls.length">
+                                    <component-category-visible-storefronts
+                                        v-bind:category="category"
+                                        v-bind:storefronts="category.frontend_urls"></component-category-visible-storefronts>
+                                </template>
+                            </div>
+                        </div>
+
+                        {* URL PARAMS *}
+                        <div class="wa-field s-field-wrapper s-field-ulr-params-wrapper">
+                            <div class="name shift-0">
+                                <span class="s-name">[`Ссылка в меню сайта`]</span>
+                                <span class="s-icon icon" data-tooltip-id="category-url-params"><i class="fas fa-question-circle gray"></i></span>
+                            </div>
+                            <div class="value">
+
+                                <div class="flexbox space-8">
+                                    <div class="column nowrap">
+                                        <span class="s-icon icon shift-0 size-16 color-gray"
+                                              v-if="states.visible_menu_url"
+                                              v-bind:key="'fa-eye'"><i class="fas fa-eye"></i></span>
+                                        <span class="s-icon icon shift-0 size-16 color-gray-light"
+                                              v-else
+                                              v-bind:key="'fa-eye-slash'"><i class="fas fa-eye-slash"></i></span>
+                                        <component-switch v-model="states.visible_menu_url"></component-switch>
+                                    </div>
+                                    <div class="column">
+                                        <div class="s-title">
+                                            <template v-if="states.visible_menu_url">[`Ссылка на категорию доступна в меню сайта.`]</template>
+                                            <template v-else>[`В меню сайта будет отсутствовать ссылка на категорию, но страница будет открываться по прямому URL.`]</template>
+                                        </div>
+                                        <div class="s-checkbox-wrapper" v-if="category.id && category_data.categories.length">
+                                            <label class="flexbox space-8">
+                                                <span class="s-checkbox">
+                                                    <component-checkbox
+                                                        v-bind:label="false"
+                                                        v-model="states.visible_menu_url_at_subcategories"></component-checkbox>
+                                                </span>
+                                                <span class="s-text">[`При сохранении проставить аналогичное положение настройки у всех вложенных категорий.`]</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        {* TYPE *}
+                        <div class="wa-field s-field-wrapper">
+                            <div class="name">
+                                <span class="s-name">[`Тип категории`]</span>
+                            </div>
+                            <div class="value">
+
+                                <div class="s-dropdown-wrapper" style="margin-bottom: .5rem;">
+                                    <component-dropdown
+                                        v-model="category.type"
+                                        v-bind:disabled="!!category.id"
+                                        v-bind:button_class="'gray-field'"
+                                        v-bind:options="category_types"></component-dropdown>
+                                </div>
+                                <template v-if="category.type === '0'">
+                                    <div class="hint">[`Наполнение категории товарами происходит вручную в панели управления магазина.`]</div>
+                                </template>
+                                <template v-else-if="category.type === '1'">
+                                    <div class="hint">[`Наполнение категории товарами происходит автоматически, на основе настроенных ниже параметров.`]</div>
+                                </template>
+                            </div>
+                        </div>
+
+                        {* PARAMS *}
+                        <div class="wa-field s-field-wrapper" v-if="category.type === '1'">
+                            <div class="name">
+                                <span class="s-name">[`Параметры добавления товаров в категорию.`]</span>
+                                <span class="s-icon icon" data-tooltip-id="category-params"><i class="fas fa-question-circle gray"></i></span>
+                            </div>
+                            <div class="value">
+
+                            </div>
+                        </div>
+                    </div>
+
+                    {* Представление на витрине *}
+                    <div class="s-form-section s-category-details-section">
+                        <div class="s-section-header">
+                            <h5 class="s-section-title">[`Представление на витрине`]</h5>
+                        </div>
+                        <div class="s-section-body">
+
+                            <div class="wa-fields">
+                                {* Отображение товаров из подкатегорий *}
+                                <div class="wa-field">
+                                    <div class="name shift-0">
+                                        <span class="s-name">[`Отображение товаров из подкатегорий`]</span>
+                                    </div>
+                                    <div class="value">
+
+                                        <div class="flexbox space-12">
+                                            <div class="s-switch-wrapper">
+                                                <component-switch v-model="category.include_sub_categories" v-on:change="onChangeIncludeSubCategories"></component-switch>
+                                            </div>
+                                            <div class="s-text-wrapper">
+                                                <template v-if="category.include_sub_categories">
+                                                    <div class="s-title">[`Включено`]</div>
+                                                    <div class="s-description hint">[`Товары, которых нет в этой категории, но которые содержаться в подкатегориях, тоже будут отображаться в этой категории.`]</div>
+                                                </template>
+                                                <template v-else>
+                                                    <div class="s-title">[`Выключено`]</div>
+                                                    <div class="s-description hint">[`Категория будет содержать только товары, которые прикреплены именно к ней.`]</div>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                {* Сортировка товаров при загрузке страницы категории *}
+                                <div class="wa-field">
+                                    <div class="name shift-4">
+                                        <span class="s-name">[`Сортировка товаров при загрузке страницы категории`]</span>
+                                    </div>
+                                    <div class="value">
+
+                                        <div class="s-dropdown-wrapper">
+                                            <component-dropdown
+                                                v-model="category.sort_products"
+                                                v-bind:button_class="'gray-field'"
+                                                v-bind:options="sort_products_variants"></component-dropdown>
+                                        </div>
+                                        <div class="s-description hint">
+                                            <template v-if="!category.include_sub_categories">[`Порядок сортировки товаров, который будет при переходе на страницу категории.`]</template>
+                                            <template v-else>[`Вариант сортировки «Вручную (как задано в панели управления)» доступен только при выключенной настройке “Отображение товаров из подкатегорий”.`]</template>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                {* Выбор варианта сортировки *}
+                                <div class="wa-field">
+                                    <div class="name shift-0">
+                                        <span class="s-name">[`Выбор варианта сортировки`]</span>
+                                    </div>
+                                    <div class="value">
+
+                                        <div class="flexbox space-12">
+                                            <div class="s-switch-wrapper">
+                                                <component-switch v-model="category.enable_sorting" v-on:change="resizeDialog"></component-switch>
+                                            </div>
+                                            <div class="s-text-wrapper">
+                                                <template v-if="category.enable_sorting">
+                                                    <div class="s-title">[`Доступен на странице категории`]</div>
+                                                    <div class="s-description hint">[`Посетители сайта смогут выбирать порядок сортировки товаров на странице категории.`]</div>
+                                                </template>
+                                                <template v-else>
+                                                    <div class="s-title">[`Не доступен на странице категории`]</div>
+                                                    <div class="s-description hint">[`Выбор порядка сортировки на странице категории будет отсутствовать.`]</div>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                {* Фильтрация товаров на витрине *}
+                                <div class="wa-field">
+                                    <div class="name shift-0">
+                                        <span class="s-name">[`Фильтрация товаров на витрине`]</span>
+                                    </div>
+                                    <div class="value">
+
+                                        <div class="flexbox space-12">
+                                            <div class="s-switch-wrapper">
+                                                <component-switch v-model="category.allow_filter" v-on:change="resizeDialog"></component-switch>
+                                            </div>
+                                            <div class="s-text-wrapper">
+                                                <template v-if="category.allow_filter">
+                                                    <div class="s-title">[`Доступна на странице категории`]</div>
+                                                    <div class="s-description hint">[`Настройте характеристики, которые позволят покупателям подбирать товары внутри этой категории по их значениям, например, по цвету, производителю, цене.`]</div>
+                                                </template>
+                                                <template v-else>
+                                                    <div class="s-title">[`Не доступна на странице категории`]</div>
+                                                    <div class="s-description hint">[`Настройки для фильтрации товаров на странице категории будут отсутствовать.`]</div>
+                                                </template>
+
+                                                <template v-if="category.allow_filter">
+                                                    <component-category-filter-section></component-category-filter-section>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                {* Описание категории *}
+                                <div class="wa-field">
+                                    <div class="name shift-0">
+                                        <span class="s-name">[`Описание категории`]</span>
+                                    </div>
+                                </div>
+                                <component-category-description-redactor v-model="category.description"></component-category-description-redactor>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {* Публикация *}
+                    <div class="s-form-section s-category-publication-section">
+                        <div class="s-section-header">
+                            <h5 class="s-section-title">[`Публикация`]</h5>
+                        </div>
+                        <div class="s-section-body">
+                            <component-category-storefronts-section
+                                v-bind:root_states="states"
+                                v-bind:category="category"
+                                v-bind:storefronts="storefronts"></component-category-storefronts-section>
+                        </div>
+                    </div>
+
+                    {* Отображение в поисковых системах *}
+                    <div class="s-form-section s-category-meta-section">
+                        <div class="s-section-header">
+                            <h5 class="s-section-title">[`Отображение в поисковых системах`]</h5>
+                        </div>
+                        <div class="s-section-body">
+
+                            <div class="s-fields-wrapper wa-fields">
+                                <div class="wa-field">
+                                    <div class="name shift-4">
+                                        <div>[`Page title`]</div>
+                                        <div class="hint">&lt;title&gt;</div>
+                                    </div>
+                                    <div class="value">
+                                        <div class="s-textarea-wrapper">
+                                            <component-textarea
+                                                v-model="category.meta_title"
+                                                v-bind:class="'wa-small wide'"></component-textarea>
+                                        </div>
+
+                                        <div class="s-textarea-details">
+                                            <div class="s-letters-wrapper">
+                                                <span class="s-letters-count" v-html="getLettersHTML(category.meta_title, 55, 75)"></span>
+                                                <span>[`Recommended: 55—75.`]</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="wa-field">
+                                    <div class="name shift-4">
+                                        <div>[`Page description`]</div>
+                                        <div class="hint">&lt;meta description&gt;</div>
+                                    </div>
+                                    <div class="value">
+                                        <div class="s-textarea-wrapper">
+                                            <component-textarea
+                                                v-model="category.meta_description"
+                                                v-bind:class="'wa-small wide'"></component-textarea>
+                                        </div>
+
+                                        <div class="s-textarea-details">
+                                            <div class="s-letters-wrapper">
+                                                <span class="s-letters-count" v-html="getLettersHTML(category.meta_description, 55, 75)"></span>
+                                                <span>[`Recommended: 55—75.`]</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="wa-field">
+                                    <div class="name shift-4">
+                                        <div>[`Keywords`]</div>
+                                        <div class="hint">&lt;meta keywords&gt; ([`optional`])</div>
+                                    </div>
+                                    <div class="value">
+                                        <div class="s-textarea-wrapper">
+                                            <component-textarea
+                                                v-model="category.meta_keywords"
+                                                v-bind:class="'wa-small wide'"></component-textarea>
+                                        </div>
+
+                                        <div class="s-textarea-details">
+                                            <div class="s-letters-wrapper">
+                                                <span class="s-letters-count" v-html="getLettersHTML(category.meta_keywords, 55, 75)"></span>
+                                                <span>[`Recommended: 55—75.`]</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {* Вид в соцсетях *}
+                    <div class="s-form-section s-category-seo-section">
+                        <div class="s-section-header">
+                            <h5 class="s-section-title">[`Вид в соцсетях`]</h5>
+                        </div>
+                        <div class="s-section-body">
+
+                            <div class="s-fields-wrapper wa-fields">
+                                {* Switch *}
+                                <div class="wa-field">
+                                    <div class="name shift-0">
+                                        <div>[`Использовать мета-теги для поисковых систем.`]</div>
+                                    </div>
+                                    <div class="value">
+
+                                        <div class="flexbox space-12">
+                                            <div class="s-switch-wrapper">
+                                                <component-switch v-model="category.og.enabled" v-on:change="resizeDialog"></component-switch>
+                                            </div>
+                                            <div class="s-text-wrapper">
+                                                <template v-if="category.og.enabled">
+                                                    <div class="s-title">[`Включено`]</div>
+                                                    <div class="s-description hint">[`Будут использованы настройки вида в поисковых системах. Изображение и видео будут выбраны соцсетью автоматически из доступных на странице.`]</div>
+                                                </template>
+                                                <template v-else>
+                                                    <div class="s-title">[`Выключено`]</div>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <template v-if="!category.og.enabled">
+                                    {* Title *}
+                                    <div class="wa-field">
+                                        <div class="name shift-4">
+                                            <div>[`Title`]</div>
+                                            <div class="hint">og:title</div>
+                                        </div>
+                                        <div class="value">
+                                            <div class="s-textarea-wrapper">
+                                                <component-textarea
+                                                    v-model="category.og.title"
+                                                    v-bind:class="'wa-small wide'"></component-textarea>
+                                            </div>
+
+                                            <div class="s-textarea-details">
+                                                <div class="s-letters-wrapper">
+                                                    <span class="s-letters-count" v-html="getLettersHTML(category.og.title, 55, 75)"></span>
+                                                    <span>[`Recommended: 55—75.`]</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {* Description *}
+                                    <div class="wa-field">
+                                        <div class="name shift-4">
+                                            <div>[`Description`]</div>
+                                            <div class="hint">og:description</div>
+                                        </div>
+                                        <div class="value">
+                                            <div class="s-textarea-wrapper">
+                                                <component-textarea
+                                                    v-model="category.og.description"
+                                                    v-bind:class="'wa-small wide'"></component-textarea>
+                                            </div>
+
+                                            <div class="s-textarea-details">
+                                                <div class="s-letters-wrapper">
+                                                    <span class="s-letters-count" v-html="getLettersHTML(category.og.description, 55, 75)"></span>
+                                                    <span>[`Recommended: 55—75.`]</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {* Image *}
+                                    <div class="wa-field">
+                                        <div class="name shift-4">
+                                            <div>[`Image`]</div>
+                                            <div class="hint">og:image</div>
+                                        </div>
+                                        <div class="value">
+                                            <div class="s-input-wrapper">
+                                                <input class="wa-small gray-field wide" v-model="category.og.image">
+                                            </div>
+                                            <div class="hint">[`Если адрес изображения не указан, соцсеть автоматически выберет одно из изображений на странице.`]</div>
+                                        </div>
+                                    </div>
+                                    {* Video URL *}
+                                    <div class="wa-field">
+                                        <div class="name shift-4">
+                                            <div>[`Video URL`]</div>
+                                            <div class="hint">og:video</div>
+                                        </div>
+                                        <div class="value">
+                                            <div class="s-input-wrapper">
+                                                <input class="wa-small gray-field wide" v-model="category.og.video">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {* Page type *}
+                                    <div class="wa-field">
+                                        <div class="name shift-4">
+                                            <div>[`Page type`]</div>
+                                            <div class="hint">og:type</div>
+                                        </div>
+                                        <div class="value">
+                                            <div class="s-input-wrapper">
+                                                <input class="wa-small gray-field wide" v-model="category.og.type">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {* PARAMS *}
+                    <div class="s-form-section s-category-params-section">
+                        <div class="s-section-header">
+                            <h5 class="s-section-title">[`Custom parameters`]</h5>
+                        </div>
+                        <div class="s-section-body">
+
+                            <div class="wa-message wa-small white flexbox space-8">
+                                <div class="message-icon"><i class="fas fa-info-circle"></i></div>
+                                <div class="message-text wide">
+                                    [`Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair must be on a separate line.`]
+                                </div>
+                            </div>
+
+                            <component-textarea
+                                v-model="category.params"
+                                v-on:change="resizeDialog"
+                                v-bind:class="'wa-small wide'"></component-textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click.prevent="save" v-bind:disabled="has_errors || states.locked">
+                    <span class="s-icon icon size-14" v-if="states.locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name" v-if="category.id">[`Save`]</span>
+                    <span class="s-name" v-else>[`Create`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var sources = [{
+                id: "ace-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/ace/ace.js?v=={$wa->version(true)}"
+            }, {
+                id: "redactor-2-css",
+                type: "css",
+                uri: "{$wa_url}wa-content/js/redactor/2/redactor.css?v={$wa->version(true)}"
+            }, {
+                id: "redactor-2-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/redactor/2/redactor.min.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-editor-2-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/jquery-wa/editor2.js?v={$wa->version(true)}"
+            }];
+
+            $.wa.loadSources(sources).then( function() {
+                var locale = {$_lang|json_encode};
+                if (["ru"].indexOf(locale) >= 0) {
+                    $.wa.loadSources([{
+                        id: "redactor-2-{$_lang}-js",
+                        type: "js",
+                        uri: "{$wa_url}wa-content/js/redactor/2/{$_lang}.js?v={$wa->version(true)}"
+                    }]).then(init);
+                } else {
+                    init();
+                }
+            });
+
+            function init() {
+                var $dialog = $("#js-category-edit-dialog").removeAttr("id"),
+                    dialog = $dialog.data("dialog");
+
+                dialog.options.ready.done( function() {
+                    dialog.options.initDialog($dialog, dialog, {
+                        components: {$_components|json_encode},
+                        templates: {$_templates|json_encode},
+                        tooltips: {$_tooltips|json_encode},
+                        locales: {$_locales|json_encode},
+
+                        lang: {$_lang|json_encode},
+                        category: {$category|json_encode},
+                        category_sort_variants: {$category_sort_variants|json_encode}
+                    });
+                });
+            }
+        })(jQuery);
+    </script>
+</div>

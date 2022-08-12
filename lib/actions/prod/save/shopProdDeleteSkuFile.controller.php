@@ -10,7 +10,14 @@ class shopProdDeleteSkuFileController extends waJsonController
             'id'         => waRequest::post('sku_id', null, waRequest::TYPE_INT),
             'product_id' => waRequest::post('product_id', null, waRequest::TYPE_INT),
         );
-
+        $product = new shopProduct($fields['product_id']);
+        if (!$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
         $product_skus_model = new shopProductSkusModel();
         $file_name = $product_skus_model->getByField($fields)['file_name'];
         $path = "sku_file/{$fields['id']}";

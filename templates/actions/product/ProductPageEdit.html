@@ -125,11 +125,6 @@
 <script type="text/javascript">
     $(function () {
 
-        if (!$.fn.fileupload) {
-            // We don't initialize filupload immidiately so it's ok not to wait until this loads
-            $.getScript({$wa_url|json_encode}+"wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js?v"+{$wa->version(true)|json_encode});
-        }
-
         $('#s-page-content').waEditor({
             lang: "{$lang}",
             smarty_wysiwyg_msg: {_ws('WYSIWYG editor is disabled because page source contains Smarty code tags.')|json_encode},

@@ -1,0 +1,443 @@
+{$_lang = substr($wa->locale(), 0, 2)}
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_mass_actions = [
+    [
+        [
+            "id" => "clone",
+            "name" => _w("Дублировать")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ],
+        [
+            "id" => "add2category",
+            "name" => _w("Добавить в категорию")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ],
+        [
+            "id" => "add2list",
+            "name" => _w("Добавить в список")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ],
+        [
+            "id" => "set_tags",
+            "name" => _w("Добавить теги")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ]
+    ],
+    [
+        [
+            "id" => "visibility",
+            "name" => _w("Настроить видимость")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ],
+        [
+            "id" => "product_type",
+            "name" => _w("Изменить тип товара")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ],
+        [
+            "id" => "delete",
+            "name" => _w("Удалить товар")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ]
+    ],
+    [
+        [
+            "id" => "discount",
+            "name" => _w("Купоны на скидку")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ],
+        [
+            "id" => "promo",
+            "name" => _w("Добавить в акцию")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ]
+    ],
+    [
+        [
+            "id" => "badge_add",
+            "name" => _w("Добавить наклейку")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ],
+        [
+            "id" => "badge_remove",
+            "name" => _w("Удалить наклейку")|escape,
+            "icon" => '<i class="fas fa-cog"></i>'
+        ]
+    ]
+]}
+
+{* КОМПОНЕНТЫ *}
+{$_components = []}
+
+{capture assign="_component_view_toggle"}
+    <div class="vue-component-view-toggle toggle small">
+        <div data-id="thumbs" v-bind:class="{ 'selected' : value === 'thumbs' }">
+            <i class="icon"><i class="fas fa-th-large"></i></i>
+        </div>
+        <div data-id="table_extended" v-bind:class="{ 'selected' : value === 'table_extended' }">
+            <i class="icon"><svg><use xlink:href="{$_sprite_url}#toggle-full"></use></svg></i>
+        </div>
+        <div data-id="table" v-bind:class="{ 'selected' : value === 'table' }">
+            <i class="icon"><svg><use xlink:href="{$_sprite_url}#toggle-thin"></use></svg></i>
+        </div>
+    </div>
+{/capture}
+{$_components["component-view-toggle"] = $_component_view_toggle|trim}
+
+{capture assign="_component_paging"}
+    <div class="vue-component-paging">
+        <div class="s-item">
+            <component class="s-toggle"
+                       v-on:click.prevent="set(1)"
+                       v-bind:is="(page > 1 ? 'a' : 'span')"
+                       v-bind:href="(page > 1 ? getHref(1) : null)"
+                       v-bind:title="1"
+                       v-bind:class="{ 'is-disabled' : page <= 1 }">
+                <span class="icon"><i class="fas fa-angle-double-left"></i></span>
+            </component>
+        </div>
+        <div class="s-item">
+            <component class="s-toggle"
+                       v-on:click.prevent="set(page-1)"
+                       v-bind:is="(page > 1 ? 'a' : 'span')"
+                       v-bind:href="(page > 1 ? getHref(page-1) : null)"
+                       v-bind:title="(page-1 > 0 ? page-1 : 1)"
+                       v-bind:class="{ 'is-disabled' : page <= 1 }">
+                <span class="icon"><i class="fas fa-angle-left"></i></span>
+            </component>
+        </div>
+        <div class="s-item">
+            <div class="s-field-wrapper">
+                <input class="s-field is-number" type="text"
+                       v-on:input="onInput"
+                       v-on:change="onChange"
+                       v-bind:value="page">
+                <span class="s-divider">[`из`]</span>
+                <span class="s-count" v-text="count"></span>
+            </div>
+        </div>
+        <div class="s-item">
+            <component class="s-toggle"
+                       v-on:click.prevent="set(page+1)"
+                       v-bind:is="(page < count ? 'a' : 'span')"
+                       v-bind:href="(page < count ? getHref(page+1) : null)"
+                       v-bind:title="(page+1 <= count ? page+1 : count)"
+                       v-bind:class="{ 'is-disabled' : page >= count }">
+                <span class="icon"><i class="fas fa-angle-right"></i></span>
+            </component>
+        </div>
+        <div class="s-item">
+            <component class="s-toggle"
+                       v-on:click.prevent="set(count)"
+                       v-bind:is="(page < count ? 'a' : 'span')"
+                       v-bind:href="(page < count ? getHref(count) : null)"
+                       v-bind:title="count"
+                       v-bind:class="{ 'is-disabled' : page >= count }">
+                <span class="icon"><i class="fas fa-angle-double-right"></i></span>
+            </component>
+        </div>
+    </div>
+{/capture}
+{$_components["component-paging"] = $_component_paging|trim}
+
+{capture assign="_component_paging_dropdown"}
+    <div class="dropdown s-paging-dropdown">
+        <button class="dropdown-toggle wa-button wa-small no-indent transparent" type="button">{ { active_option ? active_option.name : value } }</button>
+        <div class="dropdown-body">
+            <template v-for="option in options">
+                <div class="dropdown-item"
+                     v-bind:class="{ 'selected': (active_option ? (active_option.value === option.value) : false) }"
+                     v-bind:data-value="option.value">{ { option.name ? option.name : '&nbsp;' } }</div>
+            </template>
+        </div>
+    </div>
+{/capture}
+{$_components["component-paging-dropdown"] = $_component_paging_dropdown|trim}
+
+{capture assign="_component_product_slider"}
+    <div class="s-slider-wrapper"
+         v-on:mouseenter="onMouseEnter"
+         v-on:mouseleave="onMouseLeave">
+        <div class="s-slider-list">
+            <template v-for="photo in photos">
+                <div class="s-slide-wrapper" v-bind:key="photo.id">
+                    <div class="s-photo-wrapper" v-bind:style="{ 'background-image': 'url('+photo.url+')'}"></div>
+                </div>
+            </template>
+        </div>
+        <div class="s-slider-actions" v-if="photos.length > 1">
+            <div class="s-action left"
+                 v-on:click.prevent="prev">
+                <span class="s-icon icon size-20"><i class="fas fa-chevron-left"></i></span>
+            </div>
+            <div class="s-action right"
+                 v-on:click.prevent="next">
+                <span class="s-icon icon size-20"><i class="fas fa-chevron-right"></i></span>
+            </div>
+        </div>
+        <div class="s-slider-controls" v-if="photos.length > 1">
+            <div class="s-control-list">
+                <div class="s-label" v-if="controls.before_count">{ { "+" + controls.before_count } }</div>
+                <template v-for="photo in controls.photos">
+                    <div class="s-control"
+                         v-bind:key="photo.id"
+                         v-bind:class="{ 'is-active' : (active_photo === photo), 'is-main' : (photo_id && photo.id === photo_id) }"
+                         v-on:click.prevent="change(photo)"></div>
+                </template>
+                <div class="s-label" v-if="controls.after_count">{ { "+" + controls.after_count } }</div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-product-slider"] = $_component_product_slider|trim}
+
+{* ШАБЛОНЫ *}
+{$_templates = []}
+
+{* ПОДСКАЗКИ *}
+{$_tooltips = [
+    "products-list-date" => [
+        "id" => "products-list-date",
+        "html" => _w("Дата добавления товара в каталог")|escape
+    ],
+    "return-to-old-products" => [
+        "id" => "return-to-old-products",
+        "html" => _w("Вернуться в старый раздел")|escape,
+        "position" => "top",
+        "class" => "inline"
+    ],
+    "product_from_subcategories" => [
+        "id" => "product_from_subcategories",
+        "html" => _w("Этот товар находится в одной из подкатегорий.")|escape,
+        "position" => "top",
+        "class" => "inline"
+    ]
+]}
+
+{* ЛОКАЛИЗАЦИЯ *}
+{$_locales = [
+    "hidden" => _w("Hidden"),
+    "published" => _w("Published"),
+    "unpublished" => _w("Unpublished"),
+    "products_forms" => [
+        _w("%d товар", "%d товар", 1, false),
+        _w("%d товара", "%d товара", 2, false),
+        _w("%d товаров", "%d товаров", 5, false)
+    ],
+    "product_sku_forms" => [
+        _w("%s в %d артикуле", "%s в %d артикуле", 1, false),
+        _w("%s в %d артикулах", "%s в %d артикулах", 2, false),
+        _w("%s в %d артикулах", "%s в %d артикулах", 5, false)
+    ],
+    "product_sku_mod_forms" => [
+        _w("%d variant", "%d variants", 1, false),
+        _w("%d variant", "%d variants", 2, false),
+        _w("%d variant", "%d variants", 5, false)
+    ]
+]}
+
+{* includes will update templates/components array *}
+{include file="./components/main.html" scope="parent" inline}
+{include file="./components/products/table.html" scope="parent" inline}
+{include file="./components/products/thumbs.html" scope="parent" inline}
+{include file="./components/products/filters.html" scope="parent" inline}
+{include file="./components/products/mass_actions.html" scope="parent" inline}
+{include file="./components/products/presentations_dropdown.html" scope="parent" inline}
+{include file="./dialogs/errors.html" scope="parent" inline}
+{include file="./dialogs/callback.html" scope="parent" inline}
+{include file="./dialogs/list.column_manager.html" scope="parent" inline}
+
+<div class="s-products-list-page" id="js-products-list-page">
+    <div class="s-page-wrapper" id="js-vue-section" style="visibility: hidden;">
+        <div class="s-page-flexbox">
+            <div class="s-page-header">
+                <div class="flexbox full-width space-20">
+                    <div class="flexbox middle space-20">
+                        <div class="s-title-wrapper">
+                            <h1 class="s-title">[`Products`]</h1>
+                        </div>
+                        <div class="s-new-product">
+                            <a class="wa-button blue" href="{$wa_app_url}products/new/general/">
+                                <span class="s-icon icon shift-0 size-12"><i class="fas fa-plus"></i></span>
+                                <span class="s-name">[`New product`]</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="flexbox middle space-20">
+                        <div class="s-support-section">
+                            <button class="s-button wa-button rounded pink animation-pulse" type="button" v-on:click.prevent="showCallbackDialog">
+                                <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
+                                <span class="s-name">[`Как вам новый раздел товаров?`]</span>
+                            </button>
+                            {if $active_presentation.view === 'table_extended'}
+                                {$_view = 'skus'}
+                            {else}
+                                {$_view = $active_presentation.view}
+                            {/if}
+                            <a class="s-button wa-button pink rounded outlined" href="{$wa_app_url|escape}?action=products#/products/view={$_view}" data-tooltip-id="return-to-old-products">
+                                <span>
+                                    <span class="s-icon"><i class="fas fa-toggle-on"></i></span>
+                                    <span class="s-name">[`Вернуться в старый раздел`]</span>
+                                    <span class="s-icon"><i class="fas fa-question-circle"></i></span>
+                                </span>
+                            </a>
+                        </div>
+
+                        <div class="s-presentations-section flexbox middle space-8">
+                            <div class="s-section-dropdown">
+                                <component-dropdown-presentations v-on:change="changePresentation"></component-dropdown-presentations>
+                            </div>
+                        </div>
+                        <component-view-toggle
+                            v-bind:value="presentation.view"
+                            v-on:change="changeView"></component-view-toggle>
+                    </div>
+                </div>
+
+                <component-table-filters></component-table-filters>
+            </div>
+            <div class="s-page-body flexbox">
+                {* PRODUCTS TABLE *}
+                <div class="s-products-table-section" v-if="presentation.view !== 'thumbs'" v-on:scroll="onScrollProductsSection">
+                    {* BODY *}
+                    <component-products-table
+                        v-bind:key="keys.table"
+                        v-bind:products="products"></component-products-table>
+                </div>
+                {* PRODUCTS THUMBS *}
+                <div class="s-products-thumbs-section" v-if="presentation.view === 'thumbs'" v-on:scroll="onScrollProductsSection">
+                    <div class="s-section-body">
+                        <div class="s-thumbs-list">
+                            <template v-for="product in products">
+                                <component-product-thumb v-bind:product="product" v-bind:key="product.id"></component-product-thumb>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                {* PINNED MASS ACTIONS *}
+                <template v-if="selected_products.length && states.mass_actions_pinned">
+                    <div class="s-body-aside" v-bind:class="{ 'is-unpinned' : presentation.view === 'thumbs' }">
+                        <component-mass-actions-aside
+                            v-bind:key="keys.mass_actions"
+                            v-bind:products="selected_products"></component-mass-actions-aside>
+                    </div>
+                </template>
+            </div>
+
+            <div class="s-page-footer"
+                 v-bind:class="{ 'is-unpinned' : presentation.view === 'thumbs' }">
+
+                <div class="flexbox full-width middle space-16">
+                    <div class="s-paging-section">
+                        <component-paging
+                            v-model="paging.page"
+                            v-bind:count="paging.count"
+                            v-on:change="changePage"></component-paging>
+                    </div>
+
+                    <div class="s-filters-wrapper">
+                        <div class="s-filter-wrapper">{_w("Всего %d товар", "Всего %d товаров", $products_total_count)}</div>
+                        <div class="s-filter-wrapper">
+                            <span class="s-label">[`Показывать по:`]</span>
+                            <component-paging-dropdown
+                                v-model="presentation.rows_on_page"
+                                v-on:change="changeLimit"></component-paging-dropdown>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <component-mass-actions-footer
+            v-bind:products="selected_products"
+            v-bind:key="keys.mass_actions"
+            v-if="selected_products.length && !states.mass_actions_pinned"></component-mass-actions-footer>
+    </div>
+
+    <script>
+        ( function($) {
+            $.wa.title.set("{_w("Products")|escape}");
+
+            {foreach $currencies_data as $_currency_info}
+                $.wa.price.addCurrency({$_currency_info|json_encode});
+            {/foreach}
+
+            {if $_lang === "ru"}
+                $.wa.price.currencies.default.fraction_divider = ",";
+            {/if}
+
+            var sources = [{
+                id: "vue-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-list-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/main/main.list.js?v={$wa->version()}"
+            }, {
+                id: "wa-content-color-picker-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-content-color-picker-css",
+                type: "css",
+                uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.css?v={$wa->version(true)}"
+            }];
+
+            $.wa.loadSources(sources).done( function() {
+                $.wa_shop_products.init.initProductsListPage({
+                    $wrapper: $("#js-products-list-page"),
+                    components: {$_components|json_encode},
+                    templates: {$_templates|json_encode},
+                    tooltips: {$_tooltips|json_encode},
+                    locales: {$_locales|json_encode},
+                    urls: {
+                        "filter_rule_add"           : "{$wa_app_url}?module=prod&action=filterAddRule",
+                        "filter_rule_delete"        : "{$wa_app_url}?module=prod&action=filterDeleteRule",
+                        "filter_rule_delete_all"    : "{$wa_app_url}?module=prod&action=filterDeleteAllRules",
+                        "filter_feature_value"      : "{$wa_app_url}?module=prod&action=filterGetFeaturesOptions",
+                        "filter_rename"             : "{$wa_app_url}?module=prod&action=filterRename",
+                        "filter_remove"             : "{$wa_app_url}?module=prod&action=filterDelete",
+                        "filter_move"               : "{$wa_app_url}?module=prod&action=filterMove",
+                        "filter_rewrite"            : "{$wa_app_url}?module=prod&action=filterRewrite",
+                        "filter_create"             : "{$wa_app_url}?module=prod&action=filterDuplicate",
+
+                        "presentation_move"         : "{$wa_app_url}?module=prod&action=presentationMove",
+                        "presentation_rename"       : "{$wa_app_url}?module=prod&action=presentationRename",
+                        "presentation_remove"       : "{$wa_app_url}?module=prod&action=presentationDelete",
+                        "presentation_rewrite"      : "{$wa_app_url}?module=prod&action=presentationRewrite",
+                        "presentation_create"       : "{$wa_app_url}?module=prod&action=presentationDuplicate",
+                        "presentation_edit_columns" : "{$wa_app_url}?module=prod&action=presentationEditColumns",
+                        "presentation_edit_settings": "{$wa_app_url}?module=prod&action=presentationEditSettings",
+
+                        "product_update"            : "{$wa_app_url}?module=prod&action=presentationUpdateProduct",
+                        "product_exclude"           : "{$wa_app_url}?module=prod&action=presentationExcludeProduct",
+                        "product_status"            : "{$wa_app_url}?module=prod&action=saveStatus",
+                        "product_url_checker"       : "{$wa_app_url}?module=prod&action=checkUrlInUse",
+                        "add_feature_value"         : "{$wa_app_url}?module=prod&action=addFeatureValue",
+                        "color_transliterate"       : "{$wa_app_url}?module=settingsTypefeat&action=featuresHelper",
+                        "callback_submit"           : "{$wa_app_url}?module=prod&action=feedback"
+                    },
+
+                    paging: {
+                        page : {$page},
+                        count: {$pages}
+                    },
+                    mass_actions        : {$_mass_actions|json_encode},
+                    stocks              : {$stocks|json_encode},
+                    columns             : {$columns|array_values|json_encode},
+                    page_url            : "{$wa_app_url}products/",
+                    products            : {$products|json_encode},
+                    products_total_count: {$products_total_count},
+                    filter              : {$filter|json_encode},
+                    filters             : {$filters|json_encode},
+                    filter_options      : {$filter_options|json_encode},
+                    presentations       : {$presentations|json_encode},
+                    presentation        : {$active_presentation|json_encode}
+                });
+            });
+
+        })(jQuery);
+    </script>
+</div>

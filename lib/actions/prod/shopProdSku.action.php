@@ -8,6 +8,12 @@ class shopProdSkuAction extends waViewAction
     public function execute()
     {
         $product = $this->getProduct();
+        if (empty($product)) {
+            $this->setLayout(new shopBackendProductsEditSectionLayout([
+                'content_id' => 'sku',
+            ]));
+            return;
+        }
         $features = $this->getFeaturesSettings($product);
 
         // Feature values saved for skus: sku_id => feature code => value
@@ -37,7 +43,7 @@ class shopProdSkuAction extends waViewAction
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
 
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setDefaultNewEditor();
+        shopHelper::setChapter();
 
         $this->view->assign([
             'product'                       => $product,
@@ -67,12 +73,10 @@ class shopProdSkuAction extends waViewAction
     {
         $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
         shopProdGeneralAction::createEmptyProduct($product_id);
+        $product_data = [];
         if ($product_id) {
             $product_model = new shopProductModel();
             $product_data = $product_model->getById($product_id);
-        }
-        if (empty($product_data)) {
-            throw new waException(_w("Unknown product"), 404);
         }
         $product_model = new shopProductModel();
         if (!$product_model->checkRights($product_id)) {
@@ -143,7 +147,7 @@ class shopProdSkuAction extends waViewAction
 
             foreach ($_images as $_image) {
 
-                // Append file motification time to image URL
+                // Append file modification time to image URL
                 // in order to avoid browser caching issues
                 $last_modified = '';
                 $path = shopImage::getPath($_image);
@@ -257,7 +261,7 @@ class shopProdSkuAction extends waViewAction
             // SELECTABLE_FEATURES
             $_features = [];
 
-            // The should be in the same order as in $selected_selectable_feature_ids
+            // They should be in the same order as in $selected_selectable_feature_ids
             $_selectable_features = array_fill_keys($selected_selectable_feature_ids, null);
 
             if (!empty($features)) {
@@ -277,49 +281,12 @@ class shopProdSkuAction extends waViewAction
             // Make sure there are no NULLs left after array_fill_keys() above
             // also keys must start from 0
             $_selectable_features = array_values(array_filter($_selectable_features));
-
-            // Figure out modification name, excluding feature names possibly attached at the end
-            $modification_name = $modification['name'];
-            $features_name = "";
-
-            if ($modification_name && $_selectable_features) {
-                // Loop over comma-delimeted parts of modification name, last to first
-                // remove everything that looks like active selected feature name
-                // break from loop as soon as we encounter anything that does not look like feature name
-                $modification_name = array_filter(array_map('trim', explode(',', $modification_name)));
-                $_features_name = [];
-                while ($modification_name) {
-                    $part = array_pop($modification_name);
-                    if (!strlen($part)) {
-                        continue;
-                    }
-                    foreach($_selectable_features as $f) {
-                        $sku_feature_value = ifset($skus_features_values, $modification['id'], $f['code'], null);
-                        if ($sku_feature_value) {
-                            $active_feature_name = (string)$sku_feature_value;
-                            $active_feature_name = mb_strtolower($active_feature_name);
-                            if ($active_feature_name == mb_strtolower($part)) {
-                                $_features_name[] = $part;
-                                $part = '';
-                                break;
-                            }
-                        }
-                    }
-                    if (strlen($part)) {
-                        // stop as soon as part does not look like feature name
-                        $modification_name[] = $part;
-                        break;
-                    }
-                }
-                $features_name = join(', ', array_reverse($_features_name));
-                $modification_name = join(', ', $modification_name);
-            }
-
+            $names = self::explodeSkuName($modification, $skus_features_values, $_selectable_features);
             $modification["features"] = $_features;
             $modification["features_selectable"] = $_selectable_features;
-            $modification["features_name"] = $features_name;
+            $modification["features_name"] = $names['features_name'];
             $modification["original_name"] = $modification["name"];
-            $modification["name"] = $modification_name;
+            $modification["name"] = $names['modification_name'];
 
             // Additional price fields from plugins
             $modification["additional_prices"] = [];
@@ -348,11 +315,11 @@ class shopProdSkuAction extends waViewAction
             }
 
             // Group modifications into SKUs by name and sku code
-            $sku_key = $modification['sku'].'###'.$modification_name;
+            $sku_key = $modification['sku'].'###'.$names['modification_name'];
             if (empty($skus[$sku_key])) {
                 $skus[$sku_key] = [
                     'sku' => $modification['sku'],
-                    'name' => $modification_name,
+                    'name' => $names['modification_name'],
                     'sku_id' => null,
                     'modifications' => [],
                 ];
@@ -397,6 +364,48 @@ class shopProdSkuAction extends waViewAction
             "normal_mode_switch" => $_normal_mode_switch,
             "has_features_values" => $has_features_values
         ];
+    }
+
+    public static function explodeSkuName($modification, $skus_features_values, $selectable_features)
+    {
+        // Figure out modification name, excluding feature names possibly attached at the end
+        $modification_name = $modification['name'];
+        $features_name = '';
+
+        if ($modification_name && $selectable_features) {
+            // Loop over comma-delimited parts of modification name, last to first
+            // remove everything that looks like active selected feature name
+            // break from loop as soon as we encounter anything that does not look like feature name
+            $modification_name = array_filter(array_map('trim', explode(',', $modification_name)));
+            $_features_name = [];
+            while ($modification_name) {
+                $part = array_pop($modification_name);
+                if (!strlen($part)) {
+                    continue;
+                }
+                foreach($selectable_features as $f) {
+                    $sku_feature_value = ifset($skus_features_values, $modification['id'], $f['code'], null);
+                    if ($sku_feature_value) {
+                        $active_feature_name = (string)$sku_feature_value;
+                        $active_feature_name = mb_strtolower($active_feature_name);
+                        if ($active_feature_name == mb_strtolower($part)) {
+                            $_features_name[] = $part;
+                            $part = '';
+                            break;
+                        }
+                    }
+                }
+                if (strlen($part)) {
+                    // stop as soon as part does not look like feature name
+                    $modification_name[] = $part;
+                    break;
+                }
+            }
+            $features_name = join(', ', array_reverse($_features_name));
+            $modification_name = join(', ', $modification_name);
+        }
+
+        return compact('modification_name', 'features_name');
     }
 
     /**

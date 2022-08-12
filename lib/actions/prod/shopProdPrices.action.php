@@ -13,7 +13,10 @@ class shopProdPricesAction extends waViewAction
         shopProdGeneralAction::createEmptyProduct($product_id);
         $product = new shopProduct($product_id);
         if (!$product['id']) {
-            throw new waException(_w("Unknown product"), 404);
+            $this->setLayout(new shopBackendProductsEditSectionLayout([
+                'content_id' => 'prices',
+            ]));
+            return;
         }
 
         $product_model = new shopProductModel();
@@ -26,7 +29,7 @@ class shopProdPricesAction extends waViewAction
 
         $promos = self::getPromos($product);
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setDefaultNewEditor();
+        shopHelper::setChapter();
 
         $this->view->assign([
             "url_template"  => $url_template,

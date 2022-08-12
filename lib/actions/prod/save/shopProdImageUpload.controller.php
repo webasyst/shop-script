@@ -8,7 +8,15 @@ class shopProdImageUploadController extends shopUploadController
     {
         $product_id = waRequest::request('product_id', null, waRequest::TYPE_INT);
         $product_model = new shopProductModel();
-        if (!$product_id || !$product_model->checkRights($product_id)) {
+        $product = $product_model->getById($product_id);
+        if (!$product) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return false;
+        }
+        if (!$product_model->checkRights($product_id)) {
             throw new waException(_w("Access denied"), 403);
         }
 

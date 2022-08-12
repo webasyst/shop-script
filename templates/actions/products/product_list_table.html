@@ -74,7 +74,7 @@
 <script id="template-product-list-table" type="text/html">
     {$link_edit = shopHelper::getBackendEditorUrl('@s')}
     {literal}
-    {% var current_editor = '{/literal}{shopHelper::getCurrentProductEditor()}{literal}'; %}
+    {% var current_editor = '{/literal}{shopHelper::getCurrentChapter()}{literal}'; %}
     {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
     <tr class="product {% if (i == n-1) { %}last{% } %}
         {% if (p.status != '1') { %}gray{% } %}
@@ -105,7 +105,7 @@
             {literal}
             <td class="min-width drag-handle s-product-list-image">
                 <div class="s-image">
-                    <a href="{%#'{/literal}{$link_edit}{literal}'.replace('/edit/', '/').replace('@s', p.id)%}{% if (current_editor === 'new_editor' && !p.edit_rights) { %}prices/{% } %}">
+                    <a href="{%#'{/literal}{$link_edit}{literal}'.replace('/edit/', '/').replace('@s', p.id)%}{% if (current_editor === 'new_chapter' && !p.edit_rights) { %}prices/{% } %}">
                         {% if (p.badge) { %}
                             <div class="s-image-corner">{%#p.badge%}</div>
                         {% } %}
@@ -120,7 +120,7 @@
         {/if}
         {literal}
         <td class="drag-handle s-product-name">
-            <a href="{%#'{/literal}{$link_edit}{literal}'.replace('/edit/', '/').replace('@s', p.id)%}{% if (current_editor === 'new_editor' && !p.edit_rights) { %}prices/{% } %}"><div>{%#p.name%}<i class="shortener"></i></div></a>
+            <a href="{%#'{/literal}{$link_edit}{literal}'.replace('/edit/', '/').replace('@s', p.id)%}{% if (current_editor === 'new_chapter' && !p.edit_rights) { %}prices/{% } %}"><div>{%#p.name%}<i class="shortener"></i></div></a>
         </td>
         <td class="short nowrap align-right s-product-price" title="[`Price`]">
             <span class="editable">{%#p.price_range%}{% if (p.stock_unit) { %}/{%#p.stock_unit.name_short%}{% } %}</span>

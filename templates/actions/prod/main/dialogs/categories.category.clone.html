@@ -1,0 +1,59 @@
+<div class="wa-dialog s-category-clone-dialog" id="js-category-clone-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>{sprintf(_w("Скопировать категорию «%s»"), "{ { category.name } }")}</h3>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-options-section">
+                    <div class="s-options-group">
+                        <div class="s-radio-wrapper">
+                            <label class="flexbox middle space-8">
+                                <component-radio v-model="copy_categories"
+                                                 v-bind:val="false"
+                                                 v-bind:name="'copy_categories'"></component-radio>
+                                <span class="s-label">[`Копировать только корневую категорию`]</span>
+                            </label>
+                        </div>
+                        <div class="s-radio-wrapper">
+                            <label class="flexbox middle space-8">
+                                <component-radio v-model="copy_categories"
+                                                 v-bind:val="true"
+                                                 v-bind:name="'copy_categories'"></component-radio>
+                                <span class="s-label">[`Копировать категорию со всеми вложенными подкатегориями`]</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="s-options-group">
+                        <div class="s-radio-wrapper">
+                            <label class="flexbox middle space-8">
+                                <component-radio v-model="copy_products"
+                                                 v-bind:val="false"
+                                                 v-bind:name="'copy_products'"></component-radio>
+                                <span class="s-label">[`Не копировать товары`]</span>
+                            </label>
+                        </div>
+                        <div class="s-radio-wrapper">
+                            <label class="flexbox middle space-8">
+                                <component-radio v-model="copy_products"
+                                                 v-bind:val="true"
+                                                 v-bind:name="'copy_products'"></component-radio>
+                                <span class="s-label">[`Скопировать товары`]</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click.prevent="cloneCategory"v-bind:disabled="locked">
+                    <span class="s-icon icon size-14" v-if="locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name">[`Clone`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -259,18 +259,27 @@ class shopFrontendProductAction extends shopFrontendAction
     {
         $this->setLayout(new shopFrontendLayout());
         if ($this->params) {
-            $product = $this->params;
+            $products = [$this->params];
         } else {
             $product_model = new shopProductModel();
-            $product = $product_model->getByField('url', waRequest::param('product_url'));
+            $products = $product_model->getByField('url', waRequest::param('product_url'), true);
         }
 
-        if (!$product) {
+        if (!$products) {
             throw new waException(_w('Product not found'), 404);
         }
 
-        if ($types = waRequest::param('type_id')) {
-            if (!in_array($product['type_id'], (array)$types)) {
+        $type_ids = waRequest::param('type_id');
+        if (empty($type_ids)) {
+            $product = reset($products);
+        } else {
+            foreach ($products as $prod) {
+                if (in_array($prod['type_id'], (array) $type_ids)) {
+                    $product = $prod;
+                    break;
+                }
+            }
+            if (empty($product)) {
                 throw new waException(_w('Product not found'), 404);
             }
         }
@@ -616,6 +625,9 @@ class shopFrontendProductAction extends shopFrontendAction
     {
         $count = null;
         foreach ($skus as $sku) {
+            if (empty($sku['stock'])) {
+                return null;
+            }
             foreach ($sku['stock'] as $key => $count_stock) {
                 if (in_array($key, $public_stocks)) {
                     if ($count_stock === null) {

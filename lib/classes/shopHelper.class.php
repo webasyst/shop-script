@@ -2046,6 +2046,11 @@ SQL;
         }
 
         if (!empty($options['product_codes'])) {
+            foreach ($order['items'] as $key => $i) {
+                $order['items'][$i['id']] = $i;
+                unset($order['items'][$key]);
+            }
+
             $order_item_codes_model = new shopOrderItemCodesModel();
             $order['items'] = $order_item_codes_model->extendOrderItems($order['items']);
         }
@@ -2181,7 +2186,7 @@ SQL;
         }
 
         $param = '';
-        $current_editor = self::getCurrentProductEditor();
+        $current_chapter = self::getCurrentChapter();
 
         if (!empty($options)) {
             foreach ($options as $key => $value) {
@@ -2193,7 +2198,7 @@ SQL;
             }
         }
 
-        if ('old_editor' === $current_editor) {
+        if ('old_chapter' === $current_chapter) {
             switch ($tab) {
                 case 'services':
                     $tab = 'edit/'.$tab.'/';
@@ -2217,27 +2222,61 @@ SQL;
             $link_editor = 'products/'.$product_id.'/'.(empty($tab) ? '' : $tab.'/');
         }
 
-        return $link_editor;
+        return rtrim($link_editor, '/').'/';
+    }
+
+    /**
+     * @param $chapter
+     * @param $options
+     * @return string
+     * @throws waException
+     */
+    public static function getBackendChapterUrl($chapter, $options = [])
+    {
+        $params = '';
+        $chapter_link = '';
+        $current_chapter = self::getCurrentChapter();
+        if ('old_chapter' === $current_chapter) {
+            $chapter_link = 'products';
+            switch ($chapter) {
+                case 'category':
+                    $chapter_link .= '/categories';
+                    break;
+                case 'set':
+                    $chapter_link .= '/sets';
+                    break;
+            }
+        }
+        if (!empty($options)) {
+            $params = '?'.http_build_query($options);
+        }
+
+        return rtrim($chapter_link.$params, '/').'/';
     }
 
     /**
      * @return string
      * @throws waException
      */
-    public static function getCurrentProductEditor()
+    public static function getCurrentChapter()
     {
-        return wa()->getUser()->getSettings('shop', 'default_editor', 'old_editor');
+        return wa()->getUser()->getSettings('shop', 'default_chapter', 'old_chapter');
     }
 
     /**
+     * @param string $default_chapter new_chapter/old_chapter
+     * @return void
      * @throws waException
      */
-    public static function setDefaultNewEditor()
+    public static function setChapter($default_chapter = '')
     {
-        $default_editor = wa()->getUser()->getSettings('shop', 'default_editor');
-        if (empty($default_editor) || 'old_editor' === $default_editor) {
-            wa()->getUser()->setSettings('shop', 'default_editor', 'new_editor');
+        if (empty($default_chapter)) {
+            $default_chapter = wa()->getUser()->getSettings('shop', 'default_chapter');
+            if ('old_chapter' === $default_chapter) {
+                $default_chapter = 'new_chapter';
+            }
         }
+        wa()->getUser()->setSettings('shop', 'default_chapter', $default_chapter);
     }
 
     /**

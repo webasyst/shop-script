@@ -11,6 +11,15 @@ class shopProdAddSkuFileController extends shopUploadController
             'product_id' => waRequest::post('product_id', null, waRequest::TYPE_INT),
         );
 
+        $product = new shopProduct($fields['product_id']);
+        if (!$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
+
         $path = "sku_file/{$fields['id']}." . pathinfo($file->name, PATHINFO_EXTENSION);
         $file_path = shopProduct::getPath($fields['product_id'], $path);
         if ((file_exists($file_path) && !is_writable($file_path)) || (!file_exists($file_path) && !waFiles::create($file_path))) {

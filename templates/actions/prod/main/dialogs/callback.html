@@ -1,0 +1,36 @@
+{capture assign="_callback_dialog"}
+    <div class="wa-dialog s-product-callback-dialog">
+        <div class="dialog-background"></div>
+        <div class="dialog-body">
+            <div class="dialog-header">
+                <h2>[`How do you like the new products section?`]</h2>
+            </div>
+            <div class="dialog-content">
+                <form class="s-form-content">
+                    <p>[`We are working hard on the new products section and would like to learn your opinion of it. Please tell us what you liked and what you would rather make more comprehensive and convenient.`]</p>
+                    <p>
+                        <textarea class="s-callback-field full-width" name="data[content]" placeholder="[`Your opinion...`]"></textarea>
+                    </p>
+                    <p>[`You may send us several comments as new thoughts and suggestions will occur to you.`]</p>
+                </form>
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button js-success-button" type="button">[`Send`]</button>
+                <button class="wa-button gray-light js-close-dialog" type="button">[`Close`]</button>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_templates["callback_dialog"] = $_callback_dialog}
+
+{capture assign="_callback_dialog_success"}
+    <div class="align-center" style="padding: 2rem 0;">
+        <h3>[`Thank you!`]</h3>
+        <p>
+            {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+            <i class='icon' style="font-size: 16rem;"><svg><use xlink:href='{$_sprite_url}#wave'></use></svg></i>
+        </p>
+        <p>[`This window will automatically close in 3 seconds.`]</p>
+    </div>
+{/capture}
+{$_templates["callback_dialog_success"] = $_callback_dialog_success}

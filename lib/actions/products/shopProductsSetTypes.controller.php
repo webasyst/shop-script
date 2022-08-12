@@ -60,7 +60,7 @@ class shopProductsSetTypesController extends waJsonController
                 }
                 $filtered = $this->product_model->filterAllowedProductIds($product_ids);
                 $this->product_model->updateType($filtered, $type_id);
-                $all_updated_products += $filtered;
+                $all_updated_products = array_merge($all_updated_products, $product_ids);
                 $offset += count($product_ids);
             }
             if (count($all_updated_products) > 1) {

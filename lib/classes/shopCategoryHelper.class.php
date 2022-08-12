@@ -51,9 +51,17 @@ class shopCategoryHelper
      */
     public function getTypesId($id)
     {
+        static $count_types = null;
+        if ($count_types === null) {
+            $count_types = (new shopTypeModel())->countAll();
+        }
+        if ($count_types <= 0) {
+            return [];
+        }
+
         $product_collection = new shopProductsCollection("category/{$id}");
         $product_collection->groupBy('type_id');
-        $types = $product_collection->getProducts('type_id');
+        $types = $product_collection->getProducts('type_id', 0, $count_types);
 
         return waUtils::getFieldValues($types, 'type_id');
     }
@@ -69,6 +77,7 @@ class shopCategoryHelper
             'type'      => '',
             'code'      => '',
             'type_name' => '',
+            'available_for_sku' => false,
         ];
     }
 }

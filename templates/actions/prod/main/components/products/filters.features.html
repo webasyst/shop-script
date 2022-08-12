@@ -1,0 +1,47 @@
+{capture assign="_component_table_filters_features"}
+<div class="s-filter-features-section s-pane-item dropbox">
+    <div class="s-dropbox-toggle js-dropbox-toggle">
+        <span class="s-icon icon shift-0"><i class="fas fa-filter"></i></span>
+        <span class="s-name">[`Параметры`]</span>
+    </div>
+    <div class="dropbox-body right">
+        <div class="s-dropbox-content-section">
+            <div class="s-section-header">
+                <component-table-filters-search
+                    v-if="features.length"
+                    class="s-search-form"
+                    v-model="search_string"
+                    v-bind:placeholder="'{_w("Найти")|escape}'"></component-table-filters-search>
+                <div class="s-empty-wrapper" v-else>[`Характеристики не найдены`]</div>
+            </div>
+            <div class="s-section-body" v-if="features.length">
+                <div class="s-features-list">
+                    <template v-for="item in items">
+                        <component-table-filters-features-item
+                            v-bind:item="item"
+                            v-on:success="success"
+                            v-on:feature_dialog="hide"></component-table-filters-features-item>
+                    </template>
+                    <div class="s-empty-wrapper" v-if="!items.length">[`Параметры не найдены`]</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/capture}
+{$_components["component-table-filters-features"] = $_component_table_filters_features|trim}
+
+{capture assign="_component_table_filters_features_item"}
+<div class="s-feature-wrapper cursor-pointer" v-on:click="toggle">
+    <div class="s-name-wrapper flexbox space-8">
+        <div v-if="item.display_type === 'feature'">
+            <span class="s-icon icon size-12 shift-inherit"><i class="fas fa-sitemap"></i></span>
+        </div>
+        <div>
+            <span class="s-name" v-text="item.name"></span>
+            <span class="s-code hint" v-if="item.display_type === 'feature' && item.code" v-text="item.code"></span>
+        </div>
+    </div>
+</div>
+{/capture}
+{$_components["component-table-filters-features-item"] = $_component_table_filters_features_item|trim}

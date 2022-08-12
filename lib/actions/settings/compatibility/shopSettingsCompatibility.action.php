@@ -91,8 +91,7 @@ class shopSettingsCompatibilityAction extends waViewAction
                     $_app_plg = &$apps[$name]['plugins'][$app_plugin['id']];
 
                     $_app_plg['version_latest'] = ifset($plugins_data, $app_plugin['slug'], 'version', null);
-                    $_app_plg['icon'] = ifset($apps, $name, 'plugins', $app_plugin['id'], 'icon', '');
-                    $_app_plg['icon'] = ifset($plugins_data, $app_plugin['slug'], 'icon', $_app_plg['icon']);
+                    $_app_plg['icon'] = ifset($plugins_data, $app_plugin['slug'], 'icon', '');
 
                     $tags = ifset($plugins_data, $app_plugin['slug'], 'tags', []);
                     $support_frac = shopHelper::getShopSupportJson($app_plugin['path']);
@@ -113,6 +112,7 @@ class shopSettingsCompatibilityAction extends waViewAction
                 $support_plugins = [];
                 foreach ($app['plugins'] as $app_plugin) {
                     $_app_plg = &$apps[$name]['plugins'][$app_plugin['id']];
+                    $_app_plg['icon'] = ifset($plugins_data, $app_plugin['slug'], 'icon', '');
                     $support_frac = shopHelper::getShopSupportJson($app_plugin['path']);
 
                     if (empty($support_frac)) {
@@ -206,22 +206,6 @@ class shopSettingsCompatibilityAction extends waViewAction
     protected function pluginsFormat($plugins = [])
     {
         foreach ($plugins as &$plugin) {
-            if (!empty($plugin['icon'])) {
-                $image = $plugin['icon'];
-            } elseif (!empty($plugin['installed']['logo'])) {
-                $image = wa()->getRootUrl().$plugin['path'].'/'.$plugin['installed']['logo'];
-            } elseif (!empty($plugin['installed']['icon'])) {
-                if (is_array($plugin['installed']['icon'])) {
-                    $image = wa()->getRootUrl().$plugin['path'].'/'.ifset($plugin, 'installed', 'icon', 48, '');
-                } else {
-                    $image = wa()->getRootUrl().$plugin['path'].'/'.$plugin['installed']['icon'];
-                }
-            } elseif (!empty($plugin['image'])) {
-                $image = $plugin['image'];
-            } else {
-                $image = '';
-            }
-
             $link = wa()->getAppUrl('installer').'store/plugin/';
             $type = '';
             if (strpos($plugin['slug'], 'wa-plugins/payment') !== false) {
@@ -242,7 +226,7 @@ class shopSettingsCompatibilityAction extends waViewAction
                 'id'                        => $plugin['id'],
                 'enabled'                   => (empty($plugin['enabled']) ? '0' : '1'),
                 'name'                      => ifempty($plugin['name'], $plugin['id']),
-                'image'                     => $image,
+                'image'                     => ifempty($plugin, 'icon', ''),
                 'version_installed'         => $plugin['version'],
                 'version_latest'            => ifset($plugin, 'version_latest', $plugin['version']),
                 'link_view'                 => $link,
@@ -381,6 +365,7 @@ class shopSettingsCompatibilityAction extends waViewAction
         foreach ($sys_plugins as &$sys_pl) {
             $frac = null;
             $sys_pl['version_latest'] = ifset($plugins_data, $sys_pl['slug'], 'version', null);
+            $sys_pl['icon'] = ifset($plugins_data, $sys_pl['slug'], 'icon', '');
             $tags = ifset($plugins_data, $sys_pl['slug'], 'tags', []);
             $support_frac = shopHelper::getShopSupportJson($sys_pl['path']);
 

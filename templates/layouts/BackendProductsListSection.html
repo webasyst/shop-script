@@ -1,3 +1,50 @@
-<h1>This section is not finished.</h1>
+{strip}
 
-{$content}
+{$_templates = []}
+{$_locales = []}
+{$_urls = []}
+
+{/strip}
+
+<div class="s-products-page" id="js-products-page">
+    <script>
+        ( function($) {
+            $("#js-products-page").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    <div class="s-products-page-body">
+        {* SIDEBAR *}
+        {$sidebar}
+
+        {* BODY *}
+        <div class="s-products-page-content" id="js-products-page-content">
+            {$content}
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+
+            var sources = [{
+                id: "wa-shop-products-main-sidebar-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/main/sidebar.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-main-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/main/main.js?v={$wa->version()}"
+            }];
+
+            $.wa.loadSources(sources).done( function() {
+                $.wa_shop_products.init.initProductsMain({
+                    $wrapper: $("#js-products-page"),
+                    templates: {$_templates|json_encode},
+                    locales: {$_locales|json_encode},
+                    urls: {$_urls|json_encode}
+                });
+            });
+
+        })(jQuery);
+    </script>
+</div>

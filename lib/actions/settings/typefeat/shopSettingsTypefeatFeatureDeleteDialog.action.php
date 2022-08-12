@@ -25,8 +25,9 @@ class shopSettingsTypefeatFeatureDeleteDialogAction extends waViewAction
             $notice_html = _w('You cannot delete this feature, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode.');
         } else {
             $product_features_model = new shopProductFeaturesModel();
-            $product_usage_count = $product_features_model->countProductsByFeature($feature_id);
-
+            $feature_ids = array_keys($feature_model->select('id')->where('parent_id='.intval($feature['id']))->fetchAll('id'));
+            $feature_ids[] = $feature['id'];
+            $product_usage_count = $product_features_model->countProductsByFeature($feature_ids);
             if ($product_usage_count) {
                 $notice_html = _w(
                     'You have <strong>%d product</strong> with this feature value specified. Deleting this feature will erase it’s value for all these products.',

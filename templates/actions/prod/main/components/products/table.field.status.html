@@ -1,0 +1,96 @@
+{$_locales["error_url_required"] = _w("This is a required field.")}
+{$_locales["error_url_incorrect"] = _w("Incorrect URL format.")}
+
+{capture assign="_component_product_column_status"}
+<div class="vue-column-type-status">
+    <template v-if="states.is_locked">
+        <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+    </template>
+    <template v-else>
+
+        <div class="s-flexbox flexbox middle">
+            <div class="s-dropdown-wrapper">
+                <component-dropdown
+                    v-model="column_data.value"
+                    v-bind:button_class="'s-square-field'"
+                    v-bind:options="statuses"
+                    v-on:change="onChange"></component-dropdown>
+            </div>
+            <div class="s-redirect-wrapper" v-if="column_data.value === '-1'">
+                <div class="s-divider icon baseline size-12"><i class="fas fa-arrow-right"></i></div>
+                <div class="s-redirect link cursor-pointer" v-text="type.name" v-on:click="showDialog"></div>
+            </div>
+        </div>
+
+    </template>
+</div>
+{/capture}
+{$_components["component-product-column-status"] = $_component_product_column_status|trim}
+
+{capture assign="_dialog_product_column_status"}
+<div class="wa-dialog s-product-column-status-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>{_w("Перенаправление")}</h3>
+            </div>
+            <div class="dialog-content">
+                <div class="s-form-wrapper">
+                    <div class="s-dropdown-wrapper">
+                        <component-dropdown
+                            v-model="column_data.redirect.type"
+                            v-bind:button_class="'gray-field'"
+                            v-bind:options="types"></component-dropdown>
+                    </div>
+
+                    <div class="s-url-section" v-if="column_data.redirect.type === 'url'">
+                        <input class="wa-small wide full-width" type="text" placeholder="http://yoursite.com/category/product-name"
+                               v-bind:class="{ 'wa-error-field' : states.show_errors && errors['url_error'] }"
+                               v-model="column_data.redirect.url">
+
+                        <div class="wa-error-text" v-if="states.show_errors && errors['url_error']">{ { errors['url_error'].text } }</div>
+                    </div>
+
+                    <div class="s-codes-section" v-if="column_data.redirect.type !== '404'">
+                        <div class="s-section-header">
+                            [`Redirect code`]
+                            <span class="wa-tooltip bottom-left" data-title="{_w("Your server will add this code to its response to web browsers and search engines.")|escape}"><i class="fas fa-question-circle s-icon gray"></i></span>
+                        </div>
+                        <div class="s-section-body">
+                            <div class="s-options-group">
+                                <template v-for="code in codes">
+                                    <div class="s-radio-wrapper">
+                                        <label class="flexbox middle space-8">
+                                            <component-radio v-model="column_data.redirect.code"
+                                                             v-bind:val="code.value"
+                                                             v-bind:name="'checkbox-code-name'"></component-radio>
+                                            <span class="s-label" v-text="code.name"></span>
+                                        </label>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="s-section-footer">
+                            <div class="wa-message warn flexbox space-8" v-if="column_data.redirect.code === '301'">
+                                <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                <div class="message-text wide">
+                                    <span class="s-text">[`A 301 redirect is applied at once and works permanently, and cannot be quickly disabled. Search engines will remove the page from their indices. The redirect will get saved in website visitors’ browsers. If you later decide to publish this page again, it might become available only after quite a long while.`]</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click="onSave" v-bind:disabled="!states.is_changed || states.is_locked">
+                    <span class="s-text">[`Save`]</span>
+                    <span class="s-icon icon size-12" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/capture}
+{$_templates["dialog-product-column-status"] = $_dialog_product_column_status|trim}

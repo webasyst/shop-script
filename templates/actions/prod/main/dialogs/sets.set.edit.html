@@ -1,0 +1,181 @@
+{strip}
+
+{$_components = []}
+
+{capture assign="_component_dropdown_rules"}
+<div class="dropdown">
+    <button class="dropdown-toggle wa-button gray-field wa-small" type="button">{ { active_item.name } }</button>
+    <div class="dropdown-body">
+        <template v-for="item in items">
+            <div class="dropdown-item"
+                 v-on:click="change(item)"
+                 v-bind:class="{ 'selected': (item === active_item) }">{ { item.name } }</div>
+        </template>
+    </div>
+</div>
+{/capture}
+{$_components["component-dropdown-rules"] = $_component_dropdown_rules|trim}
+
+{/strip}
+
+<div class="wa-dialog s-set-edit-dialog" id="js-set-edit-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>
+                    {if !empty($set.id)}
+                        {sprintf(_w("Редактирование списка «%s»"), "{ { set.name } }")}
+                    {else}
+                        [`New set`]
+                    {/if}
+                </h3>
+            </div>
+            <div class="dialog-content">
+
+                <form class="wa-fields">
+                    <div class="wa-field">
+                        <div class="name">
+                            <div class="s-name">[`Name`]</div>
+                        </div>
+                        <div class="value">
+                            <div class="s-field-wrapper">
+                                <input type="text" name="name" class="large full-width" v-model="set.name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wa-field">
+                        <div class="name">
+                            <div class="s-name">[`Set ID`]</div>
+                        </div>
+                        <div class="value">
+                            {strip}
+                            <div class="s-field-wrapper">
+                                <span class="s-label">&#123;$wa->shop->productSet("</span>
+                                <input class="wa-small" type="text" name="id" v-model="set.id">
+                                <span>")&#125;</span>
+                            </div>
+                            {/strip}
+
+                            <p>[`Set ID is used in the code for embedding product set into frontend design templates and pages.`]</p>
+
+                            {if empty($set.id)}
+                                <p>[`Changing the set ID <em>will not</em> automatically update templates and pages in which this code is embedded, so be sure to update them if you change the ID.`]</p>
+                            {elseif ($set.id == 'promo' || $set.id == 'bestsellers')}
+                                <p class="small black"><i class="icon10 exclamation"></i> [`It is highly advisable to keep product sets with IDs <strong>promo</strong> and <strong>bestsellers</strong>, as these set IDs are used by most Shop-Script frontend design themes.`]</p>
+                            {/if}
+
+                            <input type="hidden" name="set_id" value="{$set.id|escape}">
+                        </div>
+                    </div>
+
+                    <div class="wa-field">
+                        <div class="name">
+                            <div class="s-name">[`Сортировка товаров`]</div>
+                        </div>
+                        <div class="value">
+                            <component-dropdown-set-sorting v-model="set.sort_products"></component-dropdown-set-sorting>
+                            <input type="hidden" name="sort_products" v-model="set.sort_products">
+                        </div>
+                    </div>
+
+                    {if empty($set.id)}
+                        <div class="wa-field">
+                            <div class="name">
+                                <div class="s-name">[`Type`]</div>
+                            </div>
+                            <div class="value">
+                                <div class="s-type-section flexbox fixed space-12">
+                                    <div class="s-radio-wrapper">
+                                        <label class="flexbox middle space-8">
+                                            <component-radio v-model="set.type"
+                                                             v-bind:val="'0'"
+                                                             v-bind:name="'type'"></component-radio>
+                                            <span class="s-label">[`Set`]</span>
+                                        </label>
+                                        <div class="hint">[`A static set for adding and arranging products manually.`]</div>
+                                    </div>
+                                    <div class="s-radio-wrapper">
+                                        <label class="flexbox middle space-8">
+                                            <component-radio v-model="set.type"
+                                                             v-bind:val="'1'"
+                                                             v-bind:name="'type'"></component-radio>
+                                            <span class="s-label">[`Filter`]</span>
+                                        </label>
+                                        <div class="hint">[`A dynamic set based on a search criteria, e.g. rating or tags.`]</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
+
+                    <template v-if="set.type === '1'">
+                        <div class="wa-field">
+                            <div class="name">
+                                {if empty($set.id)}[`Product filtering`]{else}[`Dynamic set rule`]{/if}
+                            </div>
+                            <div class="value">
+                                <component-dropdown-rules v-model="set.rule"></component-dropdown-rules>
+                                <input name="rule" type="hidden" v-model="set.rule">
+                            </div>
+                        </div>
+                        <div class="wa-field">
+                            <div class="name">
+                                <div class="s-name">[`Select products by orders from date`]</div>
+                            </div>
+                            <div class="value">
+                                <component-datepicker v-model="set.date_start"
+                                             v-bind:name="'date_start'"></component-datepicker>
+                                <div class="hint">[`Products will be selected from orders paid on or after specified date.`]</div>
+                            </div>
+                        </div>
+                        <div class="wa-field">
+                            <div class="name">
+                                <div class="s-name">[`Select products by orders until date`]</div>
+                            </div>
+                            <div class="value">
+                                <component-datepicker v-model="set.date_end"
+                                             v-bind:name="'date_end'"></component-datepicker>
+                                <div class="hint">[`Products will be selected from orders paid on or before specified date.`]</div>
+                            </div>
+                        </div>
+                        <div class="wa-field">
+                            <div class="name">
+                                <div class="s-name">[`Max number of products`]</div>
+                            </div>
+                            <div class="value">
+                                <input class="wa-small size-short is-number" type="text" name="count" v-model="set.count">
+                                <div class="hint">[`Limit the maximum number of products in this set`]</div>
+                            </div>
+                        </div>
+                    </template>
+                </form>
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button"
+                        v-on:click.prevent="save"
+                        v-bind:disabled="states.locked">
+                    <span class="s-name">{if !empty($set.id)}[`Save`]{else}[`Create`]{/if}</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-set-edit-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.initDialog({
+                $dialog: $dialog,
+                dialog: dialog,
+                set: {$set|json_encode},
+                is_new: {if empty($set.id)}true{else}false{/if},
+                components: {$_components|json_encode}
+            });
+
+        })(jQuery);
+    </script>
+</div>

@@ -14,7 +14,10 @@ class shopProdRelatedAction extends waViewAction
         $product = new shopProduct($product_id);
 
         if (!$product['id']) {
-            throw new waException(_w("Unknown product"), 404);
+            $this->setLayout(new shopBackendProductsEditSectionLayout([
+                'content_id' => 'related',
+            ]));
+            return;
         }
         $product_model = new shopProductModel();
         if (!$product_model->checkRights($product_id)) {
@@ -28,7 +31,7 @@ class shopProdRelatedAction extends waViewAction
         $cross_selling = self::getCrossSelling($product, $type);
         $upselling = self::getUpselling($product, $type);
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setDefaultNewEditor();
+        shopHelper::setChapter();
 
         $this->view->assign([
             'product'       => self::formatProduct($product),

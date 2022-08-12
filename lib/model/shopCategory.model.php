@@ -56,8 +56,7 @@ class shopCategoryModel extends waNestedSetModel
 
     /**
      * Format a flat list of categories into a tree
-     * @param string $fields
-     * @param bool $static_only
+     * @param array $categories
      * @return array
      */
     public function buildNestedTree($categories)
@@ -318,6 +317,89 @@ class shopCategoryModel extends waNestedSetModel
     }
 
     /**
+     * @param int $id
+     * @param bool $include_products
+     * @param array $data
+     * @return false|array|int
+     * @throws waDbException
+     */
+    public function duplicate($id, $include_products = false, $data = [])
+    {
+        $id = (int)$id;
+        $item = $this->getById($id);
+        if (!$item) {
+            return false;
+        }
+
+        $left_key = $item[$this->left];
+        $blacklist = ['id', $this->left, $this->right, 'depth', 'edit_datetime'];
+        if (!$include_products) {
+            $blacklist[] = 'count';
+        }
+        foreach ($blacklist as $field) {
+            unset($item[$field]);
+        }
+        $item['create_datetime'] = date('Y-m-d H:i:s');
+        foreach ($data as $field => $value) {
+            if (isset($item[$field])) {
+                $item[$field] = $value;
+            }
+        }
+
+        $parent = $this->getById($item['parent_id']);
+        if (empty($parent) || empty(mb_strlen($item['url']))) {
+            return false;
+        }
+        $before_id = $this->query("
+            SELECT `id` FROM `{$this->table}` 
+            WHERE `{$this->left}` > i:left_key AND `parent_id` = i:parent_id 
+            ORDER BY `{$this->left}` 
+            LIMIT 1", ['left_key' => $left_key, 'parent_id' => $parent['id']])->fetchField('id');
+        if ($before_id === false) {
+            $before_id = null;
+        }
+
+        $item['url'] = $this->stripCategoryUrl($item['url']);
+        $item['url'] = $this->suggestUniqueUrl($item['url'], null, $parent['id']);
+        $item['full_url'] = $this->fullUrl($parent['full_url'], $item['url']);
+
+        // 255 is the size of the field in the table
+        if (mb_strlen($item['full_url']) > 255) {
+            return ['url' => _w('Too long URL including the URLs of parent categories.')];
+        }
+
+        $new_id = (int)parent::add($item, $parent['id'], $before_id);
+        if (!$new_id) {
+            return false;
+        }
+
+        $category_og_model = new shopCategoryOgModel();
+        $category_og_model->query("INSERT INTO {$category_og_model->getTableName()} (`category_id`, `property`, `content`) 
+            SELECT {$new_id} AS `category_id`, `property`, `content` 
+                FROM {$category_og_model->getTableName()} WHERE `category_id` = {$id}");
+
+        $category_params_model = new shopCategoryParamsModel();
+        $category_params_model->query("INSERT INTO {$category_params_model->getTableName()} (`category_id`, `name`, `value`) 
+            SELECT {$new_id} AS `category_id`, `name`, `value` 
+                FROM {$category_params_model->getTableName()} WHERE `category_id` = {$id}");
+
+        if ($include_products) {
+            $category_products_model = new shopCategoryProductsModel();
+            $category_products_model->query("INSERT INTO {$category_products_model->getTableName()} (`product_id`, `category_id`, `sort`) 
+            SELECT `product_id`, {$new_id} AS `category_id`, `sort` 
+                FROM {$category_products_model->getTableName()} WHERE `category_id` = {$id}");
+        }
+
+        $category_routes_model = new shopCategoryRoutesModel();
+        $category_routes_model->query("INSERT INTO {$category_routes_model->getTableName()} (`category_id`, `route`) 
+            SELECT {$new_id} AS `category_id`, `route` 
+                FROM {$category_routes_model->getTableName()} WHERE `category_id` = {$id}");
+
+        $this->clearCache();
+        return $new_id;
+    }
+
+    /**
      * Remove all regex-special characters in $url
      * (except dashes which can not break preg_match() by themselves)
      */
@@ -387,7 +469,7 @@ class shopCategoryModel extends waNestedSetModel
                 $data['url'] = $this->suggestUniqueUrl($data['url'], null, $parent_id);
                 $data['full_url'] = $this->fullUrl($parent['full_url'], $data['url']);
                 // 255 is the size of the field in the table
-                if (strlen($data['full_url']) > 255) {
+                if (mb_strlen($data['full_url']) > 255) {
                     return array('url' => _w('Too long URL including the URLs of parent categories.'));
                 }
             }
@@ -465,12 +547,16 @@ class shopCategoryModel extends waNestedSetModel
      * @param string $url
      * @param int $category_id optional. If set than check urls excepting url of this album
      * @param int $parent_id Check category of one level
+     * @param bool $nested_search Check with nesting
      *
      * @return boolean
      */
-    public function urlExists($url, $category_id = null, $parent_id = 0)
+    public function urlExists($url, $category_id = null, $parent_id = 0, $nested_search = true)
     {
-        $where = "url = s:url AND parent_id = i:parent_id";
+        $where = "url = s:url";
+        if ($nested_search) {
+            $where .= ' AND parent_id = i:parent_id';
+        }
         if ($category_id) {
             $where .= " AND id != i:id";
         }

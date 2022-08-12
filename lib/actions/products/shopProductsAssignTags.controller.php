@@ -68,7 +68,7 @@ class shopProductsAssignTagsController extends waJsonController
             if ($tag_ids) {
                 $product_tags_model->assign($product_ids, $tag_ids);
             }
-            $all_updated_products += $product_ids;
+            $all_updated_products = array_merge($all_updated_products, $product_ids);
             $offset += count($product_ids);
         }
 

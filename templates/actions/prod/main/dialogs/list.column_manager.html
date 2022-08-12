@@ -1,0 +1,213 @@
+{capture assign="_dialog_list_column_manager"}
+    <div class="wa-dialog s-list-column-manager-dialog" id="js-list-column-manager-dialog">
+        <div class="dialog-background"></div>
+        <div class="dialog-body">
+            <div class="js-vue-section" style="visibility: hidden;">
+                <div class="dialog-header">
+                    <h3 class="s-title">[`Настройка колонок для списков товаров`]</h3>
+                    <p class="s-description">[`Выберите и включите колонки, которе хотите показать на экране. Также вы может настроить порядок колонок перетаскиванием.`]</p>
+                    <div class="s-close-button cursor-pointer js-dialog-close"><span class="s-icon icon size-20"><svg><use xlink:href="{$_sprite_url}#times"></use></svg></span></div>
+                </div>
+                <div class="dialog-content">
+
+                    <div class="s-columns-table" v-bind:class="{ 'is-locked' : states.column_expand }">
+                        <template v-for="column in active_columns">
+                            <component-list-column-item v-bind:column="column" v-bind:key="column.id" v-on:column_expanded="onColumnExpand" v-on:column_enabled="onColumnEnabled"></component-list-column-item>
+                        </template>
+                    </div>
+
+                    <div class="s-search-column-wrapper">
+                        <component-search-column></component-search-column>
+                    </div>
+
+                    <div class="s-columns-table" v-bind:class="{ 'is-locked' : states.column_expand }">
+                        <template v-for="column in inactive_columns">
+                            <component-list-column-item v-bind:column="column" v-bind:key="column.id" v-on:column_expanded="onColumnExpand"></component-list-column-item>
+                        </template>
+                    </div>
+
+                </div>
+                <div class="dialog-footer">
+                    <button class="wa-button blue" type="button"
+                            v-bind:disabled="states.locked"
+                            v-on:click.prevent="save">
+                        <span class="s-icon" v-if="states.locked"><i class="fas fa-spinner fa-spin"></i></span>
+                        <span class="s-name">[`Done`]</span>
+                    </button>
+                    <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_templates["dialog-list-column-manager"] = $_dialog_list_column_manager|trim}
+
+{capture assign="_component_list_column_item"}
+    <div class="s-item-wrapper" v-bind:data-id="column.id" v-bind:class="item_class" v-if="column.states.display">
+        {* Table *}
+        <div class="s-item-table">
+            <div class="s-column s-column-toggle">
+                <template v-if="column.enabled">
+                    <div class="s-toggle-wrapper cursor-move js-column-move-toggle" draggable="true" v-show="!states.show_settings">
+                        <span class="s-icon icon baseline size-14"><i class="fas fa-bars"></i></span>
+                    </div>
+                </template>
+            </div>
+            <div class="s-column s-column-enable">
+                <component-switch v-bind:value="column.enabled" v-bind:disabled="column.disabled" v-on:change="onToggleSwitch"></component-switch>
+            </div>
+            <div class="s-column s-column-visibility">
+                <template v-if="is_feature">
+                    <template v-if="column_info.available_for_sku">
+                        <span class="s-icon icon" v-bind:key="'fa-sitemap'"><i class="fas fa-sitemap color-gray"></i></span>
+                    </template>
+                    <template v-else>
+                        <span class="s-icon icon" v-bind:key="'fa-sitemap-slash'"><i class="fas fa-sitemap color-gray-lighter"></i></span>
+                    </template>
+                    <template v-if="column_info.visible_in_frontend">
+                        <span class="s-icon icon" v-bind:key="'fa-eye'"><i class="fas fa-eye color-gray"></i></span>
+                    </template>
+                    <template v-else>
+                        <span class="s-icon icon" v-bind:key="'fa-eye-slash'"><i class="fas fa-eye-slash color-gray-lighter"></i></span>
+                    </template>
+                </template>
+                <template v-else-if="is_virtual_stock">
+                    <span class="s-icon icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse_stroke'></use></svg></span>
+                </template>
+                <template v-else-if="is_stock">
+                    <span class="s-icon icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
+                </template>
+            </div>
+            <div class="s-column s-column-name">
+                <span class="s-name" v-text="column.name"></span>
+            </div>
+            <div class="s-column s-column-edit">
+                <span class="link" v-if="column.enabled && settings" v-on:click="setup">{ { states.show_settings ? {_w("скрыть")|json_encode} : {_w("настроить")|json_encode}  } }</span>
+            </div>
+        </div>
+
+        {* Settings *}
+        <template v-if="settings">
+            <div class="s-settings-section" v-if="states.show_settings">
+                <template v-if="column.id === 'name'">
+                    <div class="s-options-list">
+                        <div class="s-option-wrapper">
+                            <label class="flexbox space-8">
+                                <span class="s-radio">
+                                    <component-radio v-model="settings.long_name_format"
+                                                     v-bind:label="false"
+                                                     v-bind:val="''"
+                                                     v-bind:name="column.id + '-radio-option'"></component-radio></span>
+                                <span class="s-label">[`Полное наименование.`]</span>
+                            </label>
+                        </div>
+                        <div class="s-option-wrapper">
+                            <label class="flexbox space-8">
+                                <span class="s-radio">
+                                    <component-radio v-model="settings.long_name_format"
+                                                     v-bind:label="false"
+                                                     v-bind:val="'hide_end'"
+                                                     v-bind:name="column.id + '-radio-option'"></component-radio></span>
+                                <span class="s-label">[`В одну строку.`]</span>
+                            </label>
+                        </div>
+                    </div>
+                </template>
+                <template v-else-if="column.id === 'tags'">
+                    <div class="s-field-wrapper">
+                        <div class="s-label">[`Количество тегов для отображения в таблице:`]</div>
+                        <input type="text" v-model="settings.visible_count">
+                    </div>
+                </template>
+                <template v-else-if="column.id === 'categories'">
+                    <div class="s-field-wrapper">
+                        <div class="s-label">[`Количество категорий для отображения в таблице:`]</div>
+                        <input type="text" v-model="settings.visible_count">
+                    </div>
+                </template>
+                <template v-else-if="column.id === 'sets'">
+                    <div class="s-field-wrapper">
+                        <div class="s-label">[`Количество списков для отображения в таблице:`]</div>
+                        <input type="text" v-model="settings.visible_count">
+                    </div>
+                </template>
+                <template v-else-if="column.id === 'summary'">
+                    <div class="s-options-list">
+                        <div class="s-option-wrapper">
+                            <label class="flexbox space-8">
+                                <span class="s-radio">
+                                    <component-radio v-model="settings.display"
+                                                     v-bind:label="false"
+                                                     v-bind:val="'text'"
+                                                     v-bind:name="column.id + '-radio-option'"></component-radio></span>
+                                <span class="s-label">[`Показывать текст с диалогом.`]</span>
+                            </label>
+                        </div>
+                        <div class="s-option-wrapper">
+                            <label class="flexbox space-8">
+                                <span class="s-radio">
+                                    <component-radio v-model="settings.display"
+                                                     v-bind:label="false"
+                                                     v-bind:val="'textarea'"
+                                                     v-bind:name="column.id + '-radio-option'"></component-radio></span>
+                                <span class="s-label">[`Показывать поле для редактирования.`]</span>
+                            </label>
+                        </div>
+                    </div>
+                </template>
+                <template v-else-if="['price', 'compare_price', 'purchase_price', 'base_price'].indexOf(column.id) >= 0">
+                    <div class="s-options-list">
+                        <div class="s-option-wrapper">
+                            <label class="flexbox space-8">
+                                <span class="s-radio">
+                                    <component-radio v-model="settings.format"
+                                                     v-bind:label="false"
+                                                     v-bind:val="'int'"
+                                                     v-bind:name="column.id + '-radio-option'"></component-radio></span>
+                                <span class="s-label">[`только целая часть.`]</span>
+                            </label>
+                        </div>
+                        <div class="s-option-wrapper">
+                            <label class="flexbox space-8">
+                                <span class="s-radio">
+                                    <component-radio v-model="settings.format"
+                                                     v-bind:label="false"
+                                                     v-bind:val="'float'"
+                                                     v-bind:name="column.id + '-radio-option'"></component-radio></span>
+                                <span class="s-label">[`целая часть и два знака после запятой.`]</span>
+                            </label>
+                        </div>
+                        <div class="s-option-wrapper">
+                            <label class="flexbox space-8">
+                                <span class="s-radio">
+                                    <component-radio v-model="settings.format"
+                                                     v-bind:label="false"
+                                                     v-bind:val="'origin'"
+                                                     v-bind:name="column.id + '-radio-option'"></component-radio></span>
+                                <span class="s-label">[`точное число.`]</span>
+                            </label>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-list-column-item"] = $_component_list_column_item|trim}
+
+{capture assign="_component_search_column"}
+    <div class="s-search-section flexbox space-8">
+        <div class="s-field-wrapper wide">
+            <input class="s-field" placeholder="{_w("Search")|escape}" v-model="search_string" v-on:input="search">
+        </div>
+        <template v-if="search_string.length">
+            <div class="s-actions-wrapper flexbox space-8">
+                <div class="s-action is-active"
+                     v-on:click.prevent="revert">
+                    <span class="s-icon icon size-14"><i class="fas fa-times"></i></span>
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-search-column"] = $_component_search_column|trim}

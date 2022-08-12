@@ -41,6 +41,12 @@ return array(
     'category_delete' => array(
         'name' => /*_w*/('deleted a category')
     ),
+    'category_duplicate' => array(
+        'name' => /*_w*/('категория добавлена дублированием')
+    ),
+    'categories_duplicate' => array(
+        'name' => /*_w*/('категория добавлена дублированием с дублированием всех вложенных категорий')
+    ),
 
     'order_create' => array(
         'name' => /*_w*/('placed an order')
@@ -128,6 +134,16 @@ return array(
     ),
     'shipping_plugin_delete' => array(
         'name' => /*_w*/('deleted a shipping method')
+    ),
+
+    'transfer_sent' => array(
+        'name' => /*_w*/('создал трансфер')
+    ),
+    'transfer_completed' => array(
+        'name' => /*_w*/('завершил трансфер')
+    ),
+    'transfer_cancelled' => array(
+        'name' => /*_w*/('отменил трансфер')
     ),
 
     'reset' => array(

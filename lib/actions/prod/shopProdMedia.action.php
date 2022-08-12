@@ -11,7 +11,10 @@ class shopProdMediaAction extends waViewAction
         shopProdGeneralAction::createEmptyProduct($product_id);
         $product = new shopProduct($product_id);
         if (!$product['id']) {
-            throw new waException(_w("Unknown product"), 404);
+            $this->setLayout(new shopBackendProductsEditSectionLayout([
+                'content_id' => 'media',
+            ]));
+            return;
         }
         $product_model = new shopProductModel();
         if (!$product_model->checkRights($product_id)) {
@@ -21,7 +24,7 @@ class shopProdMediaAction extends waViewAction
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
 
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setDefaultNewEditor();
+        shopHelper::setChapter();
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,

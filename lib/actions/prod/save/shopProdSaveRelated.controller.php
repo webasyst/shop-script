@@ -12,6 +12,13 @@ class shopProdSaveRelatedController extends waJsonController
 
         $this->product_id = (int)$data['id'];
         $product = new shopProduct($this->product_id);
+        if (!$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
         foreach (array('cross_selling', 'upselling') as $type) {
             if (isset($data[$type])) {
                 $value = $data[$type]['value'];

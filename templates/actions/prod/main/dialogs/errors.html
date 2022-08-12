@@ -1,0 +1,15 @@
+{capture assign="_errors_dialog"}
+<div class="wa-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="dialog-header">
+            <h3>[`Ошибка`]</h3>
+        </div>
+        <div class="dialog-content">%content%</div>
+        <div class="dialog-footer">
+            <button class="js-dialog-close wa-button gray-light" type="button">[`Close`]</button>
+        </div>
+    </div>
+</div>
+{/capture}
+{$_templates["errors_dialog"] = $_errors_dialog|trim}

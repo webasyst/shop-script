@@ -13,8 +13,7 @@
 <div class="s-review {$_review_classes|join:" "}" data-id="{$review.id|escape}">
     <div class="profile image50px">
         <div class="image">
-
-            <a href="#/product/{$review.product_id}/"
+            <a href="{shopHelper::getBackendEditorUrl($review.product_id, 'reviews')}"
                 title="
                     {if isset($product)}
                         {$product.name|escape}

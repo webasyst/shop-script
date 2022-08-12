@@ -86,6 +86,15 @@
                 return result;
             }
 
+            // При первой загрузке страницы state пустой, заполняем его данными текущей страницы
+            if (!history.state) {
+                var content_url = location.href;
+                history.replaceState({
+                    reload: true,
+                    content_url: content_url
+                }, "", content_url);
+            }
+
             window.onpopstate = function(event) {
                 event.stopPropagation();
                 that.onPopState(event);
@@ -351,6 +360,7 @@
     })($);
 
     $.wa_shop_products = {
+        lang: "en",
         app_url: null,
         section_url: null,
         router: null,

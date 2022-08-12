@@ -1,0 +1,96 @@
+{$_tooltips["visibility-setup"] = [
+    "id" => "visibility-setup",
+    "html" => _w("Настраивется в табличном режиме с артикулами или в редакторе товра."),
+    "position" => "top"
+]}
+
+{capture assign="_component_product_column_visibility"}
+    <div class="vue-column-type-visibility"
+         v-bind:class="{ 'is-editable' : editable }"
+         v-bind:data-tooltip-id="(!editable ? 'visibility-setup' : '')">
+        {strip}
+        <div class="s-actions nowrap">
+            <template v-if="product.normal_mode">
+                {* MAIN SKU *}
+                <template v-if="states.sku_locked">
+                    <div class="s-action">
+                        <span class="s-icon icon top"
+                              v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class="s-action"
+                         v-bind:class="{ 'cursor-pointer' : editable }"
+                         v-on:click="onChangeSku">
+                        <span class="s-icon icon top"
+                              v-bind:class="{ 'color-orange' : is_main_sku, 'color-gray-light' : !is_main_sku, 'cursor-pointer' : editable }"><i class="fas fa-check-circle"></i></span>
+                    </div>
+                </template>
+
+                {* VISIBILITY *}
+                <template v-if="states.visibility_locked">
+                    <div class="s-action">
+                        <span class="s-icon icon top size-16 top"
+                              v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                    </div>
+                </template>
+                <template v-else-if="!editable">
+                    <div class="s-action">
+                        <span class="s-icon icon top size-16 color-gray-light"
+                              v-bind:key="'fa-eye'"><i class="fas fa-eye"></i></span>
+                </template>
+                <template v-else>
+                    <div class="s-action cursor-pointer" v-on:click="onChangeVisibility">
+                        <span class="s-icon icon top size-16 color-blue"
+                              v-if="visibility_state === 'enabled'"
+                              v-bind:key="'fa-eye'"><i class="fas fa-eye"></i></span>
+                        <span class="s-icon icon top size-16 color-gray-light"
+                              v-if="visibility_state === 'disabled'"
+                              v-bind:key="'fa-eye-slash'"><i class="fas fa-eye-slash"></i></span>
+                        <span class="s-icon icon top size-16 color-red"
+                              v-if="visibility_state === 'error'"
+                              v-bind:key="'fa-exclamation'"><i class="fas fa-exclamation-circle"></i></span>
+                    </div>
+                </template>
+            </template>
+            <template v-else>
+                <div class="s-action"><span class="s-icon icon top"></span></div>
+                <div class="s-action"><span class="s-icon icon top size-16"></span></div>
+            </template>
+
+            {* AVAILABLE *}
+            <template v-if="states.available_locked">
+                <div class="s-action">
+                    <span class="s-icon icon top size-16 top"
+                          v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                </div>
+            </template>
+            <template v-else-if="!editable">
+                <div class="s-action">
+                    <span class="s-icon icon top size-16 color-gray-light"><svg><use xlink:href='{$_sprite_url}#cart'></use></svg></span>
+                </div>
+            </template>
+            <template v-else>
+                <div class="s-action cursor-pointer" v-on:click="onChangeAvailable">
+                    <span class="s-icon icon top size-16 color-green-dark"
+                          v-if="available_state === 'all'"
+                          v-bind:class="{ 'cursor-pointer' : editable }">
+                        <svg><use xlink:href='{$_sprite_url}#cart'></use></svg>
+                    </span>
+                    <span class="s-icon icon top size-16 color-gray-light"
+                          v-if="available_state === 'part'"
+                          v-bind:class="{ 'cursor-pointer' : editable }">
+                        <svg><use xlink:href='{$_sprite_url}#cart'></use></svg>
+                    </span>
+                    <span class="s-icon icon top size-16 color-gray-light"
+                          v-if="available_state === 'none'"
+                          v-bind:class="{ 'cursor-pointer' : editable }">
+                        <svg><use xlink:href='{$_sprite_url}#cart-slash'></use></svg>
+                    </span>
+                </div>
+            </template>
+        </div>
+        {/strip}
+    </div>
+{/capture}
+{$_components["component-product-column-visibility"] = $_component_product_column_visibility|trim}

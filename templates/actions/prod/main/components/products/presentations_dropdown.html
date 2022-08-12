@@ -1,0 +1,179 @@
+{$_tooltips = array_merge($_tooltips, [
+    "presentation-rename" => [
+        "id" => "presentation-rename",
+        "html" => _w("Переименовать")|escape,
+        "class" => "inline",
+        "position" => "top"
+    ],
+    "presentation-delete" => [
+        "id" => "presentation-delete",
+        "html" => _w("Delete")|escape,
+        "class" => "inline",
+        "position" => "top"
+    ],
+    "presentation-rewrite" => [
+        "id" => "presentation-rewrite",
+        "html" => _w("Перезаписать")|escape,
+        "class" => "inline",
+        "position" => "top"
+    ],
+    "presentation-share" => [
+        "id" => "presentation-share",
+        "html" => _w("Ссылка на представление")|escape,
+        "class" => "inline",
+        "position" => "top"
+    ]
+])}
+
+{capture assign="_component_dropdown_presentations"}
+    <div class="dropdown s-presentations-dropdown">
+        <button class="dropdown-toggle wa-button wa-small no-indent transparent" type="button">[`Представление`]</button>
+        <div class="s-presentations-body-section dropdown-body right">
+            <div class="s-section-header">
+                <h6>[`Представления для раздела «Товары»`]</h6>
+                <p>[`Для удобства работы над разными задачами вы можете сохранить выбранный вид раздела вместе с фильтрами и сортировками в виде представления.`]</p>
+            </div>
+            <div class="s-section-body">
+                <div class="s-create-section" v-if="!states.show_add_form">
+                    <button class="wa-button transparent wa-small no-indent" type="button"
+                            v-on:click.prevent="toggleForm(true)">
+                        <span class="s-icon icon size-12"><i class="fas fa-plus"></i></span>
+                        <span class="s-name">[`представление`]</span>
+                    </button>
+                </div>
+
+                <div class="s-presentations-list">
+                    <div class="s-form-wrapper" v-if="states.show_add_form">
+                        <component-presentation-add-form
+                            v-on:form_success="presentationAdd"
+                            v-on:form_cancel="toggleForm(false)"></component-presentation-add-form>
+                    </div>
+                    <template v-for="presentation in presentations">
+                        <div class="s-presentation-wrapper flexbox space-12"
+                             v-if="!presentation.states.show_rename_form"
+                             v-bind:class="{ 'is-moving' : presentation.states.is_moving }"
+                             v-bind:data-id="presentation.id"
+                             v-bind:key="presentation.id">
+                            <div class="s-column-actions">
+                                <div class="s-action">
+                                    <div class="s-toggle-wrapper"
+                                         draggable="true"
+                                         v-bind:class="{ 'cursor-move js-presentation-move-toggle' : !presentation.states.move_locked, 'color-gray-light' : presentation.states.move_locked }">
+                                        <span class="s-icon icon size-12"
+                                              v-if="!presentation.states.move_locked"
+                                              v-bind:key="'fa-bars'"><i class="fas fa-bars"></i></span>
+                                        <span class="s-icon icon size-12"
+                                              v-if="presentation.states.move_locked"
+                                              v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="s-column-name wide">
+                                <span class="s-name cursor-pointer"
+                                   v-on:click="presentationUse(presentation)">{ { presentation.name ? presentation.name : "{_w("Представление без названия")|escape}" } }</span>
+                            </div>
+                            <div class="s-column-actions flexbox space-8">
+                                <div class="s-action"
+                                     data-tooltip-id="presentation-share">
+                                    <a v-bind:href="'{$wa_app_url}products/?presentation='+presentation.id" target="_blank">
+                                        <span class="s-icon icon size-20"><svg><use xlink:href="{$_sprite_url}#share"></use></svg></span>
+                                    </a>
+                                </div>
+                                <div class="s-action"
+                                     data-tooltip-id="presentation-rename"
+                                     v-on:click="rename(presentation)">
+                                    <span class="s-icon icon size-12"><i class="fas fa-pen"></i></span>
+                                </div>
+                                <div class="s-action"
+                                     data-tooltip-id="presentation-rewrite"
+                                     v-on:click="rewrite(presentation)">
+                                    <span class="s-icon icon size-12"
+                                          v-if="!presentation.states.rewrite_locked"
+                                          v-bind:key="'fa-sync'">
+                                        <i class="fas fa-sync-alt"></i></span>
+                                    <span class="s-icon icon size-12"
+                                          v-else
+                                          v-bind:key="'fa-spinner'">
+                                        <i class="fas fa-spinner fa-spin"></i></span>
+                                </div>
+                                <div class="s-action hover-red"
+                                     data-tooltip-id="presentation-delete"
+                                     v-on:click="remove(presentation)">
+                                    <span class="s-icon icon size-14"
+                                          v-if="!presentation.states.remove_locked"
+                                          v-bind:key="'fa-times'">
+                                        <i class="fas fa-times"></i></span>
+                                    <span class="s-icon icon size-12"
+                                          v-else
+                                          v-bind:key="'fa-spinner'">
+                                        <i class="fas fa-spinner fa-spin"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <component-presentation-rename-form v-if="presentation.states.show_rename_form"
+                                                            v-bind:presentation="presentation"></component-presentation-rename-form>
+                    </template>
+                </div>
+            </div>
+            {* <div class="s-section-footer"></div> *}
+        </div>
+    </div>
+{/capture}
+{$_components["component-dropdown-presentations"] = $_component_dropdown_presentations|trim}
+
+{capture assign="_component_presentation_add_form"}
+    <div class="s-presentation-add-form flexbox middle space-12">
+        <div class="s-field-wrapper wide">
+            <component-input class="wa-small full-width" placeholder="{_w("Введите название")|escape}"
+                v-model="name"
+                v-bind:focus="true"></component-input>
+        </div>
+        <div class="s-actions-wrapper flexbox middle">
+            <button class="wa-button wa-small transparent" type="button"
+                    v-bind:disabled="states.locked"
+                    v-on:click="create">
+                <span class="s-icon icon"
+                      v-if="!states.locked"
+                      v-bind:key="'check'"><i class="fas fa-check"></i></span>
+                <span class="s-icon icon"
+                      v-if="states.locked"
+                      v-bind:key="'spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+            <button class="wa-button wa-small transparent" type="button"
+                    v-show="!states.locked"
+                    v-on:click="cancel">
+                <span class="s-icon icon"><i class="fas fa-times"></i></span>
+            </button>
+        </div>
+    </div>
+{/capture}
+{$_components["component-presentation-add-form"] = $_component_presentation_add_form|trim}
+
+{capture assign="_component_presentation_rename_form"}
+    <div class="s-presentation-rename-form flexbox middle space-12">
+        <div class="s-field-wrapper wide">
+            <input class="wa-small full-width" type="text" v-model="name" placeholder="{_w("Введите название")|escape}">
+        </div>
+        <div class="s-actions-wrapper flexbox middle">
+            <button class="wa-button wa-small transparent" type="button"
+                    v-bind:disabled="states.locked"
+                    v-on:click="create">
+                <span class="s-icon icon"
+                      v-if="!states.locked"
+                      v-bind:key="'check'"><i class="fas fa-check"></i></span>
+                <span class="s-icon icon"
+                      v-if="states.locked"
+                      v-bind:key="'spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+            <button class="wa-button wa-small transparent" type="button"
+                    v-show="!states.locked"
+                    v-on:click="cancel">
+                <span class="s-icon icon"><i class="fas fa-times"></i></span>
+            </button>
+        </div>
+    </div>
+{/capture}
+{$_components["component-presentation-rename-form"] = $_component_presentation_rename_form|trim}
+
+{capture assign="_presentation_delete_confirm_dialog"}{include file="../../dialogs/products.presentations.presentation_delete_confirm.html" inline}{/capture}
+{$_templates["dialog-presentation-delete-confirm"] = $_presentation_delete_confirm_dialog|trim}

@@ -1,0 +1,139 @@
+{$_locales["no_results"] = _w("Nothing found")}
+
+{capture assign="_dialog_list_feature_value"}
+<div class="wa-dialog s-list-feature-value-dialog" id="js-list-feature-value-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3 class="s-title">[`Добавление параметра`]</h3>
+                <div class="s-details">
+                    <span class="s-label" v-if="item_data.display_type === 'feature'">[`Характеристика`]</span>
+                    <span class="s-label" v-if="item_data.display_type === 'product'">[`Поле продукта`]</span>
+                    <span class="s-label" v-if="item_data.display_type === 'sku'">[`Поле артикула`]</span>
+                    <span class="s-label" v-if="item_data.display_type === 'dynamic'">[`Динамическое поле`]</span>
+                    <span class="s-name bold color-gray-dark">«{ { item_data.name } }»</span>
+                </div>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-item-section">
+                    {* BOOLEAN *}
+                    <template v-if="item_data.render_type === 'boolean'">
+                        <div class="s-fields-wrapper wa-list space-12">
+                            <template v-for="option in item_data.options">
+                                <div class="s-radio-wrapper">
+                                    <label class="flexbox middle space-8">
+                                        <component-radio v-model="item_data.value"
+                                                         v-bind:val="option.value"
+                                                         v-bind:name="item_data.rule_type"></component-radio>
+                                        <span class="s-label">{ { option.name } }</span>
+                                    </label>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template v-else-if="item_data.render_type === 'range'">
+                        <div class="s-fields-wrapper flexbox space-12">
+                            <template v-for="option in item_data.options">
+                                <div class="s-field-wrapper with-divider">
+                                    <component-input class="wa-small" v-model="option.value"
+                                        v-bind:validate="(is_number ? 'number' : null)"
+                                        v-bind:format="(is_number ? 'number' : null)"></component-input>
+                                </div>
+                            </template>
+                            <div class="s-units-wrapper" v-if="item_data.active_unit">
+                                <component-dropdown
+                                    v-model="item_data.active_unit.value"
+                                    v-bind:button_class="'gray-field'"
+                                    v-bind:options="item_data.units"></component-dropdown>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-else-if="item_data.render_type === 'range.date'">
+                        <div class="s-fields-wrapper flexbox space-12">
+                            <template v-for="option in item_data.options">
+                                <div class="s-field-wrapper with-divider">
+                                    <component-date-picker
+                                        v-model="option.value"
+                                        v-bind:field_class="'s-field wa-small'"></component-date-picker>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template v-else-if="item_data.render_type === 'tags'">
+                        <div class="s-tags-section">
+                            <div class="s-value-list">
+                                <div class="s-value-wrapper">
+                                    <span class="s-name">Tag1</span>
+                                    <span class="s-icon icon cursor-pointer"><i class="fas fa-times"></i></span>
+                                </div>
+                                <div class="s-value-wrapper">
+                                    <span class="s-name">Tag2</span>
+                                    <span class="s-icon icon cursor-pointer"><i class="fas fa-times"></i></span>
+                                </div>
+                                <div class="s-value-wrapper">
+                                    <span class="s-name">Tag3</span>
+                                    <span class="s-icon icon cursor-pointer"><i class="fas fa-times"></i></span>
+                                </div>
+                            </div>
+
+                            <div class="s-search-section">
+                                <div class="s-field-wrapper">
+                                    <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Введите значение.")|escape}">
+                                    <div class="s-loading-wrapper" v-if="states.is_loading">
+                                        <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-else-if="item_data.render_type === 'checkbox'">
+                        <component-feature-value-checkbox v-bind:item_data="item_data"></component-feature-value-checkbox>
+                    </template>
+
+                    <template v-else>
+                        TODO: неизвестный формат
+                    </template>
+                </div>
+
+                <div class="s-test-data" style="margin-top: 2rem;">{ { item_data.render_type } }</div>
+                <div class="s-test-data" style="margin-top: 2rem;">{ { item_data } }</div>
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button"
+                        v-bind:disabled="states.locked"
+                        v-on:click.prevent="save">
+                    <span class="s-icon" v-if="states.locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name">[`Apply`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/capture}
+{$_templates["dialog-list-feature-value"] = $_dialog_list_feature_value|trim}
+
+{capture assign="_component_feature_value_checkbox"}
+    <div class="asd">
+        <div class="s-table-section">
+            BBBB
+        </div>
+
+        <div class="s-search-section">
+            <div class="s-field-wrapper">
+                <input class="s-field wa-small" type="text" placeholder="{_w("Введите значение.")|escape}">
+            </div>
+        </div>
+
+        <div class="s-table-section">
+            AAAA
+        </div>
+    </div>
+{/capture}
+{$_components["component-feature-value-checkbox"] = $_component_feature_value_checkbox|trim}

@@ -1,0 +1,88 @@
+{capture assign="_component_checkbox"}
+    <component v-bind:is="tag" class="wa-checkbox">
+        <input type="checkbox" v-model="value" v-bind:id="field_id" v-on:change="onChange" v-bind:disabled="disabled" tabindex="-1">
+        <span>
+            <span class="icon"><i class="fas fa-check"></i></span>
+        </span>
+    </component>
+{/capture}
+{$_components["component-checkbox"] = $_component_checkbox|trim}
+
+{* DROPDOWN *}
+{capture assign="_component_dropdown"}
+    <div class="dropdown">
+        <template v-if="disabled">
+            <button class="wa-button wa-small" type="button" v-bind:class="button_class" disabled>
+                <template v-if="active_option">
+                    <span class="s-icon icon shift-inherit" v-if="active_option.icon" v-html="active_option.icon"></span>
+                    <span class="s-icon" v-else-if="active_option.icon_html" v-html="active_option.icon_html"></span>
+                </template>
+                <span class="s-name">{ { active_option ? active_option.name : {_w("Not specified")|json_encode} } }</span>
+            </button>
+        </template>
+        <template v-else>
+            <button class="dropdown-toggle wa-button wa-small" type="button" v-bind:class="button_class">
+                <template v-if="active_option">
+                    <span class="s-icon icon shift-inherit" v-if="active_option.icon" v-html="active_option.icon"></span>
+                    <span class="s-icon" v-else-if="active_option.icon_html" v-html="active_option.icon_html"></span>
+                </template>
+                <span class="s-name">{ { active_option ? active_option.name : {_w("Not specified")|json_encode} } }</span>
+            </button>
+            <div class="dropdown-body">
+                <template v-for="option in formatted_options">
+                    <div class="dropdown-item" v-on:click="change(option)" v-bind:class="{ 'selected': (option === active_option), 'disabled': (option.disabled) }">
+                        <span class="s-icon icon shift-inherit" v-if="option.icon" v-html="option.icon"></span>
+                        <span class="s-icon" v-else-if="option.icon_html" v-html="option.icon_html"></span>
+                        <span class="s-name">{ { option.name ? option.name : {_w("Not specified")|json_encode} } }</span>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-dropdown"] = $_component_dropdown|trim}
+
+{* RADIO *}
+{capture assign="_component_radio"}
+    <component class="wa-radio" v-bind:is="tag">
+        <input type="radio" v-bind:value="val" v-bind:name="name" v-on:change="onChange" v-bind:key="val" v-bind:disabled="disabled" v-model="value">
+        <span></span>
+    </component>
+{/capture}
+{$_components["component-radio"] = $_component_radio|trim}
+
+{* DATE PICKER *}
+{capture assign="_component_date_picker"}
+    <div class="vue-component-date-picker">
+        <input class="js-date-picker" type="text"
+               v-bind:class="field_class"
+               v-bind:disabled="readonly">
+        <span class="s-icon"><i class="fas fa-calendar-alt"></i></span>
+        <input name="" type="hidden" value="">
+    </div>
+{/capture}
+{$_components["component-date-picker"] = $_component_date_picker|trim}
+
+{* COLOR PICKER *}
+{capture assign="_component_color_picker"}
+{strip}
+    <div class="vue-component-color-picker" v-bind:class="{ 'is-extended': extended }">
+        <div class="flexbox space-8 middle nowrap">
+            <input class="size-color js-color-field" placeholder="#000000" type="text"
+                   v-model="value"
+                   v-bind:class="field_class"
+                   v-bind:disabled="readonly"
+                   v-on:focus="onFocus"
+                   v-on:input="onInput"
+                   v-on:change="onChange">
+            <div class="s-icon">
+                <span class="icon shift-2 rounded s-color-toggle js-color-toggle"
+                      v-bind:style="{ 'background-color' : value }"
+                      v-on:click="toggle"></span>
+            </div>
+        </div>
+        <div class="s-color-picker js-color-picker" v-show="extended"></div>
+    </div>
+{/strip}
+{/capture}
+{$_components["component-color-picker"] = $_component_color_picker|trim}

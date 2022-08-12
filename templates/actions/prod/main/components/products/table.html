@@ -1,0 +1,174 @@
+{$_tooltips["table-column"] = [
+    "id" => "table-column",
+    "html" => "",
+    "position" => "top",
+    "hide_time" => 0
+]}
+
+{capture assign="_component_products_table"}
+    <div class="s-products-table">
+        {* HEADER *}
+        <div class="s-table-header">
+            <div class="s-table-row">
+                <div class="s-column s-column-checkbox">
+                    <component-products-table-mass-selection
+                        v-bind:products="products"></component-products-table-mass-selection>
+                </div>
+
+                <template v-for="column in presentation.columns">
+                    <component-products-table-header
+                        v-bind:column="column"
+                        v-bind:columns="columns"
+                        v-bind:presentation="presentation"></component-products-table-header>
+                </template>
+
+                <div class="s-column s-column-space"></div>
+                <div class="s-column s-column-space width-auto"></div>
+
+                <div class="s-column s-column-actions">
+                    <div class="s-action animate" v-on:click="showColumnManager">
+                        <span class="s-icon icon size-14"><i class="fas fa-cog"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {* BODY *}
+        <div class="s-table-body">
+            {* LIST *}
+            <template v-for="product in products">
+
+                {* PRODUCT *}
+                <div class="s-product-section" v-bind:class="{ 'is-selected' : product.states.selected, 'with-image' : states.has_image_column }">
+                    <div class="s-table-row s-product-wrapper" v-bind:key="product.states.product_key" v-bind:data-product-id="product.id">
+                        <div class="s-column s-column-checkbox">
+                            <component-checkbox v-model="product.states.selected"></component-checkbox>
+                        </div>
+
+                        <template v-for="column in presentation.columns">
+                            <div class="s-column"
+                                 v-bind:style="{ width: getColumnWidth(column) }"
+                                 v-bind:class="getColumnClassName(column)">
+                                <component-products-table-field
+                                    v-bind:column="column"
+                                    v-bind:product="product"></component-products-table-field>
+                            </div>
+                        </template>
+
+                        <div class="s-column s-column-space"></div>
+                        <div class="s-column s-column-space width-auto"></div>
+
+                        <div class="s-column s-column-actions">
+                            {*
+                            <div class="s-action animate">
+                                <span class="s-icon icon size-14"><i class="fas fa-ellipsis-v"></i></span>
+                            </div>
+                            *}
+                        </div>
+                    </div>
+
+                    <template v-if="presentation.view === 'table_extended'">
+                        <template v-for="sku in product.skus">
+                            <div class="s-sku-section">
+                                {* SKU ROW *}
+                                <div class="s-table-row s-sku-wrapper"
+                                     v-if="((sku.sku || sku.name) && (sku.modifications.length > 1 || sku.modifications[0].name_values))"
+                                     v-bind:key="sku.id">
+                                    <div class="s-column s-column-checkbox">{ { sku.id } }</div>
+                                    <template v-for="column in presentation.columns">
+                                        <div class="s-column"
+                                             v-bind:style="{ width: getColumnWidth(column) }"
+                                             v-bind:class="getColumnClassName(column)">
+                                            <component-products-table-field
+                                                v-bind:column="column"
+                                                v-bind:product="product"
+                                                v-bind:sku="sku"></component-products-table-field>
+                                        </div>
+                                    </template>
+                                    <div class="s-column s-column-space"></div>
+                                    <div class="s-column s-column-space width-auto"></div>
+                                    <div class="s-column s-column-actions"></div>
+                                </div>
+
+                                <div class="s-modifications-section" v-if="product.normal_mode">
+                                    {* SKU MOD ROW *}
+                                    <template  v-for="sku_mod in sku.modifications">
+                                        <div class="s-table-row s-modification-wrapper" v-bind:key="sku_mod.id" v-bind:data-sku-id="sku_mod.id">
+                                            <div class="s-column s-column-checkbox"></div>
+                                            <template v-for="column in presentation.columns">
+                                                <div class="s-column"
+                                                     v-bind:style="{ width: getColumnWidth(column) }"
+                                                     v-bind:class="getColumnClassName(column)">
+                                                    <component-products-table-field
+                                                        v-bind:column="column"
+                                                        v-bind:product="product"
+                                                        v-bind:sku="sku"
+                                                        v-bind:sku_mod="sku_mod"></component-products-table-field>
+                                                </div>
+                                            </template>
+                                            <div class="s-column s-column-space"></div>
+                                            <div class="s-column s-column-space width-auto"></div>
+                                            <div class="s-column s-column-actions"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </div>
+{/capture}
+{$_components["component-products-table"] = $_component_products_table|trim}
+
+{capture assign="_component_products_table_mass_selecttion"}
+    <div class="s-check-all-section" v-bind:class="{ 'is-disabled' : states.is_disabled }">
+        <div class="s-visible">
+            <template v-if="selected_all_products">
+                <component-checkbox v-bind:value="true" v-on:change="checkAll"></component-checkbox>
+            </template>
+            <template v-else>
+                <component-checkbox v-on:change="checkAll"></component-checkbox>
+            </template>
+        </div>
+        <div class="s-hidden">
+            <div class="s-hidden-menu">
+                <div class="s-options-list">
+                    <div class="s-option">
+                        <span class="s-name">[`Выделить все товары…`]</span>
+                    </div>
+                    <div class="s-option">
+                        <div class="s-radio-wrapper">
+                            <label class="flexbox middle space-8">
+                                <component-radio v-model="all_products"
+                                                 v-bind:val="false"
+                                                 v-bind:name="'all_products'"
+                                                 v-on:change="onChange"></component-radio>
+                                <span class="s-name">[`На этой странице`] ({ { current_page_smart_string } })</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="s-option">
+                        <div class="s-radio-wrapper">
+                            <label class="flexbox middle space-8">
+                                <component-radio v-model="all_products"
+                                                 v-bind:val="true"
+                                                 v-bind:name="'all_products'"
+                                                 v-on:change="onChange"></component-radio>
+                                <span class="s-name">[`На всех страницах`] ({_w("%d товар", "%d товаров", $products_total_count)})</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-products-table-mass-selection"] = $_component_products_table_mass_selecttion|trim}
+
+{* Компонент: заголовок колонки *}
+{include file="./table.header.html" scope="parent" inline}
+
+{* Компонент со значениями колонки *}
+{include file="./table.field.html" scope="parent" inline}

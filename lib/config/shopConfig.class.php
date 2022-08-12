@@ -751,21 +751,36 @@ class shopConfig extends waAppConfig
     {
         $logs = parent::explainLogs($logs);
         $product_ids = array();
-        foreach ($logs as $l_id => $l) {
-            if (in_array($l['action'], array('product_add', 'product_edit', 'product_duplicate')) && $l['params']) {
-                $product_ids[] = $l['params'];
+        $category_ids = [];
+        foreach ($logs as $l) {
+            if ($l['params']) {
+                if (in_array($l['action'], ['product_add', 'product_edit', 'product_duplicate'])) {
+                    $product_ids[] = $l['params'];
+                }
+                if (in_array($l['action'], ['category_duplicate', 'categories_duplicate'])) {
+                    $category_ids[] = $l['params'];
+                }
             }
         }
         if ($product_ids) {
             $product_model = new shopProductModel();
             $products = $product_model->getById($product_ids);
         }
+        if ($category_ids) {
+            $category_model = new shopCategoryModel();
+            $categories = $category_model->select('id, name')->where('id IN(?)', [$category_ids])->fetchAll('id');
+        }
         $app_url = wa()->getConfig()->getBackendUrl(true).$l['app_id'].'/';
+
+        $products = $this->getProducts($logs);
+        $transfers = $this->getTransfers($logs);
+
         foreach ($logs as $l_id => $l) {
+            $app_url = wa()->getConfig()->getBackendUrl(true).$l['app_id'].'/';
             if (in_array($l['action'], array('product_add', 'product_edit', 'product_duplicate'))) {
                 if (isset($products[$l['params']])) {
                     $p = $products[$l['params']];
-                    if (shopHelper::getCurrentProductEditor() === 'new_editor') {
+                    if (shopHelper::getCurrentChapter() === 'new_chapter') {
                         $url = $app_url.'products/'.$l['params'];
                         if (0 === wa()->getUser()->getRights('shop', 'type.'.$p['type_id'])) {
                             $url .='/prices/';
@@ -792,9 +807,21 @@ class shopConfig extends waAppConfig
                     }
                 }
             } elseif (substr($l['action'], 0, 6) == 'order_') {
-                $url = $app_url.'#/order/'.$l['params'].'/';
-                $logs[$l_id]['params_html'] = '<div class="activity-target"><a href="'.$url.'">'.
-                    shopHelper::encodeOrderId($l['params']).'</a></div>';
+                if ($l['action'] == 'order_custom') {
+                    $row_params = null;
+                    if (is_string($l['params'])) {
+                        $row_params = json_decode($l['params'], true);
+                    } else if (is_object($l['params'])) {
+                        // workaround for framework bug in old versions
+                        $row_params = (array) $l['params'];
+                    }
+                    $custom_action_name = ifset($row_params, 'custom_action_name', '');
+                    $logs[$l_id]['action_name'] = sprintf($l['action_name'], $custom_action_name);
+                } else {
+                    $url = $app_url.'#/order/'.$l['params'].'/';
+                    $logs[$l_id]['params_html'] = '<div class="activity-target"><a href="'.$url.'">'.
+                        shopHelper::encodeOrderId($l['params']).'</a></div>';
+                }
             } elseif (in_array($l['action'], array('page_add', 'page_edit', 'page_move'))) {
                 if (!empty($l['params_html'])) {
                     $logs[$l_id]['params_html'] = str_replace('#/pages/', '?action=storefronts#/pages/', $l['params_html']);
@@ -813,9 +840,45 @@ class shopConfig extends waAppConfig
                 $count_edit_products = $products_edit_params[0];
                 $url = $app_url . "?action=products#/products/hash=id/" . rtrim($products_edit_params[1], ', ');
                 $logs[$l_id]['params_html'] = "<div class='activity-target'><a href='$url'>" . _wd('shop', 'products') . " ($count_edit_products)</a></div>";
+            } elseif (in_array($l['action'], ['category_duplicate', 'categories_duplicate'])) {
+                if (isset($categories[$l['params']])) {
+                    $logs[$l_id]['params_html'] = $categories[$l['params']]['name'];
+                }
+            } elseif (in_array($l['action'], ['transfer_sent', 'transfer_completed', 'transfer_cancelled']) && isset($transfers[$l['params']])) {
+                $logs[$l_id]['params_html'] = '<a href="' . $app_url . '?action=products#/stocks/">' . $transfers[$l['params']]['string_id'] . '</a>';
             }
         }
         return $logs;
+    }
+
+    private function getProducts($logs)
+    {
+        $product_ids = $products = [];
+        foreach ($logs as $l) {
+            if (in_array($l['action'], ['product_add', 'product_edit', 'product_duplicate']) && $l['params']) {
+                $product_ids[] = $l['params'];
+            }
+        }
+        if ($product_ids) {
+            $product_model = new shopProductModel();
+            $products = $product_model->getById($product_ids);
+        }
+        return $products;
+    }
+
+    private function getTransfers($logs)
+    {
+        $transfer_ids = $transfers = [];
+        foreach ($logs as $l) {
+            if (in_array($l['action'], ['transfer_sent', 'transfer_completed', 'transfer_cancelled']) && $l['params']) {
+                $transfer_ids[] = $l['params'];
+            }
+        }
+        if ($transfer_ids) {
+            $transfer_model = new shopTransferModel();
+            $transfers = $transfer_model->getById($transfer_ids);
+        }
+        return $transfers;
     }
 
     /**
@@ -936,18 +999,28 @@ function shop_currency_html($n, $in_currency = null, $out_currency = null, $form
 }
 
 /**
+ * Format number like PHP's built in number_format() but cuts all trailing zeroes.
+ *
  * @param mixed $float
  * @param null|int $limit_precision NULL means no limit
  * @param null|string $decimal_separator NULL means specific to current selected locale
+ * @param null|string $thousands_separator NULL means specific to current selected locale
  * @return string
  */
-function shop_number_format($float, $limit_precision=null, $decimal_separator='.')
+function shop_number_format($float, $limit_precision=null, $decimal_separator='.', $thousands_separator='')
 {
+    $remove_trailing_zeroes = true;
     if (is_array($limit_precision)) {
         $options = $limit_precision;
         $limit_precision = ifset($options, 'limit_precision', null);
         if (array_key_exists('decimal_separator', $options)) {
             $decimal_separator = $options['decimal_separator'];
+        }
+        if (array_key_exists('thousands_separator', $options)) {
+            $thousands_separator = $options['thousands_separator'];
+        }
+        if (!empty($options['fixed_precision']) && $limit_precision !== null && $limit_precision > 0) {
+            $remove_trailing_zeroes = false;
         }
     }
 
@@ -960,15 +1033,32 @@ function shop_number_format($float, $limit_precision=null, $decimal_separator='.
         $pow = 10**$limit_precision;
         $float = floor($float * $pow) / $pow;
     }
-    list($num, $exp) = explode('e', sprintf('%.'.strlen($float).'e', $float));
-    $exp = strlen(rtrim($num, '0')) - 2 - $exp;
-    if ($limit_precision !== null && $limit_precision >= 0) {
-        $exp = min($exp, $limit_precision);
+
+    if ($remove_trailing_zeroes || $limit_precision === null) {
+        list($num, $exp) = explode('e', sprintf('%.'.strlen($float).'e', $float));
+        $exp = strlen(ltrim(rtrim($num, '0'), '-')) - 2 - $exp;
+        if ($limit_precision !== null && $limit_precision >= 0) {
+            $exp = min($exp, $limit_precision);
+        }
+    } else {
+        // option 'fixed_precision' => true
+        $exp = $limit_precision;
     }
+
     if ($exp < 0) {
         return strval(floatval($float));
     }
     $result = sprintf('%.'.$exp.'f', $float);
+
+    if ($thousands_separator !== '') {
+        if ($thousands_separator === null) {
+            $locale_info = waLocale::getInfo(wa()->getLocale());
+            $thousands_separator = ifset($locale_info, 'thousands_sep', '');
+        }
+        $result = explode('.', $result);
+        $result[0] = number_format($result[0], 0, '.', $thousands_separator);
+        $result = join('.', $result);
+    }
 
     if ($decimal_separator === null) {
         $locale_info = waLocale::getInfo(wa()->getLocale());

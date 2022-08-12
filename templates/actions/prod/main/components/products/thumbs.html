@@ -1,0 +1,39 @@
+{capture assign="_component_product_thumb"}
+    <div class="s-product-section"
+         v-bind:class="{ 'is-selected' : product.states.selected, 'is-published' : product.status === '1', 'is-unpublished' : product.status === '0', 'is-hidden' : product.status === '-1' }">
+        <div class="s-section-header flexbox full-width space-8">
+            <div class="s-checkbox-wrapper">
+                <component-checkbox v-model="product.states.selected"></component-checkbox>
+            </div>
+            <div class="s-code-wrapper wide">
+                <span v-html="product_code"></span>
+            </div>
+            <div class="s-action-wrapper">
+                <span class="s-icon icon size-14" v-if="product.product_from_subcategory" data-tooltip-id="product_from_subcategories"><svg><use xlink:href='{$_sprite_url}#folder-tree'></use></svg></span>
+            </div>
+        </div>
+        <div class="s-section-images">
+            <component-product-slider v-if="product.photos.length" v-bind:photos="product.photos" v-bind:photo_id="product.image_id"></component-product-slider>
+        </div>
+        <div class="s-section-body">
+            {strip}
+                <div class="s-details-wrapper">
+                    <div class="s-date" data-tooltip-id="products-list-date">{ { product.create_date_string } }</div>
+                    <div class="s-status">{ { product_status } }</div>
+                </div>
+            {/strip}
+            <div class="s-name-wrapper" v-bind:class="name_class">
+                <a class="s-name"
+                   v-bind:title="product.name"
+                   v-bind:href="'{$wa_app_url}' + product_url">{ { product.name } }</a>
+            </div>
+            <div class="s-price-wrapper">
+                <span class="s-price" v-html="product_prices"></span>
+            </div>
+        </div>
+        <div class="s-section-badge" v-if="product.badge">
+            <div class="s-badge-wrapper" v-html="product.badge"></div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-product-thumb"] = $_component_product_thumb|trim}

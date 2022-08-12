@@ -55,6 +55,7 @@ class shopProductsCollection
      *     'type/2' — search by type_id
      *     'search/name=SuperProduct' — search by 'name' field (exact match)
      *     'search/color.value_id=6' — search by value with id=6 of 'checkboxes'-type feature with code 'color'
+     *     'filter/6' - search for all products matching the filter
      * @param array $options Extra options:
      *     'filters'    => whether products must be filtered according to GET request conditions
      *     'product'    => shopProduct object to select upselling items for; for upselling-type collections only
@@ -148,19 +149,49 @@ class shopProductsCollection
         if (isset($this->options['filter_by_rights']) && $this->options['filter_by_rights'] !== false) {
             $this->addWhereByRights($this->options['filter_by_rights']);
         }
+        if (isset($this->options['prepare_filter_id']) && is_numeric($this->options['prepare_filter_id'])) {
+            $this->filterPrepare($this->options['prepare_filter_id']);
+        }
 
-        if ($sort = waRequest::get('sort')) {
+        $sort = waRequest::get('sort');
+        if (!$sort && isset($this->options['sort'])) {
+            $sort = $this->options['sort'];
+        }
+        if ($sort) {
             if ($sort == 'stock') {
                 $sort = 'count';
             }
-            if (waRequest::get('order') == 'desc') {
+            $order = waRequest::get('order');
+            if (!$order && isset($this->options['order'])) {
+                $order = $this->options['order'];
+            }
+            if ($order == 'desc') {
                 $order = 'DESC';
             } else {
                 $order = 'ASC';
             }
+            // special fields for sorting in the backend
+            $virtual_fields = array_intersect(['minimum_price', 'minimum_base_price'], (array)$sort);
+            $additional_tables = array_intersect(['type_id', 'tax_id', 'category_id'], (array)$sort);
+            $stock_field = $this->getStockField($sort);
+            $feature_field = $this->getFeatureField($sort);
+
             $model = $this->getModel();
 
-            if ($sort == 'price' || $sort == 'base_price') {
+            if (count($virtual_fields) === 1) {
+                $sort_field = reset($virtual_fields);
+                $actual_joins = $this->getJoinsByTableName('shop_product_skus');
+                if ($actual_joins) {
+                    $skus_alias = $actual_joins[0]['alias'];
+                } else {
+                    $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id');
+                }
+                // Build the condition for regular prices:
+                $additional_query = $sort_field == 'minimum_base_price' ? "/ IFNULL($skus_alias.stock_base_ratio, p.stock_base_ratio)" : '';
+                $order_by = ["MIN($skus_alias.primary_price $additional_query) $order"];
+                $this->group_by = $this->addRemainingSortFields($sort, $sort_field);
+                $this->order_by = $this->addRemainingSortFields($sort, $sort_field, $order_by, $order);
+            } elseif ($sort == 'price' || $sort == 'base_price') {
                 if (!isset($this->join_index['ps'])) {
                     $this->order_by = "p.$sort $order, p.id";
                     $this->addPromoPriceSort($sort, $order);
@@ -218,6 +249,120 @@ class shopProductsCollection
                     $skus_alias = $this->addJoin('shop_product_skus', ':table.product_id = p.id');
                 }
                 $this->order_by = "{$skus_alias}.{$sort} {$order}, p.id";
+            } elseif (count($additional_tables) === 1) {
+                $sort_field = reset($additional_tables);
+                $table_name = str_replace('_id', '', $sort_field);
+                $table_join = $this->getJoinsByTableName('shop_'.$table_name);
+                if ($table_join) {
+                    $table_alias = $table_join[0]['alias'];
+                } else {
+                    $table_alias = $this->addJoin([
+                        'table' => 'shop_'.$table_name,
+                        'type' => 'LEFT',
+                        'on' => ':table.id = p.'.$sort_field
+                    ]);
+                }
+                $order_by = ["{$table_alias}.name {$order}"];
+                $this->order_by = $this->addRemainingSortFields($sort, $sort_field, $order_by, $order);
+            } elseif (in_array('image_count', (array)$sort)) {
+                $actual_joins = $this->getJoinsByTableName('shop_product_images');
+                if ($actual_joins) {
+                    $images_alias = $actual_joins[0]['alias'];
+                } else {
+                    $images_alias = $this->addJoin('shop_product_images', ':table.product_id = p.id');
+                }
+                $order_by = ["COUNT($images_alias.product_id) $order"];
+                $this->group_by = $this->addRemainingSortFields($sort, 'image_count');
+                $this->order_by = $this->addRemainingSortFields($sort, 'image_count', $order_by, $order);
+            } elseif (in_array('sales_30days', (array)$sort)) {
+                $actual_items_join = $this->getJoinsByTableName('shop_order_items');
+                if ($actual_items_join) {
+                    $items_alias = $actual_items_join[0]['alias'];
+                } else {
+                    $items_alias = $this->addJoin([
+                        'table'=> 'shop_order_items',
+                        'on' => ':table.product_id = p.id AND :table.type = "product"',
+                        'type' => 'LEFT'
+                    ]);
+                }
+                $actual_order_join = $this->getJoinsByTableName('shop_order');
+                if ($actual_order_join) {
+                    $order_alias = $actual_order_join[0]['alias'];
+                } else {
+                    $order_alias = $this->addJoin([
+                        'table' => 'shop_order',
+                        'on' => ":table.id = $items_alias.order_id AND :table.paid_date >= " . date('Y-m-d', time() - 3600 * 24 * 30),
+                        'type' => 'LEFT'
+                    ]);
+                }
+                $order_by = ["SUM($items_alias.price * $items_alias.quantity * $order_alias.rate) $order"];
+                $this->group_by = $this->addRemainingSortFields($sort, 'sales_30days');
+                $this->order_by = $this->addRemainingSortFields($sort, 'sales_30days', $order_by, $order);
+            } elseif ($stock_field) {
+                $actual_stocks_join = $this->getJoinsByTableName('shop_product_stocks');
+                if ($actual_stocks_join) {
+                    $stocks_alias = $actual_stocks_join[0]['alias'];
+                } else {
+                    $stocks_alias = $this->addJoin([
+                        'table'=> 'shop_product_stocks',
+                        'on' => ':table.product_id = p.id AND :table.stock_id = ' . $stock_field['stock_id'],
+                        'type' => 'LEFT'
+                    ]);
+                }
+                $order_by = ["$stocks_alias.count $order"];
+                $this->order_by = $this->addRemainingSortFields($sort, $stock_field['field'], $order_by, $order);
+            } elseif ($feature_field) {
+                $product_features_joins = $this->getJoinsByTableName('shop_product_features');
+                $product_features_aliases = [];
+                if ($product_features_joins) {
+                    foreach ($product_features_joins as $product_feature_join) {
+                        $product_features_aliases[] = $product_feature_join['alias'];
+                    }
+                    if (count($product_features_aliases) != count($feature_field['feature_ids'])) {
+                        return;
+                    }
+                } else {
+                    foreach ($feature_field['feature_ids'] as $feature_id) {
+                        $product_features_aliases[] = $this->addJoin([
+                            'table'=> 'shop_product_features',
+                            'on' => ":table.product_id = p.id AND :table.feature_id = $feature_id",
+                            'type' => 'LEFT'
+                        ]);
+                    }
+                }
+                $order_fields = [];
+                if ($feature_field['table_name'] == 'shop_product_features') {
+                    $order_by = ["$product_features_aliases[0].{$feature_field['sort_field']} $order"];
+                } else {
+                    $actual_feature_joins = $this->getJoinsByTableName($feature_field['table_name']);
+                    $feature_aliases = [];
+                    if ($actual_feature_joins) {
+                        foreach ($actual_feature_joins as $actual_feature_join) {
+                            $feature_aliases[] = $actual_feature_join['alias'];
+                        }
+                        if (count($feature_aliases) != count($product_features_aliases)) {
+                            return;
+                        }
+                    } else {
+                        foreach ($product_features_aliases as $product_features_alias) {
+                            $feature_aliases[] = $this->addJoin([
+                                'table' => $feature_field['table_name'],
+                                'on' => ":table.id = $product_features_alias.feature_value_id",
+                                'type' => 'LEFT'
+                            ]);
+                        }
+                    }
+                    if (count($feature_aliases) > 1) {
+                        foreach ($feature_aliases as $feature_alias) {
+                            $order_fields[] = "$feature_alias.{$feature_field['sort_field']}";
+                        }
+                        $order_by = ["(" . implode(' * ', $order_fields) . ") $order"];
+                    } else {
+                        $order_by = ["$feature_aliases[0].{$feature_field['sort_field']} $order"];
+                    }
+                }
+                $this->group_by = $this->addRemainingSortFields($sort, $feature_field['field'], $order_fields);
+                $this->order_by = $this->addRemainingSortFields($sort, $feature_field['field'], $order_by, $order);
             } else {
                 $order_by = array();
                 $fields = array();
@@ -277,6 +422,106 @@ class shopProductsCollection
         }
 
         $this->prepared = true;
+    }
+
+    /**
+     * @param string|array $sort
+     * @return array
+     */
+    protected function getStockField($sort)
+    {
+        $stock = [];
+        foreach ((array)$sort as $item) {
+            if (strpos($item, 'stocks_') === 0) {
+                $stock_id = substr($item, 7);
+                if (is_numeric($stock_id)) {
+                    $stock = [
+                        'field' => $item,
+                        'stock_id' => (int)$stock_id,
+                    ];
+                }
+            }
+        }
+
+        return $stock;
+    }
+
+
+    /**
+     * @param string|array $sort
+     * @return array
+     */
+    protected function getFeatureField($sort)
+    {
+        $field = [];
+        foreach ((array)$sort as $item) {
+            if (strpos($item, 'feature_') === 0) {
+                $feature_id = substr($item, 8);
+                if (is_numeric($feature_id)) {
+                    $feature_model = new shopFeatureModel();
+                    $features = $feature_model->where('id = i:main_id OR parent_id = i:id_as_parent_id', [
+                        'main_id' => $feature_id,
+                        'id_as_parent_id' => $feature_id
+                    ])->order('parent_id, id')->fetchAll('id');
+                    $feature = array_shift($features);
+                    $feature_type = preg_replace('/(^(2d|3d)\.)?(.*)(\..*)/', '$3', $feature['type']);
+                    if (empty($feature['multiple']) && empty($feature['available_for_sku']) && $feature_type &&
+                        !in_array($feature['type'], [shopFeatureModel::TYPE_COLOR, shopFeatureModel::TYPE_DIVIDER])
+                    ) {
+                        $model = 'shopFeatureValues'.ucfirst($feature_type).'Model';
+                        if (class_exists($model)) {
+                            if ($model == 'shopFeatureValuesBooleanModel') {
+                                $table_name = 'shop_product_features';
+                                $sort_field = 'feature_value_id';
+                            } else {
+                                $feature_values_model = new $model();
+                                $table_name = $feature_values_model->getTableName();
+                                $sort_field = 'value';
+                                if ($table_name == 'shop_feature_values_dimension') {
+                                    $sort_field = 'value_base_unit';
+                                } elseif ($table_name == 'shop_feature_values_range') {
+                                    $sort_field = 'begin_base_unit';
+                                }
+                            }
+                            $field = [
+                                'field' => $item,
+                                'feature_ids' => $features ? array_column($features, 'id') : [(int)$feature['id']],
+                                'table_name' => $table_name,
+                                'sort_field' => $sort_field
+                            ];
+                        }
+
+                    }
+                }
+            }
+        }
+
+        return $field;
+    }
+
+    /**
+     * @param string|array $sort
+     * @param string $except_field
+     * @param array $added_fields
+     * @param string $order
+     * @return string
+     */
+    protected function addRemainingSortFields($sort, $except_field = '', $added_fields = [], $order = '')
+    {
+        $has_product_id = false;
+        foreach ((array)$sort as $sort_field) {
+            $sort_field = trim((string)$sort_field);
+            if ($sort_field != $except_field && $this->getModel()->fieldExists($sort_field)) {
+                if ($sort_field == 'id') {
+                    $has_product_id = true;
+                }
+                $added_fields[] = 'p.'.$sort_field . ' '.$order;
+            }
+        }
+        if (!$has_product_id) {
+            $added_fields[] = 'p.id';
+        }
+        return implode(', ', $added_fields);
     }
 
     protected function frontendConditions()
@@ -525,6 +770,304 @@ SQL;
             }
         }
         $this->filtered = true;
+    }
+
+    /**
+     * @param int $id - ID of the filter
+     * @param bool $auto_title
+     * @throws waException
+     */
+    protected function filterPrepare($id, $auto_title = false)
+    {
+        $this->options['prepare_filter_id'] = null;
+        $this->options['filter_id_prepared'] = $id;
+        /**
+         * @var shopFilterRulesModel $filter_rules_model
+         */
+        $filter_rules_model = $this->getModel('filterRules');
+        $rules = $filter_rules_model->getByField('filter_id', (int)$id, 'id');
+
+        // rules not found
+        if (!$rules) {
+            $this->where[] = '0';
+            return;
+        }
+        if ($this->hash[0] == 'filter') {
+            $this->info['hash'] = 'filter';
+            if ($auto_title) {
+                // TODO название заголовка
+            }
+        }
+
+        $groups = [];
+        foreach ($rules as $rule) {
+            $group_id = $rule['rule_group'];
+            if (empty($groups[$group_id])) {
+                $groups[$group_id] = [
+                    'id' => $group_id,
+                    'type' => $rule['rule_type'],
+                    'rule_params' => [],
+                    'open_interval' => $rule['open_interval'],
+                ];
+            }
+            $groups[$group_id]['rule_params'][] = $rule['rule_params'];
+        }
+        $this->info['rules'] = $groups;
+
+        $storefronts = [];
+        $all_storefronts = shopStorefrontList::getAllStorefronts(true);
+        foreach ($all_storefronts as $storefront) {
+            if (!empty($storefront['route']['checkout_storefront_id'])) {
+                $storefront_id = $storefront['route']['checkout_storefront_id'];
+            } else {
+                $storefront_id = 'sfid'.md5(var_export($storefront['route'], true));
+            }
+            $storefronts[$storefront_id] = ifset($storefront, 'route', 'type_id', []);
+        }
+        $all_types = shopFilter::getAllTypes();
+        foreach ($groups as $group) {
+            switch ($group['type']) {
+                case 'categories':
+                    /**
+                     * @var shopCategoryModel $category_model
+                     */
+                    $category_model = $this->getModel('category');
+                    $category = $category_model->getById($group['rule_params'][0]);
+                    if (!$category) {
+                        break;
+                    }
+                    $this->info['main_filter_type'] = 'category';
+                    $this->info['main_filter_data'] = $category;
+                    if ($category['type'] == shopCategoryModel::TYPE_STATIC) {
+                        $category_alias = $this->addJoin('shop_category_products');
+                        if ($category['include_sub_categories']) {
+                            $category['subcategories'] = $category_model->descendants($category, true)->where('type = '.shopCategoryModel::TYPE_STATIC)->fetchAll('id');
+                            $descendant_ids = array_keys($category['subcategories']);
+                            if ($descendant_ids) {
+                                $this->where[] = $category_alias . '.category_id IN(' . implode(',', $descendant_ids) . ')';
+                            }
+                        } else {
+                            $this->where[] = $category_alias . '.category_id = ' . (int)$category['id'];
+                        }
+                    } else {
+                        $this->setHash('/search/'.$category['conditions']);
+                        $this->prepare(false, false);
+                        while (!empty($category['parent_id'])) {
+                            $category = $category_model->getById($category['parent_id']);
+                            if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
+                                $this->setHash('/search/'.$category['conditions']);
+                                $this->prepare(true, false);
+                            } else {
+                                $category_alias = $this->addJoin('shop_category_products');
+                                if ($category['include_sub_categories']) {
+                                    $subcategories = $category_model->descendants($category, true)->where('type = '.shopCategoryModel::TYPE_STATIC)->fetchAll('id');
+                                    $descendant_ids = array_keys($subcategories);
+                                    if ($descendant_ids) {
+                                        $this->where[] = $category_alias . '.category_id IN(' . implode(',', $descendant_ids) . ')';
+                                    }
+                                } else {
+                                    $this->where[] = $category_alias . '.category_id = ' . (int)$category['id'];
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                case 'sets':
+                    /**
+                     * @var shopSetModel $set_model
+                     */
+                    $set_model = $this->getModel('set');
+                    $set = $set_model->getById($group['rule_params'][0]);
+                    if (!$set) {
+                        break;
+                    }
+                    $this->info['main_filter_type'] = 'set';
+                    $this->info['main_filter_data'] = $set;
+                    if ($set['type'] == shopSetModel::TYPE_STATIC) {
+                        $set_alias = $this->addJoin('shop_set_products');
+                        $this->where[] = $set_alias . '.set_id = "' . $set_model->escape($set['id']) . '"';
+                    } else {
+                        $rule = ifset($set, 'rule', false);
+                        $json_params = ifset($set, 'json_params', '');
+                        $params = json_decode($json_params, true);
+                        if (
+                            $rule === shopSetModel::BESTSELLERS_RULE ||
+                            $rule === shopSetModel::TOTAL_COUNT_RULE ||
+                            !empty($params['date_start']) ||
+                            !empty($params['date_end'])
+                        ) {
+                            $alias_items = $this->addJoin([
+                                'table' => 'shop_order_items',
+                                'on'    => ":table.product_id=p.id AND :table.type='product'",
+                            ]);
+
+                            $alias_order = $this->addJoin([
+                                'table' => 'shop_order',
+                                'alias' => 'o',
+                                'on'    => "{$alias_items}.order_id=:table.id",
+                            ]);
+                        }
+
+                        if ($rule === shopSetModel::BESTSELLERS_RULE) {
+                            $this->fields['sales'] = "{$alias_items}.price * {$alias_order}.rate * {$alias_items}.quantity AS sales";
+                            $this->groupBy('p.id');
+                            $this->order_by = 'sales DESC, p.id';
+                        } elseif ($rule === shopSetModel::TOTAL_COUNT_RULE) {
+                            $this->groupBy('p.id');
+                            // If you call the function - there will be infinite recursion :[
+                            $this->order_by = "SUM($alias_items.quantity) DESC, p.id";
+                        } elseif ($rule == 'compare_price DESC') {
+                            $this->setByComparePrice();
+                        } else {
+                            $this->order_by = !empty($set['rule']) ? $set['rule'] : 'p.create_datetime DESC';
+                            $this->order_by .= ', p.id';
+
+                            if (!isset($this->join_index['ps']) && preg_match('~^(price)\s(asc|desc)$~ui', $set['rule'], $matches)) {
+                                $order = $matches[2];
+                                $this->addPromoPriceSort('price', $order);
+                            }
+                        }
+
+                        if (!empty($params['date_start'])) {
+                            $this->where[] = "{$alias_order}.paid_date >= '{$params['date_start']}'";
+                        }
+
+                        if (!empty($params['date_end'])) {
+                            $this->where[] = "{$alias_order}.paid_date <= '{$params['date_end']}'";
+                        }
+                    }
+                    break;
+                case 'types':
+                    $this->addJoin([
+                        'table' => 'shop_type',
+                        'on' => ':table.id = p.type_id',
+                        'where' => ':table.id = ' . (int)$group['rule_params'][0]
+                    ]);
+                    break;
+                case 'storefronts':
+                    if (count($group['rule_params']) > 0) {
+                        $type_ids = [];
+                        foreach ($group['rule_params'] as $storefront) {
+                            if (!empty($storefronts[$storefront]) && is_array($storefronts[$storefront])) {
+                                $type_ids += $storefronts[$storefront];
+                            }
+                        }
+                        $type_ids = array_unique($type_ids);
+                        if ($type_ids) {
+                            $this->where[] = 'p.type_id IN ('. implode(',', array_map('intval', $type_ids)) . ')';
+                        }
+                    }
+                    break;
+                case 'tags':
+                    $tags_alias = $this->addJoin('shop_product_tags');
+                    if (count($group['rule_params']) > 0) {
+                        $this->where[] = $tags_alias . '.tag_id IN ('. implode(',', array_map('intval', $group['rule_params'])) . ')';
+                    }
+                    break;
+                default:
+                    if (isset($all_types['product_fields'][$group['type']])) {
+                        $type = $all_types['product_fields'][$group['type']];
+                        $this->addFilterRule('p', $type, $group);
+                    } elseif (isset($all_types['sku_fields'][$group['type']])) {
+                        $skus_join = $this->addJoin('shop_product_skus', ':table.product_id = p.id');
+                        $type = $all_types['skus'][$group['type']];
+                        $this->addFilterRule($skus_join, $type, $group);
+                    } elseif (isset($all_types['dynamic_fields'][$group['type']])) {
+                        if ($group['type'] == 'sales_30days') {
+                            $alias_items = $this->addJoin('shop_order_items');
+                            $alias_order = $this->addJoin('shop_order', ":table.id = $alias_items.order_id");
+                            $this->fields['sales_30'] = "SUM($alias_items.price * $alias_order.rate * $alias_items.quantity) AS sales_30";
+                            $this->where[] = "$alias_items.type='product' AND $alias_order.paid_date >= " . date('Y-m-d', time() - 3600 * 24 * 30);
+                            $this->group_by[] = 'product_id';
+                        } elseif ($group['type'] == 'stock_worth') {
+                            $alias_skus = $this->addJoin('shop_product_skus', ":table.product_id = p.id");
+                            $this->fields['net_worth'] = "SUM($alias_skus.primary_price * $alias_skus.count) AS net_worth";
+                            $this->group_by[] = ".product_id";
+                        }
+                    } elseif (isset($all_types['features'][$group['type']])) {
+                        $type = $all_types['features'][$group['type']];
+                        if ($type['type'] == 'boolean' || $type['type'] == 'color' || $type['selectable']) {
+                            $this->addJoin([
+                                'table' => 'shop_product_features',
+                                'on' => ':table.product_id = p.id',
+                                'where' => ':table.feature_value_id IN (' . implode(',', $group['rule_params']) . ')'
+                            ]);
+                        } else {
+                            $feature_table_name = shopFeatureModel::getValuesModel($type['type'])->getTableName();
+                            if ($feature_table_name) {
+                                $feature_types = ['double', 'date'] + array_keys(shopDimension::getInstance()->getList());
+                                $where = '';
+                                if ($type['type'] == 'varchar') {
+                                    $where = ":table.value REGEXP '(.*)" . implode('(.*)|(.*)', $group['rule_params']) . "(.*)'";
+                                } elseif (in_array($type['type'], $feature_types)) {
+                                    if ($group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED
+                                        || $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED
+                                    ) {
+                                        $compare_sign = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? '>=' : '<=';
+                                        $where = ":table.value $compare_sign {$group['rule_params'][0]}";
+                                    } elseif (count($group['rule_params']) > 1) {
+                                        $where = ":table.value >= {$group['rule_params'][0]} AND :table.value <= {$group['rule_params'][1]}";
+                                    }
+                                } elseif (in_array(mb_substr($type['type'], 6), $feature_types)) {
+                                    // range.
+                                    if ($group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED
+                                        || $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED
+                                    ) {
+                                        $compare_sign = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? '>=' : '<=';
+                                        $where_field = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? 'begin_base_unit' : 'end_base_unit';
+                                        $where = ":table.$where_field $compare_sign {$group['rule_params'][0]}";
+                                    } elseif (count($group['rule_params']) > 1) {
+                                        $where = ":table.begin >= {$group['rule_params'][0]} AND :table.end <= {$group['rule_params'][1]}";
+                                    }
+                                }
+                                if ($where) {
+                                    $product_features_alias = $this->addJoin([
+                                        'table' => 'shop_product_features',
+                                        'on' => ':table.product_id = p.id',
+                                    ]);
+                                    $this->addJoin([
+                                        'table' => $feature_table_name,
+                                        'on' => ":table.id = $product_features_alias.feature_value_id",
+                                        'where' => $where
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+
+    /**
+     * @param $table_alias
+     * @param $type
+     * @param $group
+     * @return void
+     */
+    protected function addFilterRule($table_alias, $type, $group)
+    {
+        if (isset($type['table']) && $type['selection_format'] == 'select') {
+            $product_field = $group['id'] == 'currency' ? 'code' : 'id';
+            $this->addJoin([
+                'table' => "shop_{$type['table']}",
+                'on' => ":table.$product_field = $table_alias.{$group['id']}",
+                'where' => ":table.$product_field IN (" . implode(',', $group['rule_params']) . ")"
+            ]);
+        } elseif ($type['selection_format'] == 'range') {
+            if ($group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED
+                || $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED
+            ) {
+                $compare_sign = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? '>=' : '<=';
+                $this->where[] = "$table_alias.{$group['type']} $compare_sign {$group['rule_params'][0]}";
+            } elseif (count($group['rule_params']) > 1) {
+                $this->where[] = "$table_alias.{$group['type']} >= {$group['rule_params'][0]}";
+                $this->where[] = "$table_alias.{$group['type']} <= {$group['rule_params'][1]}";
+            }
+        } elseif ($type['selection_format'] == 'select') {
+            $this->where[] = "$table_alias.{$group['type']} IN (" . implode(',', $group['rule_params']) . ")";
+        }
     }
 
     protected function relatedPrepare($hash, $auto_title = false)
@@ -1705,15 +2248,30 @@ SQL;
         }
         $count = (int)$this->getModel()->query($sql)->fetchField();
 
-        if ($this->hash[0] == 'category' && !empty($this->info['id']) && $this->info['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-            if ($this->info['count'] != $count && !$this->is_frontend) {
+        if (($this->hash[0] == 'category' && !empty($this->info['id']) && $this->info['type'] == shopCategoryModel::TYPE_DYNAMIC)
+            || (!empty($this->info['main_filter_type']) && $this->info['main_filter_type'] == 'category'
+                && $this->info['main_filter_data']['type'] == shopCategoryModel::TYPE_DYNAMIC)
+        ) {
+            if (!$this->is_frontend && ((isset($this->info['count']) && $this->info['count'] != $count)
+                || (isset($this->info['main_filter_data']['count']) && $this->info['main_filter_data']['count'] != $count))
+            ) {
                 $this->getModel('category')->updateById($this->hash[1], array('count' => $count));
             }
-        } elseif ($this->hash[0] == 'set' && !empty($this->info['id'])) {
-            if ($this->info['type'] == shopSetModel::TYPE_DYNAMIC) {
-                $count = min($this->info['count'], $count);
-            } elseif ($this->info['count'] != $count && !$this->is_frontend) {
-                $this->getModel('set')->updateById($this->hash[1], array('count' => $count));
+        } elseif (($this->hash[0] == 'set' && !empty($this->info['id']))
+            || (!empty($this->info['main_filter_type']) && $this->info['main_filter_type'] == 'set')
+        ) {
+            if ($this->hash[0] == 'set') {
+                if ($this->info['type'] == shopSetModel::TYPE_DYNAMIC) {
+                    $count = min($this->info['count'], $count);
+                } elseif ($this->info['count'] != $count && !$this->is_frontend) {
+                    $this->getModel('set')->updateById($this->hash[1], array('count' => $count));
+                }
+            } else {
+                if ($this->info['main_filter_data']['type'] == shopSetModel::TYPE_DYNAMIC) {
+                    $count = min($this->info['main_filter_data']['count'], $count);
+                } elseif ($this->info['main_filter_data']['count'] != $count && !$this->is_frontend) {
+                    $this->getModel('set')->updateById($this->info['main_filter_data']['id'], array('count' => $count));
+                }
             }
         }
         return $this->count = $count;
@@ -1753,7 +2311,10 @@ SQL;
         $from_and_where = $this->getSQL();
 
         // for dynamic set
-        if ($this->hash[0] == 'set' && !empty($this->info['id']) && $this->info['type'] == shopSetModel::TYPE_DYNAMIC) {
+        if (($this->hash[0] == 'set' && !empty($this->info['id']) && $this->info['type'] == shopSetModel::TYPE_DYNAMIC)
+            || (!empty($this->info['main_filter_type']) && $this->info['main_filter_type'] == 'set'
+                && $this->info['main_filter_data']['type'] == shopSetModel::TYPE_DYNAMIC)
+        ) {
             $this->count();
             if ($offset + $limit > $this->count) {
                 $limit = $this->count - $offset;
@@ -2858,7 +3419,7 @@ SQL;
 
     /**
      * @param string $name
-     * @return shopProductModel|shopCategoryModel|shopTagModel|shopSetModel|shopFeatureModel|shopCategoryRoutesModel|shopCategoryProductsModel|shopProductPromoPriceTmpModel
+     * @return shopProductModel|shopCategoryModel|shopTagModel|shopSetModel|shopFeatureModel|shopCategoryRoutesModel|shopCategoryProductsModel|shopProductPromoPriceTmpModel|shopFilterRulesModel
      */
     protected function getModel($name = 'product')
     {
@@ -2871,7 +3432,8 @@ SQL;
                 'feature',
                 'categoryRoutes',
                 'categoryProducts',
-                'productPromoPriceTmp'
+                'productPromoPriceTmp',
+                'filterRules',
             ];
             if (in_array($name, $available_models)) {
                 $class_name = 'shop'.ucfirst($name).'Model';
@@ -3458,5 +4020,53 @@ SQL;
         }
 
         return $names;
+    }
+
+    /**
+     * Used to find previous and next row in this collection relative to given $product_id.
+     *
+     * Returns a list of two ints (or nulls).
+     * When both $prev_id and $next_id are NULL then $product_id is not found in this collection.
+     * If one of them is NULL then $product_id is either first or last product in list.
+     *
+     * @param int $product_id
+     * @return array [ $prev_id, $next_id ]
+     * @since 9.3.0
+     */
+    public function getPrevNextProductId($product_id)
+    {
+        $from_and_where = $this->getSQL();
+        $group_by = $this->_getGroupBy();
+
+        $sql = "SELECT".($group_by ? '' : ' DISTINCT')." p.id\n";
+        $sql .= $from_and_where;
+        $sql .= $group_by;
+        if ($this->having) {
+            $sql .= "\nHAVING ".implode(' AND ', $this->having);
+        }
+        $sql .= $this->_getOrderBy();
+
+        $inner_sql = "SELECT @rownum AS prev_id, q.id, @rownum := q.id AS _tmp
+                      FROM ({$sql}) AS q
+                          JOIN (SELECT @rownum := 0) AS r";
+
+        $sql = "SELECT qq.prev_id, id
+                FROM (
+                    {$inner_sql}
+                ) AS qq
+                WHERE id=? OR prev_id=?
+                LIMIT 2";
+         $rows = $this->getModel()->query($sql, [$product_id, $product_id])->fetchAll();
+
+         $prev_id = null;
+         $next_id = null;
+         foreach($rows as $row) {
+             if ($row['id'] == $product_id) {
+                 $prev_id = $row['prev_id'];
+             } else if ($row['prev_id'] == $product_id) {
+                 $next_id = $row['id'];
+             }
+         }
+         return [$prev_id, $next_id];
     }
 }

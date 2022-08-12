@@ -1,0 +1,442 @@
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_header_columns = [
+    "name" => [
+        "id" => "name",
+        "name" => _w("Наименование"),
+        "width_locked" => false,
+        "min_width" => 200,
+        "width" => 350
+    ],
+    "count" => [
+        "id" => "count",
+        "name" => _w("Товаров"),
+        "width_locked" => false,
+        "min_width" => 70,
+        "width" => null
+    ],
+    "sort" => [
+        "id" => "sort",
+        "name" => _w("Сортировка"),
+        "disabled" => true,
+        "width_locked" => true,
+        "min_width" => null,
+        "width" => null
+    ]
+]}
+
+{* КОМПОНЕНТЫ *}
+{$_components = []}
+
+{capture assign="_component_radio"}
+    <component class="wa-radio" v-bind:is="tag">
+        <input type="radio" v-bind:value="val" v-bind:name="name" v-on:change="onChange" v-bind:key="val" v-bind:disabled="disabled" v-model="value">
+        <span></span>
+    </component>
+{/capture}
+{$_components["component-radio"] = $_component_radio|trim}
+
+{capture assign="_component_datepicker"}
+    <div class="vue-component-date-picker" v-bind:class="{ 'is-disabled': disabled }">
+        <input class="s-field wa-small size-short js-date-picker" type="text" value="" v-bind:readonly="disabled">
+        <span class="s-icon"><i class="fas fa-calendar-alt"></i></span>
+        <input v-bind:name="name" type="hidden" value="">
+    </div>
+{/capture}
+{$_components["component-datepicker"] = $_component_datepicker|trim}
+
+{capture assign="_component_dropdown_set_sorting"}
+    <div class="dropdown">
+        <button class="dropdown-toggle wa-button wa-small" type="button"
+                v-bind:class="button_class">{ { active_item.name } }</button>
+        <div class="dropdown-body">
+            <template v-for="item in items">
+                <div class="dropdown-item"
+                     v-on:click="change(item)"
+                     v-bind:class="{ 'selected': (item === active_item) }">{ { item.name } }</div>
+            </template>
+        </div>
+    </div>
+{/capture}
+{$_components["component-dropdown-set-sorting"] = $_component_dropdown_set_sorting|trim}
+
+{capture assign="_component_dropdown_sets_sorting"}
+    <div class="vue-component-sets-sorting">
+        <div class="dropdown js-dropdown">
+            <button class="dropdown-toggle wa-button wa-small transparent" type="button">[`Sort by`]</button>
+            <div class="dropdown-body">
+                <div class="dropdown-item" v-on:click="change('name ASC')">
+                    <span class="s-label">[`Выстроить по алфавиту (A..Z..А..Я)`]</span>
+                </div>
+                <div class="dropdown-item" v-on:click="change('name DESC')">
+                    <span class="s-label">[`Выстроить по алфавиту (Я..Ф..Z..A)`]</span>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-dropdown-sets-sorting"] = $_component_dropdown_sets_sorting|trim}
+
+{capture assign="_component_search_sets"}
+    <div class="s-search-section flexbox space-8">
+        <div class="s-field-wrapper wide">
+            <input class="s-field" placeholder="{_w("Search")|escape}" v-model="search_string" v-on:input="search">
+        </div>
+        <template v-if="search_string.length">
+            <div class="s-counter-wrapper">
+                <div class="s-counter">{ { position } }/{ { selection.length } }</div>
+            </div>
+            <div class="s-actions-wrapper flexbox space-8">
+                <div class="s-action"
+                     v-on:click.prevent="moveUp"
+                     v-bind:class="{ 'is-disabled' : is_start, 'is-active' : !is_start }">
+                    <span class="s-icon icon size-14"><i class="fas fa-chevron-up"></i></span>
+                </div>
+                <div class="s-action"
+                     v-on:click.prevent="moveDown"
+                     v-bind:class="{ 'is-disabled' : is_end, 'is-active' : !is_end }">
+                    <span class="s-icon icon size-14"><i class="fas fa-chevron-down"></i></span>
+                </div>
+                <div class="s-action is-active"
+                     v-on:click.prevent="revert">
+                    <span class="s-icon icon size-14"><i class="fas fa-times"></i></span>
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-search-sets"] = $_component_search_sets|trim}
+
+{capture assign="_component_set_sorting"}
+    <div class="vue-component-set-sorting">
+        <div class="s-locked-message" v-show="states.sort_locked">
+            <span class="s-icon icon size-16"><i class="fas fa-spinner fa-spin"></i></span>
+        </div>
+        <div class="flexbox middle space-8" v-show="!states.sort_locked">
+            <component-dropdown-set-sorting v-model="set.sort_products"
+                                            v-bind:options="options"
+                                            v-bind:button_class="'s-square-field'"
+                                            v-on:change="change"></component-dropdown-set-sorting>
+            <template v-if="set.sort_products === '' && set.type === '0'">
+                <span class="link" v-on:click.prevent="setup">[`настроить`]</span>
+            </template>
+        </div>
+    </div>
+{/capture}
+{$_components["component-set-sorting"] = $_component_set_sorting|trim}
+
+{capture assign="_component_sets"}
+    <div class="s-table-body">
+        {* HEADER *}
+        <div class="s-table-header">
+            <div class="s-table-row">
+                <div class="s-column s-column-toggle"></div>
+
+                <template v-for="column in columns">
+                    <component-sets-header-column
+                        v-on:column_change_width="updateStorage"
+                        v-bind:column="column"></component-sets-header-column>
+                </template>
+
+                <div class="s-column s-column-space width-auto"></div>
+                <div class="s-column s-column-actions"></div>
+            </div>
+        </div>
+
+        {* LIST *}
+        <template v-for="item in model">
+            <component-model-item v-bind:item="item"></component-model-item>
+        </template>
+    </div>
+{/capture}
+{$_components["component-sets"] = $_component_sets|trim}
+
+{capture assign="_component_sets_header_column"}
+    <div class="s-column" v-bind:class="'s-column-'+column.id" v-bind:style="{ width: column_width }">
+        <div class="s-header-column-wrapper">
+            <div class="s-name">{ { column.name } }</div>
+            <div class="s-toggle-wrapper"
+                 v-if="!column.disabled"
+                 v-bind:class="{ 'is-locked' : column.width_locked }"
+                 v-on:mousedown="onDragColumn($event)"></div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-sets-header-column"] = $_component_sets_header_column|trim}
+
+{capture assign="_component_model_item"}
+    <div class="s-item-section">
+        <div class="s-table-row s-item-wrapper"
+             v-bind:class="item_class"
+             v-bind:data-group-id="(item.group_id ? item.group_id : null)"
+             v-bind:data-set-id="(item.set_id ? item.set_id : null)"
+             v-bind:data-is-group="item.is_group"
+             v-bind:key="(item.set_id ? item.set_id : (item.group_id ? item.group_id : '')) + '' + item.render_key">
+            <div class="s-column s-column-toggle">
+                <div class="s-toggle-wrapper" draggable="true"
+                     v-bind:class="{ 'cursor-move js-item-move-toggle' : !root_states.move_locked, 'color-gray-light' : root_states.move_locked }">
+                    <span class="s-icon icon size-14"
+                          v-if="!item.states.move_locked"
+                          v-bind:key="'fa-bars'"><i class="fas fa-bars"></i></span>
+                    <span class="s-icon icon size-14"
+                          v-if="item.states.move_locked"
+                          v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                </div>
+            </div>
+            <div class="s-column s-column-name" v-bind:style="{ width: getColumnWidth('name') }">
+
+                <div class="s-name-flexbox flexbox space-12">
+                    <div class="s-actions-list middle">
+                        <div class="s-action" v-if="!item.is_group && item.group_id">
+                            <span class="s-icon icon size-18"></span>
+                        </div>
+
+                        <template v-if="item.is_group">
+                            <div class="s-action cursor-pointer s-expand-toggle" v-on:click="itemExtend">
+                                <span class="s-icon icon size-18"
+                                      v-bind:key="'fa-caret-right'"
+                                      v-if="!item.states.expanded"><i class="fas fa-caret-right"></i></span>
+                                <span class="s-icon icon size-18"
+                                      v-bind:key="'fa-caret-down'"
+                                      v-if="item.states.expanded"><i class="fas fa-caret-down"></i></span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="s-action">
+                                <span class="s-icon icon size-18"></span>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="s-field-wrapper wide">
+                        <template v-if="item.is_group">
+                            <template v-if="states.name_locked">
+                                <div class="s-icon icon size-14 color-gray" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></div>
+                            </template>
+                            <template v-else>
+                                <template v-if="!item.sets.length">
+                                    <div class="s-icon icon size-14 color-gray-light" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></div>
+                                </template>
+                                <template v-else-if="!item.states.expanded">
+                                    <div class="s-icon icon size-14 color-gray-light" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></div>
+                                </template>
+                                <template v-else-if="item.states.expanded">
+                                    <div class="s-icon icon size-14 color-gray-light" v-bind:key="'fa-folder-open'"><i class="far fa-folder-open"></i></div>
+                                </template>
+                            </template>
+                            <input class="s-field s-square-field" type="text" v-model="item.name" v-on:change="onChangeName" v-bind:disabled="states.name_locked">
+                        </template>
+                        <template v-else>
+                            <template v-if="states.name_locked">
+                                <div class="s-icon icon size-14 color-gray" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></div>
+                            </template>
+                            <template v-else>
+                                <template v-if="item.type === '0'">
+                                    <div class="s-icon icon size-14 color-gray-light"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></div>
+                                </template>
+                                <template v-else>
+                                    <div class="s-icon icon size-14 color-gray-light"><svg><use xlink:href="{$_sprite_url}#list-auto"></use></svg></div>
+                                </template>
+                            </template>
+                            <input class="s-field s-square-field" type="text" v-model="item.name" v-on:change="onChangeName" v-bind:disabled="states.name_locked">
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div class="s-column s-column-count" v-bind:style="{ width: getColumnWidth('count') }">
+                <div class="s-count-wrapper">
+                    <a v-if="!item.is_group" v-bind:href="'{$wa_app_url}products/?set_id='+ item.set_id">{ { item.count } }</a>
+                </div>
+            </div>
+            <div class="s-column s-column-sort" v-bind:style="{ width: getColumnWidth('sort') }">
+                <template v-if="!item.is_group">
+                    <component-set-sorting v-bind:set="item"></component-set-sorting>
+                </template>
+            </div>
+            <div class="s-column s-column-space width-auto"></div>
+            <div class="s-column s-column-actions">
+                <div class="s-actions-list">
+                    <template v-if="!item.is_group">
+                        <div class="s-action cursor-pointer animate" v-on:click="setEdit">
+                            <template v-if="!states.edit_locked">
+                                <span class="s-icon icon size-14" v-bind:key="'fa-pen'"><i class="fas fa-pen"></i></span>
+                            </template>
+                            <template v-else>
+                                <span class="s-icon icon size-14" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                            </template>
+                        </div>
+                        {*
+                        <div class="s-action cursor-pointer animate" v-on:click="setClone">
+                            <template v-if="!states.clone_locked">
+                                <span class="s-icon icon size-14" v-bind:key="'fa-pen'"><i class="far fa-clone"></i></span>
+                            </template>
+                            <template v-else>
+                                <span class="s-icon icon size-14" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                            </template>
+                        </div>
+                        *}
+                    </template>
+                    <template v-else>
+                        <div class="s-action">
+                            <span class="s-icon icon size-14"></span>
+                        </div>
+                        {*
+                        <div class="s-action">
+                            <span class="s-icon icon size-14"></span>
+                        </div>
+                        *}
+                    </template>
+
+                    <div class="s-action cursor-pointer animate" v-on:click="itemDelete">
+                        <template v-if="!states.delete_locked">
+                            <span class="s-icon icon size-14" v-bind:key="'fa-trash-alt'"><i class="far fa-trash-alt"></i></span>
+                        </template>
+                        <template v-else>
+                            <span class="s-icon icon size-14" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <template v-for="inner_item in item.sets" v-if="item.is_group && item.sets.length && item.states.expanded">
+            <component-model-item v-bind:item="inner_item"></component-model-item>
+        </template>
+    </div>
+{/capture}
+{$_components["component-model-item"] = $_component_model_item|trim}
+
+{* ШАБЛОНЫ *}
+{$_templates = []}
+
+{capture assign="_set_delete_confirm"}{include file="./dialogs/sets.set.delete.html" inline}{/capture}
+{$_templates["set-delete-confirm"] = $_set_delete_confirm}
+
+{capture assign="_set_clone_confirm"}{include file="./dialogs/sets.set.clone.html" inline}{/capture}
+{$_templates["set-clone-confirm"] = $_set_clone_confirm}
+
+{* ПОДСКАЗКИ *}
+{$_tooltips = []}
+
+{* ЛОКАЛИЗАЦИЯ *}
+{$_locales = []}
+
+{* template will update components array *}
+{include file="./dialogs/callback.html" scope="parent" inline}
+
+<div class="s-sets-page" id="js-sets-page">
+    <div class="s-page-wrapper" id="js-vue-section" style="visibility: hidden;">
+        <div class="s-page-flexbox">
+            <div class="s-page-header">
+                <div class="flexbox full-width">
+                    <div class="s-title-wrapper flexbox middle space-12">
+                        <h1 class="s-title">[`Sets`]</h1>
+                        <div class="s-smart-button">
+                            <div class="flexbox middle space-4">
+                                <div class="s-button flexbox middle space-4 cursor-pointer" v-on:click="addSet">
+                                    <template v-if="!states.add_set_locked">
+                                        <span class="s-icon icon size-12 shift-up-1"><svg><use xlink:href="{$_sprite_url}#plus"></use></svg></span>
+                                    </template>
+                                    <template v-else>
+                                        <span class="s-icon icon size-12" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                                    </template>
+                                    <span class="s-name">[`новый список`]</span>
+                                </div>
+                                <div class="s-button flexbox middle space-4 cursor-pointer" v-on:click="addGroup">
+                                    <template v-if="!states.add_group_locked">
+                                        <span class="s-icon icon size-12" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></span>
+                                    </template>
+                                    <template v-else>
+                                        <span class="s-icon icon size-12" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flexbox middle space-20">
+                        <div class="s-support-section">
+                            <button class="s-button wa-button rounded pink animation-pulse" type="button" v-on:click.prevent="showCallbackDialog">
+                                <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
+                                <span class="s-name">[`Как вам новый раздел товаров?`]</span>
+                            </button>
+                        </div>
+
+                        <div class="s-sets-sorting-section flexbox middle space-12">
+                            <div class="s-dropdown-wrapper">
+                                <template v-if="!states.sort_locked">
+                                    <component-dropdown-sets-sorting v-on:change="sortSets"></component-dropdown-sets-sorting>
+                                </template>
+                                <template v-else>
+                                    <span class="s-icon icon size-12" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="s-action-bar">
+                    <component-search-sets></component-search-sets>
+                </div>
+            </div>
+            <div class="s-page-body flexbox">
+                {* SETS TABLE *}
+                <div class="s-sets-table-section">
+                    {* BODY *}
+                    <div class="s-sets-table">
+                        <component-sets v-bind:model="model"></component-sets>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            $.wa.title.set("{_w("Sets")|escape}");
+
+            var sources = [{
+                id: "vue-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-sets-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/main/main.sets.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-products-set-sort-dialog-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/main/dialogs/set.sort_products.js?v={$wa->version()}"
+            }];
+
+            $.wa.loadSources(sources).done( function() {
+                $.wa_shop_products.init.initProductsSetsPage({
+                    $wrapper: $("#js-sets-page"),
+                    components: {$_components|json_encode},
+                    templates: {$_templates|json_encode},
+                    tooltips: {$_tooltips|json_encode},
+                    locales: {$_locales|json_encode},
+                    urls: {
+                        "sets_sort"      : "{$wa_app_url}?module=prod&action=setsSort",
+                        "group_add"      : "{$wa_app_url}?module=prod&action=setGroupAdd",
+                        "group_remove"   : "{$wa_app_url}?module=prod&action=setGroupRemove",
+                        "set_add"        : "{$wa_app_url}?module=prod&action=setSave",
+                        "set_edit"       : "{$wa_app_url}?module=prod&action=setSave",
+                        "set_edit_dialog": "{$wa_app_url}?module=prod&action=setEditDialog",
+                        "set_move"       : "{$wa_app_url}?module=prod&action=setMove",
+                        "set_clone"      : "{$wa_app_url}?module=prod&action=setCopy",
+                        "set_rename"     : "{$wa_app_url}?module=prod&action=setRename",
+                        "set_remove"     : "{$wa_app_url}?module=prod&action=setRemove",
+                        "set_sort"       : "{$wa_app_url}?module=prod&action=setSort",
+                        "set_sort_dialog": "{$wa_app_url}?module=prod&action=setSortDialog",
+                        "callback_submit": "{$wa_app_url}?module=prod&action=feedback"
+                    },
+
+                    model         : {$model|json_encode},
+                    rule_options  : {$rule_options|json_encode},
+                    sort_options  : {$sort_options|json_encode},
+                    header_columns: {$_header_columns|array_values|json_encode}
+                });
+            });
+
+        })(jQuery);
+    </script>
+</div>

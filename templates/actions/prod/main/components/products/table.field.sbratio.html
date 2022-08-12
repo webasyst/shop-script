@@ -1,0 +1,34 @@
+{capture assign="_component_product_column_sbratio"}
+    <div class="vue-column-type-sbratio">
+        <template v-if="column_data.editable">
+            <div class="s-flexbox flexbox space-4 middle nowrap">
+                <div class="s-text" v-text="column_data.text_left_part"></div>
+                <div class="s-field-wrapper">
+                    <template v-if="states.is_preview">
+                        <input class="s-field wa-small full-width is-number s-square-field" type="text" readonly
+                               v-bind:value="formatted_value"
+                               v-on:click="togglePreview(false)">
+                    </template>
+                    <template v-else>
+                        <component-input
+                            v-model="column_data.value"
+                            v-bind:cancel="true"
+                            v-bind:focus="true"
+                            v-bind:validate="'number'"
+                            v-bind:fraction_size="8"
+                            v-bind:required="true"
+                            v-bind:class="'s-field wa-small full-width is-number s-square-field'"
+                            v-on:blur="togglePreview(true)"
+                            v-on:change="onChange"></component-input>
+                    </template>
+                </div>
+                <div class="s-text" v-text="column_data.text_right_part"></div>
+            </div>
+        </template>
+        <template v-else>
+            <div class="vue-render-type-text"
+                 v-text="column_data.text"></div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-product-column-sbratio"] = $_component_product_column_sbratio|trim}

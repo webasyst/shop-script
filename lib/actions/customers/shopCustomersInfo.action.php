@@ -106,7 +106,7 @@ class shopCustomersInfoAction extends waViewAction
          * @return array[string][string]string $return[%plugin_id%]['action_link'] html output
          */
         $this->view->assign('backend_customer', wa()->event('backend_customer', $customer));
-        $this->view->assign('default_editor', $this->getUser()->getSettings('shop', 'default_editor', 'old_editor'));
+        $this->view->assign('default_chapter', $this->getUser()->getSettings('shop', 'default_chapter', 'old_chapter'));
     }
 
     public function getContactCategories($id)

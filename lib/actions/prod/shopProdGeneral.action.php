@@ -10,7 +10,10 @@ class shopProdGeneralAction extends waViewAction
         $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
         $product = new shopProduct($product_id);
         if (!$product['id'] && $product_id != 'new') {
-            throw new waException(_w("Unknown product"), 404);
+            $this->setLayout(new shopBackendProductsEditSectionLayout([
+                'content_id' => 'general',
+            ]));
+            return;
         }
         $product_model = new shopProductModel();
         if (!$product_model->checkRights($product_id)) {
@@ -59,7 +62,7 @@ class shopProdGeneralAction extends waViewAction
             $product->setData('skus', [-1 => $empty_sku]);
         }
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setDefaultNewEditor();
+        shopHelper::setChapter();
 
         $selected_selectable_feature_ids = [];
         if (!empty($product['id'])) {

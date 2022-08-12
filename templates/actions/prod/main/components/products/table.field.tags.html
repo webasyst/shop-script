@@ -1,0 +1,67 @@
+{capture assign="_component_product_column_tags"}
+    <div class="vue-component-product-column-tags">
+        <div class="s-tags-list" v-if="column_data.options.length">
+            <template v-for="tag in tags">
+                <div class="s-tag-wrapper">
+                    {* ICON *}
+                    <template v-if="column.column_type === 'tags'">
+                        <span class="s-icon icon size-12"><i class="fas fa-tag"></i></span>
+                    </template>
+                    <template v-else-if="column.column_type === 'sets'">
+                        <span class="s-icon icon size-12" v-bind:key="'fa-folder-dynamic'" v-if="tag.dynamic"><svg><use xlink:href="{$_sprite_url}#list-auto"></use></svg></span>
+                        <span class="s-icon icon size-12" v-bind:key="'fa-folder'" v-else><svg><use xlink:href="{$_sprite_url}#list"></use></svg></span>
+                    </template>
+                    <template v-else-if="column.column_type === 'categories'">
+                        <span class="s-icon icon size-12" v-bind:key="'fa-folder-dynamic'" v-if="tag.dynamic"><svg><use xlink:href="{$_sprite_url}#folder-dynamic"></use></svg></span>
+                        <span class="s-icon icon size-12" v-bind:key="'fa-folder'" v-else><i class="fas fa-folder"></i></span>
+                    </template>
+
+                    {* NAME *}
+                    <span class="s-name">{ { tag.name } } </span>
+
+                    {* ACTION *}
+                    <template v-if="!tags_states[tag.value].is_locked">
+                        <span class="s-icon icon cursor-pointer"
+                              v-on:click="deleteTag(tag)"><i class="fas fa-times"></i></span>
+                    </template>
+                    <template v-else>
+                        <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+                    </template>
+                </div>
+            </template>
+            <div class="s-tag-wrapper is-action"
+                 v-if="over_limit"
+                 v-on:click="showDialog">
+                <span class="s-name">{sprintf(_w("[`Еще %s`]"), "{ { over_limit } }")}</span>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-product-column-tags"] = $_component_product_column_tags|trim}
+
+{capture assign="_dialog_product_column_tags"}
+    <div class="wa-dialog s-product-column-tags-dialog">
+        <div class="dialog-background"></div>
+        <div class="dialog-body">
+            <div class="js-vue-section" style="visibility: hidden;">
+                <div class="dialog-header">
+                    <h3 v-if="column.column_type === 'tags'">{_w("Tags")}</h3>
+                    <h3 v-if="column.column_type === 'categories'">{_w("Categories")}</h3>
+                    <h3 v-if="column.column_type === 'sets'">{_w("Sets")}</h3>
+                </div>
+                <div class="dialog-content">
+                    <component-product-column-tags
+                        v-bind:ignore_limit="true"
+                        v-bind:product="product"
+                        v-bind:column="column"
+                        v-bind:column_info="column_info"
+                        v-bind:column_data="column_data"></component-product-column-tags>
+                </div>
+                <div class="dialog-footer">
+                    <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_templates["dialog-product-column-tags"] = $_dialog_product_column_tags|trim}

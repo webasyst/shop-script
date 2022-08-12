@@ -143,8 +143,12 @@
                             </tr>
                         {/if}
                         <tr{if $p@index >= $rows_show_immidiately - 1} style="display:none;"{/if}>
-                            <td><a href="?action=products#/product/{$p.id}/">{$wa->shop->getProductImgHtml($p, $size, ['height' => 48, 'width' => 48])}</a></td>
-                            <td><a href="?action=products#/product/{$p.id}/">{$p.name|escape}</a></td>
+                            <td>
+                                <a href="{shopHelper::getBackendEditorUrl($p.id, 'prices')}">
+                                    {$wa->shop->getProductImgHtml($p, $size, ['height' => 48, 'width' => 48])}
+                                </a>
+                            </td>
+                            <td><a href="{shopHelper::getBackendEditorUrl($p.id, 'prices')}">{$p.name|escape}</a></td>
                             <td class="align-right">
                                 <span>
                                     {$p.quantity}

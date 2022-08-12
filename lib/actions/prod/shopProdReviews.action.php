@@ -13,7 +13,10 @@ class shopProdReviewsAction extends waViewAction
         shopProdGeneralAction::createEmptyProduct($product_id);
         $product = new shopProduct($product_id);
         if (!$product['id']) {
-            throw new waException(_w("Unknown product"), 404);
+            $this->setLayout(new shopBackendProductsEditSectionLayout([
+                'content_id' => 'reviews',
+            ]));
+            return;
         }
 
         $product_model = new shopProductModel();
@@ -53,7 +56,7 @@ class shopProdReviewsAction extends waViewAction
 
         $formatted_product = self::formatProduct($product);
         $formatted_product["can_edit"] = $can_edit;
-        shopHelper::setDefaultNewEditor();
+        shopHelper::setChapter();
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,

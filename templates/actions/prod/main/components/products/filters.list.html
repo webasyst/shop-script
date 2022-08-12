@@ -1,0 +1,184 @@
+{$_tooltips = array_merge($_tooltips, [
+    "filter-rename" => [
+        "id" => "filter-rename",
+        "html" => _w("Переименовать")|escape,
+        "class" => "inline",
+        "position" => "top"
+    ],
+    "filter-delete" => [
+        "id" => "filter-delete",
+        "html" => _w("Delete")|escape,
+        "class" => "inline",
+        "position" => "top"
+    ],
+    "filter-rewrite" => [
+        "id" => "filter-rewrite",
+        "html" => _w("Перезаписать")|escape,
+        "class" => "inline",
+        "position" => "top"
+    ],
+    "filter-share" => [
+        "id" => "filter-share",
+        "html" => _w("Ссылка на фильтр")|escape,
+        "class" => "inline",
+        "position" => "top"
+    ]
+])}
+
+{capture assign="_component_table_filters_list"}
+    <div class="s-filter-list-section s-pane-item dropbox">
+        <div class="s-dropbox-toggle js-dropbox-toggle">
+            <span class="s-name">[`Сохранённые фильтры`]</span>
+        </div>
+        <div class="dropbox-body right">
+            <div class="s-dropbox-content-section">
+                <div class="s-section-header">
+                    <h6>[`Фильтры`]</h6>
+                    <p>[`Для удобства работы над разными задачами вы можете сохранить выбранные фильтры.`]</p>
+                    <div class="s-create-section" v-if="!states.show_add_form">
+                        <button class="wa-button transparent wa-small no-indent" type="button"
+                                v-on:click.prevent="toggleForm(true)">
+                            <span class="s-icon icon size-12"><i class="fas fa-plus"></i></span>
+                            <span class="s-name">[`фильтр`]</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="s-section-body">
+
+                    <div class="s-filters-list">
+                        <div class="s-form-wrapper" v-if="states.show_add_form">
+                            <component-filter-add-form
+                                v-on:form_success="filterAdd"
+                                v-on:form_cancel="toggleForm(false)"></component-filter-add-form>
+                        </div>
+                        <template v-for="filter in filters">
+                            <div class="s-filter-wrapper flexbox space-12"
+                                 v-if="!filter.states.show_rename_form"
+                                 v-bind:class="{ 'is-moving' : filter.states.is_moving }"
+                                 v-bind:data-id="filter.id"
+                                 v-bind:key="filter.id">
+                                <div class="s-column-actions">
+                                    <div class="s-action">
+                                        <div class="s-toggle-wrapper"
+                                             draggable="true"
+                                             v-bind:class="{ 'cursor-move js-filter-move-toggle' : !filter.states.move_locked, 'color-gray-light' : filter.states.move_locked }">
+                                        <span class="s-icon icon size-12"
+                                              v-if="!filter.states.move_locked"
+                                              v-bind:key="'fa-bars'"><i class="fas fa-bars"></i></span>
+                                            <span class="s-icon icon size-12"
+                                                  v-if="filter.states.move_locked"
+                                                  v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="s-column-name wide">
+                                    <span class="s-name cursor-pointer"
+                                          v-on:click="filterUse(filter)">{ { filter.name ? filter.name : "{_w("Представление без названия")|escape}" } }</span>
+                                </div>
+                                <div class="s-column-actions flexbox space-8">
+                                    <div class="s-action s-action-link"
+                                         data-tooltip-id="filter-share">
+                                        <a v-bind:href="'{$wa_app_url}products/?filter='+filter.id" target="_blank">
+                                            <span class="s-icon icon size-20"><svg><use xlink:href="{$_sprite_url}#share"></use></svg></span>
+                                        </a>
+                                    </div>
+                                    <div class="s-action cursor-pointer"
+                                         data-tooltip-id="filter-rename"
+                                         v-on:click="rename(filter)">
+                                        <span class="s-icon icon size-12"><i class="fas fa-pen"></i></span>
+                                    </div>
+                                    <div class="s-action cursor-pointer"
+                                         data-tooltip-id="filter-rewrite"
+                                         v-on:click="rewrite(filter)">
+                                        <span class="s-icon icon size-12"
+                                              v-if="!filter.states.rewrite_locked"
+                                              v-bind:key="'fa-sync'">
+                                            <i class="fas fa-sync-alt"></i></span>
+                                        <span class="s-icon icon size-12"
+                                              v-else
+                                              v-bind:key="'fa-spinner'">
+                                            <i class="fas fa-spinner fa-spin"></i></span>
+                                    </div>
+                                    <div class="s-action cursor-pointer"
+                                         data-tooltip-id="filter-delete"
+                                         v-on:click="remove(filter)">
+                                        <span class="s-icon icon size-14"
+                                              v-if="!filter.states.remove_locked"
+                                              v-bind:key="'fa-times'">
+                                            <i class="fas fa-times"></i></span>
+                                        <span class="s-icon icon size-12"
+                                              v-else
+                                              v-bind:key="'fa-spinner'">
+                                            <i class="fas fa-spinner fa-spin"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <component-filter-rename-form
+                                v-if="filter.states.show_rename_form"
+                                v-bind:filter="filter"></component-filter-rename-form>
+                        </template>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-table-filters-list"] = $_component_table_filters_list|trim}
+
+{capture assign="_component_filter_add_form"}
+    <div class="s-filter-add-form flexbox middle space-12">
+        <div class="s-field-wrapper wide">
+            <component-input class="wa-small full-width" placeholder="{_w("Введите название")|escape}"
+                             v-model="name"
+                             v-bind:focus="true"></component-input>
+        </div>
+        <div class="s-actions-wrapper flexbox middle">
+            <button class="wa-button wa-small transparent" type="button"
+                    v-bind:disabled="states.locked"
+                    v-on:click="create">
+                <span class="s-icon icon"
+                      v-if="!states.locked"
+                      v-bind:key="'check'"><i class="fas fa-check"></i></span>
+                <span class="s-icon icon"
+                      v-if="states.locked"
+                      v-bind:key="'spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+            <button class="wa-button wa-small transparent" type="button"
+                    v-show="!states.locked"
+                    v-on:click="cancel">
+                <span class="s-icon icon"><i class="fas fa-times"></i></span>
+            </button>
+        </div>
+    </div>
+{/capture}
+{$_components["component-filter-add-form"] = $_component_filter_add_form|trim}
+
+{capture assign="_component_filter_rename_form"}
+    <div class="s-filter-rename-form flexbox middle space-12">
+        <div class="s-field-wrapper wide">
+            <input class="wa-small full-width" type="text" v-model="name" placeholder="{_w("Введите название")|escape}">
+        </div>
+        <div class="s-actions-wrapper flexbox middle">
+            <button class="wa-button wa-small transparent" type="button"
+                    v-bind:disabled="states.locked"
+                    v-on:click="create">
+                <span class="s-icon icon"
+                      v-if="!states.locked"
+                      v-bind:key="'check'"><i class="fas fa-check"></i></span>
+                <span class="s-icon icon"
+                      v-if="states.locked"
+                      v-bind:key="'spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+            <button class="wa-button wa-small transparent" type="button"
+                    v-show="!states.locked"
+                    v-on:click="cancel">
+                <span class="s-icon icon"><i class="fas fa-times"></i></span>
+            </button>
+        </div>
+    </div>
+{/capture}
+{$_components["component-filter-rename-form"] = $_component_filter_rename_form|trim}
+
+{capture assign="_filter_delete_confirm_dialog"}{include file="../../dialogs/products.filters.filter_delete_confirm.html" inline}{/capture}
+{$_templates["dialog-filter-delete-confirm"] = $_filter_delete_confirm_dialog|trim}

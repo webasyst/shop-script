@@ -26,7 +26,15 @@ class shopProdPageDeleteController extends waJsonController
         }
 
         $product_model = new shopProductModel();
-        if (!$product_model->checkRights($product_id)) {
+        $product = $product_model->getById($product_id);
+        if (!$product) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
+        if (!$product_model->checkRights($product)) {
             /** check rights */
             throw new waException(_w('Access denied'));
         }

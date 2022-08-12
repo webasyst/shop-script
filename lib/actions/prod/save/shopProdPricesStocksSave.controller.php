@@ -19,12 +19,19 @@ class shopProdPricesStocksSaveController extends waJsonController
         if (empty($product_id) || empty($sku_id)) {
             throw new waException(_w('Not found'), 404);
         }
+        $product = new shopProduct($product_id);
+        if (!$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
         $product_model = new shopProductModel();
         if (!$product_model->checkRights($product_id)) {
             throw new waRightsException(_w('Access denied'));
         }
 
-        $product = new shopProduct($product_id);
         $product_skus_model = new shopProductSkusModel();
         $result = $product_skus_model->setData($product, [$sku_id => ['stock' => $stocks]]);
 

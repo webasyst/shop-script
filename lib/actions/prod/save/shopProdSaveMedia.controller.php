@@ -20,6 +20,14 @@ class shopProdSaveMediaController extends waJsonController
         if (empty($product_data['id']) || empty($product_data['photos'])) {
             return;
         }
+        $product = new shopProduct($product_data['id']);
+        if (!$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
 
         // data for hook
         $data = $product_data;

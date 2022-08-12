@@ -43,9 +43,11 @@
             {if $customer_delivery_date}
                 &nbsp;
             {/if}
+            {strip}
             <span class="customer-delivery-time-from">{$customer_delivery_time.from_hours|escape}:{$customer_delivery_time.from_minutes|escape}</span>
-            -
+            –
             <span class="customer-delivery-time-to">{$customer_delivery_time.to_hours|escape}:{$customer_delivery_time.to_minutes|escape}</span>
+            {/strip}
         {/if}
             <a href="javascript:void(0)" class="small inline-link use-customer-delivery-time-link"><b>[`apply`]</b></a>
     {/if}

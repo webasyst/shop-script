@@ -59,6 +59,8 @@ class shopSettingsTypefeatTypeDuplicateController extends waJsonController
             throw new waException('Unable to create type');
         }
 
+        $this->addTypeToRoutes($type_data['id'], $old_type['id']);
+
         $tables = [
             'shop_type_codes',
             'shop_type_features',
@@ -83,5 +85,43 @@ class shopSettingsTypefeatTypeDuplicateController extends waJsonController
         }
 
         $this->response = $type_data;
+    }
+
+    /**
+     * @param int $new_type_id
+     * @param int $parent_type_id
+     * @return void
+     */
+    protected function addTypeToRoutes($new_type_id, $parent_type_id)
+    {
+        $routing_path = $this->getConfig()->getPath('config', 'routing');
+        if (file_exists($routing_path)) {
+            $routes = include($routing_path);
+            $all_types = array_map('intval', array_column((new shopTypeModel())->getAll(), 'id'));
+            $need_update = false;
+            foreach ($routes as $site => $site_routes) {
+                if (!is_array($site_routes)) {
+                    continue;
+                }
+                foreach ($site_routes as $route_id => $param) {
+                    if (ifset($param, 'app', null) !== 'shop') {
+                        continue;
+                    }
+                    $param_type_id = ifset($param, 'type_id', null);
+                    if (is_array($param_type_id) && in_array($parent_type_id, $param_type_id)) {
+                        try {
+                            $routes[$site][$route_id]['type_id'] = shopSettingsTypefeatTypeSaveController::getNewRouteTypeId($param_type_id, intval($new_type_id), true, $all_types);
+                            if (!$need_update && $routes[$site][$route_id]['type_id'] != $param_type_id) {
+                                $need_update = true;
+                            }
+                        } catch (waException $e) {
+                        }
+                    }
+                }
+            }
+            if ($need_update) {
+                waUtils::varExportToFile($routes, $routing_path);
+            }
+        }
     }
 }

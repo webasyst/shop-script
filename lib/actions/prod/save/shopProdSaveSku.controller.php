@@ -8,8 +8,12 @@ class shopProdSaveSkuController extends waJsonController
     {
         $product_raw_data = waRequest::post('product', null, 'array');
         $product = new shopProduct(ifempty($product_raw_data, 'id', null));
-        if (!$product['id']) {
-            throw new waException(_w('Not found'), 404);
+        if (!$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
         }
         $this->checkRights($product['id']);
 
@@ -171,7 +175,7 @@ class shopProdSaveSkuController extends waJsonController
         $divided_params = explode("\n", $params_string);
         if (is_array($divided_params)) {
             foreach ($divided_params as $param) {
-                $param_key_value = explode('=', $param);
+                $param_key_value = explode('=', $param, 2);
                 if (is_array($param_key_value) && count($param_key_value) == 2) {
                     $param_key = $param_key_value[0];
                     $param_value = trim($param_key_value[1]);
@@ -182,7 +186,9 @@ class shopProdSaveSkuController extends waJsonController
             }
         }
 
-        shopProdSaveGeneralController::updateMainImage($product_data, $product_raw_data['id'], $product['type_id']);
+        if (!$this->errors) {
+            shopProdSaveGeneralController::updateMainImage($product_data, $product_raw_data['id'], $product['type_id']);
+        }
 
         return $product_data;
     }

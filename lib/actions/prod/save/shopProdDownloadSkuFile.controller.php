@@ -9,6 +9,14 @@ class shopProdDownloadSkuFileController extends waViewController
         $sku_id = waRequest::get('sku_id', null, waRequest::TYPE_INT);
         $product_id = waRequest::get('product_id', null, waRequest::TYPE_INT);
 
+        $product = new shopProduct($product_id);
+        if (!$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
         $file = self::getFileParams($sku_id, $product_id);
 
         if (!file_exists($file['path'])) {

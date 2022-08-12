@@ -33,8 +33,11 @@ class shopOrderListAction extends waViewAction
         $this->collection = new shopOrdersCollection($this->getHash());
         $sort = $this->getSort();
         $order_by = array($sort[0] => $sort[1]);
-        if ($sort[0] !== 'create_datetime') {
-            $order_by['create_datetime'] = 'desc';
+        if ($sort[0] !== 'id') {
+            if ($sort[0] !== 'create_datetime') {
+                $order_by['create_datetime'] = 'desc';
+            }
+            $order_by['id'] = 'desc';
         }
         $this->collection->orderBy($order_by);
     }

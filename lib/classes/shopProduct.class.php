@@ -1408,6 +1408,7 @@ class shopProduct implements ArrayAccess
             }
 
             $result = [];
+            $composite_feature_values = [];
             foreach ($rows as $row) {
                 if (empty($features[$row['feature_id']])) {
                     continue;
@@ -1417,17 +1418,28 @@ class shopProduct implements ArrayAccess
                 if (!$type_values[$type][$row['feature_id']][$row['feature_value_id']]) {
                     continue;
                 }
-                if (null === $features[$row['feature_id']]['parent_id']) {
+                if (null === $f['parent_id']) {
                     $result[$row['sku_id']][$f['code']] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
                 } else {
-                    $name_feature = preg_replace('#\.\d$#', '', $f['code']);
-                    if (isset($result[$row['sku_id']][$name_feature])) {
-                        $result[$row['sku_id']][$name_feature] .= '&times;'.$type_values[$type][$row['feature_id']][$row['feature_value_id']];
-                    } else {
-                        $result[$row['sku_id']][$name_feature] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
+                    // Composite features will be processed below.
+                    // Group parts by sku_id and feature.
+                    $composite_feature_values[$row['sku_id']][$f['parent_id']][$f['code']] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
+                }
+            }
+
+            // Process composite features (e.g. NxNxN dimension)
+            foreach($composite_feature_values as $sku_id => $sku_composite_features) {
+                foreach($sku_composite_features as $parent_feature_id => $subfeature_values) {
+                    $count_before = count($subfeature_values);
+                    $parent_feature_code = rtrim(key($subfeature_values), '0123456789.');
+                    $value = new shopCompositeValue($parent_feature_code, $subfeature_values);
+                    if ($count_before != count($subfeature_values)) {
+                        // Call to CompositeValue constructor removes its parts from second argument array X_x
+                        $result[$sku_id][$parent_feature_code] = $value;
                     }
                 }
             }
+
             return $result;
         } else {
             return array();

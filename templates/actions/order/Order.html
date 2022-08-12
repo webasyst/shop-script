@@ -130,9 +130,11 @@
                                         {if $customer_delivery_date}
                                             &nbsp;
                                         {/if}
+                                        {strip}
                                         <span class="customer-delivery-time-from">{$customer_delivery_time.from_hours|escape}:{$customer_delivery_time.from_minutes|escape}</span>
-                                        -
+                                        –
                                         <span class="customer-delivery-time-to">{$customer_delivery_time.to_hours|escape}:{$customer_delivery_time.to_minutes|escape}</span>
+                                        {/strip}
                                     {/if}
                                 </p>
                             {/if}
@@ -164,7 +166,7 @@
                                 {if $edit_shipping_details_available || !empty($shipping_date)}
                                     <p style="padding-left: 20px;">
                                         {if !empty($shipping_date)}
-                                            [`Shipping time`]: {wa_date('date', $shipping_date, waDateTime::getDefaultTimezone())|escape} {$shipping_time_start|escape} - {$shipping_time_end|escape}
+                                            [`Shipping time`]: {wa_date('date', $shipping_date, waDateTime::getDefaultTimezone())|escape} {$shipping_time_start|escape}–{$shipping_time_end|escape}
                                             {if !empty($order.state)}<br>{/if}
                                         {/if}
                                         {if $edit_shipping_details_available}
@@ -214,10 +216,10 @@
                             </tr>
 
                             {$subtotal = 0}
-                            {$current_editor = shopHelper::getCurrentProductEditor()}
+                            {$current_chapter = shopHelper::getCurrentChapter()}
                             {foreach $order.items as $item}
                                 {if $item.type=='product'}
-                                    {if 'old_editor' == $current_editor}
+                                    {if 'old_chapter' == $current_chapter}
                                         {$link_edit = shopHelper::getBackendEditorUrl($item.product_id, 'product')}
                                     {else}
                                         {$link_edit = shopHelper::getBackendEditorUrl($item.product_id, 'prices')}
@@ -393,7 +395,7 @@
                                             {/if}
                                         {/if}
                                     </div>
-                                    {if !empty($row.params.refund_items)}
+                                    {if !empty($row.params.refund_items) && is_array($row.params.refund_items)}
                                         <div class="value refund-items-caption">
                                             [`Items removed from the order:`]
                                         </div>

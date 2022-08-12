@@ -9898,10 +9898,10 @@ msgstr "Код артикула обязателен для группировк
 msgid "Select one or several values of feature “%s”"
 msgstr "Выберите одно или несколько значений для характеристики «%s»"
 
-msgid "How do you like the new product editor?"
-msgstr "Как вам новый редактор товара?"
+msgid "How do you like the new products section?"
+msgstr "Как вам новый раздел товаров?"
 
-msgid "We are working hard on the new product editor and would like to learn your opinion of it. Please tell us what you liked and what you would rather make more comprehensive and convenient."
+msgid "We are working hard on the new products section and would like to learn your opinion of it. Please tell us what you liked and what you would rather make more comprehensive and convenient."
 msgstr "Мы активно работаем над новым редактором товара, и нам очень интересно узнать ваше мнение о нем. Расскажите, что вам понравилось, а что стоит сделать понятнее и удобнее."
 
 msgid "Your opinion..."
@@ -10000,20 +10000,20 @@ msgstr "Купона нет"
 msgid "Hidden and unavailable (404)"
 msgstr "Скрыт и недоступен (404)"
 
-msgid "Try out new product editor"
-msgstr "Попробовать новый редактор товара"
+msgid "Try out new products section"
+msgstr "Попробовать новый раздел товаров"
 
-msgid "Try out the new product editor version. The option to return to the old editor will remain."
-msgstr "Попробуйте новую версию редактора товара. В любое время можно будет вернуться в старый редактор."
+msgid "Try out the new products section version. The option to return to the old editor will remain."
+msgstr "Попробуйте новую версию раздела товаров. В любое время можно будет вернуться в старый редактор."
 
 msgid "This window will automatically close in 3 seconds."
 msgstr "Это окно закроется автоматически через 3 секунды."
 
-msgid "Return to old editor"
-msgstr "Вернуть старый редактор"
+msgid "Return to old products section"
+msgstr "Вернуть старый раздел"
 
-msgid "Return to the old product editor version."
-msgstr "Вернуться в старую версию редактора товара."
+msgid "Return to the old products section version."
+msgstr "Вернуться в старую версию раздела товаров."
 
 msgid "By SKU name"
 msgstr "По наименованию артикула"
@@ -10453,11 +10453,11 @@ msgstr "Модификация артикула не видна на витри�
 msgid "Incorrect URL format."
 msgstr "Неправильный формат URL."
 
-msgid "It is not recommended to add too many SKU and variants (over 50) as it may slow down the product editor."
-msgstr "Не рекомендуется добавлять очень много артикулов и модификаций (более 50) — это может замедлить редактор товара."
+msgid "It is not recommended to add too many SKU and variants (over 50) as it may slow down the products section."
+msgstr "Не рекомендуется добавлять очень много артикулов и модификаций (более 50) — это может замедлить раздел товаров."
 
-msgid "The product editor may slow down by several seconds with a large total number of SKU variants (over 50)."
-msgstr "Работа редактора товаров может замедлиться на несколько секунд при большом суммарном количестве модификаций (более 50)."
+msgid "The products section may slow down by several seconds with a large total number of SKU variants (over 50)."
+msgstr "Работа раздела товаров может замедлиться на несколько секунд при большом суммарном количестве модификаций (более 50)."
 
 msgid "Select at least 1 feature value to create product SKUs"
 msgstr "Выберите хотя бы 1 значение характеристики для создания артикулов"
@@ -10468,8 +10468,8 @@ msgstr "Подтверждение удаления файла"
 msgid "Do you really want to delete the file?"
 msgstr "Вы действительно хотите удалить файл?"
 
-msgid "Disable some SKUs in the new product editor to be able to edit them here"
-msgstr "Отключите некоторые артикулы в новом редакторе товаров, чтобы можно было редактировать их здесь"
+msgid "Disable some SKUs in the new products section to be able to edit them here"
+msgstr "Отключите некоторые артикулы в новом разделе товаров, чтобы можно было редактировать их здесь"
 
 msgid "Visibility in the storefront"
 msgstr "Видимость на витрине"

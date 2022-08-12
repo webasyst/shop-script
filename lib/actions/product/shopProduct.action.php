@@ -188,10 +188,10 @@ class shopProductAction extends waViewAction
         $product_model = new shopProductModel();
         $this->view->assign('storefront_map', $product_model->getStorefrontMap($product->id));
 
-        /** Редактор по умолчанию */
-        $default_editor = $curr_user->getSettings('shop', 'default_editor');
-        if (empty($default_editor) || true === $force_old) {
-            $curr_user->setSettings('shop', 'default_editor', 'old_editor');
+        /** раздел по умолчанию */
+        $default_chapter = $curr_user->getSettings('shop', 'default_chapter');
+        if (empty($default_chapter) || true === $force_old) {
+            $curr_user->setSettings('shop', 'default_chapter', 'old_chapter');
         }
 
         /**

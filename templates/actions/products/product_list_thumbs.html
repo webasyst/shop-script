@@ -3,7 +3,7 @@
     <script id="template-product-list-thumbs" type="text/html">
     {$link_edit = shopHelper::getBackendEditorUrl('@s')}
     {literal}
-    {% var current_editor = '{/literal}{shopHelper::getCurrentProductEditor()}{literal}'; %}
+    {% var current_editor = '{/literal}{shopHelper::getCurrentChapter()}{literal}'; %}
     {% for (var i = 0, n = o.products.length, p = o.products[0]; i < n; p = o.products[++i]) { %}
     <li class="product
         {% if (i == n-1) { %}last{% } %}
@@ -13,7 +13,7 @@
         {% if (p.alien) { %}title="[`This is a subcategory product`]"{% } %}
     >
         <div class="s-product-image s-image">
-            <a href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', p.id).replace('edit/', '')%}{% if (current_editor === 'new_editor' && !p.edit_rights) { %}prices/{% } %}">
+            <a href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', p.id).replace('edit/', '')%}{% if (current_editor === 'new_chapter' && !p.edit_rights) { %}prices/{% } %}">
                 {% if (p.badge) { %}
                     <div class="s-image-corner top right">{%#p.badge%}</div>
                 {% } %}
@@ -52,7 +52,7 @@
                     {%#p.icon%} {%#((p.count === null)?'<span class="gray">∞</span>':''+p.count)%}
                 </span>
             {% } else if (o.sort == 'create_datetime') { %}
-                <a class="small show-on-hover nowrap" href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', p.id)%}{% if (current_editor === 'new_editor' && !p.edit_rights) { %}prices/{% } %}"><i class="icon10 edit s-instant-edit"></i> [`edit`]</a>
+                <a class="small show-on-hover nowrap" href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', p.id)%}{% if (current_editor === 'new_chapter' && !p.edit_rights) { %}prices/{% } %}"><i class="icon10 edit s-instant-edit"></i> [`edit`]</a>
                 <br>
                 <span class="hint stock nowrap">
                     {%#'[`Added %s`]'.replace('%s', p.create_datetime_str)%}

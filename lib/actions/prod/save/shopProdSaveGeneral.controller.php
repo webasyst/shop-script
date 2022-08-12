@@ -9,10 +9,19 @@ class shopProdSaveGeneralController extends waJsonController
         $product_raw_data = waRequest::post('product', null, waRequest::TYPE_ARRAY);
         $product_id = ifempty($product_raw_data, 'id', null);
         $product = new shopProduct($product_id);
+        if ($product_id !== null && !$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
 
         $product_data = $this->prepareProductData($product_raw_data);
         $this->checkRights($product_id, $product_data);
-
+        if (!$this->errors) {
+            shopProdSaveGeneralController::updateMainImage($product_data, $product_data['id'], $product_data['type_id']);
+        }
         $backend_prod_pre_save = $this->throwPreSaveEvent($product, $product_data);
         foreach ($backend_prod_pre_save as $plugin_id => $result) {
             if ($result['errors']) {
@@ -148,8 +157,6 @@ class shopProdSaveGeneralController extends waJsonController
                 }
             }
         }
-
-        shopProdSaveGeneralController::updateMainImage($product_data, $product_data['id'], $product_data['type_id']);
 
         // shopProduct does not allow to save count_denominator. Only indirectly through order_multiplicity_factor.
         if (!isset($product_data['order_multiplicity_factor'])) {
@@ -323,6 +330,13 @@ class shopProdSaveGeneralController extends waJsonController
         }
     }
 
+    /**
+     * @param $product_data
+     * @param int $product_id
+     * @param int $type_id
+     * @return void
+     * @throws waDbException
+     */
     public static function updateMainImage(&$product_data, $product_id, $type_id)
     {
         if ($product_id > 0) {
@@ -382,9 +396,11 @@ class shopProdSaveGeneralController extends waJsonController
         $has_features_values = shopProdSkuAction::checkProductFeaturesValues($product_id, $type_id);
         $count_skus = 0;
 
-        foreach ($product_data['skus'] as $sku_data) {
-            if (!empty($sku_data)) {
-                $count_skus++;
+        if (!empty($product_data['skus']) && is_array($product_data['skus'])) {
+            foreach ($product_data['skus'] as $sku_data) {
+                if (!empty($sku_data)) {
+                    $count_skus++;
+                }
             }
         }
         if ($count_skus > 1 || $has_features_values || ifempty($product_data, 'params', 'multiple_sku', null)

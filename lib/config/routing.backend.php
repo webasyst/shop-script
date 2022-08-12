@@ -47,6 +47,11 @@ return array(
     //
 
     'products/?'                               => 'prod/list',
+    'products/categories/?'                    => 'prod/categories',
+    'products/sets/?'                          => 'prod/sets',
+    'products/tags/?'                          => 'prod/tags',
+    'products/reviews/?'                       => 'prod/reviewsList',
+    'products/stocks/?'                        => 'prod/stocks',
     'products/<id:\d+|new>/services/?'         => 'prod/services',
     'products/<id:\d+|new>/related/?'          => 'prod/related',
     'products/<id:\d+|new>/reviews/?'          => 'prod/reviews',

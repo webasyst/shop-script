@@ -1,0 +1,57 @@
+{$_templates["table_tooltip_stock"] = "<span class=\"s-icon icon shift-up-1 color-gray-light\"><svg><use xlink:href=\"{$_sprite_url}#warehouse\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("склад")}</span>"}
+{$_templates["table_tooltip_virtual_stock"] = "<span class=\"s-icon icon shift-up-1 color-gray-light\"><svg><use xlink:href=\"{$_sprite_url}#warehouse_stroke\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("виртуальный склад")}</span>"}
+{$_templates["table_tooltip_feature"] = "<span class='icon size-14'>%visible_in_frontend%</span> <span class='icon size-12'>%available_for_sku%</span> %name% <span class=\"color-gray-light\">{_w("характеристика")}</span>"}
+
+{capture assign="_component_products_table_header"}
+<div class="s-column"
+     v-bind:style="{ width: column_width }"
+     v-bind:class="column_class_name"
+     v-bind:data-column-type="column.column_type">
+    <div class="s-header-column-wrapper" v-if="column_name">
+        <div class="s-name-wrapper">
+            <div class="s-name-block"
+                 v-bind:class="{ 'cursor-pointer' : column_sortable }"
+                 v-on:click="onColumnSort">
+                <template v-if="column.states.locked">
+                    <span class="s-name"><span class="s-icon icon size-14" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span></span>
+                </template>
+                <template v-else>
+                    <template v-if="is_virtual_stock">
+                        <span class="s-icon icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse_stroke'></use></svg></span>
+                    </template>
+                    <template v-else-if="is_stock">
+                        <span class="s-icon icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
+                    </template>
+                    <template v-else-if="is_feature">
+                        <template v-if="column_available_for_sku">
+                            <span class="s-icon icon shift-up-1 color-gray"><i class="fas fa-sitemap"></i></span>
+                        </template>
+                        <template v-else>
+                            <span class="s-icon icon shift-up-1 color-gray-lighter"><i class="fas fa-sitemap"></i></span>
+                        </template>
+                    </template>
+
+                    <div class="s-name"
+                          v-bind:data-tooltip-id="'table-column'"
+                          v-on:mouseenter="onMouseEnter">{ { column_name } }</div>
+
+                    <template v-if="column_sortable">
+                        <template v-if="column.id === presentation.sort_column_id">
+                            <span class="s-icon icon" v-if="presentation.sort_order === 'ASC'"
+                                  v-bind:key="'fa-long-arrow-alt-down'"><i class="fas fa-long-arrow-alt-down"></i></span>
+                            <span class="s-icon icon" v-else
+                                  v-bind:key="'fa-long-arrow-alt-up'"><i class="fas fa-long-arrow-alt-up"></i></span>
+                        </template>
+                        <span class="s-action icon" v-else v-bind:key="'fa-sort'"><i class="fas fa-sort"></i></span>
+                    </template>
+                </template>
+            </div>
+        </div>
+        <div class="s-toggle-wrapper"
+             v-if="!column.states.locked"
+             v-bind:class="{ 'is-locked' : column.states.width_locked }"
+             v-on:mousedown="onDragColumn($event)"></div>
+    </div>
+</div>
+{/capture}
+{$_components["component-products-table-header"] = $_component_products_table_header|trim}

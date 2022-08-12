@@ -202,7 +202,8 @@
                                     that.is_locked = false;
                                 })
                                 .done( function() {
-                                    location.href = $.wa_shop_products.section_url;
+                                    var href = $.wa_shop_products.section_url;
+                                    $.wa_shop_products.router.load(href);
                                 });
                         })
                         .fail( function() {

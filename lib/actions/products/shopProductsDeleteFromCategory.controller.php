@@ -24,16 +24,16 @@ class shopProductsDeleteFromCategoryController extends waJsonController
         $all_updated_products = [];
         while ($processed < $total_count) {
             $offset = $total_count - $count - $processed < 0 ? 0 : $total_count - $count - $processed;
-            $product_ids = array_keys($collection->getProducts('*', $offset, $count));
-            $model->deleteProducts($category_id, $product_ids);
-            $all_updated_products += $product_ids;
-            $processed += count($product_ids);
+            $product_ids = array_keys($collection->getProducts('id', $offset, $count));
             if (!$product_ids) {
                 break;
             }
+            $model->deleteProducts($category_id, $product_ids);
+            $all_updated_products = array_merge($all_updated_products, $product_ids);
+            $processed += count($product_ids);
         }
         if (count($all_updated_products) > 1) {
-            $this->logAction('products_edit', count($all_updated_products) . '$' . implode(',', $all_updated_products));
+            $this->logAction('products_edit', $processed . '$' . implode(',', $all_updated_products));
         } elseif (isset($all_updated_products[0]) && is_numeric($all_updated_products[0])) {
             $this->logAction('product_edit', $all_updated_products[0]);
         }

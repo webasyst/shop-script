@@ -173,7 +173,14 @@
                 $block = (that.$block) ? that.$block : that.$wrapper,
                 $content = $block.find( getSelector("content") );
 
-            $content.css("height", "auto");
+            var long_class = "is-long-content",
+                dialog_long_class = "has-long-content";
+
+            $block.removeClass(dialog_long_class);
+
+            $content
+                .css("height", "auto")
+                .removeClass(long_class);
 
             var window_w = $window.width(),
                 window_h = $window.height(),
@@ -214,9 +221,10 @@
 
                 $content
                     .css("height", content_h + "px")
-                    .addClass("is-long-content")
+                    .addClass(long_class)
                     .show();
 
+                $block.addClass(dialog_long_class);
             }
 
             $block.css(css);
@@ -241,10 +249,14 @@
                 if (result !== false) {
                     if (that.animate) {
                         that.animateDialog(false).then( function() {
-                            that.$wrapper.remove();
+                            that.$wrapper
+                                .trigger("dialog-closed")
+                                .remove();
                         });
                     } else {
-                        that.$wrapper.remove();
+                        that.$wrapper
+                            .trigger("dialog-closed")
+                            .remove();
                     }
 
                     if (that.lock_body_scroll) {
@@ -409,8 +421,8 @@
     }
 
     function log(data) {
-        if (console && console.log) {
-            console.log(data);
+        if (console && console.error) {
+            console.error(data);
         }
     }
 
@@ -681,8 +693,8 @@
     }
 
     function log(data) {
-        if (console && console.log) {
-            console.log(data);
+        if (console && console.error) {
+            console.error(data);
         }
     }
 
@@ -728,6 +740,7 @@
 
             // DYNAMIC VARS
             that.is_opened = false;
+            that.is_locked = false;
             that.$before = null;
             that.$active = null;
 
@@ -776,11 +789,20 @@
                 }
             }
 
+            // Определяем что начало клика было на элементе внутри блока. В этом случае НЕ закрываем блок если mouseup ушёл вне блока. Пример: выделение текста с окончанием выделения за пределами блока.
+            let start_click_on_dropdown = false;
+            that.$wrapper.on("mousedown", function() {
+                start_click_on_dropdown = true;
+            });
+
             $document.on("click", clickWatcher);
             function clickWatcher(event) {
                 var wrapper = that.$wrapper[0],
                     is_exist = $.contains(document, wrapper);
 
+                if (start_click_on_dropdown) {
+                    start_click_on_dropdown = false;
+                } else
                 if (is_exist) {
                     var is_target = (event.target === wrapper || $.contains(wrapper, event.target));
                     if (that.is_opened && !is_target) {
@@ -799,13 +821,14 @@
             var that = this,
                 active_class = "is-opened";
 
+            if (that.is_locked) { return false; }
+
             that.is_opened = open;
 
             if (open) {
                 that.$wrapper.addClass(active_class);
 
-                // Защита от всплывания окна за правой/нижней границей экрана
-                if (that.options.protect.use_protect) { protect(); }
+                that.resize();
 
                 that.on.open(that);
 
@@ -818,39 +841,6 @@
                 if (that.$filter.length) { that.$filter.find(".js-field").val("").trigger("input"); }
             }
 
-            function protect() {
-                var top_class = "top",
-                    right_class = "right";
-
-                // clear
-                that.$menu
-                    .removeClass(top_class)
-                    .removeClass(right_class);
-
-                var $window = $(window),
-                    rect = that.$wrapper[0].getBoundingClientRect(),
-                    menu_rect = that.$menu[0].getBoundingClientRect();
-
-                // BOTTOM PROTECTION
-                var top_space = rect.y,
-                    bottom_space = $window.height() - rect.y - rect.height;
-
-                // Если места снизу под меню не хватает
-                if (bottom_space < menu_rect.height + that.options.protect.bottom) {
-                    // Если места сверху хватает под меню ЛИБО места сверху больше чем снизу
-                    if (top_space > menu_rect.height || top_space > bottom_space) {
-                        that.$menu.addClass(top_class);
-                    }
-                }
-
-                // RIGHT PROTECTION
-                var right_space = $window.width() - rect.x - that.$menu.outerWidth(),
-                    use_right = ($window.width() - menu_rect.right < that.options.protect.right);
-
-                if (use_right) {
-                    that.$menu.addClass(right_class);
-                }
-            }
         };
 
         Dropdown.prototype.initChange = function(selector) {
@@ -961,6 +951,47 @@
                 }
             }
         };
+
+        Dropdown.prototype.resize = function() {
+            var that = this;
+
+            // Защита от всплывания окна за правой/нижней границей экрана
+            if (that.options.protect.use_protect) { protect(); }
+
+            function protect() {
+                var top_class = "top",
+                    right_class = "right";
+
+                // clear
+                that.$menu
+                    .removeClass(top_class)
+                    .removeClass(right_class);
+
+                var $window = $(window),
+                    rect = that.$wrapper[0].getBoundingClientRect(),
+                    menu_rect = that.$menu[0].getBoundingClientRect();
+
+                // BOTTOM PROTECTION
+                var top_space = rect.y,
+                    bottom_space = $window.height() - rect.y - rect.height;
+
+                // Если места снизу под меню не хватает
+                if (bottom_space < menu_rect.height + that.options.protect.bottom) {
+                    // Если места сверху хватает под меню ЛИБО места сверху больше чем снизу
+                    if (top_space > menu_rect.height || top_space > bottom_space) {
+                        that.$menu.addClass(top_class);
+                    }
+                }
+
+                // RIGHT PROTECTION
+                var right_space = $window.width() - rect.x - that.$menu.outerWidth(),
+                    use_right = ($window.width() - menu_rect.right < that.options.protect.right);
+
+                if (use_right) {
+                    that.$menu.addClass(right_class);
+                }
+            }
+        }
 
         return Dropdown;
 
@@ -2614,7 +2645,7 @@
         $(document).ajaxError(function(e, xhr, settings, exception) {
             // Ignore 502 error in background process
             if (xhr.status === 502 && exception === 'abort' || (settings.url && settings.url.indexOf('background_process') >= 0) || (settings.data && settings.data.indexOf('background_process') >= 0)) {
-                console && console.log && console.log('Notice: XHR failed on load: '+ settings.url);
+                console && console.error && console.error('Notice: XHR failed on load: '+ settings.url);
                 return true;
             }
 
@@ -2904,6 +2935,159 @@ var SizeWatcher = ( function($) {
 
 })($);
 
+var Dropbox = ( function($) {
+
+    Dropbox = function(options) {
+        var that = this;
+
+        // DOM
+        that.$wrapper = options["$wrapper"];
+        that.$toggle = that.$wrapper.find("> .js-dropbox-toggle");
+        that.$body = that.$wrapper.find("> .dropbox-body");
+
+        // VARS
+        that.on = {
+            ready: (typeof options["ready"] === "function" ? options["ready"] : function() {}),
+            open: (typeof options["open"] === "function" ? options["open"] : function() {}),
+            close: (typeof options["close"] === "function" ? options["close"] : function() {})
+        };
+        that.options = {
+            hover  : (typeof options["hover"] === "boolean" ? options["hover"] : false),
+            protect: {
+                use_protect: (typeof options["protect"] === "boolean" ? options["protect"] : true),
+                right      : (typeof options["protect"] === "object" && typeof options["protect"]["right"] === "number" ? options["protect"]["right"] : 20),
+                bottom     : (typeof options["protect"] === "object" && typeof options["protect"]["bottom"] === "number" ? options["protect"]["bottom"] : 70)
+            }
+        };
+
+        // DYNAMIC VARS
+        that.is_opened = false;
+        that.is_locked = false;
+
+        // INIT
+        that.init();
+    };
+
+    Dropbox.prototype.init = function() {
+        var that = this,
+            $document = $(document);
+
+        if (that.options.hover) {
+            that.$toggle.on("mouseenter", function() {
+                that.toggleMenu(true);
+            });
+
+            that.$wrapper.on("mouseleave", function() {
+                that.toggleMenu(false);
+            });
+        }
+
+        that.$toggle.on("click", function(event) {
+            event.preventDefault();
+            that.toggleMenu(!that.is_opened);
+        });
+
+        // Определяем что начало клика было на элементе внутри блока. В этом случае НЕ закрываем блок если mouseup ушёл вне блока. Пример: выделение текста с окончанием выделения за пределами блока.
+        let start_click_on_dropbox = false;
+        that.$wrapper.on("mousedown", function() {
+            start_click_on_dropbox = true;
+        });
+
+        $document.on("click", clickWatcher);
+        function clickWatcher(event) {
+            var wrapper = that.$wrapper[0],
+                is_exist = $.contains(document, wrapper);
+
+            if (start_click_on_dropbox) {
+                start_click_on_dropbox = false;
+            } else
+            if (is_exist) {
+                var is_target = (event.target === wrapper || $.contains(wrapper, event.target));
+                if (that.is_opened && !is_target) {
+                    that.hide();
+                }
+            } else {
+                $document.off("click", clickWatcher);
+            }
+        }
+
+        that.$wrapper.data("dropbox", that);
+        that.on.ready(that);
+    };
+
+    Dropbox.prototype.open = function() {
+        var that = this;
+        that.toggleMenu(true);
+    };
+
+    Dropbox.prototype.hide = function() {
+        var that = this;
+        that.toggleMenu(false);
+    };
+
+    Dropbox.prototype.toggleMenu = function(open) {
+        var that = this,
+            active_class = "is-opened";
+
+        if (that.is_locked) { return false; }
+
+        that.is_opened = open;
+
+        if (open) {
+            that.$wrapper.addClass(active_class);
+            that.resize();
+            that.on.open(that);
+        } else {
+            that.$wrapper.removeClass(active_class);
+            that.on.close(that);
+        }
+    };
+
+    Dropbox.prototype.resize = function() {
+        var that = this;
+
+        // Защита от всплывания окна за правой/нижней границей экрана
+        if (that.options.protect.use_protect) { protect(); }
+
+        function protect() {
+            var top_class = "top",
+                right_class = "right";
+
+            // clear
+            that.$body
+                .removeClass(top_class)
+                .removeClass(right_class);
+
+            var $window = $(window),
+                rect = that.$wrapper[0].getBoundingClientRect(),
+                menu_rect = that.$body[0].getBoundingClientRect();
+
+            // BOTTOM PROTECTION
+            var top_space = rect.y,
+                bottom_space = $window.height() - rect.y - rect.height;
+
+            // Если места снизу под меню не хватает
+            if (bottom_space < menu_rect.height + that.options.protect.bottom) {
+                // Если места сверху хватает под меню ЛИБО места сверху больше чем снизу
+                if (top_space > menu_rect.height || top_space > bottom_space) {
+                    that.$body.addClass(top_class);
+                }
+            }
+
+            // RIGHT PROTECTION
+            var right_space = $window.width() - rect.x - that.$body.outerWidth(),
+                use_right = ($window.width() - menu_rect.right < that.options.protect.right);
+
+            if (use_right) {
+                that.$body.addClass(right_class);
+            }
+        }
+    }
+
+    return Dropbox;
+
+})($);
+
 /**
  * @description custom tooltip component
  * */
@@ -3068,7 +3252,7 @@ var Tooltip = ( function($) {
             that.animate = (typeof options["animate"] === "boolean" ? options["animate"] : false);
             that.position = (typeof options["position"] === "string" ? options["position"] : "right");
             that.start_time = (typeof options["start_time"] === "number" ? options["start_time"] : 500);
-            that.hide_time = (typeof options["hide_time"] === "number" ? options["hide_time"] : 500);
+            that.hide_time = (typeof options["hide_time"] === "number" ? options["hide_time"] : 200);
 
             // DOM
             that.$tooltip = getTooltip(that.html);
@@ -3321,6 +3505,15 @@ var Tooltip = ( function($) {
             }
         };
 
+        Tooltip.prototype.update = function(options) {
+            var that = this;
+
+            if (options.html) {
+                that.html = options.html;
+                that.$tooltip.html(options.html);
+            }
+        };
+
         return Tooltip;
 
     })($);
@@ -3383,6 +3576,9 @@ $.wa = $.extend($.wa || {}, {
         },
         SizeWatcher: function(options) {
             return new SizeWatcher(options);
+        },
+        Dropbox: function(options) {
+            return new Dropbox(options);
         }
     },
 
@@ -3455,10 +3651,12 @@ $.wa = $.extend($.wa || {}, {
     /**
      * @param {String} type
      * @param {Number|String} value
+     * @param {Object?} options
      * @return {String} value
      * */
-    validate: function(type, value) {
+    validate: function(type, value, options) {
         value = (typeof value === "string" ? value : "" + value);
+        options = (typeof options === "object" ? options : {});
 
         var result = value;
 
@@ -3535,7 +3733,85 @@ $.wa = $.extend($.wa || {}, {
                 break;
         }
 
+        if (typeof result === "string") {
+            var parts = result.split(".");
+
+            // Удаляем нули вначале "0000.12" => "0.12" / 00001 => 1
+            if (options.remove_start_nulls) {
+                let string_with_nulls = parts[0].split(""),
+                    string_without_nulls = [];
+
+                $.each(string_with_nulls, function(i, letter) {
+                    if (string_without_nulls.length || (letter !== "0")) {
+                        string_without_nulls.push(letter);
+                    }
+                });
+
+                if (!string_without_nulls.length) {
+                    string_without_nulls.push(0);
+                }
+
+                parts[0] = string_without_nulls.join("");
+            }
+
+            if (options.group_size > 0) {
+                parts[0] = getSplitedGroups(parts[0], options.group_size, " ");
+            }
+
+            if (parts[1]) {
+                if (options.fraction_size > 0) {
+                    parts[1] = parts[1].substr(0, options.fraction_size);
+                }
+            }
+
+            result = parts.join(".");
+
+            if (options.delimiter) {
+                result = result.replace(".", options.delimiter);
+            }
+        }
+
         return result;
+
+        function getSplitedGroups(string, size, delimiter) {
+            var result = "";
+
+            if (!(size && string && delimiter)) {
+                return string;
+            }
+
+            var string_array = string.split("").reverse();
+
+            var groups = [];
+            var group = [];
+
+            for (var i = 0; i < string_array.length; i++) {
+                var letter = string_array[i],
+                    is_first = (i === 0),
+                    is_last = (i === string_array.length - 1),
+                    delta = (i % size);
+
+                if (delta === 0 && !is_first) {
+                    groups.unshift(group);
+                    group = [];
+                }
+
+                group.unshift(letter);
+
+                if (is_last) {
+                    groups.unshift(group);
+                }
+            }
+
+            for (i = 0; i < groups.length; i++) {
+                var is_last_group = (i === groups.length - 1),
+                    _group = groups[i].join("");
+
+                result += _group + ( is_last_group ? "" : delimiter );
+            }
+
+            return result;
+        }
     },
 
     /**
@@ -3672,7 +3948,7 @@ $.wa = $.extend($.wa || {}, {
      * @description Выбирает одну локализацию из строк массива на основе числа
      * @param {Number} number
      * @param {Array} locales
-     * @param {Boolean} replace
+     * @param {Boolean?} replace
      * @return {String}
      * */
     locale_plural: function(number, locales, replace) {
@@ -3756,6 +4032,202 @@ $.wa = $.extend($.wa || {}, {
 
             if (callback) { callback(timezone); }
         }
+    },
+
+    price: {
+        currencies: {
+            "default": {
+                code : null,
+                fraction_divider: ".",
+                fraction_size   : 2,
+                group_divider   : " ",
+                group_size      : 3,
+                pattern_html    : "<span class=\"price\">%s</span>",
+                pattern_text    : "%s",
+                pattern_unit    : "%s/%unit",
+                rounding        : 0.01
+            }
+        },
+
+        /**
+         * @param {object} currency_data
+         * @return undefined
+         * */
+        addCurrency: function(currency_data) {
+            var self = this;
+
+            if (currency_data) {
+                self.currencies[currency_data["code"]] = currency_data;
+            }
+        },
+
+        /**
+         * @param {string|number} price
+         * @param {object?} options
+         * @return {string}
+         * */
+        format: function(price, options) {
+            var self = this,
+                result = price;
+
+            // Опции
+            options = (typeof options !== "undefined" ? options : {});
+            options.only_number = (typeof options.only_number === "boolean" ? options.only_number : false);
+            options.unit = (typeof options.unit === "string" ? options.unit : null);
+            options.html = (typeof options.html === "boolean" ? options.html : true);
+            options.currency = (typeof options.currency === "string" ? options.currency : "default");
+
+            // Валидация валюты
+            if (!options.currency || !self.currencies[options.currency]) {
+                console.error("ERROR: Currency is not exist");
+                return result;
+            }
+
+            try {
+                var price_number = (typeof price === "number" ? price : parseFloat(price));
+                if (Math.abs(price_number) >= 0) {
+                    result = parseValue(price_number, price);
+                }
+            } catch(e) {
+                if (console && console.error) {
+                    console.error(e.message, price);
+                }
+            }
+
+            if (options.html) {
+                result = '<span class="price-wrapper">'+result+'</span>';
+            }
+
+            return result;
+
+            function parseValue(price, price_original) {
+                var result = price,
+                    format = self.currencies[options.currency],
+                    fraction_size = format.fraction_size;
+
+                if (typeof options.fraction_size === "number") {
+                    fraction_size = options.fraction_size;
+                } else if (options.fraction_size === null) {
+                    fraction_size = 4;
+                }
+
+                price_original = $.wa.validate("number", price_original);
+                var parts = price_original.split(".");
+                var int = parts[0],
+                    tail = (parts.length > 1 ? price_original.substr(int.length + 1) : null);
+
+                var price_string = getGroupedString(int, format.group_size, format.group_divider),
+                    fraction_string = getFractionString(tail);
+
+                if (options.only_number) {
+                    result = price_string + fraction_string;
+
+                } else {
+                    result = (options.html ? format.pattern_html : format.pattern_text)
+                        .replace("%s", price_string + fraction_string );
+
+                    if (options.unit) {
+                        var unit = (options.html ? '<span class="unit">'+options.unit+'</span>' : options.unit);
+                        result = format.pattern_unit
+                            .replace("%s", result)
+                            .replace("%unit", unit);
+                    }
+                }
+
+                return result;
+
+                function getGroupedString(string, size, divider) {
+                    var result = "";
+
+                    if (!(size && string && divider)) {
+                        return string;
+                    }
+
+                    var string_array = string.split("").reverse();
+
+                    var groups = [];
+                    var group = [];
+
+                    for (var i = 0; i < string_array.length; i++) {
+                        var letter = string_array[i],
+                            is_first = (i === 0),
+                            is_last = (i === string_array.length - 1),
+                            delta = (i % size);
+
+                        if (delta === 0 && !is_first) {
+                            groups.unshift(group);
+                            group = [];
+                        }
+
+                        group.unshift(letter);
+
+                        if (is_last) {
+                            groups.unshift(group);
+                        }
+                    }
+
+                    for (i = 0; i < groups.length; i++) {
+                        var is_last_group = (i === groups.length - 1),
+                            _group = groups[i].join("");
+
+                        result += _group + ( is_last_group ? "" : divider );
+                    }
+
+                    return result;
+                }
+
+                function getFractionString(number) {
+                    var result = "";
+
+                    // Кол-во знаков после запятой
+                    if (fraction_size > 0) {
+                        // Если дробная часть присутствует
+                        if (number > 0) {
+                            // Обрезаем знаки
+                            if (number.length > fraction_size) {
+                                // Округляем в большую сторону
+                                if (number.substr(0, 1) !== "9") {
+                                    number = "1" + number;
+                                    number = Math.round(number.substr(0, fraction_size + 2)/ 10);
+                                    number = (number + "").substr(1);
+                                } else {
+                                    number = number.substr(0, fraction_size);
+                                }
+
+                            // Добавляем нули
+                            } else if (number.length < fraction_size) {
+                                number = "1" + number;
+                                number = (number * Math.pow(10, fraction_size - (number.length - 1))) + "";
+                                number = (number + "").substr(1);
+                            }
+                        // Добавляем нули
+                        } else {
+                            number = (Math.pow(10, fraction_size) + "").substr(1);
+                        }
+
+                        // Если нужно убрать нули в конце
+                        var round_zero = (options.fraction_size === null);
+                        if (round_zero) {
+                            var valid_letters = [],
+                                letters = number.split("").reverse();
+                            $.each(letters, function(i, letter) {
+                                if (valid_letters.length || (letter !== "0")) {
+                                    valid_letters.push(letter);
+                                }
+                            });
+                            number = valid_letters.reverse().join("");
+                        }
+
+                        // Добавляем разделитель если число присутствует
+                        if (number.length) {
+                            result = format.fraction_divider + number;
+                        }
+                    }
+
+                    return result;
+                }
+            }
+        },
     },
 
     // Очень полезные простые функции

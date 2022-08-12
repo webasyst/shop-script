@@ -11,7 +11,7 @@
             <a class="s-new-product-editor-button float-right"
                data-href="{$wa_app_url}products/{if $product.id === 'new'}new{else}{$product.id|escape}{/if}/"
                href="{$wa_app_url}products/{if $product.id === 'new'}new{else}{$product.id|escape}{/if}/"
-               title="{_w("Try out the new product editor version. The option to return to the old editor will remain.")|escape}">[`Try out new product editor`]</a>
+               title="{_w("Try out the new products section version. The option to return to the old editor will remain.")|escape}">[`Try out new products section`]</a>
 
             <script>
                 ( function($) {
@@ -77,7 +77,7 @@
         {elseif !($product.id === 'new' || $product.status === "-1")}
             <a class="s-new-product-editor-button float-right" style="{if $product.id === 'new'}display: none{/if}"
                href="{$wa_app_url}products/{$product.id|escape}/prices/"
-               title="{_w("Try out the new product editor version. The option to return to the old editor will remain.")|escape}">[`Try out new product editor`]</a>
+               title="{_w("Try out the new products section version. The option to return to the old editor will remain.")|escape}">[`Try out new products section`]</a>
         {/if}
 
         <!-- plugin hook: 'backend_product.title_suffix' -->

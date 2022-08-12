@@ -1,0 +1,73 @@
+{$_tooltips["table-result-filter-name"] = [
+    "id" => "table-result-filter-name",
+    "position" => "top",
+    "hide_time" => 0
+]}
+
+{capture assign="_component_table_filters_result"}
+<div class="s-result-section" v-if="result_filters.length">
+    <div class="flexbox space-16">
+        <div class="flexbox space-12 nowrap">
+            <div class="s-count-wrapper">
+                <span class="s-count bold">{_w("Найден %d товар.", "Найдено %d товаров", $products_total_count)}</span>
+            </div>
+            <div class="s-reset-wrapper">
+                <span class="link" v-on:click="resetFilters">[`Сбросить фильтры`]</span>
+            </div>
+        </div>
+        <div class="s-filters-list js-filters-list">
+            <template v-for="group in visible_filters">
+                <component-table-filters-rules-item
+                    v-bind:group="group"
+                    v-on:remove_group="removeGroup"
+                    v-bind:show_tooltip="true"></component-table-filters-rules-item>
+            </template>
+        </div>
+        <div class="s-dropdown-filters" v-bind:style="{ 'visibility' : (!invisible_filters.length ? 'hidden' : '') }">
+            <div class="dropdown js-dropdown">
+                <div class="dropdown-toggle nowrap link cursor-pointer">
+                    <span class="s-name">+ { { invisible_filters.length } }</span>
+                </div>
+                <div class="dropdown-body">
+                    <template v-for="group in invisible_filters">
+                        <component-table-filters-rules-item
+                            v-bind:group="group"
+                            v-on:remove_group="removeDropdownGroup"></component-table-filters-rules-item>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/capture}
+{$_components["component-table-filters-rules"] = $_component_table_filters_result|trim}
+
+{capture assign="_component_table_filters_result_item"}
+<div class="s-filter-item-wrapper"
+     v-bind:data-title="(show_tooltip ? name_tooltip : null)"
+     v-bind:data-tooltip-id="(show_tooltip ? 'table-result-filter-name' : null)">
+    <div class="flexbox space-4">
+        <div class="s-icon-wrapper">
+            <span class="s-icon icon shift-0" v-if="group.type === 'categories'" v-bind:key="group.type"><i class="fas fa-folder"></i></span>
+            <span class="s-icon icon shift-0" v-else-if="group.type === 'sets'" v-bind:key="group.type"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></span>
+            <span class="s-icon icon shift-0" v-else-if="group.type === 'storefronts'" v-bind:key="group.type"><i class="fas fa-store"></i></span>
+            <span class="s-icon icon shift-0" v-else-if="group.type === 'tags'" v-bind:key="group.type"><i class="fas fa-tag"></i></span>
+            <span class="s-icon icon shift-0" v-else-if="group.type === 'types'" v-bind:key="group.type"><i class="fas fa-cube"></i></span>
+        </div>
+        <div class="s-name-wrapper">
+            <template v-if="names.length > 1">
+                <template v-for="name in names">
+                    <span class="s-name" v-html="name"></span>
+                </template>
+            </template>
+            <template v-else>
+                <span class="s-name" v-html="names[0]"></span>
+            </template>
+        </div>
+        <div class="s-action-wrapper">
+            <span class="s-icon icon shift-0 cursor-pointer" v-on:click="remove(group)"><i class="fas fa-times"></i></span>
+        </div>
+    </div>
+</div>
+{/capture}
+{$_components["component-table-filters-rules-item"] = $_component_table_filters_result_item|trim}

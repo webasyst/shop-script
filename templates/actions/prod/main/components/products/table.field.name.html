@@ -1,0 +1,93 @@
+{capture assign="_component_product_column_name"}
+    <div class="vue-component-product-column-name"
+         v-bind:class="{ 'is-extended' : states.is_extended }">
+
+        <template v-if="states.is_product_col">
+            <template v-if="states.is_edit && column_data.editable">
+                <component-textarea
+                    v-model="column_data.value"
+                    v-bind:focus="true"
+                    v-bind:cancel="true"
+                    v-bind:key="states.edit_key"
+                    v-bind:placeholder="'{_w("Product name")|escape}'"
+                    v-bind:class="'wa-small wide s-square-field'"
+                    v-on:cancel="onCancel"
+                    v-on:change="onChange"></component-textarea>
+            </template>
+            <template v-else>
+                <div class="s-product-name-wrapper">
+                    <div class="s-flexbox flexbox">
+                        <div class="s-name wide" v-bind:class="name_class">
+                            <span class="icon shift-up-1 size-10 color-gray" v-if="product.product_from_subcategory" data-tooltip-id="product_from_subcategories"><svg><use xlink:href='{$_sprite_url}#folder-tree'></use></svg></span>
+                            <a v-bind:href="'{$wa_app_url}' + product_url">{ { column_data.value } }</a>
+                        </div>
+                        <div class="s-icon-wrapper">
+                            <template v-if="states.is_locked">
+                                <span class="s-icon icon size-12" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                            </template>
+                            <template v-else>
+                                <span class="s-icon icon size-12 cursor-pointer" v-on:click="toggle(true)" v-bind:key="'fa-pen'"><i class="fas fa-pen"></i></span>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </template>
+        <template v-else-if="states.is_sku_col">
+            <div class="s-sku-name-wrapper">
+                <div class="s-table tablebox fixed space-12">
+                    <div class="s-sku-sku-column" v-if="sku.sku">
+                        <div class="s-text-wrapper" v-bind:title="sku.sku">
+                            <span class="s-icon icon"><svg><use xlink:href="{$_sprite_url}#sku"></use></svg></span>
+                            <span class="s-text" v-text="sku.sku"></span>
+                        </div>
+                    </div>
+                    <div class="s-sku-name-column" v-if="sku.name">
+                        <div class="s-text-wrapper" v-bind:title="sku.name" v-if="sku.name">
+                            <span class="s-text" v-text="sku.name"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+        <template v-else-if="states.is_sku_mod_col">
+            <div class="s-sku-mod-name-wrapper">
+                <div class="flexbox space-8">
+                    <div class="s-photo-wrapper" v-if="sku_mod_photo">
+                        <div class="s-photo" v-bind:class="{ 'has-photo' : !!sku_mod_photo.url, 'is-empty' : !sku_mod_photo.url }">
+                            <template v-if="sku_mod_photo.url">
+                                <div class="s-image" v-bind:style="{ 'background-image' : 'url('+sku_mod_photo.url+')' }">
+                            </template>
+                            <template v-else>
+                                <span class="s-icon icon size-18"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>
+                            </template>
+                        </div>
+                    </div>
+
+                    <template v-if="sku_mod.name_values">
+                        <div class="s-sku-mod-name" v-text="sku_mod.name_values"></div>
+                    </template>
+
+                    <template v-else>
+                        <div class="s-sku-name-wrapper">
+                            <div class="s-table tablebox fixed space-12">
+                                <div class="s-sku-sku-column" v-if="sku.sku">
+                                    <div class="s-text-wrapper" v-bind:title="sku.sku">
+                                        <span class="s-icon icon"><svg><use xlink:href="{$_sprite_url}#sku"></use></svg></span>
+                                        <span class="s-text" v-text="sku.sku"></span>
+                                    </div>
+                                </div>
+                                <div class="s-sku-name-column" v-if="sku.name">
+                                    <div class="s-text-wrapper" v-bind:title="sku.name" v-if="sku.name">
+                                        <span class="s-text" v-text="sku.name"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-product-column-name"] = $_component_product_column_name|trim}

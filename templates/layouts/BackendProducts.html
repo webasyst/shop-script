@@ -1,5 +1,9 @@
-<!DOCTYPE html>
-<html lang="{if $wa->locale()}{$wa->locale()}{else}en{/if}">
+{strip}
+
+{$ui_version = $wa->whichUI()|substr:0:1}
+
+{/strip}<!DOCTYPE html>
+<html lang="{if $wa->locale()}{$wa->locale()}{else}en{/if}" class="wa-ui-version-{$ui_version}">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>{$wa->title()|default:$wa->appName()|escape} — {$wa->accountName()}</title>
@@ -11,15 +15,21 @@
 
     {* CSS *}
     {$wa->css()}
-    <link href="{$wa_app_static_url}css/shop.css?v{$wa->version()}" rel="stylesheet" />
     <link href="{$wa_app_static_url}css/backend/products/wa2/wa2.css?v{$wa->version()}" rel="stylesheet" />
+    {* коррекция общего интерфейса раздела под разные версии wa-ui *}
+    <link href="{$wa_app_static_url}css/backend/products/ui/ui.css?v={$wa->version(true)}" rel="stylesheet" />
+    {* раздел списка товаров *}
+    <link href="{$wa_app_static_url}css/backend/products/main/main.css?v={$wa->version(true)}" rel="stylesheet" />
+    {* раздел редактора товара *}
     <link href="{$wa_app_static_url}css/backend/products/product/product.css?v={$wa->version(true)}" rel="stylesheet" />
 
     {* JS *}
     <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
     {* FYI: без мигрейта Datepicker выдает простыню ошибок. *}
     <script src="{$wa_url}wa-content/js/jquery/jquery-migrate-1.2.1.min.js"></script>
+
     <script src="{$wa_app_static_url}js/backend/products/wa2.js?v{$wa->version()}"></script>
+
     <script src="{$wa_app_static_url}js/backend/products/products.js?v{$wa->version()}"></script>
     <script src="{$wa_url}wa-content/js/fontawesome/fontawesome-all.min.js?v={$wa->version(true)}"></script>
 
@@ -29,13 +39,15 @@
     {if substr($wa->locale(), 0, 2) !== "en"}
         <script src="{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"></script>
     {/if}
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js"></script>
 
     {$wa->js()}
 
     <script>
         ( function($) {
+            $.wa_shop_products.lang = "{substr($wa->locale(), 0, 2)}";
             $.wa_shop_products.app_url = "{$wa_app_url|escape}";
-            $.wa_shop_products.section_url = "{$wa_app_url|escape}?action=products";
+            $.wa_shop_products.section_url = "{$wa_app_url|escape}products/";
             $.wa.title.pattern = "%s — {$wa->accountName()|escape}";
         })(jQuery);
     </script>
@@ -88,7 +100,7 @@
             var sections = {
                 "products": {
                     id: "products",
-                    content_selector: ".s-product-page .js-page-content"
+                    content_selector: "#js-products-page-content"
                 },
                 "product": {
                     id: "product",
@@ -98,6 +110,12 @@
 
             var routes = {
                 "/products/"              : sections["products"],
+                "/products/categories/"   : sections["products"],
+                "/products/sets/"         : sections["products"],
+                "/products/tags/"         : sections["products"],
+                "/products/reviews/"      : sections["products"],
+                "/products/stocks/"       : sections["products"],
+                "/products/new/"          : sections["product"],
                 "/products/\\d+/"         : sections["product"],
                 "/products/\\d+/general/" : sections["product"],
                 "/products/\\d+/sku/"     : sections["product"],

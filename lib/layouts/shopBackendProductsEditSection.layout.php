@@ -61,20 +61,45 @@ class shopBackendProductsEditSectionLayout extends shopBackendProductsLayout
         parent::execute();
     }
 
-    /** Part of execute() that assigns vars for wrapper template (including sidebar) */
+    /** Part of execute() that assigns vars for wrapper template (including sidebar)
+     * @throws waException
+     */
     public function assignWrapperVars()
     {
         $backend_prod_event = $this->throwEvent();
-
+        $product_id = $this->getProduct()->id;
         $this->executeAction('sidebar', new shopProdSidebarAction([
-            'product_id' => $this->getProduct()->id,
+            'product_id' => $product_id,
             'backend_prod_event' => $backend_prod_event
         ]));
 
+        $this->executeAction('products_menu', new shopProdListSidebarAction());
+
+        $presentation_id = waRequest::request('presentation', null, waRequest::TYPE_INT);
+        $product_list_data = null;
+        if ($presentation_id) {
+            $wa_app_url = wa()->getAppUrl('shop') . 'products/';
+            $presentation_param = '/?presentation=' . $presentation_id;
+            $near_products = shopPresentation::getNearestProducts($product_id, $presentation_id, true);
+            $product_list_data = [
+                'prev' => [
+                    'url' => $wa_app_url . $near_products['prev']['id'] . '/' . $this->options['content_id'] . $presentation_param,
+                    'name' => $near_products['prev']['name'],
+                ],
+                'next' => [
+                    'url' => $wa_app_url . $near_products['next']['id'] . '/' . $this->options['content_id'] . $presentation_param,
+                    'name' => $near_products['next']['name'],
+                ],
+                'position' => $near_products['position'],
+                'count' => $near_products['count']
+            ];
+        }
+
         $this->view->assign([
-            'product' => $this->getProduct(),
+            'product'            => $this->getProduct(),
+            'product_list_data'  => $product_list_data,
             'backend_prod_event' => $backend_prod_event
-        ]);
+        ] );
     }
 
     public function getProduct()

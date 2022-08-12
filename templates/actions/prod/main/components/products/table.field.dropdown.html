@@ -1,0 +1,15 @@
+{capture assign="_component_dropdown_product_column"}
+    <div class="vue-render-type-dropdown">
+        <templates v-if="states.is_locked">
+            <span class="s-icon icon" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+        </templates>
+        <templates v-else>
+            <component-dropdown
+                v-model="column_data.value"
+                v-bind:button_class="'s-square-field'"
+                v-bind:options="options"
+                v-on:change="onChange"></component-dropdown>
+        </templates>
+    </div>
+{/capture}
+{$_components["component-product-column-dropdown"] = $_component_dropdown_product_column|trim}

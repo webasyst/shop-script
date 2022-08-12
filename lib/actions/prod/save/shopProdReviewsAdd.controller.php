@@ -15,6 +15,14 @@ class shopProdReviewsAddController extends waJsonController
     {
         $product_reviews_model = new shopProductReviewsModel();
         $data = $this->getReqiestData($product_reviews_model);
+        $product = new shopProduct($data['product_id']);
+        if (!$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return false;
+        }
         if ($this->errors = $product_reviews_model->validate($data)) {
             return false;
         }

@@ -1,0 +1,177 @@
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_sort_options = [
+    [
+        "name" => _w("Сортировка"),
+        "value" => ""
+    ],
+    [
+        "name" => _w("By name"),
+        "value" => "name ASC"
+    ],
+    [
+        "name" => _w("По названию (в обратном порядке)"),
+        "value" => "name DESC"
+    ],
+    [
+        "name" => _w("Most expensive"),
+        "value" => "price DESC"
+    ],
+    [
+        "name" => _w("Least expensive"),
+        "value" => "price ASC"
+    ]
+]}
+
+{$_components = []}
+
+{capture assign="_component_dropdown_products_sorting"}
+    <div class="vue-component-dropdown-products-sorting">
+        <span class="s-icon icon size-20 shift-2"><svg><use xlink:href="{$_sprite_url}#sort"></use></svg></span>
+
+        <div class="dropdown js-dropdown">
+            <button class="dropdown-toggle wa-button wa-small transparent" type="button">{ { active_option.name } }</button>
+            <div class="dropdown-body">
+                <template v-for="option in options">
+                    <div class="dropdown-item"
+                         v-if="option.value.length"
+                         v-bind:class="{ 'selected' : (option === active_option) }"
+                         v-on:click.prevent="change(option)">
+                        <span class="s-label">{ { option.name } }</span>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-dropdown-products-sorting"] = $_component_dropdown_products_sorting|trim}
+
+<div class="wa-dialog s-category-sort-products-dialog" id="js-category-sort-products-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: visible;">
+            <div class="dialog-header">
+                <h3 class="s-title wide">{sprintf(_w("Сотрировка товаров для категории «%s»"), "{ { category.name } }")}</h3>
+
+                <template v-if="!render_products || products.length">
+                    <template v-if="!states.sort_locked">
+                        <component-dropdown-products-sorting v-model="sort" v-on:change="changeSort"></component-dropdown-products-sorting>
+                    </template>
+                    <template v-else>
+                        <div class="s-load-message">
+                            <span class="s-icon icon size-16"><i class="fas fa-spinner fa-spin"></i></span>
+                            <span class="s-text">[`Продукты сортируются, пожалуйста подождите.`]</span>
+                        </div>
+                    </template>
+                </template>
+
+                <div class="s-close-button cursor-pointer js-dialog-close">
+                    <span class="s-icon icon size-20"><svg><use xlink:href="{$_sprite_url}#times"></use></svg></span>
+                </div>
+            </div>
+            <div class="dialog-content">
+
+                <template v-if="render_products">
+                    <template v-if="products.length">
+                        <div class="s-products-list" v-bind:class="{ 'is-locked' : states.sort_locked }">
+                            <template v-for="product in products">
+                                <div class="s-product-wrapper"
+                                     v-bind:class="{ 'is-selected' : product.states.selected, 'is-moving' : product.states.moving }"
+                                     v-bind:data-id="product.id"
+                                     v-bind:key="product.id">
+
+                                    <div class="s-column-toggle">
+                                        <div class="s-middle-content">
+                                            <template v-if="!product.states.move_locked">
+                                                <span class="s-icon icon size-16 cursor-move js-product-move-toggle" draggable="true"><i class="fas fa-bars"></i></span>
+                                            </template>
+                                            <template v-else>
+                                                <span class="s-icon icon size-16"><i class="fas fa-spinner fa-spin"></i></span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <div class="s-column-checkbox">
+                                        <div class="s-middle-content">
+                                            <component-checkbox v-model="product.states.selected" v-on:change="onSelect(product)"></component-checkbox>
+                                        </div>
+                                    </div>
+                                    <div class="s-column-image">
+                                        <div class="s-image"></div>
+                                    </div>
+                                    <div class="s-column-name">
+                                        <div class="s-middle-content">
+                                            <div class="s-name" v-html="product.name"></div>
+                                        </div>
+                                    </div>
+                                    <div class="s-column-price">
+                                        <div class="s-middle-content end">
+                                            <div class="s-price" v-html="product.price_html"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="s-empty-message">[`В категории нет товаров для сортировки`]</div>
+                    </template>
+                </template>
+                <template v-else>
+                    <div class="s-warn-message">
+                        <p>[`В категории слишком много товаров. Отображение всех товаров может нагрузить ваш компьютер. Нажмите на кнопку ниже, чтобы их отобразить на ваше усмотрение.`]</p>
+                        <p>
+                            <button class="wa-button wa-small" type="button"
+                                    v-bind:disabled="states.force_locked"
+                                    v-on:click.prevent="forceRender">
+                                <span class="s-icon icon top" v-if="states.force_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                                <span class="s-name">[`Показать все товары`]</span>
+                            </button>
+                        </p>
+                    </div>
+                </template>
+
+            </div>
+            <div class="dialog-footer" v-if="selected_products.length && !states.locked">
+                <div class="flexbox middle space-16">
+                    <div class="s-selection-counter">
+                        <span class="s-label">[`Выбрано`]</span>
+                        <span class="s-count" v-text="selected_products.length"></span>
+                    </div>
+
+                    <div class="s-action cursor-pointer link" v-on:click="moveUp">
+                        <span class="s-icon icon size-16"><svg><use xlink:href="{$_sprite_url}#chevron-double-up"></use></svg></span>
+                        <span class="s-name">[`в начало`]</span>
+                    </div>
+
+                    <div class="s-action cursor-pointer link" v-on:click="moveDown">
+                        <span class="s-icon icon size-16"><svg><use xlink:href="{$_sprite_url}#chevron-double-down"></use></svg></span>
+                        <span class="s-name">[`в конец`]</span>
+                    </div>
+
+                    <div class="s-close-action wide">
+                        <span class="s-icon icon size-20 cursor-pointer" v-on:click="revert"><svg><use xlink:href="{$_sprite_url}#times"></use></svg></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            $.wa_shop_products.init.initCategorySortDialog({
+                $wrapper: $("#js-category-sort-products-dialog").removeAttr("id"),
+                components: {$_components|json_encode},
+                urls: {
+                    "category_sort_dialog": "{$wa_app_url}?module=prod&action=categorySortDialog",
+                    "sort": "{$wa_app_url}?module=prod&action=categorySortDialogSave",
+                    "move": "{$wa_app_url}?module=prod&action=categorySortDialogSave"
+                },
+
+                sort_options: {$_sort_options|json_encode},
+                category: {$category|json_encode},
+                products: {$products|json_encode},
+                render_products: {$render_products|json_encode}
+            });
+        })(jQuery);
+    </script>
+</div>

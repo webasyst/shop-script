@@ -35,4 +35,32 @@ class shopInstaller
         $m->createSchema($db_partial);
     }
 
+    // Should really only be used to add single columns.
+    // Adds them in multiple queries one by one because
+    // of the limitations of waModel / waDbAdapter :(
+    // Does nothing when columns already exist (does not check if schema matches).
+    // Does nothing when table or column is missing from db.php.
+    public function addColumns($table, $columns)
+    {
+        $db_path = wa()->getAppPath('lib/config/db.php', 'shop');
+        if (!file_exists($db_path)) {
+            return;
+        }
+
+        $db = include($db_path);
+        if (!isset($db[$table])) {
+            return;
+        }
+
+        $m = new waModel();
+        $columns = (array) $columns;
+
+        $prev_column = null;
+        foreach ($db[$table] as $column => $column_schema) {
+            if (in_array($column, $columns)) {
+                $m->addColumn($column, $db, $prev_column, $table);
+            }
+            $prev_column = $column;
+        }
+    }
 }

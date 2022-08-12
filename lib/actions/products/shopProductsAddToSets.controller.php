@@ -73,12 +73,12 @@ class shopProductsAddToSetsController extends waJsonController
         $all_updated_products = [];
         while ($offset < $total_count) {
             $product_ids = array_keys($collection->getProducts('*', $offset, $count));
-            $this->set_products_model->add($product_ids, $set_ids);
-            $all_updated_products += $product_ids;
-            $offset += count($product_ids);
             if (!$product_ids) {
                 break;
             }
+            $this->set_products_model->add($product_ids, $set_ids);
+            $all_updated_products = array_merge($all_updated_products, $product_ids);
+            $offset += count($product_ids);
         }
 
         if ($total_count > 1) {

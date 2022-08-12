@@ -110,6 +110,8 @@ class shopTransferActions extends waJsonActions
             $items
         );
 
+        $this->waLog('transfer_sent', $transfer_id);
+
         return $transfer_id;
     }
 
@@ -122,6 +124,8 @@ class shopTransferActions extends waJsonActions
             'transfer' => $transfer,
             'html' => $this->getTransferListHtml($transfer_id)
         );
+
+        $this->waLog('transfer_completed', $transfer_id);
     }
 
     public function receiveAction()
@@ -133,6 +137,8 @@ class shopTransferActions extends waJsonActions
             'transfer' => $transfer,
             'html' => $this->getTransferListHtml($transfer_id)
         );
+
+        $this->waLog('transfer_completed', $transfer_id);
     }
 
     public function cancelAction()
@@ -144,6 +150,8 @@ class shopTransferActions extends waJsonActions
             'transfer' => $transfer,
             'html' => $this->getTransferListHtml($transfer_id)
         );
+
+        $this->waLog('transfer_cancelled', $transfer_id);
     }
 
     public function getTransferListHtml($id)
@@ -163,5 +171,14 @@ class shopTransferActions extends waJsonActions
     public function getTransferModel()
     {
         return new shopTransferModel();
+    }
+
+    protected function waLog($action, $transfer_id)
+    {
+        if (!class_exists('waLogModel')) {
+            wa('webasyst');
+        }
+        $log_model = new waLogModel();
+        return $log_model->add($action, $transfer_id);
     }
 }

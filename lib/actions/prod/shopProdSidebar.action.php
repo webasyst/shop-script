@@ -24,6 +24,7 @@ class shopProdSidebarAction extends waViewAction
 
     public function execute()
     {
+        shopProdAction::setNewDesign();
         $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
 
         $can_edit = true;
@@ -33,10 +34,10 @@ class shopProdSidebarAction extends waViewAction
             $can_edit = !!$product_model->checkRights($product_id);
         }
 
+        $product = new shopProduct($product_id);
         if ($can_edit) {
             $prices_available = true;
         } else {
-            $product = new shopProduct($product_id);
             if ($product["id"] && $product["status"] !== "-1") {
                 $prices_available = true;
             }
@@ -47,6 +48,7 @@ class shopProdSidebarAction extends waViewAction
             'can_edit'         => $can_edit,
             'prices_available' => $prices_available,
             'backend_prod_event' => $this->params['backend_prod_event'],
+            'not_found' => !$product->getId(),
         ]);
     }
 }

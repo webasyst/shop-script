@@ -1,3 +1,5 @@
+{$current_chapter = shopHelper::getCurrentChapter()}
+
 <!DOCTYPE html><html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -6,17 +8,15 @@
 
     {$wa->css()}
 
-    <link href="{$wa_url}wa-content/css/jquery-ui/base/jquery.ui.autocomplete.css" rel="stylesheet" type="text/css" />
-    <link href="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.css" rel="stylesheet" type="text/css" />
-    <link href="{$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.css" rel="stylesheet" type="text/css" />
-
-    <link href="{$wa_app_static_url}css/shop.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
+    <link href="{$wa_url}wa-content/css/jquery-ui/base/jquery.ui.autocomplete.css" rel="stylesheet" />
+    <link href="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.css" rel="stylesheet" />
+    <link href="{$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.css" rel="stylesheet" />
+    <link href="{$wa_app_static_url}css/shop.css?v{$wa->version()}" rel="stylesheet" />
     <!-- link your CSS files here -->
+
     <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
     <script src="{$wa_url}wa-content/js/jquery/jquery-migrate-1.2.1.min.js"></script>
-
     <script src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.js"></script>
-    <!--[if lt IE 9]><script language="javascript" src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/excanvas.min.js"></script><![endif]-->
     {wa_js file="js/shop-jquery.min.js"}
         {$wa_url}wa-content/js/jquery-wa/wa.core.js
         {$wa_url}wa-content/js/jquery-wa/wa.dialog.js
@@ -37,8 +37,13 @@
     {/if}
     <script src="{$wa_app_static_url}js/shop.js?{$wa->version()}"></script>
     <script src="{$wa_app_url}?action=loc&amp;v{$wa->version()}"></script>
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js"></script>
     {$wa->js()}
     {block name="head"} {/block}
+
+    {* Новое главное меню в WA1.3 контекте *}
+    <link href="{$wa_app_static_url}css/backend/wa2_main_menu.css?v{$wa->version()}" rel="stylesheet" />
+    <script src="{$wa_app_static_url}js/backend/wa2_main_menu.js?v{$wa->version()}"></script>
 
     <!-- link your JS files here -->
     <script>
@@ -119,6 +124,24 @@
                         {/if}
                     {/if}
 
+                    {if $current_chapter !== 'old_chapter'}
+                        <li class="wa2-menu-toggle-wrapper" id="wa2-menu-toggle-wrapper">
+                            <a class="s-toggle" href="javascript:void(0);">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                    <path fill="currentColor" d="M16 132h416c8.837 0 16-7.163 16-16V76c0-8.837-7.163-16-16-16H16C7.163 60 0 67.163 0 76v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16z"></path>
+                                </svg>
+                            </a>
+                            <script>
+                                ( function($) {
+                                    $("#wa2-menu-toggle-wrapper").on("click", function(event) {
+                                        event.preventDefault();
+                                        $.wa2_main_menu.get().show();
+                                    });
+                                })(jQuery);
+                            </script>
+                        </li>
+                    {/if}
+
                     {if $wa->userRights('orders')}
                         <li class="{if !$page || $page=='orders'}selected{else}no-tab{/if}" id="mainmenu-orders-tab">
                             <a href="{$wa_app_url}?action=orders#/orders/">
@@ -133,7 +156,7 @@
                         </li>
                     {/if}
                     <li class="{if $page=='products'}selected{else}no-tab{/if}">
-                        <a href="{$wa_app_url}?action=products">[`Products`]</a>
+                        <a href="{$wa_app_url}{if $current_chapter === 'old_chapter'}?action=products{else}products/{/if}">[`Products`]</a>
                     </li>
                     {if $wa->userRights('marketing')}
                         <li class="{if $page == 'marketing'}selected{else}no-tab{/if}">
@@ -178,7 +201,7 @@
 
                                 <div class="s-search-form">
                                     <i class="icon16 ss search-bw"></i>
-                                    <input type="search" placeholder="[`Search products`]" id="s-products-search" data-editor="{shopHelper::getCurrentProductEditor()}">
+                                    <input type="search" placeholder="[`Search products`]" id="s-products-search">
                                 </div>
 
                             {elseif $page == 'customers'}
@@ -367,6 +390,13 @@
         </div>
     </div>
 </div>
+
+{capture assign="_wa2_main_menu_html"}{include file="./wa2_main_menu.html" parent="scope" inline}{/capture}
+<script>
+    ( function($) {
+        $.wa2_main_menu.init({ html: {$_wa2_main_menu_html|json_encode} });
+    })(jQuery);
+</script>
 
 </body>
 </html>

@@ -28,26 +28,56 @@
 
     <header class="s-page-header bordered-bottom">
         <div class="flexbox middle space-8">
-            {if !empty($product.id)}
-                <div class="s-actions">
-                    <a class="wa-button gray-field s-button-back">&larr; [`Back`]</a>
+            {if !empty($product.id) && !empty($product_list_data)}
+                {$_tooltips = []}
+                <div class="s-actions flexbox middle space-8 nowrap">
+                    {if !empty($product_list_data["prev"])}
+                        <a class="wa-button wa-small gray-field" href="{$product_list_data["prev"]["url"]|escape}" data-tooltip-id="prev_product_name">
+                            <span class="s-icon icon"><i class="fas fa-chevron-left"></i></span>
+                        </a>
+                        {$_tooltips["prev_product_name"] = [
+                            "id" => "prev_product_name",
+                            "html" => sprintf(_w("Предыдущий товар «%s»"), $product_list_data["prev"]["name"]),
+                            "position" => "top-left"
+                        ]}
+                    {/if}
+
+                    <span class="s-text">{sprintf(_w("Товар %d из %d"), $product_list_data["position"], $product_list_data["count"])}</span>
+
+                    {if !empty($product_list_data["next"])}
+                        <a class="wa-button wa-small gray-field" href="{$product_list_data["next"]["url"]|escape}" data-tooltip-id="next_product_name">
+                            <span class="s-icon icon"><i class="fas fa-chevron-right"></i></span>
+                        </a>
+                        {$_tooltips["next_product_name"] = [
+                            "id" => "next_product_name",
+                            "html" => sprintf(_w("Следующий товар «%s»"), $product_list_data["next"]["name"]),
+                            "position" => "top"
+                        ]}
+                    {/if}
+
+                    <script>
+                        ( function($) {
+                            var tooltips = {$_tooltips|json_encode};
+                            $.each(tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
+                        })(jQuery);
+                    </script>
                 </div>
             {/if}
             <div class="s-title-wrapper wide">
                 <h3 class="s-title js-product-name">{$product.name|default:_w('New product')|escape}</h3>
             </div>
-            <div class="s-details">
-                <button class="s-button wa-button rounded pink js-show-callback-dialog animation-pulse" type="button">
+            <div class="s-details nowrap">
+                <button class="s-button wa-button rounded pink js-show-callback-dialog animation-pulse" type="button" title="{_w("How do you like the new products section?")|escape}">
                     <span>
                         <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
-                        <span class="s-name">[`How do you like the new product editor?`]</span>
+                        <span class="s-name">[`How do you like the new products section?`]</span>
                     </span>
                 </button>
 
-                <a class="s-button wa-button pink rounded outlined" id="js-return-link" href="{$wa_app_url|escape}?action=products#/product/{$product.id|default:"new"|escape}/" title="{_w("Return to the old product editor version.")|escape}">
+                <a class="s-button wa-button pink rounded outlined" id="js-return-link" href="{$wa_app_url|escape}?action=products#/product/{$product.id|default:"new"|escape}/" title="{_w("Return to the old products section version.")|escape}">
                     <span>
                         <span class="s-icon"><i class="fas fa-toggle-on"></i></span>
-                        <span class="s-name">[`Return to old editor`]</span>
+                        <span class="s-name">[`Return to old products section`]</span>
                         <span class="s-icon"><i class="fas fa-question-circle"></i></span>
                     </span>
                 </a>
@@ -64,6 +94,8 @@
 
     {* APP BODY *}
     <div class="s-page-body flexbox">
+        {* PRODUCTS MENU *}
+        <div class="s-page-menu bordered-right">{$products_menu}</div>
         {* SIDEBAR *}
         <div class="s-page-sidebar sidebar js-page-sidebar">{$sidebar}</div>
         {* CONTENT *}
@@ -112,6 +144,10 @@
             initReturnButton();
 
             var sources = [{
+                id: "wa-shop-products-main-sidebar-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/main/sidebar.js?v={$wa->version()}"
+            },{
                 id: "wa-shop-products-product-sidebar-js",
                 type: "js",
                 uri: "{$wa_app_static_url}js/backend/products/product/sidebar.js?v={$wa->version()}"

@@ -18,7 +18,7 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
             'stock_unit_fixed' => waRequest::post('stock_unit_fixed', shopTypeModel::PARAM_DISABLED, waRequest::TYPE_INT),
             'base_unit_id' => waRequest::post('base_unit_id'),
             'base_unit_fixed' => waRequest::post('base_unit_fixed', shopTypeModel::PARAM_DISABLED, waRequest::TYPE_INT),
-            'stock_base_ratio' => waRequest::post('stock_base_ratio'),
+            'stock_base_ratio' => waRequest::post('stock_base_ratio', 1),
             // not an error, this setting is not displayed in the interface
             'stock_base_ratio_fixed' => waRequest::post('base_unit_fixed', shopTypeModel::PARAM_DISABLED, waRequest::TYPE_INT),
             'order_count_min' => waRequest::post('order_count_min'),
@@ -130,7 +130,7 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
         }
         if ($data['base_unit_fixed'] == shopTypeModel::PARAM_DISABLED) {
             $data['base_unit_id'] = null;
-            $data['stock_base_ratio'] = null;
+            $data['stock_base_ratio'] = 1;
             $data['stock_base_ratio_fixed'] = shopTypeModel::PARAM_DISABLED;
         } else {
             $data['stock_base_ratio_fixed'] = shopTypeModel::PARAM_ALL_PRODUCTS;
@@ -345,7 +345,7 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
                 $param['type_id'] = ifset($param, 'type_id', null);
                 $enable = isset($storefronts[$site]) && in_array($param['url'], $storefronts[$site]);
                 try {
-                    $routes[$site][$route_id]['type_id'] = $this->getNewRouteTypeId(ifset($param, 'type_id', null), $type_id, $enable, $all_types);
+                    $routes[$site][$route_id]['type_id'] = self::getNewRouteTypeId(ifset($param, 'type_id', null), $type_id, $enable, $all_types);
                 } catch (waException $e) {
                     $this->errors[] = [
                         'name'  => 'storefronts['.$site.']['.$param['url'].']',
@@ -376,7 +376,7 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
      * @return mixed
      * @throws waException
      */
-    private function getNewRouteTypeId($old_type_ids, $type_id, $enable, $all_types)
+    public static function getNewRouteTypeId($old_type_ids, $type_id, $enable, $all_types)
     {
         $ALL_INCLUDED = [null, [], false, '', '0', 0];
 

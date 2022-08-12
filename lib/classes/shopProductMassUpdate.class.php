@@ -32,7 +32,7 @@ class shopProductMassUpdate
      */
     public static function update($raw_skus, $raw_products = array())
     {
-        if (!$raw_products && !$raw_skus) {
+        if (waConfig::get('is_template') || (!$raw_products && !$raw_skus)) {
             return;
         }
 

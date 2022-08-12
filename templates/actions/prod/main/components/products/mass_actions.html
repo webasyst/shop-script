@@ -1,0 +1,105 @@
+{capture assign="_component_mass_actions_footer"}
+    <div class="vue-mass-actions-footer">
+        <div class="s-section-body">
+            <div class="flexbox space-24 nowrap">
+                <div class="s-checkbox-wrapper" v-on:click.prevent="close">
+                    <component-checkbox v-bind:value="true"></component-checkbox>
+                </div>
+                <div class="s-counter-wrapper">
+                    <span class="s-label">[`Выбрано`]</span>
+                    <span class="s-count" v-text="products_length"></span>
+                </div>
+                <div class="s-actions-list js-actions-list flexbox space-8">
+                    <template v-for="action in actions_list">
+                        <div class="s-action link"
+                             v-if="action.visible"
+                             v-bind:key="action.id"
+                             v-on:click.prevent="callAction(action.id)">
+                            <span class="s-icon" v-html="action.icon"></span>
+                            <span class="s-name" v-text="action.name"></span>
+                        </div>
+                    </template>
+                </div>
+                <div class="s-more-actions">
+
+                    <div class="dropdown">
+                        <div class="dropdown-toggle link cursor-pointer">
+                            <span class="s-icon"><i class="fas fa-cog"></i></span>
+                            <span class="s-name">[`Другие действия`]</span>
+                        </div>
+                        <div class="dropdown-body">
+                            <template v-for="group in dropdown_actions">
+                                <div class="dropdown-group" v-if="group.length">
+                                    <template v-for="action in group">
+                                        <div class="dropdown-item" v-on:click.prevent="callAction(action.id)">
+                                            <span class="s-icon" v-html="action.icon"></span>
+                                            <span class="s-name" v-text="action.name"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <div class="dropdown-item s-lock-actions cursor-pointer" v-on:click.prevent="pin">
+                                <span class="s-name link">[`Закрепить панель`]</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="s-action-close cursor-pointer"
+                     v-on:click.prevent="close">
+                    <span class="s-icon icon size-16"><i class="fas fa-times"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-mass-actions-footer"] = $_component_mass_actions_footer|trim}
+
+{capture assign="_component_mass_actions_aside"}
+    <div class="vue-mass-actions-aside">
+        <div class="s-section-header">
+            <div class="flexbox full-width space-16">
+                <div class="s-title-wrapper">
+                    <div class="flexbox space-12 nowrap">
+                        <div class="s-checkbox-wrapper" v-on:click.prevent="close">
+                            <component-checkbox v-bind:value="true"></component-checkbox>
+                        </div>
+                        <div class="s-counter-wrapper">
+                            <span class="s-label">[`Выбрано`]</span>
+                            <span class="s-count" v-text="products_length"></span>
+                        </div>
+                    </div>
+                    <div class="s-title">[`Действия`]</div>
+                </div>
+                <div class="s-actions">
+                    <span class="s-action cursor-pointer" v-on:click.prevent="close">
+                        <span class="s-icon icon size-16"><i class="fas fa-times"></i></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="s-section-body">
+            <div class="s-actions-list js-actions-list">
+                <template v-for="group in actions">
+                    <div class="s-group-wrapper" v-if="group.length">
+                        <template v-for="action in group">
+                            <div class="s-action-wrapper">
+                                <div class="s-action" v-on:click.prevent="callAction(action.id)">
+                                    <span class="s-icon" v-html="action.icon"></span>
+                                    <span class="s-name" v-text="action.name"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                <div class="s-action-wrapper s-action-unpin">
+                    <div class="s-action link" v-on:click.prevent="unpin">
+                        <span class="s-name">[`Открепить панель`]</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-mass-actions-aside"] = $_component_mass_actions_aside|trim}

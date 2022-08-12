@@ -1,0 +1,32 @@
+{capture assign="_component_product_column_description"}
+<div class="vue-column-type-description">
+    <template v-if="states.is_locked">
+        <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+    </template>
+    <template v-else>
+        <a href="javascript:void(0);" v-on:click="showFullContent">[`Показать в диалоге`]</a>
+    </template>
+</div>
+{/capture}
+{$_components["component-product-column-description"] = $_component_product_column_description|trim}
+
+{capture assign="_dialog_product_column_description"}
+    <div class="wa-dialog s-product-column-description-dialog">
+        <div class="dialog-background"></div>
+        <div class="dialog-body">
+            <div class="js-vue-section" style="visibility: hidden;">
+                <div class="dialog-header">
+                    <h3>{_w("Description")}</h3>
+                </div>
+                <div class="dialog-content">
+                    <div class="s-description-wrapper" v-html="column_data.value"></div>
+                </div>
+                <div class="dialog-footer">
+                    <button class="wa-button blue" type="button" disabled>[`Edit`]</button>
+                    <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_templates["dialog-product-column-description"] = $_dialog_product_column_description|trim}

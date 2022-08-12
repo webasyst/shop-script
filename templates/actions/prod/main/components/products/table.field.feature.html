@@ -1,0 +1,357 @@
+{$_tooltips["product-feature-unavailable"] = [
+    "id" => "product-feature-unavailable",
+    "html" => _w("Характеристика доступна только для продукта")
+]}
+
+{capture assign="_component_product_column_feature"}
+<div class="vue-column-type-feature">
+    <template v-if="states.is_locked">
+        <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+    </template>
+    <template v-else-if="sku_mod && !column_data.available_for_sku">
+        {*
+        <div class="s-unavailable">
+            [`Недоступно`]
+            <span class="s-icon icon size-12 color-gray-light" data-tooltip-id="product-feature-unavailable"><i class="fas fa-question-circle"></i></span>
+        </div>
+        *}
+    </template>
+    <template v-else>
+        {* FIELD *}
+        <template v-if="column_data.render_type === 'field'">
+            <div class="s-fields-wrapper flexbox space-12">
+                <template v-for="option in column_data.options">
+                    <component-feature-input
+                        v-bind:option="option"
+                        v-bind:column_data="column_data"
+                        v-bind:class="'with-divider-x'"
+                        v-on:focus="onFieldFocus"
+                        v-on:blur="onFieldBlur"
+                        v-on:change="onFieldChange"></component-feature-input>
+                </template>
+                <div class="s-units-wrapper" v-if="column_data.active_unit">
+                    <component-dropdown
+                        v-model="column_data.active_unit.value"
+                        v-bind:button_class="'s-square-field'"
+                        v-bind:options="units"
+                        v-on:focus="onFieldFocus"
+                        v-on:blur="onFieldBlur"
+                        v-on:change="onFieldChange"></component-dropdown>
+                </div>
+            </div>
+        </template>
+
+        {* COLOR *}
+        <template v-else-if="column_data.render_type === 'color'">
+            <component-product-feature-color
+                v-bind:data="column_data.options[0]"
+                v-bind:readonly="!column_data.editable"
+                v-on:change="onChange"></component-product-feature-color>
+        </template>
+
+        {* SELECT *}
+        <template v-else-if="column_data.render_type === 'select'">
+            <component-dropdown
+                v-model="column_data.value"
+                v-bind:button_class="'s-square-field'"
+                v-bind:options="options"
+                v-on:change="onChange"></component-dropdown>
+        </template>
+
+        {* CHECKBOX *}
+        <template v-else-if="column_data.render_type === 'checkbox'">
+            <component-product-feature-checkbox
+                v-bind:product="product"
+                v-bind:sku_mod="sku_mod"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"
+                v-on:change="onChange"></component-product-feature-checkbox>
+        </template>
+
+        {* TEXTAREA *}
+        <template v-else-if="column_data.render_type === 'textarea'">
+            <component-textarea
+                v-model="column_data.value"
+                v-bind:cancel="true"
+                v-bind:readonly="!column_data.editable"
+                v-bind:class="'wa-small wide s-square-field'"
+                v-on:change="onChange"></component-textarea>
+        </template>
+
+        {* RANGE *}
+        <template v-else-if="column_data.render_type === 'range'">
+            <div class="s-fields-wrapper flexbox space-12">
+                <template v-for="option in column_data.options">
+                    <component-feature-input
+                        v-bind:option="option"
+                        v-bind:column_data="column_data"
+                        v-bind:class="'with-divider'"
+                        v-on:focus="onFieldFocus"
+                        v-on:blur="onFieldBlur"
+                        v-on:change="onFieldChange"></component-feature-input>
+                </template>
+                <div class="s-units-wrapper" v-if="column_data.active_unit">
+                    <component-dropdown
+                        v-model="column_data.active_unit.value"
+                        v-bind:button_class="'s-square-field'"
+                        v-bind:options="units"
+                        v-on:focus="onFieldFocus"
+                        v-on:blur="onFieldBlur"
+                        v-on:change="onFieldChange"></component-dropdown>
+                </div>
+            </div>
+        </template>
+
+        {* DATE / RANGE.DATE *}
+        <template v-else-if="column_data.render_type === 'field.date' || column_data.render_type === 'range.date'">
+            <div class="s-field-wrapper flexbox space-12">
+                <div class="s-field-wrapper with-divider" v-for="option in column_data.options">
+                    <component-date-picker
+                        v-model="option.value"
+                        v-bind:readonly="!column_data.editable"
+                        v-bind:field_class="'s-field wa-small full-width s-square-field'"
+                        v-on:change="onChange"></component-date-picker>
+                </div>
+            </div>
+        </template>
+    </template>
+</div>
+{/capture}
+{$_components["component-product-column-feature"] = $_component_product_column_feature|trim}
+
+{capture assign="_component_product_feature_color"}
+    <div class="vue-component-product-feature-color">
+        <template v-if="states.is_locked">
+            <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+        </template>
+        <template v-else>
+            <div class="flexbox space-12">
+                <div class="s-field-wrapper">
+                    <component-input
+                        v-model="data.value"
+                        v-bind:cancel="true"
+                        v-bind:readonly="readonly"
+                        v-bind:class="'s-field wa-small full-width s-square-field'"
+                        v-on:focus="onFocus"
+                        v-on:change="onChangeValue"></component-input>
+                </div>
+                <div class="s-field-wrapper">
+                    <component-color-picker
+                        v-model="data.code"
+                        v-bind:readonly="readonly"
+                        v-bind:field_class="'s-field wa-small s-square-field'"
+                        v-on:focus="onFocus"
+                        v-on:change="onChangeCode"></component-color-picker>
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-product-feature-color"] = $_component_product_feature_color|trim}
+
+{capture assign="_component_product_feature_checkbox"}
+    <div class="vue-component-product-feature-checkbox">
+        {* Модификация *}
+        <template v-if="sku_mod">
+            <component-dropdown
+                v-model="column_data.value"
+                v-bind:empty_option="true"
+                v-bind:button_class="'s-square-field'"
+                v-bind:options="options"
+                v-on:change="onSkuChange"
+            ></component-dropdown>
+        </template>
+
+        {* Продукт со значениями из модификаций *}
+        <template v-else-if="product.normal_mode && column_info.available_for_sku">
+            <div class="s-checkbox-group">
+                <template v-if="sku_options.length">
+                    <template v-for="option in sku_options">
+                        <div class="s-option-wrapper">
+                                <span class="s-icon" v-if="option.code">
+                                    <span class="icon size-12 rounded bordered shift-2" v-bind:style="{ 'background-color': option.code }"></span>
+                                </span>
+                            <span class="s-name">{ { option.name } }</span>
+                        </div>
+                    </template>
+                </template>
+                <template v-else>
+                    <div class="s-text">[`На задано`]</div>
+                </template>
+            </div>
+        </template>
+
+        {* Продукт с возможностью изменеия *}
+        <template v-else>
+            <div class="flexbox space-12">
+                <div class="s-checkbox-group wide">
+                    <template v-if="active_options.length">
+                        <template v-for="option in active_options">
+                            <div class="s-option-wrapper">
+                                <span class="s-icon" v-if="option.code">
+                                    <span class="icon size-12 rounded bordered shift-2" v-bind:style="{ 'background-color': option.code }"></span>
+                                </span>
+                                <span class="s-name">{ { option.name } }</span>
+                            </div>
+                        </template>
+                    </template>
+                    <template v-else>
+                        <div class="s-text">[`На задано`]</div>
+                    </template>
+                </div>
+
+                <div class="s-icon-wrapper" v-if="active_options.length">
+                    <span class=" icon size-14 cursor-pointer"
+                          title="{_w("Remove")|escape}"
+                          v-bind:key="'fa-times'"
+                          v-on:click="reset"><i class="fas fa-times"></i></span>
+                </div>
+
+                <div class="s-icon-wrapper">
+                    <span class="icon size-12 cursor-pointer"
+                          title="{_w("Select")|escape}"
+                          v-bind:key="'fa-pen'"
+                          v-on:click="showDialog"><i class="fas fa-pen"></i></span>
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-product-feature-checkbox"] = $_component_product_feature_checkbox|trim}
+
+{capture assign="_dialog_product_feature_checkbox"}
+    <div class="wa-dialog s-product-feature-checkbox-dialog">
+        <div class="dialog-background"></div>
+        <div class="dialog-body">
+            <div class="js-vue-section" style="visibility: hidden;">
+                <div class="dialog-header">
+                    <h4>{sprintf_wp("Select one or several values of feature “%s”", '{ { feature.name } }')}</h4>
+                </div>
+                <div class="dialog-content">
+
+                    <component-feature-option-search v-bind:options="options"></component-feature-option-search>
+
+                    <component-feature-option-form
+                        v-bind:column_data="column_data"
+                        v-bind:feature="feature"
+                        v-bind:units="units"
+                        v-on:add="onAdd"></component-feature-option-form>
+
+                    <div class="s-options-list">
+                        <template v-for="(option, index) in options">
+                            <div class="s-option-wrapper" v-if="option.states.visible">
+                                <div class="flexbox space-8">
+                                    <div class="s-checkbox-wrapper">
+                                        <component-checkbox
+                                            v-model="option.active"
+                                            v-bind:field_id="'feature['+feature.id+']['+index+']'"></component-checkbox>
+                                    </div>
+                                    <div class="s-name-wrapper">
+                                        <label v-bind:for="'feature['+feature.id+']['+index+']'">
+                                            <span class="s-icon" v-if="option.code">
+                                                <span class="icon size-12 rounded bordered" v-bind:style="{ 'background-color': option.code }"></span>
+                                            </span>
+                                            <span class="s-name">{ { option.name } }</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <div class="dialog-footer">
+                    <button class="wa-button" type="button" v-on:click.prevent="success">[`Select`]</button>
+                    <button class="wa-button gray-light" type="button" v-on:click.prevent="close">[`Cancel`]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_templates["dialog-product-feature-checkbox"] = $_dialog_product_feature_checkbox|trim}
+
+{capture assign="_component_feature_option_search"}
+    <div class="s-search-section flexbox space-8">
+        <div class="s-field-wrapper wide">
+            <input class="s-field" placeholder="{_w("Search")|escape}" type="text" v-model="search_string" v-on:input="search">
+        </div>
+        <template v-if="search_string.length">
+            <div class="s-actions-wrapper flexbox space-8">
+                <div class="s-action is-active"
+                     v-on:click.prevent="revert">
+                    <span class="s-icon icon size-14"><i class="fas fa-times"></i></span>
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-feature-option-search"] = $_component_feature_option_search|trim}
+
+{capture assign="_component_feature_option_form"}
+    <div class="s-form-wrapper">
+        <template v-if="states.is_locked">
+            <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+        </template>
+        <template v-else>
+            <template v-if="!show_form">
+                <div class="s-button" v-on:click.prevent="show_form = true">
+                    <span class="s-icon icon size-12"><i class="fas fa-plus"></i></span>
+                    <span class="s-name">[`Add`]</span>
+                </div>
+            </template>
+            <template v-else>
+                <div class="flexbox space-12">
+                    <div class="s-field-wrapper">
+                        <component-input
+                            v-model="data.value"
+                            v-bind:cancel="true"
+                            v-bind:class="'s-field wa-small s-square-field'"
+                            v-on:change="onChangeValue"></component-input>
+                    </div>
+                    <div class="s-field-wrapper" v-if="feature.type === 'color'">
+                        <component-color-picker
+                            v-model="data.code"
+                            v-bind:field_class="'s-field wa-small s-square-field'"
+                            v-on:change="onChangeCode"></component-color-picker>
+                    </div>
+                    <div class="s-field-wrapper" v-else-if="units">
+                        <component-dropdown
+                            v-model="data.unit"
+                            v-bind:button_class="'s-square-field'"
+                            v-bind:options="units"></component-dropdown>
+                    </div>
+                    <div class="s-button" v-on:click="success" v-bind:class="{ 'is-locked' : !data.value.length }">
+                        <div class="s-icon icon size-12"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="s-button" v-on:click="cancel">
+                        <div class="s-icon icon size-12"><i class="fas fa-times"></i></div>
+                    </div>
+                </div>
+            </template>
+        </template>
+    </div>
+{/capture}
+{$_components["component-feature-option-form"] = $_component_feature_option_form|trim}
+
+{capture assign="_component_feature_input"}
+    <div class="s-field-wrapper">
+        <template v-if="show_preview">
+            <input class="s-field wa-small full-width s-square-field is-number" type="text" readonly
+                   v-on:click="togglePreview(false)"
+                   v-bind:value="formatted_value">
+        </template>
+        <template v-else>
+            <component-input
+                v-model="option.value"
+                v-bind:cancel="true"
+                v-bind:focus="states.is_number"
+                v-bind:readonly="!column_data.editable"
+                v-bind:class="'s-field wa-small full-width s-square-field'"
+                v-bind:validate="(states.is_number ? 'number' : null)"
+                v-bind:format="(states.is_number ? 'number' : null)"
+                v-on:focus="$emit('focus', $event)"
+                v-on:blur="onBlur"
+                v-on:change="$emit('change', $event)"></component-input>
+        </template>
+    </div>
+{/capture}
+{$_components["component-feature-input"] = $_component_feature_input|trim}

@@ -1,0 +1,268 @@
+{*
+// product - текущий продукт
+// sku - текущий артикул
+// sku_mod - текущая модификация артикула
+// column_data - данные значений колонки для конкретного продукта
+// column_info - полная детализация колонки
+// column - данные колонки из представления
+*}
+
+{capture assign="_component_products_table_field"}
+    <div class="vue-products-table-field" v-if="states.display" v-bind:data-feature-id="column.column_type" v-bind:data-render-type="column_data.render_type">
+        {* FEATURES *}
+        <template v-if="column.column_type.indexOf('feature_') >= 0">
+            <component-product-column-feature
+                v-bind:product="product"
+                v-bind:sku_mod="sku_mod"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-feature>
+        </template>
+
+        {* IMAGE *}
+        <template v-else-if="column.column_type === 'image_crop_small'">
+            <div class="vue-column-type-image">
+                <div class="s-photo-wrapper">
+                    <div class="s-photo" v-bind:class="{ 'has-many-photos' : (product.photos.length > 1), 'has-photo' : !!product_photo, 'is-empty' : !product_photo }">
+                        <template v-if="product_photo">
+                            <div class="s-image" v-bind:style="{ 'background-image' : 'url('+ product_photo.url +')' }"></div>
+                        </template>
+                        <template v-else>
+                            <span class="s-icon icon size-18"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {* IMAGE COUNT *}
+        <template v-else-if="column.column_type === 'image_count'">
+            <div class="vue-column-type-image-count">
+                <span>{ { product.photos.length } }</span>
+            </div>
+        </template>
+
+        {* NAME *}
+        <template v-else-if="column.column_type === 'name'">
+            <component-product-column-name
+                v-bind:product="product"
+                v-bind:sku="sku"
+                v-bind:sku_mod="sku_mod"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-name>
+        </template>
+
+        {* SUMMARY *}
+        <template v-else-if="column.column_type === 'summary'">
+            <component-product-column-summary
+                v-bind:product="product"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-summary>
+        </template>
+
+        {* DESCRIPTION *}
+        <template v-else-if="column.column_type === 'description'">
+            <component-product-column-description
+                v-bind:product="product"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-description>
+        </template>
+
+        {* STATUS *}
+        <template v-else-if="column.column_type === 'status'">
+            <component-product-column-status
+                v-bind:product="product"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-status>
+        </template>
+
+        {* URL *}
+        <template v-else-if="column.column_type === 'url'">
+            <component-product-column-url
+                v-bind:product="product"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-url>
+        </template>
+
+        {* RATING *}
+        <template v-else-if="column.column_type === 'rating'">
+            <div class="vue-column-type-rating">
+                {strip}
+                <div class="s-rating-wrapper">
+                    <template v-for="n in 5">
+                        <span class="s-icon icon" v-if="n <= column_data.value"  v-bind:key="'fa-start'"><i class="fas fa-star"></i></span>
+                        <span class="s-icon icon" v-else-if="n < (column_data.value + 1)" v-bind:key="'fa-start-half-alt'"><i class="fas fa-star-half-alt"></i></span>
+                        <span class="s-icon icon" v-else v-bind:key="'fa-start-empty'"><i class="far fa-star"></i></span>
+                    </template>
+                </div>
+                {/strip}
+            </div>
+        </template>
+
+        {* VISIBILITY *}
+        <template v-else-if="column.column_type === 'visibility'">
+            <component-product-column-visibility
+                v-bind:product="product"
+                v-bind:sku_mod="sku_mod"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-visibility>
+        </template>
+
+        {* SKU_TYPE *}
+        <template v-else-if="column.column_type === 'sku_type'">
+            <div class="vue-render-type-text">
+                <span v-if="column_data.value === '1'">[`Артикулы`]</span>
+                <span v-else>[`Характеристики`]</span>
+            </div>
+        </template>
+
+        {* SKU_TYPE *}
+        <template v-else-if="column.column_type === 'badge'">
+            <component-product-column-badge
+                v-bind:product="product"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-badge>
+        </template>
+
+        {* STOCK_BASE_RATIO *}
+        <template v-else-if="column.column_type === 'stock_base_ratio'">
+            <template v-if="states.is_locked">
+                <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+            </template>
+            <template v-else>
+                <component-product-column-sbratio
+                    v-bind:product="product"
+                    v-bind:column="column"
+                    v-bind:column_info="column_info"
+                    v-bind:column_data="column_data"
+                    v-on:change="onChange"></component-product-column-sbratio>
+            </template>
+        </template>
+
+        {* TAGS/CATEGORIES/SETS *}
+        <template v-else-if="column_data.render_type === 'tags'">
+            <component-product-column-tags
+                v-bind:product="product"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-tags>
+        </template>
+
+        {* TEXT *}
+        <template v-else-if="column_data.render_type === 'text'">
+            <div class="vue-render-type-text"
+                 v-bind:class="{ 'align-right' : align_right, 'wa-ellipsis' : column_info.nowrap }"
+                 v-text="column_data.value"></div>
+        </template>
+
+        {* HTML *}
+        <template v-else-if="column_data.render_type === 'html'">
+            <div class="vue-render-type-html"
+                 v-bind:class="{ 'align-right' : align_right }"
+                 v-html="column_data.value"></div>
+        </template>
+
+        {* INPUT *}
+        <template v-else-if="column_data.render_type === 'input'">
+            <div class="vue-render-type-input">
+                <template v-if="states.is_locked">
+                    <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+                </template>
+                <template v-else>
+                    <component-input
+                        v-model="column_data.value"
+                        v-bind:cancel="true"
+                        v-bind:readonly="!column_data.editable"
+                        v-bind:class="'s-field wa-small full-width s-square-field'"
+                        v-on:change="onChange"></component-input>
+                </template>
+            </div>
+        </template>
+
+        {* TEXTAREA *}
+        <template v-else-if="column_data.render_type === 'textarea'">
+            <div class="vue-render-type-textarea">
+                <template v-if="states.is_locked">
+                    <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+                </template>
+                <template v-else>
+                    <component-textarea
+                        v-model="column_data.value"
+                        v-bind:cancel="true"
+                        v-bind:readonly="!column_data.editable"
+                        v-bind:class="'wa-small wide s-square-field'"
+                        v-on:change="onChange"></component-textarea>
+                </template>
+            </div>
+        </template>
+
+        {* DATE *}
+        <template v-else-if="column_data.render_type === 'date'">
+            <div class="vue-render-type-date" v-html="column_data.value"></div>
+        </template>
+
+        {* INPUT PRICE *}
+        <template v-else-if="column_data.render_type === 'price'">
+            <component-product-column-price
+                v-bind:product="product"
+                v-bind:sku_mod="sku_mod"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-price>
+        </template>
+
+        {* INPUT DROPDOWN *}
+        <template v-else-if="column_data.render_type === 'select'">
+            <component-product-column-dropdown
+                v-bind:product="product"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-dropdown>
+        </template>
+
+        {* STOCK *}
+        <template v-else-if="column_data.render_type === 'stock'">
+            <component-product-column-stock
+                v-bind:product="product"
+                v-bind:sku_mod="sku_mod"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-stock>
+        </template>
+    </div>
+{*    <div v-else>H</div>*}
+{/capture}
+{$_components["component-products-table-field"] = $_component_products_table_field|trim}
+
+{include file="./table.field.name.html" scope="parent" inline}
+
+{include file="./table.field.summary.html" scope="parent" inline}
+
+{include file="./table.field.description.html" scope="parent" inline}
+
+{include file="./table.field.status.html" scope="parent" inline}
+
+{include file="./table.field.dropdown.html" scope="parent" inline}
+
+{include file="./table.field.price.html" scope="parent" inline}
+
+{include file="./table.field.url.html" scope="parent" inline}
+
+{include file="./table.field.tags.html" scope="parent" inline}
+
+{include file="./table.field.visibility.html" scope="parent" inline}
+
+{include file="./table.field.stock.html" scope="parent" inline}
+
+{include file="./table.field.badge.html" scope="parent" inline}
+
+{include file="./table.field.feature.html" scope="parent" inline}
+
+{include file="./table.field.sbratio.html" scope="parent" inline}

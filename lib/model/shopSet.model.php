@@ -13,7 +13,9 @@ class shopSetModel extends waModel
     public function add($data)
     {
         if (!empty($data)) {
-            if ($this->query("UPDATE {$this->table} SET sort = sort + 1")) {
+            $set_group_model = new shopSetGroupModel();
+            $updated = $set_group_model->query("UPDATE {$set_group_model->getTableName()} SET sort = sort + 1");
+            if ($updated && $this->query("UPDATE {$this->table} SET sort = sort + 1")) {
                 if (!isset($data['create_datetime'])) {
                     $data['create_datetime'] = date('Y-m-d H:i:s');
                 }
@@ -31,23 +33,67 @@ class shopSetModel extends waModel
         return $this->query("SELECT * FROM {$this->table} ORDER BY sort")->fetchAll($key, $normalize);
     }
 
+    public function getSetsWithGroups()
+    {
+        $sets = $this->getAll('id');
+
+        $set_group_model = new shopSetGroupModel();
+        $groups = $set_group_model->getAll('id');
+
+        foreach($groups as &$group) {
+            $group['sets'] = [];
+        }
+        unset($group);
+
+        $result = [];
+        foreach($sets as $set) {
+            $set = [
+                'is_group' => false,
+                'set_id' => $set['id'],
+            ] + $set;
+            if (empty($set['group_id']) || empty($groups[$set['group_id']])) {
+                $set['group_id'] = null;
+                $result[] = $set;
+            } else {
+                $groups[$set['group_id']]['sets'][] = $set;
+            }
+        }
+
+        foreach($groups as $group) {
+            $group = [
+                'is_group' => true,
+                "group_id" => $group['id'],
+            ] + $group;
+            $result[] = $group;
+        }
+
+        $sort = array_column($result, 'sort');
+        array_multisort($sort, SORT_ASC, $result);
+
+        return $result;
+    }
+
     public function move($id, $before_id = null)
     {
         $id = $this->escape($id);
+        $set_group_model = new shopSetGroupModel();
         if (!$before_id) {
             $item = $this->getById($id);
             if (!$item) {
                 return false;
             }
-            $sort = $this->query("SELECT MAX(sort) sort FROM {$this->table}")->fetchField('sort') + 1;
+            $sort = $this->query("SELECT GREATEST(MAX(s.sort), MAX(sg.sort)) AS `max_sort`
+                FROM {$this->table} s
+                JOIN {$set_group_model->getTableName()} sg")->fetchField('max_sort') + 1;
             $this->updateById($id, array('sort' => $sort));
         } else {
             $before_id = $this->escape($before_id);
-            $items = $this->query("SELECT * FROM {$this->table} WHERE id IN ('$id', '$before_id')")->fetchAll('id');
+            $items = $this->query("SELECT * FROM {$this->table} WHERE id IN ('$id', '$before_id') AND `group_id` IS NULL")->fetchAll('id');
             if (!$items || count($items) != 2) {
                 return false;
             }
             $sort = $items[$before_id]['sort'];
+            $set_group_model->query("UPDATE {$set_group_model->getTableName()} SET sort = sort + 1 WHERE sort >= $sort");
             $this->query("UPDATE {$this->table} SET sort = sort + 1 WHERE sort >= $sort");
             $this->updateById($id, array('sort' => $sort));
         }
@@ -137,5 +183,123 @@ class shopSetModel extends waModel
     {
         $where = "id = s:id";
         return !!$this->select('id')->where($where, array('id' => $id))->fetch();
+    }
+
+    /**
+     * @return array[]
+     */
+    public static function getRuleOptions()
+    {
+        return [
+            [
+                'name' => _w('Date added'),
+                'value' => ''
+            ],
+            [
+                'name' => _w('Most expensive'),
+                'value' => 'price DESC'
+            ],
+            [
+                'name' => _w('Least expensive'),
+                'value' => 'price ASC'
+            ],
+            [
+                'name' => _w('Highest rated'),
+                'value' => 'rating DESC'
+            ],
+            [
+                'name' => _w('Lowest rated'),
+                'value' => 'rating ASC'
+            ],
+            [
+                'name' => _w('Bestsellers by sold amount'),
+                'value' => 'total_sales DESC'
+            ],
+            [
+                'name' => _w('Bestsellers by sold quantity'),
+                'value' => self::TOTAL_COUNT_RULE
+            ],
+            [
+                'name' => _w('Bestsellers by complex value of “quantity × amount × rating”'),
+                'value' => self::BESTSELLERS_RULE
+            ],
+            [
+                'name' => _w('Worst sellers'),
+                'value' => 'total_sales ASC'
+            ],
+            [
+                'name' => _w('By name'),
+                'value' => 'name ASC'
+            ],
+            [
+                'name' => _w('Compare at price is set'),
+                'value' => 'compare_price DESC'
+            ],
+            [
+                'name' => _w('Date edited'),
+                'value' => 'edit_datetime DESC'
+            ]
+        ];
+    }
+
+    /**
+     * @return array[]
+     */
+    public static function getSortProductsOptions()
+    {
+        $result = [
+            [
+                'name' => _w("manual"),
+                'value' => ""
+            ],
+            [
+                'name' => _w("product name"),
+                'value' => "name ASC"
+            ],
+            [
+                'name' => _w("sku name"),
+                'value' => "sku ASC"
+            ],
+            [
+                'name' => _w('price'),
+                'value' => 'price ASC'
+            ],
+            [
+                'name' => _w("compare at price"),
+                'value' => "compare_price ASC"
+            ],
+            [
+                'name' => _w("purchase price"),
+                'value' => "purchase_price ASC"
+            ],
+            [
+                'name' => _w("in stock"),
+                'value' => "count ASC"
+            ],
+            [
+                'name' => _w("rating"),
+                'value' => "rating ASC"
+            ],
+            [
+                'name' => _w("date added"),
+                'value' => "create_datetime ASC"
+            ],
+            [
+                'name' => _w("top selling"),
+                'value' => "total_sales ASC"
+            ],
+            [
+                'name' => _w("stock net worth"),
+                'value' => "stock_worth ASC"
+            ]
+        ];
+
+        // TODO: добавить другие варианты сортировки товаров, которые добавляют плагины.
+        $result[] = [
+            'name' => 'TODO:plugin variant',
+            'value' => 'todo:plugin_id'
+        ];
+
+        return $result;
     }
 }

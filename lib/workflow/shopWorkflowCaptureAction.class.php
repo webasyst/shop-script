@@ -65,6 +65,7 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
                 && ($transactions = $this->getPaymentTransactions($plugin, ($order_id)))
                 && (isset($transactions[waPayment::TRANSACTION_CAPTURE]))
             ) {
+                $order_data = null;
                 $transaction = $transactions[waPayment::TRANSACTION_CAPTURE];
                 $plugin_supports_partial_capture = $plugin->getProperties('partial_capture');
                 $partial_capture = $plugin_supports_partial_capture && (waRequest::post('capture_mode') === 'partial');

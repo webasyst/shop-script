@@ -64,6 +64,8 @@ class shopProductsAction extends shopProductListAction
             $order = null;
         }
 
+        shopHelper::setChapter('old_chapter');
+
         $this->assign(array(
             'lazy_loading'                    => $lazy_loading,
             'products'                        => self::formatProducts($products),
@@ -73,6 +75,7 @@ class shopProductsAction extends shopProductListAction
             'order'                           => $order,
             'text'                            => $this->text,
             'title'                           => $first_hash != 'search' ? $this->collection->getTitle() : $this->text,
+            'hash'                            => $first_hash,
             'info'                            => $this->collection->getInfo(),
             'view'                            => $view,
             'stocks'                          => array_values($stocks),

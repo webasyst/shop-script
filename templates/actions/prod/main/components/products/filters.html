@@ -1,0 +1,64 @@
+{capture assign="_component_table_filters"}
+<div class="s-table-filters-section">
+    {* PANE *}
+    <div class="s-pane-section">
+        {* SEARCH *}
+        <component-table-filters-search class="s-filter-search-section s-pane-item wide"
+                                        v-model="search_string"
+                                        v-bind:search_icon="true"
+                                        v-on:search_change="applySearch"></component-table-filters-search>
+
+        {* CATEGORY *}
+        <component-table-filters-categories-sets-types v-on:success="applyCategories"></component-table-filters-categories-sets-types>
+
+        {* STOREFRONTS *}
+        <component-table-filters-storefronts v-on:success="applyStorefronts"></component-table-filters-storefronts>
+
+        {* TAGS *}
+        <component-table-filters-tags v-on:success="applyTags"></component-table-filters-tags>
+
+        {* FEATURES *}
+        <component-table-filters-features v-on:success="applyFeatures"></component-table-filters-features>
+
+        {* OTHER *}
+        <component-table-filters-list></component-table-filters-list>
+    </div>
+
+    {* RULES *}
+    <component-table-filters-rules></component-table-filters-rules>
+</div>
+{/capture}
+{$_components["component-table-filters"] = $_component_table_filters|trim}
+
+{capture assign="_component_table_filters_search"}
+    <div class="component-table-filters-search flexbox space-8">
+        <div class="s-icon" v-if="search_icon">
+            <span class="icon"><i class="fas fa-search"></i></span>
+        </div>
+        <div class="s-field-wrapper wide">
+            <component-input class="s-field"
+                             v-model="value"
+                             v-on:input="onInput"
+                             v-on:change="onChange"
+                             v-bind:cancel="true"
+                             v-bind:placeholder="(placeholder ? placeholder : '{_w("Search")|escape}')"></component-input>
+        </div>
+        <template v-if="value.length">
+            <div class="s-actions-wrapper flexbox space-8">
+                <div class="s-action is-active"
+                     v-on:click.prevent="revert">
+                    <span class="s-icon icon size-14"><i class="fas fa-times"></i></span>
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-table-filters-search"] = $_component_table_filters_search|trim}
+
+{include file="./filters.categories.html" scope="parent" inline}
+{include file="./filters.storefronts.html" scope="parent" inline}
+{include file="./filters.tags.html" scope="parent" inline}
+{include file="./filters.features.html" scope="parent" inline}
+{include file="./filters.list.html" scope="parent" inline}
+{include file="./filters.rules.html" scope="parent" inline}
+{include file="../../dialogs/list.feature_value.html" scope="parent" inline}

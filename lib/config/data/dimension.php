@@ -136,6 +136,10 @@ return array(
                 'name'       => _w('mW'),
                 'multiplier' => 0.001,
             ),
+            'hp'  => array(
+                'name'       => _w('л. с.'),
+                'multiplier' => 735.499,
+            ),
         ),
     ),
     'memory' => array(

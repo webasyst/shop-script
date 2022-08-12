@@ -14,7 +14,6 @@
 {if $direction eq 'import'}
     <script type="text/javascript" src="{$wa_app_static_url}js/tmpl.min.js"></script>
     <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js"></script>
-    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js"></script>
 {/if}
 
 {if !empty($smarty.capture)}{foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}

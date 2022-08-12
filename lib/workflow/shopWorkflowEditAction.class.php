@@ -187,11 +187,13 @@ class shopWorkflowEditAction extends shopWorkflowAction
         if (!empty($data['params']['refund_items'])) {
             // Write refund items as JSON into order log params.
             // This later becomes human-readable text during template rendering.
-            $return = array(
-                'params' => array(
-                    'refund_items' => $data['params']['refund_items'],
-                ),
-            );
+            if (is_array($data['params']['refund_items'])) {
+                $return = array(
+                    'params' => array(
+                        'refund_items' => $data['params']['refund_items'],
+                    ),
+                );
+            }
             unset($data['params']['refund_items']);
             $data['params']['auth_edit'] = date('Y-m-d H:i:s');
         }

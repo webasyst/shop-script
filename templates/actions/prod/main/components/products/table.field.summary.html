@@ -1,0 +1,56 @@
+{capture assign="_component_product_column_summary"}
+<div class="vue-column-type-summary">
+    <template v-if="states.is_locked">
+        <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+    </template>
+    <template v-else-if="column_data.settings.display === 'textarea'">
+        <component-textarea
+            v-model="column_data.value"
+            v-bind:cancel="true"
+            v-bind:readonly="!column_data.editable"
+            v-bind:placeholder="'{_w("Summary")|escape}'"
+            v-bind:class="'wa-small wide s-square-field'"
+            v-on:change="onChange"></component-textarea>
+    </template>
+    <template v-else="column_data.settings">
+        <div class="s-flexbox flexbox">
+            <div class="s-text-wrapper">
+                <div class="s-text" v-text="column_data.value"></div>
+            </div>
+            <div class="s-action-wrapper" v-if="column_data.value">
+                <span class="link" v-on:click="showFullContent">[`Подробнее`]</span>
+            </div>
+        </div>
+    </template>
+</div>
+{/capture}
+{$_components["component-product-column-summary"] = $_component_product_column_summary|trim}
+
+{capture assign="_dialog_product_column_summary"}
+    <div class="wa-dialog s-product-column-summary-dialog">
+        <div class="dialog-background"></div>
+        <div class="dialog-body">
+            <div class="js-vue-section" style="visibility: hidden;">
+                <div class="dialog-header">
+                    <h3>{_w("Summary")}</h3>
+                </div>
+                <div class="dialog-content">
+                    <component-textarea
+                        v-model="column_data.value"
+                        v-bind:readonly="!column_data.editable"
+                        v-bind:placeholder="'{_w("Summary")|escape}'"
+                        v-bind:class="'wa-small wide s-square-field s-textarea'"
+                        v-on:input="onInput"></component-textarea>
+                </div>
+                <div class="dialog-footer">
+                    <button class="wa-button blue" type="button" v-on:click="onSave" v-bind:disabled="!states.is_changed || states.is_locked">
+                        <span class="s-text">[`Save`]</span>
+                        <span class="s-icon icon size-12" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    </button>
+                    <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_templates["dialog-product-column-summary"] = $_dialog_product_column_summary|trim}

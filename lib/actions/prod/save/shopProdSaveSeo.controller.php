@@ -9,13 +9,19 @@ class shopProdSaveSeoController extends waJsonController
     {
         $product_data = waRequest::post('product', [], 'array');
 
+        $product = new shopProduct($product_data['id']);
+        if (!$product->getId()) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
         // check rights
         $product_model = new shopProductModel();
         if (!$product_model->checkRights($product_data['id'])) {
             throw new waException(_w("Access denied"), 403);
         }
-
-        $product = new shopProduct($product_data['id']);
 
         $backend_prod_pre_save = $this->throwPreSaveEvent($product, $product_data);
         foreach ($backend_prod_pre_save as $plugin_id => $result) {

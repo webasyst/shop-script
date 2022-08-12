@@ -23,7 +23,15 @@ class shopProdSaveServicesController extends waJsonController
         }
 
         $product_model = new shopProductModel();
-        if (!$product_model->checkRights($this->product_id)) {
+        $product = $product_model->getById($this->product_id);
+        if (!$product) {
+            $this->errors[] = [
+                'id' => 'not_found',
+                'text' => _w('Product not found'),
+            ];
+            return;
+        }
+        if (!$product_model->checkRights($product)) {
             throw new waException(_w("Access denied"));
         }
     }

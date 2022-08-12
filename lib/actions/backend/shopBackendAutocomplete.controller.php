@@ -588,9 +588,16 @@ class shopBackendAutocompleteController extends waController
 
         if (!empty($options_feature)) {
             $options_feature['frontend'] = true;
+            $options_feature['count'] = false;
             $options_feature['ignore_id'] = $ignore_id;
             $options_feature['term'] = $q;
             $filters = $category_helper->getFilters($options_feature);
+            if (!empty($options['get_default_filters'])) {
+                $default_filters = $category_helper->getDefaultFilters();
+                if (mb_strpos(mb_strtolower($default_filters['name']), mb_strtolower($q)) !== false) {
+                    $filters += [$default_filters];
+                }
+            }
             $result = $this->prepareFilters($filters);
         }
 
@@ -609,6 +616,7 @@ class shopBackendAutocompleteController extends waController
                 'name'      => $filter['name'],
                 'type'      => $filter['type'],
                 'type_name' => $filter['type_name'],
+                'available_for_sku' => (bool)$filter['available_for_sku'],
             );
         }
         return $result;

@@ -45,6 +45,6 @@ class shopBackendProductsListSectionLayout extends shopBackendProductsLayout
     /** Part of execute() that assigns vars for wrapper template (including sidebar) */
     public function assignWrapperVars()
     {
-        // !!! TODO
+        $this->executeAction('sidebar', new shopProdListSidebarAction());
     }
 }
