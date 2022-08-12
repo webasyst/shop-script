@@ -408,42 +408,32 @@ class shopCsvProductrunController extends waLongActionController
         /** @var shopFeatureModel $features_model */
         $features_model = $this->model('feature');
         if (!empty($config['features'])) {
-
+            $features = [];
+            $type_ids = [];
             if (preg_match('@^id/(.+)$@', $this->data['hash'], $matches)) {
                 $product_ids = array_unique(array_map('intval', explode(',', $matches[1])));
-                $features = $features_model->getByProduct($product_ids);
-                /** @var shopProductFeaturesSelectableModel $feature_selectable_model */
-                $feature_selectable_model = $this->model('product_features_selectable');
-                $feature_ids = $feature_selectable_model->getFeatures($product_ids);
-                $feature_ids = array_diff($feature_ids, array_keys($features));
-                if ($feature_ids) {
-                    $features += $features_model->getById($feature_ids);
+                if ($product_ids) {
+                    /** @var shopProductModel $product_model */
+                    $product_model = $this->model('product');
+                    $type_ids = array_keys($product_model->select('type_id')->where('id IN (?)', [$product_ids])->fetchAll('type_id'));
                 }
-
-                $parents = array();
-                foreach ($features as $feature) {
-                    if (!empty($feature['parent_id'])) {
-                        if (!isset($parents[$feature['parent_id']])) {
-                            $parents[$feature['parent_id']] = $feature['parent_id'];
-                        }
-                    }
-                }
-                if ($parents) {
-                    $features += $features_model->getById($parents);
-                }
-
-            } else {
-                $types = $this->getCollection()->getProducts('type_id');
+            } elseif (($this->data['export_category'] && preg_match('@^category/(\d+)$@', $this->data['hash']))
+                || preg_match('@^set/[a-z0-9\._-]+$@i', $this->data['hash'])
+            ) {
+                $types = (new shopProductsCollection($this->data['hash']))->getProducts('type_id', 0, 999999999);
                 $type_ids = waUtils::getFieldValues($types, 'type_id');
+            } elseif (preg_match('@^type/(\d+)$@', $this->data['hash'], $matches)) {
+                $type_ids = (int)$matches[1];
+            } else {
+                $features = $features_model->getFeatures(true);
+            }
+            if ($type_ids) {
                 /** @var shopTypeFeaturesModel $type_features_model */
                 $type_features_model = $this->model('type_features');
-                $type_features = [];
-                $features = [];
-                if ($type_ids) {
-                    $type_features = $type_features_model->select('feature_id')->where('type_id IN (?)', [$type_ids])->fetchAll('feature_id');
-                }
+                $type_features = $type_features_model->select('feature_id')->where('type_id IN (?)', [$type_ids])->fetchAll('feature_id');
                 if ($type_features) {
                     $features = $features_model->getById(array_keys($type_features));
+                    $features += $features_model->getByField('parent_id', array_keys($features), 'id');
                 }
             }
             if ($features) {
@@ -571,7 +561,6 @@ SQL;
 
     private static function getData($data, $key)
     {
-        $value = null;
         if (is_string($key) && strpos($key, ':')) {
             $key = explode(':', $key);
         }
@@ -596,7 +585,7 @@ SQL;
      * @return shopProductsCollection
      * @throws waException
      */
-    private function getCollection()
+    private function getCollection($category_id = null)
     {
         static $id = null, $dynamic_categories = null;
         if ($dynamic_categories === null) {
@@ -613,7 +602,11 @@ SQL;
             if ($this->data['export_category']) {
                 //hash is * or category/id
                 #rebuild hash with current category id
-                $id = $this->data['map'][self::STAGE_CATEGORY];
+                if ($category_id) {
+                    $id = $category_id;
+                } else {
+                    $id = $this->data['map'][self::STAGE_CATEGORY];
+                }
                 $dynamic_category = isset($dynamic_categories[$id]) ? $dynamic_categories[$id] : null;
                 if ($this->data['hash'] == '*') {
                     if ($dynamic_category) {
@@ -637,7 +630,6 @@ SQL;
                         //used to skip parent categories entries
                         $hash = 'category/0';
                     }
-
                 }
             } else {
                 $hash = $this->data['hash'];
@@ -654,7 +646,15 @@ SQL;
             $this->collection->orderBy('name');
         }
 
-        return $this->collection;
+        if ($category_id) {
+            $collection = $this->collection;
+            $id = null;
+            $this->collection = null;
+            $this->data['export_category'] = false;
+            return $collection;
+        } else {
+            return $this->collection;
+        }
     }
 
     private function getStageReport($stage, $count, $wrapper = '<i class="icon16 %s"></i>%s', $separator = ', ')

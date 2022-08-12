@@ -507,6 +507,13 @@
                                 <div class="message-icon"><i class="fas fa-times color-yellow"></i></div>
                                 <div class="message-text wide">[`Hidden`]</div>
                             </div>
+                            <div class="s-description">[`The product is not shown among other products in the storefront, is not available for purchase, and can be viewed at its direct URL only.`]</div>
+
+                        {elseif $product.status === "-1"}
+                            <div class="s-title flexbox space-8 middle">
+                                <div class="message-icon"><i class="fas fa-times color-red"></i></div>
+                                <div class="message-text wide">[`Unpublished`]</div>
+                            </div>
                             <div class="s-description">
                                 {sprintf(
                                     _w('The product is not visible among other products in the storefront, is not available for purchase, cannot be viewed at its direct URL, and is excluded from the %sSitemap file%s.'),
@@ -517,13 +524,6 @@
                                     )
                                 )}
                             </div>
-
-                        {elseif $product.status === "-1"}
-                            <div class="s-title flexbox space-8 middle">
-                                <div class="message-icon"><i class="fas fa-times color-red"></i></div>
-                                <div class="message-text wide">[`Unpublished`]</div>
-                            </div>
-                            <div class="s-description">[`The product is not shown among other products in the storefront, is not available for purchase, and can be viewed at its direct URL only.`]</div>
                         {/if}
                     </div>
                 </div>

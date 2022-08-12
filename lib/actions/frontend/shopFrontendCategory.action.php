@@ -126,16 +126,13 @@ class shopFrontendCategoryAction extends shopFrontendAction
         }
         $this->view->assign('category', $category);
 
-        $simple_collection = new shopProductsCollection('category/'.$category['id']);
-        $this->setCollectionParams($simple_collection, false);
-        $full_sql = "SELECT DISTINCT p.stock_unit_id " . $simple_collection->getSQL();
-        $filtered_stock_unit_ids = $this->getModel()->query($full_sql)->fetchAll('stock_unit_id');
-        $filtered_stock_unit_ids = array_keys($filtered_stock_unit_ids);
+        $filtered_unit_ids = $this->getFilteredUnits($category['id']);
+        $this->view->assign($filtered_unit_ids);
         $sort = waRequest::get('sort', null, waRequest::TYPE_STRING_TRIM);
-        $this->view->assign('filtered_stock_unit_ids', $filtered_stock_unit_ids);
+        $sort_unit = waRequest::get('sort_unit', null, waRequest::TYPE_INT);
         $additional_filters = [];
-        if (count($filtered_stock_unit_ids) == 1 && $sort == 'base_price') {
-            $additional_filters['sort'] = 'price';
+        if (!empty($sort_unit) && $sort == 'price' && in_array($sort_unit, $filtered_unit_ids['filtered_base_unit_ids'])) {
+            $additional_filters['sort'] = 'base_price';
         }
 
         // products
@@ -424,8 +421,31 @@ class shopFrontendCategoryAction extends shopFrontendAction
     {
         list($stock_units_ids, $base_units_ids, $all_base_unit_ids) = $collection->getAllUnitIds();
         $unique_units_ids = $stock_units_ids + $all_base_unit_ids;
-        $unit_model = new shopUnitModel();
-        $units = $unit_model->select('id')->where('`status` = 1')->fetchAll('id');
+        $units = $this->getEnabledUnits();
         return array_intersect_key($units, $unique_units_ids);
+    }
+
+    protected function getFilteredUnits($category_id)
+    {
+        $simple_collection = new shopProductsCollection('category/'.$category_id);
+        $this->setCollectionParams($simple_collection, false);
+        list($stock_units_ids, $base_units_ids, $all_base_unit_ids) = $simple_collection->getAllUnitIds();
+        $units = $this->getEnabledUnits();
+        return [
+            'filtered_stock_unit_ids' => array_keys(array_intersect_key($units, $stock_units_ids)),
+            'filtered_base_unit_ids' => array_keys(array_intersect_key($units, $base_units_ids)),
+        ];
+    }
+
+    protected function getEnabledUnits()
+    {
+        static $units = null;
+
+        if ($units === null) {
+            $unit_model = new shopUnitModel();
+            $units = $unit_model->select('id')->where('`status` = 1')->fetchAll('id');
+        }
+
+        return $units;
     }
 }

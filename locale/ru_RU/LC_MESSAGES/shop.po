@@ -6302,9 +6302,7 @@ msgid "All public stocks"
 msgstr "Все склады, видимые покупателям"
 
 msgid "Editing this order will mark it as settled and will re-calculate its current amount (%s) based on the changed order content. Are you sure you want to settle this order and to reset the order amount?"
-msgstr ""
-"Редактирование автоматически снимет статус подвешенного заказа и приведет к автоматическому пересчету общей суммы заказа (%s) согласно товарам, которые вы добавите в заказ.\n"
-"Продолжить?"
+msgstr "Редактирование автоматически снимет статус подвешенного заказа и приведет к автоматическому пересчету общей суммы заказа (%s) согласно товарам, которые вы добавите в заказ. Продолжить?"
 
 msgid "This will replace selected order %id% details with the amount (%amount%) and status (%state%) of this unsettled order. Are you sure?"
 msgstr "При объединении данные основного заказа %id% будут обновлены: сумма и статус будут установлены равными сумме (%amount%) и статусу (%state%) текущего подвешенного заказа. Продолжить?"
@@ -11918,3 +11916,6 @@ msgstr "Будет импортировано в качестве динамич
 
 msgid "Enable the emoji support in system settings."
 msgstr "Включите поддержку эмодзи в системных настройках."
+
+msgid "product"
+msgstr "товар"
