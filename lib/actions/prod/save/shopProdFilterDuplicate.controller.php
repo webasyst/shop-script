@@ -12,7 +12,7 @@ class shopProdFilterDuplicateController extends waJsonController
         ];
         $this->formatValues($data);
         $filter_model = new shopFilterModel();
-        $new_id = $filter_model->duplicate($filter_id, shopFilterModel::DUPLICATE_MODE_TEMPLATE, $data);
+        $new_id = $filter_model->duplicate($filter_id, shopFilterModel::DUPLICATE_MODE_CREATE, $data);
         $this->response = $filter_model->getById($new_id, [
             'rules' => true,
         ]);

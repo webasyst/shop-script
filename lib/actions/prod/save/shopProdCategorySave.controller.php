@@ -82,10 +82,17 @@ class shopProdCategorySaveController extends waJsonController
         }
         $category['params'] = $params;
 
-//        if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-//            $data['conditions'] = $this->getConditions();
-//        }
-
+        if (isset($category['id'])) {
+            $category_model = new shopCategoryModel();
+            $saved_category = $category_model->getById($category['id']);
+            if ($saved_category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
+                $category['conditions'] = $this->getConditions();
+            }
+        } else {
+            if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
+                $category['conditions'] = $this->getConditions();
+            }
+        }
     }
 
     private function save(&$data)
@@ -163,68 +170,43 @@ class shopProdCategorySaveController extends waJsonController
         return $category_id;
     }
 
-    private function getConditions()
+    /**
+     * @return string
+     */
+    protected function getConditions()
     {
-        $raw_condition = waRequest::post('condition');
-
+        $raw_condition = waRequest::post('condition', [], waRequest::TYPE_ARRAY);
         $conditions = [];
-        if (isset($raw_condition['rating'])) {
-            $raw_condition['rating'] = waRequest::post('rating');
-            $conditions[] = 'rating'.$raw_condition['rating'][0].$raw_condition['rating'][1];
-        }
-        if (isset($raw_condition['tag'])) {
-            $tags = waRequest::post('tag', [], waRequest::TYPE_ARRAY);
-            if (!empty($tags)) {
-                $tags_query = implode('||', $tags);
-                $tags_query = str_replace('&', '\&', $tags_query);
-                $conditions[] = 'tag='.$tags_query;
-            }
-        }
-        if (isset($raw_condition['price'])) {
-            $raw_condition['price'] = waRequest::post('price');
-            if (!empty($raw_condition['price'][0])) {
-                $conditions[] = 'price>='.$raw_condition['price'][0];
-            }
-            if (!empty($raw_condition['price'][1])) {
-                $conditions[] = 'price<='.$raw_condition['price'][1];
+
+        $range_fields = ['create_datetime', 'edit_datetime', 'rating', 'price', 'compare_price', 'purchase_price', 'count'];
+        $select_fields = ['type', 'tag', 'badge'];
+        foreach ($raw_condition as $key => $item) {
+            if (in_array($key, $range_fields)) {
+                if (mb_strlen($item['begin'])) {
+                    $conditions[] = $key.'>='.$item['begin'];
+                }
+                if (mb_strlen($item['end'])) {
+                    $conditions[] = $key.'<='.$item['end'];
+                }
+            } elseif (in_array($key, $select_fields) && !empty($item) && is_array($item)) {
+                $select_data = implode('||', $item);
+                $select_data = str_replace('&', '\&', $select_data);
+                $conditions[] = $key.'='.$select_data;
             }
         }
 
-        $features = ifset($raw_condition, 'features', []);
-
-        if ($features) {
-            foreach ($features as $f_code => $f_data) {
-                $f_type = ifset($f_data, 'type', null);
-                $f_values = ifset($f_data, 'values', null);
-                if (substr($f_type, 0, 5) === 'range') {
-                    $begin = ifset($f_values, 'begin', null);
-                    if (is_numeric($begin)) {
-                        $conditions[] = $f_code.'.value>='.$begin;
-                    }
-                    $end = ifset($f_values, 'end', null);
-                    if (is_numeric($end)) {
-                        $conditions[] = $f_code.'.value<='.$end;
-                    }
-                } elseif ($f_values) {
-                    $conditions[] = $f_code.'.value_id='.implode(',', $f_values);
+        if (!empty($raw_condition['features'])) {
+            foreach ($raw_condition['features'] as $code => $feature_data) {
+                if (isset($feature_data['begin']) && mb_strlen($feature_data['begin'])) {
+                    $conditions[] = $code.'.value>='.$feature_data['begin'];
+                } elseif (isset($feature_data['end']) && mb_strlen($feature_data['end'])) {
+                    $conditions[] = $code.'.value<='.$feature_data['end'];
+                } elseif (!empty($feature_data['values']) && is_array($feature_data['values'])) {
+                    $conditions[] = $code.'.value_id='.implode(',', $feature_data['values']);
                 }
             }
         }
 
-        if (isset($raw_condition['count'])) {
-            $raw_condition['count'] = waRequest::post('count');
-            $conditions[] = 'count'.$raw_condition['count'][0].$raw_condition['count'][1];
-        }
-
-        if (isset($raw_condition['compare_price'])) {
-            $conditions[] = 'compare_price>0';
-        }
-
-        if ($custom_conditions = waRequest::post('custom_conditions')) {
-            $conditions[] = $custom_conditions;
-        }
-
-        $conditions = implode('&', $conditions);
-        return $conditions;
+        return implode('&', $conditions);
     }
 }

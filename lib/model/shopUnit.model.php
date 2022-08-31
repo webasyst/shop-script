@@ -22,6 +22,23 @@ class shopUnitModel extends waModel
         return $result;
     }
 
+    /**
+     * @param string $key
+     * @return array|array[]
+     * @throws waException
+     */
+    public function getAllEnabled($key = null)
+    {
+        $piece  = self::getPc();
+        $result = $this->where('status = 1')->order('sort')->fetchAll($key);
+        if ($key) {
+            $result = [ifset($piece, $key, 0) => $piece] + $result;
+        } else {
+            array_unshift($result, $piece);
+        }
+        return $result;
+    }
+
     public function getAllCustom($key = null, $normalize = false)
     {
         return parent::getAll($key, $normalize);

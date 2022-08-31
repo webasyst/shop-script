@@ -20,7 +20,7 @@ class shopFilter
         $filter = null;
         $reset_filter_to_template = true;
 
-        $with_rules = ['rules' => true];
+        $with_rules = ['rules' => $rules];
         if (!empty($id)) {
             $row = $this->getModel()->getById($id, $with_rules);
             if ($row) {
@@ -70,19 +70,9 @@ class shopFilter
         return $this->filter['id'];
     }
 
-    public function getView()
+    public function getFilter()
     {
-        return $this->filter['view'];
-    }
-
-    public function isTemplate()
-    {
-        return empty($this->filter['parent_id']);
-    }
-
-    public function isTransient()
-    {
-        return !empty($this->filter['parent_id']);
+        return $this->filter;
     }
 
     public function getTemplate()
@@ -90,32 +80,9 @@ class shopFilter
         return $this->template;
     }
 
-    public function getFilter()
+    public function isTemplate()
     {
-        return $this->filter;
-    }
-
-    /**
-     * @param string $entity = 'filter' | 'rules'
-     * @return mixed|shopFilterModel|shopPresentationModel
-     * @throws waException
-     */
-    protected function getModel($entity = 'filter')
-    {
-        if (empty($models[$entity])) {
-            switch ($entity) {
-                case 'filter';
-                    $models[$entity] = new shopFilterModel();
-                    break;
-                case 'rules';
-                    $models[$entity] = new shopFilterRulesModel();
-                    break;
-                default:
-                    throw new waException('Unknown entity ' . $entity);
-            }
-        }
-
-        return $models[$entity];
+        return empty($this->filter['parent_id']);
     }
 
     /**
@@ -148,18 +115,12 @@ class shopFilter
         $tag_model = new shopTagModel();
         $tags = $tag_model->getAll();
 
-        $currency_model = new shopCurrencyModel();
-        $currencies = $currency_model->getCurrencies();
-
-        $tax_model = new shopTaxModel();
-        $taxes = $tax_model->getAll();
-
         $features_data = self::getAllTypes(true, false, true);
-        $features_data['currency']['options'] = array_values($currencies);
-        $features_data['tax_id']['options'] = $taxes;
         usort($features_data, function($f1, $f2) {
-            return strcasecmp(trim($f1['name']), trim($f2['name']));
+            return strnatcasecmp(mb_strtolower(trim($f1['name'])), mb_strtolower(trim($f2['name'])));
         });
+
+        $features_data = $this->formatAllTypes($features_data);
 
         return [
             'categories' => $categories,
@@ -182,52 +143,52 @@ class shopFilter
         $product_fields = [
             'create_datetime' => [
                 'name' => _w('Date added'),
-                'render_type' => 'date',
-                'selection_format' => 'range',
+                'type' => 'date',
+                'render_type' => 'range',
             ],
             'edit_datetime' => [
                 'name' => _w('Дата последнего изменения'),
-                'render_type' => 'date',
-                'selection_format' => 'range',
+                'type' => 'date',
+                'render_type' => 'range',
             ],
             'status' => [
                 'name' => _w('Availability in the storefront'),
+                'type' => 'select',
                 'render_type' => 'select',
-                'selection_format' => 'select',
             ],
             'rating' => [
                 'name' => _w('Rating'),
-                'render_type' => 'rating',
-                'selection_format' => 'range',
+                'type' => 'double',
+                'render_type' => 'range',
             ],
             'currency' => [
                 'name' => _w('Currency'),
+                'type' => 'select',
                 'render_type' => 'select',
-                'selection_format' => 'select',
                 'options' => [],
                 'table' => 'currency',
             ],
             'tax_id' => [
                 'name' => _w('Tax'),
+                'type' => 'select',
                 'render_type' => 'select',
-                'selection_format' => 'select',
                 'options' => [],
-                'table' => 'shop_tax',
+                'table' => 'tax',
             ],
             'count' => [
                 'name' => _w('In stock'),
-                'render_type' => 'stock',
-                'selection_format' => 'range',
+                'type' => 'double',
+                'render_type' => 'range',
             ],
             'badge' => [
                 'name' => _w('Badge'),
-                'render_type' => 'text',
-                'selection_format' => 'select',
+                'type' => 'varchar',
+                'render_type' => 'select',
             ],
             'sku_count' => [
                 'name' => _w('Количество модификаций'),
-                'render_type' => 'int',
-                'selection_format' => 'range',
+                'type' => 'double',
+                'render_type' => 'range',
             ],
         ];
 
@@ -235,12 +196,14 @@ class shopFilter
             $product_fields += [
                 'stock_unit_id' => [
                     'name' => _w('Stock quantity unit'),
+                    'type' => 'select',
                     'render_type' => 'select',
                     'options' => [],
                     'table' => 'unit',
                 ],
                 'base_unit_id' => [
                     'name' => _w('Base quantity unit'),
+                    'type' => 'select',
                     'render_type' => 'select',
                     'options' => [],
                     'table' => 'unit',
@@ -251,35 +214,35 @@ class shopFilter
         $sku_fields = [
             'price' => [
                 'name' => _w('Price'),
-                'render_type' => 'price',
-                'selection_format' => 'range',
+                'type' => 'double',
+                'render_type' => 'range',
                 'display_type' => 'sku',
                 'rule_type' => 'price',
-                'replaces_previous' => true,
+                'replaces_previous' => true
             ],
             'compare_price' => [
                 'name' => _w('Compare at price'),
-                'render_type' => 'price',
-                'selection_format' => 'range',
+                'type' => 'double',
+                'render_type' => 'range',
                 'display_type' => 'sku',
                 'rule_type' => 'compare_price',
-                'replaces_previous' => true,
+                'replaces_previous' => true
             ],
         ];
 
         $dynamic_fields = [
             'sales_30days' => [
                 'name' => _w('Last 30 days sales'),
-                'render_type' => 'html',
-                'selection_format' => 'range',
+                'type' => 'double',
+                'render_type' => 'range',
                 'display_type' => 'dynamic',
                 'rule_type' => 'sales_30days',
                 'replaces_previous' => true,
             ],
             'stock_worth' => [
                 'name' => _w('Stock net worth'),
-                'render_type' => 'html',
-                'selection_format' => 'range',
+                'type' => 'double',
+                'render_type' => 'range',
                 'display_type' => 'dynamic',
                 'rule_type' => 'stock_worth',
                 'replaces_previous' => true,
@@ -296,12 +259,15 @@ class shopFilter
         $features = self::getFilterFeatures();
         if ($format_features) {
             $selectable_values = shopPresentation::addSelectableValues($features);
-            $features = shopProdSkuAction::formatFeatures($selectable_values);
+            $features = shopProdSkuAction::formatFeatures($selectable_values, false, false);
         }
 
         $options = [];
         if ($all) {
             $options += [
+                'search' => [
+                    'replaces_previous' => true,
+                ],
                 'categories' => [
                     'replaces_previous' => true,
                 ],
@@ -334,29 +300,129 @@ class shopFilter
         return $options;
     }
 
-    protected static function getFilterFeatures()
+    /**
+     * @param array $items
+     * @return array
+     * @throws waException
+     */
+    public function formatAllTypes($items)
     {
-        $feature_model = new shopFeatureModel();
-        $features = $feature_model->select('*, CONCAT("feature_", id) AS `rule_type`')->where('`type` != "text" AND `type` != "divider" AND `type` NOT LIKE "2d.%" AND `type` NOT LIKE "3d.%" AND `parent_id` IS NULL')->fetchAll('rule_type');
+        $currency_model = new shopCurrencyModel();
+        $currencies = $currency_model->getCurrencies();
+        $currency_id = wa('shop')->getConfig()->getCurrency(true);
+        $currency = $currencies[$currency_id];
 
-        foreach ($features as &$feature) {
-            $feature['replaces_previous'] = (bool)$feature['multiple'];
-            $feature['display_type'] = 'feature';
-            $feature['rule_type'] = 'feature_' . $feature['id'];
+        $tax_model = new shopTaxModel();
+        $taxes = $tax_model->getAll();
+
+        $unit_model = new shopUnitModel();
+        $enabled_units = $unit_model->getAllEnabled();
+        $units = [];
+        foreach ($enabled_units as $unit) {
+            $units[] = [
+                'name' => $unit['name'],
+                'value' => $unit['id'],
+            ];
         }
-        unset($feature);
 
-        return $features;
+        foreach ($items as &$item) {
+            if ($item['display_type'] !== 'feature') {
+                if ($item['render_type'] == 'range') {
+                    $item['options'] = [
+                        ['name' => '', 'value' => ''],
+                        ['name' => '', 'value' => '']
+                    ];
+                }
+
+                /* Преобразуем данные в правильный формат */
+                switch ($item['rule_type']) {
+                    case 'price':
+                    case 'compare_price':
+                    case 'sales_30days':
+                    case 'stock_worth':
+                        $item['currency'] = $currency;
+                        break;
+                    case 'currency':
+                        $item['options'] = [];
+                        foreach($currencies as $_currency) {
+                            $item['options'][] = [
+                                'name' => $_currency['title'],
+                                'value' => $_currency['code']
+                            ];
+                        }
+                        break;
+                    case 'tax_id':
+                        $item['options'] = [];
+                        foreach($taxes as $_tax) {
+                            $item['options'][] = [
+                                'name' => $_tax['name'],
+                                'value' => $_tax['id']
+                            ];
+                        }
+                        break;
+                    case 'status':
+                        $item['options'] = [
+                            [
+                                'name' => _w('Published'),
+                                'value' => '1',
+                                'icon' => 'fas fa-check color-green-dark'
+                            ],
+                            [
+                                'name' => _w('Hidden'),
+                                'value' => '0',
+                                'icon' => 'fas fa-times color-yellow'
+                            ],
+                            [
+                                'name' => _w('Unpublished'),
+                                'value' => '-1',
+                                'icon' => 'fas fa-times color-red'
+                            ]
+                        ];
+                        break;
+                    case 'base_unit_id':
+                    case 'stock_unit_id':
+                        $item['options'] = $units;
+                        break;
+                    case 'badge':
+                        $item['options'] = [
+                            [
+                                'name' => _w('New!'),
+                                'value' => 'new',
+                                'icon' => 'fas fa-bolt'
+                            ],
+                            [
+                                'name' => _w('Low price!'),
+                                'value' => 'lowprice',
+                                'icon' => 'fas fa-piggy-bank',
+                            ],
+                            [
+                                'name' => _w('Bestseller!'),
+                                'value' => 'bestseller',
+                                'icon' => 'fas fa-chart-line',
+                            ],
+                            [
+                                'name' => _w('Custom badge'),
+                                'value' => 'custom',
+                                'icon' => 'fas fa-code',
+                            ]
+                        ];
+                        break;
+                }
+            }
+        }
+
+        return $items;
     }
 
     /**
      * @param string $rule_type
      * @param array $rule_params
      * @param array $type
+     * @param string|null $unit
      * @return array
      * @throws waException
      */
-    public static function validateValue($rule_type, $rule_params, $type = [])
+    public static function validateValue($rule_type, $rule_params, $type = [], $unit = null)
     {
         $correct_params = [];
         if (is_array($rule_params)) {
@@ -364,13 +430,13 @@ class shopFilter
             switch ($rule_type) {
                 case 'create_datetime':
                 case 'edit_datetime':
-                    $correct_params = self::validateDate($count, $rule_params);
+                    $correct_params = self::validateDate($count, $rule_params, false);
                     break;
                 case 'status':
                     if ($count) {
                         foreach ($rule_params as $param) {
-                            if ($rule_params[0] >= -1 && $param[0] <= 1) {
-                                $correct_params[] = (int)$param[0];
+                            if ($param >= -1 && $param <= 1) {
+                                $correct_params[] = (int)$param;
                             }
                         }
                     }
@@ -384,7 +450,7 @@ class shopFilter
                 case 'stock_worth':
                     if ($count == 2) {
                         if (is_numeric($rule_params[0]) && is_numeric($rule_params[1])) {
-                            if ($rule_params[0] > $rule_params[1]) {
+                            if ((double)$rule_params[0] > (double)$rule_params[1]) {
                                 $correct_params = [$rule_params[1], $rule_params[0]];
                             } else {
                                 $correct_params = [$rule_params[0], $rule_params[1]];
@@ -419,6 +485,7 @@ class shopFilter
                     break;
                 case 'sets':
                 case 'storefronts':
+                case 'search':
                     if ($count) {
                         foreach ($rule_params as $param) {
                             if (is_string($param) && mb_strlen($param)) {
@@ -449,34 +516,64 @@ class shopFilter
                     break;
             }
             if (isset($type['display_type']) && $type['display_type'] == 'feature') {
-                if ($count && ($type['selectable'] || $type['multiple'] || in_array($type['type'], ['varchar', 'boolean', 'color']))) {
+                if ($count && ($type['selectable'] || $type['multiple']
+                    || in_array($type['type'], [shopFeatureModel::TYPE_VARCHAR, shopFeatureModel::TYPE_BOOLEAN, shopFeatureModel::TYPE_COLOR]))
+                ) {
                     foreach ($rule_params as $param) {
                         if ($param >= 0) {
                             $correct_params[] = (int)$param;
                         }
                     }
-                } elseif ($type['type'] == 'date' || $type['type'] == 'range.date') {
-                    $correct_params = self::validateDate($count, $rule_params);
-                } elseif ($count == 2 && ($type['type'] == 'double' || mb_strpos($type['type'], 'range.') === 0 || mb_strpos($type['type'], 'dimension.') === 0)) {
+                } elseif ($type['type'] == shopFeatureModel::TYPE_DATE || $type['type'] == 'range.date') {
+                    $correct_params = self::validateDate($count, $rule_params, false);
+                } elseif ($count == 2 && ($type['type'] == shopFeatureModel::TYPE_DOUBLE || mb_strpos($type['type'], 'range.') === 0
+                    || mb_strpos($type['type'], 'dimension.') === 0)
+                ) {
                     if (is_numeric($rule_params[0]) && is_numeric($rule_params[1])) {
-                        if ($rule_params[0] > $rule_params[1]) {
+                        if ((double)$rule_params[0] > (double)$rule_params[1]) {
                             $correct_params = [$rule_params[1], $rule_params[0]];
                         } else {
                             $correct_params = [$rule_params[0], $rule_params[1]];
                         }
                     }
+                } elseif ($count == 1 && is_numeric($rule_params[0])
+                    && ($type['type'] == shopFeatureModel::TYPE_DOUBLE || mb_strpos($type['type'], 'range.') === 0
+                        || mb_strpos($type['type'], 'dimension.') === 0)
+                ) {
+                    $correct_params = [$rule_params[0]];
                 }
             }
         }
+
+        if ($unit && $correct_params) {
+            $correct_params[] = $unit;
+        }
+
         return $correct_params;
     }
 
-    protected static function validateDate($count, $rule_params)
+    /**
+     * @param int $count
+     * @param array $rule_params
+     * @param $datetime
+     * @return array
+     * @throws waException
+     */
+    protected static function validateDate($count, $rule_params, $datetime = true)
     {
         $correct_params = [];
+        if (!$datetime) {
+            $date_validator = new waDateValidator();
+        }
         if ($count == 2) {
-            $start_date_correct = waDateTime::parse('Y-m-d H:i:s', $rule_params[0]);
-            $end_date_correct = waDateTime::parse('Y-m-d H:i:s', $rule_params[1]);
+            $start_date_correct = $rule_params[0];
+            $end_date_correct = $rule_params[1];
+            if ($datetime) {
+                $start_date_correct = waDateTime::parse('Y-m-d H:i:s', $rule_params[0]);
+                $end_date_correct = waDateTime::parse('Y-m-d H:i:s', $rule_params[1]);
+            } elseif (!$date_validator->isValid($start_date_correct) || !$date_validator->isValid($end_date_correct)) {
+                $start_date_correct = $end_date_correct = false;
+            }
             if ($start_date_correct && $end_date_correct) {
                 $start_datetime = new DateTime($start_date_correct);
                 $end_datetime = new DateTime($end_date_correct);
@@ -487,13 +584,33 @@ class shopFilter
                 }
             }
         } elseif ($count == 1) {
-            $date_correct = waDateTime::parse('Y-m-d H:i:s', $rule_params[0]);
+            $date_correct = $rule_params[0];
+            if ($datetime) {
+                $date_correct = waDateTime::parse('Y-m-d H:i:s', $rule_params[0]);
+            } elseif (!$date_validator->isValid($date_correct)) {
+                $date_correct = false;
+            }
             if ($date_correct) {
                 $correct_params[] = $date_correct;
             }
         }
 
         return $correct_params;
+    }
+
+    protected static function getFilterFeatures()
+    {
+        $feature_model = new shopFeatureModel();
+        $features = $feature_model->select('*, CONCAT("feature_", id) AS `rule_type`')->where('`type` != "text" AND `type` != "divider" AND `type` NOT LIKE "2d.%" AND `type` NOT LIKE "3d.%" AND `parent_id` IS NULL')->fetchAll('rule_type');
+
+        foreach ($features as &$feature) {
+            $feature['replaces_previous'] = empty($feature['multiple']);
+            $feature['display_type'] = 'feature';
+            $feature['rule_type'] = 'feature_' . $feature['id'];
+        }
+        unset($feature);
+
+        return $features;
     }
 
     protected function getSetsWithGroups()
@@ -526,7 +643,7 @@ class shopFilter
         foreach($groups as $group) {
             $group = [
                     'is_group' => true,
-                    "group_id" => $group['id'],
+                    'group_id' => $group['id'],
                 ] + $group;
             $result[] = $group;
         }
@@ -535,5 +652,28 @@ class shopFilter
         array_multisort($sort, SORT_ASC, $result);
 
         return $result;
+    }
+
+    /**
+     * @param string $entity = 'filter' | 'rules'
+     * @return mixed|shopFilterModel|shopPresentationModel
+     * @throws waException
+     */
+    protected function getModel($entity = 'filter')
+    {
+        if (empty($models[$entity])) {
+            switch ($entity) {
+                case 'filter';
+                    $models[$entity] = new shopFilterModel();
+                    break;
+                case 'rules';
+                    $models[$entity] = new shopFilterRulesModel();
+                    break;
+                default:
+                    throw new waException('Unknown entity ' . $entity);
+            }
+        }
+
+        return $models[$entity];
     }
 }

@@ -16,7 +16,9 @@ class shopProdGeneralAction extends waViewAction
             return;
         }
         $product_model = new shopProductModel();
-        if (!$product_model->checkRights($product_id)) {
+        if (($product_id != 'new' && !$product_model->checkRights($product_id))
+            || ($product_id == 'new' && !wa()->getUser()->getRights('shop', 'type.%') && wa()->getUser()->getRights('shop', 'backend') == 1)
+        ) {
             if (waRequest::isXMLHttpRequest() && !waRequest::request('section')) {
                 throw new waException(_w('Access denied'), 403);
             } else {

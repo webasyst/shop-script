@@ -132,11 +132,15 @@ class shopBackendAutocompleteController extends waController
 
     public function productsAutocomplete($q, $limit = null)
     {
+        $with_image = waRequest::post('with_image', 0, waRequest::TYPE_INT);
         $limit = $limit !== null ? $limit : $this->limit;
 
         $product_model = new shopProductModel();
         $q = $product_model->escape($q, 'like');
         $fields = 'id, name AS value, price, count, sku_id';
+        if ($with_image) {
+            $fields .= ', image_id';
+        }
 
         $products = array();
         if (is_numeric($q)) {
@@ -221,6 +225,18 @@ class shopBackendAutocompleteController extends waController
                 $p['sku_name'] = $sku_names[$p['sku_id']];
             }
             unset($p);
+        }
+
+        if ($with_image) {
+            $product_image_model = new shopProductImagesModel();
+            $product_images = $product_image_model->getImages(array_keys($products));
+            $product['image_url'] = '';
+            foreach ($products as &$product) {
+                if (isset($product_images[$product['image_id']]['url_crop'])) {
+                    $product['image_url'] = $product_images[$product['image_id']]['url_crop'];
+                }
+            }
+            unset($product);
         }
 
         return array_values($products);

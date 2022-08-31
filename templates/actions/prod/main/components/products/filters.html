@@ -3,10 +3,9 @@
     {* PANE *}
     <div class="s-pane-section">
         {* SEARCH *}
-        <component-table-filters-search class="s-filter-search-section s-pane-item wide"
+        <component-table-product-search class="s-filter-search-section s-pane-item wide"
                                         v-model="search_string"
-                                        v-bind:search_icon="true"
-                                        v-on:search_change="applySearch"></component-table-filters-search>
+                                        v-on:search_change="applySearch"></component-table-product-search>
 
         {* CATEGORY *}
         <component-table-filters-categories-sets-types v-on:success="applyCategories"></component-table-filters-categories-sets-types>
@@ -54,6 +53,67 @@
     </div>
 {/capture}
 {$_components["component-table-filters-search"] = $_component_table_filters_search|trim}
+
+{capture assign="_component_table_product_search"}
+    <div class="component-table-filters-search flexbox space-8">
+        <div class="s-icon">
+            <span class="icon"><i class="fas fa-search"></i></span>
+        </div>
+        <div class="s-field-wrapper wide">
+            <component-input class="s-field js-autocomplete"
+                             v-model="value"
+                             v-on:input="onInput"
+                             v-bind:cancel="true"
+                             v-bind:placeholder="(placeholder ? placeholder : '{_w("Search")|escape}')"></component-input>
+        </div>
+        <template v-if="value.length && states.show_reset">
+            <div class="s-actions-wrapper flexbox space-8">
+                <div class="s-action is-active"
+                     v-on:click.prevent="revert">
+                    <span class="s-icon icon size-14"><i class="fas fa-times"></i></span>
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-table-product-search"] = $_component_table_product_search|trim}
+
+{capture assign="_template_autocomplete_product"}
+    <div class="s-item-product-wrapper flexbox space-4">
+        <div>
+            <span class="s-image">
+                <span class="s-icon icon size-18"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>
+            </span>
+        </div>
+        <div class="middle">
+            <span class="s-name">%name%</span>
+            <span class="s-ident">id:%id%</span>
+        </div>
+    </div>
+{/capture}
+{$_templates["autocomplete-product"] = $_template_autocomplete_product|trim}
+
+{capture assign="_template_autocomplete_product_with_image"}
+    <div class="s-item-product-wrapper flexbox space-4">
+        <div>
+            <span class="s-image" style="background-image: url('%image_url%');"></span>
+        </div>
+        <div class="middle">
+            <span class="s-name">%name%</span>
+            <span class="s-ident">id:%id%</span>
+        </div>
+    </div>
+{/capture}
+{$_templates["autocomplete-product-with-image"] = $_template_autocomplete_product_with_image|trim}
+
+{capture assign="_template_autocomplete_product_empty"}
+    <div class="s-item-product-wrapper">
+        <div>
+            <span class="s-name">%name%</span>
+        </div>
+    </div>
+{/capture}
+{$_templates["autocomplete-product-empty"] = $_template_autocomplete_product_empty|trim}
 
 {include file="./filters.categories.html" scope="parent" inline}
 {include file="./filters.storefronts.html" scope="parent" inline}

@@ -1,3 +1,8 @@
+{$_locales = []}
+{$_tooltips = []}
+{$_templates = []}
+{$_components = []}
+
 {$_locales["no_results"] = _w("Nothing found")}
 
 {$_tooltips["price-error"] = [
@@ -6,19 +11,73 @@
     "width" => "16rem"
 ]}
 
-{capture assign="_dialog_list_feature_value"}
-<div class="wa-dialog s-list-feature-value-dialog" id="js-list-feature-value-dialog">
+{capture assign="_component_feature_value_checkbox"}
+<div class="vue-component-feature-value-checkbox">
+    {* Активные *}
+    <div class="s-table-section" v-if="active_items.length">
+        <template v-for="item in active_items">
+            <component-feature-value-checkbox-item v-bind:item="item"></component-feature-value-checkbox-item>
+        </template>
+    </div>
+
+    {* Форма добавления *}
+    <template v-if="inactive_items.length">
+        <div class="s-search-column-wrapper">
+            <div class="s-search-section flexbox space-8">
+                <div class="s-field-wrapper wide">
+                    <input class="s-field" placeholder="{_w("Search")|escape}" v-model="search_string" v-on:input="search">
+                </div>
+                <template v-if="search_string.length">
+                    <div class="s-actions-wrapper flexbox space-8">
+                        <div class="s-action is-active"
+                             v-on:click.prevent="revert">
+                            <span class="s-icon icon size-14"><i class="fas fa-times"></i></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div class="s-table-section">
+            <template v-for="item in inactive_items">
+                <component-feature-value-checkbox-item v-bind:item="item"></component-feature-value-checkbox-item>
+            </template>
+        </div>
+    </template>
+</div>
+{/capture}
+{$_components["component-feature-value-checkbox"] = $_component_feature_value_checkbox|trim}
+
+{capture assign="_component_feature_value_checkbox_item"}
+<div class="s-item-wrapper" v-bind:class="item_class" v-bind:key="item.value" v-if="item.states.display">
+    <div class="s-item-table">
+        <div class="s-column s-column-enable">
+            <component-switch v-bind:value="item.states.enabled" v-on:change="onToggleSwitch"></component-switch>
+        </div>
+        <div class="s-column s-column-name">
+            <span class="s-name" v-text="item.name"></span>
+        </div>
+    </div>
+</div>
+{/capture}
+{$_components["component-feature-value-checkbox-item"] = $_component_feature_value_checkbox_item|trim}
+
+<div class="wa-dialog s-category-condition-edit-dialog" id="js-category-condition-edit-dialog">
     <div class="dialog-background"></div>
     <div class="dialog-body">
         <div class="js-vue-section" style="visibility: hidden;">
             <div class="dialog-header">
-                <h3 class="s-title">[`Добавление параметра`]</h3>
-                <div class="s-details">
-                    <span class="s-label" v-if="item_data.display_type === 'feature'">[`Характеристика`]</span>
-                    <span class="s-label" v-if="item_data.display_type === 'product'">[`Поле продукта`]</span>
-                    <span class="s-label" v-if="item_data.display_type === 'sku'">[`Поле артикула`]</span>
-                    <span class="s-label" v-if="item_data.display_type === 'dynamic'">[`Динамическое поле`]</span>
-                    <span class="s-name bold color-gray-dark">«{ { item_data.name } }»</span>
+                <div class="flexbox space-12">
+                    <div class="s-title-wrapper wide">
+                        <h3 class="s-title">{_w("Редактирование параметра")}</h3>
+                        <div class="s-details">
+                            <span class="s-label" v-if="item.type === 'feature'">[`Характеристика`]</span>
+                            <span class="s-label" v-if="item.type === 'product'">[`Поле продукта`]</span>
+                            <span class="s-label" v-if="item.type === 'sku'">[`Поле артикула`]</span>
+                            <span class="s-label" v-if="item.type === 'dynamic'">[`Динамическое поле`]</span>
+                            <span class="s-name bold color-gray-dark">«{ { item.name } }»</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="dialog-content">
@@ -108,10 +167,10 @@
                     </template>
                 </div>
 
-                {*
+                {**}
                 <div class="s-test-data" style="margin-top: 2rem;">{ { item_data.render_type } }</div>
                 <div class="s-test-data" style="margin-top: 2rem;">{ { item_data } }</div>
-                *}
+                {**}
             </div>
             <div class="dialog-footer">
                 <button class="wa-button blue" type="button"
@@ -124,57 +183,21 @@
             </div>
         </div>
     </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-category-condition-edit-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.initDialog($dialog, dialog, {
+                components: {$_components|json_encode},
+                templates: {$_templates|json_encode},
+                tooltips: {$_tooltips|json_encode},
+                locales: {$_locales|json_encode},
+
+                values: {$values|json_encode}
+            });
+
+        })(jQuery);
+    </script>
 </div>
-{/capture}
-{$_templates["dialog-list-feature-value"] = $_dialog_list_feature_value|trim}
-
-{capture assign="_component_feature_value_checkbox"}
-    <div class="vue-component-feature-value-checkbox">
-        {* Активные *}
-        <div class="s-table-section" v-if="active_items.length">
-            <template v-for="item in active_items">
-                <component-feature-value-checkbox-item v-bind:item="item"></component-feature-value-checkbox-item>
-            </template>
-        </div>
-
-        {* Форма добавления *}
-        <template v-if="inactive_items.length">
-            <div class="s-search-column-wrapper">
-                <div class="s-search-section flexbox space-8">
-                    <div class="s-field-wrapper wide">
-                        <input class="s-field" placeholder="{_w("Search")|escape}" v-model="search_string" v-on:input="search">
-                    </div>
-                    <template v-if="search_string.length">
-                        <div class="s-actions-wrapper flexbox space-8">
-                            <div class="s-action is-active"
-                                 v-on:click.prevent="revert">
-                                <span class="s-icon icon size-14"><i class="fas fa-times"></i></span>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
-
-            <div class="s-table-section">
-                <template v-for="item in inactive_items">
-                    <component-feature-value-checkbox-item v-bind:item="item"></component-feature-value-checkbox-item>
-                </template>
-            </div>
-        </template>
-    </div>
-{/capture}
-{$_components["component-feature-value-checkbox"] = $_component_feature_value_checkbox|trim}
-
-{capture assign="_component_feature_value_checkbox_item"}
-    <div class="s-item-wrapper" v-bind:class="item_class" v-bind:key="item.value" v-if="item.states.display">
-        <div class="s-item-table">
-            <div class="s-column s-column-enable">
-                <component-switch v-bind:value="item.states.enabled" v-on:change="onToggleSwitch"></component-switch>
-            </div>
-            <div class="s-column s-column-name">
-                <span class="s-name" v-text="item.name"></span>
-            </div>
-        </div>
-    </div>
-{/capture}
-{$_components["component-feature-value-checkbox-item"] = $_component_feature_value_checkbox_item|trim}

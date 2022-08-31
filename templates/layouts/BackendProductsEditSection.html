@@ -32,7 +32,7 @@
                 {$_tooltips = []}
                 <div class="s-actions flexbox middle space-8 nowrap">
                     {if !empty($product_list_data["prev"])}
-                        <a class="wa-button wa-small gray-field" href="{$product_list_data["prev"]["url"]|escape}" data-tooltip-id="prev_product_name">
+                        <a class="wa-button wa-small gray-field" href="{$product_list_data["prev"]["url"]|escape}" data-tooltip-id="prev_product_name" data-router-disable="true">
                             <span class="s-icon icon"><i class="fas fa-chevron-left"></i></span>
                         </a>
                         {$_tooltips["prev_product_name"] = [
@@ -45,7 +45,7 @@
                     <span class="s-text">{sprintf(_w("Товар %d из %d"), $product_list_data["position"], $product_list_data["count"])}</span>
 
                     {if !empty($product_list_data["next"])}
-                        <a class="wa-button wa-small gray-field" href="{$product_list_data["next"]["url"]|escape}" data-tooltip-id="next_product_name">
+                        <a class="wa-button wa-small gray-field" href="{$product_list_data["next"]["url"]|escape}" data-tooltip-id="next_product_name" data-router-disable="true">
                             <span class="s-icon icon"><i class="fas fa-chevron-right"></i></span>
                         </a>
                         {$_tooltips["next_product_name"] = [

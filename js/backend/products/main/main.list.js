@@ -203,6 +203,37 @@
 
             var $vue_section = that.$wrapper.find("#js-vue-section");
 
+            /**
+             * @description Switch
+             * */
+            Vue.component("component-switch", {
+                props: ["value", "disabled"],
+                data: function() {
+                    return {
+                        active: (typeof this.value === "boolean" ? this.value : false),
+                        disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
+                    };
+                },
+                template: '<div class="switch wa-small"></div>',
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this;
+
+                    $.waSwitch({
+                        $wrapper: $(self.$el),
+                        active: self.active,
+                        disabled: self.disabled,
+                        change: function(active, wa_switch) {
+                            self.$emit("change", active);
+                            self.$emit("input", active);
+                        }
+                    });
+                }
+            });
+
+            /**
+             * @description Checkbox
+             * */
             Vue.component("component-checkbox", {
                 props: ["value", "label", "disabled", "field_id"],
                 data: function() {
@@ -224,6 +255,9 @@
                 }
             });
 
+            /**
+             * @description Radio
+             * */
             Vue.component("component-radio", {
                 props: ["value", "name", "val", "label", "disabled"],
                 data: function() {
@@ -246,6 +280,9 @@
                 }
             });
 
+            /**
+             * @description Dropdown
+             * */
             Vue.component("component-dropdown", {
                 props: ["value", "options", "disabled", "button_class", "body_width", "body_class", "empty_option"],
                 data: function() {
@@ -324,6 +361,9 @@
                 }
             });
 
+            /**
+             * @description Date Picker
+             * */
             Vue.component("component-date-picker", {
                 props: ["value", "readonly", "field_class"],
                 data: function() {
@@ -385,6 +425,9 @@
                 }
             });
 
+            /**
+             * @description Color Picker
+             * */
             Vue.component("component-color-picker", {
                 props: ["value", "readonly", "field_class"],
                 data: function() {
@@ -482,6 +525,9 @@
                 }
             });
 
+            /**
+             * @description Textarea
+             * */
             Vue.component("component-textarea", {
                 props: ["value", "placeholder", "readonly", "cancel", "focus"],
                 data: function() {
@@ -558,6 +604,9 @@
                 }
             });
 
+            /**
+             * @description Input
+             * */
             Vue.component("component-input", {
                 props: ["value", "placeholder", "readonly", "required", "cancel", "focus", "validate", "fraction_size", "format"],
                 data: function() {
@@ -766,6 +815,9 @@
                 }
             });
 
+            /**
+             * Используется в различных частях (раздед, диалоги)
+             * */
             Vue.component("component-table-filters-search", {
                 props: ["value", "search_icon", "placeholder"],
                 data: function() {
@@ -1521,18 +1573,35 @@
                         props: [],
                         data: function() {
                             var self = this;
+
+                            var search_rule = getSearchRule();
+
                             return {
-                                search_string: getSearchValue()
+                                search_rule: search_rule,
+                                search_string: getSearchString()
                             };
 
-                            function getSearchValue() {
-                                const self = this;
-                                let result = "";
+                            function getSearchRule() {
+                                var result = null;
 
-                                var url_search_params = new URL(window.location).searchParams,
-                                    search_value = url_search_params.get("search");
+                                if (that.filter.rules.length) {
+                                    $.each(that.filter.rules, function(i, rule) {
+                                        if (rule.type === "search") {
+                                            result = rule;
+                                            return false;
+                                        }
+                                    });
+                                }
 
-                                if (search_value) { result = search_value; }
+                                return result;
+                            }
+
+                            function getSearchString() {
+                                var result = "";
+
+                                if (search_rule) {
+                                    result = search_rule.rules[0].rule_params;
+                                }
 
                                 return result;
                             }
@@ -1540,6 +1609,122 @@
                         template: that.components["component-table-filters"],
                         delimiters: ['{ { ', ' } }'],
                         components: {
+                            "component-table-product-search": {
+                                props: ["value", "placeholder"],
+                                    data: function() {
+                                    let self = this;
+                                    return {
+                                        states: {
+                                            is_loading: false,
+                                            show_reset: (self.value !== "")
+                                        }
+                                    };
+                                },
+                                template: that.components["component-table-product-search"],
+                                delimiters: ['{ { ', ' } }'],
+                                methods: {
+                                    onInput: function() {
+                                        let self = this;
+                                        self.$emit("input", self.value);
+                                        self.$emit("search_input", self.value);
+                                    },
+                                    onEnter: function() {
+                                        let self = this;
+                                        self.$emit("input", self.value);
+                                        self.$emit("search_change", self.value);
+                                    },
+                                    revert: function() {
+                                        let self = this;
+                                        self.value = "";
+                                        self.onEnter();
+                                    },
+
+                                    initAutocomplete: function($input) {
+                                        const self = this;
+
+                                        $input.autocomplete({
+                                            source: function (request, response) {
+                                                var data = {
+                                                    term: request.term,
+                                                    with_image: 1
+                                                };
+
+                                                self.states.is_loading = true;
+
+                                                $.post(that.urls["product_search"], data, function(response_data) {
+                                                    if (!response_data.length) {
+                                                        response_data = [{
+                                                            id: null,
+                                                            value: that.locales["no_results"]
+                                                        }];
+                                                    }
+                                                    response(response_data);
+                                                }, "json")
+                                                    .always( function() {
+                                                        self.states.is_loading = false;
+                                                    });
+                                            },
+                                            minLength: 1,
+                                            delay: 300,
+                                            position: {
+                                                my: "left-38 top+14",
+                                            },
+                                            create: function() {
+                                                //move autocomplete container
+                                                $input.autocomplete("widget").appendTo($input.parent());
+                                                $(".ui-helper-hidden-accessible").appendTo($input.parent());
+                                            },
+                                            select: function(event, ui) {
+                                                if (ui.item.id) {
+                                                    self.goToProduct(ui.item);
+                                                    $input.trigger("blur");
+                                                }
+                                                return false;
+                                            },
+                                            focus: function() { return false; }
+                                        }).data("ui-autocomplete")._renderItem = function(ul, item) {
+                                            var html = "";
+
+                                            if (!item.id) {
+                                                html = that.templates["autocomplete-product-empty"].replace("%name%", item.value);
+
+                                            } else if (item.image_url) {
+                                                html = that.templates["autocomplete-product-with-image"]
+                                                    .replace("%image_url%", item.image_url)
+                                                    .replace("%name%", item.value)
+                                                    .replace("%id%", item.id);
+
+                                            } else {
+                                                html = that.templates["autocomplete-product"]
+                                                    .replace("%name%", item.value)
+                                                    .replace("%id%", item.id);
+                                            }
+
+                                            return $("<li />").addClass("ui-menu-item-html").append(html).appendTo(ul);
+                                        };
+                                    },
+                                    goToProduct: function(product) {
+                                        const self = this;
+                                        var url = $.wa_shop_products.section_url + product.id + "/";
+                                        $.wa_shop_products.router.load(url);
+                                        that.animate(true);
+                                    }
+                                },
+                                mounted: function() {
+                                    const self = this;
+                                    var $wrapper = $(self.$el),
+                                        $input = $wrapper.find('.js-autocomplete');
+
+                                    self.initAutocomplete($input);
+
+                                    $input.on("keydown", function(event) {
+                                        var key = event.keyCode,
+                                            is_enter = ( key === 13 );
+
+                                        if (is_enter) { self.onEnter(); }
+                                    });
+                                }
+                            },
                             "component-table-filters-categories-sets-types": {
                                 data: function() {
                                     let self = this;
@@ -2147,7 +2332,13 @@
                                     items: function() {
                                         const self = this;
                                         return self.features.filter( function(item) {
-                                            return (item.name.toLowerCase().indexOf(self.search_string.toLowerCase()) >= 0);
+                                            var result = false;
+
+                                            if (typeof item.name === "string") {
+                                                result = (item.name.toLowerCase().indexOf(self.search_string.toLowerCase()) >= 0);
+                                            }
+
+                                            return result;
                                         });
                                     }
                                 },
@@ -2566,6 +2757,8 @@
                                     const self = this;
                                     return {
                                         result_filters: that.filter.rules,
+                                        formatted_filters: that.filter.rules.filter( filter => (filter.type !== "search") ),
+
                                         states: {
                                             resize_timeout: 0
                                         }
@@ -2579,47 +2772,94 @@
                                         data: function() {
                                             var self = this;
                                             self.show_tooltip = (typeof self.show_tooltip === "boolean" ? self.show_tooltip : false);
-                                            return {};
+                                            return {
+                                                feature_data: getFeatureData(self.group)
+                                            };
+
+                                            function getFeatureData(group) {
+                                                var result = null,
+                                                    is_feature = (group.type.indexOf("feature_") >= 0);
+
+                                                if (is_feature) {
+                                                    var feature_id = group.type.replace("feature_", "");
+                                                    var search = that.filter_options.features.filter( option => (option.id === feature_id));
+                                                    if (search.length) {
+                                                        result = search[0];
+                                                    }
+                                                }
+
+                                                return result;
+                                            }
                                         },
                                         template: that.components["component-table-filters-rules-item"],
                                         delimiters: ['{ { ', ' } }'],
                                         computed: {
+                                            label: function() {
+                                                const self = this;
+                                                var result = null;
+
+                                                if (self.feature_data) {
+                                                    result = self.feature_data.name;
+                                                } else if (self.group.name) {
+                                                    result = self.group.name;
+                                                }
+
+                                                return result;
+                                            },
                                             names: function() {
                                                 const self = this,
                                                       result = [];
 
-                                                $.each(self.group["rules"], function(i, rule) {
-                                                    var name = getName(rule);
-                                                    result.push(name);
-                                                });
+                                                if (self.group.label) {
+                                                    result.push(self.group.label);
+
+                                                } else {
+                                                    $.each(self.group["rules"], function(i, rule) {
+                                                        var name = getName(rule);
+                                                        result.push(name);
+                                                    });
+                                                }
 
                                                 return result;
 
                                                 function getName(rule) {
-                                                    var options = that.filter_options[self.group.type];
-
-                                                    switch (self.group.type) {
-                                                        case "categories":
-                                                            options = that.filter_options.categories_object;
-                                                            break;
-                                                        case "sets":
-                                                            options = that.filter_options.sets_object;
-                                                            break;
-                                                    }
-
                                                     var result = "";
-                                                    $.each(options, function(i, option) {
-                                                        if (option.id === rule.rule_params) {
-                                                            result = option.name;
+
+                                                    var options = that.filter_options[self.group.type];
+                                                    if (options) {
+                                                        switch (self.group.type) {
+                                                            case "categories":
+                                                                options = that.filter_options.categories_object;
+                                                                break;
+                                                            case "sets":
+                                                                options = that.filter_options.sets_object;
+                                                                break;
                                                         }
-                                                    });
+
+                                                        $.each(options, function(i, option) {
+                                                            if (option.id === rule.rule_params) {
+                                                                result = option.name;
+                                                            }
+                                                        });
+                                                    }
 
                                                     return result;
                                                 }
                                             },
                                             name_tooltip: function() {
                                                 const self = this;
-                                                return self.names.join(" | ");
+                                                var result = "";
+
+                                                if (self.feature_data && self.group.label) {
+                                                    var name = self.feature_data.name,
+                                                        value = self.group.label;
+
+                                                    result = name + ": " + value;
+                                                } else {
+                                                    result = self.names.join(" | ");
+                                                }
+
+                                                return result;
                                             }
                                         },
                                         methods: {
@@ -2633,11 +2873,11 @@
                                 computed: {
                                     visible_filters: function() {
                                         var self = this;
-                                        return self.result_filters.filter( filter => filter.states.visible );
+                                        return self.formatted_filters.filter( filter => filter.states.visible );
                                     },
                                     invisible_filters: function() {
                                         var self = this;
-                                        return self.result_filters.filter( filter => !filter.states.visible );
+                                        return self.formatted_filters.filter( filter => !filter.states.visible );
                                     }
                                 },
                                 methods: {
@@ -2650,11 +2890,11 @@
                                         self.states.resize_timeout = setTimeout(function() {
                                             resize();
                                             $wrapper.css("visibility", "");
-                                        }, 50);
+                                        }, 100);
 
                                         function resize() {
                                             // Включаем всё
-                                            $.each(self.result_filters, function(i, action) {
+                                            $.each(self.formatted_filters, function(i, action) {
                                                 action.states.visible = true;
                                             });
 
@@ -2679,7 +2919,7 @@
                                                 });
 
                                                 // Показываем часть пунктов, что влезли
-                                                $.each(self.result_filters, function(i, action) {
+                                                $.each(self.formatted_filters, function(i, action) {
                                                     action.states.visible = (i < visible_count);
                                                 });
                                             });
@@ -2693,20 +2933,22 @@
                                     removeGroup: function(group) {
                                         const self = this;
 
-                                        // self.result_filters.splice(self.result_filters.indexOf(group) , 1);
-
                                         that.animate(true);
 
                                         that.broadcast.getPresentationsIds().done( function(ids) {
                                             var data = {
                                                 filter_id: that.filter.id,
                                                 rule_group: group.id,
+                                                presentation_id: that.presentation.id,
                                                 open_presentations: ids
                                             };
 
                                             $.post(that.urls["filter_rule_delete"], data, "json")
-                                                .always( function() {
-                                                    that.reload({ page: 1 });
+                                                .done( function(response) {
+                                                    that.reload({
+                                                        page: 1,
+                                                        presentation: (response.data.new_presentation_id || that.presentation.id)
+                                                    });
                                                 });
                                         });
                                     },
@@ -2718,12 +2960,16 @@
                                         that.broadcast.getPresentationsIds().done( function(ids) {
                                             var data = {
                                                 filter_id: that.filter.id,
+                                                presentation_id: that.presentation.id,
                                                 open_presentations: ids
                                             };
 
                                             $.post(that.urls["filter_rule_delete_all"], data, "json")
-                                                .always( function() {
-                                                    that.reload({ page: 1 });
+                                                .done( function(response) {
+                                                    that.reload({
+                                                        page: 1,
+                                                        presentation: (response.data.new_presentation_id || that.presentation.id)
+                                                    });
                                                 });
                                         });
                                     }
@@ -2731,7 +2977,7 @@
                                 mounted: function() {
                                     var self = this;
 
-                                    if (!self.result_filters.length) { return false; }
+                                    if (!self.formatted_filters.length) { return false; }
 
                                     var $wrapper = $(self.$el),
                                         $dropdown = $wrapper.find(".js-dropdown");
@@ -2764,10 +3010,38 @@
                         methods: {
                             applySearch: function(value) {
                                 const self = this;
-                                that.reload({
-                                    "page": null,
-                                    "search": value
-                                });
+
+                                // Фраза присутствует
+                                if (value) {
+                                    var data = {
+                                        rule_type: "search",
+                                        rule_params: [value]
+                                    };
+
+                                    self.save(data);
+
+                                // Очищаем поиск
+                                } else if (self.search_rule) {
+
+                                    that.animate(true);
+
+                                    that.broadcast.getPresentationsIds().done( function(ids) {
+                                        var data = {
+                                            filter_id: that.filter.id,
+                                            rule_group: self.search_rule.id,
+                                            presentation_id: that.presentation.id,
+                                            open_presentations: ids
+                                        };
+
+                                        $.post(that.urls["filter_rule_delete"], data, "json")
+                                            .done( function(response) {
+                                                that.reload({
+                                                    page: 1,
+                                                    presentation: (response.data.new_presentation_id || that.presentation.id)
+                                                });
+                                            });
+                                    });
+                                }
                             },
 
                             applyCategories: function(data) {
@@ -2838,12 +3112,16 @@
                                 that.broadcast.getPresentationsIds().done( function(ids) {
                                     var data = $.extend({
                                         filter_id: that.filter.id,
+                                        presentation_id: that.presentation.id,
                                         open_presentations: ids
                                     }, values);
 
                                     $.post(that.urls["filter_rule_add"], data, "json")
-                                        .always( function() {
-                                            that.reload({ page: 1 });
+                                        .done( function(response) {
+                                            that.reload({
+                                                page: 1,
+                                                presentation: (response.data.new_presentation_id || that.presentation.id)
+                                            });
                                         });
                                 });
                             }
@@ -3356,13 +3634,14 @@
                                     const is_normal_mode = self.product.normal_mode,
                                           is_extended = (that.presentation.view === "table_extended");
 
-                                    var column_info = (that.columns[self.column.column_type] ? that.columns[self.column.column_type] : null);
+                                    var column_info = (that.columns[self.column.column_type] ? that.columns[self.column.column_type] : null),
+                                        column_data = getColumnData();
 
                                     return {
                                         column_info: column_info,
-                                        column_data: getColumnData(),
+                                        column_data: column_data,
                                         states: {
-                                            display: showColumn(),
+                                            display: showColumn(column_data),
                                             is_locked: false,
 
                                             is_extended   : is_extended,
@@ -3373,7 +3652,7 @@
                                         errors: {}
                                     };
 
-                                    function showColumn() {
+                                    function showColumn(column_data) {
                                         var result = true;
 
                                         // table_extended
@@ -3396,6 +3675,37 @@
                                         // table
                                         } else {
 
+                                        }
+
+                                        // Запрещаем показ и редактирование характеристики если её нет в типе товаров.
+                                        if (result) {
+                                            switch (column_data.can_be_edited) {
+                                                case "no":
+                                                    result = false;
+                                                    break;
+
+                                                case "partial":
+                                                    result = false;
+
+                                                    switch (column_data.render_type) {
+                                                        case "field":
+                                                        case "field.date":
+                                                        case "color":
+                                                        case "range":
+                                                        case "range.date":
+                                                            $.each(column_data.options, function(i, option) {
+                                                                if (option.value) { result = true; }
+                                                            });
+                                                            break;
+
+                                                        case "select":
+                                                        case "textarea":
+                                                        case "checkbox":
+                                                            if (column_data.value.length) { result = true; }
+                                                            break;
+                                                    }
+                                                    break;
+                                            }
                                         }
 
                                         return result;
@@ -4812,6 +5122,7 @@
                                             return {
                                                 timer: 0,
                                                 states: {
+                                                    is_available: true,
                                                     is_timer_start: false,
                                                     is_changed: false,
                                                     is_locked: false
@@ -5358,6 +5669,8 @@
                                                     .done( function(response) {
                                                         if (response.status !== "ok") {
                                                             console.error("ERROR", response.errors);
+                                                        } else {
+                                                            updateData(self.column_data);
                                                         }
                                                     });
 
@@ -5414,6 +5727,34 @@
                                                     }
 
                                                     return result;
+                                                }
+
+                                                function updateData(column_data) {
+                                                    if (column_data.can_be_edited === "partial") {
+                                                        var result = false;
+
+                                                        switch (column_data.render_type) {
+                                                            case "field":
+                                                            case "field.date":
+                                                            case "color":
+                                                            case "range":
+                                                            case "range.date":
+                                                                $.each(column_data.options, function(i, option) {
+                                                                    if (option.value) { result = true; }
+                                                                });
+                                                                break;
+
+                                                            case "select":
+                                                            case "textarea":
+                                                            case "checkbox":
+                                                                if (column_data.value.length) { result = true; }
+                                                                break;
+                                                        }
+
+                                                        if (!result) {
+                                                            self.states.is_available = false;
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -5827,9 +6168,8 @@
 
             var that = this,
                 data = {
-                    search: null,
                     page: (that.paging.page > 1 ? that.paging.page : null),
-                    filter: (that.filter.id ? that.filter.id : null),
+                    filter: null,
                     presentation: (that.presentation.id ? that.presentation.id : null),
 
                     //active_presentation: null,
@@ -6072,6 +6412,7 @@
                 el: $section[0],
                 data: {
                     item_data: getItemData(),
+                    items_keys: {},
                     states: {
                         locked: false,
                         is_loading: false
@@ -6083,10 +6424,83 @@
                         props: ["item_data"],
                         data: function() {
                             var self = this;
-                            return {};
+                            return {
+                                search_string: "",
+                                selection: []
+                            };
                         },
                         template: that.components["component-feature-value-checkbox"],
                         delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-feature-value-checkbox-item": {
+                                props: ["item"],
+                                data: function() {
+                                    var self = this;
+                                    return {
+                                        states: {
+                                            timer_enable: 0,
+                                            jump_animation: false,
+                                            hidden: false,
+                                            highlighted: false
+                                        }
+                                    };
+                                },
+                                template: that.components["component-feature-value-checkbox-item"],
+                                delimiters: ['{ { ', ' } }'],
+                                computed: {
+                                    item_class: function() {
+                                        let self = this,
+                                            item = self.item,
+                                            result = [];
+
+                                        if (self.states.highlighted) { result.push("is-highlighted"); }
+                                        if (self.item.states.ready) { result.push("is-ready"); }
+                                        if (self.states.hidden) { result.push("fade-out"); }
+                                        if (self.states.jump_animation) { result.push("is-jump-enabled"); }
+                                        if (item.states.enabled) {
+                                            result.push("jump-down");
+                                        } else {
+                                            result.push("jump-up");
+                                        }
+
+                                        return result.join(" ");
+                                    }
+                                },
+                                methods: {
+                                    onToggleSwitch: function(value) {
+                                        var self = this;
+
+                                        self.states.hidden = true;
+                                        self.states.jump_animation = true;
+                                        clearTimeout(self.states.timer_enable);
+                                        self.states.timer_enable = setTimeout( function() {
+                                            self.item.states.enabled = value;
+                                            self.states.hidden = false;
+                                            self.states.jump_animation = false;
+                                        }, 500);
+                                    }
+                                },
+                                mounted: function() {
+                                    var self = this;
+
+                                    if (self.item.states.ready) {
+                                        self.states.hidden = true;
+                                        self.states.highlighted = true;
+                                        setTimeout( function () {
+                                            self.states.hidden = false;
+                                        }, 10);
+                                        setTimeout( function() {
+                                            self.$nextTick( function() {
+                                                self.states.highlighted = false;
+                                            });
+                                        }, 1000);
+
+                                    } else {
+                                        self.item.states.ready = true;
+                                    }
+                                }
+                            }
+                        },
                         computed: {
                             active_items: function() {
                                 var self = this;
@@ -6101,13 +6515,98 @@
                                 });
                             }
                         },
-                        methods: {}
+                        methods: {
+                            search: function() {
+                                let self = this;
+
+                                let selection = [];
+
+                                // Делаем выборку
+                                checkItems(self.item_data.options);
+
+                                // Сохраняем выборку
+                                self.selection = selection;
+
+                                function checkItems(items) {
+                                    $.each(items, function(i, item) {
+                                        let display = true;
+
+                                        if (!item.states.enabled) {
+                                            if (self.search_string.length > 0) {
+                                                let is_wanted = (item.name.toLowerCase().indexOf( self.search_string.toLowerCase() ) >= 0 );
+                                                if (is_wanted) {
+                                                    selection.push(item);
+                                                } else {
+                                                    display = false;
+                                                }
+                                            }
+                                        }
+
+                                        if (item.states.display !== display) {
+                                            item.states.display = display;
+                                        }
+                                    });
+                                }
+                            },
+                            revert: function() {
+                                let self = this;
+                                self.search_string = "";
+                                self.search();
+                            }
+                        }
                     }
                 },
                 computed: {
-                    is_number: function() {
+                    format: function() {
                         const self = this;
-                        return (self.item_data.type.indexOf("double") >= 0);
+                        var result = null;
+
+                        if (self.item_data.type.indexOf("double") >= 0) {
+                            result = "number";
+                        }
+
+                        return result;
+                    },
+                    validate: function() {
+                        const self = this;
+                        return self.format;
+                    },
+                    errors: function() {
+                        const self = this;
+                        var result = {};
+
+                        if (self.item_data.render_type === 'range') {
+                            $.each(self.item_data.options, function(i, option) {
+                                var is_valid = isValid(option.value);
+                                if (!is_valid) {
+                                    var error_id = "value_error_" + i;
+                                    result[error_id] = { id: error_id, text: error_id };
+                                }
+                            });
+                        }
+
+                        return result;
+
+                        function isValid(value) {
+                            var result = true;
+
+                            // value = (typeof value === "string" ? value : "" + value);
+                            // value = $.wa.validate("number", value);
+
+                            var limit_body = 11,
+                                limit_tail = 4,
+                                parts = value.replace(",", ".").split(".");
+
+                            if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
+                                result = false;
+                            }
+
+                            return result;
+                        }
+                    },
+                    disabled: function() {
+                        const self = this;
+                        return !!(self.states.locked || Object.keys(self.errors).length);
                     }
                 },
                 methods: {
@@ -6131,11 +6630,27 @@
                             switch (self.item_data.render_type) {
                                 case "range":
                                 case "range.date":
-                                    $.each(self.item_data.options, function(i, option) {
-                                        result.push(option.value);
-                                    });
+                                    result = {
+                                        start: self.item_data.options[0].value,
+                                        end: self.item_data.options[1].value
+                                    }
+                                    if (self.item_data.active_unit) {
+                                        result.unit = self.item_data.active_unit.value;
+                                    }
                                     break;
                                 case "checkbox":
+                                    $.each(self.item_data.options, function(i, option) {
+                                        if (option.states.enabled) {
+                                            var value = (option.id || option.value);
+                                            if (value) { result.push(value); }
+                                            else { console.error("ERROR: value is not exist"); }
+                                        }
+                                    });
+                                    break;
+                                case "tags":
+                                    $.each(self.item_data.options, function(i, option) {
+                                        result.push(option.id);
+                                    });
                                     break;
                                 case "boolean":
                                     result.push(self.item_data.value);
@@ -6162,7 +6677,7 @@
                                     if (!response_data.length) {
                                         response_data = [{
                                             id: null,
-                                            name: that.locales["no_results"]
+                                            value: that.locales["no_results"]
                                         }];
                                     }
                                     response(response_data);
@@ -6180,22 +6695,33 @@
                             },
                             select: function(event, ui) {
                                 if (ui.item.id) {
-                                    self.addFilter(ui.item);
+                                    self.addItem(ui.item);
                                     $input.val("");
                                 }
                                 return false;
                             },
                             focus: function() { return false; }
                         }).data("ui-autocomplete")._renderItem = function( ul, item ) {
-                            return $("<li />").addClass("ui-menu-item-html").append("<div>"+item.name+"</div>").appendTo(ul);
+                            return $("<li />").addClass("ui-menu-item-html").append("<div>"+item.value+"</div>").appendTo(ul);
                         };
 
                         $dialog.on("dialog-closed", function() {
                             $input.autocomplete( "destroy" );
                         });
                     },
-                    addFilter: function(item) {
+                    addItem: function(item) {
                         const self = this;
+                        if (!self.items_keys[item.value]) {
+                            self.item_data.options.push(item);
+                            self.items_keys[item.value] = item;
+                            dialog.resize();
+                        }
+                    },
+                    removeItem: function(item) {
+                        const self = this;
+                        self.item_data.options.splice(self.item_data.options.indexOf(item), 1);
+                        delete self.items_keys[item.value];
+                        dialog.resize();
                     }
                 },
                 created: function () {
@@ -6217,6 +6743,11 @@
             function getItemData() {
                 let item_data = $.wa.clone(dialog.options.item_data);
 
+                // Если НЕ характеристика
+                if (!item_data.type) {
+                    item_data.type = "";
+                }
+
                 switch (item_data.type) {
                     // Одинарное числовое поле превращаем в диапазон
                     case "double":
@@ -6236,7 +6767,7 @@
                         break;
 
                     case "date":
-                        if (item_data.render_type === "field.date") {
+                        if (item_data.render_type === "field.date" || item_data.render_type === "range") {
                             item_data.render_type = "range.date";
                             item_data.options = [{ name: "", value: "" }, { name: "", value: "" }];
                         }
@@ -6258,10 +6789,16 @@
                         break;
                 }
 
+                if (item_data.render_type === "select") {
+                    item_data.render_type = "checkbox";
+                }
+
                 if (item_data.render_type === "checkbox") {
                     $.each(item_data.options, function(i, option) {
                         option.states = {
-                            enabled: false
+                            enabled: false,
+                            display: true,
+                            ready: false
                         };
                     })
                 }

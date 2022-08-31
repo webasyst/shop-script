@@ -2,9 +2,14 @@
     "id" => "product-feature-unavailable",
     "html" => _w("Характеристика доступна только для продукта")
 ]}
+{$_tooltips["product-feature-locked"] = [
+    "id" => "product-feature-locked",
+    "html" => _w("Эта характеристика используется для выбора вариантов товара на витрине. Ее значение можно выбрать только в свойствах модификации в редакторе товара."),
+    "position" => "top"
+]}
 
 {capture assign="_component_product_column_feature"}
-<div class="vue-column-type-feature">
+<div class="vue-column-type-feature" v-if="states.is_available">
     <template v-if="states.is_locked">
         <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
     </template>
@@ -16,8 +21,12 @@
         </div>
         *}
     </template>
-    <template v-else>
+    <div class="flexbox space-8" v-else>
         {* FIELD *}
+        <div v-if="column_data.feature_locked">
+            <span class="s-icon icon shift-inherit" data-tooltip-id="product-feature-locked"><i class="fas fa-ban color-gray-light"></i></span>
+        </div>
+
         <template v-if="column_data.render_type === 'field'">
             <div class="s-fields-wrapper flexbox space-12">
                 <template v-for="option in column_data.options">
@@ -34,6 +43,7 @@
                         v-model="column_data.active_unit.value"
                         v-bind:button_class="'s-square-field'"
                         v-bind:options="units"
+                        v-bind:disabled="!column_data.editable"
                         v-on:focus="onFieldFocus"
                         v-on:blur="onFieldBlur"
                         v-on:change="onFieldChange"></component-dropdown>
@@ -55,6 +65,7 @@
                 v-model="column_data.value"
                 v-bind:button_class="'s-square-field'"
                 v-bind:options="options"
+                v-bind:disabled="!column_data.editable"
                 v-on:change="onChange"></component-dropdown>
         </template>
 
@@ -95,6 +106,7 @@
                         v-model="column_data.active_unit.value"
                         v-bind:button_class="'s-square-field'"
                         v-bind:options="units"
+                        v-bind:disabled="!column_data.editable"
                         v-on:focus="onFieldFocus"
                         v-on:blur="onFieldBlur"
                         v-on:change="onFieldChange"></component-dropdown>
@@ -114,7 +126,7 @@
                 </div>
             </div>
         </template>
-    </template>
+    </div>
 </div>
 {/capture}
 {$_components["component-product-column-feature"] = $_component_product_column_feature|trim}
@@ -156,6 +168,7 @@
             <component-dropdown
                 v-model="column_data.value"
                 v-bind:empty_option="true"
+                v-bind:disabled="!column_data.editable"
                 v-bind:button_class="'s-square-field'"
                 v-bind:options="options"
                 v-on:change="onSkuChange"
@@ -200,19 +213,21 @@
                     </template>
                 </div>
 
-                <div class="s-icon-wrapper" v-if="active_options.length">
-                    <span class=" icon size-14 cursor-pointer"
-                          title="{_w("Remove")|escape}"
-                          v-bind:key="'fa-times'"
-                          v-on:click="reset"><i class="fas fa-times"></i></span>
-                </div>
+                <template v-if="column_data.editable">
+                    <div class="s-icon-wrapper" v-if="active_options.length">
+                        <span class=" icon size-14 cursor-pointer"
+                              title="{_w("Remove")|escape}"
+                              v-bind:key="'fa-times'"
+                              v-on:click="reset"><i class="fas fa-times"></i></span>
+                    </div>
 
-                <div class="s-icon-wrapper">
-                    <span class="icon size-12 cursor-pointer"
-                          title="{_w("Select")|escape}"
-                          v-bind:key="'fa-pen'"
-                          v-on:click="showDialog"><i class="fas fa-pen"></i></span>
-                </div>
+                    <div class="s-icon-wrapper">
+                        <span class="icon size-12 cursor-pointer"
+                              title="{_w("Select")|escape}"
+                              v-bind:key="'fa-pen'"
+                              v-on:click="showDialog"><i class="fas fa-pen"></i></span>
+                    </div>
+                </template>
             </div>
         </template>
     </div>
@@ -336,6 +351,7 @@
     <div class="s-field-wrapper">
         <template v-if="show_preview">
             <input class="s-field wa-small full-width s-square-field is-number" type="text" readonly
+                   v-bind:disabled="!column_data.editable"
                    v-on:click="togglePreview(false)"
                    v-bind:value="formatted_value">
         </template>
@@ -344,6 +360,7 @@
                 v-model="option.value"
                 v-bind:cancel="true"
                 v-bind:focus="states.is_number"
+                v-bind:disabled="!column_data.editable"
                 v-bind:readonly="!column_data.editable"
                 v-bind:class="'s-field wa-small full-width s-square-field'"
                 v-bind:validate="(states.is_number ? 'number' : null)"

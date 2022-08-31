@@ -121,27 +121,24 @@ class shopFilterModel extends waModel
     }
 
     /**
-     * @param int $source_filter_id
-     * @param int $destination_template_id
+     * @param int $source_id
+     * @param int $destination_id
      * @return mixed|string
      * @throws waException
      */
-    public function rewrite($source_filter_id, $destination_template_id)
+    public function rewrite($source_id, $destination_id)
     {
-        $template = $this->getById($source_filter_id);
-        $destination_template = $this->getById($destination_template_id);
-        if (!$template) {
-            throw new waException('filter not found ' . $source_filter_id);
+        $filter = $this->getById($source_id);
+        $destination_filter = $this->getById($destination_id);
+        if (!$filter) {
+            throw new waException('source filter not found ' . $source_id);
         }
-        if (!$destination_template) {
-            throw new waException('template not found ' . $destination_template_id);
+        if (!$destination_filter) {
+            throw new waException('destination filter not found ' . $destination_id);
         }
-        if (!empty($destination_template['parent_id'])) {
-            throw new waException('template ' . $destination_template_id . ' cannot be a filter');
-        }
-        $this->copyRules($template['id'], $destination_template['id'], true);
+        $this->copyRules($filter['id'], $destination_filter['id'], true);
 
-        return $destination_template['id'];
+        return $destination_filter['id'];
     }
 
     /**
@@ -190,29 +187,29 @@ class shopFilterModel extends waModel
         $this->correctSort();
 
         if ($copy_rules) {
-            $this->copyRules($filter['id'], $id);
+            $this->copyRules($filter['id'], $new_filter_id);
         }
 
         return $new_filter_id;
     }
 
     /**
-     * @param int $source_filter_id
-     * @param int $dest_filter_id
+     * @param int $source_id
+     * @param int $destination_id
      * @param bool $delete_existing
      * @return void
      */
-    protected function copyRules($source_filter_id, $dest_filter_id, $delete_existing = false)
+    protected function copyRules($source_id, $destination_id, $delete_existing = false)
     {
         if ($delete_existing) {
-            $this->rulesModel()->deleteByField('filter_id', $dest_filter_id);
+            $this->rulesModel()->deleteByField('filter_id', $destination_id);
         }
         $rules = shopFilter::getAllTypes(true);
         $sql = 'INSERT INTO `shop_filter_rules` (`filter_id`, `rule_type`, `rule_params`, `rule_group`)
                 SELECT ?, `rule_type`, `rule_params`, `rule_group`
                 FROM `shop_filter_rules`
                 WHERE `filter_id` = ? AND `rule_type` IN("' . implode('","', array_keys($rules)) . '")';
-        $this->exec($sql, [(int)$dest_filter_id, (int)$source_filter_id]);
+        $this->exec($sql, [(int)$destination_id, (int)$source_id]);
     }
 
     /**

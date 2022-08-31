@@ -499,29 +499,28 @@ class shopProductReviewsModel extends waNestedSetModel
         return $cnt - $shop_outdated_reviews_count;
     }
 
-    private function recalcProductRating($product_id, $rate, $inc = true)
+    private function recalcProductRating($product_id)
     {
-        if ($rate <= 0) {
-            return;
-        }
         $product_model = new shopProductModel();
         $product = $product_model->getById($product_id);
-        if ($inc) {
-            $update = array(
-                'rating'       => ($product['rating'] * $product['rating_count'] + $rate) / ($product['rating_count'] + 1),
-                'rating_count' => $product['rating_count'] + 1
-            );
-        } else {
-
-            $rating_count = $product['rating_count'] - 1;
-            $rating = $rating_count > 0 ? ($product['rating'] * $product['rating_count'] - $rate) / $rating_count : 0;
-
-            $update = array(
-                'rating'       => $rating,
-                'rating_count' => $rating_count
-            );
+        if (!$product) {
+            return;
         }
-        $product_model->updateById($product_id, $update);
+        $product_rate = $product_model->query(
+            "SELECT COUNT(spr.id) rating_count, COALESCE(AVG(spr.rate), 0) rating  
+            FROM shop_product_reviews spr
+            WHERE spr.product_id = :product_id AND spr.rate IS NOT NULL AND spr.status IN (:statuses)",
+            [
+                'product_id' => $product_id,
+                'statuses'   => [
+                    self::STATUS_PUBLISHED,
+                    self::STATUS_MODERATION,
+                    //self::STATUS_DELETED,
+                ]
+            ]
+        )->fetchAssoc();
+
+        $product_model->updateById($product_id, $product_rate);
     }
 
     public function changeStatus($review_id, $status)
@@ -536,21 +535,13 @@ class shopProductReviewsModel extends waNestedSetModel
         if ($status != self::STATUS_DELETED && $status != self::STATUS_PUBLISHED && $status != self::STATUS_MODERATION) {
             return false;
         }
-        if ($status == self::STATUS_DELETED) {
-            $this->recalcProductRating($review['product_id'], $review['rate'], false);
-        } else {
+        if ($review['status'] === self::STATUS_DELETED && wa()->getSetting('moderation_reviews', 0)) {
             // If moderation is enabled and the review has been deleted, then transfer it to moderated status
-            if ($review['status'] === self::STATUS_DELETED && wa()->getSetting('moderation_reviews', 0)) {
-                $status = shopProductReviewsModel::STATUS_MODERATION;
-            } elseif ($review['status'] === self::STATUS_MODERATION && $status === self::STATUS_PUBLISHED) {
-                // ничего не делаем, оставляем статус прежним self::STATUS_PUBLISHED
-                // во время одобрения на модерации не нужно пересчитывать рейтинг товара,
-                // потому что оценка уже была учтена во время добавления отзыва
-            } else {
-                $this->recalcProductRating($review['product_id'], $review['rate']);
-            }
+            $status = self::STATUS_MODERATION;
         }
         $this->updateById($review_id, array('status' => $status));
+        $this->recalcProductRating($review['product_id']);
+
         return true;
     }
 
@@ -599,10 +590,7 @@ class shopProductReviewsModel extends waNestedSetModel
         if (!$id) {
             return false;
         }
-
-        if (empty($review['review_id']) && !empty($review['rate'])) {
-            $this->recalcProductRating($review['product_id'], $review['rate']);
-        }
+        $this->recalcProductRating($review['product_id']);
 
         return $id;
     }

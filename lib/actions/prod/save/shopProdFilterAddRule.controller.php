@@ -14,7 +14,6 @@ class shopProdFilterAddRuleController extends waJsonController
         $filter_id = waRequest::post('filter_id', null, waRequest::TYPE_INT);
         $rule_type = waRequest::post('rule_type', null, waRequest::TYPE_STRING_TRIM);
         $rule_params = waRequest::post('rule_params', [], waRequest::TYPE_ARRAY);
-        $open_interval = waRequest::post('open_interval');
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
 
         $new_presentation_id = shopProdPresentationEditColumnsController::duplicatePresentation($presentation_id, false);
@@ -24,13 +23,14 @@ class shopProdFilterAddRuleController extends waJsonController
             $filter_id = $presentation_model->select('filter_id')->where('`id` = ?', $new_presentation_id)->fetchField('filter_id');
         }
 
+        $open_interval = null;
         $types = shopFilter::getAllTypes(true);
         $filter_model = new shopFilterModel();
         $filter = $filter_model->getById($filter_id);
         $this->validateData($types, $filter, $rule_type, $rule_params, $open_interval);
         if (!$this->errors) {
             $this->filter_rules_model = new shopFilterRulesModel();
-            $rules = $this->filter_rules_model->getByField('filter_id', $filter_id, 'id');
+            $rules = $this->filter_rules_model->getByFilterId($filter_id);
             $single_filter_keys = ['categories', 'sets', 'types'];
             $replaces_previous = [];
             foreach ($types as $type => $params) {
@@ -53,6 +53,7 @@ class shopProdFilterAddRuleController extends waJsonController
                 foreach ($rules as $rule) {
                     if ($rule['rule_type'] == $rule_type) {
                         $this->deleteFilterRule($filter_id, $rule, $count_deleted_rules);
+                        break;
                     }
                 }
             }
@@ -71,10 +72,10 @@ class shopProdFilterAddRuleController extends waJsonController
      * @param array $filter_id
      * @param string $rule_type
      * @param array $rule_params
-     * @param int|null $open_interval
+     * @param null $open_interval
      * @return void
      */
-    protected function validateData($types, $filter, $rule_type, &$rule_params, $open_interval)
+    protected function validateData($types, $filter, $rule_type, &$rule_params, &$open_interval)
     {
         if (!$filter) {
             $this->errors = [
@@ -92,18 +93,31 @@ class shopProdFilterAddRuleController extends waJsonController
             return;
         }
 
-        if ($open_interval !== null
-            && $open_interval !== shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED
-            && $open_interval !== shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED
-        ) {
-            $this->errors = [
-                'id' => 'open_interval',
-                'text' => _w('Range limits set incorrectly'),
-            ];
-            return;
+        $unit = null;
+        if (isset($rule_params['start'])) {
+            if (isset($rule_params['unit'])) {
+                if (!mb_strlen($rule_params['unit'])) {
+                    $this->errors = [
+                        'id' => 'open_interval',
+                        'text' => _w('Range limits set incorrectly'),
+                    ];
+                    return;
+                } else {
+                    $unit = $rule_params['unit'];
+                    unset($rule_params['unit']);
+                }
+            }
+            if (!mb_strlen($rule_params['start']) && mb_strlen($rule_params['end'])) {
+                $open_interval = shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED;
+                unset($rule_params['start']);
+            } elseif (mb_strlen($rule_params['start']) && !mb_strlen($rule_params['end'])) {
+                $open_interval = shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED;
+                unset($rule_params['end']);
+            }
+            $rule_params = array_values($rule_params);
         }
 
-        $validated_params = shopFilter::validateValue($rule_type, $rule_params, $types[$rule_type]);
+        $validated_params = shopFilter::validateValue($rule_type, $rule_params, $types[$rule_type], $unit);
         if (empty($validated_params)) {
             $this->errors = [
                 'id' => 'rule_params',
@@ -140,7 +154,10 @@ class shopProdFilterAddRuleController extends waJsonController
 
     protected function deleteFilterRule($filter_id, $rule, &$count_deleted_rules)
     {
-        $this->filter_rules_model->deleteById($rule['id']);
+        $this->filter_rules_model->deleteByField([
+            'filter_id' => $filter_id,
+            'rule_type' => $rule['rule_type'],
+        ]);
         $this->filter_rules_model->correctSortAfterDelete($filter_id, $rule['rule_group']);
         $count_deleted_rules++;
     }

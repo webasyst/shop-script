@@ -82,6 +82,70 @@
 
             var $vue_section = that.$wrapper.find("#js-vue-section");
 
+            /**
+             * @description Date Picker
+             * */
+            Vue.component("component-date-picker", {
+                props: ["value", "readonly", "field_class"],
+                data: function() {
+                    var self = this;
+                    self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
+                    return {};
+                },
+                template: that.components["component-date-picker"],
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this;
+
+                    $(self.$el).find(".js-date-picker").each( function(i, field) {
+                        var $field = $(field),
+                            $alt_field = $field.parent().find("input[type='hidden']");
+
+                        $field.datepicker({
+                            altField: $alt_field,
+                            altFormat: "yy-mm-dd",
+                            changeMonth: true,
+                            changeYear: true,
+                            beforeShow:function(field, instance){
+                                var $calendar = $(instance.dpDiv[0]);
+                                var index = 2001;
+                                setTimeout( function() {
+                                    $calendar.css("z-index", index);
+                                }, 10);
+                            },
+                            onClose: function(field, instance) {
+                                var $calendar = $(instance.dpDiv[0]);
+                                $calendar.css("z-index", "");
+                            }
+                        });
+
+                        if (self.value) {
+                            var date = formatDate(self.value);
+                            $field.datepicker( "setDate", date);
+                        }
+
+                        $field.on("change", function() {
+                            var field_value = $field.val();
+                            if (!field_value) { $alt_field.val(""); }
+                            var value = $alt_field.val();
+                            self.$emit("input", value);
+                            self.$emit("change");
+                        });
+
+                        function formatDate(date_string) {
+                            if (typeof date_string !== "string") { return null; }
+
+                            var date_array = date_string.split("-"),
+                                year = date_array[0],
+                                mount = date_array[1] - 1,
+                                day = date_array[2];
+
+                            return new Date(year, mount, day);
+                        }
+                    });
+                }
+            });
+
             Vue.component("component-checkbox", {
                 props: ["value", "label", "disabled", "field_id"],
                 data: function() {
@@ -787,7 +851,7 @@
                                                     self.states.edit_locked = false;
                                                 })
                                                 .done( function(html) {
-                                                    that.showCategoryDialog(html);
+                                                    that.editCategoryDialog(html);
                                                 });
                                         }
                                     },
@@ -801,7 +865,7 @@
                                                     self.states.create_locked = false;
                                                 })
                                                 .done( function(html) {
-                                                    that.showCategoryDialog(html);
+                                                    that.editCategoryDialog(html);
                                                 });
                                         }
                                     },
@@ -1079,7 +1143,7 @@
                                     self.states.create_locked = false;
                                 })
                                 .done( function(html) {
-                                    that.showCategoryDialog(html)
+                                    that.editCategoryDialog(html)
                                         .done( function(category) {
                                             console.log( "TODO: update category data" );
                                             that.categories.unshift(category);
@@ -1300,7 +1364,7 @@
             return category;
         };
 
-        Page.prototype.showCategoryDialog = function(html) {
+        Page.prototype.editCategoryDialog = function(html) {
             var that = this,
                 deferred = $.Deferred(),
                 ready = $.Deferred(),
@@ -1335,7 +1399,7 @@ console.log( $.wa.clone(options.category) );
                     category_sort_variants = options.category_sort_variants,
                     lang = options.lang;
 
-                updateRootVariables(options);
+                that.updateRootVariables(options);
 
                 // VUE
                 var $section = $dialog.find(".js-vue-section");
@@ -1934,6 +1998,229 @@ console.log( $.wa.clone(options.category) );
                                 self.initAutocomplete(self.$input);
                                 self.initDragAndDrop($wrapper);
                             }
+                        },
+                        "component-category-features-section": {
+                            data: function() {
+                                var self = this;
+                                return {
+                                    category: category,
+                                    states: {
+                                        is_loading: false
+                                    }
+                                };
+                            },
+                            template: that.components["component-category-features-section"],
+                            delimiters: ['{ { ', ' } }'],
+                            components: {
+                                "component-category-feature-item": {
+                                    props: ["item"],
+                                    data: function() {
+                                        var self = this;
+                                        return {
+                                            states: {
+                                                is_locked: false
+                                            }
+                                        };
+                                    },
+                                    template: that.components["component-category-feature-item"],
+                                    delimiters: ['{ { ', ' } }'],
+                                    computed: {
+                                        values: function() {
+                                            const self = this;
+
+                                            var item_data = self.item.data;
+
+                                            var result = [];
+
+                                            switch (item_data.render_type) {
+                                                case "checkbox":
+                                                case "select":
+                                                    var values_object = $.wa.construct(item_data.options, "id");
+                                                    if (item_data.values) {
+                                                        $.each(item_data.values, function(i, value_id) {
+                                                            if (values_object[value_id]) {
+                                                                result.push(values_object[value_id].name);
+                                                            }
+                                                        });
+                                                    }
+                                                    break;
+
+                                                case "range":
+                                                case "range.date":
+                                                    var min = (item_data.options[0].value > 0 ? item_data.options[0].value : 0),
+                                                        max = (item_data.options[1].value > 0 ? item_data.options[1].value : 0);
+
+                                                    var value = "";
+
+                                                    if (min > 0 && max > 0) {
+                                                        value = min + " — " + max;
+
+                                                    } else if (min > 0) {
+                                                        value = "< " + min;
+
+                                                    } else if (max > 0) {
+                                                        value = "> " + max;
+                                                    }
+
+                                                    if (item_data.currency) {
+                                                        value += " " + item_data.currency.sign_html;
+                                                    }
+
+                                                    result.push(value);
+                                                    break;
+
+                                                case "tags":
+                                                    break;
+                                            }
+
+                                            return result;
+                                        }
+                                    },
+                                    methods: {
+                                        edit: function() {
+                                            const self = this;
+
+                                            if (self.states.is_locked) { return false; }
+
+                                            self.states.is_locked = true;
+
+                                            // Имитация загрузки диалога
+                                            var dialog_load = $.waDialog({
+                                                html: that.templates["dialog-load"],
+                                                onOpen: function($dialog, dialog) {
+                                                    dialog.animateToggle(false);
+                                                }
+                                            });
+
+                                            var data = {
+                                                id: self.item.data.id,
+                                                type: self.item.type
+                                            };
+
+                                            $.post(that.urls["category_condition_edit"], data, "json")
+                                                .always( function() {
+                                                    self.states.is_locked = false;
+                                                    dialog_load.close();
+                                                })
+                                                .done( function(html) {
+                                                    $.waDialog({
+                                                        html: html,
+                                                        animate: false,
+                                                        options: {
+                                                            item: self.item,
+                                                            initDialog: function($dialog, dialog, options) {
+                                                                that.initEditCategoryConditionDialog($dialog, dialog, options);
+                                                            }
+                                                        },
+                                                        onOpen: function($dialog, dialog) {
+                                                            dialog.animateToggle(true);
+                                                        },
+                                                        onClose: function() {
+                                                            if (!self.values.length) {
+                                                                self.remove()
+                                                            }
+                                                        }
+                                                    });
+                                                });
+                                        },
+                                        remove: function() {
+                                            const self = this;
+                                            self.$emit("remove", self.item);
+                                        }
+                                    },
+                                    mounted: function() {
+                                        const self = this;
+                                        if (self.item.edit_on_add) {
+                                            self.edit();
+                                        }
+                                    }
+                                }
+                            },
+                            computed: {},
+                            methods: {
+                                initAutocomplete: function($input) {
+                                    const self = this;
+
+                                    $input.autocomplete({
+                                        source: function (request, response) {
+                                            var data = {
+                                                term: request.term
+                                            };
+
+                                            self.states.is_loading = true;
+
+                                            $.post(that.urls["autocomplete_feature"], data, function(response_data) {
+                                                if (!response_data.length) {
+                                                    response_data = [{
+                                                        id: null,
+                                                        name: that.locales["no_results"]
+                                                    }];
+                                                }
+                                                response(response_data);
+                                            }, "json")
+                                                .always( function() {
+                                                    self.states.is_loading = false;
+                                                });
+                                        },
+                                        minLength: 1,
+                                        delay: 300,
+                                        create: function () {
+                                            //move autocomplete container
+                                            $input.autocomplete("widget").appendTo($input.parent());
+                                            $(".ui-helper-hidden-accessible").appendTo($input.parent());
+                                        },
+                                        select: function(event, ui) {
+                                            if (ui.item) {
+                                                self.addItem(ui.item);
+                                                $input.val("");
+                                            }
+                                            return false;
+                                        },
+                                        focus: function() { return false; }
+                                    }).data("ui-autocomplete")._renderItem = function(ul, item) {
+                                        if (item.type === "feature") {
+                                            var template_name = (!item.data.available_for_sku ? "component-category-filter-autocomplete-item-sku" : "component-category-filter-autocomplete-item"),
+                                                html = that.templates[template_name].replace("%name%", item.name).replace("%code%", item.code);
+                                            return $(html).appendTo(ul);
+                                        } else {
+                                            return $("<li />").addClass("ui-menu-item-html").append("<div>"+item.name+"</div>").appendTo(ul);
+                                        }
+                                    };
+
+                                    $dialog.on("dialog-closed", function() {
+                                        $input.autocomplete( "destroy" );
+                                    });
+                                },
+                                addItem: function(item) {
+                                    console.log( item );
+                                    const self = this;
+                                    self.category.conditions.push( formatItem(item) );
+
+                                    function formatItem(item) {
+                                        item.edit_on_add = true;
+                                        switch (item.data.render_type) {
+                                            case "checkbox":
+                                                item.data.values = [];
+                                                break;
+                                        }
+                                        return item;
+                                    }
+                                },
+                                removeItem: function(item) {
+                                    const self = this;
+
+                                    var index = self.category.conditions.indexOf(item);
+                                    if (index >= 0) { self.category.conditions.splice(index, 1); }
+                                }
+                            },
+                            mounted: function() {
+                                const self = this,
+                                      $wrapper = $(self.$el);
+
+                                self.$input = $wrapper.find('.js-autocomplete');
+
+                                self.initAutocomplete(self.$input);
+                            }
                         }
                     },
                     computed: {
@@ -2184,17 +2471,6 @@ console.log( data );
                     }
                 });
 
-                function updateRootVariables(options) {
-                    // Tooltips
-                    $.each(options.tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
-                    // Components
-                    that.components = $.extend(that.components, options.components);
-                    // Templates
-                    that.templates = $.extend(that.templates, options.templates);
-                    // Locales
-                    that.locales = $.extend(that.locales, options.locales);
-                }
-
                 function formatCategory(category) {
                     category = that.formatCategory(options.category);
 
@@ -2230,6 +2506,402 @@ console.log( data );
 
                     return storefronts;
                 }
+            }
+        };
+
+        Page.prototype.initEditCategoryConditionDialog = function($dialog, dialog, options) {
+            var that = this;
+            console.log( dialog );
+
+            that.updateRootVariables(options);
+
+            // VUE
+            var $section = $dialog.find(".js-vue-section");
+
+            var item = $.wa.clone(dialog.options.item);
+
+            new Vue({
+                el: $section[0],
+                data: {
+                    item: item,
+                    item_data: getItemData(item.data, options.values),
+                    states: {
+                        locked: false
+                    },
+                    errors: {}
+                },
+                delimiters: ['{ { ', ' } }'],
+                components: {
+                    "component-feature-value-checkbox": {
+                        props: ["item_data"],
+                        data: function() {
+                            var self = this;
+                            return {
+                                search_string: "",
+                                selection: []
+                            };
+                        },
+                        template: that.components["component-feature-value-checkbox"],
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-feature-value-checkbox-item": {
+                                props: ["item"],
+                                data: function() {
+                                    var self = this;
+                                    return {
+                                        states: {
+                                            timer_enable: 0,
+                                            jump_animation: false,
+                                            hidden: false,
+                                            highlighted: false
+                                        }
+                                    };
+                                },
+                                template: that.components["component-feature-value-checkbox-item"],
+                                delimiters: ['{ { ', ' } }'],
+                                computed: {
+                                    item_class: function() {
+                                        let self = this,
+                                            item = self.item,
+                                            result = [];
+
+                                        if (self.states.highlighted) { result.push("is-highlighted"); }
+                                        if (self.item.states.ready) { result.push("is-ready"); }
+                                        if (self.states.hidden) { result.push("fade-out"); }
+                                        if (self.states.jump_animation) { result.push("is-jump-enabled"); }
+                                        if (item.states.enabled) {
+                                            result.push("jump-down");
+                                        } else {
+                                            result.push("jump-up");
+                                        }
+
+                                        return result.join(" ");
+                                    }
+                                },
+                                methods: {
+                                    onToggleSwitch: function(value) {
+                                        var self = this;
+
+                                        self.states.hidden = true;
+                                        self.states.jump_animation = true;
+                                        clearTimeout(self.states.timer_enable);
+                                        self.states.timer_enable = setTimeout( function() {
+                                            self.item.states.enabled = value;
+                                            self.states.hidden = false;
+                                            self.states.jump_animation = false;
+                                        }, 500);
+                                    }
+                                },
+                                mounted: function() {
+                                    var self = this;
+
+                                    if (self.item.states.ready) {
+                                        self.states.hidden = true;
+                                        self.states.highlighted = true;
+                                        setTimeout( function () {
+                                            self.states.hidden = false;
+                                        }, 10);
+                                        setTimeout( function() {
+                                            self.$nextTick( function() {
+                                                self.states.highlighted = false;
+                                            });
+                                        }, 1000);
+
+                                    } else {
+                                        self.item.states.ready = true;
+                                    }
+                                }
+                            }
+                        },
+                        computed: {
+                            active_items: function() {
+                                var self = this;
+                                return self.item_data.options.filter( function(item) {
+                                    return item.states.enabled;
+                                });
+                            },
+                            inactive_items: function() {
+                                var self = this;
+                                return self.item_data.options.filter( function(item) {
+                                    return !item.states.enabled;
+                                });
+                            }
+                        },
+                        methods: {
+                            search: function() {
+                                let self = this;
+
+                                let selection = [];
+
+                                // Делаем выборку
+                                checkItems(self.item_data.options);
+
+                                // Сохраняем выборку
+                                self.selection = selection;
+
+                                function checkItems(items) {
+                                    $.each(items, function(i, item) {
+                                        let display = true;
+
+                                        if (!item.states.enabled) {
+                                            if (self.search_string.length > 0) {
+                                                let is_wanted = (item.name.toLowerCase().indexOf( self.search_string.toLowerCase() ) >= 0 );
+                                                if (is_wanted) {
+                                                    selection.push(item);
+                                                } else {
+                                                    display = false;
+                                                }
+                                            }
+                                        }
+
+                                        if (item.states.display !== display) {
+                                            item.states.display = display;
+                                        }
+                                    });
+                                }
+                            },
+                            revert: function() {
+                                let self = this;
+                                self.search_string = "";
+                                self.search();
+                            }
+                        }
+                    }
+                },
+                computed: {
+                    format: function() {
+                        const self = this;
+                        var result = null;
+
+                        if (self.item_data.type.indexOf("double") >= 0) {
+                            result = "number";
+                        }
+
+                        return result;
+                    },
+                    validate: function() {
+                        const self = this;
+                        return self.format;
+                    },
+                    errors: function() {
+                        const self = this;
+                        var result = {};
+
+                        if (self.item_data.render_type === 'range') {
+                            $.each(self.item_data.options, function(i, option) {
+                                var is_valid = isValid(option.value);
+                                if (!is_valid) {
+                                    var error_id = "value_error_" + i;
+                                    result[error_id] = { id: error_id, text: error_id };
+                                }
+                            });
+                        }
+
+                        return result;
+
+                        function isValid(value) {
+                            var result = true;
+
+                            // value = (typeof value === "string" ? value : "" + value);
+                            // value = $.wa.validate("number", value);
+
+                            var limit_body = 11,
+                                limit_tail = 4,
+                                parts = value.replace(",", ".").split(".");
+
+                            if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
+                                result = false;
+                            }
+
+                            return result;
+                        }
+                    },
+                    disabled: function() {
+                        const self = this;
+                        return !!(self.states.locked || Object.keys(self.errors).length);
+                    }
+                },
+                methods: {
+                    onChange: function() {
+                        const self = this;
+                    },
+
+                    save: function() {
+                        const self = this;
+
+                        dialog.options.onSuccess({
+                            rule_type: self.item_data.rule_type,
+                            rule_params: getData()
+                        });
+
+                        dialog.close();
+
+                        function getData() {
+                            var result = [];
+
+                            switch (self.item_data.render_type) {
+                                case "range":
+                                case "range.date":
+                                    result = {
+                                        start: self.item_data.options[0].value,
+                                        end: self.item_data.options[1].value
+                                    }
+                                    if (self.item_data.active_unit) {
+                                        result.unit = self.item_data.active_unit.value;
+                                    }
+                                    break;
+                                case "checkbox":
+                                    $.each(self.item_data.options, function(i, option) {
+                                        if (option.states.enabled) {
+                                            var value = (option.id || option.value);
+                                            if (value) { result.push(value); }
+                                            else { console.error("ERROR: value is not exist"); }
+                                        }
+                                    });
+                                    break;
+                                case "tags":
+                                    $.each(self.item_data.options, function(i, option) {
+                                        result.push(option.id);
+                                    });
+                                    break;
+                                case "boolean":
+                                    result.push(self.item_data.value);
+                                    break;
+                            }
+
+                            return result;
+                        }
+                    },
+
+                    initAutocomplete: function($input) {
+                        const self = this;
+
+                        $input.autocomplete({
+                            source: function (request, response) {
+                                var data = {
+                                    term: request.term,
+                                    feature_id: self.item_data.id
+                                };
+
+                                self.states.is_loading = true;
+
+                                $.post(that.urls["filter_feature_value"], data, function(response_data) {
+                                    if (!response_data.length) {
+                                        response_data = [{
+                                            id: null,
+                                            value: that.locales["no_results"]
+                                        }];
+                                    }
+                                    response(response_data);
+                                }, "json")
+                                    .always( function() {
+                                        self.states.is_loading = false;
+                                    });
+                            },
+                            minLength: 1,
+                            delay: 300,
+                            create: function () {
+                                //move autocomplete container
+                                $input.autocomplete("widget").appendTo($input.parent());
+                                $(".ui-helper-hidden-accessible").appendTo($input.parent());
+                            },
+                            select: function(event, ui) {
+                                if (ui.item.id) {
+                                    self.addItem(ui.item);
+                                    $input.val("");
+                                }
+                                return false;
+                            },
+                            focus: function() { return false; }
+                        }).data("ui-autocomplete")._renderItem = function( ul, item ) {
+                            return $("<li />").addClass("ui-menu-item-html").append("<div>"+item.value+"</div>").appendTo(ul);
+                        };
+
+                        $dialog.on("dialog-closed", function() {
+                            $input.autocomplete( "destroy" );
+                        });
+                    },
+                    addItem: function(item) {
+                        const self = this;
+                        if (!self.items_keys[item.value]) {
+                            self.item_data.options.push(item);
+                            self.items_keys[item.value] = item;
+                            dialog.resize();
+                        }
+                    },
+                    removeItem: function(item) {
+                        const self = this;
+                        self.item_data.options.splice(self.item_data.options.indexOf(item), 1);
+                        delete self.items_keys[item.value];
+                        dialog.resize();
+                    }
+                },
+                created: function() {
+                    $section.css("visibility", "");
+                },
+                mounted: function() {
+                    const self = this;
+                }
+            });
+
+            function getItemData(item_data, values) {
+                if (item_data.type) {
+                    switch (item_data.type) {
+                        // Одинарное числовое поле превращаем в диапазон
+                        case "double":
+                            if (item_data.render_type === "field") {
+                                item_data.render_type = "range";
+                            }
+                            break;
+
+                        // Одинарное текстовое поле превращаем в теги
+                        case "varchar":
+                        case "color":
+                            if (item_data.render_type === "field" || item_data.render_type === "color") {
+                                item_data.render_type = "tags";
+                            }
+                            break;
+
+                        case "date":
+                            if (item_data.render_type === "field.date" || item_data.render_type === "range") {
+                                item_data.render_type = "range.date";
+                            }
+                            break;
+
+                        // Особый вид для "да/нет"
+                        case "boolean":
+                            item_data.render_type = "boolean";
+                            break;
+
+                        default:
+                            if (item_data.type.indexOf("dimension") >= 0) {
+                                if (item_data.render_type === "field") {
+                                    item_data.render_type = "range";
+                                }
+                            }
+                            break;
+                    }
+                }
+
+                if (item_data.render_type === "select") {
+                    item_data.render_type = "checkbox";
+                }
+
+                if (item_data.render_type === "checkbox") {
+                    // Добавляем опции в модель
+                    if (values.length) { item_data.options = values; }
+
+                    $.each(item_data.options, function(i, option) {
+                        var enabled = (item_data.values.indexOf(""+option.value) >= 0);
+                        option.states = {
+                            enabled: enabled,
+                            display: true,
+                            ready: false
+                        };
+                    })
+                }
+
+                return item_data;
             }
         };
 
@@ -2523,6 +3195,22 @@ console.log( data );
                 if (storage) { storage = JSON.parse(storage); }
                 return storage;
             }
+        };
+
+        Page.prototype.updateRootVariables = function(options) {
+            var that = this;
+
+            // Tooltips
+            $.each(options.tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
+
+            // Components
+            that.components = $.extend(that.components, options.components);
+
+            // Templates
+            that.templates = $.extend(that.templates, options.templates);
+
+            // Locales
+            that.locales = $.extend(that.locales, options.locales);
         };
 
         return Page;

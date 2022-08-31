@@ -3280,8 +3280,8 @@ msgstr "Email-адрес покупателя"
 msgid "Customer phone"
 msgstr "Номер телефона покупателя"
 
-msgid "The list of available contact fields is defined in your store backend: Settings &rarr; Checkout &rarr; Contact info checkout step"
-msgstr "Список доступных полей контакта определяется в бекенде магазина: «Настройки &rarr; Оформление заказа &rarr; Контактная информация»."
+msgid "Any contact value from customer properties. You can view the list of available contact fields in section <em>Store → Settings → Checkout</em>. Replace the ellipsis (...) with the desired field’s ID."
+msgstr "Любое значение из свойств покупателя. Список доступных полей можно посмотреть в разделе «<em>Магазин → Настройки → Оформление заказа</em>». Замените многоточие (...) на идентификатор нужного поля."
 
 msgid "Shipping address as string"
 msgstr "Адрес доставки одной строкой"

@@ -6,16 +6,19 @@ class shopProdPresentationDeleteController extends waJsonController
 {
     public function execute()
     {
-        $id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
+        $presentation_template_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
 
         $presentation_model = new shopPresentationModel();
-        $presentation_ids = $presentation_model->select('id')->where('id = i:num OR parent_id = i:num', ['num' => $id])->fetchAll('id');
-        $ids = array_keys($presentation_ids);
-        $presentation_model->deleteById($ids);
+        $presentation_id = $presentation_model->select('id')->where('id = ?', (int)$presentation_template_id)->fetchField('id');
+        if ($presentation_id) {
+            $presentation_model->deleteById($presentation_template_id);
+            $default_presentation = $presentation_model->getDefaultTemplateByUser(wa()->getUser()->getId());
+            $presentation_model->updateByField('parent_id', $presentation_template_id, ['parent_id' => $default_presentation['id']]);
 
-        $columns_model = new shopPresentationColumnsModel();
-        $columns_model->deleteByField('presentation_id', $ids);
+            $columns_model = new shopPresentationColumnsModel();
+            $columns_model->deleteByField('presentation_id', $presentation_template_id);
 
-        $presentation_model->correctSort();
+            $presentation_model->correctSort();
+        }
     }
 }

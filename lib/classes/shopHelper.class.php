@@ -2234,16 +2234,32 @@ SQL;
     public static function getBackendChapterUrl($chapter, $options = [])
     {
         $params = '';
-        $chapter_link = '';
         $current_chapter = self::getCurrentChapter();
         if ('old_chapter' === $current_chapter) {
-            $chapter_link = 'products';
             switch ($chapter) {
                 case 'category':
-                    $chapter_link .= '/categories';
+                    $category_id = waRequest::request('category_id', null, waRequest::TYPE_INT);
+                    if ($category_id) {
+                        $options['category_id'] = $category_id;
+                    }
                     break;
                 case 'set':
-                    $chapter_link .= '/sets';
+                    $set_id = waRequest::request('set_id', null, waRequest::TYPE_STRING_TRIM);
+                    if ($set_id) {
+                        $options['set_id'] = $set_id;
+                    }
+                    break;
+                case 'type':
+                    $type_id = waRequest::request('type_id', null, waRequest::TYPE_INT);
+                    if ($type_id) {
+                        $options['type_id'] = $type_id;
+                    }
+                    break;
+                case 'tag':
+                    $tag_id = waRequest::request('tag', null, waRequest::TYPE_STRING_TRIM);
+                    if ($tag_id) {
+                        $options['tag_name'] = $tag_id;
+                    }
                     break;
             }
         }
@@ -2251,7 +2267,7 @@ SQL;
             $params = '?'.http_build_query($options);
         }
 
-        return rtrim($chapter_link.$params, '/').'/';
+        return rtrim('products/'.$params, '/');
     }
 
     /**

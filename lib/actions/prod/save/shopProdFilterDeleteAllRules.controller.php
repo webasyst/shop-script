@@ -17,8 +17,6 @@ class shopProdFilterDeleteAllRulesController extends waJsonController
         }
 
         $rules_model = new shopFilterRulesModel();
-        $rules_model->deleteByField([
-            'filter_id' => $id,
-        ]);
+        $rules_model->deleteAllRules($id);
     }
 }

@@ -135,7 +135,7 @@
                 routes: routes,
                 onClick: function(node, url) {
                     var $link = $(node);
-                    if ($link.hasClass("js-disable-router")) {
+                    if ($link.hasClass("js-disable-router") || $link.data("router-disable")) {
                         return false;
                     }
                 },

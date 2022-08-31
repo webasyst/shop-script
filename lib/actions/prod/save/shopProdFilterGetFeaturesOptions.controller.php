@@ -1,6 +1,6 @@
 <?php
 
-class shopProdFilterGetFeaturesOptionsController extends waJsonController
+class shopProdFilterGetFeaturesOptionsController extends waController
 {
     public function execute()
     {
@@ -18,7 +18,7 @@ class shopProdFilterGetFeaturesOptionsController extends waJsonController
             $values = $this->getValuesByTerm($feature, $term, 20);
         }
 
-        $this->response['values'] = $values;
+        echo json_encode(array_values($values));
     }
 
     /**
@@ -31,18 +31,17 @@ class shopProdFilterGetFeaturesOptionsController extends waJsonController
     public function getValuesByTerm($feature, $term, $limit = null)
     {
         $values_model = shopFeatureModel::getValuesModel($feature['type']);
-        $op = $this->getSearchCondition();
         $data = [
             'search_value' => "%$term%",
             'feature_id' => $feature['id'],
         ];
         $sql = "SELECT fv.* FROM {$values_model->getTableName()} fv
-                JOIN shop_product_features pf ON pf.feature_value_id = fv.id
-                WHERE fv.feature_id = i:feature_id AND ($op)";
+                JOIN `shop_product_features` pf ON pf.feature_value_id = fv.id
+                WHERE fv.feature_id = i:feature_id AND fv.value LIKE s:search_value";
         if ($limit > 0) {
             $sql .= " LIMIT i:limit";
             $data['limit'] = $limit;
         }
-        return $this->query($sql, $data)->fetchAll('id');
+        return $values_model->query($sql, $data)->fetchAll('id');
     }
 }

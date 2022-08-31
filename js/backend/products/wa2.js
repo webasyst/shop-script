@@ -322,6 +322,24 @@
             }
         };
 
+        Dialog.prototype.animateToggle = function(enable) {
+            var that = this;
+
+            if (typeof enable !== "boolean") { return false; }
+
+            if (enable) {
+                var animate_class = "is-animated";
+
+                that.animate = true;
+                setTimeout( function() {
+                    that.$wrapper.addClass(animate_class);
+                }, 200);
+
+            } else {
+                that.animate = false;
+            }
+        };
+
         /**
          * @param {Boolean} animate
          * */
@@ -2167,7 +2185,11 @@
             that.$wrapper.on("click", function(event) {
                 event.preventDefault();
                 if (!that.is_disabled) {
+                    that.is_disabled = true;
                     that.set(!that.is_active);
+                    setTimeout( function() {
+                        that.is_disabled = false;
+                    }, 200);
                 }
             });
         };

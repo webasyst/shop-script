@@ -16,7 +16,7 @@ class shopProdFeedbackController extends waJsonController
     protected function getPostData()
     {
         $data = $this->getRequest()->post('data', [], waRequest::TYPE_ARRAY);
-        return waUtils::extractValuesByKeys($data, ['content']);
+        return waUtils::extractValuesByKeys($data, ['content', 'email']);
     }
 
     protected function getData()

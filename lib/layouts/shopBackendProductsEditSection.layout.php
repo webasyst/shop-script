@@ -81,18 +81,26 @@ class shopBackendProductsEditSectionLayout extends shopBackendProductsLayout
             $wa_app_url = wa()->getAppUrl('shop') . 'products/';
             $presentation_param = '/?presentation=' . $presentation_id;
             $near_products = shopPresentation::getNearestProducts($product_id, $presentation_id, true);
-            $product_list_data = [
-                'prev' => [
-                    'url' => $wa_app_url . $near_products['prev']['id'] . '/' . $this->options['content_id'] . $presentation_param,
-                    'name' => $near_products['prev']['name'],
-                ],
-                'next' => [
-                    'url' => $wa_app_url . $near_products['next']['id'] . '/' . $this->options['content_id'] . $presentation_param,
-                    'name' => $near_products['next']['name'],
-                ],
-                'position' => $near_products['position'],
-                'count' => $near_products['count']
-            ];
+            if ($near_products['count'] > 1) {
+                $product_list_data = [
+                    'prev' => null,
+                    'next' => null,
+                    'position' => $near_products['position'],
+                    'count' => $near_products['count']
+                ];
+                if ($near_products['prev']['id'] > 0) {
+                    $product_list_data['prev'] = [
+                        'url' => $wa_app_url . $near_products['prev']['id'] . '/' . $this->options['content_id'] . $presentation_param,
+                        'name' => $near_products['prev']['name'],
+                    ];
+                }
+                if ($near_products['next']['id'] > 0) {
+                    $product_list_data['next'] = [
+                        'url' => $wa_app_url . $near_products['next']['id'] . '/' . $this->options['content_id'] . $presentation_param,
+                        'name' => $near_products['next']['name'],
+                    ];
+                }
+            }
         }
 
         $this->view->assign([

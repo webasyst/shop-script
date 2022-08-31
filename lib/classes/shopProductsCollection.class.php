@@ -785,7 +785,7 @@ SQL;
          * @var shopFilterRulesModel $filter_rules_model
          */
         $filter_rules_model = $this->getModel('filterRules');
-        $rules = $filter_rules_model->getByField('filter_id', (int)$id, 'id');
+        $rules = $filter_rules_model->getByFilterId($id);
 
         // rules not found
         if (!$rules) {
@@ -825,8 +825,12 @@ SQL;
             $storefronts[$storefront_id] = ifset($storefront, 'route', 'type_id', []);
         }
         $all_types = shopFilter::getAllTypes();
+        $dimension = null;
         foreach ($groups as $group) {
             switch ($group['type']) {
+                case 'search':
+                    $this->searchPrepare('query=' . $group['rule_params'][0], false);
+                    break;
                 case 'categories':
                     /**
                      * @var shopCategoryModel $category_model
@@ -941,8 +945,7 @@ SQL;
                 case 'types':
                     $this->addJoin([
                         'table' => 'shop_type',
-                        'on' => ':table.id = p.type_id',
-                        'where' => ':table.id = ' . (int)$group['rule_params'][0]
+                        'on' => ':table.id = p.type_id AND :table.id = ' . (int)$group['rule_params'][0],
                     ]);
                     break;
                 case 'storefronts':
@@ -960,8 +963,8 @@ SQL;
                     }
                     break;
                 case 'tags':
-                    $tags_alias = $this->addJoin('shop_product_tags');
                     if (count($group['rule_params']) > 0) {
+                        $tags_alias = $this->addJoin('shop_product_tags');
                         $this->where[] = $tags_alias . '.tag_id IN ('. implode(',', array_map('intval', $group['rule_params'])) . ')';
                     }
                     break;
@@ -971,23 +974,36 @@ SQL;
                         $this->addFilterRule('p', $type, $group);
                     } elseif (isset($all_types['sku_fields'][$group['type']])) {
                         $skus_join = $this->addJoin('shop_product_skus', ':table.product_id = p.id');
-                        $type = $all_types['skus'][$group['type']];
+                        $type = $all_types['sku_fields'][$group['type']];
                         $this->addFilterRule($skus_join, $type, $group);
                     } elseif (isset($all_types['dynamic_fields'][$group['type']])) {
                         if ($group['type'] == 'sales_30days') {
-                            $alias_items = $this->addJoin('shop_order_items');
-                            $alias_order = $this->addJoin('shop_order', ":table.id = $alias_items.order_id");
-                            $this->fields['sales_30'] = "SUM($alias_items.price * $alias_order.rate * $alias_items.quantity) AS sales_30";
-                            $this->where[] = "$alias_items.type='product' AND $alias_order.paid_date >= " . date('Y-m-d', time() - 3600 * 24 * 30);
-                            $this->group_by[] = 'product_id';
+                            $alias_items = $this->addJoin([
+                                'table'=> 'shop_order_items',
+                                'on' => ':table.product_id = p.id AND :table.type = "product"',
+                            ]);
+                            $alias_order = $this->addJoin([
+                                'table' => 'shop_order',
+                                'on' => ":table.id = $alias_items.order_id AND :table.paid_date >= " . date('Y-m-d', time() - 3600 * 24 * 30),
+                            ]);
+                            $this->fields['sales_30days'] = "SUM($alias_items.price * $alias_order.rate * $alias_items.quantity) `sales_30days`";
+                            $this->group_by = 'p.id';
+                            $this->having[] = $this->parseRules($group, '`sales_30days`');
                         } elseif ($group['type'] == 'stock_worth') {
                             $alias_skus = $this->addJoin('shop_product_skus', ":table.product_id = p.id");
-                            $this->fields['net_worth'] = "SUM($alias_skus.primary_price * $alias_skus.count) AS net_worth";
-                            $this->group_by[] = ".product_id";
+                            $this->fields['stock_worth'] = "SUM($alias_skus.primary_price * $alias_skus.count) AS `stock_worth`";
+                            $this->group_by = 'p.id';
+                            $this->having[] = $this->parseRules($group, '`stock_worth`');
                         }
                     } elseif (isset($all_types['features'][$group['type']])) {
                         $type = $all_types['features'][$group['type']];
-                        if ($type['type'] == 'boolean' || $type['type'] == 'color' || $type['selectable']) {
+                        if ($type['selectable']) {
+                            $this->addJoin([
+                                'table' => 'shop_product_features_selectable',
+                                'on' => ':table.product_id = p.id',
+                                'where' => ':table.value_id IN (' . implode(',', $group['rule_params']) . ')'
+                            ]);
+                        } elseif ($type['type'] == 'boolean' || $type['type'] == 'varchar' || $type['type'] == 'color') {
                             $this->addJoin([
                                 'table' => 'shop_product_features',
                                 'on' => ':table.product_id = p.id',
@@ -996,30 +1012,16 @@ SQL;
                         } else {
                             $feature_table_name = shopFeatureModel::getValuesModel($type['type'])->getTableName();
                             if ($feature_table_name) {
-                                $feature_types = ['double', 'date'] + array_keys(shopDimension::getInstance()->getList());
+                                if (empty($dimension)) {
+                                    $dimension = shopDimension::getInstance();
+                                }
+                                $feature_types = array_merge(['double', 'date'], array_keys($dimension->getList()));
                                 $where = '';
-                                if ($type['type'] == 'varchar') {
-                                    $where = ":table.value REGEXP '(.*)" . implode('(.*)|(.*)', $group['rule_params']) . "(.*)'";
-                                } elseif (in_array($type['type'], $feature_types)) {
-                                    if ($group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED
-                                        || $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED
-                                    ) {
-                                        $compare_sign = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? '>=' : '<=';
-                                        $where = ":table.value $compare_sign {$group['rule_params'][0]}";
-                                    } elseif (count($group['rule_params']) > 1) {
-                                        $where = ":table.value >= {$group['rule_params'][0]} AND :table.value <= {$group['rule_params'][1]}";
-                                    }
+                                if (in_array($type['type'], $feature_types)) {
+                                    $where = $this->parseRules($group, ':table.value', $dimension);
                                 } elseif (in_array(mb_substr($type['type'], 6), $feature_types)) {
                                     // range.
-                                    if ($group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED
-                                        || $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED
-                                    ) {
-                                        $compare_sign = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? '>=' : '<=';
-                                        $where_field = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? 'begin_base_unit' : 'end_base_unit';
-                                        $where = ":table.$where_field $compare_sign {$group['rule_params'][0]}";
-                                    } elseif (count($group['rule_params']) > 1) {
-                                        $where = ":table.begin >= {$group['rule_params'][0]} AND :table.end <= {$group['rule_params'][1]}";
-                                    }
+                                    $where = $this->parseRules($group, '', $dimension);
                                 }
                                 if ($where) {
                                     $product_features_alias = $this->addJoin([
@@ -1048,16 +1050,23 @@ SQL;
      */
     protected function addFilterRule($table_alias, $type, $group)
     {
-        if (isset($type['table']) && $type['selection_format'] == 'select') {
-            $product_field = $group['id'] == 'currency' ? 'code' : 'id';
+        if (isset($type['table']) && $type['render_type'] == 'select') {
+            if ($group['type'] == 'currency') {
+                $in = '("' . implode('","', $group['rule_params']) . '")';
+                $product_field = 'code';
+            } else {
+                $in = '(' . implode(',', $group['rule_params']) . ')';
+                $product_field = 'id';
+            }
             $this->addJoin([
                 'table' => "shop_{$type['table']}",
-                'on' => ":table.$product_field = $table_alias.{$group['id']}",
-                'where' => ":table.$product_field IN (" . implode(',', $group['rule_params']) . ")"
+                'on' => ":table.$product_field = $table_alias.{$group['type']}",
+                'where' => ":table.$product_field IN $in"
             ]);
-        } elseif ($type['selection_format'] == 'range') {
-            if ($group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED
-                || $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED
+        } elseif ($type['render_type'] == 'range') {
+            if (!is_null($group['open_interval'])
+                && ($group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED
+                    || $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED)
             ) {
                 $compare_sign = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? '>=' : '<=';
                 $this->where[] = "$table_alias.{$group['type']} $compare_sign {$group['rule_params'][0]}";
@@ -1065,9 +1074,65 @@ SQL;
                 $this->where[] = "$table_alias.{$group['type']} >= {$group['rule_params'][0]}";
                 $this->where[] = "$table_alias.{$group['type']} <= {$group['rule_params'][1]}";
             }
-        } elseif ($type['selection_format'] == 'select') {
-            $this->where[] = "$table_alias.{$group['type']} IN (" . implode(',', $group['rule_params']) . ")";
+        } elseif ($type['render_type'] == 'select') {
+            if ($group['type'] == 'badge') {
+                $in = '("' . implode('","', $group['rule_params']) . '")';
+            } else {
+                $in = '(' . implode(',', $group['rule_params']) . ')';
+            }
+            $this->where[] = "$table_alias.{$group['type']} IN $in";
         }
+    }
+
+    /**
+     * @param array $group
+     * @param string $value
+     * @param shopDimension $dimension
+     * @return string|null
+     */
+    protected function parseRules($group, $value = '', $dimension = [])
+    {
+        $result = null;
+        if (!is_null($group['open_interval'])
+            && ($group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED
+                || $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED)
+        ) {
+            $compare_sign = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? '>=' : '<=';
+            if (empty($value)) {
+                $type = $this->getTypeByUnit($group['rule_params'][1], $dimension);
+                $group['rule_params'][0] = $dimension->convert($group['rule_params'][0], $type, '', $group['rule_params'][1]);
+                $value = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? ':table.begin_base_unit' : ':table.end_base_unit';
+            }
+            $result = "$value $compare_sign {$group['rule_params'][0]}";
+        } elseif (count($group['rule_params']) > 1) {
+            $begin = $end = $value;
+            if (empty($value)) {
+                $begin = ':table.begin_base_unit';
+                $end = ':table.end_base_unit';
+                $type = $this->getTypeByUnit($group['rule_params'][2], $dimension);
+                $group['rule_params'][0] = $dimension->convert($group['rule_params'][0], $type, '', $group['rule_params'][2]);
+                $group['rule_params'][1] = $dimension->convert($group['rule_params'][1], $type, '', $group['rule_params'][2]);
+            }
+            $result = "$begin >= {$group['rule_params'][0]} AND $end <= {$group['rule_params'][1]}";
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $unit
+     * @param shopDimension $dimension
+     * @return int|string
+     */
+    protected function getTypeByUnit($unit, $dimension)
+    {
+        $list = $dimension->getList();
+        foreach ($list as $type => $data) {
+            if (isset($data['units'][$unit])) {
+                return $type;
+            }
+        }
+        return '';
     }
 
     protected function relatedPrepare($hash, $auto_title = false)
@@ -2237,14 +2302,17 @@ SQL;
         if ($this->count !== null) {
             return $this->count;
         }
-        $sql = $this->getSQL();
 
+        $from_and_where = $this->getSQL();
+        $distinct = $this->joins && !$this->group_by ? 'DISTINCT ' : '';
         if ($this->having) {
+            $sql = "SELECT ".$distinct.$this->getFields('*')."\n";
+            $sql .= $from_and_where;
             $sql .= $this->_getGroupBy();
             $sql .= " HAVING ".implode(' AND ', $this->having);
-            $sql = "SELECT COUNT(*) FROM (SELECT p.* ".$sql.") AS t";
+            $sql = "SELECT COUNT(*) FROM (".$sql.") AS t";
         } else {
-            $sql = "SELECT COUNT(".($this->joins ? 'DISTINCT ' : '')."p.id) ".$sql;
+            $sql = "SELECT COUNT(".$distinct."p.id) ".$from_and_where;
         }
         $count = (int)$this->getModel()->query($sql)->fetchField();
 
@@ -4030,15 +4098,16 @@ SQL;
      * If one of them is NULL then $product_id is either first or last product in list.
      *
      * @param int $product_id
+     * @param bool $with_name
      * @return array [ $prev_id, $next_id ]
      * @since 9.3.0
      */
-    public function getPrevNextProductId($product_id)
+    public function getPrevNextProductId($product_id, $with_name = false)
     {
         $from_and_where = $this->getSQL();
         $group_by = $this->_getGroupBy();
 
-        $sql = "SELECT".($group_by ? '' : ' DISTINCT')." p.id\n";
+        $sql = "SELECT".($group_by ? '' : ' DISTINCT')." p.id" . ($with_name ? ', p.name' : '') . "\n";
         $sql .= $from_and_where;
         $sql .= $group_by;
         if ($this->having) {
@@ -4046,27 +4115,48 @@ SQL;
         }
         $sql .= $this->_getOrderBy();
 
-        $inner_sql = "SELECT @rownum AS prev_id, q.id, @rownum := q.id AS _tmp
+        $sql = "SELECT @rownum AS prev_id, q.id, @rownum := q.id AS _tmp" . ($with_name ? ', q.name' : '') . "
                       FROM ({$sql}) AS q
                           JOIN (SELECT @rownum := 0) AS r";
+        $rows = $this->getModel()->query($sql)->fetchAll();
 
-        $sql = "SELECT qq.prev_id, id
-                FROM (
-                    {$inner_sql}
-                ) AS qq
-                WHERE id=? OR prev_id=?
-                LIMIT 2";
-         $rows = $this->getModel()->query($sql, [$product_id, $product_id])->fetchAll();
+        $count_sql = "SELECT COUNT(p.id) `quantity`\n" . $from_and_where . $group_by;
+        if ($this->having) {
+            $count_sql .= "\nHAVING ".implode(' AND ', $this->having);
+        }
+        $count = $this->getModel()->query($count_sql)->fetchField('quantity');
 
-         $prev_id = null;
-         $next_id = null;
-         foreach($rows as $row) {
-             if ($row['id'] == $product_id) {
-                 $prev_id = $row['prev_id'];
-             } else if ($row['prev_id'] == $product_id) {
-                 $next_id = $row['id'];
-             }
-         }
-         return [$prev_id, $next_id];
+        $prev_id = $next_id = $position = $prev_name = $next_name = null;
+        foreach($rows as $key => $row) {
+            if ($row['id'] == $product_id || $row['prev_id'] == $product_id) {
+                if ($row['id'] == $product_id) {
+                    $prev_id = $row['prev_id'];
+                    $position = $key + 1;
+                    if ($with_name && isset($rows[$key-1])) {
+                        $prev_name = $rows[$key-1]['name'];
+                    }
+                } elseif ($row['prev_id'] == $product_id) {
+                    $next_id = $row['id'];
+                    if ($with_name) {
+                        $next_name = $row['name'];
+                    }
+                }
+            }
+        }
+        $result = [
+            'prev' => [
+                'id' => $prev_id,
+            ],
+            'next' => [
+                'id' => $next_id,
+            ],
+            'position' => $position,
+            'count' => $count,
+        ];
+        if ($with_name) {
+            $result['prev']['name'] = $prev_name;
+            $result['next']['name'] = $next_name;
+        }
+        return $result;
     }
 }

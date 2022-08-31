@@ -46,32 +46,38 @@ class shopProdListAction extends waViewAction
                 "rows_on_page" => $limit,
             ]);
         }
-        $sort_column_type = $presentation->getColumnType();
-        $sorting_options = [
-            'sort' => $sort_column_type !== null ? array_unique([$presentation->getColumnType(), 'name']) : ['name'],
-            'order' => strtolower($presentation->getSortOrder())
-        ];
+
+        $category_model = new shopCategoryModel();
+        $categories = $category_model->getFullTree('id, name, parent_id, type');
+        $static_categories = array_filter($categories, function($v) {
+            return empty($v['type']);
+        });
+        $categories_tree = $category_model->buildNestedTree($static_categories);
+        $set_model = new shopSetModel();
+        $sets = $set_model->select('id, name')->fetchAll('id');
+
         $filter = $active_filter->getFilter();
         $filter_options = $active_filter->getFilterOptions();
-        $this->clearMissingRules($filter['rules'], $filter_options);
-        $search = waRequest::get('search', '', waRequest::TYPE_STRING_TRIM);
-        $hash = $search ? 'search/query=' . $search : '';
+        $this->clearMissingRules($filter['rules'], $filter_options, $categories, $sets);
+
+        $sort_column_type = $presentation->getColumnType();
+        $sorting_options = [
+            'sort' => $sort_column_type !== null ? array_unique([$sort_column_type, 'name']) : ['name'],
+            'order' => strtolower($presentation->getField('sort_order')),
+        ];
         if ($active_filter->getId() > 0 && !empty($filter['rules'])) {
             $sorting_options['prepare_filter_id'] = $active_filter->getId();
         }
-        $collection = new shopProductsCollection($hash, $sorting_options);
+        $collection = new shopProductsCollection('', $sorting_options);
         $products_total_count = $collection->count();
-        $pages  = round( $products_total_count / $limit );
+        $pages = round($products_total_count / $limit);
         $products = $presentation->getProducts($collection, [
-            "limit"  => $limit,
-            "offset" => $offset
+            'offset' => $offset,
+            'limit' => $limit,
+            'format' => true,
         ]);
 
         $stocks = shopProdSkuAction::getStocks();
-
-        $category_model = new shopCategoryModel();
-        $categories = $category_model->getFullTree('id, name, parent_id', true);
-        $categories_tree = $category_model->buildNestedTree($categories);
 
         $columns = $this->mergeColumns($presentation->getColumnsList(), $active_presentation['columns']);
         $columns = $this->formatColumns($columns);
@@ -96,6 +102,7 @@ class shopProdListAction extends waViewAction
         $filter['rules'] = $this->getFilterGroups($filter['rules']);
         $filter_model = new shopFilterModel();
         $filters = array_values($filter_model->getTemplatesByUser($user_id, ['columns' => true]));
+        $this->getRulesLabels($filter['rules'], $filter_options, $categories, $sets);
 
         $this->view->assign([
             "filter"               => $filter,
@@ -107,7 +114,7 @@ class shopProdListAction extends waViewAction
             "columns"              => $columns,
             "products"             => $this->formatProducts($products),
             "products_total_count" => $products_total_count,
-            'categories'           => $categories,
+            'categories'           => $static_categories,
             'categories_tree'      => $categories_tree,
             'currencies_data'      => $this->getCurrenciesData(),
 
@@ -137,6 +144,138 @@ class shopProdListAction extends waViewAction
         }
 
         return array_values($groups);
+    }
+
+    protected function getRulesLabels(&$rules, $options, $categories, $sets)
+    {
+        $color_values_model = new shopFeatureValuesColorModel();
+        $color_values = $color_values_model->select('id, value')->fetchAll('id');
+        $varchar_values_model = new shopFeatureValuesVarcharModel();
+        $varchar_values = $varchar_values_model->select('id, value')->fetchAll('id');
+        foreach ($rules as &$rule) {
+            $label = [];
+            $unit_name = '';
+            $divider = '';
+            $words_count = 0;
+            $rule['name'] = '';
+            foreach ($rule['rules'] as $item) {
+                if (in_array($rule['type'], ['types', 'storefronts', 'tags'])) {
+                    if ($rule['type'] != 'types') {
+                        $divider = ' | ';
+                    }
+                    foreach ($options[$rule['type']] as $option) {
+                        if ($option['id'] == $item['rule_params']) {
+                            $label[] = $option['name'];
+                        }
+                    }
+                } elseif ($rule['type'] == 'categories') {
+                    if (isset($categories[$item['rule_params']])) {
+                        $label[] = $categories[$item['rule_params']]['name'];
+                    }
+                } elseif ($rule['type'] == 'sets') {
+                    if (isset($sets[$item['rule_params']])) {
+                        $label[] = $sets[$item['rule_params']]['name'];
+                    }
+                } else {
+                    foreach ($options['features'] as $option) {
+                        if (mb_strpos($rule['type'], 'feature_') === 0) {
+                            if ($option['rule_type'] == $rule['type']) {
+                                if ($option['selectable']) {
+                                    $divider = ' | ';
+                                }
+                                if (($option['type'] == shopFeatureModel::TYPE_DATE || $option['type'] == 'range.date'
+                                    || mb_strpos($option['type'], 'range.') === 0 || mb_strpos($option['type'], 'dimension.') === 0)
+                                    && !$option['selectable']
+                                ) {
+                                    $divider = ' ';
+                                }
+                                if ($option['type'] != shopFeatureModel::TYPE_DATE && $option['type'] != 'range.date'
+                                    && !$unit_name && !is_numeric($item['rule_params']) && isset($option['units'])
+                                ) {
+                                    foreach ($option['units'] as $unit) {
+                                        if ($unit['value'] == $item['rule_params']) {
+                                            $unit_name = ' ' . $unit['name'];
+                                        }
+                                    }
+                                } else {
+                                    if ($option['selectable'] || $option['type'] == shopFeatureModel::TYPE_BOOLEAN) {
+                                        foreach ($option['options'] as $param) {
+                                            if ($param['id'] == $item['rule_params']) {
+                                                $label[] = $param['name'];
+                                            }
+                                        }
+                                    } elseif ($option['type'] == shopFeatureModel::TYPE_VARCHAR || $option['type'] == shopFeatureModel::TYPE_COLOR) {
+                                        if ($option['type'] == shopFeatureModel::TYPE_VARCHAR) {
+                                            if (isset($varchar_values[$item['rule_params']])) {
+                                                $label[] = $varchar_values[$item['rule_params']]['value'];
+                                            }
+                                        } else {
+                                            if (isset($color_values[$item['rule_params']])) {
+                                                $label[] = $color_values[$item['rule_params']]['value'];
+                                            }
+                                        }
+                                    } else {
+                                        if ($option['type'] == shopFeatureModel::TYPE_DATE || $option['type'] == 'range.date'
+                                                || mb_strpos($option['type'], 'range.') === 0 || mb_strpos($option['type'], 'dimension.') === 0
+                                        ) {
+                                            $this->addLabelInterval($item, $label, $words_count);
+                                        }
+                                        $label[] = $item['rule_params'];
+                                    }
+                                }
+                            }
+                        } else {
+                            if ($option['rule_type'] == $rule['type']) {
+                                if ($option['render_type'] == 'select') {
+                                    $divider = ' | ';
+                                    foreach ($option['options'] as $param) {
+                                        if ($param['value'] == $item['rule_params']) {
+                                            $badge = '';
+                                            if ($rule['type'] == 'badge') {
+                                                $badge = '<span class="s-icon"><i class="' . $param['icon'] . '"></i></span>&nbsp;';
+                                            }
+                                            $label[] = $badge . $param['name'];
+                                        }
+                                    }
+                                } elseif ($option['render_type'] == 'range') {
+                                    $divider = ' ';
+                                    $sign_left = $sign_right = '';
+                                    if (isset($option['currency'])) {
+                                        if ($option['currency']['sign_position']) {
+                                            $sign_right = $option['currency']['sign_delim'] . $option['currency']['sign_html'];
+                                        } else {
+                                            $sign_left = $option['currency']['sign_html'] . $option['currency']['sign_delim'];
+                                        }
+                                    }
+                                    $this->addLabelInterval($item, $label, $words_count);
+                                    $label[] = $sign_left . $item['rule_params'] . $sign_right;
+                                }
+                                $rule['name'] = $option['name'];
+                            }
+                        }
+                    }
+                }
+            }
+            $rule['label'] = implode($divider, $label) . $unit_name;
+        }
+    }
+
+    protected function addLabelInterval($item, &$label, &$words_count)
+    {
+        if ($item['open_interval'] == null) {
+            if ($words_count == 0) {
+                $label[] = _w('from');
+            } elseif ($words_count == 1) {
+                $label[] = _w('to');
+            }
+            $words_count++;
+        } else {
+            if ($item['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED) {
+                $label[] = _w('from');
+            } elseif ($item['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED) {
+                $label[] = _w('to');
+            }
+        }
     }
 
     public function formatProducts($products) {
@@ -181,6 +320,7 @@ class shopProdListAction extends waViewAction
                 $_feature_column_id = "feature_". $_feature_id;
                 if (!empty($product["columns"][$_feature_column_id])) {
                     $product["columns"][$_feature_column_id]["editable"] = false;
+                    $product["columns"][$_feature_column_id]["feature_locked"] = true;
                 }
             }
         }
@@ -417,7 +557,9 @@ class shopProdListAction extends waViewAction
         $all_features = shopPresentation::addSelectableValues($all_features);
         $formatted_features = shopProdSkuAction::formatFeatures($all_features);
         $formatted_features_keys = array_flip(array_column($formatted_features, 'id'));
-        foreach ($columns as &$column) {
+
+        $result = [];
+        foreach ($columns as $key => &$column) {
             // Склады
             if (strpos($column["id"], 'stocks_') === 0) {
                 $column["stocks"] = $this->getProductStocks();
@@ -546,8 +688,13 @@ class shopProdListAction extends waViewAction
                         break;
                 }
             }
+
+            if (!empty($column["name"])) {
+                $result[$key] = $column;
+            }
         }
-        return $columns;
+
+        return $result;
     }
 
     protected function getProductCategories() {
@@ -666,24 +813,20 @@ class shopProdListAction extends waViewAction
         return $result;
     }
 
-    protected function clearMissingRules(&$rules, $data)
+    protected function clearMissingRules(&$rules, $data, $categories, $sets)
     {
         $is_selected = false;
-        $category_model = new shopCategoryModel();
-        $set_model = new shopSetModel();
         $rule_types = ['categories', 'sets', 'types'];
         $obsolete_rules_ids = [];
         foreach ($rules as $key => $rule) {
             if (in_array($rule['rule_type'], $rule_types)) {
                 if (!$is_selected) {
                     if ($rule['rule_type'] == 'categories') {
-                        $category_exist = $category_model->select('1 as `category_exist`')->where('`id` = ?', (int)$rule['rule_params'])->fetchField('category_exist');
-                        if ($category_exist) {
+                        if (isset($categories[$rule['rule_params']])) {
                             $is_selected = true;
                         }
                     } elseif ($rule['rule_type'] == 'sets') {
-                        $set_exist = $set_model->select('1 as `set_exist`')->where('`id` = ?', $rule['rule_params'])->fetchField('set_exist');
-                        if ($set_exist) {
+                        if (isset($sets[$rule['rule_params']])) {
                             $is_selected = true;
                         }
                     } elseif ($rule['rule_type'] == 'types') {
@@ -708,8 +851,10 @@ class shopProdListAction extends waViewAction
                     || $rule['rule_type'] == 'currency' || $rule['rule_type'] == 'tax_id'
                 ) {
                     $options = [];
+                    $options_field = 'value';
                     if ($rule['rule_type'] == 'storefronts' || $rule['rule_type'] == 'tags') {
                         $options = $data[$rule['rule_type']];
+                        $options_field = 'id';
                     } else {
                         foreach ($data['features'] as $field) {
                             if ($field['rule_type'] == $rule['rule_type']) {
@@ -718,12 +863,15 @@ class shopProdListAction extends waViewAction
                             }
                         }
                     }
-                    $options_field = $rule['rule_type'] == 'currency' ? 'code' : 'id';
                     foreach ($options as $info) {
                         if ($info[$options_field] == $rule['rule_params']) {
                             $rule_exist = true;
                             break;
                         }
+                    }
+                    if (!$rule_exist) {
+                        $obsolete_rules_ids[] = $rule['id'];
+                        unset($rules[$key]);
                     }
                 } elseif (mb_strpos($rule['rule_type'], 'feature_') === 0) {
                     foreach ($data['features'] as $feature) {
@@ -732,10 +880,10 @@ class shopProdListAction extends waViewAction
                             break;
                         }
                     }
-                }
-                if (!$rule_exist) {
-                    $obsolete_rules_ids[] = $rule['id'];
-                    unset($rules[$key]);
+                    if (!$rule_exist) {
+                        $obsolete_rules_ids[] = $rule['id'];
+                        unset($rules[$key]);
+                    }
                 }
             }
         }

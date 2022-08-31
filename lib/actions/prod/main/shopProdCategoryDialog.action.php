@@ -78,6 +78,8 @@ class shopProdCategoryDialogAction extends waViewAction
             );
         }
 
+        $category['conditions'] = $this->parseConditions($category['conditions']);
+
         // Filter
         $category_helper = new shopCategoryHelper();
         $category["explode_feature_ids"] = ($category["filter"] !== null ? explode(',', $category["filter"]) : []);
@@ -189,6 +191,7 @@ class shopProdCategoryDialogAction extends waViewAction
             "params"                 => "",
             "url"                    => "",
 
+            "conditions"             => [],
             "include_sub_categories" => "0",
             "sort_products"          => "name ASC",
             "enable_sorting"         => "1",
@@ -222,5 +225,292 @@ class shopProdCategoryDialogAction extends waViewAction
         }
 
         return $og;
+    }
+
+    protected function parseConditions($conditions = '')
+    {
+        if (!$conditions) {
+            return $conditions;
+        }
+
+        $tag_model = new shopTagModel();
+        $tags = [];
+
+        $escapedBS = 'ESCAPED_BACKSLASH';
+        while (false !== strpos($conditions, $escapedBS)) {
+            $escapedBS .= rand(0, 9);
+        }
+        $escapedAmp = 'ESCAPED_AMPERSAND';
+        while (false !== strpos($conditions, $escapedAmp)) {
+            $escapedAmp .= rand(0, 9);
+        }
+
+        $conditions = str_replace('\\&', $escapedAmp, str_replace('\\\\', $escapedBS, $conditions));
+        $conditions = explode('&', $conditions);
+
+        $saved_product_fields = [];
+        $saved_features = [];
+        foreach ($conditions as $part) {
+            if (!($part = trim($part))) {
+                continue;
+            }
+            $part = str_replace(array($escapedBS, $escapedAmp), array('\\\\', '\\&'), $part);
+            $temp = preg_split("/(\\\$=|\^=|\*=|==|!=|>=|<=|=|>|<)/uis", $part, 2, PREG_SPLIT_DELIM_CAPTURE);
+
+            if ($temp) {
+                $name = array_shift($temp);
+                $is_feature = false;
+                $feature_name = null;
+
+                //get feature name
+                if (substr($name, -9) === '.value_id') {
+                    $is_feature = true;
+                    $feature_name = substr($name, 0, -9);
+                } elseif (substr($name, -6) === '.value') {
+                    $is_feature = true;
+                    $feature_name = substr($name, 0, -6);
+                }
+
+                //Get previous saved values
+                if ($is_feature) {
+                    $tmp_result = ifset($saved_features, $feature_name, []);
+                } else {
+                    $tmp_result = ifset($saved_product_fields, $name, []);
+                }
+
+                if ($name == 'tag' || $name == 'type' || $name == 'badge') {
+                    $tmp_result['type'] = 'select';
+                    $tmp_result['values'] = str_replace('\&', '&', $temp[1]); //Remove escape ampersand
+                    if ($name == 'tag') {
+                        // backward compatibility
+                        $values = explode('||', $tmp_result['values']);
+                        $value_ids = [];
+                        $tags = $tag_model->getByField('name', $values, true);
+                        foreach ($values as $tag_name) {
+                            foreach ($tags as $tag) {
+                                if ($tag['name'] == $tag_name) {
+                                    $value_ids[] = $tag['id'];
+                                }
+                            }
+                        }
+                        $tmp_result['values'] = $value_ids;
+                    } else {
+                        $tmp_result['values'] = explode('||', $tmp_result['values']);
+                    }
+                } elseif ($name == 'compare_price' && $temp[0] == '>') {
+                    // backward compatibility
+                    $tmp_result['type'] = 'range';
+                    $tmp_result['begin'] = '0';
+                    $tmp_result['end'] = '';
+                } elseif ($temp[0] == '>=') {
+                    $tmp_result['type'] = 'range';
+                    $tmp_result['begin'] = $temp[1];
+                    $tmp_result['end'] = isset($tmp_result['end']) ? $tmp_result['end'] : null;
+                } elseif ($temp[0] == '<=') {
+                    $tmp_result['type'] = 'range';
+                    $tmp_result['begin'] = isset($tmp_result['begin']) ? $tmp_result['begin'] : null;
+                    $tmp_result['end'] = $temp[1];
+                } else {
+                    $tmp_result['type'] = 'equal';
+                    $tmp_result['condition'] = $temp[0];
+                    $tmp_result['values'] = preg_split('@[,\s]+@', $temp[1]);
+                }
+
+                //Set update/new values
+                if ($is_feature) {
+                    $saved_features[$feature_name] = $tmp_result;
+                } else {
+                    $saved_product_fields[$name] = $tmp_result;
+                }
+            }
+        }
+
+        $currency_model = new shopCurrencyModel();
+        $currencies = $currency_model->getCurrencies();
+        $currency_id = wa('shop')->getConfig()->getCurrency(true);
+        $currency = $currencies[$currency_id];
+
+        $fields = [
+            'create_datetime' => [
+                'name' => _w('Date added'),
+                'data' => [
+                    'type' => 'date',
+                    'render_type' => 'range',
+                ]
+            ],
+            'edit_datetime' => [
+                'name' => _w('Дата последнего изменения'),
+                'data' => [
+                    'type' => 'date',
+                    'render_type' => 'range',
+                ],
+            ],
+            'type' => [
+                'name' => _w('Type'),
+                'data' => [
+                    'type' => 'select',
+                    'render_type' => 'select',
+                    'options' => [],
+                ],
+            ],
+            'tag' => [
+                'name' => _w('Tag'),
+                'data' => [
+                    'type' => 'select',
+                    'render_type' => 'select',
+                    'options' => $tags,
+                ],
+            ],
+            'rating' => [
+                'name' => _w('Rating'),
+                'data' => [
+                    'type' => 'double',
+                    'render_type' => 'range',
+                ],
+            ],
+            'price' => [
+                'name' => _w('Price'),
+                'data' => [
+                    'type' => 'double',
+                    'render_type' => 'range',
+                    'currency' => $currency,
+                ],
+            ],
+            'compare_price' => [
+                'name' => _w('Compare at price'),
+                'data' => [
+                    'type' => 'double',
+                    'render_type' => 'range',
+                    'currency' => $currency,
+                ],
+            ],
+            'purchase_price' => [
+                'name' => _w('Purchase price'),
+                'data' => [
+                    'type' => 'double',
+                    'render_type' => 'range',
+                    'currency' => $currency,
+                ],
+            ],
+            'count' => [
+                'name' => _w('In stock'),
+                'data' => [
+                    'type' => 'double',
+                    'render_type' => 'range',
+                ],
+            ],
+            'badge' => [
+                'name' => _w('Badge'),
+                'data' => [
+                    'type' => 'varchar',
+                    'render_type' => 'select',
+                    'options' => [
+                        [
+                            'name' => _w('New!'),
+                            'value' => 'new',
+                            'icon' => 'fas fa-bolt'
+                        ],
+                        [
+                            'name' => _w('Low price!'),
+                            'value' => 'lowprice',
+                            'icon' => 'fas fa-piggy-bank',
+                        ],
+                        [
+                            'name' => _w('Bestseller!'),
+                            'value' => 'bestseller',
+                            'icon' => 'fas fa-chart-line',
+                        ],
+                        [
+                            'name' => _w('Custom badge'),
+                            'value' => 'custom',
+                            'icon' => 'fas fa-code',
+                        ]
+                    ]
+                ],
+            ],
+        ];
+
+        $result = [];
+        foreach ($saved_product_fields as $key => $field) {
+            if (isset($fields[$key])) {
+                $rule = $fields[$key];
+                $rule['type'] = 'product_param';
+                $rule['data'] += [
+                    'id' => $key,
+                    'name' => $rule['name'],
+                    'display_type' => 'product'
+                ];
+                if ($rule['data']['render_type'] == 'range' && $field['type'] == 'range') {
+                    $rule['data']['options'] = [
+                        ['name' => '', 'value' => $field['begin']],
+                        ['name' => '', 'value' => $field['end']]
+                    ];
+                } elseif ($rule['data']['render_type'] == 'select' && $field['type'] == 'select') {
+                    $rule['data']['values'] = $field['values'];
+                    if ($key == 'type' && $field['values']) {
+                        $type_model = new shopTypeModel();
+                        $types = $type_model->select('`id`, `name`')->where('id IN (?)', $field['values'])->fetchAll();
+                        $rule['data']['options'] = $types;
+                    }
+                }
+                $result[] = $rule;
+            }
+        }
+
+        if ($saved_features) {
+            $feature_model = new shopFeatureModel();
+            $where = "`type` != 'text' AND `type` != 'divider' AND `type` NOT LIKE '2d.%' AND `type` NOT LIKE '3d.%' 
+                AND `parent_id` IS NULL AND `code` IN (?)";
+            $features = $feature_model->where($where, array_keys($saved_features))->order('`count` DESC')->fetchAll('code', true);
+            $feature_codes = [];
+            foreach ($features as $code => $feature) {
+                $feature_codes[$feature['id']] = $code;
+            }
+
+            $selectable_value_ids = [];
+            foreach ($saved_features as $code => $feature) {
+                if ($feature['type'] == 'equal' && !empty($feature['values'])) {
+                    $selectable_value_ids[$code] = array_map('intval', $feature['values']);
+                }
+            }
+            if (empty($selectable_value_ids)) {
+                $selectable_value_ids = null;
+            }
+            $selectable_features = $feature_model->getValues($features, $selectable_value_ids);
+            foreach ($selectable_features as $code => $feature) {
+                if (isset($features[$code]) && isset($feature['values'])) {
+                    $features[$code]['values'] = $feature['values'];
+                }
+            }
+            $features = shopProdSkuAction::formatFeatures($features, true);
+
+            foreach ($features as $feature) {
+                $feature['display_type'] = 'feature';
+                $saved_rule = $saved_features[$feature_codes[$feature['id']]];
+                if (empty($feature['selectable']) && $saved_rule['type'] == 'range') {
+                    $feature['options'] = [
+                        ['name' => '', 'value' => $saved_rule['begin']],
+                        ['name' => '', 'value' => $saved_rule['end']]
+                    ];
+                } elseif ((!empty($feature['selectable']) && $saved_rule['type'] == 'equal')
+                    || (mb_strpos($feature['type'], shopFeatureModel::TYPE_VARCHAR) !== false
+                        || mb_strpos($feature['type'], shopFeatureModel::TYPE_COLOR) !== false
+                        || $feature['type'] == shopFeatureModel::TYPE_BOOLEAN)
+                ) {
+                    $feature['values'] = $saved_rule['values'];
+                }
+                $result[] = [
+                    'name' => $feature['name'],
+                    'type' => 'feature',
+                    'data' => $feature,
+                ];
+            }
+        }
+
+        usort($result, function($f1, $f2) {
+            return strnatcasecmp(mb_strtolower(trim($f1['name'])), mb_strtolower(trim($f2['name'])));
+        });
+
+        return $result;
     }
 }

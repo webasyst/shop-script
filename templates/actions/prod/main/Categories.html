@@ -457,18 +457,23 @@
                     urls: {
                         "transliterate"       : "{$wa_app_url}?action=transliterate",
                         "autocomplete_filter" : "{$wa_app_url}?action=autocomplete&type=filter",
-                        "category_dialog"     : "{$wa_app_url}?module=prod&action=categoryDialog",
-                        "category_dialog_save": "{$wa_app_url}?module=prod&action=categorySave",
-                        "categories_sort"     : "{$wa_app_url}?module=prod&action=categoriesSort",
-                        "category_name"       : "{$wa_app_url}?module=prod&action=categoryName",
-                        "category_move"       : "{$wa_app_url}?module=prod&action=categoryMove",
-                        "category_sort"       : "{$wa_app_url}?module=prod&action=categorySort",
-                        "category_sort_dialog": "{$wa_app_url}?module=prod&action=categorySortDialog",
-                        "category_clone"      : "{$wa_app_url}?module=prod&action=categoryClone",
-                        "category_status"     : "{$wa_app_url}?module=prod&action=categoryStatus",
-                        "category_delete"     : "{$wa_app_url}?module=prod&action=categoryDelete",
-                        "category_storefronts": "{$wa_app_url}?module=prod&action=categoryStorefronts",
-                        "callback_submit"     : "{$wa_app_url}?module=prod&action=feedback"
+                        "autocomplete_feature": "{$wa_app_url}?module=prod&action=categoryFilterAutocomplete",
+
+                        "categories_sort"        : "{$wa_app_url}?module=prod&action=categoriesSort",
+
+                        "category_dialog"        : "{$wa_app_url}?module=prod&action=categoryDialog",
+                        "category_dialog_save"   : "{$wa_app_url}?module=prod&action=categorySave",
+                        "category_condition_edit": "{$wa_app_url}?module=prod&action=categoryConditionEditDialog",
+
+                        "category_name"          : "{$wa_app_url}?module=prod&action=categoryName",
+                        "category_move"          : "{$wa_app_url}?module=prod&action=categoryMove",
+                        "category_sort"          : "{$wa_app_url}?module=prod&action=categorySort",
+                        "category_sort_dialog"   : "{$wa_app_url}?module=prod&action=categorySortDialog",
+                        "category_clone"         : "{$wa_app_url}?module=prod&action=categoryClone",
+                        "category_status"        : "{$wa_app_url}?module=prod&action=categoryStatus",
+                        "category_delete"        : "{$wa_app_url}?module=prod&action=categoryDelete",
+                        "category_storefronts"   : "{$wa_app_url}?module=prod&action=categoryStorefronts",
+                        "callback_submit"        : "{$wa_app_url}?module=prod&action=feedback"
                     },
 
                     categories            : {$categories|json_encode},

@@ -176,7 +176,7 @@ class shopCustomerModel extends waModel
 
         $sql = "SELECT cc.category_id, count(*) AS cnt
                 FROM wa_contact_categories AS cc
-                JOIN shop_customer AS sc ON cc.contact_id=sc.contact_id
+                JOIN wa_contact wc ON wc.id = cc.contact_id
                 {$where}
                 GROUP BY cc.category_id";
 
@@ -194,10 +194,12 @@ class shopCustomerModel extends waModel
 
     public function getAllCoupons()
     {
-        $coupons_ids = $this->query("SELECT DISTINCT value FROM `{$this->table}` sc
+        $coupons_ids = $this->query("SELECT DISTINCT sop.value FROM `{$this->table}` sc
         JOIN `shop_order` so ON so.contact_id = sc.contact_id
-        JOIN `shop_order_params` sop ON sop.order_id = so.id AND name = 'coupon_id'")->fetchAll(null, true);
+        JOIN `shop_order_params` sop ON sop.order_id = so.id AND name = 'coupon_id'
+        WHERE sop.value <> '' AND sop.value <> '0'")->fetchAll(null, true);
         $cm = new shopCouponModel();
+
         return $cm->getById($coupons_ids, true);
     }
 

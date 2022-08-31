@@ -43,7 +43,7 @@
 {$_templates["dialog-list-column-manager"] = $_dialog_list_column_manager|trim}
 
 {capture assign="_component_list_column_item"}
-    <div class="s-item-wrapper" v-bind:data-id="column.id" v-bind:class="item_class" v-if="column.states.display">
+    <div class="s-item-wrapper" v-bind:data-id="column.id" v-bind:class="item_class" v-show="column.states.display">
         {* Table *}
         <div class="s-item-table">
             <div class="s-column s-column-toggle">

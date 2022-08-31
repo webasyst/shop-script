@@ -64,6 +64,7 @@ class shopProductsInlineSaveController extends shopProductListAction
         $this->collection = new shopProductsCollection('id/'.$product->id);
         $products = $this->collection->getProducts('*,image,'.join(',', self::getEnabledColumns()), 0, 1);
         $this->workupProducts($products);
+        $products = shopProductsAction::formatProducts($products);
         echo json_encode(array(
             'status' => 'ok',
             'data'   => array_values($products),

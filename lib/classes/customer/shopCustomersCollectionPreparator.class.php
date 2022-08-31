@@ -34,7 +34,7 @@ class shopCustomersCollectionPreparator
         // Add shop_customer join
         $this->customer_table_alias = $this->addJoinOnce([
             'table' => 'shop_customer',
-            'type'  => empty($this->options['left_customer_join']) ? null : 'LEFT',
+            'type'  => 'LEFT'
         ]);
 
         // Last order join
@@ -503,7 +503,12 @@ class shopCustomersCollectionPreparator
             $val = (int) $val;
 
             if (!empty($this->options['include_unpaid_orders'])) {
-                $this->addWhere("{$this->customer_table_alias}.number_of_orders {$op} '{$val}'");
+                if ($val === 0 && in_array($op, ['=', '>=', '<='])) {
+                    $this->addWhere("{$this->customer_table_alias}.number_of_orders {$op} '{$val}'", true);
+                    $this->addWhere("{$this->customer_table_alias}.number_of_orders IS NULL", true);
+                } else {
+                    $this->addWhere("{$this->customer_table_alias}.number_of_orders {$op} '{$val}'");
+                }
             } else {
                 $this->addHaving("COUNT({$this->getFilteringOrderTableAlias()}.id) {$op} '{$val}'");
             }

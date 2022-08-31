@@ -59,7 +59,7 @@
 {capture assign="_template_category_filter_autocomplete_item"}
     <li class="ui-menu-item-html">
         <div>
-            <span class="s-icon icon size-12 shift-up-1"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
+            <span class="s-icon icon size-12 shift-inherit"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
             <span class="s-name">%name%</span>
             <span class="s-code hint">%code%</span>
         </div>
@@ -70,13 +70,33 @@
 {capture assign="_template_category_filter_autocomplete_item_sku"}
     <li class="ui-menu-item-html">
         <div>
-            <span class="s-icon icon size-12 shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
+            <span class="s-icon icon size-12 shift-inherit color-gray-light"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
             <span class="s-name">%name%</span>
             <span class="s-code hint">%code%</span>
         </div>
     </li>
 {/capture}
 {$_templates["component-category-filter-autocomplete-item-sku"] = $_template_category_filter_autocomplete_item_sku|trim}
+
+{capture assign="_dialog_load"}
+    <div class="wa-dialog s-category-feature-edit-dialog" id="js-category-feature-edit-dialog">
+        <div class="dialog-background"></div>
+        <div class="dialog-body">
+            <div class="dialog-header">
+                <div class="flexbox space-12">
+                    <div class="s-title-wrapper wide">
+                        <h3 class="s-title">&nbsp;</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-content align-center">
+                <span class="s-icon icon size-32"><i class="fas fa-spinner fa-spin"></i></span>
+            </div>
+            <div class="dialog-footer">&nbsp;</div>
+        </div>
+    </div>
+{/capture}
+{$_templates["dialog-load"] = $_dialog_load|trim}
 
 {$_components = []}
 
@@ -133,7 +153,7 @@
          v-bind:class="item_class">
         <div class="s-column-toggle">
             <div class="s-toggle-wrapper cursor-move js-filter-move-toggle" draggable="true">
-                <span class="s-icon icon shift-0"><i class="fas fa-bars"></i></span>
+                <span class="s-icon icon shift-0"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i></span>
             </div>
         </div>
         <div class="s-column-name wide">
@@ -240,6 +260,67 @@
     </div>
 {/capture}
 {$_components["component-category-description-redactor"] = $_component_category_description_redactor|trim}
+
+{capture assign="_component_category_features_section"}
+    <div class="s-category-features-section">
+        <div class="s-search-section">
+            <div class="s-field-wrapper">
+                <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Начните набирать название характеристики.")|escape}">
+                <div class="s-loading-wrapper" v-if="states.is_loading">
+                    <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
+                </div>
+            </div>
+            <div class="s-description hint flexbox space-8">
+                <div class="s-icon">
+                    <span class="icon"><i class="fas fa-info-circle"></i></span>
+                </div>
+                <div class="s-text">[`Если вы не нашли какую-то характеристику, введите более подробный поисковый запрос, чтобы получить более точные результаты.`]</div>
+            </div>
+        </div>
+        <div class="s-features-list" v-if="category.conditions.length">
+            <template v-for="item in category.conditions">
+                <component-category-feature-item
+                    v-bind:item="item"
+                    v-on:remove="removeItem"></component-category-feature-item>
+            </template>
+        </div>
+    </div>
+{/capture}
+{$_components["component-category-features-section"] = $_component_category_features_section|trim}
+
+{capture assign="_component_category_feature_item"}
+    <div class="s-feature-wrapper flexbox">
+        <div class="flexbox wide space-12">
+            <div class="s-column-name">
+                <template v-if="item.type === 'feature'">
+                    <span class="s-icon icon size-12 shift-inherit" v-if="item.data.available_for_sku"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
+                    <span class="s-icon icon size-12 shift-inherit color-gray-light" v-else><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
+                </template>
+                <span class="s-name">{ { item.data.name } }:</span>
+                <div class="s-values-list">
+                    <template v-if="values.length">
+                        <template v-for="value in values">
+                            <span class="s-value" v-html="value"></span>
+                        </template>
+                    </template>
+                    <template v-else>
+                        [`Значение не задано`]
+                    </template>
+                </div>
+            </div>
+        </div>
+        <div class="s-column-actions nowrap flexbox space-8">
+            <div class="s-action" v-on:click="edit" v-bind:class="{ 'cursor-pointer hover-blue' : !states.is_locked }">
+                <span class="s-icon icon shift-0" v-bind:key="'fa-spinner'" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                <span class="s-icon icon shift-0" v-bind:key="'fa-pen'" v-else><i class="fas fa-pen"></i></span>
+            </div>
+            <div class="s-action cursor-pointer hover-red" v-on:click="remove">
+                <span class="s-icon icon shift-0"><i class="fas fa-trash-alt"></i></span>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-category-feature-item"] = $_component_category_feature_item|trim}
 
 <div class="wa-dialog s-category-edit-dialog" id="js-category-edit-dialog">
     <div class="dialog-background"></div>
@@ -408,6 +489,8 @@
                                 <span class="s-icon icon" data-tooltip-id="category-params"><i class="fas fa-question-circle gray"></i></span>
                             </div>
                             <div class="value">
+
+                                <component-category-features-section></component-category-features-section>
 
                             </div>
                         </div>
