@@ -467,6 +467,14 @@ HTML
         'control_type' => waHtmlControl::INPUT,
         'translate'    => false,
     ),
+    'multiple_separator'        => array(
+        'value'        => '',
+        'placeholder'  => '##',
+        'title'        => 'Разделители множественных характеристик',
+        'description'  => 'Укажите текстовый разделитель (из одного или нескольких символов) для поиска и импорта множественных значений характеристик товаров из <strong>значений реквизитов</strong>.',
+        'control_type' => waHtmlControl::INPUT,
+        'translate'    => false,
+    ),
     'stock'                     => array(
         'value'            => 0,
         'title'            => 'Общие остатки в CommerceML',

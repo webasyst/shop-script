@@ -702,7 +702,7 @@
                     if (type && type[2]) {
                         type = type[2]
                     } else if (selected_option.length
-                        && (type = ('' + selected_option.prop('class')).match(/\bjs-type-dimension\.([\w]+)\b/))
+                        && (type = (''+ selected_option.prop('class')).match(/\bjs-type-(?:2d\.|3d\.)?dimension\.([\w]+)\b/))
                         && type[1]
                     ) {
                         type = type[1];

@@ -4453,11 +4453,12 @@ SQL;
                     }
                 }
                 if (!empty($this->data['new_features'])) {
+                    $sf_model = new shopFeatureModel();
+                    $_type = preg_replace('#\..*$#', '', ifempty($this->data, 'feature_types', $sf_model->getCode($id), ''));
                     foreach ($this->data['new_features'] as $new_ft) {
-                        if ($id === $new_ft['cml1c_id']) {
+                        if ($id === $new_ft['cml1c_id'] && !in_array($_type, array(shopFeatureModel::TYPE_2D, shopFeatureModel::TYPE_3D))) {
                             $data['multiple'] = !!$new_ft['multiple'];
                             $values = array_combine(range(-1, - count($data['values'])), array_values($data['values']));
-                            $sf_model = new shopFeatureModel();
                             $feature = $sf_model->getById($new_ft['id']);
                             $data = $feature + $data;
                             $sf_model->setValues($data, $values);
@@ -5738,8 +5739,14 @@ SQL;
                     }
                 } else {
                     $value = $this->clearSpaces($value);
-                    $value = sprintf('%.10f', floatval($value)).' '.$target['dimension'];
+                    if (is_numeric($value)) {
+                        $value = sprintf('%.10f', floatval($value)).' '.$target['dimension'];
+                    } else {
+                        $value = $value.' '.$target['dimension'];
+                    }
                 }
+            } elseif (ifset($data, 'type', '') === shopFeatureModel::TYPE_DOUBLE) {
+                $value = $this->clearSpaces($value);
             }
 
             if ($target['code']) {
@@ -5799,8 +5806,7 @@ SQL;
     private function clearSpaces($value)
     {
         /** отрезаем единицу измерения, если есть */
-        $value = preg_replace('#([.,\d\s]+)(?:\s\w+)?$#', '$1', (string) $value);
-
+        $value = preg_replace('#([.,\d\s]+)(?:\s\S+)?$#', '$1', (string) $value);
         $spaces = [' ', ' ', "\r\n", "\n", "\r"];
         $value = str_replace($spaces, '', $value);
         $value = str_replace(',', '.', $value);
@@ -5816,17 +5822,21 @@ SQL;
      */
     private function formatFeature($features, $code, $value)
     {
-        $feature_type = ifset($this->data, 'feature_types', $code, shopFeatureModel::TYPE_VARCHAR);
-        switch ($feature_type) {
-            case shopFeatureModel::TYPE_COLOR:
-                $feature = ifset($features, $code, []);
-                if (is_string($feature)) {
-                    $feature = [$feature];
-                }
+        $selectable = ifset($this->data, 'new_features', $code, 'selectable', 0);
+        if ($selectable) {
+            $feature = ifset($features, $code, []);
+            if (is_string($feature)) {
+                $feature = [$feature];
+            }
+
+            $multiple_separator = trim($this->pluginSettings('multiple_separator'));
+            if (empty($multiple_separator)) {
                 $feature[] = $value;
-                break;
-            default:
-                $feature = $value;
+            } else {
+                $feature += explode($multiple_separator, $value);
+            }
+        } else {
+            $feature = $value;
         }
 
         return $feature;
@@ -6516,6 +6526,14 @@ SQL;
                     $_sku['available'] = intval($_sku['available']);
                 } else {
                     unset($_sku['available']);
+                }
+
+                if ($this->pluginSettings('import_business_ru')) {
+                    $update_fields = array_merge($update_fields, [
+                        'sku'      => 'sku',
+                        'sku_name' => 'sku_name',
+                        //'features' => 'features'
+                    ]);
                 }
 
                 foreach ($sku_fields as $setting => $field) {
