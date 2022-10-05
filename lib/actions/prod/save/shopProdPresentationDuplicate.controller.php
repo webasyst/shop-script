@@ -21,7 +21,7 @@ class shopProdPresentationDuplicateController extends waJsonController
     protected function formatValues(&$data)
     {
         if (mb_strlen($data['name']) === 0) {
-            $data['name'] = _w('(новое представление)');
+            $data['name'] = _w('(new saved view)');
         }
     }
 }

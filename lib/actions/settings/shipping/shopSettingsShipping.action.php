@@ -106,7 +106,7 @@ class shopSettingsShippingAction extends waViewAction
                         _w('You have no such feature in your online store settings.').
                         ' '.
                         sprintf(
-                            _w('Add it in “<a href="%s">Product types &amp; Features</a>” screen.'),
+                            _w('Add it in “<a href="%s">Product types &amp; features</a>” screen.'),
                             '?action=settings#/typefeat/'
                         ),
                 ),

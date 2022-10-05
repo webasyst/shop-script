@@ -288,7 +288,7 @@ class shopFrontendProductAction extends shopFrontendAction
         self::setInvisibleUnfilledSkus($product);
         if ($product['status'] < 0) {
             // do the redirect when product is in "hidden and not available" status
-            $this->handleHiddenAndNotAvailable($product);
+            self::handleHiddenAndNotAvailable($product);
         }
 
         $is_cart = waRequest::get('cart');
@@ -950,7 +950,7 @@ class shopFrontendProductAction extends shopFrontendAction
         return $res;
     }
 
-    protected function handleHiddenAndNotAvailable($product)
+    public static function handleHiddenAndNotAvailable($product)
     {
         $redirect_code = ifset($product, 'params', 'redirect_code', null);
         if (!$redirect_code) {
@@ -977,7 +977,6 @@ class shopFrontendProductAction extends shopFrontendAction
             // shop home page
             $redirect_url = wa()->getRouteUrl('shop/frontend/');
         }
-
-        $this->redirect($redirect_url, $redirect_code == 301 ? 301 : 302);
+        wa()->getResponse()->redirect($redirect_url, $redirect_code == 301 ? 301 : 302);
     }
 }

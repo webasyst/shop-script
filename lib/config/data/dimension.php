@@ -137,7 +137,7 @@ return array(
                 'multiplier' => 0.001,
             ),
             'hp'  => array(
-                'name'       => _w('л. с.'),
+                'name'       => _w('hp'),
                 'multiplier' => 735.499,
             ),
         ),

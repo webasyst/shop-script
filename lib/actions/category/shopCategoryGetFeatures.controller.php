@@ -102,9 +102,15 @@ class shopCategoryGetFeaturesController extends waJsonController
 
     protected function getFeatures($options_feature)
     {
+        $get_all = (bool)waRequest::request('get_all', false);
+        $limit = shopFeatureModel::SEARCH_STEP;
+        if ($get_all) {
+            $limit = shopFeatureModel::GET_ALL;
+        }
+
         $category_helper = new shopCategoryHelper();
 
-        $features = $category_helper->getFilters($options_feature);
+        $features = $category_helper->getFilters($options_feature, $limit);
         $features = $category_helper->getFeaturesValues($features, true);
 
         return $features;

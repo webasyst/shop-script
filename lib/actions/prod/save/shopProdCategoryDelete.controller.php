@@ -23,7 +23,7 @@ class shopProdCategoryDeleteController extends waJsonController
                 $tree = $this->category_model->getTree($category_id);
             }
             if ($remove_products) {
-                $this->deleteProducts($category_id, $tree);
+                $this->deleteProducts($category_id, $tree, $remove_categories);
             }
             if ($remove_categories) {
                 $this->deleteSubcategories($category_id, $tree);
@@ -44,7 +44,7 @@ class shopProdCategoryDeleteController extends waJsonController
         if (!$correct_category) {
             $this->errors = [
                 'id' => 'not_found',
-                'text' => _w('Category to update not found')
+                'text' => _w('The category to update was not found.')
             ];
         }
     }
@@ -58,7 +58,7 @@ class shopProdCategoryDeleteController extends waJsonController
         } else {
             $this->errors += [
                 'id' => 'delete_category',
-                'text' => _w('Failed to delete category')
+                'text' => _w('Failed to delete the category.')
             ];
         }
     }
@@ -70,7 +70,7 @@ class shopProdCategoryDeleteController extends waJsonController
      * @throws waDbException
      * @throws waException
      */
-    protected function deleteProducts($category_id, $tree)
+    protected function deleteProducts($category_id, $tree, $remove_categories)
     {
         if ($tree) {
             $product_model = new shopProductModel();
@@ -90,7 +90,7 @@ class shopProdCategoryDeleteController extends waJsonController
                 }
             } else {
                 $category_products_model = new shopCategoryProductsModel();
-                $category_ids = !empty($tree[$category_id]['include_sub_categories']) ? array_keys($tree) : $category_id;
+                $category_ids = !empty($tree[$category_id]['include_sub_categories']) || !empty($remove_categories) ? array_keys($tree) : $category_id;
                 $product_ids = $category_products_model->select('product_id')->where('category_id IN (?)', [$category_ids])->fetchAll('product_id');
                 $product_ids = array_keys($product_ids);
             }
@@ -107,7 +107,7 @@ class shopProdCategoryDeleteController extends waJsonController
                 } else {
                     $this->errors += [
                         'id' => 'delete_products',
-                        'text' => _w('Failed to delete products')
+                        'text' => _w('Failed to delete products.')
                     ];
                 }
             } else {
@@ -128,7 +128,7 @@ class shopProdCategoryDeleteController extends waJsonController
                     $all_subcategories_deleted = false;
                     $this->errors += [
                         'id' => 'delete_all_subcategories',
-                        'text' => _w('Failed to delete category')
+                        'text' => _w('Failed to delete the category.')
                     ];
                 }
             }

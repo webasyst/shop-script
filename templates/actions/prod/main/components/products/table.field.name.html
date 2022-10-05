@@ -5,6 +5,7 @@
         <template v-if="states.is_product_col">
             <template v-if="states.is_edit && column_data.editable">
                 <component-textarea
+                    maxlength="255"
                     v-model="column_data.value"
                     v-bind:focus="true"
                     v-bind:cancel="true"
@@ -12,6 +13,7 @@
                     v-bind:placeholder="'{_w("Product name")|escape}'"
                     v-bind:class="'wa-small wide s-square-field'"
                     v-on:cancel="onCancel"
+                    v-on:focus="onFocus"
                     v-on:change="onChange"></component-textarea>
             </template>
             <template v-else>
@@ -39,7 +41,7 @@
                     <div class="s-sku-sku-column" v-if="sku.sku">
                         <div class="s-text-wrapper" v-bind:title="sku.sku">
                             <span class="s-icon icon"><svg><use xlink:href="{$_sprite_url}#sku"></use></svg></span>
-                            <span class="s-text" v-text="sku.sku"></span>
+                            <span class="s-text bold" v-text="sku.sku"></span>
                         </div>
                     </div>
                     <div class="s-sku-name-column" v-if="sku.name">

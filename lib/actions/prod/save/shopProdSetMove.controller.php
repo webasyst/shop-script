@@ -23,7 +23,7 @@ class shopProdSetMoveController extends waJsonController
             if ($item['type'] != self::TYPE_SET && $item['type'] != self::TYPE_GROUP) {
                 $this->errors = [
                     'id' => 'incorrect_params',
-                    'text' => _w('The item being moved is not a set or a group')
+                    'text' => _w('The item being moved is not a set or a set folder.')
                 ];
                 break;
             }
@@ -32,7 +32,7 @@ class shopProdSetMoveController extends waJsonController
             ) {
                 $this->errors = [
                     'id' => 'incorrect_params',
-                    'text' => _w('Unable to move item')
+                    'text' => _w('Failed to move the item.')
                 ];
                 break;
             }

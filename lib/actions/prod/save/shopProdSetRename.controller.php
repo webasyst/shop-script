@@ -27,12 +27,12 @@ class shopProdSetRenameController extends waJsonController
         if (!is_string($name)) {
             $this->errors = [
                 'id' => 'incorrect_name',
-                'text' => _w('Name not set')
+                'text' => _w('No name is specified.')
             ];
         } elseif (mb_strlen($name) > 255) {
             $this->errors = [
                 'id' => 'incorrect_name',
-                'text' => _w('Name is too long')
+                'text' => _w('The name is too long.')
             ];
         }
         if (!$this->errors) {
@@ -44,7 +44,7 @@ class shopProdSetRenameController extends waJsonController
             }
             $this->errors = [
                 'id' => 'not_found',
-                'text' => _w('Unable to update name')
+                'text' => _w('Failed to update the name.')
             ];
         }
     }
@@ -57,7 +57,7 @@ class shopProdSetRenameController extends waJsonController
         } else {
             $this->errors = [
                 'id' => 'failed_update',
-                'text' => _w('Failed to update name')
+                'text' => _w('Failed to update the name.')
             ];
         }
     }

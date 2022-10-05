@@ -2,7 +2,7 @@
 <div class="s-filter-features-section s-pane-item dropbox">
     <div class="s-dropbox-toggle js-dropbox-toggle">
         <span class="s-icon icon shift-0"><i class="fas fa-filter"></i></span>
-        <span class="s-name is-adaptive">[`Параметры`]</span>
+        <span class="s-name is-adaptive">[`Filtering`]</span>
     </div>
     <div class="dropbox-body right">
         <div class="s-dropbox-content-section">
@@ -11,8 +11,8 @@
                     v-if="features.length"
                     class="s-search-form"
                     v-model="search_string"
-                    v-bind:placeholder="'{_w("Найти")|escape}'"></component-table-filters-search>
-                <div class="s-empty-wrapper" v-else>[`Характеристики не найдены`]</div>
+                    v-bind:placeholder="'{_w("Find parameter")|escape}'"></component-table-filters-search>
+                <div class="s-empty-wrapper" v-else>[`Parameters not found.`]</div>
             </div>
             <div class="s-section-body" v-if="features.length">
                 <div class="s-features-list">
@@ -22,7 +22,7 @@
                             v-on:success="success"
                             v-on:feature_dialog="hide"></component-table-filters-features-item>
                     </template>
-                    <div class="s-empty-wrapper" v-if="!items.length">[`Параметры не найдены`]</div>
+                    <div class="s-empty-wrapper" v-if="!items.length">[`Parameters not found.`]</div>
                 </div>
             </div>
         </div>

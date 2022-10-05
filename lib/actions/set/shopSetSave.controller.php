@@ -86,7 +86,7 @@ class shopSetSaveController extends waJsonController
                 return false;
             }
             if (empty($data['name'])) {
-                $data['name'] = _w('(no-name)');
+                $data['name'] = _w('(no name)');
             }
             $id = $this->model->add($data);
         } else {

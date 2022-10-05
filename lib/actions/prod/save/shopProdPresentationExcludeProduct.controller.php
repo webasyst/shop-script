@@ -39,19 +39,19 @@ class shopProdPresentationExcludeProductController extends waJsonController
         if ($product_id <= 0) {
             $this->errors = [
                 'id' => 'product_id',
-                'text' => _w('Incorrect product id'),
+                'text' => _w('Incorrect product ID.'),
             ];
         }
         if ((is_numeric($dataset_id) && $dataset_id <= 0) || (is_string($dataset_id) && strlen($dataset_id) === 0)) {
             $this->errors = [
                 'id' => 'dataset_id',
-                'text' => _w('Incorrect dataset id'),
+                'text' => _w('Incorrect dataset ID.'),
             ];
         }
         if (!in_array($type, ['set', 'tag', 'category'])) {
             $this->errors = [
                 'id' => 'type',
-                'text' => _w('Incorrect type'),
+                'text' => _w('Incorrect type.'),
             ];
         }
     }

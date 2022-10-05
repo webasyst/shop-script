@@ -61,7 +61,12 @@ class shopFilterModel extends waModel
      */
     public function getTemplatesByUser($contact_id, $options = [])
     {
-        $filters = $this->where('`name` IS NOT NULL AND `parent_id` IS NULL AND `creator_contact_id` = ' . (int)$contact_id)
+        $fields = '*';
+        if (isset($options['fields']) && !empty($options['fields']) && is_array($options['fields'])) {
+            $fields = $this->escape(implode(', ', $options['fields']));
+        }
+
+        $filters = $this->select($fields)->where('`name` IS NOT NULL AND `parent_id` IS NULL AND `creator_contact_id` = ' . (int)$contact_id)
             ->order('sort')->fetchAll('id');
         if ($filters) {
             $filters = $this->workup($filters, $options);
@@ -110,10 +115,11 @@ class shopFilterModel extends waModel
                 }
                 $this->copyRules($template['id'], $filter['id'], true);
                 $this->updateById($filter['id'], ['parent_id' => $template['id']]);
+                return $this->getById($filter['id'], $options);
+            } else {
+                $filters = $this->workup($filters, $options);
+                return reset($filters);
             }
-
-            $filters = $this->workup($filters, $options);
-            return reset($filters);
         }
 
         $transient_id = $this->duplicate($template_id);

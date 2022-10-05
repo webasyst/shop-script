@@ -1,84 +1,18 @@
 {$_lang = substr($wa->locale(), 0, 2)}
 {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
 
-{$_mass_actions = [
-    [
-        [
-            "id" => "clone",
-            "name" => _w("Дублировать")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ],
-        [
-            "id" => "add2category",
-            "name" => _w("Добавить в категорию")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ],
-        [
-            "id" => "add2list",
-            "name" => _w("Добавить в список")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ],
-        [
-            "id" => "set_tags",
-            "name" => _w("Добавить теги")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ]
-    ],
-    [
-        [
-            "id" => "visibility",
-            "name" => _w("Настроить видимость")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ],
-        [
-            "id" => "product_type",
-            "name" => _w("Изменить тип товара")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ],
-        [
-            "id" => "delete",
-            "name" => _w("Удалить товар")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ]
-    ],
-    [
-        [
-            "id" => "discount",
-            "name" => _w("Купоны на скидку")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ],
-        [
-            "id" => "promo",
-            "name" => _w("Добавить в акцию")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ]
-    ],
-    [
-        [
-            "id" => "badge_add",
-            "name" => _w("Добавить наклейку")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ],
-        [
-            "id" => "badge_remove",
-            "name" => _w("Удалить наклейку")|escape,
-            "icon" => '<i class="fas fa-cog"></i>'
-        ]
-    ]
-]}
-
 {* КОМПОНЕНТЫ *}
 {$_components = []}
 
 {capture assign="_component_view_toggle"}
     <div class="vue-component-view-toggle toggle small">
-        <div data-id="thumbs" v-bind:class="{ 'selected' : value === 'thumbs' }">
+        <div data-id="thumbs" data-tooltip-id="view_thumbs" v-bind:class="{ 'selected' : value === 'thumbs' }">
             <i class="icon"><i class="fas fa-th-large"></i></i>
         </div>
-        <div data-id="table_extended" v-bind:class="{ 'selected' : value === 'table_extended' }">
+        <div data-id="table_extended" data-tooltip-id="view_table_extended" v-bind:class="{ 'selected' : value === 'table_extended' }">
             <i class="icon"><svg><use xlink:href="{$_sprite_url}#toggle-full"></use></svg></i>
         </div>
-        <div data-id="table" v-bind:class="{ 'selected' : value === 'table' }">
+        <div data-id="table" data-tooltip-id="view_table" v-bind:class="{ 'selected' : value === 'table' }">
             <i class="icon"><svg><use xlink:href="{$_sprite_url}#toggle-thin"></use></svg></i>
         </div>
     </div>
@@ -113,7 +47,7 @@
                        v-on:input="onInput"
                        v-on:change="onChange"
                        v-bind:value="page">
-                <span class="s-divider">[`из`]</span>
+                <span class="s-divider">[`of`]</span>
                 <span class="s-count" v-text="count"></span>
             </div>
         </div>
@@ -199,18 +133,36 @@
 {$_tooltips = [
     "products-list-date" => [
         "id" => "products-list-date",
-        "html" => _w("Дата добавления товара в каталог")|escape
+        "html" => _w("Product-adding date")|escape
     ],
     "return-to-old-products" => [
         "id" => "return-to-old-products",
-        "html" => _w("Вернуться в старый раздел")|escape,
+        "html" => _w("Return to the old section")|escape,
         "position" => "top",
         "class" => "inline"
     ],
     "product_from_subcategories" => [
         "id" => "product_from_subcategories",
-        "html" => _w("Этот товар находится в одной из подкатегорий.")|escape,
+        "html" => _w("This product is contained in a subcategory.")|escape,
         "position" => "top",
+        "class" => "inline"
+    ],
+    "view_thumbs" => [
+        "id" => "view_thumbs",
+        "html" => _w("Tiles")|escape,
+        "position" => "top-right",
+        "class" => "inline"
+    ],
+    "view_table" => [
+        "id" => "view_table",
+        "html" => _w("Table: product")|escape,
+        "position" => "top-right",
+        "class" => "inline"
+    ],
+    "view_table_extended" => [
+        "id" => "view_table_extended",
+        "html" => _w("Table: product & variant")|escape,
+        "position" => "top-right",
         "class" => "inline"
     ]
 ]}
@@ -221,14 +173,14 @@
     "published" => _w("Published"),
     "unpublished" => _w("Unpublished"),
     "products_forms" => [
-        _w("%d товар", "%d товар", 1, false),
-        _w("%d товара", "%d товара", 2, false),
-        _w("%d товаров", "%d товаров", 5, false)
+        _w("%d product", "%d products", 1, false),
+        _w("%d product", "%d products", 2, false),
+        _w("%d product", "%d products", 5, false)
     ],
     "product_sku_forms" => [
-        _w("%s в %d артикуле", "%s в %d артикуле", 1, false),
-        _w("%s в %d артикулах", "%s в %d артикулах", 2, false),
-        _w("%s в %d артикулах", "%s в %d артикулах", 5, false)
+        _w("%s in %d SKU", "%s in %d SKUs", 1, false),
+        _w("%s in %d SKU", "%s in %d SKUs", 2, false),
+        _w("%s in %d SKU", "%s in %d SKUs", 5, false)
     ],
     "product_sku_mod_forms" => [
         _w("%d variant", "%d variants", 1, false),
@@ -268,7 +220,7 @@
                         <div class="s-support-section">
                             <button class="s-button wa-button rounded pink animation-pulse" type="button" v-on:click.prevent="showCallbackDialog">
                                 <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
-                                <span class="s-name">[`Как вам новый раздел товаров?`]</span>
+                                <span class="s-name">[`How do you like the new products section?`]</span>
                             </button>
                             {if $active_presentation.view === 'table_extended'}
                                 {$_view = 'skus'}
@@ -278,7 +230,7 @@
                             <a class="s-button wa-button pink rounded outlined" href="{$wa_app_url|escape}?action=products#/products/view={$_view}" data-tooltip-id="return-to-old-products">
                                 <span>
                                     <span class="s-icon"><i class="fas fa-toggle-on"></i></span>
-                                    <span class="s-name">[`Вернуться в старый раздел`]</span>
+                                    <span class="s-name">[`Return to the old section`]</span>
                                     <span class="s-icon"><i class="fas fa-question-circle"></i></span>
                                 </span>
                             </a>
@@ -318,9 +270,10 @@
                 {* PINNED MASS ACTIONS *}
                 <template v-if="selected_products.length && states.mass_actions_pinned">
                     <div class="s-body-aside" v-bind:class="{ 'is-unpinned' : presentation.view === 'thumbs' }">
-                        <component-mass-actions-aside
+                        <component-mass-actions
+                            v-bind:type="'aside'"
                             v-bind:key="keys.mass_actions"
-                            v-bind:products="selected_products"></component-mass-actions-aside>
+                            v-bind:products="selected_products"></component-mass-actions>
                     </div>
                 </template>
             </div>
@@ -337,9 +290,9 @@
                     </div>
 
                     <div class="s-filters-wrapper">
-                        <div class="s-filter-wrapper">{_w("Всего %d товар", "Всего %d товаров", $products_total_count)}</div>
+                        <div class="s-filter-wrapper">{_w("Total of %d product", "Total of %d products", $products_total_count)}</div>
                         <div class="s-filter-wrapper">
-                            <span class="s-label">[`Показывать по:`]</span>
+                            <span class="s-label">[`Show by`]</span>
                             <component-paging-dropdown
                                 v-model="presentation.rows_on_page"
                                 v-on:change="changeLimit"></component-paging-dropdown>
@@ -349,10 +302,12 @@
             </div>
         </div>
 
-        <component-mass-actions-footer
-            v-bind:products="selected_products"
-            v-bind:key="keys.mass_actions"
-            v-if="selected_products.length && !states.mass_actions_pinned"></component-mass-actions-footer>
+        <template v-if="selected_products.length && !states.mass_actions_pinned">
+            <component-mass-actions
+                v-bind:type="'footer'"
+                v-bind:products="selected_products"
+                v-bind:key="keys.mass_actions"></component-mass-actions>
+        </template>
     </div>
 
     <script>
@@ -425,7 +380,7 @@
                         page : {$page},
                         count: {$pages}
                     },
-                    mass_actions        : {$_mass_actions|json_encode},
+                    mass_actions        : {$mass_actions|json_encode},
                     stocks              : {$stocks|json_encode},
                     columns             : {$columns|array_values|json_encode},
                     page_url            : "{$wa_app_url}products/",

@@ -20,7 +20,7 @@ class shopProdSetGroupAddController extends waJsonController
         } else {
             $this->errors = [
                 'id' => 'add_failed',
-                'text' => _w('Не удалось создать группу')
+                'text' => _w('Failed to create a folder')
             ];
         }
     }

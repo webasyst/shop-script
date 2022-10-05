@@ -10,11 +10,7 @@ class shopProdImageUploadController extends shopUploadController
         $product_model = new shopProductModel();
         $product = $product_model->getById($product_id);
         if (!$product) {
-            $this->errors[] = [
-                'id' => 'not_found',
-                'text' => _w('Product not found'),
-            ];
-            return false;
+            throw new waException(_w("Product not found"), 404);
         }
         if (!$product_model->checkRights($product_id)) {
             throw new waException(_w("Access denied"), 403);

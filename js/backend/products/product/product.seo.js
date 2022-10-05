@@ -500,6 +500,8 @@
                         $loading.remove();
 
                         if (errors) {
+                            var error_search = errors.filter( error => (error.id === "not_found"));
+                            if (error_search.length) { $.wa_shop_products.showDeletedProductDialog(); }
                             that.vue_model.renderErrors(errors);
                             $(window).scrollTop(0);
                         }

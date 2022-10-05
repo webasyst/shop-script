@@ -120,7 +120,7 @@ class shopProductsAddToSetsController extends waJsonController
         $id = str_replace('-', '_', shopHelper::transliterate($name));
         $id = $this->set_model->suggestUniqueId($id);
         if (empty($name)) {
-            $name = _w('(no-name)');
+            $name = _w('(no name)');
         }
         return $this->set_model->add(array(
             'id'   => $id,

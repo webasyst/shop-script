@@ -18,7 +18,7 @@ class shopProdCategoryStatusController extends waJsonController
             } else {
                 $this->errors = [
                     'id' => 'updated',
-                    'text' => _w('Failed to update category')
+                    'text' => _w('Failed to update the category.')
                 ];
             }
         }
@@ -35,7 +35,7 @@ class shopProdCategoryStatusController extends waJsonController
         }
         $this->errors = [
             'id' => 'not_found',
-            'text' => _w('Category to update not found')
+            'text' => _w('The category to update was not found.')
         ];
     }
 }

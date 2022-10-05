@@ -74,8 +74,8 @@
                                     <div class="value no-shift">
                                         <label>
                                             <input value="1" name="update_subcategories" type="checkbox">
-                                            [`Apply to all sub-categories`]
-                                            <span class="hint">[`When this category is saved, the “Hidden category” setting selected above will be applied to all its sub-categories.`]</span>
+                                            [`Apply to all subcategories`]
+                                            <span class="hint">[`When this category is saved, the “Hidden category” setting selected above will be applied to all its subcategories.`]</span>
                                         </label>
                                     </div>
                                 {/if}
@@ -145,9 +145,141 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="min-width: 200px;width: 32%;">
+                                                    <label><input class="js-condition-create-datetime-interval s-condition" type="checkbox" name="condition[create_datetime]" value="create_datetime"
+                                                                  {if isset($settings.conditions.create_datetime)}checked{/if}>
+                                                        [`Date added`]</label>
+                                                </td>
+                                                <td colspan="2">
+                                                    {if isset($settings.conditions.create_datetime)}
+                                                        {$_feature_values = $settings.conditions.create_datetime}
+
+                                                        {$_start = ifset($_feature_values, "begin", null)}
+                                                        <input type="hidden" name="create_datetime[0]" value="{$_start|default:""}">
+                                                        {if !empty($_start)}
+                                                            {$_start = waDateTime::format('date', strtotime($_start))}
+                                                        {/if}
+
+                                                        {$_end = ifset($_feature_values, "end", null)}
+                                                        <input type="hidden" name="create_datetime[1]" value="{$_end|default:""}">
+                                                        {if !empty($_end)}
+                                                            {$_end = waDateTime::format('date', strtotime($_end))}
+                                                        {/if}
+
+                                                        <div style="margin-bottom: 4px;">
+                                                            {if !empty($_start) && !empty($_end)}
+                                                                {$_start} – {$_end}
+                                                            {elseif !empty($_start)}
+                                                                ≥ {$_start}
+                                                            {elseif !empty($_end)}
+                                                                ≤ {$_end}
+                                                            {else}
+                                                                [`Date not specified.`]
+                                                            {/if}
+                                                        </div>
+                                                    {/if}
+                                                    <div class="hint">[`The value can be set up in the new section.`]</div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="min-width: 200px;width: 32%;">
+                                                    <label><input class="js-condition-edit-datetime-interval s-condition" type="checkbox" name="condition[edit_datetime]" value="edit_datetime"
+                                                                  {if isset($settings.conditions.edit_datetime)}checked{/if}>
+                                                        [`Last change date`]</label>
+                                                </td>
+                                                <td colspan="2">
+                                                    {if isset($settings.conditions.edit_datetime)}
+                                                        {$_feature_values = $settings.conditions.edit_datetime}
+
+                                                        {$_start = ifset($_feature_values, "begin", null)}
+                                                        <input type="hidden" name="edit_datetime[0]" value="{$_start|default:""}">
+                                                        {if !empty($_start)}
+                                                            {$_start = waDateTime::format('date', strtotime($_start))}
+                                                        {/if}
+
+                                                        {$_end = ifset($_feature_values, "end", null)}
+                                                        <input type="hidden" name="edit_datetime[1]" value="{$_end|default:""}">
+                                                        {if !empty($_end)}
+                                                            {$_end = waDateTime::format('date', strtotime($_end))}
+                                                        {/if}
+
+                                                        <div style="margin-bottom: 4px;">
+                                                            {if !empty($_start) && !empty($_end)}
+                                                                {$_start} – {$_end}
+                                                            {elseif !empty($_start)}
+                                                                ≥ {$_start}
+                                                            {elseif !empty($_end)}
+                                                                ≤ {$_end}
+                                                            {else}
+                                                                [`Date not specified.`]
+                                                            {/if}
+                                                        </div>
+                                                    {/if}
+                                                    <div class="hint">[`The value can be set up in the new section.`]</div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="min-width: 200px;width: 32%;">
+                                                    <label><input class="js-condition-type s-condition" type="checkbox" name="condition[type]" value="type"
+                                                                  {if isset($settings.conditions.type)}checked{/if}>
+                                                        [`Product type`]</label>
+                                                </td>
+                                                <td colspan="2">
+                                                    {if isset($settings.conditions.type) && !empty($settings.conditions.type.options)}
+                                                        <div style="margin-bottom: 4px;">
+                                                            {foreach $settings.conditions.type.options as $_type}
+                                                                <span class="s-type">{$_type.name|escape}<input type="hidden" name="type[]" value="{$_type.id}"></span>{if !$_type@last},{/if}
+                                                            {/foreach}
+                                                        </div>
+                                                    {/if}
+                                                    <div class="hint">[`The value can be set up in the new section.`]</div>
+                                                </td>
+                                            </tr>
+                                            {if !empty($settings.cloud)}
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <label><input class="js-condition-tag js-condition-tag s-condition" type="checkbox" name="condition[tag]" value="tag"
+                                                               {if !empty($settings.conditions.tag.values)}checked{/if}>
+                                                        [`Tags`]</label>
+                                                    </td>
+
+                                                    <td colspan="2">
+                                                        <div class="js-condition-tag-block block double-padded align-center">
+                                                            {foreach $settings.cloud as $tag}
+                                                                <label>
+                                                                     <span class="s-tag nowrap" style="font-size: {$tag.size}%;" data-id="{$tag.id}">
+                                                                         <input type="checkbox" class="js-tag-value" name="tag[]" value="{$tag.name|escape}"
+                                                                                {if !empty($settings.conditions.tag.values) && in_array($tag.name, $settings.conditions.tag.values)}checked{/if}> {$tag.name|escape}
+                                                                     </span>
+                                                                </label>
+                                                            {/foreach}
+                                                            <span class="errormsg"></span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {/if}
+                                            <tr>
+                                                <td colspan="2" style="min-width: 200px;width: 32%;">
+                                                    <label><input class="js-condition-rating-interval s-condition" type="checkbox" name="condition[rating]" value="rating"
+                                                                  {if isset($settings.conditions.rating)}checked{/if}>
+                                                        [`Rating`]</label>
+                                                </td>
+                                                <td colspan="2">
+                                                    <div class="js-feature-slider-rating s-feature-slider-block" data-slider="range" data-code="rating">
+                                                        [`from`]
+                                                        <input type="text" name="rating[0]" class="js-begin short" placeholder="{if isset($settings.conditions.rating['begin'])}{$settings.conditions.rating['begin']}{else}0{/if}"
+                                                               value="{if isset($settings.conditions.rating['begin'])}{$settings.conditions.rating['begin']}{else}0{/if}">
+                                                        [`to`]
+                                                        <input type="text" name="rating[1]" class="js-end short" placeholder="{if isset($settings.conditions.rating['end'])}{$settings.conditions.rating['end']}{else}&infin;{/if}"
+                                                               value="{if isset($settings.conditions.rating['end'])}{$settings.conditions.rating['end']}{/if}">
+                                                        <div class="js-range-slider"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="min-width: 200px;width: 32%;">
                                                     <label><input class="js-condition-price-interval s-condition" type="checkbox" name="condition[price]" value="price"
-                                                           {if isset($settings.conditions.price)}checked{/if}>
-                                                    [`Price`]</label>
+                                                                  {if isset($settings.conditions.price)}checked{/if}>
+                                                        [`Price`]</label>
                                                 </td>
                                                 <td colspan="2">
                                                     <div class="js-feature-slider-base-price s-feature-slider-block" data-slider="range" data-code="base-price">
@@ -163,75 +295,81 @@
                                                 </td>
                                             </tr>
                                             <tr>
+                                                <td colspan="2" style="min-width: 200px;width: 32%;">
+                                                    <label><input class="js-condition-compare-price-interval s-condition" type="checkbox" name="condition[compare_price]" value="compare_price"
+                                                                  {if isset($settings.conditions.compare_price)}checked{/if}>
+                                                        [`Compare at price`]</label>
+                                                </td>
                                                 <td colspan="2">
-                                                    <label><input class="js-condition-rate s-condition" type="checkbox" name="condition[rating]" value="rating"
-                                                           {if isset($settings.conditions.rating)}checked{/if}>
-                                                    [`Rating`]</label>
-                                                </td>
-                                                <td>
-                                                    <select name="rating[]">
-                                                        <option value=">=" {if isset($settings.conditions.rating.condition) && $settings.conditions.rating.condition == '>='}selected{/if}>[`is greater or equal`]
-                                                        </option>
-                                                        <option value="<=" {if isset($settings.conditions.rating.condition) && $settings.conditions.rating.condition == '<='}selected{/if}>[`is less or equal`]
-                                                        </option>
-                                                    </select>
-                                                </td>
-                                                <td>
-                                                    <input type="hidden" name="rating[]" class="js-c-category-rate-value"
-                                                           value="{if isset($settings.conditions.rating.values[0])}{$settings.conditions.rating.values[0]}{else}0{/if}">
-                                                    <a href="javascript:void(0);" class="js-category-rate s-rate-photo" title="Rate photo"
-                                                       data-rate="{if isset($settings.conditions.rating.values[0])}{$settings.conditions.rating.values[0]}{else}0{/if}">
-                                                        {$wa->shop->ratingHtml(0, 16, true)}
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                            {if !empty($settings.cloud)}
-                                                <tr>
-                                                    <td colspan="2">
-                                                        <label><input class="js-condition-tag js-condition-tag s-condition" type="checkbox" name="condition[tag]" value="tag"
-                                                               {if !empty($settings.conditions.tag.tags)}checked{/if}>
-                                                        [`Tags`]</label>
-                                                    </td>
-
-                                                    <td colspan="2">
-                                                        <div class="js-condition-tag-block block double-padded align-center">
-                                                            {foreach $settings.cloud as $tag}
-                                                                <label>
-                                                                     <span class="s-tag nowrap" style="font-size: {$tag.size}%;" data-id="{$tag.id}">
-                                                                         <input type="checkbox" class="js-tag-value" name="tag[]" value="{$tag.name|escape}"
-                                                                                {if !empty($settings.conditions.tag.tags) && in_array($tag.name, $settings.conditions.tag.tags)}checked{/if}> {$tag.name|escape}
-                                                                     </span>
-                                                                </label>
-                                                            {/foreach}
-                                                            <span class="errormsg"></span>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            {/if}
-                                            <tr>
-                                                <td colspan="2">
-                                                    <label><input class="js-condition-count s-condition" type="checkbox" name="condition[count]" value="count"
-                                                           {if isset($settings.conditions.count)}checked{/if}>
-                                                    [`In stock`]</label>
-                                                </td>
-                                                <td>
-                                                    <select name="count[]">
-                                                        <option value=">=" {if isset($settings.conditions.count.condition) && $settings.conditions.count.condition == '>='}selected{/if}>[`is greater or equal`]
-                                                        </option>
-                                                        <option value="<=" {if isset($settings.conditions.count.condition) && $settings.conditions.count.condition == '<='}selected{/if}>[`is less or equal`]
-                                                        </option>
-                                                    </select>
-                                                </td>
-                                                <td>
-                                                    <input type="text" name="count[]" class="js-category-count-value"
-                                                           value="{if isset($settings.conditions.count.values[0])}{$settings.conditions.count.values[0]}{else}0{/if}">
+                                                    <div class="js-feature-slider-compare-price s-feature-slider-block" data-slider="range" data-code="compare_price">
+                                                        [`from`]
+                                                        <input type="text" name="compare_price[0]" class="js-begin short" placeholder="{if isset($settings.conditions.compare_price['begin'])}{$settings.conditions.compare_price['begin']}{else}0{/if}"
+                                                               value="{if isset($settings.conditions.compare_price['begin'])}{$settings.conditions.compare_price['begin']}{else}0{/if}">
+                                                        [`to`]
+                                                        <input type="text" name="compare_price[1]" class="js-end short" placeholder="{if isset($settings.conditions.compare_price['end'])}{$settings.conditions.compare_price['end']}{else}&infin;{/if}"
+                                                               value="{if isset($settings.conditions.compare_price['end'])}{$settings.conditions.compare_price['end']}{/if}">
+                                                        {$currency}
+                                                        <div class="js-range-slider"></div>
+                                                    </div>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td colspan="4">
-                                                    <label><input class="js-condition-compare_price s-condition" type="checkbox" name="condition[compare_price]" value="compare_price"
-                                                           {if isset($settings.conditions.compare_price)}checked{/if}>
-                                                    [`Compare at price`]</label>
+                                                <td colspan="2" style="min-width: 200px;width: 32%;">
+                                                    <label><input class="js-condition-purchase-price-interval s-condition" type="checkbox" name="condition[purchase_price]" value="purchase_price"
+                                                                  {if isset($settings.conditions.purchase_price)}checked{/if}>
+                                                        [`Purchase price`]</label>
+                                                </td>
+                                                <td colspan="2">
+                                                    <div class="js-feature-slider-purchase-price s-feature-slider-block" data-slider="range" data-code="purchase_price">
+                                                        [`from`]
+                                                        <input type="text" name="purchase_price[0]" class="js-begin short" placeholder="{if isset($settings.conditions.purchase_price['begin'])}{$settings.conditions.purchase_price['begin']}{else}0{/if}"
+                                                               value="{if isset($settings.conditions.purchase_price['begin'])}{$settings.conditions.purchase_price['begin']}{else}0{/if}">
+                                                        [`to`]
+                                                        <input type="text" name="purchase_price[1]" class="js-end short" placeholder="{if isset($settings.conditions.purchase_price['end'])}{$settings.conditions.purchase_price['end']}{else}&infin;{/if}"
+                                                               value="{if isset($settings.conditions.purchase_price['end'])}{$settings.conditions.purchase_price['end']}{/if}">
+                                                        {$currency}
+                                                        <div class="js-range-slider"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="min-width: 200px;width: 32%;">
+                                                    <label><input class="js-condition-count-interval s-condition" type="checkbox" name="condition[count]" value="count"
+                                                                  {if isset($settings.conditions.count)}checked{/if}>
+                                                        [`In stock`]</label>
+                                                </td>
+                                                <td colspan="2">
+                                                    <div class="js-feature-slider-count s-feature-slider-block" data-slider="range" data-code="count">
+                                                        [`from`]
+                                                        <input type="text" name="count[0]" class="js-begin short" placeholder="{if isset($settings.conditions.count['begin'])}{$settings.conditions.count['begin']}{else}0{/if}"
+                                                               value="{if isset($settings.conditions.count['begin'])}{$settings.conditions.count['begin']}{else}0{/if}">
+                                                        [`to`]
+                                                        <input type="text" name="count[1]" class="js-end short" placeholder="{if isset($settings.conditions.count['end'])}{$settings.conditions.count['end']}{else}&infin;{/if}"
+                                                               value="{if isset($settings.conditions.count['end'])}{$settings.conditions.count['end']}{/if}">
+                                                        {$currency}
+                                                        <div class="js-range-slider"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="min-width: 200px;width: 32%;">
+                                                    <label><input class="js-condition-edit-badge s-condition" type="checkbox" name="condition[badge]" value="badge"
+                                                                  {if isset($settings.conditions.badge)}checked{/if}>
+                                                        [`Badge`]</label>
+                                                </td>
+                                                <td colspan="2">
+                                                    {if !empty($settings.conditions.badge) && !empty($settings.conditions.badge.values)}
+                                                        {foreach $settings.conditions.badge.values as $_badge}
+                                                            <span>{strip}
+                                                                {if $_badge === "new"}[`New!`]
+                                                                {elseif $_badge === "lowprice"}[`Low price!`]
+                                                                {elseif $_badge === "bestseller"}[`Bestseller!`]
+                                                                {else}[`Custom badge`]{/if}
+                                                                <input type="hidden" name="badge[]" value="{$_badge|escape}">
+                                                            {/strip}</span>{if !$_badge@last},{/if}
+                                                        {/foreach}
+                                                    {/if}
+                                                    <div class="hint" style="margin-top: 4px;">[`The value can be set up in the new section.`]</div>
                                                 </td>
                                             </tr>
                                             {include file="./feature.template.html" inline}
@@ -243,7 +381,7 @@
                                                     <td>
                                                         {if isset($settings.feature_count) && $settings.feature_count > 0}
                                                             <a href="javascript:void(0);" class="js-show-more inline-link" data-offset="0" data-count="{$settings.feature_count}">
-                                                                <b><i>{(20)|string_format:"[`Show %d more`]"} [`From`] {$settings.feature_count}</i></b>
+                                                                <b><i>[`Show all`] ({$settings.feature_count})</i></b>
                                                             </a>
                                                         {/if}
                                                     </td>
@@ -267,7 +405,7 @@
                         <div class="field-group">
                             <div class="field">
                                 <div class="name">
-                                    [`Product sort order`]
+                                    [`Products sort order`]
                                 </div>
                                 <div class="value no-shift">
                                     <select name="sort_products" class="js-sort-type">
@@ -294,7 +432,7 @@
                                         <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customers can select preferable product sort order`]
                                     </label>
                                     <br>
-                                    <span class="hint">{sprintf_wp('Sorting option “%s” is available only when the “%s” setting is disabled.', _w('Manual (as defined in the backend)'), _w('Include products from sub-categories'))}</span>
+                                    <span class="hint">{sprintf_wp('Sorting option “%s” is available only when the “%s” setting is disabled.', _w('Manual (as defined in the backend)'), _w('Include products from subcategories'))}</span>
                                 </div>
                             </div>
                         </div>
@@ -308,8 +446,8 @@
                                 <div class="value no-shift"{if $settings.type == shopCategoryModel::TYPE_DYNAMIC} style="display: none;"{/if}>
                                     <label>
                                         <input type="checkbox" class="js-subcategory-toggle" name="include_sub_categories" {if $settings.include_sub_categories|default:'0'}checked="checked"{/if} value="1">
-                                        [`Include products from sub-categories`]
-                                        <span class="hint">[`When enabled, products will be fetched from both the current category and all its sub-categories — and shown in one list`]</span><br>
+                                        [`Include products from subcategories`]
+                                        <span class="hint">[`When enabled, products will be fetched from both the current category and all its subcategories — and shown in one list`]</span><br>
                                         <span class="hint js-sort-manual-message bold" {if !$settings.include_sub_categories}style="display: none;"{/if}>[`Manual product sorting may work inconsistently in this mode. Select other sorting options for stable results.`]</span>
                                     </label>
                                 </div>
@@ -523,13 +661,12 @@
             category_id: {$settings.id|default:"new"|json_encode},
             category_type: {$settings.type|json_encode},
             account_name: "{$wa->accountName()}",
-            SEARCH_STEP: {shopFeatureModel::SEARCH_STEP},
             filter_count: {$settings.filter_count},
             templates: {
                filter_element_html:{$smarty.capture['_filterElement']|json_encode}
             },
             texts: {
-                show_more_filters_text: {_w('Show %d more')|json_encode} + ' ' + {_w('of')|json_encode} + ' %all'
+                show_all: {_w('Show all')|json_encode}
             }
         });
     })(jQuery);

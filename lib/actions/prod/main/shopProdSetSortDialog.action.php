@@ -10,7 +10,7 @@ class shopProdSetSortDialogAction extends waViewAction
         if (!$set_id) {
             $this->errors = [
                 "id" => "set_not_found",
-                "text" => _w("Set is not found")
+                "text" => _w("Set not found.")
             ];
             return false;
         }

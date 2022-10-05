@@ -77,7 +77,7 @@ class shopBackendProductsEditSectionLayout extends shopBackendProductsLayout
 
         $presentation_id = waRequest::request('presentation', null, waRequest::TYPE_INT);
         $product_list_data = null;
-        if ($presentation_id) {
+        if ($presentation_id && $product_id) {
             $wa_app_url = wa()->getAppUrl('shop') . 'products/';
             $presentation_param = '/?presentation=' . $presentation_id;
             $near_products = shopPresentation::getNearestProducts($product_id, $presentation_id, true);

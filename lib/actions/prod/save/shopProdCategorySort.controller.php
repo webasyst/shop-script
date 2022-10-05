@@ -19,7 +19,7 @@ class shopProdCategorySortController extends waJsonController
             } else {
                 $this->errors = [
                     'id' => 'update_fail',
-                    'text' => _w('Failed to update category')
+                    'text' => _w('Failed to update the category.')
                 ];
             }
         }
@@ -31,14 +31,14 @@ class shopProdCategorySortController extends waJsonController
             if (mb_strlen($sort_products) > 32) {
                 $this->errors = [
                     'id' => 'incorrect_sort',
-                    'text' => _w('The sort field is too long')
+                    'text' => _w('The sort field is too long.')
                 ];
             } else {
                 $sort = explode(' ', $sort_products);
                 if (!isset($sort[1]) || ($sort[1] != 'DESC' && $sort[1] != 'ASC')) {
                     $this->errors = [
                         'id' => 'incorrect_sort',
-                        'text' => _w('No sort order specified')
+                        'text' => _w('No sort order specified.')
                     ];
                 }
             }
@@ -54,7 +54,7 @@ class shopProdCategorySortController extends waJsonController
             }
             $this->errors = [
                 'id' => 'not_found',
-                'text' => _w('Category to update not found')
+                'text' => _w('The category to update was not found.')
             ];
         }
     }

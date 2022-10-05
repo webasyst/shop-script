@@ -152,6 +152,10 @@
         </div>
         <div class="value no-shift">
             <label><input type="checkbox" name="extra_categories"{if !empty($profile.config.extra_categories)} checked="checked"{/if}> [`Duplicate product row under each category it belongs to`]</label>
+            <p class="hint">{sprintf_wp('This option works only if the <em>%s</em> setting’s value <strong>%s</strong> or <strong>%s</strong> is selected. With its other values, information about categories is not exported.', _w('Select products'), _w('All products'), _w('Categories'))}
+            <br>
+            {sprintf_wp('When the <strong>%s</strong> value is used then product rows are duplicated only for the selected parent category and its subcategories.', _w('Categories'))}
+        </p>
         </div>
     </div>
     <div class="field">

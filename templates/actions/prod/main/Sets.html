@@ -3,21 +3,21 @@
 {$_header_columns = [
     "name" => [
         "id" => "name",
-        "name" => _w("Наименование"),
+        "name" => _w("Set name"),
         "width_locked" => false,
         "min_width" => 200,
         "width" => 350
     ],
     "count" => [
         "id" => "count",
-        "name" => _w("Товаров"),
+        "name" => _w("Products"),
         "width_locked" => false,
         "min_width" => 70,
         "width" => null
     ],
     "sort" => [
         "id" => "sort",
-        "name" => _w("Сортировка"),
+        "name" => _w("Sort order"),
         "disabled" => true,
         "width_locked" => true,
         "min_width" => null,
@@ -66,10 +66,10 @@
             <button class="dropdown-toggle wa-button wa-small transparent" type="button">[`Sort by`]</button>
             <div class="dropdown-body">
                 <div class="dropdown-item" v-on:click="change('name ASC')">
-                    <span class="s-label">[`Выстроить по алфавиту (A..Z..А..Я)`]</span>
+                    <span class="s-label">[`Order alphabetically in direct order <span class="nowrap">(A—Z)</span>`]</span>
                 </div>
                 <div class="dropdown-item" v-on:click="change('name DESC')">
-                    <span class="s-label">[`Выстроить по алфавиту (Я..Ф..Z..A)`]</span>
+                    <span class="s-label">[`Order alphabetically in reverse order <span class="nowrap">(Z—A)</span>`]</span>
                 </div>
             </div>
         </div>
@@ -118,7 +118,7 @@
                                             v-bind:button_class="'s-square-field'"
                                             v-on:change="change"></component-dropdown-set-sorting>
             <template v-if="set.sort_products === '' && set.type === '0'">
-                <span class="link" v-on:click.prevent="setup">[`настроить`]</span>
+                <span class="link" v-on:click.prevent="setup">[`configure`]</span>
             </template>
         </div>
     </div>
@@ -177,7 +177,7 @@
                      v-bind:class="{ 'cursor-move js-item-move-toggle' : !root_states.move_locked, 'color-gray-light' : root_states.move_locked }">
                     <span class="s-icon icon size-14"
                           v-if="!item.states.move_locked"
-                          v-bind:key="'fa-bars'"><i class="fas fa-bars"></i></span>
+                          v-bind:key="'fa-bars'"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></span>
                     <span class="s-icon icon size-14"
                           v-if="item.states.move_locked"
                           v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
@@ -338,7 +338,7 @@
                                     <template v-else>
                                         <span class="s-icon icon size-12" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                                     </template>
-                                    <span class="s-name">[`новый список`]</span>
+                                    <span class="s-name">[`new set`]</span>
                                 </div>
                                 <div class="s-button flexbox middle space-4 cursor-pointer" v-on:click="addGroup">
                                     <template v-if="!states.add_group_locked">
@@ -356,7 +356,7 @@
                         <div class="s-support-section">
                             <button class="s-button wa-button rounded pink animation-pulse" type="button" v-on:click.prevent="showCallbackDialog">
                                 <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
-                                <span class="s-name">[`Как вам новый раздел товаров?`]</span>
+                                <span class="s-name">[`How do you like the new products section?`]</span>
                             </button>
                         </div>
 

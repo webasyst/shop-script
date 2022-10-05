@@ -1,7 +1,7 @@
 {$_tooltips = array_merge($_tooltips, [
     "presentation-rename" => [
         "id" => "presentation-rename",
-        "html" => _w("Переименовать")|escape,
+        "html" => _w("Rename")|escape,
         "class" => "inline",
         "position" => "top"
     ],
@@ -13,13 +13,13 @@
     ],
     "presentation-rewrite" => [
         "id" => "presentation-rewrite",
-        "html" => _w("Перезаписать")|escape,
+        "html" => _w("Update")|escape,
         "class" => "inline",
         "position" => "top"
     ],
     "presentation-share" => [
         "id" => "presentation-share",
-        "html" => _w("Ссылка на представление")|escape,
+        "html" => _w("Copy saved view’s link to the clipboard")|escape,
         "class" => "inline",
         "position" => "top"
     ]
@@ -27,18 +27,18 @@
 
 {capture assign="_component_dropdown_presentations"}
     <div class="dropdown s-presentations-dropdown">
-        <button class="dropdown-toggle wa-button wa-small no-indent transparent" type="button">[`Представление`]</button>
+        <button class="dropdown-toggle wa-button wa-small no-indent transparent" type="button">[`Saved view`]</button>
         <div class="s-presentations-body-section dropdown-body right">
             <div class="s-section-header">
-                <h6>[`Представления для раздела «Товары»`]</h6>
-                <p>[`Для удобства работы над разными задачами вы можете сохранить выбранный вид раздела вместе с фильтрами и сортировками в виде представления.`]</p>
+                <h6>[`Saved views for the “Products” section`]</h6>
+                <p>[`You can save current screen’s setup, including the selected sorting option, as a <em>saved view</em> for more convenient work.`]</p>
             </div>
             <div class="s-section-body">
                 <div class="s-create-section" v-if="!states.show_add_form">
                     <button class="wa-button transparent wa-small no-indent" type="button"
                             v-on:click.prevent="toggleForm(true)">
                         <span class="s-icon icon size-12"><i class="fas fa-plus"></i></span>
-                        <span class="s-name">[`представление`]</span>
+                        <span class="s-name">[`saved view`]</span>
                     </button>
                 </div>
 
@@ -61,7 +61,9 @@
                                          v-bind:class="{ 'cursor-move js-presentation-move-toggle' : !presentation.states.move_locked, 'color-gray-light' : presentation.states.move_locked }">
                                         <span class="s-icon icon size-12"
                                               v-if="!presentation.states.move_locked"
-                                              v-bind:key="'fa-bars'"><i class="fas fa-bars"></i></span>
+                                              v-bind:key="'fa-bars'">
+                                            <svg><use xlink:href='{$_sprite_url}#grip'></use></svg>
+                                        </span>
                                         <span class="s-icon icon size-12"
                                               v-if="presentation.states.move_locked"
                                               v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
@@ -70,13 +72,14 @@
                             </div>
                             <div class="s-column-name wide">
                                 <span class="s-name cursor-pointer"
-                                   v-on:click="presentationUse(presentation)">{ { presentation.name ? presentation.name : "{_w("Представление без названия")|escape}" } }</span>
+                                   v-on:click="presentationUse(presentation)">{ { presentation.name ? presentation.name : "{_w("Nameless saved view")|escape}" } }</span>
                             </div>
                             <div class="s-column-actions flexbox space-8">
                                 <div class="s-action"
                                      data-tooltip-id="presentation-share">
-                                    <a v-bind:href="'{$wa_app_url}products/?presentation='+presentation.id" target="_blank">
-                                        <span class="s-icon icon size-20"><svg><use xlink:href="{$_sprite_url}#share"></use></svg></span>
+                                    <a v-bind:href="'{$wa_app_url}products/?presentation='+presentation.id" target="_blank" v-on:click.prevent="onCopyUrl($event, presentation)">
+                                        <span class="s-icon icon size-14 color-gray" v-if="presentation.states.copy_locked" v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
+                                        <span class="s-icon icon size-20" v-else><svg><use xlink:href="{$_sprite_url}#share"></use></svg></span>
                                     </a>
                                 </div>
                                 <div class="s-action"
@@ -124,7 +127,7 @@
 {capture assign="_component_presentation_add_form"}
     <div class="s-presentation-add-form flexbox middle space-12">
         <div class="s-field-wrapper wide">
-            <component-input class="wa-small full-width" placeholder="{_w("Введите название")|escape}"
+            <component-input class="wa-small full-width" placeholder="{_w("Enter a name")|escape}"
                 v-model="name"
                 v-bind:focus="true"></component-input>
         </div>
@@ -152,7 +155,7 @@
 {capture assign="_component_presentation_rename_form"}
     <div class="s-presentation-rename-form flexbox middle space-12">
         <div class="s-field-wrapper wide">
-            <input class="wa-small full-width" type="text" v-model="name" placeholder="{_w("Введите название")|escape}">
+            <input class="wa-small full-width" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}">
         </div>
         <div class="s-actions-wrapper flexbox middle">
             <button class="wa-button wa-small transparent" type="button"

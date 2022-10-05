@@ -36,6 +36,7 @@ class shopProductsDuplicateController extends waJsonController
             $limit = min(100, max(1, waRequest::post('limit', 1, waRequest::TYPE_INT)));
             $total_count = $collection->count();
             while ($offset < $total_count) {
+                $limit = min($limit, $total_count - $offset);
                 $product_ids = array_keys($collection->getProducts('id,name,url', $offset, $limit));
                 if (!$product_ids) {
                     break;

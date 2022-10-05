@@ -13,7 +13,14 @@
             </div>
         </div>
         <div class="s-section-images">
-            <component-product-slider v-if="product.photos.length" v-bind:photos="product.photos" v-bind:photo_id="product.image_id"></component-product-slider>
+            <template v-if="product.photos.length">
+                <component-product-slider v-bind:photos="product.photos" v-bind:photo_id="product.image_id"></component-product-slider>
+            </template>
+            <template v-else>
+                <div class="s-photo-empty">
+                    <span class="s-icon icon"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>
+                </div>
+            </template>
         </div>
         <div class="s-section-body">
             {strip}

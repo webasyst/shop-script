@@ -12,12 +12,13 @@
     <div class="dialog-body">
         <div class="js-vue-section" style="visibility: hidden;">
             <div class="dialog-header">
-                <h3 class="s-title">[`Добавление параметра`]</h3>
+                <h3 class="s-title">[`Adding a filtering parameter`]</h3>
+                <p class="hint" style="margin-top: -.5rem;">[`Specify a value of this parameter to show only products with that value using a filter.`]</p>
                 <div class="s-details">
-                    <span class="s-label" v-if="item_data.display_type === 'feature'">[`Характеристика`]</span>
-                    <span class="s-label" v-if="item_data.display_type === 'product'">[`Поле продукта`]</span>
-                    <span class="s-label" v-if="item_data.display_type === 'sku'">[`Поле артикула`]</span>
-                    <span class="s-label" v-if="item_data.display_type === 'dynamic'">[`Динамическое поле`]</span>
+                    <span class="s-label" v-if="item_data.display_type === 'feature'">[`Feature`]</span>
+                    <span class="s-label" v-if="item_data.display_type === 'product'">[`Product property`]</span>
+                    <span class="s-label" v-if="item_data.display_type === 'sku'">[`SKU property`]</span>
+                    <span class="s-label" v-if="item_data.display_type === 'dynamic'">[`Dynamic property`]</span>
                     <span class="s-name bold color-gray-dark">«{ { item_data.name } }»</span>
                 </div>
             </div>
@@ -90,7 +91,7 @@
 
                             <div class="s-search-section">
                                 <div class="s-field-wrapper">
-                                    <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Введите значение.")|escape}">
+                                    <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Enter a value")|escape}">
                                     <div class="s-loading-wrapper" v-if="states.is_loading">
                                         <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
                                     </div>
@@ -118,7 +119,7 @@
                         v-bind:disabled="disabled"
                         v-on:click.prevent="save">
                     <span class="s-icon" v-if="states.locked"><i class="fas fa-spinner fa-spin"></i></span>
-                    <span class="s-name">[`Apply`]</span>
+                    <span class="s-name">[`Add`]</span>
                 </button>
                 <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
             </div>

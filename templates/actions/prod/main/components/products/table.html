@@ -136,7 +136,7 @@
             <div class="s-hidden-menu">
                 <div class="s-options-list">
                     <div class="s-option">
-                        <span class="s-name">[`Выделить все товары…`]</span>
+                        <span class="s-name">[`Select all products...`]</span>
                     </div>
                     <div class="s-option">
                         <div class="s-radio-wrapper">
@@ -145,7 +145,7 @@
                                                  v-bind:val="false"
                                                  v-bind:name="'all_products'"
                                                  v-on:change="onChange"></component-radio>
-                                <span class="s-name">[`На этой странице`] ({ { current_page_smart_string } })</span>
+                                <span class="s-name">[`On this page`] ({ { current_page_smart_string } })</span>
                             </label>
                         </div>
                     </div>
@@ -156,7 +156,7 @@
                                                  v-bind:val="true"
                                                  v-bind:name="'all_products'"
                                                  v-on:change="onChange"></component-radio>
-                                <span class="s-name">[`На всех страницах`] ({_w("%d товар", "%d товаров", $products_total_count)})</span>
+                                <span class="s-name">[`On all pages`] ({_w("%d product", "%d products", $products_total_count)})</span>
                             </label>
                         </div>
                     </div>

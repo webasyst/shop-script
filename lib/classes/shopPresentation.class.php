@@ -79,11 +79,18 @@ class shopPresentation
                     $template = $row;
                     $template_selected = true;
                 } else {
-                    if (!in_array($row['id'], $params['open_presentations']) && $row['browser'] == $browser
-                        && $row['creator_contact_id'] == wa()->getUser()->getId()
-                    ) {
+                    if ($transient) {
+                        if ($row['browser'] != $browser || $row['creator_contact_id'] != wa()->getUser()->getId()) {
+                            $presentation_id = $this->getModel()->duplicate($row['id'], shopPresentationModel::DUPLICATE_MODE_PRESENTATION);
+                            $presentation = $this->getModel()->getById($presentation_id, $with_columns);
+                            $presentation_id = $presentation['id'];
+                        } elseif (!in_array($row['id'], $params['open_presentations'])) {
+                            $presentation = $row;
+                            $presentation_id = $presentation['id'];
+                        }
+                    } else {
                         $presentation = $row;
-                        $presentation_id = $presentation['id'];
+                        $presentation_id = $row['id'];
                     }
                     $template = $this->getModel()->getById($row['parent_id'], $with_columns);
                 }
@@ -99,12 +106,30 @@ class shopPresentation
             }
             $template_id = $template['id'];
             $presentation = $presentation_id = null;
-            $template_selected = false;
-            $reset_presentation_to_template = false;
+            $template_selected = $reset_presentation_to_template = false;
         }
+
+        $view = waRequest::request('view', null, waRequest::TYPE_STRING_TRIM);
+        $replace_params = [
+            'categories' => waRequest::request('category_id', null, waRequest::TYPE_INT),
+            'sets' => waRequest::request('set_id', null, waRequest::TYPE_STRING_TRIM),
+            'types' => waRequest::request('type_id', null, waRequest::TYPE_INT),
+            'tags' => waRequest::request('tag_name', null, waRequest::TYPE_STRING_TRIM),
+        ];
+        $open_from_side_section = false;
+        foreach ($replace_params as $param) {
+            if ($param) {
+                $open_from_side_section = true;
+                break;
+            }
+        }
+
         if (empty($presentation)) {
             if ($transient) {
-                $presentation = $this->getModel()->getTransientByTemplate($template_id, wa()->getUser()->getId(), [
+                // if contacts do not match create a new presentation
+                $creator_id = $template['creator_contact_id'] == wa()->getUser()->getId() ? $template['creator_contact_id'] : -1;
+                $presentation = $this->getModel()->getTransientByTemplate($template_id, $creator_id, [
+                    'use_presentation' => $view || $open_from_side_section,
                     'reset_presentation_to_template' => $reset_presentation_to_template,
                     'columns' => true,
                     'browser' => $browser,
@@ -128,7 +153,6 @@ class shopPresentation
             }
             if (!empty($presentation_id)) {
                 $data = ['use_datetime' => date('Y-m-d H:i:s')];
-                $view = waRequest::request('view', null, waRequest::TYPE_STRING_TRIM);
                 if ($view) {
                     if ($view == 'skus') {
                         $view = shopPresentation::VIEW_TABLE_EXTENDED;
@@ -142,7 +166,7 @@ class shopPresentation
                 if (!empty($browser) && is_string($browser) && mb_strlen($browser) <= 64) {
                     $data['browser'] = $browser;
                 }
-                $this->getModel()->updateById($id, $data);
+                $this->getModel()->updateById($presentation_id, $data);
             }
         }
 
@@ -154,7 +178,7 @@ class shopPresentation
         $this->shop_currency = wa('shop')->getConfig()->getCurrency();
 
         if ($transient) {
-            $this->replaceFilterRules($reset_rules);
+            $this->replaceFilterRules($reset_rules, $replace_params);
             if (!empty($params['template_filter_id'])) {
                 $this->template_filter_id = $params['template_filter_id'];
                 $filter_model = new shopFilterModel();
@@ -212,7 +236,7 @@ class shopPresentation
      * @return null|string
      * @throws waException
      */
-    public function getColumnType()
+    public function getSortColumnType()
     {
         if ($this->presentation['sort_column_id'] !== null) {
             return $this->getModel('column')->select('column_type')->where('id = ?', $this->presentation['sort_column_id'])->fetchField('column_type');
@@ -260,12 +284,16 @@ class shopPresentation
         $additional_fields = [];
 
         $offset = ifempty($options, 'offset', 0);
-        $limit = null;
-        if (array_key_exists('limit', $options) && $options['limit'] !== null) {
-            $limit = ifempty($options, 'limit', $this->getField('rows_on_page'));
-            $total_count = $limit;
+        $limit = 50;
+        if (array_key_exists('limit', $options) && $options['limit'] === null) {
+            $total_count = $offset + ifempty($options, 'limit', $this->getField('rows_on_page'));
+        } elseif (isset($options['limit']) && is_numeric($options['limit'])) {
+            $total_count = $offset + $options['limit'];
         } else {
             $total_count = $collection->count();
+        }
+        if ($total_count < $limit) {
+            $limit = $total_count;
         }
         if (!empty($options['fields']) && is_array($options['fields'])) {
             $fields = join(',', array_unique(array_merge($additional_fields, $options['fields'])));
@@ -276,10 +304,10 @@ class shopPresentation
         $products = [];
         while ($offset < $total_count) {
             $products += $collection->getProducts($fields, $offset, $limit, false);
-            $offset += count($products);
             if (!$products) {
                 break;
             }
+            $offset += count($products);
         }
 
         if (!empty($options['format'])) {
@@ -307,13 +335,13 @@ class shopPresentation
                 'name' => _w('Summary'),
             ],
             'meta_title' => [
-                'name' => _w('Заголовок страницы <title>'),
+                'name' => _w('Page <title> tag'),
             ],
             'meta_keywords' => [
-                'name' => _w('Ключевые слова <meta keywords>'),
+                'name' => _w('Meta keywords tag'),
             ],
             'meta_description' => [
-                'name' => _w('Описание страницы <meta description>'),
+                'name' => _w('Page meta description tag'),
             ],
             'description' => [
                 'name' => _w('Description'),
@@ -323,7 +351,7 @@ class shopPresentation
                 'editable' => false,
             ],
             'edit_datetime' => [
-                'name' => _w('Дата последнего изменения'),
+                'name' => _w('Last change date'),
                 'editable' => false,
             ],
             'status' => [
@@ -370,11 +398,11 @@ class shopPresentation
                 'name' => _w('Tax'),
             ],
             'type_id' => [
-                'name' => _w('Type'),
+                'name' => _w('Product type'),
             ],
             'badge' => [
                 'name' => _w('Badge'),
-                'width' => 150,
+                'width' => 170,
                 'width_locked' => true
             ],
             'sku_type' => [
@@ -382,7 +410,7 @@ class shopPresentation
                 'editable' => false,
             ],
             'sku_count' => [
-                'name' => _w('Количество модификаций'),
+                'name' => _w('Variants number'),
                 'editable' => false,
             ],
             'total_sales' => [
@@ -477,6 +505,7 @@ class shopPresentation
                 'type' => 'url',
                 'editable' => false,
                 'sortable' => false,
+                'width_locked' => true
             ],
             'image_count' => [
                 'name' => _w('Number of images'),
@@ -503,7 +532,7 @@ class shopPresentation
                 'sortable' => false,
             ],
             'visibility' => [
-                'name' => _w('Видимость на витрине и доступность для покупки'),
+                'name' => _w('Visibility in the storefront and availability for purchase'),
                 'editing_rule' => self::EDITING_RULE_SIMPLE_MODE,
                 'sortable' => false,
                 'width' => 70,
@@ -537,7 +566,7 @@ class shopPresentation
 
         // Column for each feature
         $feature_model = new shopFeatureModel();
-        $features = $feature_model->getFeatures(true);
+        $features = $feature_model->select('id, code, name, multiple, type, available_for_sku, status')->where('`parent_id` IS NULL')->fetchAll('id');
         foreach ($features as $id => $feature) {
             if ($feature['type'] != shopFeatureModel::TYPE_DIVIDER) {
                 $feature_data = [
@@ -566,10 +595,8 @@ class shopPresentation
                         case 'date':
                             $feature_data['min_width'] = 100;
                             break;
-                        case 'range.date':
-                            $feature_data['min_width'] = 200;
-                            break;
                         case 'color':
+                        case 'range.date':
                             $feature_data['min_width'] = 200;
                             break;
                     }
@@ -633,10 +660,14 @@ class shopPresentation
     public static function getNearestProducts($product_id, $presentation_id, $with_name = false)
     {
         $nearest_product_ids = [];
-        $presentation_model = new shopPresentationModel();
-        $filter_id = $presentation_model->select('filter_id')->where('id = ?', $presentation_id)->fetchField('filter_id');
-        if ($filter_id && $product_id) {
-            $collection = new shopProductsCollection("filter/$filter_id");
+        $presentation = new shopPresentation($presentation_id, true);
+        if ($presentation->getId() && $product_id) {
+            $sort_column_type = $presentation->getSortColumnType();
+            $collection = new shopProductsCollection('', [
+                'sort' => $sort_column_type !== null ? array_unique([$sort_column_type, 'name']) : ['name'],
+                'order' => strtolower($presentation->getField('sort_order')),
+                'prepare_filter' => $presentation->getFilterId(),
+            ]);
             $nearest_product_ids = $collection->getPrevNextProductId($product_id, $with_name);
         }
 
@@ -679,7 +710,7 @@ class shopPresentation
     {
         $collection_info = $collection->getInfo();
 
-        $product_tags = $product_sets = $product_categories = null;
+        $product_tags = $product_sets = null;
 
         $product_keys = array_keys($products);
 
@@ -731,10 +762,22 @@ class shopPresentation
         }
         $product_features_model = new shopProductFeaturesModel();
         $limit_precision = !shopFrac::isEnabled() ? 0 : null;
+
+        $product_categories = $this->getRelatedData($product_keys, 'categories');
+        $categories_by_product = [];
+        foreach ($product_categories as $product_id => $values) {
+            $categories_by_product[$product_id] = array_column($values, 'value');
+        }
+
         foreach ($products as &$p) {
+            if (!isset($p['skus'][$p['sku_id']])) {
+                // fix broken products
+                $p['sku_id'] = (string)key($p['skus']);
+            }
             if (isset($collection_info['main_filter_type']) && $collection_info['main_filter_type'] == 'category'
                 && $collection_info['main_filter_data']['type'] == shopCategoryModel::TYPE_STATIC
-                && $collection_info['main_filter_data']['id'] != $p['category_id']
+                && $collection_info['main_filter_data']['include_sub_categories']
+                && isset($categories_by_product[$p['id']]) && !in_array($collection_info['main_filter_data']['id'], $categories_by_product[$p['id']])
             ) {
                 $p['product_from_subcategory'] = true;
             } else {
@@ -985,7 +1028,7 @@ class shopPresentation
 
                                     foreach ($p['skus'] as $sku) {
                                         $sku_base_price = $sku['price'] / ifempty($sku['stock_base_ratio'], $p['stock_base_ratio']);
-                                        if (!empty($p['base_unit_id']) && !empty($this->units[$p['base_unit_id']])) {
+                                        if (!empty($p['base_unit_id']) && ($p['stock_unit_id'] !== $p['base_unit_id']) && !empty($this->units[$p['base_unit_id']])) {
                                             $base_unit = $this->units[$p['base_unit_id']];
                                             $_sku_value = shopViewHelper::formatPrice($sku_base_price, ['currency' => $p['currency'], 'unit' => $base_unit['name_short'], 'format' => $_format]);
                                         } else {
@@ -1071,9 +1114,6 @@ class shopPresentation
                                         'options' => isset($product_sets[$p['id']]) ? $product_sets[$p['id']] : [],
                                     ];
                                 } elseif ($active_column['id'] == 'categories') {
-                                    if ($product_categories === null) {
-                                        $product_categories = $this->getRelatedData($product_keys, 'categories');
-                                    }
                                     $additional_categories = [];
                                     if (isset($product_categories[$p['id']])) {
                                         foreach ($product_categories[$p['id']] as $data) {
@@ -1160,25 +1200,19 @@ class shopPresentation
     }
 
     /**
-     * @param int|string $id
-     * @param string $type
+     * @param bool $reset_rules
+     * @param array $data
      * @return void
      * @throws waException
      */
-    protected function replaceFilterRules($reset_rules)
+    protected function replaceFilterRules($reset_rules, $data)
     {
-        $data = [
-            'categories' => waRequest::request('category_id', null, waRequest::TYPE_INT),
-            'sets' => waRequest::request('set_id', null, waRequest::TYPE_STRING_TRIM),
-            'types' => waRequest::request('type_id', null, waRequest::TYPE_INT),
-            'tags' => waRequest::request('tag_name', null, waRequest::TYPE_STRING_TRIM),
-        ];
         $replaced = false;
         foreach ($data as $type => $id) {
             if ($id !== null) {
                 $value = null;
                 if ($type != 'tags') {
-                    $value = shopFilter::validateValue($type, [$id]);
+                    $value = shopFilter::validateValue([$id], $type);
                 } elseif (mb_strlen($id)) {
                     $value = $id;
                 }
@@ -1287,9 +1321,9 @@ class shopPresentation
         $data = [];
         foreach ($skus as $sku) {
             $value = null;
-            if ($field_id === 'sku') {
-                $value = $sku['id'];
-            } else if (isset($sku[$field_id])) {
+            if ($field_id === 'sku' || $field_id === 'name') {
+                $value = $sku[$field_id];
+            } elseif (isset($sku[$field_id])) {
                 $value = shop_number_format($sku[$field_id]);
             }
 
@@ -1344,21 +1378,30 @@ class shopPresentation
             case 'stock_base_ratio':
                 $base_unit_id = $product['base_unit_id'];
 
-                $stock_base_ratio = $type_fractional['stock_base_ratio']['value'];
-                if (!empty($sku) && !empty($sku['stock_base_ratio'])) {
-                    $stock_base_ratio = $sku['stock_base_ratio'];
-                } else if (!empty($product['stock_base_ratio'])) {
-                    $stock_base_ratio = $product['stock_base_ratio'];
+                $stock_base_ratio = '';
+                if (!empty($sku)) {
+                    if (!empty($sku['stock_base_ratio'])) {
+                        $stock_base_ratio = $sku['stock_base_ratio'];
+                    }
+                } else {
+                    if (!empty($product['stock_base_ratio'])) {
+                        $stock_base_ratio = $product['stock_base_ratio'];
+                    } else {
+                        $stock_base_ratio = $type_fractional['stock_base_ratio']['value'];
+                    }
                 }
 
                 if ($product['stock_unit_id'] !== $product['base_unit_id'] &&
-                    !empty($product['stock_base_ratio']) &&
-                    !empty($units[$base_unit_id])) {
+                    !empty($product['stock_base_ratio']) && !empty($units[$base_unit_id])
+                ) {
 
                     $base_unit = $units[$base_unit_id];
-                    $stock_base_ratio = shop_number_format($stock_base_ratio);
-                    if ($stock_base_ratio <= 0) { $stock_base_ratio = 1; }
-
+                    if ($stock_base_ratio !== '') {
+                        $stock_base_ratio = shop_number_format($stock_base_ratio);
+                        if ($stock_base_ratio <= 0) {
+                            $stock_base_ratio = 1;
+                        }
+                    }
                     $stock_base_ratio_text = shop_number_format($stock_base_ratio, [
                         'limit_precision' => 3,
                         'thousands_separator' => ' ',
@@ -1373,7 +1416,7 @@ class shopPresentation
                     ];
                 } else {
                     $result = [
-                        'value' => _w('Не задано')
+                        'value' => null
                     ];
                 }
                 break;
@@ -1387,23 +1430,35 @@ class shopPresentation
                 break;
 
             case 'order_count_min':
-                $order_count_min = $type_fractional['order_count_min']['value'];
-                if (!empty($sku) && !empty($sku['order_count_min'])) {
-                    $order_count_min = shop_number_format($sku['order_count_min'], 3, null, null);
-                } else if (!empty($product['order_count_min'])) {
-                    $order_count_min = shop_number_format($product['order_count_min'], 3,  null, null);
+                $order_count_min = '';
+                if (!empty($sku)) {
+                    if (!empty($sku['order_count_min'])) {
+                        $order_count_min = shop_number_format($sku['order_count_min'], 3, null, null);
+                    }
+                } else {
+                    if (!empty($product['order_count_min'])) {
+                        $order_count_min = shop_number_format($product['order_count_min'], 3,  null, null);
+                    } else {
+                        $order_count_min = $type_fractional['order_count_min']['value'];
+                    }
                 }
-                $result = $order_count_min . ' ' . ifset($stock_unit, 'name_short', '');
+                $result = $order_count_min !== '' ? $order_count_min . ' ' . ifset($stock_unit, 'name_short', '') : '';
                 break;
 
             case 'order_count_step':
-                $order_count_step = $type_fractional['order_count_step']['value'];
-                if (!empty($sku) && !empty($sku['order_count_step'])) {
-                    $order_count_step = shop_number_format($sku['order_count_step'], 3, null, null);
-                } else if (!empty($product['order_count_step'])) {
-                    $order_count_step = shop_number_format($product['order_count_step'], 3, null, null);
+                $order_count_step = '';
+                if (!empty($sku)) {
+                    if (!empty($sku['order_count_step'])) {
+                        $order_count_step = shop_number_format($sku['order_count_step'], 3, null, null);
+                    }
+                } else {
+                    if (!empty($product['order_count_step'])) {
+                        $order_count_step = shop_number_format($product['order_count_step'], 3, null, null);
+                    } else {
+                        $order_count_step = $type_fractional['order_count_step']['value'];
+                    }
                 }
-                $result = $order_count_step . ' ' . ifset($stock_unit, 'name_short', '');
+                $result = $order_count_step !== '' ? $order_count_step . ' ' . ifset($stock_unit, 'name_short', '') : '';
                 break;
         }
 

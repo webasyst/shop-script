@@ -154,7 +154,10 @@
             item.find('img').attr('src', data.image_url);
             item.find('.s-product-name').text(data.product_name);
             item.find('.s-sku-name').text(data.name);
-            item.find('[name="id[]"]').attr('disabled', false).val(data.id);
+            item.find('[name="id[]"]').attr({
+                'disabled': false,
+                'name': 'id[' + count.toString() + ']'
+            }).val(data.id);
             item.find('[name="count[]"]').attr({
                 'disabled': false,
                 'name': 'count[' + count.toString() + ']'

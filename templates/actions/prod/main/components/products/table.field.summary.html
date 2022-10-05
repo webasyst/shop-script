@@ -14,11 +14,11 @@
     </template>
     <template v-else="column_data.settings">
         <div class="s-flexbox flexbox">
-            <div class="s-text-wrapper">
+            <div class="s-text-wrapper" v-if="column_data.value">
                 <div class="s-text" v-text="column_data.value"></div>
             </div>
-            <div class="s-action-wrapper" v-if="column_data.value">
-                <span class="link" v-on:click="showFullContent">[`Подробнее`]</span>
+            <div class="s-action-wrapper">
+                <span class="link" v-on:click="showFullContent">[`Edit`]</span>
             </div>
         </div>
     </template>

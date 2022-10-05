@@ -1,10 +1,10 @@
 {$_tooltips["product-feature-unavailable"] = [
     "id" => "product-feature-unavailable",
-    "html" => _w("Характеристика доступна только для продукта")
+    "html" => _w("A feature is available only for a product.")
 ]}
 {$_tooltips["product-feature-locked"] = [
     "id" => "product-feature-locked",
-    "html" => _w("Эта характеристика используется для выбора вариантов товара на витрине. Ее значение можно выбрать только в свойствах модификации в редакторе товара."),
+    "html" => _w("This feature is used for product variants selection in the storefront. You can select its value in the variant parameters in the product editor only."),
     "position" => "top"
 ]}
 
@@ -16,7 +16,7 @@
     <template v-else-if="sku_mod && !column_data.available_for_sku">
         {*
         <div class="s-unavailable">
-            [`Недоступно`]
+            [`Not available`]
             <span class="s-icon icon size-12 color-gray-light" data-tooltip-id="product-feature-unavailable"><i class="fas fa-question-circle"></i></span>
         </div>
         *}
@@ -189,7 +189,7 @@
                     </template>
                 </template>
                 <template v-else>
-                    <div class="s-text">[`На задано`]</div>
+                    <div class="s-text">[`Not specified`]</div>
                 </template>
             </div>
         </template>
@@ -209,7 +209,7 @@
                         </template>
                     </template>
                     <template v-else>
-                        <div class="s-text">[`На задано`]</div>
+                        <div class="s-text">[`Not specified`]</div>
                     </template>
                 </div>
 
@@ -363,8 +363,8 @@
                 v-bind:disabled="!column_data.editable"
                 v-bind:readonly="!column_data.editable"
                 v-bind:class="'s-field wa-small full-width s-square-field'"
-                v-bind:validate="(states.is_number ? 'number' : null)"
-                v-bind:format="(states.is_number ? 'number' : null)"
+                v-bind:validate="states.format"
+                v-bind:format="states.format"
                 v-on:focus="$emit('focus', $event)"
                 v-on:blur="onBlur"
                 v-on:change="$emit('change', $event)"></component-input>

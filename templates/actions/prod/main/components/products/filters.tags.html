@@ -11,8 +11,8 @@
                     v-if="tags.length"
                     class="s-search-form"
                     v-model="search_string"
-                    v-bind:placeholder="'{_w("Найти теги")|escape}'"></component-table-filters-search>
-                <span v-else>[`У вас нет тегов`]</span>
+                    v-bind:placeholder="'{_w("Find tags")|escape}'"></component-table-filters-search>
+                <span v-else>[`You have no tags`]</span>
             </div>
             <div class="s-section-body" v-if="tags.length">
                 <div class="s-tags-list">
@@ -34,7 +34,7 @@
                             </div>
                         </div>
                     </template>
-                    <div class="s-tag-wrapper" v-if="!items.length">[`Теги не найдены`]</div>
+                    <div class="s-tag-wrapper" v-if="!items.length">[`Tags not found.`]</div>
                 </div>
             </div>
             <div class="s-section-footer" v-if="tags.length">
@@ -43,7 +43,7 @@
                         v-on:click="save">[`Apply`]</button>
                 <button class="wa-button wa-small transparent" type="button"
                         v-bind:disabled="!has_value"
-                        v-on:click="reset">[`Очистить фильтр`]</button>
+                        v-on:click="reset">[`Reset filter`]</button>
             </div>
         </div>
     </div>

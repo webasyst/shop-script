@@ -11,7 +11,7 @@ class shopProductSkusDeleteMethod extends shopProductSkusUpdateMethod
         // check if sku exists
         $sku = $skus_model->getById($sku_id);
         if (!$sku) {
-            throw new waAPIException('invalid_param', 'SKU not found', 404);
+            throw new waAPIException('invalid_param', 'SKU not found.', 404);
         }
         // check access rights
         $this->checkProductRights($sku['product_id']);

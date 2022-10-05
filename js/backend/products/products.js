@@ -361,6 +361,7 @@
 
     $.wa_shop_products = {
         lang: "en",
+        date_format: "d.mm.yy",
         app_url: null,
         section_url: null,
         router: null,

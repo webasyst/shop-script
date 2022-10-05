@@ -48,7 +48,7 @@ class shopProdSidebarAction extends waViewAction
             'can_edit'         => $can_edit,
             'prices_available' => $prices_available,
             'backend_prod_event' => $this->params['backend_prod_event'],
-            'not_found' => !$product->getId(),
+            'not_found' => (($product_id !== "new") && !$product->getId()),
         ]);
     }
 }

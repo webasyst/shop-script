@@ -10,7 +10,7 @@ class shopProdCategorySortDialogAction extends waViewAction
         if (!$category_id) {
             $this->errors = [
                 "id" => "category_not_found",
-                "text" => _w("Category is not found")
+                "text" => _w("Category not found.")
             ];
             return false;
         }
@@ -24,7 +24,7 @@ class shopProdCategorySortDialogAction extends waViewAction
 
         $products = [];
         if ($render_products || $count < $fuse) {
-            $_products = $collection->getProducts('*', 0, $count);
+            $_products = $collection->getProducts('*,images', 0, $count);
             foreach($_products as $_product) {
                 $products[] = $this->formatProduct($_product);
             }
@@ -41,9 +41,33 @@ class shopProdCategorySortDialogAction extends waViewAction
     }
 
     protected function formatProduct($product) {
+        // Фотографии продукта
+        $photo = null;
+
+        if (!empty($product["images"])) {
+            foreach ($product["images"] as $_image) {
+                if (empty($photo) || $_image["id"] === $product["image_id"]) {
+                    // Append file modification time to image URL
+                    // in order to avoid browser caching issues
+                    $last_modified = "";
+                    $path = shopImage::getPath($_image);
+                    if (file_exists($path)) {
+                        $last_modified = "?".filemtime($path);
+                    }
+
+                    $photo = [
+                        "id" => $_image["id"],
+                        "url" => $_image["url_thumb"].$last_modified,
+                        "description" => $_image["description"]
+                    ];
+                }
+            }
+        }
+
         return [
             "id" => $product["id"],
             "name" => $product["name"],
+            "photo" => $photo,
             "price_html" => shop_currency_html($product["price"], true),
         ];
     }

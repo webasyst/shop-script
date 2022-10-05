@@ -13,11 +13,7 @@ class shopProdAddSkuFileController extends shopUploadController
 
         $product = new shopProduct($fields['product_id']);
         if (!$product->getId()) {
-            $this->errors[] = [
-                'id' => 'not_found',
-                'text' => _w('Product not found'),
-            ];
-            return;
+            throw new waException(_w("Product not found"), 404);
         }
 
         $path = "sku_file/{$fields['id']}." . pathinfo($file->name, PATHINFO_EXTENSION);
@@ -25,8 +21,8 @@ class shopProdAddSkuFileController extends shopUploadController
         if ((file_exists($file_path) && !is_writable($file_path)) || (!file_exists($file_path) && !waFiles::create($file_path))) {
             $this->errors = array(
                 'id' => 'folder_permissions',
-                'text' => sprintf(
-                    "The insufficient file write permissions for the %s folder.",
+                'text' => sprintf_wp(
+                    "Insufficient write permissions for the %s folder.",
                     substr($file_path, strlen($this->getConfig()->getRootPath()))
                 )
             );

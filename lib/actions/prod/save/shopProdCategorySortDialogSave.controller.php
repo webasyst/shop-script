@@ -17,7 +17,7 @@ class shopProdCategorySortDialogSaveController extends waJsonController
             if (empty($products)) {
                 $this->errors = [
                     'id' => 'empty_products',
-                    'text' => _w('Products not specified')
+                    'text' => _w('Products not specified.')
                 ];
             }
             if (!$this->errors) {
@@ -30,7 +30,7 @@ class shopProdCategorySortDialogSaveController extends waJsonController
                 } else {
                     $this->errors = [
                         'id' => 'update_fail',
-                        'text' => _w('Failed to update category')
+                        'text' => _w('Failed to update the category.')
                     ];
                 }
             }
@@ -44,7 +44,7 @@ class shopProdCategorySortDialogSaveController extends waJsonController
             if (empty($correct_sort)) {
                 $this->errors = [
                     'id' => 'incorrect_sort',
-                    'text' => _w('No sort order specified')
+                    'text' => _w('No sort order specified.')
                 ];
             }
         }
@@ -59,7 +59,7 @@ class shopProdCategorySortDialogSaveController extends waJsonController
             }
             $this->errors = [
                 'id' => 'not_found',
-                'text' => _w('Category to update not found')
+                'text' => _w('The category to update was not found.')
             ];
         }
     }

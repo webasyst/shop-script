@@ -25,7 +25,7 @@
             <div class="dialog-header">
                 <h3>
                     {if !empty($set.id)}
-                        {sprintf(_w("Редактирование списка «%s»"), "{ { set.name } }")}
+                        {sprintf(_w("“%s” set editing"), "{ { set.name } }")}
                     {else}
                         [`New set`]
                     {/if}
@@ -72,7 +72,7 @@
 
                     <div class="wa-field">
                         <div class="name">
-                            <div class="s-name">[`Сортировка товаров`]</div>
+                            <div class="s-name">[`Products sort order`]</div>
                         </div>
                         <div class="value">
                             <component-dropdown-set-sorting v-model="set.sort_products"></component-dropdown-set-sorting>

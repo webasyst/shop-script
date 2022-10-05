@@ -10,6 +10,7 @@ class shopProdGeneralAction extends waViewAction
         $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
         $product = new shopProduct($product_id);
         if (!$product['id'] && $product_id != 'new') {
+            $this->setTemplate('templates/actions/prod/includes/deleted_product.html');
             $this->setLayout(new shopBackendProductsEditSectionLayout([
                 'content_id' => 'general',
             ]));
@@ -22,9 +23,14 @@ class shopProdGeneralAction extends waViewAction
             if (waRequest::isXMLHttpRequest() && !waRequest::request('section')) {
                 throw new waException(_w('Access denied'), 403);
             } else {
+                $presentation_id = waRequest::request('presentation', null, waRequest::TYPE_INT);
+                $presentation_param = '';
+                if ($presentation_id) {
+                    $presentation_param = "?presentation=$presentation_id";
+                }
                 $this->redirect(
                     '/'.wa()->getConfig()->getBackendUrl().'/shop/'
-                    .shopHelper::getBackendEditorUrl($product_id, 'prices')
+                    .shopHelper::getBackendEditorUrl($product_id, 'prices').$presentation_param
                 );
             }
         }

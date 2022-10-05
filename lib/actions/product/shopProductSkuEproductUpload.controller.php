@@ -31,7 +31,7 @@ class shopProductSkuEproductUploadController extends shopUploadController
                 'file_name' => '',
             );
             $this->model->updateByField($field, $data);
-            throw new waException(sprintf("The insufficient file write permissions for the %s folder.", substr($file_path, strlen($this->getConfig()->getRootPath()))));
+            throw new waException(sprintf_wp("Insufficient write permissions for the %s folder.", substr($file_path, strlen($this->getConfig()->getRootPath()))));
         }
 
         $file->moveTo($file_path);

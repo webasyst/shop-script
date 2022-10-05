@@ -9,8 +9,14 @@ class shopProdListAction extends waViewAction
     protected $stocks = null;
     protected $fractional_config = null;
     protected $currencies = [];
+    protected $static_categories_tree = [];
+    /**
+     * @var shopProductFeaturesModel $product_features_model
+     */
+    protected $product_features_model = [];
 
-    public function __construct($params = null) {
+    public function __construct($params = null)
+    {
         parent::__construct($params);
         $units = shopHelper::getUnits();
         $this->units = $units;
@@ -33,7 +39,7 @@ class shopProdListAction extends waViewAction
 
         // получить с сервера список сохранённых презентаций
         $presentation_model = new shopPresentationModel();
-        $presentations = array_values($presentation_model->getTemplatesByUser($user_id, [ 'columns' => true ]));
+        $presentations = array_values($presentation_model->getTemplatesByUser($user_id, ['fields' => ['id', 'name']]));
 
         $limit  = waRequest::request( "limit", $active_presentation["rows_on_page"], waRequest::TYPE_INT );
         $page   = waRequest::request( "page", 1, waRequest::TYPE_INT );
@@ -52,32 +58,29 @@ class shopProdListAction extends waViewAction
         $static_categories = array_filter($categories, function($v) {
             return empty($v['type']);
         });
-        $categories_tree = $category_model->buildNestedTree($static_categories);
-        $set_model = new shopSetModel();
-        $sets = $set_model->select('id, name')->fetchAll('id');
+        $this->static_categories_tree = $category_model->buildNestedTree($static_categories);
 
         $filter = $active_filter->getFilter();
         $filter_options = $active_filter->getFilterOptions();
-        $this->clearMissingRules($filter['rules'], $filter_options, $categories, $sets);
+        $this->clearMissingRules($filter['rules'], $filter_options, $categories);
 
-        $sort_column_type = $presentation->getColumnType();
+        $sort_column_type = $presentation->getSortColumnType();
         $sorting_options = [
             'sort' => $sort_column_type !== null ? array_unique([$sort_column_type, 'name']) : ['name'],
             'order' => strtolower($presentation->getField('sort_order')),
         ];
         if ($active_filter->getId() > 0 && !empty($filter['rules'])) {
-            $sorting_options['prepare_filter_id'] = $active_filter->getId();
+            $sorting_options['prepare_filter'] = $active_filter->getId();
         }
         $collection = new shopProductsCollection('', $sorting_options);
         $products_total_count = $collection->count();
         $pages = round($products_total_count / $limit);
+        if (!($pages >= 1)) { $pages = 1; }
         $products = $presentation->getProducts($collection, [
             'offset' => $offset,
             'limit' => $limit,
             'format' => true,
         ]);
-
-        $stocks = shopProdSkuAction::getStocks();
 
         $columns = $this->mergeColumns($presentation->getColumnsList(), $active_presentation['columns']);
         $columns = $this->formatColumns($columns);
@@ -101,8 +104,8 @@ class shopProdListAction extends waViewAction
 
         $filter['rules'] = $this->getFilterGroups($filter['rules']);
         $filter_model = new shopFilterModel();
-        $filters = array_values($filter_model->getTemplatesByUser($user_id, ['columns' => true]));
-        $this->getRulesLabels($filter['rules'], $filter_options, $categories, $sets);
+        $filters = array_values($filter_model->getTemplatesByUser($user_id, ['fields' => ['id', 'name']]));
+        $this->getRulesLabels($filter['rules'], $filter_options, $categories);
 
         $this->view->assign([
             "filter"               => $filter,
@@ -110,16 +113,19 @@ class shopProdListAction extends waViewAction
             "filter_options"       => $filter_options,
             "presentations"        => $presentations,
             "active_presentation"  => $active_presentation,
-            "stocks"               => $stocks,
+            "stocks"               => $this->getProductStocks(),
             "columns"              => $columns,
             "products"             => $this->formatProducts($products),
             "products_total_count" => $products_total_count,
             'categories'           => $static_categories,
-            'categories_tree'      => $categories_tree,
+            'categories_tree'      => $this->static_categories_tree,
             'currencies_data'      => $this->getCurrenciesData(),
+            'action_rights'        => $this->getActionRights(),
 
             "page"                 => $page,
-            "pages"                => $pages
+            "pages"                => $pages,
+
+            "mass_actions"         => $this->getMassActions()
         ]);
         $this->setTemplate('templates/actions/prod/main/List.html');
         $this->setLayout(new shopBackendProductsListSectionLayout());
@@ -128,7 +134,7 @@ class shopProdListAction extends waViewAction
     protected function getFilterGroups($rules)
     {
         $groups = [];
-
+        $types = ['categories', 'sets', 'types', 'storefronts', 'tags'];
         foreach ($rules as $rule) {
             $group_id = $rule["rule_group"];
 
@@ -136,6 +142,7 @@ class shopProdListAction extends waViewAction
                 $groups[$group_id] = [
                     "id"    => $group_id,
                     "type"  => $rule["rule_type"],
+                    'display_type' => in_array($rule['rule_type'], $types) ? $rule['rule_type'] : 'features',
                     "rules" => []
                 ];
             }
@@ -146,12 +153,35 @@ class shopProdListAction extends waViewAction
         return array_values($groups);
     }
 
-    protected function getRulesLabels(&$rules, $options, $categories, $sets)
+    protected function getRulesLabels(&$rules, $options, $categories)
     {
-        $color_values_model = new shopFeatureValuesColorModel();
-        $color_values = $color_values_model->select('id, value')->fetchAll('id');
-        $varchar_values_model = new shopFeatureValuesVarcharModel();
-        $varchar_values = $varchar_values_model->select('id, value')->fetchAll('id');
+        $varchar_ids = $color_ids = [];
+        foreach ($rules as $rule) {
+            if (mb_strpos($rule['type'], 'feature_') === 0) {
+                foreach ($rule['rules'] as $item) {
+                    foreach ($options['features'] as $option) {
+                        if ($option['rule_type'] == $rule['type'] && !$option['selectable']) {
+                            if ($option['type'] == shopFeatureModel::TYPE_VARCHAR) {
+                                $varchar_ids[] = $item['rule_params'];
+                            } elseif ($option['type'] == shopFeatureModel::TYPE_COLOR) {
+                                $color_ids[] = $item['rule_params'];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $varchar_values = [];
+        if ($varchar_ids) {
+            $varchar_values_model = new shopFeatureValuesVarcharModel();
+            $varchar_values = $varchar_values_model->select('id, value')->where('id IN (?)', [$varchar_ids])->fetchAll('id');
+        }
+        $color_values = [];
+        if ($color_ids) {
+            $color_values_model = new shopFeatureValuesColorModel();
+            $color_values = $color_values_model->select('id, value')->where('id IN (?)', [$color_ids])->fetchAll('id');
+        }
+
         foreach ($rules as &$rule) {
             $label = [];
             $unit_name = '';
@@ -173,8 +203,16 @@ class shopProdListAction extends waViewAction
                         $label[] = $categories[$item['rule_params']]['name'];
                     }
                 } elseif ($rule['type'] == 'sets') {
-                    if (isset($sets[$item['rule_params']])) {
-                        $label[] = $sets[$item['rule_params']]['name'];
+                    foreach ($options[$rule['type']] as $info) {
+                        if (isset($info['sets'])) {
+                            foreach ($info['sets'] as $subset) {
+                                if ($subset['id'] == $item['rule_params']) {
+                                    $label[] = $subset['name'];
+                                }
+                            }
+                        } elseif ($info['id'] == $item['rule_params']) {
+                            $label[] = $info['name'];
+                        }
                     }
                 } else {
                     foreach ($options['features'] as $option) {
@@ -182,12 +220,6 @@ class shopProdListAction extends waViewAction
                             if ($option['rule_type'] == $rule['type']) {
                                 if ($option['selectable']) {
                                     $divider = ' | ';
-                                }
-                                if (($option['type'] == shopFeatureModel::TYPE_DATE || $option['type'] == 'range.date'
-                                    || mb_strpos($option['type'], 'range.') === 0 || mb_strpos($option['type'], 'dimension.') === 0)
-                                    && !$option['selectable']
-                                ) {
-                                    $divider = ' ';
                                 }
                                 if ($option['type'] != shopFeatureModel::TYPE_DATE && $option['type'] != 'range.date'
                                     && !$unit_name && !is_numeric($item['rule_params']) && isset($option['units'])
@@ -200,7 +232,7 @@ class shopProdListAction extends waViewAction
                                 } else {
                                     if ($option['selectable'] || $option['type'] == shopFeatureModel::TYPE_BOOLEAN) {
                                         foreach ($option['options'] as $param) {
-                                            if ($param['id'] == $item['rule_params']) {
+                                            if ($param['value'] == $item['rule_params']) {
                                                 $label[] = $param['name'];
                                             }
                                         }
@@ -214,11 +246,18 @@ class shopProdListAction extends waViewAction
                                                 $label[] = $color_values[$item['rule_params']]['value'];
                                             }
                                         }
+                                        $divider = ' | ';
                                     } else {
-                                        if ($option['type'] == shopFeatureModel::TYPE_DATE || $option['type'] == 'range.date'
-                                                || mb_strpos($option['type'], 'range.') === 0 || mb_strpos($option['type'], 'dimension.') === 0
+                                        if ($option['type'] == shopFeatureModel::TYPE_DATE
+                                                || $option['type'] == shopFeatureModel::TYPE_DOUBLE
+                                                || mb_strpos($option['type'], 'range.') === 0
+                                                || mb_strpos($option['type'], 'dimension.') === 0
                                         ) {
+                                            $divider = ' ';
                                             $this->addLabelInterval($item, $label, $words_count);
+                                        }
+                                        if ($option['type'] == shopFeatureModel::TYPE_DATE || $option['type'] == 'range.date') {
+                                            $item['rule_params'] = waDateTime::format('humandate', $item['rule_params']);
                                         }
                                         $label[] = $item['rule_params'];
                                     }
@@ -248,6 +287,9 @@ class shopProdListAction extends waViewAction
                                         }
                                     }
                                     $this->addLabelInterval($item, $label, $words_count);
+                                    if ($option['type'] == 'date') {
+                                        $item['rule_params'] = waDateTime::format('humandate', strtotime($item['rule_params']));
+                                    }
                                     $label[] = $sign_left . $item['rule_params'] . $sign_right;
                                 }
                                 $rule['name'] = $option['name'];
@@ -278,16 +320,40 @@ class shopProdListAction extends waViewAction
         }
     }
 
+    protected function getActionRights()
+    {
+        $action_rights = [
+            'partial_access_types' => [],
+            'full_access_types' => [],
+        ];
+        $type_rights = wa()->getUser()->getRights('shop', 'type.%');
+        foreach ($type_rights as $type_id => $value) {
+            if ($type_id !== 'all') {
+                if ($value == 2) {
+                    $action_rights['full_access_types'][] = $type_id;
+                } elseif ($value == 1) {
+                    $action_rights['partial_access_types'][] = $type_id;
+                }
+            }
+        }
+        foreach (['importexport', 'setscategories', 'marketing', 'setup_marketing'] as $rule) {
+            $action_rights[$rule] = (bool)wa()->getUser()->getRights('shop', $rule);
+        }
+
+        return $action_rights;
+    }
+
     public function formatProducts($products) {
         $result = [];
 
         $selected_selectable_feature_ids = self::getProductsFeatureIds(array_keys($products));
         $features = self::getProductFeatures(array_column($products, 'type_id'), $products);
-        $product_features_model = new shopProductFeaturesModel();
+        $this->product_features_model = new shopProductFeaturesModel();
         foreach ($products as $_product) {
             // Feature values saved for skus: sku_id => feature code => value
-            $skus_features_values = $product_features_model->getValuesMultiple($features[$_product['id']], $_product['id'], array_keys($_product['skus']));
-            $result[] = $this->formatProduct($_product, $selected_selectable_feature_ids, $features[$_product['id']], $skus_features_values);
+            $product_features = isset($features[$_product['id']]) ? $features[$_product['id']] : [];
+            $skus_features_values = $this->product_features_model->getValuesMultiple($product_features, $_product['id'], array_keys($_product['skus']));
+            $result[] = $this->formatProduct($_product, $selected_selectable_feature_ids, $product_features, $skus_features_values);
         }
 
         // !!! TODO: hook that allows plugins to modify $result
@@ -343,7 +409,8 @@ class shopProdListAction extends waViewAction
         };
         $product["params"] = $getParams($product);
 
-        $_normal_mode = (count($product["skus"]) > 1 || ifempty($product, 'params', 'multiple_sku', null));
+        $has_features_values = $this->product_features_model->checkProductFeaturesValues($product['id'], $product['type_id']);
+        $_normal_mode = count($product["skus"]) > 1 || $has_features_values || ifempty($product, 'params', 'multiple_sku', null) || $selected_selectable_feature_ids[$product['id']];
 
         // Фотографии продукта
         $getPhotos = function($product) {
@@ -678,10 +745,26 @@ class shopProdListAction extends waViewAction
                             ]
                         ];
                         foreach ($badges as $badge) {
-                            $options[] = [
-                                "name" => $badge["name"],
+                            $badge_data = [
+                                "name"  => $badge["name"],
+                                "icon"  => null,
                                 "value" => $badge["id"]
                             ];
+                            switch ($badge["id"]) {
+                                case "new":
+                                    $badge_data["icon"] = '<i class="fas fa-bolt"></i>';
+                                    break;
+                                case "lowprice":
+                                    $badge_data["icon"] = '<i class="fas fa-piggy-bank"></i>';
+                                    break;
+                                case "bestseller":
+                                    $badge_data["icon"] = '<i class="fas fa-chart-line"></i>';
+                                    break;
+                                case "custom":
+                                    $badge_data["icon"] = '<i class="fas fa-code"></i>';
+                                    break;
+                            }
+                            $options[] = $badge_data;
                         }
                         $column["badges"] = $badges;
                         $column["options"] = $options;
@@ -697,15 +780,7 @@ class shopProdListAction extends waViewAction
         return $result;
     }
 
-    protected function getProductCategories() {
-        $category_model = new shopCategoryModel();
-        $categories = $category_model->getFullTree('id, name, parent_id', true);
-        return $category_model->buildNestedTree($categories);
-    }
-
     protected function getProductCategoriesOptions() {
-        $categories = $this->getProductCategories();
-
         function forEachCategory($_categories, $options = [], $deep = 0) {
             foreach ($_categories as $_category) {
                 $name = $_category["name"];
@@ -732,7 +807,7 @@ class shopProdListAction extends waViewAction
             return $options;
         }
 
-        return forEachCategory($categories);
+        return forEachCategory($this->static_categories_tree);
     }
 
     protected function getProductTypes() {
@@ -813,7 +888,7 @@ class shopProdListAction extends waViewAction
         return $result;
     }
 
-    protected function clearMissingRules(&$rules, $data, $categories, $sets)
+    protected function clearMissingRules(&$rules, $data, $categories)
     {
         $is_selected = false;
         $rule_types = ['categories', 'sets', 'types'];
@@ -826,8 +901,18 @@ class shopProdListAction extends waViewAction
                             $is_selected = true;
                         }
                     } elseif ($rule['rule_type'] == 'sets') {
-                        if (isset($sets[$rule['rule_params']])) {
-                            $is_selected = true;
+                        foreach ($data[$rule['rule_type']] as $info) {
+                            if (isset($info['sets'])) {
+                                foreach ($info['sets'] as $subset) {
+                                    if ($subset['id'] == $rule['rule_params']) {
+                                        $is_selected = true;
+                                        break;
+                                    }
+                                }
+                            } elseif ($info['id'] == $rule['rule_params']) {
+                                $is_selected = true;
+                                break;
+                            }
                         }
                     } elseif ($rule['rule_type'] == 'types') {
                         foreach ($data[$rule['rule_type']] as $info) {
@@ -911,5 +996,133 @@ class shopProdListAction extends waViewAction
             unset($rule);
 
         }
+    }
+
+    protected function getMassActions()
+    {
+        $result = [
+            "export" => [
+                "id" => "export",
+                "name" => _w("Экспорт"),
+                "actions" => [
+                    [
+                        "id" => "export_csv",
+                        "name" => _w("Экспорт в CSV")
+                    ]
+                ]
+            ],
+            "organize" => [
+                "id" => "organize",
+                "name" => _w("Организовать"),
+                "actions" => [
+                    [
+                        "id" => "add_to_category",
+                        "name" => _w("Добавить в категорию"),
+                        "pinned" => true
+                    ],
+                    [
+                        "id" => "exclude_from_category",
+                        "name" => _w("Исключить из категории")
+                    ],
+                    [
+                        "id" => "add_to_set",
+                        "name" => _w("Добавить в список"),
+                        "pinned" => true
+                    ],
+                    [
+                        "id" => "exclude_from_set",
+                        "name" => _w("Исключить из списка")
+                    ],
+                    [
+                        "id" => "add_tags",
+                        "name" => _w("Назначить теги")
+                    ],
+                    [
+                        "id" => "remove_tags",
+                        "name" => _w("Убрать теги")
+                    ]
+                ]
+            ],
+            "edit" => [
+                "id" => "edit",
+                "name" => _w("Редактирование"),
+                "actions" => [
+                    [
+                        "id" => "badge",
+                        "name" => _w("Наклейка"),
+                        "pinned" => true
+                    ],
+                    [
+                        "id" => "storefront_publication",
+                        "name" => _w("Публикация на витрине"),
+                        "pinned" => true
+                    ],
+                    [
+                        "id" => "change_product_type",
+                        "name" => _w("Сменить тип товара")
+                    ],
+                    [
+                        "id" => "duplicate",
+                        "name" => _w("Создать дубликат"),
+                        "pinned" => true
+                    ],
+                    [
+                        "id" => "delete",
+                        "name" => _w("Удалить"),
+                        "pinned" => true
+                    ]
+                ]
+            ],
+            "marketing" => [
+                "id" => "marketing",
+                "name" => _w("Маркетинг"),
+                "actions" => [
+                    [
+                        "id" => "badge",
+                        "name" => _w("Купоны на скидку")
+                    ],
+                    [
+                        "id" => "storefront_publication",
+                        "name" => _w("Добавить в акцию")
+                    ]
+                ]
+            ]
+        ];
+
+        /*
+        // TODO: add plugins to groups
+        $result["export"]["actions"][] = [
+            "id" => "plugin_1",
+            "name" => _w("Плагин экспорта")
+        ];
+
+        $result["edit"]["actions"][] = [
+            "id" => "plugin_1",
+            "name" => _w("Плагин редактирования")
+        ];
+
+        $result["marketing"]["actions"][] = [
+            "id" => "plugin_1",
+            "name" => _w("Плагин редактирования")
+        ];
+
+        // TODO: add plugin group
+        $result["plugin_group_1"] = [
+            "id" => "plugin_group_1",
+            "name" => _w("Группа плагинов"),
+            "actions" => [
+                [
+                    "id" => "plugin_1",
+                    "name" => _w("Плагин 1 для группы плагинов")
+                ],
+                [
+                    "id" => "plugin_2",
+                    "name" => _w("Плагин 2 для группы плагинов")
+                ]
+            ]
+        ];
+        */
+
+        return array_values($result);
     }
 }

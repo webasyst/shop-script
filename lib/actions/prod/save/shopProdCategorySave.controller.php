@@ -48,15 +48,22 @@ class shopProdCategorySaveController extends waJsonController
 
     protected function validateData(&$category)
     {
+        if (!empty($category['id'])) {
+            $category_model = new shopCategoryModel();
+            $saved_category = $category_model->getById($category['id']);
+            $category_type = $saved_category['type'];
+        } else {
+            $category_type = $category['type'];
+        }
         $parent = $this->model->getById($category['parent_id']);
-        if ($parent && $parent['type'] == shopCategoryModel::TYPE_DYNAMIC && $category['type'] == shopCategoryModel::TYPE_STATIC) {
+        if ($parent && $parent['type'] == shopCategoryModel::TYPE_DYNAMIC && $category_type == shopCategoryModel::TYPE_STATIC) {
             throw new waException('You cannot create a static category in a dynamic category.');
         }
 
         if (!empty($category['url'])) {
             $categegory_id = isset($category['id']) ? $category['id'] : null;
             if ($this->model->urlExists($category['url'], $categegory_id, $category['parent_id'])) {
-                $this->errors['url'] = _w('URL is in use');
+                $this->errors['url'] = _w('The URL is already in use.');
                 return;
             }
         }
@@ -82,16 +89,8 @@ class shopProdCategorySaveController extends waJsonController
         }
         $category['params'] = $params;
 
-        if (isset($category['id'])) {
-            $category_model = new shopCategoryModel();
-            $saved_category = $category_model->getById($category['id']);
-            if ($saved_category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-                $category['conditions'] = $this->getConditions();
-            }
-        } else {
-            if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-                $category['conditions'] = $this->getConditions();
-            }
+        if ($category_type == shopCategoryModel::TYPE_DYNAMIC) {
+            $category['conditions'] = $this->getConditions();
         }
     }
 
@@ -114,7 +113,7 @@ class shopProdCategorySaveController extends waJsonController
                 }
             }
             if (empty($data['name'])) {
-                $data['name'] = _w('(no-name)');
+                $data['name'] = _w('(no name)');
             }
             $response = $this->model->add($data, $data['parent_id']);
             if (is_array($response)) {
@@ -182,13 +181,35 @@ class shopProdCategorySaveController extends waJsonController
         $select_fields = ['type', 'tag', 'badge'];
         foreach ($raw_condition as $key => $item) {
             if (in_array($key, $range_fields)) {
-                if (mb_strlen($item['begin'])) {
-                    $conditions[] = $key.'>='.$item['begin'];
+                $sign = null;
+                if (!mb_strlen($item['begin'])) {
+                    unset($item['begin']);
+                    $sign = '<=';
+                } elseif (!mb_strlen($item['end'])) {
+                    unset($item['end']);
+                    $sign = '>=';
                 }
-                if (mb_strlen($item['end'])) {
-                    $conditions[] = $key.'<='.$item['end'];
+                $raw_data = array_values($item);
+                $validated_params = shopFilter::validateValue($raw_data, $key);
+                if (empty($validated_params)) {
+                    $this->errors = [
+                        'id' => 'incorrect_params',
+                        'text' => _w('Incorrect parameters.'),
+                    ];
+                    return '';
+                }
+                if ($sign == null) {
+                    $conditions[] = "$key>=" . $validated_params[0];
+                    $conditions[] = "$key<=" . $validated_params[1];
+                } else {
+                    $conditions[] = $key . $sign . $validated_params[0];
                 }
             } elseif (in_array($key, $select_fields) && !empty($item) && is_array($item)) {
+                if ($key == 'tag') {
+                    $tag_model = new shopTagModel();
+                    $names = $tag_model->select('name')->where('id IN (?)', [$item])->fetchAll();
+                    $item = array_column($names, 'name');
+                }
                 $select_data = implode('||', $item);
                 $select_data = str_replace('&', '\&', $select_data);
                 $conditions[] = $key.'='.$select_data;
@@ -196,13 +217,55 @@ class shopProdCategorySaveController extends waJsonController
         }
 
         if (!empty($raw_condition['features'])) {
+            $feature_model = new shopFeatureModel();
+            $features = $feature_model->getByCode(array_keys($raw_condition['features']));
             foreach ($raw_condition['features'] as $code => $feature_data) {
-                if (isset($feature_data['begin']) && mb_strlen($feature_data['begin'])) {
-                    $conditions[] = $code.'.value>='.$feature_data['begin'];
-                } elseif (isset($feature_data['end']) && mb_strlen($feature_data['end'])) {
-                    $conditions[] = $code.'.value<='.$feature_data['end'];
-                } elseif (!empty($feature_data['values']) && is_array($feature_data['values'])) {
-                    $conditions[] = $code.'.value_id='.implode(',', $feature_data['values']);
+                if (isset($features[$code])) {
+                    $is_range = false;
+                    $sign = $unit = null;
+                    if (isset($feature_data['begin'])) {
+                        $is_range = true;
+                        if (isset($feature_data['unit']) && mb_strlen($feature_data['unit'])) {
+                            $unit = $feature_data['unit'];
+                            unset($feature_data['unit']);
+                        }
+                        if (!mb_strlen($feature_data['begin'])) {
+                            unset($feature_data['begin']);
+                            $sign = '<=';
+                        } elseif (!mb_strlen($feature_data['end'])) {
+                            unset($feature_data['end']);
+                            $sign = '>=';
+                        }
+                    }
+
+                    if (is_array($feature_data)) {
+                        $feature_data = array_values($feature_data);
+                    } else {
+                        // boolean
+                        $feature_data = [$feature_data];
+                    }
+                    $type = $features[$code] + ['display_type' => 'feature'];
+                    $validated_params = shopFilter::validateValue($feature_data, '', $type);
+                    if (empty($validated_params)) {
+                        $this->errors = [
+                            'id' => 'incorrect_feature_params',
+                            'text' => _w('Incorrect feature parameters.'),
+                        ];
+                        return '';
+                    }
+                    if ($is_range) {
+                        if ($sign == null) {
+                            $conditions[] = "$code.value>=" . $validated_params[0];
+                            $conditions[] = "$code.value<=" . $validated_params[1];
+                        } else {
+                            $conditions[] = "$code.value$sign" . $validated_params[0];
+                        }
+                        if ($unit) {
+                            $conditions[] = $code . '.unit=' . $unit;
+                        }
+                    } else {
+                        $conditions[] = $code.'.value_id='.implode(',', $validated_params);
+                    }
                 }
             }
         }

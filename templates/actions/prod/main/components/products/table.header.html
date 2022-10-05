@@ -1,13 +1,16 @@
-{$_templates["table_tooltip_stock"] = "<span class=\"s-icon icon shift-up-1 color-gray-light\"><svg><use xlink:href=\"{$_sprite_url}#warehouse\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("склад")}</span>"}
-{$_templates["table_tooltip_virtual_stock"] = "<span class=\"s-icon icon shift-up-1 color-gray-light\"><svg><use xlink:href=\"{$_sprite_url}#warehouse_stroke\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("виртуальный склад")}</span>"}
-{$_templates["table_tooltip_feature"] = "<span class='icon size-14'>%visible_in_frontend%</span> <span class='icon size-12'>%available_for_sku%</span> %name% <span class=\"color-gray-light\">{_w("характеристика")}</span>"}
+{$_templates["table_tooltip_stock"] = "<span class=\"s-icon icon shift-up-1 color-gray-light\"><svg><use xlink:href=\"{$_sprite_url}#warehouse\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("stock")}</span>"}
+{$_templates["table_tooltip_virtual_stock"] = "<span class=\"s-icon icon shift-up-1 color-gray-light\"><svg><use xlink:href=\"{$_sprite_url}#warehouse_stroke\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("virtual stock")}</span>"}
+{$_templates["table_tooltip_feature"] = "<span class='icon size-14'>%visible_in_frontend%</span> <span class='icon size-12 color-gray-lighter'><svg><use xlink:href=\"{$_sprite_url}#sitemap-slash\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("feature")}</span>"}
+{$_templates["table_tooltip_feature_sku"] = "<span class='icon size-14'>%visible_in_frontend%</span> <span class='icon size-12 color-gray'><svg><use xlink:href=\"{$_sprite_url}#sitemap\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("feature")}</span>"}
+{$_locales["column_categories_hint"] = _w("Extra static categories the product has been added to.")}
+{$_locales["column_sets_hint"] = _w("Static sets the product has been added to.")}
 
 {capture assign="_component_products_table_header"}
 <div class="s-column"
      v-bind:style="{ width: column_width }"
      v-bind:class="column_class_name"
      v-bind:data-column-type="column.column_type">
-    <div class="s-header-column-wrapper" v-if="column_name">
+    <div class="s-header-column-wrapper">
         <div class="s-name-wrapper">
             <div class="s-name-block"
                  v-bind:class="{ 'cursor-pointer' : column_sortable }"
@@ -24,16 +27,17 @@
                     </template>
                     <template v-else-if="is_feature">
                         <template v-if="column_available_for_sku">
-                            <span class="s-icon icon shift-up-1 color-gray"><i class="fas fa-sitemap"></i></span>
+                            <span class="s-icon icon shift-up-1 color-gray"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
                         </template>
                         <template v-else>
-                            <span class="s-icon icon shift-up-1 color-gray-lighter"><i class="fas fa-sitemap"></i></span>
+                            <span class="s-icon icon shift-up-1 color-gray-lighter"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
                         </template>
                     </template>
 
                     <div class="s-name"
-                          v-bind:data-tooltip-id="'table-column'"
-                          v-on:mouseenter="onMouseEnter">{ { column_name } }</div>
+                         v-if="column_name"
+                         v-bind:data-tooltip-id="'table-column'"
+                         v-on:mouseenter="onMouseEnter">{ { column_name } }</div>
 
                     <template v-if="column_sortable">
                         <template v-if="column.id === presentation.sort_column_id">

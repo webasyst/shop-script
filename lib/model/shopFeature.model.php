@@ -19,6 +19,7 @@ class shopFeatureModel extends waModel
     const STATUS_PRIVATE = 'private';
 
     const SEARCH_STEP = 20;
+    const GET_ALL = 100500;
 
     private static $instances = array();
 
@@ -120,9 +121,14 @@ class shopFeatureModel extends waModel
         return $id;
     }
 
+    public function getCode($code = '')
+    {
+        return preg_replace('/[^a-zA-Z0-9_]+/', '_', trim(waLocale::transliterate($code)));
+    }
+
     public function getUniqueCode($code, $id = null, $multidimensional = false)
     {
-        if ($code = preg_replace('/[^a-zA-Z0-9_]+/', '_', trim(waLocale::transliterate($code)))) {
+        if ($code = $this->getCode($code)) {
             $max_length = $multidimensional ? 62 : 64;
 
             if (!self::isCodeAllowed($code)) {
@@ -276,7 +282,7 @@ SQL;
     public function getFeaturesCount($options)
     {
         $options['select'] = 'COUNT(DISTINCT sf.id) as count';
-        $feature_count = $this->getFilterFeatures($options, 100500, false);
+        $feature_count = $this->getFilterFeatures($options, shopFeatureModel::GET_ALL, false);
 
         return ifset($feature_count, 'count', false);
     }
@@ -303,7 +309,7 @@ SQL;
      *
      * @see test tests/wa-apps/shop/model/feature/shopFeatureModelGetFilterFeaturesTest.php
      */
-    public function getFilterFeatures($options = [], $limit = 500, $all = true)
+    public function getFilterFeatures($options = [], $limit = 500, $all = true, $order_by = 'count')
     {
         $select = ['Distinct sf.*'];
         $join = [];
@@ -398,6 +404,19 @@ SQL;
                         $where[] = sprintf("sf.type NOT LIKE '%%.%s.%%'", self::TYPE_DIMENSION); //ignore %D.dimension
                     }
                     break;
+                case 'ignore_text':
+                    if ($value === true) {
+                        $where[] = "sf.type != 'text'";
+                    }
+                    break;
+                case 'ignore_complex_types':
+                    if ($value === true) {
+                        $where[] = "sf.type != 'divider'";
+                        $where[] = "sf.type NOT LIKE '2d.%'";
+                        $where[] = "sf.type NOT LIKE '3d.%'";
+                        $where[] = 'sf.parent_id IS NULL';
+                    }
+                    break;
                 case 'select':
                     $select = [];
                     if (is_array($value)) {
@@ -424,8 +443,8 @@ SQL;
                     $unions = [];
                     foreach ($value as $term) {
                         $term = $this->escape($term, 'like');
-                        $unions[] = "sf.name LIKE '$term%'";
-                        $unions[] = "sf.code LIKE '$term%'";
+                        $unions[] = "sf.name LIKE '%$term%'";
+                        $unions[] = "sf.code LIKE '%$term%'";
                     }
                     $where[$field] = $this->getUnion($unions);
                     break;
@@ -445,7 +464,7 @@ SQL;
         $join = join(' ', $join);
         $select = join(', ', $select);
 
-        $query = "SELECT {$select} FROM {$this->table} AS sf {$join} WHERE {$where} ORDER BY sf.count, sf.id DESC LIMIT {$limit}";
+        $query = "SELECT {$select} FROM {$this->table} AS sf {$join} WHERE {$where} ORDER BY sf.{$order_by}, sf.id DESC LIMIT {$limit}";
         $result = $this->query($query);
 
         if ($all === false) {

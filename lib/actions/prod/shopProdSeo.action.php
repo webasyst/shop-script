@@ -13,6 +13,7 @@ class shopProdSeoAction extends waViewAction
         shopProdGeneralAction::createEmptyProduct($product_id);
         $product = new shopProduct($product_id);
         if (!$product['id']) {
+            $this->setTemplate('templates/actions/prod/includes/deleted_product.html');
             $this->setLayout(new shopBackendProductsEditSectionLayout([
                 'content_id' => 'seo',
             ]));

@@ -46,7 +46,7 @@ class shopProdCategoryConditionEditDialogAction extends waViewAction
                     $value_data = [
                         "name" => (string)$value,
                         "value" => $key,
-                        "code" => (!empty($value["code"] ? $value['hex'] : "#000000"))
+                        "code" => !empty($value["code"]) ? $value['hex'] : "#000000",
                     ];
 
                 // Кейс для обычного массива (теги например)

@@ -3,7 +3,7 @@
     <div class="dialog-body">
         <div class="js-vue-section" style="visibility: hidden;">
             <div class="dialog-header">
-                <h3>{sprintf(_w("Скопировать категорию «%s»"), "{ { set.name } }")}</h3>
+                <h3>{sprintf(_w("Copy the “%s” category"), "{ { set.name } }")}</h3>
             </div>
             <div class="dialog-content">
 
@@ -14,7 +14,7 @@
                                 <component-radio v-model="copy_products"
                                                  v-bind:val="false"
                                                  v-bind:name="'copy_products'"></component-radio>
-                                <span class="s-label">[`Не копировать товары`]</span>
+                                <span class="s-label">[`Do not copy products`]</span>
                             </label>
                         </div>
                         <div class="s-radio-wrapper">
@@ -22,7 +22,7 @@
                                 <component-radio v-model="copy_products"
                                                  v-bind:val="true"
                                                  v-bind:name="'copy_products'"></component-radio>
-                                <span class="s-label">[`Скопировать товары`]</span>
+                                <span class="s-label">[`Copy products`]</span>
                             </label>
                         </div>
                     </div>

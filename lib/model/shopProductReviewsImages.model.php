@@ -116,8 +116,8 @@ class shopProductReviewsImagesModel extends waModel
 
         $this->deleteById((int)$id);
         throw new waException(
-            sprintf(
-                "The insufficient file write permissions for the %s folder.",
+            sprintf_wp(
+                "Insufficient write permissions for the %s folder.",
                 substr($path, strlen($config->getRootPath()))
             )
         );

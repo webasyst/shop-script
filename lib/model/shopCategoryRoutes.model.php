@@ -71,4 +71,18 @@ class shopCategoryRoutesModel extends waModel
             $this->multipleInsert($data);
         }
     }
+
+    public function deleteMissingRoutes()
+    {
+        $storefronts = shopStorefrontList::getAllStorefronts(true);
+        $routes = [];
+        foreach ($storefronts as $storefront) {
+            $routes[] = $storefront['domain'] . '/' . $storefront['route']['url'];
+        }
+        if ($routes) {
+            $values = "'" . implode("', '", $this->escape($routes)) . "'";
+            $sql = "DELETE FROM `$this->table` WHERE `route` NOT IN ($values)";
+            $this->exec($sql);
+        }
+    }
 }

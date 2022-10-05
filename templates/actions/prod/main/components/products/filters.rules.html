@@ -9,10 +9,10 @@
     <div class="flexbox space-16">
         <div class="flexbox space-12 nowrap">
             <div class="s-count-wrapper">
-                <span class="s-count bold">{_w("Найден %d товар.", "Найдено %d товаров", $products_total_count)}</span>
+                <span class="s-count bold">{_w("%d product found.", "%d products found.", $products_total_count)}</span>
             </div>
             <div class="s-reset-wrapper">
-                <span class="link" v-on:click="resetFilters" v-if="formatted_filters.length">[`Сбросить фильтры`]</span>
+                <span class="link" v-on:click="resetFilters" v-if="formatted_filters.length">[`Clear filters`]</span>
             </div>
         </div>
         <template v-if="formatted_filters.length">
@@ -50,8 +50,14 @@
      v-bind:data-tooltip-id="(show_tooltip ? 'table-result-filter-name' : null)">
     <div class="flexbox space-4">
         <div class="s-icon-wrapper">
-            <span class="s-icon icon shift-0 color-gray-light" v-if="group.type === 'categories'" v-bind:key="group.type"><i class="fas fa-folder"></i></span>
-            <span class="s-icon icon shift-0 color-gray-light" v-else-if="group.type === 'sets'" v-bind:key="group.type"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></span>
+            <template v-if="group.type === 'categories'">
+                <span class="s-icon icon size-18 shift-2 color-gray-light" v-bind:key="'fa-folder-dynamic'" v-if="is_folder_dynamic"><svg><use xlink:href="{$_sprite_url}#folder-dynamic"></use></svg></span>
+                <span class="s-icon icon shift-0 color-gray-light" v-bind:key="'fa-folder'" v-else><i class="fas fa-folder"></i></span>
+            </template>
+            <template v-else-if="group.type === 'sets'">
+                <span class="s-icon icon shift-0 color-gray-light" v-if="is_list_dynamic" v-bind:key="'fa-list-auto'"><svg><use xlink:href="{$_sprite_url}#list-auto"></use></svg></span>
+                <span class="s-icon icon shift-0 color-gray-light" v-else="" v-bind:key="'fa-list'"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></span>
+            </template>
             <span class="s-icon icon shift-0 color-gray-light" v-else-if="group.type === 'storefronts'" v-bind:key="group.type"><i class="fas fa-store"></i></span>
             <span class="s-icon icon shift-0 color-gray-light" v-else-if="group.type === 'tags'" v-bind:key="group.type"><i class="fas fa-tag"></i></span>
             <span class="s-icon icon shift-0 color-gray-light" v-else-if="group.type === 'types'" v-bind:key="group.type"><i class="fas fa-cube"></i></span>

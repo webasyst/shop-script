@@ -12,7 +12,7 @@ class shopProductSkusGetInfoMethod extends shopApiMethod
         if ($sku) {
             $this->response = $sku;
         } else {
-            throw new waAPIException('invalid_param', 'SKU not found', 404);
+            throw new waAPIException('invalid_param', 'SKU not found.', 404);
         }
     }
 }

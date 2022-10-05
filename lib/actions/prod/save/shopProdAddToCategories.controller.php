@@ -14,8 +14,8 @@ class shopProdAddToCategoriesController extends waJsonController
 
         if (!$this->getUser()->getRights('shop', 'setscategories')) {
             $this->errors[] = [
-                'id' => 'not_selected',
-                'text' => _w('Товары не выбраны'),
+                'id' => 'access_denied',
+                'text' => _w('Access denied'),
             ];
         }
 
@@ -30,14 +30,16 @@ class shopProdAddToCategoriesController extends waJsonController
             return;
         }
 
+        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
         if (!$presentation_id) {
-            $all_product_ids = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+            $all_product_ids = $product_id;
         } else {
             $presentation = new shopPresentation($presentation_id, true);
             $options = [];
             if ($presentation->getFilterId() > 0) {
-                $options['prepare_filter_id'] = $presentation->getFilterId();
+                $options['prepare_filter'] = $presentation->getFilterId();
+                $options['exclude_products'] = $product_id;
             }
             $collection = new shopProductsCollection('', $options);
             $all_product_ids = $presentation->getProducts($collection, [
@@ -54,16 +56,16 @@ class shopProdAddToCategoriesController extends waJsonController
          * @param int $new_category_id
          * @param array $category_ids with $new_category_id
          * @param string $hash
-         * @param array products_id
+         * @param array $all_product_ids products_id
          *
          * @event products_set_categories.before
          */
-        $params = array(
+        $params = [
             'new_category_id' => $new_category_id,
             'category_ids'    => $category_ids,
             'hash'            => $hash,
             'products_id'     => $all_product_ids,
-        );
+        ];
         wa('shop')->event('products_set_categories.before', $params);
 
         $ids_left = $all_product_ids;
@@ -84,16 +86,16 @@ class shopProdAddToCategoriesController extends waJsonController
          * @param int $new_category_id
          * @param array $category_ids with $new_category_id
          * @param string $hash
-         * @param array|string products_id
+         * @param array|string $all_product_ids products_id
          *
          * @event products_set_categories.after
          */
-        $params = array(
+        $params = [
             'new_category_id' => $new_category_id,
             'category_ids'    => $category_ids,
             'hash'            => $hash,
             'products_id'     => $all_product_ids,
-        );
+        ];
         wa('shop')->event('products_set_categories.after', $params);
 
         $categories = $this->category_model->getByField('id', $category_ids, 'id');
@@ -109,11 +111,11 @@ class shopProdAddToCategoriesController extends waJsonController
         $url = shopHelper::transliterate($name, false);
         $url = $this->category_model->suggestUniqueUrl($url);
         if (empty($name)) {
-            $name = _w('(no-name)');
+            $name = _w('(no name)');
         }
-        return $this->category_model->add(array(
+        return $this->category_model->add([
             'name' => $name,
-            'url'  => $url
-        ));
+            'url' => $url
+        ]);
     }
 }

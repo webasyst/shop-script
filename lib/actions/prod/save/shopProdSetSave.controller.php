@@ -91,7 +91,7 @@ class shopProdSetSaveController extends waJsonController
                     if ($value != shopSetModel::TYPE_STATIC && $value != shopSetModel::TYPE_DYNAMIC) {
                         $this->errors[] = [
                             'id' => 'incorrect_type',
-                            'text' => _w('Type not set')
+                            'text' => _w('Missing set type.')
                         ];
                     }
                     break;
@@ -100,7 +100,7 @@ class shopProdSetSaveController extends waJsonController
                     if (empty($length_id) || $length_id > 64) {
                         $this->errors[] = [
                             'id' => 'incorrect_length_id',
-                            'text' => _w('ID списка не может быть длиннее 64 символов или быть пустым')
+                            'text' => _w('The set ID cannot be empty or longer than 64 characters.')
                         ];
                     }
                     if (!preg_match("/^[a-z0-9\._-]+$/i", $value)) {
@@ -115,7 +115,7 @@ class shopProdSetSaveController extends waJsonController
                             if (!$set) {
                                 $this->errors[] = [
                                     'id' => 'set_not_found',
-                                    'text' => _w('Список для обновления не найден')
+                                    'text' => _w('No set found to update.')
                                 ];
                             }
                         }
@@ -133,7 +133,7 @@ class shopProdSetSaveController extends waJsonController
                     if (mb_strlen($value) == 0 || mb_strlen($value) > 255) {
                         $this->errors[] = [
                             'id' => 'incorrect_length_name',
-                            'text' => _w('Имя не может быть пустым или длиннее 64 символов')
+                            'text' => _w('A name cannot be empty or longer than 64 characters.')
                         ];
                     }
                     break;
@@ -141,7 +141,7 @@ class shopProdSetSaveController extends waJsonController
                     if (!in_array($value, array_column(shopSetModel::getRuleOptions(), 'value'))) {
                         $this->errors[] = [
                             'id' => 'incorrect_rule',
-                            'text' => _w('Такого правила фильтрации не существует')
+                            'text' => _w('The filtering rule does not exist.')
                         ];
                     }
                     break;
@@ -149,7 +149,7 @@ class shopProdSetSaveController extends waJsonController
                     if (isset($value) && !in_array($value, array_column(shopSetModel::getSortProductsOptions(), 'value'))) {
                         $this->errors[] = [
                             'id' => 'incorrect_sort_products',
-                            'text' => _w('Такого правила сортировки не существует')
+                            'text' => _w('The sorting rule does not exist.')
                         ];
                     }
                     break;
@@ -157,7 +157,7 @@ class shopProdSetSaveController extends waJsonController
                     if (empty($value) || $value < 0) {
                         $this->errors[] = [
                             'id' => 'incorrect_count',
-                            'text' => _w('Количество не может быть пустым или меньше нуля')
+                            'text' => _w('A quantity cannot be empty or negative.')
                         ];
                     }
                     break;
@@ -179,7 +179,7 @@ class shopProdSetSaveController extends waJsonController
             } else {
                 $this->errors[] = [
                     'id' => 'invalid_date_start',
-                    'text' => _w('Invalid date start')
+                    'text' => _w('Invalid start date.')
                 ];
             }
         }
@@ -192,7 +192,7 @@ class shopProdSetSaveController extends waJsonController
             } else {
                 $this->errors[] = [
                     'id' => 'invalid_date_end',
-                    'text' => _w('Invalid date end')
+                    'text' => _w('Invalid date end.')
                 ];
             }
         }

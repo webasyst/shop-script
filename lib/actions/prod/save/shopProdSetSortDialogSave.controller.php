@@ -17,7 +17,7 @@ class shopProdSetSortDialogSaveController extends waJsonController
             if (empty($products)) {
                 $this->errors = [
                     'id' => 'empty_products',
-                    'text' => _w('Products not specified')
+                    'text' => _w('Products not specified.')
                 ];
             }
             if (!$this->errors) {
@@ -29,7 +29,7 @@ class shopProdSetSortDialogSaveController extends waJsonController
                 } else {
                     $this->errors = [
                         'id' => 'update_fail',
-                        'text' => _w('Failed to update set')
+                        'text' => _w('Failed to update the set.')
                     ];
                 }
             }
@@ -43,7 +43,7 @@ class shopProdSetSortDialogSaveController extends waJsonController
             if (empty($correct_sort)) {
                 $this->errors = [
                     'id' => 'incorrect_sort',
-                    'text' => _w('No sort order specified')
+                    'text' => _w('No sort order specified.')
                 ];
             }
         }
@@ -58,7 +58,7 @@ class shopProdSetSortDialogSaveController extends waJsonController
             }
             $this->errors = [
                 'id' => 'not_found',
-                'text' => _w('Set to update not found')
+                'text' => _w('The set to update was not found.')
             ];
         }
     }
@@ -67,8 +67,11 @@ class shopProdSetSortDialogSaveController extends waJsonController
     {
         $set_products_model = new shopSetProductsModel();
         $set_products = $set_products_model->select('product_id')->where('set_id = ?', $set_id)->fetchAll('product_id');
-        $product_model = new shopProductModel();
-        $products = $product_model->select('id')->where('id IN(?)', [array_keys($set_products)])->order($sort_products)->fetchAll('id');
+        $products = [];
+        if ($set_products) {
+            $product_model = new shopProductModel();
+            $products = $product_model->select('id')->where('id IN (?)', [array_keys($set_products)])->order($sort_products)->fetchAll('id');
+        }
         return array_keys($products);
     }
 }

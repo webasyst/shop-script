@@ -21,7 +21,7 @@ class shopProdFilterDuplicateController extends waJsonController
     protected function formatValues(&$data)
     {
         if (mb_strlen($data['name']) === 0) {
-            $data['name'] = _w('(новый фильтр)');
+            $data['name'] = _w('(new filter)');
         }
     }
 }

@@ -659,17 +659,17 @@
 
                         <template v-if="vertical">
                             <template v-if="feature.available_for_sku">
-                                <span class="s-icon"><i class="fas fa-sitemap"></i></span>
+                                <span class="s-icon icon"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
                             </template>
                             <template v-else>
-                                <span class="s-icon is-inactive"><i class="fas fa-sitemap"></i></span>
+                                <span class="s-icon icon is-inactive"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
                             </template>
                         </template>
 
                         <template v-else>
                             <template v-if="feature.available_for_sku">
                                 <div class="wa-tooltip custom js-show-tooltip-on-hover">
-                                    <span class="s-icon"><i class="fas fa-sitemap"></i></span>
+                                    <span class="s-icon icon"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
                                     <div class="tooltip-text" style="width: 15rem;">
                                         <p>[`You can save this feature’s values for SKU variants. If no value has been saved for a variant, then a default value specified here is used.`]</p>
                                         <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
@@ -678,7 +678,7 @@
                             </template>
                             <template v-else>
                                 <div class="wa-tooltip custom js-show-tooltip-on-hover">
-                                    <span class="s-icon is-inactive"><i class="fas fa-sitemap"></i></span>
+                                    <span class="s-icon icon is-inactive"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
                                     <div class="tooltip-text" style="width: 15rem;">
                                         <p>[`A feature value for entire product.`]</p>
                                         <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>

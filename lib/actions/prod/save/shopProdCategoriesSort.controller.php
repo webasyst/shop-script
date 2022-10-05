@@ -17,7 +17,7 @@ class shopProdCategoriesSortController extends waJsonController
         if ($sort != 'name ASC' && $sort != 'name DESC') {
             $this->errors = [
                 'id' => 'incorrect_sort',
-                'text' => _w('Unable to sort categories')
+                'text' => _w('Failed to sort categories.')
             ];
         }
     }
@@ -43,7 +43,7 @@ class shopProdCategoriesSortController extends waJsonController
                 if ($response !== true) {
                     $this->errors = [
                         'id' => 'sort_categories',
-                        'text' => ifempty($response, _w('Cannot sort the categories.')),
+                        'text' => ifempty($response, _w('Failed to sort categories.')),
                     ];
                     return;
                 }

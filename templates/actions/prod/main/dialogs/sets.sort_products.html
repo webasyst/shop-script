@@ -2,7 +2,7 @@
 
 {$_sort_options = [
     [
-        "name" => _w("Сортировка"),
+        "name" => _w("Order by"),
         "value" => ""
     ],
     [
@@ -10,7 +10,7 @@
         "value" => "name ASC"
     ],
     [
-        "name" => _w("По названию (в обратном порядке)"),
+        "name" => _w("By name (in reverse order)"),
         "value" => "name DESC"
     ],
     [
@@ -51,7 +51,7 @@
     <div class="dialog-body">
         <div class="js-vue-section" style="visibility: visible;">
             <div class="dialog-header">
-                <h3 class="s-title wide">{sprintf(_w("Сотрировка товаров для категории «%s»"), "{ { set.name } }")}</h3>
+                <h3 class="s-title wide">{sprintf(_w("Product sorting for the “%s” set"), "{ { set.name } }")}</h3>
 
                 <template v-if="!render_products || products.length">
                     <template v-if="!states.sort_locked">
@@ -60,7 +60,7 @@
                     <template v-else>
                         <div class="s-load-message">
                             <span class="s-icon icon size-16"><i class="fas fa-spinner fa-spin"></i></span>
-                            <span class="s-text">[`Продукты сортируются, пожалуйста подождите.`]</span>
+                            <span class="s-text">[`Products are being sorted, please wait.`]</span>
                         </div>
                     </template>
                 </template>
@@ -83,7 +83,7 @@
                                     <div class="s-column-toggle">
                                         <div class="s-middle-content">
                                             <template v-if="!product.states.move_locked">
-                                                <span class="s-icon icon size-16 cursor-move js-product-move-toggle" draggable="true"><i class="fas fa-bars"></i></span>
+                                                <span class="s-icon icon size-16 cursor-move js-product-move-toggle" draggable="true"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></span>
                                             </template>
                                             <template v-else>
                                                 <span class="s-icon icon size-16"><i class="fas fa-spinner fa-spin"></i></span>
@@ -113,18 +113,18 @@
                         </div>
                     </template>
                     <template v-else>
-                        <div class="s-empty-message">[`В категории нет товаров для сортировки`]</div>
+                        <div class="s-empty-message">[`The category has no products for sorting.`]</div>
                     </template>
                 </template>
                 <template v-else>
                     <div class="s-warn-message">
-                        <p>[`В категории слишком много товаров. Отображение всех товаров может нагрузить ваш компьютер. Нажмите на кнопку ниже, чтобы их отобразить на ваше усмотрение.`]</p>
+                        <p>[`The category contains too many products. Displaying all of them may cause increased load to your computer. Click the button below if you are sure to display all products.`]</p>
                         <p>
                             <button class="wa-button wa-small" type="button"
                                     v-bind:disabled="states.force_locked"
                                     v-on:click.prevent="forceRender">
                                 <span class="s-icon icon top" v-if="states.force_locked"><i class="fas fa-spinner fa-spin"></i></span>
-                                <span class="s-name">[`Показать все товары`]</span>
+                                <span class="s-name">[`Show all products`]</span>
                             </button>
                         </p>
                     </div>
@@ -134,18 +134,18 @@
             <div class="dialog-footer" v-if="selected_products.length && !states.locked">
                 <div class="flexbox middle space-16">
                     <div class="s-selection-counter">
-                        <span class="s-label">[`Выбрано`]</span>
+                        <span class="s-label">[`Selected`]</span>
                         <span class="s-count" v-text="selected_products.length"></span>
                     </div>
 
                     <div class="s-action cursor-pointer link" v-on:click="moveUp">
                         <span class="s-icon icon size-16"><svg><use xlink:href="{$_sprite_url}#chevron-double-up"></use></svg></span>
-                        <span class="s-name">[`в начало`]</span>
+                        <span class="s-name">[`to beginning`]</span>
                     </div>
 
                     <div class="s-action cursor-pointer link" v-on:click="moveDown">
                         <span class="s-icon icon size-16"><svg><use xlink:href="{$_sprite_url}#chevron-double-down"></use></svg></span>
-                        <span class="s-name">[`в конец`]</span>
+                        <span class="s-name">[`to end`]</span>
                     </div>
 
                     <div class="s-close-action wide">

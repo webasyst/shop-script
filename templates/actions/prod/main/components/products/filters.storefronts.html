@@ -11,8 +11,8 @@
                     v-if="storefronts.length"
                     class="s-search-form"
                     v-model="search_string"
-                    v-bind:placeholder="'{_w("Найти витрину")|escape}'"></component-table-filters-search>
-                <span v-else>[`У вас нет витрин`]</span>
+                    v-bind:placeholder="'{_w("Find a storefront")|escape}'"></component-table-filters-search>
+                <span v-else>[`You have no storefronts.`]</span>
             </div>
             <div class="s-section-body" v-if="storefronts.length">
                 <div class="s-storefronts-list">
@@ -34,7 +34,7 @@
                             </div>
                         </div>
                     </template>
-                    <div class="s-storefront-wrapper" v-if="!items.length">[`Витрины не найдены`]</div>
+                    <div class="s-storefront-wrapper" v-if="!items.length">[`Storefronts not found.`]</div>
                 </div>
             </div>
             <div class="s-section-footer" v-if="storefronts.length">
@@ -43,7 +43,7 @@
                         v-on:click="save">[`Apply`]</button>
                 <button class="wa-button wa-small transparent" type="button"
                         v-bind:disabled="!has_value"
-                        v-on:click="reset">[`Очистить фильтр`]</button>
+                        v-on:click="reset">[`Reset filter`]</button>
             </div>
         </div>
     </div>

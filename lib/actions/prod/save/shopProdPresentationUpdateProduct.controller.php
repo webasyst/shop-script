@@ -74,7 +74,7 @@ class shopProdPresentationUpdateProductController extends waJsonController
         if ($sku_id && !isset($skus[$sku_id])) {
             $this->errors = [
                 'id' => 'sku',
-                'text' => _w('SKU not found'),
+                'text' => _w('SKU not found.'),
             ];
         }
         $presentation_model = new shopPresentationModel();
@@ -82,12 +82,12 @@ class shopProdPresentationUpdateProductController extends waJsonController
         if (!$this->presentation) {
             $this->errors = [
                 'id' => 'presentation',
-                'text' => _w('Presentation not found'),
+                'text' => _w('Saved view not found.'),
             ];
         } elseif ($this->presentation['view'] == shopPresentation::VIEW_THUMBS) {
             $this->errors = [
                 'id' => 'presentation_view',
-                'text' => _w('Editing not available in thumbnail view'),
+                'text' => _w('Editing is not available in the “Tiles” view mode.'),
             ];
         }
         if (!$this->errors) {
@@ -100,12 +100,12 @@ class shopProdPresentationUpdateProductController extends waJsonController
             if (!isset($columns_list[$field_id])) {
                 $this->errors = [
                     'id' => 'column',
-                    'text' => _w('Column not found'),
+                    'text' => _w('Column not found.'),
                 ];
             } elseif ($columns_list[$field_id]['editable'] === false || in_array($field_id, $blacklist)) {
                 $this->errors = [
                     'id' => 'field_readonly',
-                    'text' => _w('Column cannot be edited'),
+                    'text' => _w('The column cannot be edited.'),
                 ];
                 return;
             }
@@ -119,7 +119,7 @@ class shopProdPresentationUpdateProductController extends waJsonController
             if (!isset($stocks[$stock_id])) {
                 $this->errors = [
                     'id' => 'stock',
-                    'text' => _w('Stock not found'),
+                    'text' => _w('Stock not found.'),
                 ];
             }
         }
@@ -128,7 +128,7 @@ class shopProdPresentationUpdateProductController extends waJsonController
         if ($field_id == 'count' && ((!$is_complex_product && !$stocks && !$sku_id) || ($stocks && !$sku_id))) {
             $this->errors = [
                 'id' => 'wrong_data',
-                'text' => _w('Unable to change value'),
+                'text' => _w('Failed to change the value.'),
             ];
         }
 
@@ -143,12 +143,12 @@ class shopProdPresentationUpdateProductController extends waJsonController
             if (!isset($skus[$value])) {
                 $this->errors[] = [
                     'id' => 'wrong_data',
-                    'text' => _w('Невозможно изменить видимость на витрине и доступность для покупки.'),
+                    'text' => _w('Failed to update the visibility in the storefront and the availability for purchase.'),
                 ];
             } elseif (empty($skus[$value]['status'])) {
                 $this->errors[] = [
                     'id' => 'main_sku_visibility',
-                    'text' => _w('Невозможно изменить основной артикул. У артикула отлючена видимость на витрине.'),
+                    'text' => _w('Failed to change the main SKU because its visibility in the storefront is disabled.'),
                 ];
             }
         }
@@ -347,6 +347,22 @@ class shopProdPresentationUpdateProductController extends waJsonController
                 return $value !== null;
             });
             $changed_column_value['params'] = $params;
+
+            if ($field_id == 'type_id' && $product->type_id != $value) {
+                $type_model = new shopTypeModel();
+                $type = $type_model->getById($value);
+                if ($type) {
+                    foreach (['order_multiplicity_factor', 'stock_unit_id', 'base_unit_id', 'stock_base_ratio', 'order_count_min', 'order_count_step'] as $field) {
+                        $changed_column_value[$field] = $type[$field];
+                        if ($field == 'stock_base_ratio' || $field == 'order_count_min' || $field == 'order_count_step') {
+                            foreach ($changed_column_value['skus'] as &$sku) {
+                                $sku[$field] = null;
+                            }
+                            unset($sku);
+                        }
+                    }
+                }
+            }
         }
 
         return $changed_column_value;
@@ -397,11 +413,45 @@ class shopProdPresentationUpdateProductController extends waJsonController
     {
         $saved_value = $value;
         if (!$sku_id) {
-            if (mb_strpos($field_id, 'feature_') === 0) {
-                $feature_id = mb_substr($field_id, 8);
+            if (mb_strpos($field_id, 'feature_') === 0 && is_array($value)) {
                 $features = $product->getFeatures();
-                if (isset($features[$feature_id])) {
-                    $saved_value = $features[$feature_id]->value;
+                $code = explode('.', key($value))[0];
+                if (isset($features[$code])) {
+                    $feature = $features[$code];
+                    if ($feature instanceof shopCompositeValue) {
+                        $saved_value = [];
+                        $count = count($value);
+                        for ($i = 0; $i < $count; $i++) {
+                            if (isset($feature[$i]) && is_object($feature[$i])) {
+                                $composite_value = $feature[$i];
+                                $saved_value[$code.$i] = ['value' => $this->getFeatureValue($composite_value)];
+                                if ($i == 0 && $composite_value instanceof shopDimensionValue) {
+                                    $saved_value[$code.$i]['unit'] = (string)$composite_value->unit;
+                                }
+                            }
+                        }
+                    } elseif (is_object($feature)) {
+                        $saved_value = [
+                            $code => [
+                                'value' => [],
+                            ],
+                        ];
+                        if ($feature instanceof shopRangeValue) {
+                            $saved_value[$code]['value']['begin'] = $this->getFeatureValue($feature->begin);
+                            $saved_value[$code]['value']['end'] = $this->getFeatureValue($feature->end);
+                            if ($feature->end instanceof shopDimensionValue) {
+                                $saved_value[$code]['unit'] = (string)$feature->end->unit;
+                            }
+                        } else {
+                            $saved_value[$code]['value'] = $this->getFeatureValue($feature);
+                            if ($feature instanceof shopColorValue) {
+                                $saved_value[$code]['code'] = (string)$feature->code;
+                            }
+                            if ($feature instanceof shopDimensionValue) {
+                                $saved_value[$code]['unit'] = (string)$feature->unit;
+                            }
+                        }
+                    }
                 }
             } elseif (isset($product[$field_id])) {
                 $saved_value = $product[$field_id];
@@ -419,13 +469,28 @@ class shopProdPresentationUpdateProductController extends waJsonController
         return $saved_value;
     }
 
+    /**
+     * @param $value
+     * @return double
+     */
+    protected function getFeatureValue($value)
+    {
+        if ($value instanceof shopDateValue) {
+            return shopDateValue::timestampToDate($value->timestamp);
+        } elseif (is_object($value)) {
+            return (string)$value->value;
+        }
+        return (string)$value;
+    }
+
     protected function checkProductMode($product)
     {
         static $is_complex_product;
         if ($is_complex_product === null) {
             $features_selectable_model = new shopProductFeaturesSelectableModel();
             $selected_selectable_feature_ids = $features_selectable_model->getProductFeatureIds($product['id']);
-            $has_features_values = shopProdSkuAction::checkProductFeaturesValues($product['id'], $product['type_id']);
+            $product_features_model = new shopProductFeaturesModel();
+            $has_features_values = $product_features_model->checkProductFeaturesValues($product['id'], $product['type_id']);
             $is_complex_product = (count($product['skus']) > 1 || $has_features_values
                 || ifempty($product, 'params', 'multiple_sku', null) || $selected_selectable_feature_ids);
         }

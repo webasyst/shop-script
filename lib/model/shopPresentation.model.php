@@ -60,12 +60,13 @@ class shopPresentationModel extends waModel
      */
     public function getTemplatesByUser($contact_id, $options = [])
     {
-        $sql = "SELECT * FROM `{$this->table}`
-                WHERE `creator_contact_id` = ?
-                    AND `name` IS NOT NULL
-                    AND `parent_id` IS NULL
-                ORDER BY `sort`";
-        $presentations = $this->query($sql, [$contact_id])->fetchAll('id');
+        $fields = '*';
+        if (isset($options['fields']) && !empty($options['fields']) && is_array($options['fields'])) {
+            $fields = $this->escape(implode(', ', $options['fields']));
+        }
+
+        $presentations = $this->select($fields)->where('`name` IS NOT NULL AND `parent_id` IS NULL AND `creator_contact_id` = ' . (int)$contact_id)
+            ->order('sort')->fetchAll('id');
         if ($presentations) {
             $presentations = $this->workup($presentations, $options);
         }
@@ -109,12 +110,10 @@ class shopPresentationModel extends waModel
         $duplicate_options = [
             'use_datetime' => $datetime->format('Y-m-d H:i:s')
         ];
-        if (isset($options['browser'])) {
-            $duplicate_options['browser'] = $options['browser'];
-        }
         $datetime = new DateTime('-1 month');
         $where = '`creator_contact_id` = i:ccid AND `parent_id` IS NOT NULL AND `use_datetime` >= s:udt';
         $where_params = [
+            'ccid' => $contact_id,
             'udt' => $datetime->format('Y-m-d H:i:s')
         ];
         if (!empty($options['open_presentation_ids']) && is_array($options['open_presentation_ids'])) {
@@ -123,29 +122,28 @@ class shopPresentationModel extends waModel
         }
         $where_browser = '';
         if (isset($options['browser'])) {
-            $where_browser .= " AND `browser` = s:br";
+            $where_browser = " AND `browser` = s:br";
             $where_params['br'] = $options['browser'];
+            $duplicate_options['browser'] = $options['browser'];
         }
         $order = 'use_datetime DESC';
         if (!empty($options['active_presentation_id'])) {
-            $presentations = $this->where("`id` = i:id AND " . $where . $where_browser, [
-                'id' => $options['active_presentation_id'],
-                'ccid' => $contact_id,
-            ] + $where_params)->order($order)->fetchAll('id');
+            $where_params['id'] = $options['active_presentation_id'];
+            $presentations = $this->where("`id` = i:id AND " . $where . $where_browser, $where_params)->order($order)->fetchAll('id');
         } else {
-            if (empty($presentations) && $where_browser) {
-                $presentations = $this->where($where . $where_browser, [
-                    'ccid' => $contact_id,
-                ] + $where_params)->order($order)->fetchAll('id');
+            if ($where_browser) {
+                $presentations = $this->where($where . $where_browser, $where_params)->order($order)->fetchAll('id');
             }
             if (empty($presentations)) {
-                $presentations = $this->where($where, [
-                    'ccid' => $contact_id,
-                ] + $where_params)->order($order)->fetchAll('id');
+                $presentations = $this->where($where, $where_params)->order($order)->fetchAll('id');
             }
         }
         if ($presentations) {
-            if (!empty($options['reset_presentation_to_template'])) {
+            if (!empty($options['use_presentation'])) {
+                $presentation = reset($presentations);
+                $transient_id = $this->duplicate($presentation['id'], self::DUPLICATE_MODE_PRESENTATION);
+                return $this->getById($transient_id, $options);
+            } elseif (!empty($options['reset_presentation_to_template'])) {
                 $presentation = reset($presentations);
                 $template = $this->getById($template_id);
                 if (!$template) {
@@ -162,10 +160,11 @@ class shopPresentationModel extends waModel
                 ];
                 $update = array_merge($update, $duplicate_options);
                 $this->updateById($presentation['id'], $update);
+                return $this->getById($presentation['id'], $options);
+            } else {
+                $presentations = $this->workup($presentations, $options);
+                return reset($presentations);
             }
-
-            $presentations = $this->workup($presentations, $options);
-            return reset($presentations);
         }
 
         $transient_id = $this->duplicate($template_id);
@@ -351,19 +350,19 @@ class shopPresentationModel extends waModel
     protected function createBaseTemplates($contact_id)
     {
         $prices_id = $this->insert([
-            'name' => _w('Цены и наличие'),
+            'name' => _w('Prices & availability'),
             'creator_contact_id' => $contact_id,
             'view' => shopPresentation::VIEW_TABLE_EXTENDED,
             'sort' => 1,
         ]);
         $catalog_id = $this->insert([
-            'name' => _w('Представление в каталоге'),
+            'name' => _w('Appearance in the catalog'),
             'creator_contact_id' => $contact_id,
             'view' => shopPresentation::VIEW_TABLE_EXTENDED,
             'sort' => 2,
         ]);
         $publication_id = $this->insert([
-            'name' => _w('Публикация и обновление'),
+            'name' => _w('Publication & update'),
             'creator_contact_id' => $contact_id,
             'view' => shopPresentation::VIEW_TABLE_EXTENDED,
             'sort' => 3,

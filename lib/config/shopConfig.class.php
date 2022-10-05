@@ -817,10 +817,14 @@ class shopConfig extends waAppConfig
                     }
                     $custom_action_name = ifset($row_params, 'custom_action_name', '');
                     $logs[$l_id]['action_name'] = sprintf($l['action_name'], $custom_action_name);
+                    $order_id = ifset($row_params, 'id', '');
                 } else {
-                    $url = $app_url.'#/order/'.$l['params'].'/';
+                    $order_id = $l['params'];
+                }
+                if ($order_id) {
+                    $url = $app_url.'#/order/'.$order_id.'/';
                     $logs[$l_id]['params_html'] = '<div class="activity-target"><a href="'.$url.'">'.
-                        shopHelper::encodeOrderId($l['params']).'</a></div>';
+                        shopHelper::encodeOrderId($order_id).'</a></div>';
                 }
             } elseif (in_array($l['action'], array('page_add', 'page_edit', 'page_move'))) {
                 if (!empty($l['params_html'])) {

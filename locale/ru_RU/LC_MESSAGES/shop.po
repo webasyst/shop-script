@@ -155,7 +155,7 @@ msgid "Shipping"
 msgstr "Доставка"
 
 msgid "Enabled"
-msgstr "Включен"
+msgstr "Включено"
 
 msgid "Shipping option name"
 msgstr "Название способа доставки"
@@ -242,7 +242,7 @@ msgid "Configure"
 msgstr "Конфигурация"
 
 msgid "Disabled"
-msgstr "Выключен"
+msgstr "Выключено"
 
 msgid "Turn on"
 msgstr "Включить"
@@ -781,7 +781,7 @@ msgstr "Большинство плагинов расчета стоимост�
 msgid "You have no such feature in your online store settings."
 msgstr "В настройках вашего магазина нет такой характеристики."
 
-msgid "Add it in “<a href=\"%s\">Product types &amp; Features</a>” screen."
+msgid "Add it in “<a href=\"%s\">Product types &amp; features</a>” screen."
 msgstr "Добавьте ее в разделе «<a href=\"%s\">Типы и характеристики товаров</a>»."
 
 msgid "Add shipping option"
@@ -814,7 +814,7 @@ msgstr "Добавить значение характеристики"
 msgid "This feature is special and cannot be deleted. You can only remove it from certain product types where you don’t need it."
 msgstr "Эта характеристика — особенная, ее нельзя удалить. Ее можно только отключить для отдельных типов товаров, где она вам не нужна."
 
-msgid "Product types & Features"
+msgid "Product types & features"
 msgstr "Типы и характеристики товаров"
 
 msgid "Product type settings"
@@ -1264,7 +1264,7 @@ msgstr "Отображение"
 msgid "Most expensive"
 msgstr "Самые дорогие"
 
-msgid "Include products from sub-categories"
+msgid "Include products from subcategories"
 msgstr "Включить товары из подкатегорий"
 
 msgid "Allow product filtering"
@@ -1463,7 +1463,7 @@ msgid "New customer category"
 msgstr "Новая категория покупателей"
 
 msgid "Category name"
-msgstr "Название категории"
+msgstr "Наименование категории"
 
 msgid "Or specify image URL (must be exactly 16x16 pixels):"
 msgstr "Или укажите URL изображения (размером 16x16 пикселей):"
@@ -1678,11 +1678,11 @@ msgstr "Витрины"
 msgid "Featured on homepage"
 msgstr "Промо"
 
-msgid "(no-name)"
-msgstr "(без названия)"
+msgid "(no name)"
+msgstr "(без имени)"
 
-msgid "URL is in use"
-msgstr "URL уже используется"
+msgid "The URL is already in use."
+msgstr "URL уже используется."
 
 msgid "ID is in use"
 msgstr "ID уже используется"
@@ -2437,6 +2437,9 @@ msgstr "<br>Страницы товаров: /<strong>category-name/subcategory-
 msgid "Order by"
 msgstr "Сортировка"
 
+msgid "Sort order"
+msgstr "Сортировка"
+
 msgid "My orders"
 msgstr "Мои заказы"
 
@@ -2653,7 +2656,7 @@ msgstr "Приход"
 msgid "Debit"
 msgstr "Расход"
 
-msgid "Product sort order"
+msgid "Products sort order"
 msgstr "Сортировка товаров"
 
 msgid "worth of self placed orders"
@@ -3590,7 +3593,7 @@ msgid "More"
 msgstr "Еще"
 
 msgid "By name"
-msgstr "По названию"
+msgstr "По наименованию"
 
 msgid "Registered customers apply for affiliate bonuses and discounts on future orders"
 msgstr "Зарегистрированные покупатели получают накопительные бонусные баллы и скидки на будущие заказы"
@@ -4804,7 +4807,7 @@ msgstr "Заказ был оплачен %s"
 msgid "Registered customer"
 msgstr "Зарегистрированный покупатель"
 
-msgid "Pricing & Availability"
+msgid "Prices & availability"
 msgstr "Цены и наличие"
 
 msgid "Recent orders"
@@ -4889,7 +4892,7 @@ msgid "Sources"
 msgstr "Источники"
 
 msgid "Not specified"
-msgstr "Не задана"
+msgstr "Не задано"
 
 msgid "Note"
 msgstr "Заметка"
@@ -5539,7 +5542,7 @@ msgstr "Автоматическое прикрепление заказов к 
 msgid "Latest blog updates"
 msgstr "Новые записи в блоге"
 
-msgid "When enabled, products will be fetched from both the current category and all its sub-categories — and shown in one list"
+msgid "When enabled, products will be fetched from both the current category and all its subcategories — and shown in one list"
 msgstr "Включение этой настройки автоматически добавит в список товаров данной категории все товары из ее подкатегорий"
 
 msgid "Delete promo"
@@ -6195,9 +6198,6 @@ msgstr "Каналы продаж"
 
 msgid "Compare at price is set"
 msgstr "С зачеркнутой ценой"
-
-msgid "(no name)"
-msgstr "(без имени)"
 
 msgid "Customers will be able to collect multiple products in the cart before proceeding to checkout"
 msgstr "Покупатели смогут добавить несколько товаров в корзину, прежде чем перейти к оформлению заказа"
@@ -8308,8 +8308,8 @@ msgstr "опубликовать"
 msgid "Show order items’ and total order weight"
 msgstr "Показывать вес товаров и общий вес заказа"
 
-msgid "No products are selected"
-msgstr "Товары не выбраны"
+msgid "No products are selected."
+msgstr "Товары не выбраны."
 
 msgid "Select products and execute a corresponding action using the menu on the right in “Products” section."
 msgstr "Выберите нужные товары и выполните соответствующее действие в меню справа в разделе «Товары»."
@@ -9634,7 +9634,7 @@ msgstr "Выбор дополнительных категорий"
 msgid "Add new category"
 msgstr "Добавить новую категорию"
 
-msgid "Enter name"
+msgid "Enter a name"
 msgstr "Введите название"
 
 msgid "Category search"
@@ -9979,9 +9979,6 @@ msgstr "Эта вкладка пока не готова, мы еще работ
 msgid "SEO"
 msgstr "SEO"
 
-msgid "Prices & availability"
-msgstr "Цены и наличие"
-
 msgid "Change log"
 msgstr "История изменений"
 
@@ -10000,7 +9997,7 @@ msgstr "Купона нет"
 msgid "Hidden and unavailable (404)"
 msgstr "Скрыт и недоступен (404)"
 
-msgid "Try out new products section"
+msgid "Try out the new products section"
 msgstr "Попробовать новый раздел товаров"
 
 msgid "Try out the new products section version. The option to return to the old editor will remain."
@@ -10141,9 +10138,6 @@ msgstr "Поддерживаются URL видеороликов, скопир�
 msgid "Drag & drop image files here or click this area to upload files."
 msgstr "Перетащите файлы изображений в это поле или нажмите здесь для загрузки файлов."
 
-msgid "Selected:"
-msgstr "Выбрано:"
-
 msgid "No images not selected in SKU variants."
 msgstr "Нет изображений, не используемых в модификациях артикулов."
 
@@ -10222,10 +10216,10 @@ msgstr "GET-параметры"
 msgid "POST parameters"
 msgstr "POST-параметры"
 
-msgid "Apply to all sub-categories"
+msgid "Apply to all subcategories"
 msgstr "Применить ко всем подкатегориям"
 
-msgid "When this category is saved, the “Hidden category” setting selected above will be applied to all its sub-categories."
+msgid "When this category is saved, the “Hidden category” setting selected above will be applied to all its subcategories."
 msgstr "При сохранении этой категории ко всем ее подкатегориям будет применено выбранное выше значение настройки «Скрытая категория»."
 
 msgid "Data sending format"
@@ -10294,7 +10288,7 @@ msgstr "Тип страницы"
 msgid "You can set up multiple storefronts for your online store — for sales in various regions, for several business areas, for sales via social media and other platforms. Each storefront can display its own set of products. Here are shown the storefronts where this particular product is displayed."
 msgstr "В интернет-магазине можно настроить несколько витрин: для продаж в разных регионах, для разных направлений бизнеса, для продажи товаров в соцсетях и на других сторонних платформах. На каждой витрине можно показывать разные наборы товаров. Здесь показаны витрины, на которых опубликован этот товар."
 
-msgid "The available storefronts and the products displayed in them can be managed by means of product types (in section “Settings → Product types & Features”) and the storefront settings (in section “Storefront → Settings”). Add new storefronts in section “Structure” of the Site app."
+msgid "The available storefronts and the products displayed in them can be managed by means of product types (in section “Settings → Product types & features”) and the storefront settings (in section “Storefront → Settings”). Add new storefronts in section “Structure” of the Site app."
 msgstr "Управлять витринами и отображением товаров на них можно с помощью типов товаров (в разделе «Настройки → Типы и характеристики товаров») и настроек витрин (в разделе «Витрины → Настройки»). Добавлять новые витрины можно в разделе «Структура» приложения «Сайт»."
 
 msgid "This product is not published in any storefront."
@@ -10850,7 +10844,7 @@ msgid "Product page"
 msgstr "Страница товара"
 
 msgid "This field may contain a maximum of 255 characters."
-msgstr "Это поле может содержать не более 255 символов."
+msgstr "Это поле должно содержать не более 255 символов."
 
 msgid "%d product variant is not displayed in the storefront because of an error."
 msgid_plural "%d product variants are not displayed in the storefront because of an error."
@@ -11209,8 +11203,8 @@ msgstr "Покупатель и сотрудник магазина могут �
 msgid "However, to make it convenient for customers to change the product quantity in the shopping cart, you can set up the quantity alteration value, changed via “+/-” buttons, to 0.5 lb. so that it is not necessary to adjust the order weight to the ounce."
 msgstr "Но, чтобы покупателям было удобно изменять количество товара в корзине, для кнопок «+/-» можно настроить изменение количества сразу на 0,1 кг и не заставлять их регулировать вес покупки с точностью до грамма."
 
-msgid "Product adding to the shopping cart"
-msgstr "Добавление товара в корзину"
+msgid "Products adding to the shopping cart"
+msgstr "Добавление товаров в корзину"
 
 msgid "Only integer quantity values, with the add-to-cart step equal to 1."
 msgstr "Только целое количество, с шагом добавления товара в корзину 1."
@@ -11919,3 +11913,846 @@ msgstr "Включите поддержку эмодзи в системных �
 
 msgid "product"
 msgstr "товар"
+
+msgid "This option works only if the <em>%s</em> setting’s value <strong>%s</strong> or <strong>%s</strong> is selected. With its other values, information about categories is not exported."
+msgstr "Дублирование выполняется, только если для настройки «<em>%s</em>» выбрано значение «<strong>%s</strong>» или «<strong>%s</strong>». С другими значениями информация о категориях не экспортируется."
+
+msgid "When the <strong>%s</strong> value is used then product rows are duplicated only for the selected parent category and its subcategories."
+msgstr "Когда используется значение «<strong>%s</strong>», записи о товарах дублируются только для выбранной родительской категории и ее подкатегорий."
+
+msgid "Insufficient write permissions for the %s folder."
+msgstr "Недостаточные права доступа для записи файлов в директорию %s."
+
+msgid "Date not specified."
+msgstr "Дата не задана."
+
+msgid "The value can be set up in the new section."
+msgstr "Значение можно настроить в новом разделе."
+
+msgid "Last change date"
+msgstr "Дата последнего изменения"
+
+msgid "If you are OK to answer a few questions about your review"
+msgstr "Если вы готовы ответить на несколько вопросов о вашем отзыве"
+
+msgid "Please enter your email address so that we can contact you."
+msgstr "Укажите, пожалуйста, свой адрес электронной почты, по которому мы сможем с вами связаться."
+
+msgid "Return to the old section"
+msgstr "Вернуться в старый раздел"
+
+msgid "Show by"
+msgstr "Показывать по"
+
+msgid "%s in %d SKU"
+msgid_plural "%s in %d SKUs"
+msgstr[0] "%s в %d артикуле"
+msgstr[1] "%s в %d артикулах"
+msgstr[2] "%s в %d артикулах"
+
+msgid "Total of %d product"
+msgid_plural "Total of %d products"
+msgstr[0] "Всего %d товар"
+msgstr[1] "Всего %d товара"
+msgstr[2] "Всего %d товаров"
+
+msgid "Set a badge"
+msgstr "Добавить наклейку"
+
+msgid "Product-adding date"
+msgstr "Дата добавления товара в каталог"
+
+msgid "This product is contained in a subcategory."
+msgstr "Этот товар находится в одной из подкатегорий."
+
+msgid "Tiles"
+msgstr "Плитка"
+
+msgid "Table: product"
+msgstr "Таблица: товар"
+
+msgid "Table: product & variant"
+msgstr "Таблица: товар и модификации"
+
+msgid "Pin menu"
+msgstr "Закрепить меню"
+
+msgid "Unpin menu"
+msgstr "Свернуть меню"
+
+msgid "Catalog"
+msgstr "Каталог"
+
+msgid "Templates"
+msgstr "Шаблоны"
+
+msgid "Pages"
+msgstr "Страницы"
+
+msgid "Order alphabetically in direct order <span class=\"nowrap\">(A—Z)</span>"
+msgstr "Выстроить по алфавиту в прямом порядке <span class=\"nowrap\">(A—Z, А—Я)</span>"
+
+msgid "Order alphabetically in reverse order <span class=\"nowrap\">(Z—A)</span>"
+msgstr "Выстроить по алфавиту в обратном порядке <span class=\"nowrap\">(Я—А, Z—A)</span>"
+
+msgid "configure"
+msgstr "настроить"
+
+msgid "new set"
+msgstr "новый список"
+
+msgid "Set name"
+msgstr "Наименование списка"
+
+msgid "Categories will be ordered alphabetically"
+msgstr "Категории будут выстроены по алфавиту"
+
+msgid "Please note that the sort order of categories affects their order in the storefront."
+msgstr "Будьте внимательны, порядок категорий в панели управления влияет на порядок категорий на витрине."
+
+msgid "The category has no products for sorting."
+msgstr "В категории нет товаров для сортировки."
+
+msgid "The category contains too many products. Displaying all of them may cause increased load to your computer. Click the button below if you are sure to display all products."
+msgstr "В категории слишком много товаров. Отображение их всех сразу может чрезмерно загрузить ваш компьютер. Нажмите на кнопку ниже, чтобы отобразить все товары на ваше усмотрение."
+
+msgid "Show all products"
+msgstr "Показать все товары"
+
+msgid "Selected"
+msgstr "Выбрано"
+
+msgid "to beginning"
+msgstr "в начало"
+
+msgid "to end"
+msgstr "в конец"
+
+msgid "Sort"
+msgstr "Выстроить"
+
+msgid "By name (in reverse order)"
+msgstr "По названию (в обратном порядке)"
+
+msgid "Product sorting for the “%s” category"
+msgstr "Сортировка товаров для категории «%s»"
+
+msgid "Product sorting for the “%s” set"
+msgstr "Сортировка товаров для списка «%s»"
+
+msgid "Confirm deletion"
+msgstr "Подтвердите удаление"
+
+msgid "Do not copy products"
+msgstr "Не копировать товары"
+
+msgid "Copy products"
+msgstr "Скопировать товары"
+
+msgid "Copy the “%s” category"
+msgstr "Скопировать категорию «%s»"
+
+msgid "If you have not found a certain feature, enter a more detailed search query to see more exact results."
+msgstr "Если вы не нашли какую-то характеристику, введите более подробный поисковый запрос, чтобы получить более точные результаты."
+
+msgid "Category visibility in storefronts"
+msgstr "Публикация категории на витринах"
+
+msgid "all storefronts"
+msgstr "все витрины"
+
+msgid "Apply the same storefronts visibility settings to subcategories."
+msgstr "Применить такие же настройки видимости на витринах к подкатегориям."
+
+msgid "Products’ add-to-category parameters"
+msgstr "Параметры добавления товаров в категорию"
+
+msgid "Value not specified"
+msgstr "Значение не задано"
+
+msgid "Category page"
+msgstr "Страница категории"
+
+msgid "Link URL for website menu"
+msgstr "URL ссылки в меню сайта"
+
+msgid "Link to category is available in the website menu."
+msgstr "Ссылка на категорию доступна в меню сайта."
+
+msgid "The link to the category page will not be displayed in the website menu but the page will be available at its URL."
+msgstr "Ссылка на страницу категории не будет видна в меню сайта, но страница будет доступна по своему URL."
+
+msgid "Apply this setting’s value to all subcategories."
+msgstr "Применить это значение настройки ко всех подкатегориям."
+
+msgid "Category type"
+msgstr "Тип категории"
+
+msgid "The category is filled with products manually by a user in the store backend."
+msgstr "Наполнение категории товарами происходит вручную в панели управления магазина."
+
+msgid "The category is filled with products automatically according to the parameters selected below."
+msgstr "Наполнение категории товарами происходит автоматически, на основе настроенных ниже параметров."
+
+msgid "Displaying in the storefront"
+msgstr "Представление на витрине"
+
+msgid "Displaying products from subcategories"
+msgstr "Отображение товаров из подкатегорий"
+
+msgid "Products that are not directly added to this category but are contained in its subcategories will also be visible in this category."
+msgstr "Товары, которых нет в этой категории, но которые содержатся в ее подкатегориях, тоже будут видны в этой категории."
+
+msgid "The category will contain only those products which have been directly added to it."
+msgstr "Категория будет содержать только те товары, которые добавлены именно в нее."
+
+msgid "Default product sorting on the category page"
+msgstr "Сортировка товаров по умолчанию на странице категории"
+
+msgid "The sort order that will be applied to the product listing when the category page is opened."
+msgstr "Порядок сортировки товаров, который будет применен при открытии страницы категории."
+
+msgid "Sorting option selection"
+msgstr "Выбор варианта сортировки"
+
+msgid "Available on the category page"
+msgstr "Доступно на странице категории"
+
+msgid "Website visitors will be able to select the sort order of products on the category page."
+msgstr "Посетители сайта смогут выбирать порядок сортировки товаров на странице категории."
+
+msgid "Unavailable on the category page"
+msgstr "Недоступно на странице категории"
+
+msgid "There will be no option to select the sort order of products on the category page."
+msgstr "Возможность выбрать порядок сортировки товаров на странице категории будет отсутствовать."
+
+msgid "Products filtering in the storefront"
+msgstr "Фильтрация товаров на витрине"
+
+msgid "Select product properties that will allow customers to filter products by their values; e.g., by color, manufacturer or price."
+msgstr "Выберите характеристики, которые позволят покупателям подбирать товары этой категории по их значениям, например, по цвету, производителю или цене."
+
+msgid "There will be no option to filter products on the category page."
+msgstr "Настройки для фильтрации товаров на странице категории будут отсутствовать."
+
+msgid "Category description"
+msgstr "Описание категории"
+
+msgid "Publication"
+msgstr "Публикация"
+
+msgid "Use meta tags for search systems."
+msgstr "Использовать метатеги для поисковых систем."
+
+msgid "Values specified for search systems will be used. An image and a video will be automatically selected by a social media from those available on the page."
+msgstr "Будут использованы настройки вида в поисковых системах. Изображение и видео будут выбраны соцсетью автоматически из доступных на странице."
+
+msgid "If no image URL is specified then a social media will automatically select one from those available on the page."
+msgstr "Если адрес изображения не указан, соцсеть автоматически выберет одно из изображений на странице."
+
+msgid "Show %d storefront on which the category is available"
+msgid_plural "Show %d storefronts on which the category is available"
+msgstr[0] "Показать %d витрину, на которой опубликована категория"
+msgstr[1] "Показать %d витрины, на которых опубликована категория"
+msgstr[2] "Показать %d витрин, на которых опубликована категория"
+
+msgid "Category name that customers will see in the website menu and in the category page title."
+msgstr "Наименование категории, которое покупатели увидят в меню сайта и в заголовке страницы категории."
+
+msgid "Editable part of the category page address."
+msgstr "Редактируемая часть адреса страницы категории."
+
+msgid "Copy category page address"
+msgstr "Скопировать адрес страницы категории"
+
+msgid "Generate a search-engine friendly URL from the category name"
+msgstr "Сформировать ЧПУ из наименования категории"
+
+msgid "This setting affects only the way a link is displayed in the website menu and not how the category page is published in the storefront. Its value can be used by plugins to determine products publication parameters on third-party resources."
+msgstr "Настройка влияет на отображение ссылки в меню сайта и не влияет на публикацию страницы категории на витрине. Ее значение может использоваться плагинами для определения параметров публикации товаров на сторонних площадках."
+
+msgid "All products matching the selected criteria will be collected in this category."
+msgstr "В категорию будут автоматически собраны товары, удовлетворяющие настроенным условиям."
+
+msgid "Select the storefronts on which the category page will be available. On other storefronts, the “Page not found” (404) error message will be displayed."
+msgstr "Выберите витрины, на которых будет доступна страница категории. На остальных витринах будет показано сообщение «Страница не найдена» (404)."
+
+msgid "Enter the category name"
+msgstr "Заполните наименование категории"
+
+msgid "Start typing a feature name"
+msgstr "Начните писать название характеристики"
+
+msgid "Selected storefronts"
+msgstr "Выбранные витрины"
+
+msgid "“%s” category editing"
+msgstr "Редактирование категории «%s»"
+
+msgid "Adding a new category"
+msgstr "Создание категории"
+
+msgid "Feature"
+msgstr "Характеристика"
+
+msgid "Product property"
+msgstr "Свойство товара"
+
+msgid "SKU property"
+msgstr "Свойство артикула"
+
+msgid "Dynamic property"
+msgstr "Динамическое свойство"
+
+msgid "Parameter editing"
+msgstr "Редактирование параметра"
+
+msgid "Copy the root category only"
+msgstr "Копировать только корневую категорию"
+
+msgid "Copy the category with all its subcategories"
+msgstr "Копировать категорию со всеми ее подкатегориями"
+
+msgid "Product listing columns setup"
+msgstr "Настройка столбцов для списков товаров"
+
+msgid "Select the columns that you would like to show in the product listing. Drag & drop to change columns’ sort order."
+msgstr "Выберите столбцы, которые нужно показывать в списке товаров. Изменяйте порядок сортировки столбцов перетаскиванием."
+
+msgid "Always show full column values"
+msgstr "Всегда показывать полностью значения в столбце"
+
+msgid "Try to fit column values in one line"
+msgstr "Пытаться уместить значения в столбце в одну строку"
+
+msgid "Number of tags displayed in the table:"
+msgstr "Количество тегов для отображения в таблице:"
+
+msgid "Number of categories displayed in the table:"
+msgstr "Количество категорий для отображения в таблице:"
+
+msgid "Number of sets displayed in the table:"
+msgstr "Количество списков для отображения в таблице:"
+
+msgid "Show text with a dialog"
+msgstr "Показывать текст с диалогом"
+
+msgid "Show a field for editing"
+msgstr "Показывать поле для редактирования"
+
+msgid "only the integer part"
+msgstr "только целая часть"
+
+msgid "the integer part and two decimal digits"
+msgstr "целая часть и два знака после запятой"
+
+msgid "precise number"
+msgstr "точное число"
+
+msgid "hide"
+msgstr "скрыть"
+
+msgid "Adding a filtering parameter"
+msgstr "Добавление параметра фильтрации"
+
+msgid "Specify a value of this parameter to show only products with that value using a filter."
+msgstr "Укажите значения этого параметра, чтобы показать товары только с этими значениями с помощью фильтра."
+
+msgid "Products are being sorted, please wait."
+msgstr "Товары сортируются, пожалуйста подождите."
+
+msgid "Confirm the category deletion."
+msgstr "Подтвердите удаление категории."
+
+msgid "Deletion of subcategories"
+msgstr "Удаление подкатегорий"
+
+msgid "All subcategories will be deleted regardless of their nesting level."
+msgstr "Все подкатегории будут удалены, независимо от их уровня вложенности."
+
+msgid "Subcategories will be moved one level up."
+msgstr "Подкатегории будут перемещены на уровень выше."
+
+msgid "Deletion of products"
+msgstr "Удаление товаров"
+
+msgid "All products directly added to the category are about to delete will also be deleted without a recovery option."
+msgstr "Все товары, добавленные непосредственно в удаляемую категорию, будут удалены без возможности восстановления."
+
+msgid "No products directly added to the category are about to delete will be deleted. Only their links to this category will be deleted."
+msgstr "Товары, привязанные к удаляемой категории, не будут удалены. Будет только удалена информация о привязке к удаляемой категории."
+
+msgid "Delete the “%s” category"
+msgstr "Удалить категорию «%s»"
+
+msgid "Delete subcategories"
+msgstr "Удалить вложенные категории"
+
+msgid "Do not delete subcategories"
+msgstr "Не удалять вложенные категории"
+
+msgid "Delete products (%s)"
+msgstr "Удалить товары (%s)"
+
+msgid "“%s” set editing"
+msgstr "Редактирование списка «%s»"
+
+msgid "View the “%s” category in the storefront:"
+msgstr "Посмотреть категорию «%s» на витрине:"
+
+msgid "stock"
+msgstr "склад"
+
+msgid "virtual stock"
+msgstr "виртуальный склад"
+
+msgid "feature"
+msgstr "характеристика"
+
+msgid "Extra static categories the product has been added to."
+msgstr "Дополнительные статические категории, в которые добавлен товар."
+
+msgid "Static sets the product has been added to."
+msgstr "Статические списки, в которые добавлен товар."
+
+msgid "Clear filters"
+msgstr "Сбросить фильтры"
+
+msgid "%d product found."
+msgid_plural "%d products found."
+msgstr[0] "Найден %d товар."
+msgstr[1] "Найдено %d товара."
+msgstr[2] "Найдено %d товаров."
+
+msgid "Filtering"
+msgstr "Фильтрация"
+
+msgid "Parameters not found."
+msgstr "Параметры не найдены."
+
+msgid "Find parameter"
+msgstr "Найти параметр"
+
+msgid "Configurable in the table mode with SKUs or in the product editor."
+msgstr "Настраивается в табличном режиме с артикулами или в редакторе товара."
+
+msgid "Select all products..."
+msgstr "Выделить все товары..."
+
+msgid "On this page"
+msgstr "На этой странице"
+
+msgid "On all pages"
+msgstr "На всех страницах"
+
+msgid "Code example:"
+msgstr "Пример кода:"
+
+msgid "My badge"
+msgstr "Моя наклейка"
+
+msgid "Saved view"
+msgstr "Представление"
+
+msgid "Saved views for the “Products” section"
+msgstr "Представления для раздела «Товары»"
+
+msgid "You can save current screen’s setup, including the selected sorting option, as a <em>saved view</em> for more convenient work."
+msgstr "Для удобства работы над разными задачами вы можете сохранить выбранный вид раздела вместе с выбранной сортировкой в виде <em>представления</em>."
+
+msgid "saved view"
+msgstr "представление"
+
+msgid "Rename"
+msgstr "Переименовать"
+
+msgid "Copy saved view’s link to the clipboard"
+msgstr "Скопировать ссылку на представление в буфер обмена"
+
+msgid "Nameless saved view"
+msgstr "Представление без названия"
+
+msgid "Saved filters"
+msgstr "Сохраненные фильтры"
+
+msgid "Filters"
+msgstr "Фильтры"
+
+msgid "You can save selected filters for more convenient work."
+msgstr "Для удобства работы над разными задачами вы можете сохранить выбранные фильтры."
+
+msgid "filter"
+msgstr "фильтр"
+
+msgid "Copy the filter link to the clipboard"
+msgstr "Скопировать ссылку на фильтр в буфер обмена"
+
+msgid "You can enter stock values in the table mode with SKUs or in the product editor."
+msgstr "Ввести значения для складов можно в табличном режиме с артикулами или в редакторе товара."
+
+msgid "You can view the quantity available on a virtual stock in the table mode with SKUs or in the product editor."
+msgstr "Посмотреть количество на виртуальном складе можно в табличном режиме с артикулами или в редакторе товара."
+
+msgid "Show in a dialog"
+msgstr "Показать в диалоге"
+
+msgid "Other actions"
+msgstr "Другие действия"
+
+msgid "Pin the toolbar"
+msgstr "Закрепить панель"
+
+msgid "Unpin the toolbar"
+msgstr "Открепить панель"
+
+msgid "You have no tags"
+msgstr "У вас нет тегов"
+
+msgid "Tags not found."
+msgstr "Теги не найдены."
+
+msgid "Reset filter"
+msgstr "Очистить фильтр"
+
+msgid "Find tags"
+msgstr "Найти теги"
+
+msgid "Redirection"
+msgstr "Перенаправление"
+
+msgid "This filter can contain either a category, or a set, or a product type. If one of these items is already selected then a new choice will replace the previous value."
+msgstr "В этом фильтре может быть выбрана или одна категория, или один список, или один тип товара. Если что-то из этого уже выбрано, то новый выбор заменит предыдущее значение."
+
+msgid "You have no categories."
+msgstr "У вас нет категорий."
+
+msgid "Categories not found."
+msgstr "Категории не найдены."
+
+msgid "You have no sets."
+msgstr "У вас нет списков."
+
+msgid "Sets not found."
+msgstr "Списки не найдены."
+
+msgid "You have no product types."
+msgstr "У вас нет типов товаров."
+
+msgid "Product types not found."
+msgstr "Типы товаров не найдены."
+
+msgid "Find a category"
+msgstr "Найти категорию"
+
+msgid "Find a set"
+msgstr "Найти список"
+
+msgid "Find a product type"
+msgstr "Найти тип товара"
+
+msgid "You have no storefronts."
+msgstr "У вас нет витрин."
+
+msgid "Storefronts not found."
+msgstr "Витрины не найдены."
+
+msgid "Find a storefront"
+msgstr "Найти витрину"
+
+msgid "A feature is available only for a product."
+msgstr "Характеристика доступна только для товара."
+
+msgid "This feature is used for product variants selection in the storefront. You can select its value in the variant parameters in the product editor only."
+msgstr "Эта характеристика используется для выбора модификаций товара на витрине. Ее значение можно выбрать только в свойствах модификации в редакторе товара."
+
+msgid "%s more"
+msgstr "Еще %s"
+
+msgid "Category is available"
+msgstr "Доступна"
+
+msgid "Category is unavailable"
+msgstr "Недоступна"
+
+msgid "new category"
+msgstr "новая категория"
+
+msgid "Warning: the sort order selected in this section corresponds to the category sorting in the storefront."
+msgstr "Внимание! Выбранная сортировка в этом разделе соответствует порядку категорий на витрине."
+
+msgid "Static"
+msgstr "Статическая"
+
+msgid "Dynamic"
+msgstr "Динамическая"
+
+msgid "Sort order in storefront"
+msgstr "Сортировка на витрине"
+
+msgid "Filtering in storefront"
+msgstr "Фильтрация на витрине"
+
+msgid "Publication in storefronts"
+msgstr "Публикация на витринах"
+
+msgid "Edit category settings"
+msgstr "Редактировать настройки категории"
+
+msgid "View category page in the storefront"
+msgstr "Посмотреть страницу категории на витрине"
+
+msgid "Previous product “%s”"
+msgstr "Предыдущий товар «%s»"
+
+msgid "Product %d of %d"
+msgstr "Товар %d из %d"
+
+msgid "Next product “%s”"
+msgstr "Следующий товар «%s»"
+
+msgid "Missing set type."
+msgstr "Не указан тип списка."
+
+msgid "The set ID cannot be empty or longer than 64 characters."
+msgstr "ID списка не может быть пустым или длиннее 64 символов."
+
+msgid "No set found to update."
+msgstr "Список для обновления не найден."
+
+msgid "A name cannot be empty or longer than 64 characters."
+msgstr "Имя не может быть пустым или длиннее 64 символов."
+
+msgid "The filtering rule does not exist."
+msgstr "Такое правило фильтрации не существует."
+
+msgid "The sorting rule does not exist."
+msgstr "Такое правило сортировки не существует."
+
+msgid "A quantity cannot be empty or negative."
+msgstr "Количество не может быть пустым или меньше нуля."
+
+msgid "Invalid start date."
+msgstr "Некорректная начальная дата."
+
+msgid "Invalid date end."
+msgstr "Некорректная конечная дата."
+
+msgid "Failed to update the category."
+msgstr "Не удалось обновить категорию."
+
+msgid "The sort field is too long."
+msgstr "Поле сортировки слишком длинное."
+
+msgid "No sort order specified."
+msgstr "Не указан порядок сортировки."
+
+msgid "The category to update was not found."
+msgstr "Не найдена категория для обновления."
+
+msgid "Failed to copy the category."
+msgstr "Не удалось скопировать категорию."
+
+msgid "Not tags to update are specified."
+msgstr "Не заданы теги для изменения."
+
+msgid "Failed to sort categories."
+msgstr "Не удалось отсортировать категории."
+
+msgid "Products not specified."
+msgstr "Товары не указаны."
+
+msgid "Incorrect parameters."
+msgstr "Некорректные параметры."
+
+msgid "Incorrect feature parameters."
+msgstr "Некорректные параметры характеристики."
+
+msgid "The item being moved is not a set or a set folder."
+msgstr "Перемещаемый элемент не является списком или папкой списков."
+
+msgid "Failed to move the item."
+msgstr "Перемещение не удалось."
+
+msgid "(new saved view)"
+msgstr "(новое представление)"
+
+msgid "Saved view not found."
+msgstr "Представление не найдено."
+
+msgid "A saved view cannot be a template."
+msgstr "Представление не может быть шаблоном."
+
+msgid "Incorrect view type. type."
+msgstr "Некорректный тип режима просмотра."
+
+msgid "No name is specified."
+msgstr "Не указано название."
+
+msgid "The name is too long."
+msgstr "Слишком длинное название."
+
+msgid "Failed to update the name."
+msgstr "Не удалось обновить название."
+
+msgid "SKU not found."
+msgstr "Артикул не найден."
+
+msgid "Editing is not available in the “Tiles” view mode."
+msgstr "Редактирование недоступно в режиме просмотра «Плитка»."
+
+msgid "Column not found."
+msgstr "Столбец не найден."
+
+msgid "The column cannot be edited."
+msgstr "Редактирование столбца невозможно."
+
+msgid "Stock not found."
+msgstr "Склад не найден."
+
+msgid "Failed to change the value."
+msgstr "Не удалось изменить значение."
+
+msgid "Failed to update the visibility in the storefront and the availability for purchase."
+msgstr "Не удалось изменить видимость на витрине и доступность для заказа."
+
+msgid "Failed to change the main SKU because its visibility in the storefront is disabled."
+msgstr "Не удалось изменить основной артикул: для артикула отключена видимость на витрине."
+
+msgid "(new filter)"
+msgstr "(новый фильтр)"
+
+msgid "The set to update was not found."
+msgstr "Список для обновления не найден."
+
+msgid "Failed to copy the set."
+msgstr "Не удалось скопировать список."
+
+msgid "Failed to copy the set’s products."
+msgstr "Не удалось скопировать товары списка."
+
+msgid "Incorrect product ID."
+msgstr "Некорректный ID товара."
+
+msgid "Incorrect dataset ID."
+msgstr "Некорректный ID набора данных."
+
+msgid "Incorrect type."
+msgstr "Некорректный тип."
+
+msgid "Failed to sort sets."
+msgstr "Не удалось отсортировать списки."
+
+msgid "Incorrect view type."
+msgstr "Некорректный режим просмотра."
+
+msgid "Negative number of products per page."
+msgstr "Отрицательное количество товаров на странице."
+
+msgid "Incorrect column sorting."
+msgstr "Некорректная сортировка столбцов."
+
+msgid "Column not enabled."
+msgstr "Столбец не включен."
+
+msgid "Width too small or too large."
+msgstr "Слишком маленькая или слишком большая ширина."
+
+msgid "Failed to update sorting."
+msgstr "Не удалось обновить сортировку."
+
+msgid "Failed to delete the group."
+msgstr "Не удалось удалить папку."
+
+msgid "Failed to update the set."
+msgstr "Не удалось обновить список."
+
+msgid "New folder"
+msgstr "Новая папка"
+
+msgid "Failed to create a folder"
+msgstr "Не удалось создать папку"
+
+msgid "Failed to move the category."
+msgstr "Не удалось переместить категорию."
+
+msgid "A set cannot be the parent of itself."
+msgstr "Список не может быть родительским по отношению к самому себе."
+
+msgid "A category cannot be the parent of itself."
+msgstr "Категория не может быть родительской по отношению к самой себе."
+
+msgid "Failed to delete the set."
+msgstr "Не удалось удалить список."
+
+msgid "Filter not found."
+msgstr "Фильтр не найден."
+
+msgid "Incorrect rule type."
+msgstr "Некорректный тип правила."
+
+msgid "Incorrect range limits."
+msgstr "Некорректные граничные значения диапазона."
+
+msgid "Incorrect rule parameters."
+msgstr "Некорректные параметры правила."
+
+msgid "Failed to delete the category."
+msgstr "Не удалось удалить категорию."
+
+msgid "Failed to delete products."
+msgstr "Не удалось удалить товары."
+
+msgid "Category not found."
+msgstr "Категория не найдена."
+
+msgid "Set not found."
+msgstr "Список не найден."
+
+msgid "Manually (as selected in the backend)"
+msgstr "Вручную (как задано в панели управления)"
+
+msgid "Variants number"
+msgstr "Количество модификаций"
+
+msgid "Page <title> tag"
+msgstr "Заголовок страницы <title>"
+
+msgid "Meta keywords tag"
+msgstr "Ключевые слова метатега keywords"
+
+msgid "Page meta description tag"
+msgstr "Описание страницы meta description"
+
+msgid "Visibility in the storefront and availability for purchase"
+msgstr "Видимость на витрине и доступность для покупки"
+
+msgid "category added by duplicating"
+msgstr "категория добавлена дублированием"
+
+msgid "category added by duplicating including all subcategories"
+msgstr "категория добавлена дублированием включая все подкатегории"
+
+msgid "created transfer"
+msgstr "создал трансфер"
+
+msgid "completed transfer"
+msgstr "завершил трансфер"
+
+msgid "canceled transfer"
+msgstr "отменил трансфер"
+
+msgid "hp"
+msgstr "л. с."
+
+msgid "Appearance in the catalog"
+msgstr "Представление в каталоге"
+
+msgid "Publication & update"
+msgstr "Публикация и обновление"
+
+msgid "product summary"
+msgstr "краткое описание товара"
+
+msgid "product’s and its main variant’s price"
+msgstr "цена товара или его основной модификации"

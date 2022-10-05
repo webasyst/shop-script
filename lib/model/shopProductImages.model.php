@@ -276,7 +276,7 @@ SQL;
         }
 
         if (empty($product_id)) {
-            throw new waException('Incorrect product id');
+            throw new waException('Incorrect product ID.');
         }
 
         if (is_string($image)) {
@@ -381,8 +381,8 @@ SQL;
         ) {
             $this->deleteById($data['id']);
             throw new waException(
-                sprintf(
-                    "The insufficient file write permissions for the %s folder.",
+                sprintf_wp(
+                    "Insufficient write permissions for the %s folder.",
                     substr($image_path, strlen($config->getRootPath()))
                 )
             );

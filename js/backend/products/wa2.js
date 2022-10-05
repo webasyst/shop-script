@@ -3240,6 +3240,29 @@ var Tooltip = ( function($) {
                 }
             });
 
+            // Это хак для того чтобы очищать подсказки, если вдруг появился диалог и мы нативно обошли mouseleave с таргета
+            var move_time = 2000,
+                move_observer_locked = false;
+
+            $document.on("mousemove", function(event) {
+                if (!move_observer_locked) {
+                    move_observer_locked = true;
+                    moveObserver(event);
+                    setTimeout( function() { move_observer_locked = false; }, move_time);
+                }
+
+                function moveObserver(event) {
+                    var is_tooltip_target = event.target.closest("[data-tooltip-id]"),
+                        is_tooltip_body =  event.target.closest(".wa-flex-tooltip");
+
+                    if (!is_tooltip_target && !is_tooltip_body) {
+                        $.each(tooltips, function(id, _tooltip) {
+                            if (_tooltip.hover && _tooltip.is_open) { _tooltip.close(); }
+                        });
+                    }
+                }
+            });
+
             $(window).on("resize scroll", function() {
                 // Принудительно закрываем другие подсказки если они показаны
                 $.each(tooltips, function(id, tooltip) {

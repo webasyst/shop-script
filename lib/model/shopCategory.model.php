@@ -742,6 +742,36 @@ class shopCategoryModel extends waNestedSetModel
         return $this->exec($sql);
     }
 
+    /**
+     * @param $category
+     * @param $count_in_subcategories
+     * @return bool|mixed|void
+     * @throws waDbException
+     */
+    public function count($category, $count_in_subcategories = false)
+    {
+        if (!$count_in_subcategories) {
+            if (is_array($category) && isset($category['id'])) {
+                $category = $category['id'];
+            }
+            if (!is_numeric($category)) {
+                return;
+            }
+            $where = "c.id = $category AND c.type = ".self::TYPE_STATIC;
+        } else {
+            $subcategories = $this->descendants($category, true)->where('type = '.self::TYPE_STATIC)->fetchAll('id');
+            $where = "c.id IN (".implode(',', array_keys($subcategories)).")";
+        }
+
+        $sql = "SELECT count(DISTINCT cp.product_id) `cnt`
+                FROM `{$this->table}` c
+                LEFT JOIN `shop_category_products` cp ON cp.category_id = c.id
+                WHERE $where";
+
+        return $this->query($sql)->fetchField();
+
+    }
+
     protected function repairSubtree(&$subtree, $depth = -1, $key = 0, $full_url_prefix = '')
     {
         $subtree[$this->left] = $key;

@@ -19,6 +19,10 @@ class shopFrontendProductReviewsAction extends shopFrontendProductAction
         }
 
         $product = new shopProduct($product, true);
+        if ($product['status'] < 0) {
+            // do the redirect when product is in "hidden and not available" status
+            shopFrontendProductAction::handleHiddenAndNotAvailable($product);
+        }
         $this->ensureCanonicalUrl($product);
         $this->prepareProduct($product);
         $this->assignFeaturesSelectable($product);

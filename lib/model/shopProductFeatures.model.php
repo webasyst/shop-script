@@ -725,4 +725,29 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
         }
         return true;
     }
+
+    /**
+     * @param $product_id
+     * @param $product_type_id
+     * @return bool
+     * @throws waDbException
+     */
+    public function checkProductFeaturesValues($product_id, $product_type_id)
+    {
+        $product_features_model = new shopProductFeaturesModel();
+        $sql = "SELECT pf.id
+                FROM shop_product_features pf
+                    JOIN shop_feature f ON pf.feature_id = f.id
+                    JOIN shop_type_features tf ON pf.feature_id = tf.feature_id
+                    JOIN shop_product_skus ps ON pf.sku_id = ps.id
+                WHERE pf.product_id = i:product_id AND f.type != s:feature_type AND
+                    (tf.type_id = 0 OR tf.type_id = i:product_type_id) AND pf.feature_value_id > 0
+                LIMIT 1";
+
+        return (bool)$product_features_model->query($sql, array(
+            'product_id' => $product_id,
+            'product_type_id' => $product_type_id,
+            'feature_type' => shopFeatureModel::TYPE_DIVIDER
+        ))->fetchField();
+    }
 }

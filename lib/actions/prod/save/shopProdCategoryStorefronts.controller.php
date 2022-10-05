@@ -27,7 +27,7 @@ class shopProdCategoryStorefrontsController extends waJsonController
         if (!$correct_category) {
             $this->errors = [
                 'id' => 'not_found',
-                'text' => _w('Category to update not found')
+                'text' => _w('The category to update was not found.')
             ];
         }
     }

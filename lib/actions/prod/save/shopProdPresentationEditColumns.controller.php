@@ -19,11 +19,24 @@ class shopProdPresentationEditColumnsController extends waJsonController
             if ($new_presentation_id) {
                 $this->response['new_presentation_id'] = $new_presentation_id;
                 $presentation_id = $new_presentation_id;
-            } else {
+            }
+            $sort_column_id = (int)$presentation['sort_column_id'];
+            $this->formatColumns($columns, $presentation_id, $view_id, $sort_column_id);
+            if (!$new_presentation_id) {
                 $presentation_columns_model->deleteByField('presentation_id', $presentation_id);
             }
-            $this->formatColumns($columns, $presentation_id, $view_id);
             $presentation_columns_model->multipleInsert($columns);
+            $new_sort_column_id = null;
+            if (is_string($sort_column_id)) {
+                $new_column = $presentation_columns_model->getByField([
+                    'presentation_id' => $presentation_id,
+                    'column_type' => $sort_column_id,
+                ]);
+                if ($new_column) {
+                    $new_sort_column_id = $new_column['id'];
+                }
+            }
+            $presentation_model->updateById($presentation_id, ['sort_column_id' => $new_sort_column_id]);
         }
     }
 
@@ -61,14 +74,14 @@ class shopProdPresentationEditColumnsController extends waJsonController
         if (!$presentation) {
             $this->errors = [
                 'id' => 'presentation_id',
-                'text' => _w('Presentation not found'),
+                'text' => _w('Saved view not found.'),
             ];
             return;
         }
         if (empty($presentation['parent_id'])) {
             $this->errors = [
                 'id' => 'presentation_id',
-                'text' => _w('Presentation cannot be a template'),
+                'text' => _w('A saved view cannot be a template.'),
             ];
             return;
         }
@@ -76,7 +89,7 @@ class shopProdPresentationEditColumnsController extends waJsonController
         if (!in_array($view_id, [shopPresentation::VIEW_THUMBS, shopPresentation::VIEW_TABLE, shopPresentation::VIEW_TABLE_EXTENDED])) {
             $this->errors = [
                 'id' => 'view_id',
-                'text' => _w('Incorrect view id'),
+                'text' => _w('Incorrect view type. type.'),
             ];
         }
     }
@@ -87,7 +100,7 @@ class shopProdPresentationEditColumnsController extends waJsonController
      * @param string $view_id
      * @return void
      */
-    protected function formatColumns(&$columns, $presentation_id, $view_id)
+    protected function formatColumns(&$columns, $presentation_id, $view_id, &$sort_column_id)
     {
         $required_columns = shopPresentation::getRequiredColumns($view_id);
         $column_names = array_column($columns, 'column_type');
@@ -106,10 +119,12 @@ class shopProdPresentationEditColumnsController extends waJsonController
         foreach ($columns as &$column) {
             $column['presentation_id'] = $presentation_id;
             $column['sort'] = $sort++;
-            if (isset($enabled_columns[$column['column_type']]['width'])) {
+            $column['width'] = null;
+            if (isset($enabled_columns[$column['column_type']])) {
                 $column['width'] = (int)$enabled_columns[$column['column_type']]['width'];
-            } else {
-                $column['width'] = null;
+                if ($enabled_columns[$column['column_type']]['id'] == $sort_column_id) {
+                    $sort_column_id = $column['column_type'];
+                }
             }
             $column_data = null;
             if (isset($enabled_columns[$column['column_type']]['data'])) {

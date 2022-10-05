@@ -1,11 +1,12 @@
 {capture assign="_component_product_column_sbratio"}
-    <div class="vue-column-type-sbratio">
+    <div class="vue-column-type-sbratio" v-if="column_data.value !== null">
         <template v-if="column_data.editable">
             <div class="s-flexbox flexbox space-4 middle nowrap">
                 <div class="s-text" v-text="column_data.text_left_part"></div>
                 <div class="s-field-wrapper">
                     <template v-if="states.is_preview">
                         <input class="s-field wa-small full-width is-number s-square-field" type="text" readonly
+                               v-bind:placeholder="placeholder"
                                v-bind:value="formatted_value"
                                v-on:click="togglePreview(false)">
                     </template>
@@ -16,7 +17,7 @@
                             v-bind:focus="true"
                             v-bind:validate="'number'"
                             v-bind:fraction_size="8"
-                            v-bind:required="true"
+                            v-bind:required="required"
                             v-bind:class="'s-field wa-small full-width is-number s-square-field'"
                             v-on:blur="togglePreview(true)"
                             v-on:change="onChange"></component-input>
@@ -26,8 +27,7 @@
             </div>
         </template>
         <template v-else>
-            <div class="vue-render-type-text"
-                 v-text="column_data.text"></div>
+            <div class="vue-render-type-text">[`Not specified`]</div>
         </template>
     </div>
 {/capture}

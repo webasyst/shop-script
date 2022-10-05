@@ -30,15 +30,6 @@
             var ready_promise = that.$wrapper.data("ready");
             ready_promise.resolve(that);
             that.$wrapper.trigger("ready", [that]);
-
-            var interval = setInterval( function() {
-                var $target = $("#wa-nav .desktop-only");
-                if ($target.length) {
-                    $target.parent().remove();
-                    clearInterval(interval);
-                }
-            }, 500);
-            console.log( "TODO: убрать это после этапа разработки" );
         };
 
         return Main;

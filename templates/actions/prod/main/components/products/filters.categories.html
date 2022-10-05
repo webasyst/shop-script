@@ -60,7 +60,7 @@
             <div class="s-section-footer">
                 <div class="wa-message wa-small white flexbox space-8">
                     <div class="message-icon"><span class="s-icon"><i class="fas fa-info-circle"></i></span></div>
-                    <div class="message-text wide">[`В фильтре может присутствовать только одна категория или один список или один тип товара. Если в фильтре уже есть что-то из этого, то новый выбор заменит на новый вариант.`]</div>
+                    <div class="message-text wide">[`This filter can contain either a category, or a set, or a product type. If one of these items is already selected then a new choice will replace the previous value.`]</div>
                 </div>
             </div>
         </div>
@@ -77,8 +77,8 @@
             v-if="categories.length"
             class="s-search-form"
             v-model="search_string"
-            v-bind:placeholder="'{_w("Найти категорию")|escape}'"></component-table-filters-search>
-        <div class="s-empty-wrapper" v-else>[`У вас нет категорий`]</div>
+            v-bind:placeholder="'{_w("Find a category")|escape}'"></component-table-filters-search>
+        <div class="s-empty-wrapper" v-else>[`You have no categories.`]</div>
     </div>
     <div class="s-content-list-wrapper" v-if="categories.length">
         <template v-if="items.length">
@@ -89,7 +89,7 @@
                     v-on:use_category="changeItem"></component-table-filters-categories-category>
             </template>
         </template>
-        <div class="s-empty-wrapper" v-else>[`Категории не найдены`]</div>
+        <div class="s-empty-wrapper" v-else>[`Categories not found.`]</div>
     </div>
 </div>
 {/capture}
@@ -102,8 +102,8 @@
             v-if="sets.length"
             class="s-search-form"
             v-model="search_string"
-            v-bind:placeholder="'{_w("Найти список")|escape}'"></component-table-filters-search>
-        <div class="s-empty-wrapper" v-else>[`У вас нет списков`]</div>
+            v-bind:placeholder="'{_w("Find a set")|escape}'"></component-table-filters-search>
+        <div class="s-empty-wrapper" v-else>[`You have no sets.`]</div>
     </div>
     <div class="s-content-list-wrapper" v-if="sets.length">
         <template v-if="sets.length">
@@ -114,7 +114,7 @@
                     v-on:use_set="changeItem"></component-table-filters-sets-set>
             </template>
         </template>
-        <div class="s-empty-wrapper" v-else>[`Списки не найдены`]</div>
+        <div class="s-empty-wrapper" v-else>[`Sets not found.`]</div>
     </div>
 </div>
 {/capture}
@@ -125,12 +125,12 @@
         <div class="s-item flexbox space-8" v-bind:class="item_class">
             <div class="s-icon-wrapper">
                 <template v-if="set.is_group">
-                    <span class="s-icon icon shift-0" v-bind:key="'fa-folder'"><i class="fas fa-folder"></i></span>
+                    <span class="s-icon icon shift-0 cursor-pointer" v-on:click="onClick" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></span>
                     <template v-if="set.states.is_open">
-                        <span class="s-icon icon shift-0" v-bind:key="'fa-caret-down'"><i class="fas fa-caret-down"></i></span>
+                        <span class="s-icon icon shift-0 cursor-pointer" v-on:click="onClick" v-bind:key="'fa-caret-down'"><i class="fas fa-caret-down"></i></span>
                     </template>
                     <template v-else>
-                        <span class="s-icon icon shift-0" v-bind:key="'fa-caret-right'"><i class="fas fa-caret-right"></i></span>
+                        <span class="s-icon icon shift-0 cursor-pointer" v-on:click="onClick" v-bind:key="'fa-caret-right'"><i class="fas fa-caret-right"></i></span>
                     </template>
                 </template>
                 <template v-else-if="set.type === '1'">
@@ -143,7 +143,7 @@
             <div class="s-name-wrapper wide">
                 <span class="s-name"
                       v-text="set.name"
-                      v-bind:class="{ 'cursor-pointer' : !set.is_locked, 'is-locked' : set.is_locked, 'link' : !set.is_group, 'is-group' : set.is_group }"
+                      v-bind:class="{ 'cursor-pointer' : !set.is_locked, 'is-locked' : set.is_locked, 'link' : !set.is_group && !set.is_locked, 'is-group' : set.is_group }"
                       v-on:click="onClick"></span>
             </div>
         </div>
@@ -169,26 +169,28 @@
             v-if="types.length"
             class="s-search-form"
             v-model="search_string"
-            v-bind:placeholder="'{_w("Найти тип товара")|escape}'"></component-table-filters-search>
-        <div class="s-empty-wrapper" v-else>[`У вас нет типов`]</div>
+            v-bind:placeholder="'{_w("Find a product type")|escape}'"></component-table-filters-search>
+        <div class="s-empty-wrapper" v-else>[`You have no product types.`]</div>
     </div>
     <div class="s-content-list-wrapper" v-if="types.length">
         <template v-if="items.length">
             <template v-for="item in items">
-                <div class="s-item-wrapper flexbox space-8">
-                    <div class="s-icon-wrapper">
-                        <span class="s-icon icon shift-0" v-bind:key="'fa-cube'"><i class="fas fa-cube"></i></span>
-                    </div>
-                    <div class="s-name-wrapper wide">
-                        <span class="s-name link cursor-pointer"
-                              v-text="item.name"
-                              v-bind:class="{ 'cursor-pointer' : !item.is_locked, 'is-locked' : item.is_locked }"
-                              v-on:click="setType(item)"></span>
+                <div class="s-item-wrapper">
+                    <div class="s-item flexbox space-8" v-bind:class="{ 'is-locked' : item.is_locked }">
+                        <div class="s-icon-wrapper">
+                            <span class="s-icon icon shift-0" v-bind:key="'fa-cube'"><i class="fas fa-cube"></i></span>
+                        </div>
+                        <div class="s-name-wrapper wide">
+                            <span class="s-name"
+                                  v-text="item.name"
+                                  v-bind:class="{ 'link cursor-pointer' : !item.is_locked, 'is-locked' : item.is_locked }"
+                                  v-on:click="setType(item)"></span>
+                        </div>
                     </div>
                 </div>
             </template>
         </template>
-        <div class="s-item-wrapper" v-else>[`Типы не найдены`]</div>
+        <div class="s-item-wrapper" v-else>[`Product types not found.`]</div>
     </div>
 </div>
 {/capture}
@@ -206,9 +208,9 @@
             </template>
         </div>
         <div class="s-name-wrapper wide">
-            <span class="s-name link"
+            <span class="s-name"
                   v-text="category.name"
-                  v-bind:class="{ 'cursor-pointer' : !category.is_locked, 'is-locked' : category.is_locked }"
+                  v-bind:class="{ 'link cursor-pointer' : !category.is_locked, 'is-locked' : category.is_locked }"
                   v-on:click="useCategory(category)"></span>
         </div>
     </div>

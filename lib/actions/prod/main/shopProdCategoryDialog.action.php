@@ -78,7 +78,8 @@ class shopProdCategoryDialogAction extends waViewAction
             );
         }
 
-        $category['conditions'] = $this->parseConditions($category['conditions']);
+        $parsed_conditions = self::parseConditions($category['conditions']);
+        $category['conditions'] = $this->formatConditions($parsed_conditions);
 
         // Filter
         $category_helper = new shopCategoryHelper();
@@ -219,22 +220,19 @@ class shopProdCategoryDialogAction extends waViewAction
         foreach ($options as $option) {
             if (empty($og[$option])) {
                 $og[$option] = "";
-            } else if (empty($og["enabled"])) {
-                $og["enabled"] = true;
+            } else {
+                $og["enabled"] = false;
             }
         }
 
         return $og;
     }
 
-    protected function parseConditions($conditions = '')
+    public static function parseConditions($conditions = '')
     {
         if (!$conditions) {
-            return $conditions;
+            return [];
         }
-
-        $tag_model = new shopTagModel();
-        $tags = [];
 
         $escapedBS = 'ESCAPED_BACKSLASH';
         while (false !== strpos($conditions, $escapedBS)) {
@@ -248,8 +246,7 @@ class shopProdCategoryDialogAction extends waViewAction
         $conditions = str_replace('\\&', $escapedAmp, str_replace('\\\\', $escapedBS, $conditions));
         $conditions = explode('&', $conditions);
 
-        $saved_product_fields = [];
-        $saved_features = [];
+        $saved_conditions = [];
         foreach ($conditions as $part) {
             if (!($part = trim($part))) {
                 continue;
@@ -259,7 +256,7 @@ class shopProdCategoryDialogAction extends waViewAction
 
             if ($temp) {
                 $name = array_shift($temp);
-                $is_feature = false;
+                $is_feature = $is_unit = false;
                 $feature_name = null;
 
                 //get feature name
@@ -269,177 +266,89 @@ class shopProdCategoryDialogAction extends waViewAction
                 } elseif (substr($name, -6) === '.value') {
                     $is_feature = true;
                     $feature_name = substr($name, 0, -6);
+                } elseif (substr($name, -5) === '.unit') {
+                    $is_feature = $is_unit = true;
+                    $feature_name = substr($name, 0, -5);
                 }
 
                 //Get previous saved values
                 if ($is_feature) {
-                    $tmp_result = ifset($saved_features, $feature_name, []);
+                    $temp_result = ifset($saved_conditions, 'feature', $feature_name, []);
                 } else {
-                    $tmp_result = ifset($saved_product_fields, $name, []);
+                    $temp_result = ifset($saved_conditions, $name, []);
                 }
 
-                if ($name == 'tag' || $name == 'type' || $name == 'badge') {
-                    $tmp_result['type'] = 'select';
-                    $tmp_result['values'] = str_replace('\&', '&', $temp[1]); //Remove escape ampersand
-                    if ($name == 'tag') {
-                        // backward compatibility
-                        $values = explode('||', $tmp_result['values']);
-                        $value_ids = [];
-                        $tags = $tag_model->getByField('name', $values, true);
-                        foreach ($values as $tag_name) {
-                            foreach ($tags as $tag) {
-                                if ($tag['name'] == $tag_name) {
-                                    $value_ids[] = $tag['id'];
-                                }
-                            }
-                        }
-                        $tmp_result['values'] = $value_ids;
-                    } else {
-                        $tmp_result['values'] = explode('||', $tmp_result['values']);
-                    }
-                } elseif ($name == 'compare_price' && $temp[0] == '>') {
-                    // backward compatibility
-                    $tmp_result['type'] = 'range';
-                    $tmp_result['begin'] = '0';
-                    $tmp_result['end'] = '';
-                } elseif ($temp[0] == '>=') {
-                    $tmp_result['type'] = 'range';
-                    $tmp_result['begin'] = $temp[1];
-                    $tmp_result['end'] = isset($tmp_result['end']) ? $tmp_result['end'] : null;
-                } elseif ($temp[0] == '<=') {
-                    $tmp_result['type'] = 'range';
-                    $tmp_result['begin'] = isset($tmp_result['begin']) ? $tmp_result['begin'] : null;
-                    $tmp_result['end'] = $temp[1];
-                } else {
-                    $tmp_result['type'] = 'equal';
-                    $tmp_result['condition'] = $temp[0];
-                    $tmp_result['values'] = preg_split('@[,\s]+@', $temp[1]);
-                }
+                self::parseTempCondition($name, $temp_result, $temp, $is_unit);
 
                 //Set update/new values
                 if ($is_feature) {
-                    $saved_features[$feature_name] = $tmp_result;
+                    $saved_conditions['feature'][$feature_name] = $temp_result;
                 } else {
-                    $saved_product_fields[$name] = $tmp_result;
+                    $saved_conditions[$name] = $temp_result;
                 }
             }
         }
 
-        $currency_model = new shopCurrencyModel();
-        $currencies = $currency_model->getCurrencies();
-        $currency_id = wa('shop')->getConfig()->getCurrency(true);
-        $currency = $currencies[$currency_id];
+        return $saved_conditions;
+    }
 
-        $fields = [
-            'create_datetime' => [
-                'name' => _w('Date added'),
-                'data' => [
-                    'type' => 'date',
-                    'render_type' => 'range',
-                ]
-            ],
-            'edit_datetime' => [
-                'name' => _w('Дата последнего изменения'),
-                'data' => [
-                    'type' => 'date',
-                    'render_type' => 'range',
-                ],
-            ],
-            'type' => [
-                'name' => _w('Type'),
-                'data' => [
-                    'type' => 'select',
-                    'render_type' => 'select',
-                    'options' => [],
-                ],
-            ],
-            'tag' => [
-                'name' => _w('Tag'),
-                'data' => [
-                    'type' => 'select',
-                    'render_type' => 'select',
-                    'options' => $tags,
-                ],
-            ],
-            'rating' => [
-                'name' => _w('Rating'),
-                'data' => [
-                    'type' => 'double',
-                    'render_type' => 'range',
-                ],
-            ],
-            'price' => [
-                'name' => _w('Price'),
-                'data' => [
-                    'type' => 'double',
-                    'render_type' => 'range',
-                    'currency' => $currency,
-                ],
-            ],
-            'compare_price' => [
-                'name' => _w('Compare at price'),
-                'data' => [
-                    'type' => 'double',
-                    'render_type' => 'range',
-                    'currency' => $currency,
-                ],
-            ],
-            'purchase_price' => [
-                'name' => _w('Purchase price'),
-                'data' => [
-                    'type' => 'double',
-                    'render_type' => 'range',
-                    'currency' => $currency,
-                ],
-            ],
-            'count' => [
-                'name' => _w('In stock'),
-                'data' => [
-                    'type' => 'double',
-                    'render_type' => 'range',
-                ],
-            ],
-            'badge' => [
-                'name' => _w('Badge'),
-                'data' => [
-                    'type' => 'varchar',
-                    'render_type' => 'select',
-                    'options' => [
-                        [
-                            'name' => _w('New!'),
-                            'value' => 'new',
-                            'icon' => 'fas fa-bolt'
-                        ],
-                        [
-                            'name' => _w('Low price!'),
-                            'value' => 'lowprice',
-                            'icon' => 'fas fa-piggy-bank',
-                        ],
-                        [
-                            'name' => _w('Bestseller!'),
-                            'value' => 'bestseller',
-                            'icon' => 'fas fa-chart-line',
-                        ],
-                        [
-                            'name' => _w('Custom badge'),
-                            'value' => 'custom',
-                            'icon' => 'fas fa-code',
-                        ]
-                    ]
-                ],
-            ],
-        ];
+    protected static function parseTempCondition($name, &$temp_result, $temp, $is_unit)
+    {
+        if ($name == 'tag' || $name == 'type' || $name == 'badge') {
+            $temp_result['type'] = 'select';
+            $temp_result['values'] = str_replace('\&', '&', $temp[1]); //Remove escape ampersand
+            $temp_result['values'] = explode('||', $temp_result['values']);
+        } elseif ($name == 'compare_price' && $temp[0] == '>') {
+            // backward compatibility
+            $temp_result['type'] = 'range';
+            $temp_result['begin'] = '0';
+            $temp_result['end'] = '';
+        } elseif ($temp[0] == '>=') {
+            $temp_result['type'] = 'range';
+            $temp_result['begin'] = $temp[1];
+            $temp_result['end'] = isset($temp_result['end']) ? $temp_result['end'] : '';
+            $temp_result['unit'] = isset($temp_result['unit']) ? $temp_result['unit'] : '';
+        } elseif ($temp[0] == '<=') {
+            $temp_result['type'] = 'range';
+            $temp_result['begin'] = isset($temp_result['begin']) ? $temp_result['begin'] : '';
+            $temp_result['end'] = $temp[1];
+            $temp_result['unit'] = isset($temp_result['unit']) ? $temp_result['unit'] : '';
+        } elseif ($is_unit) {
+            $temp_result['type'] = 'range';
+            $temp_result['begin'] = isset($temp_result['begin']) ? $temp_result['begin'] : '';
+            $temp_result['end'] = isset($temp_result['end']) ? $temp_result['end'] : '';
+            $temp_result['unit'] = $temp[1];
+        } else {
+            $temp_result['type'] = 'equal';
+            $temp_result['condition'] = $temp[0];
+            $temp_result['values'] = preg_split('@[,\s]+@', $temp[1]);
+        }
+    }
+
+    /**
+     * @param array $saved_conditions
+     * @return array
+     * @throws waException
+     */
+    protected function formatConditions($saved_conditions)
+    {
+        $category_helper = new shopCategoryHelper();
+        $fields = $category_helper->getProductFields([
+            'types' => true,
+            'tags' => true,
+        ]);
 
         $result = [];
-        foreach ($saved_product_fields as $key => $field) {
+        foreach ($saved_conditions as $key => $field) {
             if (isset($fields[$key])) {
                 $rule = $fields[$key];
+                if ($key == 'tag' && !empty($field['values'])) {
+                    $tag_model = new shopTagModel();
+                    $value_ids = $tag_model->select('id')->where('name IN (?)', [$field['values']])->fetchAll();
+                    $field['values'] = array_column($value_ids, 'id');
+                }
                 $rule['type'] = 'product_param';
-                $rule['data'] += [
-                    'id' => $key,
-                    'name' => $rule['name'],
-                    'display_type' => 'product'
-                ];
+                $rule['data']['display_type'] = 'product';
                 if ($rule['data']['render_type'] == 'range' && $field['type'] == 'range') {
                     $rule['data']['options'] = [
                         ['name' => '', 'value' => $field['begin']],
@@ -447,28 +356,29 @@ class shopProdCategoryDialogAction extends waViewAction
                     ];
                 } elseif ($rule['data']['render_type'] == 'select' && $field['type'] == 'select') {
                     $rule['data']['values'] = $field['values'];
-                    if ($key == 'type' && $field['values']) {
-                        $type_model = new shopTypeModel();
-                        $types = $type_model->select('`id`, `name`')->where('id IN (?)', $field['values'])->fetchAll();
-                        $rule['data']['options'] = $types;
-                    }
                 }
                 $result[] = $rule;
             }
         }
 
-        if ($saved_features) {
+        if (isset($saved_conditions['feature']) && !empty($saved_conditions['feature'])) {
             $feature_model = new shopFeatureModel();
-            $where = "`type` != 'text' AND `type` != 'divider' AND `type` NOT LIKE '2d.%' AND `type` NOT LIKE '3d.%' 
-                AND `parent_id` IS NULL AND `code` IN (?)";
-            $features = $feature_model->where($where, array_keys($saved_features))->order('`count` DESC')->fetchAll('code', true);
+            $options = [
+                'code' => array_keys($saved_conditions['feature']),
+                'ignore_text' => true,
+                'ignore_complex_types' => true,
+                'count' => false,
+                'ignore' => false,
+            ];
+            $features = $feature_model->getFilterFeatures($options, shopFeatureModel::GET_ALL, true, 'count DESC');
+
             $feature_codes = [];
             foreach ($features as $code => $feature) {
                 $feature_codes[$feature['id']] = $code;
             }
 
             $selectable_value_ids = [];
-            foreach ($saved_features as $code => $feature) {
+            foreach ($saved_conditions['feature'] as $code => $feature) {
                 if ($feature['type'] == 'equal' && !empty($feature['values'])) {
                     $selectable_value_ids[$code] = array_map('intval', $feature['values']);
                 }
@@ -484,20 +394,66 @@ class shopProdCategoryDialogAction extends waViewAction
             }
             $features = shopProdSkuAction::formatFeatures($features, true);
 
+            $dimension_list = shopDimension::getInstance()->getList();
             foreach ($features as $feature) {
                 $feature['display_type'] = 'feature';
-                $saved_rule = $saved_features[$feature_codes[$feature['id']]];
+                $saved_rule = $saved_conditions['feature'][$feature_codes[$feature['id']]];
                 if (empty($feature['selectable']) && $saved_rule['type'] == 'range') {
+                    if ($feature['type'] == shopFeatureModel::TYPE_DATE || $feature['type'] == 'range.date') {
+                        $saved_rule['begin'] = shopDateValue::timestampToDate($saved_rule['begin']);
+                        $saved_rule['end'] = shopDateValue::timestampToDate($saved_rule['end']);
+                    }
                     $feature['options'] = [
                         ['name' => '', 'value' => $saved_rule['begin']],
                         ['name' => '', 'value' => $saved_rule['end']]
                     ];
+                    if (isset($saved_rule['unit']) && !empty($feature['units'])) {
+                        foreach ($feature['units'] as $unit) {
+                            if ($unit['value'] == $saved_rule['unit']) {
+                                $feature['active_unit'] = $unit;
+                            }
+                        }
+                    }
                 } elseif ((!empty($feature['selectable']) && $saved_rule['type'] == 'equal')
-                    || (mb_strpos($feature['type'], shopFeatureModel::TYPE_VARCHAR) !== false
-                        || mb_strpos($feature['type'], shopFeatureModel::TYPE_COLOR) !== false
+                    || ($feature['type'] == shopFeatureModel::TYPE_VARCHAR
+                        || $feature['type'] == shopFeatureModel::TYPE_COLOR
                         || $feature['type'] == shopFeatureModel::TYPE_BOOLEAN)
                 ) {
                     $feature['values'] = $saved_rule['values'];
+                } elseif ((isset($dimension_list[str_replace('dimension.', '', $feature['type'])])
+                        || $feature['type'] == shopFeatureModel::TYPE_DATE || $feature['type'] == shopFeatureModel::TYPE_DOUBLE)
+                    && empty($feature['selectable']) && $saved_rule['type'] == 'equal'
+                ) {
+                    // backward compatibility
+                    $selectable_values = [];
+                    foreach ($selectable_features[$feature['code']]['values'] as $selectable_value) {
+                        if ($feature['type'] == shopFeatureModel::TYPE_DOUBLE) {
+                            $selectable_values[] = $selectable_value;
+                        } else {
+                            $selectable_values[] = $feature['type'] == shopFeatureModel::TYPE_DATE ? $selectable_value->timestamp : $selectable_value->value_base_unit;
+                        }
+                    }
+                    $begin = $end = '';
+                    if ($selectable_values) {
+                        $begin = min($selectable_values);
+                        $end = max($selectable_values);
+                        if ($feature['type'] == shopFeatureModel::TYPE_DATE) {
+                            $begin = shopDateValue::timestampToDate($begin);
+                            $end = shopDateValue::timestampToDate($end);
+                        }
+                    }
+                    $feature['options'] = [
+                        ['name' => '', 'value' => $begin],
+                        ['name' => '', 'value' => $end],
+                    ];
+                    $base_unit = shopDimension::getBaseUnit($feature['type']);
+                    if (!empty($feature['units'])) {
+                        foreach ($feature['units'] as $unit) {
+                            if ($unit['value'] == $base_unit['value']) {
+                                $feature['active_unit'] = $unit;
+                            }
+                        }
+                    }
                 }
                 $result[] = [
                     'name' => $feature['name'],

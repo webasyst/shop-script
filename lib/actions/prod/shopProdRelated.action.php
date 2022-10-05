@@ -14,6 +14,7 @@ class shopProdRelatedAction extends waViewAction
         $product = new shopProduct($product_id);
 
         if (!$product['id']) {
+            $this->setTemplate('templates/actions/prod/includes/deleted_product.html');
             $this->setLayout(new shopBackendProductsEditSectionLayout([
                 'content_id' => 'related',
             ]));

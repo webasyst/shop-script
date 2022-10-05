@@ -32,7 +32,7 @@
             <div class="s-tag-wrapper is-action"
                  v-if="over_limit"
                  v-on:click="showDialog">
-                <span class="s-name">{sprintf(_w("[`Еще %s`]"), "{ { over_limit } }")}</span>
+                <span class="s-name">{sprintf(_w("%s more"), "{ { over_limit } }")}</span>
             </div>
         </div>
     </div>

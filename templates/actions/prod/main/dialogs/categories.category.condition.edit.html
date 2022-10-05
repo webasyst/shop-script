@@ -11,12 +11,16 @@
     "width" => "16rem"
 ]}
 
+{$_urls = [
+    "feature_value" => "{$wa_app_url}?module=prod&action=filterGetFeaturesOptions"
+]}
+
 {capture assign="_component_feature_value_checkbox"}
 <div class="vue-component-feature-value-checkbox">
     {* Активные *}
     <div class="s-table-section" v-if="active_items.length">
         <template v-for="item in active_items">
-            <component-feature-value-checkbox-item v-bind:item="item"></component-feature-value-checkbox-item>
+            <component-feature-value-checkbox-item v-bind:item="item" v-on:change="onToggleSwitch"></component-feature-value-checkbox-item>
         </template>
     </div>
 
@@ -40,7 +44,7 @@
 
         <div class="s-table-section">
             <template v-for="item in inactive_items">
-                <component-feature-value-checkbox-item v-bind:item="item"></component-feature-value-checkbox-item>
+                <component-feature-value-checkbox-item v-bind:item="item" v-on:change="onToggleSwitch"></component-feature-value-checkbox-item>
             </template>
         </div>
     </template>
@@ -55,6 +59,7 @@
             <component-switch v-bind:value="item.states.enabled" v-on:change="onToggleSwitch"></component-switch>
         </div>
         <div class="s-column s-column-name">
+            <span class="s-color icon color shift-3 size-12" v-if="item.code" v-bind:style="{ 'background-color' : item.code }"></span>
             <span class="s-name" v-text="item.name"></span>
         </div>
     </div>
@@ -69,12 +74,12 @@
             <div class="dialog-header">
                 <div class="flexbox space-12">
                     <div class="s-title-wrapper wide">
-                        <h3 class="s-title">{_w("Редактирование параметра")}</h3>
+                        <h3 class="s-title">{_w("Parameter editing")}</h3>
                         <div class="s-details">
-                            <span class="s-label" v-if="item.type === 'feature'">[`Характеристика`]</span>
-                            <span class="s-label" v-if="item.type === 'product'">[`Поле продукта`]</span>
-                            <span class="s-label" v-if="item.type === 'sku'">[`Поле артикула`]</span>
-                            <span class="s-label" v-if="item.type === 'dynamic'">[`Динамическое поле`]</span>
+                            <span class="s-label" v-if="item.type === 'feature'">[`Feature`]</span>
+                            <span class="s-label" v-if="item.type === 'product'">[`Product property`]</span>
+                            <span class="s-label" v-if="item.type === 'sku'">[`SKU property`]</span>
+                            <span class="s-label" v-if="item.type === 'dynamic'">[`Dynamic property`]</span>
                             <span class="s-name bold color-gray-dark">«{ { item.name } }»</span>
                         </div>
                     </div>
@@ -141,7 +146,8 @@
                             <div class="s-value-list" v-if="item_data.options.length">
                                 <template v-for="item in item_data.options">
                                     <div class="s-value-wrapper">
-                                        <span class="s-name" v-text="item.value"></span>
+                                        <span class="s-color icon color shift-2 size-12" v-if="item.code" v-bind:style="{ 'background-color' : item.code }"></span>
+                                        <span class="s-name" v-text="item.name"></span>
                                         <span class="s-icon icon cursor-pointer" v-on:click="removeItem(item)"><i class="fas fa-times"></i></span>
                                     </div>
                                 </template>
@@ -149,7 +155,7 @@
 
                             <div class="s-search-section">
                                 <div class="s-field-wrapper">
-                                    <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Введите значение.")|escape}">
+                                    <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Enter a value")|escape}">
                                     <div class="s-loading-wrapper" v-if="states.is_loading">
                                         <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
                                     </div>
@@ -167,7 +173,7 @@
                     </template>
                 </div>
 
-                {**}
+                {** }
                 <div class="s-test-data" style="margin-top: 2rem;">{ { item_data.render_type } }</div>
                 <div class="s-test-data" style="margin-top: 2rem;">{ { item_data } }</div>
                 {**}
@@ -194,6 +200,7 @@
                 templates: {$_templates|json_encode},
                 tooltips: {$_tooltips|json_encode},
                 locales: {$_locales|json_encode},
+                urls: {$_urls|json_encode},
 
                 values: {$values|json_encode}
             });

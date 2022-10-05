@@ -41,7 +41,7 @@ class shopProdCategoryCloneController extends waJsonController
         if (empty($tree) || !isset($tree[$category_id])) {
             $this->errors = [
                 'id' => 'not_found',
-                'text' => _w('Category to update not found')
+                'text' => _w('The category to update was not found.')
             ];
         }
     }
@@ -78,7 +78,7 @@ class shopProdCategoryCloneController extends waJsonController
             } else {
                 $this->errors = [
                     'id' => 'copy_category',
-                    'text' => _w('Failed to copy category')
+                    'text' => _w('Failed to copy the category.')
                 ];
                 break;
             }
@@ -96,7 +96,7 @@ class shopProdCategoryCloneController extends waJsonController
      */
     protected function suggestUniqueName($saved_names, $name)
     {
-        $copy_text = _w('копия');
+        $copy_text = _w('copy');
         $copy_text_formatted = preg_quote($copy_text);
         preg_match("/\({$copy_text_formatted}\)(?:(?:\s(\d+))*$)/s", $name, $matches);
         $new_name = '';

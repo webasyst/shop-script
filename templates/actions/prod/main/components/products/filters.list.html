@@ -1,7 +1,7 @@
 {$_tooltips = array_merge($_tooltips, [
     "filter-rename" => [
         "id" => "filter-rename",
-        "html" => _w("Переименовать")|escape,
+        "html" => _w("Rename")|escape,
         "class" => "inline",
         "position" => "top"
     ],
@@ -13,14 +13,13 @@
     ],
     "filter-rewrite" => [
         "id" => "filter-rewrite",
-        "html" => _w("Перезаписать")|escape,
+        "html" => _w("Update")|escape,
         "class" => "inline",
         "position" => "top"
     ],
     "filter-share" => [
         "id" => "filter-share",
-        "html" => _w("Ссылка на фильтр")|escape,
-        "class" => "inline",
+        "html" => _w("Copy the filter link to the clipboard")|escape,
         "position" => "top"
     ]
 ])}
@@ -28,18 +27,19 @@
 {capture assign="_component_table_filters_list"}
     <div class="s-filter-list-section s-pane-item dropbox">
         <div class="s-dropbox-toggle js-dropbox-toggle">
-            <span class="s-name">[`Сохранённые фильтры`]</span>
+            <span class="s-name">[`Saved filters`]</span>
         </div>
         <div class="dropbox-body right">
             <div class="s-dropbox-content-section">
                 <div class="s-section-header">
-                    <h6>[`Фильтры`]</h6>
-                    <p>[`Для удобства работы над разными задачами вы можете сохранить выбранные фильтры.`]</p>
+                    <h6>[`Filters`]</h6>
+                    <p>[`You can save selected filters for more convenient work.`]</p>
                     <div class="s-create-section" v-if="!states.show_add_form">
                         <button class="wa-button transparent wa-small no-indent" type="button"
+                                v-bind:disabled="!can_add_filter"
                                 v-on:click.prevent="toggleForm(true)">
                             <span class="s-icon icon size-12"><i class="fas fa-plus"></i></span>
-                            <span class="s-name">[`фильтр`]</span>
+                            <span class="s-name">[`filter`]</span>
                         </button>
                     </div>
                 </div>
@@ -62,9 +62,10 @@
                                         <div class="s-toggle-wrapper"
                                              draggable="true"
                                              v-bind:class="{ 'cursor-move js-filter-move-toggle' : !filter.states.move_locked, 'color-gray-light' : filter.states.move_locked }">
-                                        <span class="s-icon icon size-12"
-                                              v-if="!filter.states.move_locked"
-                                              v-bind:key="'fa-bars'"><i class="fas fa-bars"></i></span>
+                                            <span class="s-icon icon size-12"
+                                                  v-if="!filter.states.move_locked"
+                                                  v-bind:key="'fa-bars'">
+                                                <svg><use xlink:href='{$_sprite_url}#grip'></use></svg></span>
                                             <span class="s-icon icon size-12"
                                                   v-if="filter.states.move_locked"
                                                   v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
@@ -73,21 +74,22 @@
                                 </div>
                                 <div class="s-column-name wide">
                                     <span class="s-name cursor-pointer"
-                                          v-on:click="filterUse(filter)">{ { filter.name ? filter.name : "{_w("Представление без названия")|escape}" } }</span>
+                                          v-on:click="filterUse(filter)">{ { filter.name ? filter.name : "{_w("Nameless saved view")|escape}" } }</span>
                                 </div>
                                 <div class="s-column-actions flexbox space-8">
-                                    <div class="s-action s-action-link"
+                                    <div class="s-action"
                                          data-tooltip-id="filter-share">
-                                        <a v-bind:href="'{$wa_app_url}products/?filter='+filter.id" target="_blank">
-                                            <span class="s-icon icon size-20"><svg><use xlink:href="{$_sprite_url}#share"></use></svg></span>
+                                        <a v-bind:href="'{$wa_app_url}products/?filter='+filter.id" target="_blank" v-on:click.prevent="onCopyUrl($event, filter)">
+                                            <span class="s-icon icon size-14 color-gray" v-if="filter.states.copy_locked" v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
+                                            <span class="s-icon icon size-20" v-else v-bind:key="'share'"><svg><use xlink:href="{$_sprite_url}#share"></use></svg></span>
                                         </a>
                                     </div>
-                                    <div class="s-action cursor-pointer"
+                                    <div class="s-action"
                                          data-tooltip-id="filter-rename"
                                          v-on:click="rename(filter)">
                                         <span class="s-icon icon size-12"><i class="fas fa-pen"></i></span>
                                     </div>
-                                    <div class="s-action cursor-pointer"
+                                    <div class="s-action"
                                          data-tooltip-id="filter-rewrite"
                                          v-on:click="rewrite(filter)">
                                         <span class="s-icon icon size-12"
@@ -99,7 +101,7 @@
                                               v-bind:key="'fa-spinner'">
                                             <i class="fas fa-spinner fa-spin"></i></span>
                                     </div>
-                                    <div class="s-action cursor-pointer"
+                                    <div class="s-action hover-red"
                                          data-tooltip-id="filter-delete"
                                          v-on:click="remove(filter)">
                                         <span class="s-icon icon size-14"
@@ -129,7 +131,7 @@
 {capture assign="_component_filter_add_form"}
     <div class="s-filter-add-form flexbox middle space-12">
         <div class="s-field-wrapper wide">
-            <component-input class="wa-small full-width" placeholder="{_w("Введите название")|escape}"
+            <component-input class="wa-small full-width" placeholder="{_w("Enter a name")|escape}"
                              v-model="name"
                              v-bind:focus="true"></component-input>
         </div>
@@ -157,7 +159,7 @@
 {capture assign="_component_filter_rename_form"}
     <div class="s-filter-rename-form flexbox middle space-12">
         <div class="s-field-wrapper wide">
-            <input class="wa-small full-width" type="text" v-model="name" placeholder="{_w("Введите название")|escape}">
+            <input class="wa-small full-width" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}">
         </div>
         <div class="s-actions-wrapper flexbox middle">
             <button class="wa-button wa-small transparent" type="button"

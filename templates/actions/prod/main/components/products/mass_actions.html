@@ -1,3 +1,19 @@
+{capture assign="_component_mass_actions"}
+    <div class="vue-component-mass-actions">
+        <component-mass-actions-aside
+            v-if="type === 'aside'"
+            v-bind:actions="actions"
+            v-bind:products="products"
+            v-on:call_action="callAction"></component-mass-actions-aside>
+        <component-mass-actions-footer
+            v-else
+            v-bind:actions="actions"
+            v-bind:products="products"
+            v-on:call_action="callAction"></component-mass-actions-footer>
+    </div>
+{/capture}
+{$_components["component-mass-actions"] = $_component_mass_actions|trim}
+
 {capture assign="_component_mass_actions_footer"}
     <div class="vue-mass-actions-footer">
         <div class="s-section-body">
@@ -6,15 +22,15 @@
                     <component-checkbox v-bind:value="true"></component-checkbox>
                 </div>
                 <div class="s-counter-wrapper">
-                    <span class="s-label">[`Выбрано`]</span>
+                    <span class="s-label">[`Selected`]</span>
                     <span class="s-count" v-text="products_length"></span>
                 </div>
                 <div class="s-actions-list js-actions-list flexbox space-8">
-                    <template v-for="action in actions_list">
+                    <template v-for="action in pinned_actions">
                         <div class="s-action link"
-                             v-if="action.visible"
+                             v-if="action.states.visible"
                              v-bind:key="action.id"
-                             v-on:click.prevent="callAction(action.id)">
+                             v-on:click.prevent="callAction(action)">
                             <span class="s-icon" v-html="action.icon"></span>
                             <span class="s-name" v-text="action.name"></span>
                         </div>
@@ -25,13 +41,13 @@
                     <div class="dropdown">
                         <div class="dropdown-toggle link cursor-pointer">
                             <span class="s-icon"><i class="fas fa-cog"></i></span>
-                            <span class="s-name">[`Другие действия`]</span>
+                            <span class="s-name">[`Все действия`]</span>
                         </div>
                         <div class="dropdown-body">
                             <template v-for="group in dropdown_actions">
-                                <div class="dropdown-group" v-if="group.length">
-                                    <template v-for="action in group">
-                                        <div class="dropdown-item" v-on:click.prevent="callAction(action.id)">
+                                <div class="dropdown-group" v-if="group.actions.length">
+                                    <template v-for="action in group.actions">
+                                        <div class="dropdown-item" v-on:click.prevent="callAction(action)">
                                             <span class="s-icon" v-html="action.icon"></span>
                                             <span class="s-name" v-text="action.name"></span>
                                         </div>
@@ -40,7 +56,7 @@
                             </template>
 
                             <div class="dropdown-item s-lock-actions cursor-pointer" v-on:click.prevent="pin">
-                                <span class="s-name link">[`Закрепить панель`]</span>
+                                <span class="s-name link">[`Pin the toolbar`]</span>
                             </div>
                         </div>
                     </div>
@@ -66,11 +82,10 @@
                             <component-checkbox v-bind:value="true"></component-checkbox>
                         </div>
                         <div class="s-counter-wrapper">
-                            <span class="s-label">[`Выбрано`]</span>
+                            <span class="s-label">[`Selected`]</span>
                             <span class="s-count" v-text="products_length"></span>
                         </div>
                     </div>
-                    <div class="s-title">[`Действия`]</div>
                 </div>
                 <div class="s-actions">
                     <span class="s-action cursor-pointer" v-on:click.prevent="close">
@@ -82,10 +97,11 @@
         <div class="s-section-body">
             <div class="s-actions-list js-actions-list">
                 <template v-for="group in actions">
-                    <div class="s-group-wrapper" v-if="group.length">
-                        <template v-for="action in group">
+                    <div class="s-group-wrapper" v-if="group.actions.length">
+                        <div class="s-group-name" v-text="group.name"></div>
+                        <template v-for="action in group.actions">
                             <div class="s-action-wrapper">
-                                <div class="s-action" v-on:click.prevent="callAction(action.id)">
+                                <div class="s-action" v-on:click.prevent="callAction(action)">
                                     <span class="s-icon" v-html="action.icon"></span>
                                     <span class="s-name" v-text="action.name"></span>
                                 </div>
@@ -95,7 +111,7 @@
                 </template>
                 <div class="s-action-wrapper s-action-unpin">
                     <div class="s-action link" v-on:click.prevent="unpin">
-                        <span class="s-name">[`Открепить панель`]</span>
+                        <span class="s-name">[`Unpin the toolbar`]</span>
                     </div>
                 </div>
             </div>
@@ -103,3 +119,6 @@
     </div>
 {/capture}
 {$_components["component-mass-actions-aside"] = $_component_mass_actions_aside|trim}
+
+{capture assign="_dialog_mass_actions_apply"}{include file="../../dialogs/list.mass_actions.call_action.html" inline}{/capture}
+{$_templates["dialog-category-clone"] = $_dialog_mass_actions_apply|trim}

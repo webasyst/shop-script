@@ -19,7 +19,7 @@ class shopProductSkuSettingsAction extends waViewAction
         } elseif (isset($product->skus[$sku_id])) {
             $sku = $product->skus[$sku_id];
         } else {
-            throw new waException("SKU not found", 404);
+            throw new waException("SKU not found.", 404);
         }
 
         if ($product->id <= 0) {

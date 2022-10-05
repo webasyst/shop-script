@@ -1,104 +1,42 @@
 <?php
 
-class shopProdCategoriesRecountController extends waLongActionController
+class shopProdCategoriesRecountController extends waJsonController
 {
-    /**
-     * @var shopCategoryModel
-     */
-    protected $category_model;
-
     public function execute()
     {
-        try {
-            parent::execute();
-        } catch (waException $ex) {
-            if ($ex->getCode() == '302') {
-                echo json_encode(array('warning' => $ex->getMessage()));
-            } else {
-                echo json_encode(array('error' => $ex->getMessage()));
-            }
+        $static_ids = waRequest::post('static_ids', [], waRequest::TYPE_ARRAY_INT);
+        $dynamic_ids = waRequest::post('dynamic_ids', [], waRequest::TYPE_ARRAY_INT);
+        $category_ids = array_merge($static_ids, $dynamic_ids);
+        $categories = $this->count($category_ids);
+        if (!$this->errors) {
+            $this->response['categories'] = $categories;
         }
     }
 
-    protected function finish($filename)
+    protected function count($category_ids)
     {
-        $this->info();
-        return true;
-    }
-    
-    protected function init()
-    {
-        $this->category_model = new shopCategoryModel();
-        $this->data['total_count'] = $this->category_model->select('COUNT(id) AS `dynamic_count`')->where('`type` = ' . shopCategoryModel::TYPE_DYNAMIC)->fetchField('dynamic_count');
-        $this->data['offset'] = 0;
-        $this->data['timestamp'] = time();
-    }
+        $category_model = new shopCategoryModel();
 
-    protected function restore()
-    {
-        $this->category_model = new shopCategoryModel();
-    }
-
-    protected function isDone()
-    {
-        return $this->data['offset'] >= $this->data['total_count'];
-    }
-    
-    protected function step()
-    {
-        if (empty($this->data['static_recount'])) {
-            $this->category_model->recount();
-            $this->data['static_recount'] = true;
-            $this->data['categories'] = $this->category_model->select('`id`, `count`')->order('id')->where('`type` = ' . shopCategoryModel::TYPE_STATIC)->fetchAll();
-        }
-
-        $limit = 10;
-        $categories = $this->category_model->select('id')->order('id')->where('`type` = ' . shopCategoryModel::TYPE_DYNAMIC)->limit("{$this->data['offset']}, $limit")->fetchAll();
-        foreach ($categories as $category) {
-            $this->data['offset']++;
-            try {
-                if ($category['type'] = shopCategoryModel::TYPE_DYNAMIC) {
-                    $product_collection = new shopProductsCollection('category/' . $category['id']);
+        $categories = [];
+        if ($category_ids) {
+            $old_count = $category_model->select('`id`, `count`')->where('`id` IN (?)', [$category_ids])->fetchAll('id');
+            foreach ($category_ids as $category_id) {
+                try {
+                    $product_collection = new shopProductsCollection("category/$category_id");
                     $category_right_count = $product_collection->count();
-                    if ($category_right_count != $category['count']) {
-                        $category['count'] = $category_right_count;
-                        $this->data['categories'] += [
-                            'id' => $category['id'],
-                            'count' => $category_right_count,
-                        ];
-                        $this->category_model->update($category['id'], ['count' => $category['count']]);
+                    $categories[] = [
+                        'id' => $category_id,
+                        'count' => $category_right_count,
+                    ];
+                    if (isset($old_count[$category_id]) && $old_count[$category_id]['count'] != $category_right_count) {
+                        $category_model->update($category_id, ['count' => $category_right_count]);
                     }
+                } catch (Exception $e) {
+                    $this->errors = $e->getMessage();
                 }
-            } catch (Exception $e) {
-                $this->error($e->getMessage());
             }
         }
+
+        return $categories;
     }
-
-
-    protected function info()
-    {
-        $interval = 0;
-        if (!empty($this->data['timestamp'])) {
-            $interval = time() - $this->data['timestamp'];
-        }
-        $response = array(
-            'time'       => sprintf('%d:%02d:%02d', floor($interval / 3600), floor($interval / 60) % 60, $interval % 60),
-            'processId'  => $this->processId,
-            'ready'      => $this->isDone(),
-            'offset' => $this->data['offset'],
-        );
-        $response['progress'] = ($this->data['offset'] / $this->data['total_count']) * 100;
-        $response['progress'] = sprintf('%0.3f%%', $response['progress']);
-        $response['categories'] = $this->data['categories'];
-
-        echo json_encode($response);
-    }
-    
-    private function error($message)
-    {
-        $path = wa()->getConfig()->getPath('log');
-        waFiles::create($path.'/shop/category_recount.log');
-        waLog::log($message, 'shop/category_recount.log');
-    }    
 }

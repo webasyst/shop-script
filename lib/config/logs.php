@@ -42,10 +42,10 @@ return array(
         'name' => /*_w*/('deleted a category')
     ),
     'category_duplicate' => array(
-        'name' => /*_w*/('категория добавлена дублированием')
+        'name' => /*_w*/('category added by duplicating')
     ),
     'categories_duplicate' => array(
-        'name' => /*_w*/('категория добавлена дублированием с дублированием всех вложенных категорий')
+        'name' => /*_w*/('category added by duplicating including all subcategories')
     ),
 
     'order_create' => array(
@@ -137,13 +137,13 @@ return array(
     ),
 
     'transfer_sent' => array(
-        'name' => /*_w*/('создал трансфер')
+        'name' => /*_w*/('created transfer')
     ),
     'transfer_completed' => array(
-        'name' => /*_w*/('завершил трансфер')
+        'name' => /*_w*/('completed transfer')
     ),
     'transfer_cancelled' => array(
-        'name' => /*_w*/('отменил трансфер')
+        'name' => /*_w*/('canceled transfer')
     ),
 
     'reset' => array(

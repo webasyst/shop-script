@@ -53,6 +53,7 @@ class shopProductsAssignTagsController extends waJsonController
             $tag_ids = $tag_model->getIds($tags);
         }
         $all_updated_products = [];
+        $index_search = new shopIndexSearch();
         while ($offset < $total_count) {
             $product_ids = array_keys($collection->getProducts('*', $offset, $count));
             if (!$product_ids) {
@@ -70,6 +71,9 @@ class shopProductsAssignTagsController extends waJsonController
             }
             $all_updated_products = array_merge($all_updated_products, $product_ids);
             $offset += count($product_ids);
+            foreach ($product_ids as $product_id) {
+                $index_search->onUpdate($product_id);
+            }
         }
 
         if ($tag_model->countAll() > 100) {

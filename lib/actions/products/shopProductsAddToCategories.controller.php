@@ -124,7 +124,7 @@ class shopProductsAddToCategoriesController extends waJsonController
         $url = shopHelper::transliterate($name, false);
         $url = $this->category_model->suggestUniqueUrl($url);
         if (empty($name)) {
-            $name = _w('(no-name)');
+            $name = _w('(no name)');
         }
         return $this->category_model->add(array(
             'name' => $name,

@@ -48,7 +48,9 @@ class shopFilter
         }
         if (empty($filter)) {
             if ($transient) {
-                $filter = $this->getModel()->getTransientByTemplate($template_id, wa()->getUser()->getId(), [
+                // if contacts do not match create a new filter
+                $creator_id = $template['creator_contact_id'] == wa()->getUser()->getId() ? $template['creator_contact_id'] : -1;
+                $filter = $this->getModel()->getTransientByTemplate($template_id, $creator_id, [
                     'reset_filter_to_template' => $reset_filter_to_template,
                     'rules' => $rules,
                 ]);
@@ -96,7 +98,7 @@ class shopFilter
         $sets = $this->getSetsWithGroups();
 
         $type_model = new shopTypeModel();
-        $types = $type_model->select('`id`, `name`')->fetchAll();
+        $types = $type_model->select('`id`, `name`')->order('name')->fetchAll();
 
         $storefronts = [];
         $all_storefronts = shopStorefrontList::getAllStorefronts(true);
@@ -147,7 +149,7 @@ class shopFilter
                 'render_type' => 'range',
             ],
             'edit_datetime' => [
-                'name' => _w('Дата последнего изменения'),
+                'name' => _w('Last change date'),
                 'type' => 'date',
                 'render_type' => 'range',
             ],
@@ -186,7 +188,7 @@ class shopFilter
                 'render_type' => 'select',
             ],
             'sku_count' => [
-                'name' => _w('Количество модификаций'),
+                'name' => _w('Variants number'),
                 'type' => 'double',
                 'render_type' => 'range',
             ],
@@ -228,6 +230,14 @@ class shopFilter
                 'rule_type' => 'compare_price',
                 'replaces_previous' => true
             ],
+            'purchase_price' => [
+                'name' => _w('Purchase price'),
+                'type' => 'double',
+                'render_type' => 'range',
+                'display_type' => 'sku',
+                'rule_type' => 'purchase_price',
+                'replaces_previous' => true
+            ],
         ];
 
         $dynamic_fields = [
@@ -259,7 +269,7 @@ class shopFilter
         $features = self::getFilterFeatures();
         if ($format_features) {
             $selectable_values = shopPresentation::addSelectableValues($features);
-            $features = shopProdSkuAction::formatFeatures($selectable_values, false, false);
+            $features = shopProdSkuAction::formatFeatures($selectable_values, true, false);
         }
 
         $options = [];
@@ -338,6 +348,7 @@ class shopFilter
                 switch ($item['rule_type']) {
                     case 'price':
                     case 'compare_price':
+                    case 'purchase_price':
                     case 'sales_30days':
                     case 'stock_worth':
                         $item['currency'] = $currency;
@@ -415,14 +426,14 @@ class shopFilter
     }
 
     /**
-     * @param string $rule_type
      * @param array $rule_params
+     * @param string $rule_type
      * @param array $type
      * @param string|null $unit
      * @return array
      * @throws waException
      */
-    public static function validateValue($rule_type, $rule_params, $type = [], $unit = null)
+    public static function validateValue($rule_params, $rule_type = '', $type = [], $unit = null)
     {
         $correct_params = [];
         if (is_array($rule_params)) {
@@ -442,8 +453,17 @@ class shopFilter
                     }
                     break;
                 case 'rating':
+                    foreach ($rule_params as &$param) {
+                        if ($param < 0) {
+                            $param = 0;
+                        } elseif ($param > 5) {
+                            $param = 5;
+                        }
+                    }
+                    unset($param);
                 case 'price':
                 case 'compare_price':
+                case 'purchase_price':
                 case 'count':
                 case 'sku_count':
                 case 'sales_30days':
@@ -525,7 +545,7 @@ class shopFilter
                         }
                     }
                 } elseif ($type['type'] == shopFeatureModel::TYPE_DATE || $type['type'] == 'range.date') {
-                    $correct_params = self::validateDate($count, $rule_params, false);
+                    $correct_params = self::validateDate($count, $rule_params, false, true);
                 } elseif ($count == 2 && ($type['type'] == shopFeatureModel::TYPE_DOUBLE || mb_strpos($type['type'], 'range.') === 0
                     || mb_strpos($type['type'], 'dimension.') === 0)
                 ) {
@@ -559,7 +579,7 @@ class shopFilter
      * @return array
      * @throws waException
      */
-    protected static function validateDate($count, $rule_params, $datetime = true)
+    protected static function validateDate($count, $rule_params, $datetime = true, $use_timestamp = false)
     {
         $correct_params = [];
         if (!$datetime) {
@@ -569,14 +589,18 @@ class shopFilter
             $start_date_correct = $rule_params[0];
             $end_date_correct = $rule_params[1];
             if ($datetime) {
-                $start_date_correct = waDateTime::parse('Y-m-d H:i:s', $rule_params[0]);
-                $end_date_correct = waDateTime::parse('Y-m-d H:i:s', $rule_params[1]);
+                $start_date_correct = waDateTime::parse('Y-m-d', $rule_params[0]);
+                $end_date_correct = waDateTime::parse('Y-m-d', $rule_params[1]);
             } elseif (!$date_validator->isValid($start_date_correct) || !$date_validator->isValid($end_date_correct)) {
                 $start_date_correct = $end_date_correct = false;
             }
             if ($start_date_correct && $end_date_correct) {
                 $start_datetime = new DateTime($start_date_correct);
                 $end_datetime = new DateTime($end_date_correct);
+                if ($use_timestamp) {
+                    $start_date_correct = $start_datetime->getTimestamp();
+                    $end_date_correct = $end_datetime->getTimestamp();
+                }
                 if ($start_datetime > $end_datetime) {
                     $correct_params = [$end_date_correct, $start_date_correct];
                 } else {
@@ -586,12 +610,12 @@ class shopFilter
         } elseif ($count == 1) {
             $date_correct = $rule_params[0];
             if ($datetime) {
-                $date_correct = waDateTime::parse('Y-m-d H:i:s', $rule_params[0]);
+                $date_correct = waDateTime::parse('Y-m-d', $rule_params[0]);
             } elseif (!$date_validator->isValid($date_correct)) {
                 $date_correct = false;
             }
             if ($date_correct) {
-                $correct_params[] = $date_correct;
+                $correct_params[] = $use_timestamp ? strtotime($date_correct) : $date_correct;
             }
         }
 

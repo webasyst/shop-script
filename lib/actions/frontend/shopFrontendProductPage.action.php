@@ -21,6 +21,10 @@ class shopFrontendProductPageAction extends shopFrontendProductAction
         }
 
         $product = new shopProduct($product, true);
+        if ($product['status'] < 0) {
+            // do the redirect when product is in "hidden and not available" status
+            shopFrontendProductAction::handleHiddenAndNotAvailable($product);
+        }
         $this->view->assign('product', $product);
 
         $this->getBreadcrumbs($product, true);

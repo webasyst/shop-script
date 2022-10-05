@@ -2581,12 +2581,12 @@ SQL;
             }
 
             if ($rights && $category_match) {
+                /** @var shopProductFeaturesModel $product_features_model */
+                $product_features_model = $this->model('product_features');
                 $shop_product = new shopProduct($product, ['format_fractional_values' => true]);
                 if (!empty($this->data['options']['features']) && !$is_duplicate_product) {
                     if (!isset($product['features'])) {
-                        /** @var shopProductFeaturesModel $product_feature_model */
-                        $product_feature_model = $this->model('product_features');
-                        $product['features'] = $product_feature_model->getValues($product['id']);
+                        $product['features'] = $product_features_model->getValues($product['id']);
                     }
                     foreach ($product['features'] as $code => &$feature) {
                         if (!empty($this->data['composite_features'][$code])) {
@@ -2661,7 +2661,12 @@ SQL;
                 #skus
                 $skus = $shop_product->skus;
                 $skus_exist = !empty($skus);
-                $simple_product = count($skus) === 1 && empty($shop_product->params['multiple_sku']);
+
+                /** @var shopProductFeaturesSelectableModel $features_selectable_model */
+                $features_selectable_model = $this->model('product_features_selectable');
+                $selected_selectable_feature_ids = $features_selectable_model->getProductFeatureIds($product['id']);
+                $has_features_values = $product_features_model->checkProductFeaturesValues($product['id'], $product['type_id']);
+                $simple_product = !(count($skus) > 1 || $has_features_values || !empty($shop_product->params['multiple_sku']) || $selected_selectable_feature_ids);
 
                 $primary_sku_id = $product['sku_id'];
                 if (!isset($skus[$primary_sku_id])) {

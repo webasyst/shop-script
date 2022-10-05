@@ -26,7 +26,7 @@ class shopProdSetCopyController extends waJsonController
         } else {
             $this->errors = [
                 'id' => 'not_found',
-                'text' => _w('Set to update not found')
+                'text' => _w('The set to update was not found.')
             ];
         }
     }
@@ -52,20 +52,20 @@ class shopProdSetCopyController extends waJsonController
         if (!$response) {
             $this->errors = [
                 'id' => 'copy_set',
-                'text' => _w('Failed to copy set')
+                'text' => _w('Failed to copy the set.')
             ];
         } elseif ($copy_products) {
             $new_set_id = preg_replace('/[^a-z0-9\._-]+/im', '', $set["id"]);
             if (mb_strlen($new_set_id)) {
                 $set_products_model = new shopSetProductsModel();
-                $set_products_model->query("INSERT INTO {$set_products_model->getTableName()} (`set_id`, `product_id`, `sort`) 
-                    SELECT '{$new_set_id}' AS `set_id`, `product_id`, `sort` 
+                $set_products_model->query("INSERT INTO {$set_products_model->getTableName()} (`set_id`, `product_id`, `sort`)
+                    SELECT '{$new_set_id}' AS `set_id`, `product_id`, `sort`
                     FROM {$set_products_model->getTableName()} WHERE `set_id` = '{$parent_id}'");
                 return $new_set_id;
             } else {
                 $this->errors = [
                     'id' => 'copy_set_products',
-                    'text' => _w('Failed to copy set products')
+                    'text' => _w('Failed to copy the set’s products.')
                 ];
             }
         }
@@ -111,7 +111,7 @@ class shopProdSetCopyController extends waJsonController
      */
     protected function suggestUniqueName($all_sets, $name)
     {
-        $copy_text = _w('копия');
+        $copy_text = _w('copy');
         $copy_text_formatted = preg_quote($copy_text);
         preg_match("/\({$copy_text_formatted}\)(?:(?:\s(\d+))*$)/s", $name, $matches);
         $new_name = '';

@@ -37,12 +37,12 @@
                         </a>
                         {$_tooltips["prev_product_name"] = [
                             "id" => "prev_product_name",
-                            "html" => sprintf(_w("Предыдущий товар «%s»"), $product_list_data["prev"]["name"]),
+                            "html" => sprintf(_w("Previous product “%s”"), $product_list_data["prev"]["name"]),
                             "position" => "top-left"
                         ]}
                     {/if}
 
-                    <span class="s-text">{sprintf(_w("Товар %d из %d"), $product_list_data["position"], $product_list_data["count"])}</span>
+                    <span class="s-text">{sprintf(_w("Product %d of %d"), $product_list_data["position"], $product_list_data["count"])}</span>
 
                     {if !empty($product_list_data["next"])}
                         <a class="wa-button wa-small gray-field" href="{$product_list_data["next"]["url"]|escape}" data-tooltip-id="next_product_name" data-router-disable="true">
@@ -50,7 +50,7 @@
                         </a>
                         {$_tooltips["next_product_name"] = [
                             "id" => "next_product_name",
-                            "html" => sprintf(_w("Следующий товар «%s»"), $product_list_data["next"]["name"]),
+                            "html" => sprintf(_w("Next product “%s”"), $product_list_data["next"]["name"]),
                             "position" => "top"
                         ]}
                     {/if}

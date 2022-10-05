@@ -17,7 +17,7 @@ class shopProdSetsSortController extends waJsonController
         if ($sort != 'name ASC' && $sort != 'name DESC') {
             $this->errors = [
                 'id' => 'incorrect_sort',
-                'text' => _w('Unable to sort sets')
+                'text' => _w('Failed to sort sets.')
             ];
         }
     }

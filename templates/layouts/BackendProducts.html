@@ -13,6 +13,9 @@
     <meta http-equiv="x-ua-compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    {* Принудительно отключаем тёмную тему *}
+    <script>localStorage.removeItem("wa_theme_user_mode");</script>
+
     {* CSS *}
     {$wa->css()}
     <link href="{$wa_app_static_url}css/backend/products/wa2/wa2.css?v{$wa->version()}" rel="stylesheet" />
@@ -46,9 +49,40 @@
     <script>
         ( function($) {
             $.wa_shop_products.lang = "{substr($wa->locale(), 0, 2)}";
+            $.wa_shop_products.date_format = {waDateTime::getFormatJS('date')|json_encode};
             $.wa_shop_products.app_url = "{$wa_app_url|escape}";
             $.wa_shop_products.section_url = "{$wa_app_url|escape}products/";
             $.wa.title.pattern = "%s — {$wa->accountName()|escape}";
+        })(jQuery);
+    </script>
+
+    {* Диалон уведомления об удалённом продукте *}
+    {capture assign="_dialog_deleted_product"}
+        <div class="wa-dialog s-deleted-product-dialog" id="js-deleted-product-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-body">
+                <div class="dialog-header">
+                    <h2>[`Продукт был удалён.`]</h2>
+                </div>
+                <div class="dialog-footer">
+                    <button class="js-dialog-close wa-button gray" type="button">[`Close`]</button>
+                </div>
+            </div>
+        </div>
+    {/capture}
+
+    <script>
+        ( function($) {
+            var template = {$_dialog_deleted_product|json_encode};
+            $.wa_shop_products.showDeletedProductDialog = function() {
+                var url = "{$wa_app_url}products/";
+                $.waDialog({
+                    html: template,
+                    onClose: function() {
+                        $.wa_shop_products.router.load(url);
+                    }
+                });
+            }
         })(jQuery);
     </script>
 

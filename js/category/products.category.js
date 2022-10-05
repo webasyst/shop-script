@@ -7,7 +7,6 @@ var shopDialogProductsCategory = (function ($) {
         that.$wrapper = options['$wrapper'];
 
         // VARS
-        that.SEARCH_STEP = options['SEARCH_STEP'];
         that.category_id = options['category_id'];
         that.category_type = options['category_type'];
         that.account_name = options['account_name'];
@@ -20,7 +19,7 @@ var shopDialogProductsCategory = (function ($) {
         that.filter_element_html = options['templates']['filter_element_html'];
 
         // TEXT
-        that.show_more_filters_text = options['texts']['show_more_filters_text'];
+        that.show_all = options['texts']['show_all'];
 
         // INIT
         that.initClass();
@@ -70,6 +69,7 @@ var shopDialogProductsCategory = (function ($) {
                 offset: that.getFilterOffset(),
                 ignore_id: that.filter_ignore_id,
                 category_type: that.category_type,
+                get_all: true,
             };
 
             $.post(url, data).success(function (response) {
@@ -81,31 +81,22 @@ var shopDialogProductsCategory = (function ($) {
                     that.setFilterElement(filter)
                 });
 
-                that.updateShowFilterButton();
+                that.updateShowFilterButton(true);
             });
         })
     };
 
-    shopDialogProductsCategory.prototype.updateShowFilterButton = function () {
+    shopDialogProductsCategory.prototype.updateShowFilterButton = function (get_all = false) {
         var that = this,
-            left = that.SEARCH_STEP,
             show_link = that.$wrapper.find('.js-show-more-filters'),
-            filters = that.$wrapper.find('.js-category-filters .js-filter-checkbox').length,
-            text = that.show_more_filters_text;
-
+            filters = that.$wrapper.find('.js-category-filters .js-filter-checkbox').length;
 
         filters -= 1;
         filters -= that.filter_ignore_id.length;
-        if (filters + that.SEARCH_STEP > that.filter_count) {
-            left = that.filter_count - filters;
-        }
 
-        if (left >= 1) {
-            var total_left = that.filter_count - filters;
-
-            text = text.replace(/%d/g, left);
-            text = text.replace(/%all/g, total_left);
-            show_link.text(text);
+        var total_left = that.filter_count - filters;
+        if (total_left > 0 && get_all === false) {
+            show_link.text(that.show_all + " (" + total_left + ")");
         } else {
             show_link.hide();
         }
@@ -444,7 +435,6 @@ var shopDialogProductsCategory = (function ($) {
         var that = this,
             $wrapper = that.$wrapper,
             checked = true,
-            offset_count = $wrapper.find('.js-show-more').attr('data-offset'),
             data = "feature_id=" + item_id,
             type = "GET";
 
@@ -454,7 +444,7 @@ var shopDialogProductsCategory = (function ($) {
                 ignore_id: that.ignore_id,
                 category: that.category_id,
                 category_type: that.category_type,
-                offset: offset_count
+                get_all: true,
             };
             type = "POST";
         }
@@ -482,13 +472,9 @@ var shopDialogProductsCategory = (function ($) {
                     // Update feature_count and show-more text
                     var count_item = feature_count - count;
 
-                    if (count_item > 0) {
-                        var show_more_text = '<b><i>' + (count_item > 20 ? $_("Show %d more").replace('%d', 20) + ' ' + $_("From").toLowerCase() + ' ' + count_item : $_("Show %d more").replace('%d', count_item)) + '</i></b>';
+                    if (count === 1 && count_item > 0) {
+                        var show_more_text = '<b><i>' + that.show_all + ' (' + count_item + ')</i></b>';
                         $wrapper.find('.js-show-more').html(show_more_text).attr('data-count', count_item);
-                        if (!item_id) {
-                            offset_count = parseInt(offset_count) + parseInt(count);
-                            $wrapper.find('.js-show-more').attr('data-offset', offset_count);
-                        }
                     } else {
                         $wrapper.find('.js-autocomplete-wrapper').hide();
                     }
@@ -563,7 +549,7 @@ var shopDialogProductsCategory = (function ($) {
         if (count_item <= 0) {
             $wrapper.find('.js-autocomplete-wrapper').hide();
         } else {
-            var show_more_text = '<b><i>' + (count_item > 20 ? $_("Show %d more").replace('%d', 20) + ' ' + $_("From").toLowerCase() + ' ' + count_item : $_("Show %d more").replace('%d', count_item)) + '</i></b>';
+            var show_more_text = '<b><i>' + this.show_all + ' (' + count_item + ')</i></b>';
             $wrapper.find('.js-show-more').html(show_more_text).attr('data-count', count_item);
         }
 
@@ -611,23 +597,15 @@ var shopDialogProductsCategory = (function ($) {
             }
         });
 
-        //initialization rating widget
-        $wrapper.find('.js-category-rate').rateWidget({
-            withClearAction: false,
-            onUpdate: function (rate) {
-                $wrapper.find('.js-c-category-rate-value').val(rate);
-            }
-        });
-
         // check corresponding checkbox when change control
-        $wrapper.find('select[name^=rating]').change(function () {
-            $wrapper.find('.js-condition-rate').attr('checked', true);
+        $wrapper.on('keyup', 'input[name^=rating]', function () {
+            $wrapper.find('.js-condition-rating-interval').attr('checked', true);
         });
         $wrapper.find('.js-category-rate').click(function () {
             $wrapper.find('.js-condition-rate').attr('checked', true);
         });
-        $wrapper.find('select[name^=count]').change(function () {
-            $wrapper.find('.js-condition-count').attr('checked', true);
+        $wrapper.on('keyup', 'input[name^=count]', function () {
+            $wrapper.find('.js-condition-count-interval').attr('checked', true);
         });
         $wrapper.find('.js-category-count-value').click(function () {
             $wrapper.find('.js-condition-count').attr('checked', true);
@@ -638,6 +616,13 @@ var shopDialogProductsCategory = (function ($) {
         $wrapper.on('keyup', 'input[name^=price]', function () {
             $wrapper.find('.js-condition-price-interval').attr('checked', true);
         });
+        $wrapper.on('keyup', 'input[name^=compare_price]', function () {
+            $wrapper.find('.js-condition-compare-price-interval').attr('checked', true);
+        });
+        $wrapper.on('keyup', 'input[name^=purchase_price]', function () {
+            $wrapper.find('.js-condition-purchase-price-interval').attr('checked', true);
+        });
+
         $wrapper.on('change', '.js-feature-value', function () {
             if (this.checked) {
                 $(this).closest('tr').find('.js-condition-feature').attr('checked', true);

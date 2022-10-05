@@ -4,6 +4,9 @@ class shopProdCategoriesAction extends waViewAction
 {
     public function execute()
     {
+        $category_routes_model = new shopCategoryRoutesModel();
+        $category_routes_model->deleteMissingRoutes();
+
         $categories = $this->getCategories();
         $storefronts = $this->getStorefronts();
 
@@ -31,7 +34,7 @@ class shopProdCategoriesAction extends waViewAction
         }
 
         $category_model = new shopCategoryModel();
-        $categories = $category_model->getFullTree("id, name, parent_id, depth, count, type, status, sort_products",  false);
+        $categories = $category_model->getFullTree("id, name, parent_id, depth, count, type, status, sort_products, filter",  false);
         $categories = shopProdCategoriesAction::formatCategories($categories);
         $categories_tree = $category_model->buildNestedTree($categories);
 
@@ -46,8 +49,6 @@ class shopProdCategoriesAction extends waViewAction
     public static function formatCategories($categories)
     {
         $result = [];
-        $category_model = new shopCategoryModel();
-        $category_model->recount();
         foreach ($categories as $category) {
             $result[$category['id']] = shopProdCategoriesAction::formatCategory($category);
         }
@@ -60,17 +61,10 @@ class shopProdCategoriesAction extends waViewAction
         $category_routes_model = new shopCategoryRoutesModel();
         $routes = $category_routes_model->getRoutes($category["id"]);
 
-        if (!empty($routes)) {
-            $routes = array_map(function($r) {
-                $r = rtrim($r, '/*');
-                // когда магазин поселен не в корне, нужно оставить финальный слеш
-                if (strpos($r, '/') !== false) { $r .= '/'; }
-                return $r;
-            }, $routes);
-        }
-
         $category["storefronts"] = $routes;
         $category["sort_products"] = (!empty($category["sort_products"]) ? $category["sort_products"] : "");
+        $category["explode_feature_ids"] = $category["filter"] !== null ? explode(',', $category["filter"]) : [];
+        $category["allow_filter"] = $category["explode_feature_ids"] ? "1" : "0";
 
         return $category;
     }
@@ -78,14 +72,14 @@ class shopProdCategoriesAction extends waViewAction
     public function getStorefronts() {
         $result = [];
 
-        $storefront_list = new shopStorefrontList();
-        $all_routes = $storefront_list->getAll();
-
-        foreach ($all_routes as $_route) {
-            $result[] = [
-                "url" => $_route,
-                "name" => waIdna::dec($_route)
-            ];
+        foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
+            foreach ($domain_routes as $route) {
+                $url = $domain.'/'.$route['url'];
+                $result[] = [
+                    'url' => $url,
+                    'name' => waIdna::dec($url),
+                ];
+            }
         }
 
         return $result;
@@ -94,11 +88,11 @@ class shopProdCategoriesAction extends waViewAction
     public static function getCategorySortVariants() {
         $result = [
             [
-                "name" => _w("Вручную (как задано в панели управления)"),
+                "name" => _w("Manually (as selected in the backend)"),
                 "value" => ""
             ],
             [
-                "name" => _w("По наименованию"),
+                "name" => _w("By name"),
                 "value" => "name ASC"
             ],
             [

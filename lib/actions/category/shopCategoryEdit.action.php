@@ -60,7 +60,7 @@ class shopCategoryEditAction extends waViewAction
         $settings['has_children'] = $category_model->countByField('parent_id', $settings['id']);
         $settings['params'] = $category_params_model->get($id);
         $settings['cloud'] = $this->getTagsCloud();
-        $settings['conditions'] = $this->parseConditions($settings['conditions']);
+        $settings['conditions'] = shopProdCategoryDialogAction::parseConditions($settings['conditions']);
         $settings['custom_conditions'] = $this->extractCustomConditions($settings['conditions']);
         $settings = $this->getSorting($settings);
         $settings['explode_feature_ids'] = $this->getExplodeFeatureIds($settings);
@@ -74,6 +74,7 @@ class shopCategoryEditAction extends waViewAction
 
         if ($settings['type'] == shopCategoryModel::TYPE_DYNAMIC) {
             $settings = $this->getDynamicSettings($settings);
+            $this->formatConditions($settings);
         } elseif ($settings['type'] == shopCategoryModel::TYPE_STATIC) {
             $settings = $this->getStaticSettings($settings);
         }
@@ -134,25 +135,29 @@ class shopCategoryEditAction extends waViewAction
         $category_helper = new shopCategoryHelper();
         $conditions = ifset($settings, 'conditions', 'feature', []);
 
-        $options_filter_count = [
-            'frontend' => true,
-        ];
         $options_feature_count = [
             'frontend' => true,
             'status'   => null,
         ];
+        $settings['feature_count'] = $category_helper->getCount($options_feature_count);
+
+        $options_filter_count = [
+            'frontend' => true,
+        ];
+        $settings['filter_count'] = $category_helper->getCount($options_filter_count);
+
         $options_filter = [
             'frontend'  => true,
             'ignore_id' => array_keys($settings['allow_filter_data'])
         ];
-        $options_features = [
-            'code'   => array_keys($conditions),
-            'status' => null,
-        ];
-
-        $settings['feature_count'] = $category_helper->getCount($options_feature_count);
-        $settings['filter_count'] = $category_helper->getCount($options_filter_count);
         $settings['filter'] += $category_helper->getFilters($options_filter);
+
+        $options_features = [
+            'code' => array_keys($conditions),
+            'ignore_complex_types' => true,
+            'count' => false,
+            'ignore' => false,
+        ];
         $settings['features'] = $category_helper->getFilters($options_features);
 
         $all = $this->extendSavedConditions($settings['features'], $conditions);
@@ -196,94 +201,6 @@ class shopCategoryEditAction extends waViewAction
         }
 
         return $parsed_conditions;
-    }
-
-    /**
-     * Parse conditions string to array. Redesigned this method shopCollection::parseConditions();
-     * @param string $conditions
-     * @return array|mixed|null
-     * @see how it work in waContactsCollection::searchPrepare
-     */
-    protected function parseConditions($conditions = '')
-    {
-        if (!$conditions) {
-            return $conditions;
-        }
-
-        $escapedBS = 'ESCAPED_BACKSLASH';
-        while (false !== strpos($conditions, $escapedBS)) {
-            $escapedBS .= rand(0, 9);
-        }
-        $escapedAmp = 'ESCAPED_AMPERSAND';
-        while (false !== strpos($conditions, $escapedAmp)) {
-            $escapedAmp .= rand(0, 9);
-        }
-
-        $conditions = str_replace('\\&', $escapedAmp, str_replace('\\\\', $escapedBS, $conditions));
-        $conditions = explode('&', $conditions);
-
-        $result = [];
-
-        foreach ($conditions as $part) {
-            if (!($part = trim($part))) {
-                continue;
-            }
-            $part = str_replace(array($escapedBS, $escapedAmp), array('\\\\', '\\&'), $part);
-            $temp = preg_split("/(\\\$=|\^=|\*=|==|!=|>=|<=|=|>|<)/uis", $part, 2, PREG_SPLIT_DELIM_CAPTURE);
-
-            if ($temp) {
-                $name = array_shift($temp);
-                $is_feature = false;
-                $feature_name = null;
-
-                //get feature name
-                if (substr($name, -9) === '.value_id') {
-                    $is_feature = true;
-                    $feature_name = substr($name, 0, -9);
-                } elseif (substr($name, -6) === '.value') {
-                    $is_feature = true;
-                    $feature_name = substr($name, 0, -6);
-                }
-
-                //Get previous saved values
-                if ($is_feature) {
-                    $tmp_result = ifset($result, 'feature', $feature_name, []);
-                } else {
-                    $tmp_result = ifset($result, $name, []);
-                }
-
-                if ($name == 'tag') {
-                    $tmp_result['type'] = 'tag';
-                    $tmp_result['tags'] = str_replace('\&', '&', $temp[1]); //Remove escape ampersand
-                    $tmp_result['tags'] = explode('||', $tmp_result['tags']);
-                } elseif ($name == 'rating' || $name == 'count') {
-                    $tmp_result['type'] = $name;
-                    $tmp_result['condition'] = $temp[0];
-                    $tmp_result['values'] = preg_split('@[,\s]+@', $temp[1]);
-                } elseif ($temp[0] == '>=') {
-                    $tmp_result['type'] = 'range';
-                    $tmp_result['begin'] = $temp[1];
-                    $tmp_result['end'] = isset($tmp_result['end']) ? $tmp_result['end'] : null;
-                } elseif ($temp[0] == '<=') {
-                    $tmp_result['type'] = 'range';
-                    $tmp_result['begin'] = isset($tmp_result['begin']) ? $tmp_result['begin'] : null;
-                    $tmp_result['end'] = $temp[1];
-                } else {
-                    $tmp_result['type'] = 'equal';
-                    $tmp_result['condition'] = $temp[0];
-                    $tmp_result['values'] = preg_split('@[,\s]+@', $temp[1]);
-                }
-
-                //Set update/new values
-                if ($is_feature) {
-                    $result['feature'][$feature_name] = $tmp_result;
-                } else {
-                    $result[$name] = $tmp_result;
-                }
-            }
-        }
-
-        return $result;
     }
 
     protected function getParent($parent_id)
@@ -334,6 +251,42 @@ class shopCategoryEditAction extends waViewAction
         return $frontend_base_url;
     }
 
+    /**
+     * @param array $settings
+     * @return void
+     */
+    protected function formatConditions(&$settings)
+    {
+        if (isset($settings['conditions']['type'])) {
+            $type_model = new shopTypeModel();
+            $settings['conditions']['type']['options'] = $type_model->select('`id`, `name`')->where('id IN (' . implode(',', array_map('intval', $settings['conditions']['type']['values'])) . ')')->fetchAll();
+        }
+        if (isset($settings['conditions']['feature']) && is_array($settings['conditions']['feature'])) {
+            foreach ($settings['conditions']['feature'] as $code => &$condition) {
+                if (isset($settings['features'][$code])) {
+                    $feature = $settings['features'][$code];
+                    if ($feature['type'] == 'range.date') {
+                        $condition['begin'] = shopDateValue::timestampToDate($condition['begin']);
+                        $condition['end'] = shopDateValue::timestampToDate($condition['end']);
+                    } elseif (empty($feature['selectable']) && $condition['type'] == 'equal' && $feature['type'] == shopFeatureModel::TYPE_DATE) {
+                        $selectable_values = [];
+                        foreach ($feature['values'] as $selectable_value) {
+                            $selectable_values[] = $selectable_value->timestamp;
+                        }
+                        $condition += [
+                            'begin' => '',
+                            'end' => ''
+                        ];
+                        if ($selectable_values) {
+                            $condition['begin'] = shopDateValue::timestampToDate(min($selectable_values));
+                            $condition['end'] = shopDateValue::timestampToDate(max($selectable_values));
+                        }
+                    }
+                }
+            }
+            unset($condition);
+        }
+    }
 
     /**
      * todo. Please remove it sometime.

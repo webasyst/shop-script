@@ -42,6 +42,18 @@ class shopProdFilterGetFeaturesOptionsController extends waController
             $sql .= " LIMIT i:limit";
             $data['limit'] = $limit;
         }
-        return $values_model->query($sql, $data)->fetchAll('id');
+
+        $values = $values_model->query($sql, $data)->fetchAll('id');
+
+        foreach ($values as &$value) {
+            if ($feature['type'] == shopFeatureModel::TYPE_COLOR) {
+                $color_value = new shopColorValue($value);
+                $value['code'] = $color_value->convert($color_value::HEX);
+            }
+            $value["name"] = $value["value"];
+            $value["value"] = $value["id"];
+        }
+
+        return $values;
     }
 }

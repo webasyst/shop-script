@@ -9,6 +9,7 @@ class shopProdSkuAction extends waViewAction
     {
         $product = $this->getProduct();
         if (empty($product)) {
+            $this->setTemplate('templates/actions/prod/includes/deleted_product.html');
             $this->setLayout(new shopBackendProductsEditSectionLayout([
                 'content_id' => 'sku',
             ]));
@@ -208,7 +209,8 @@ class shopProdSkuAction extends waViewAction
         }
 
         $_normal_mode = count($product['skus']) > 1;
-        $has_features_values = self::checkProductFeaturesValues($product['id'], $product['type_id']);
+        $product_features_model = new shopProductFeaturesModel();
+        $has_features_values = $product_features_model->checkProductFeaturesValues($product['id'], $product['type_id']);
         $_normal_mode_switch = $_normal_mode || $has_features_values || ifempty($product, 'params', 'multiple_sku', null) || $selected_selectable_feature_ids;
 
         foreach ($product['skus'] as $modification) {
@@ -408,31 +410,6 @@ class shopProdSkuAction extends waViewAction
         return compact('modification_name', 'features_name');
     }
 
-    /**
-     * @param $product_id
-     * @param $product_type_id
-     * @return bool
-     * @throws waDbException
-     */
-    public static function checkProductFeaturesValues($product_id, $product_type_id)
-    {
-        $product_features_model = new shopProductFeaturesModel();
-        $sql = "SELECT pf.id
-                FROM shop_product_features pf
-                    JOIN shop_feature f ON pf.feature_id = f.id
-                    JOIN shop_type_features tf ON pf.feature_id = tf.feature_id
-                    JOIN shop_product_skus ps ON pf.sku_id = ps.id
-                WHERE pf.product_id = i:product_id AND f.type != s:feature_type AND
-                    (tf.type_id = 0 OR tf.type_id = i:product_type_id) AND pf.feature_value_id > 0
-                LIMIT 1";
-
-        return (bool)$product_features_model->query($sql, array(
-            'product_id' => $product_id,
-            'product_type_id' => $product_type_id,
-            'feature_type' => shopFeatureModel::TYPE_DIVIDER
-        ))->fetchField();
-    }
-
     // also used in shopProdPricesAction
     public static function formatFeatures($features, $make_selectable = false, $with_empty_option = true)
     {
@@ -482,13 +459,23 @@ class shopProdSkuAction extends waViewAction
                     $units = shopDimension::getUnits($feature["type"]);
                     $setUnits($feature, $units);
 
-                    $feature["render_type"] = "checkbox";
+                    if ($like_selectable && !$feature['selectable']) {
+                        $feature["render_type"] = $feature['type'] == shopFeatureModel::TYPE_COLOR ? 'color' : 'field';
+                    } else {
+                        $feature["render_type"] = "checkbox";
+                    }
                     foreach (ifset($feature, "values", []) as $value_id => $value) {
-                        $_option = [
-                            "name" => (string)$value,
-                            "value" => (string)$value,
-                            "id" => $value_id,
-                        ];
+                        if ($make_selectable) {
+                            $_option = [
+                                "name" => (string)$value,
+                                "value" => (string)$value_id
+                            ];
+                        } else {
+                            $_option = [
+                                "name" => (string)$value,
+                                "value" => (string)$value
+                            ];
+                        }
 
                         if ($value instanceof shopColorValue) {
                             if ( !empty($value["code"]) ) {
@@ -510,17 +497,22 @@ class shopProdSkuAction extends waViewAction
                     if ($with_empty_option) {
                         $feature["options"][] = [
                             "name" => _w("Not defined"),
-                            "value" => "",
-                            "id" => "",
+                            "value" => ""
                         ];
                     }
 
                     foreach (ifset($feature, "values", []) as $value_id => $value) {
-                        $_option = [
-                            "name" => (string)$value,
-                            "value" => (string)$value,
-                            "id" => $value_id,
-                        ];
+                        if ($make_selectable) {
+                            $_option = [
+                                "name" => (string)$value,
+                                "value" => (string)$value_id
+                            ];
+                        } else {
+                            $_option = [
+                                "name" => (string)$value,
+                                "value" => (string)$value
+                            ];
+                        }
 
                         if ($value instanceof shopColorValue) {
                             if ( !empty($value["code"]) ) {
@@ -547,16 +539,14 @@ class shopProdSkuAction extends waViewAction
                         for ($i = 0; $i < $d; $i++) {
                             $feature["options"][] = [
                                 "name"  => "",
-                                "value" => "",
-                                "id" => "",
+                                "value" => ""
                             ];
                         }
                     } else {
                         for ($i=0; $i < intval($feature["type"]); $i++) {
                             $feature["options"][] = [
                                 "name" => "",
-                                "value" => "",
-                                "id" => "",
+                                "value" => ""
                             ];
                         }
                     }
@@ -569,8 +559,7 @@ class shopProdSkuAction extends waViewAction
                     $feature["options"] = [
                         [
                             "name" => "",
-                            "value" => "",
-                            "id" => "",
+                            "value" => ""
                         ]
                     ];
 
@@ -583,13 +572,11 @@ class shopProdSkuAction extends waViewAction
                         $feature["options"]     = [
                             [
                                 "name"  => "",
-                                "value" => "",
-                                "id" => "",
+                                "value" => ""
                             ],
                             [
                                 "name"  => "",
-                                "value" => "",
-                                "id" => "",
+                                "value" => ""
                             ]
                         ];
                     } else {
@@ -597,13 +584,11 @@ class shopProdSkuAction extends waViewAction
                         $feature["options"] = [
                             [
                                 "name"  => "",
-                                "value" => "",
-                                "id" => "",
+                                "value" => ""
                             ],
                             [
                                 "name"  => "",
-                                "value" => "",
-                                "id" => "",
+                                "value" => ""
                             ]
                         ];
                     }
@@ -613,8 +598,7 @@ class shopProdSkuAction extends waViewAction
                     $feature["options"] = [
                         [
                             "name" => "",
-                            "value" => "",
-                            "id" => "",
+                            "value" => ""
                         ]
                     ];
 
@@ -624,8 +608,7 @@ class shopProdSkuAction extends waViewAction
                         [
                             "name" => _w("color name"),
                             "value" => "",
-                            "code" => "",
-                            "id" => "",
+                            "code" => ""
                         ]
                     ];
 
@@ -634,18 +617,15 @@ class shopProdSkuAction extends waViewAction
                     $feature["options"] = [
                         [
                             "name" => _w("Not defined"),
-                            "value" => "",
-                            "id" => "",
+                            "value" => ""
                         ],
                         [
                             "name" => _w("Yes"),
-                            "value" => "1",
-                            "id" => "1",
+                            "value" => "1"
                         ],
                         [
                             "name" => _w("No"),
-                            "value" => "0",
-                            "id" => "0",
+                            "value" => "0"
                         ]
                     ];
                     $feature["active_option"] = reset($feature["options"]);
@@ -656,8 +636,7 @@ class shopProdSkuAction extends waViewAction
                     $feature["options"] = [
                         [
                             "name" => $feature["code"],
-                            "value" => "-",
-                            "id" => "",
+                            "value" => "-"
                         ]
                     ];
 
@@ -666,8 +645,7 @@ class shopProdSkuAction extends waViewAction
                     $feature["options"] = [
                         [
                             "name" => "",
-                            "value" => "",
-                            "id" => "",
+                            "value" => ""
                         ]
                     ];
 
@@ -676,8 +654,7 @@ class shopProdSkuAction extends waViewAction
                     $feature["options"] = [
                         [
                             "name" => "",
-                            "value" => "",
-                            "id" => "",
+                            "value" => ""
                         ]
                     ];
                 }

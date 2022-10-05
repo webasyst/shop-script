@@ -11,6 +11,7 @@ class shopProdMediaAction extends waViewAction
         shopProdGeneralAction::createEmptyProduct($product_id);
         $product = new shopProduct($product_id);
         if (!$product['id']) {
+            $this->setTemplate('templates/actions/prod/includes/deleted_product.html');
             $this->setLayout(new shopBackendProductsEditSectionLayout([
                 'content_id' => 'media',
             ]));
@@ -76,8 +77,8 @@ class shopProdMediaAction extends waViewAction
         if (!empty($product["image_id"]) && !empty($photos) && !empty($photos[$product["image_id"]])) {
             $photo = $photos[$product["image_id"]];
         }
-
-        $has_features_values = shopProdSkuAction::checkProductFeaturesValues($product['id'], $product['type_id']);
+        $product_features_model = new shopProductFeaturesModel();
+        $has_features_values = $product_features_model->checkProductFeaturesValues($product['id'], $product['type_id']);
         $_normal_mode = $product['sku_count'] > 1 || $has_features_values
             || ifempty($product, 'params', 'multiple_sku', null) || !empty($product->getSkuFeatures());
         foreach ($product['skus'] as $modification) {

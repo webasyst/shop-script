@@ -2691,6 +2691,9 @@
                                 afterSaveFailPluginHook(form_data.data, reason == 'errors' ? errors : []);
 
                                 if (reason == 'errors' && errors && errors.length) {
+                                    var error_search = errors.filter( error => (error.id === "not_found"));
+                                    if (error_search.length) { $.wa_shop_products.showDeletedProductDialog(); }
+
                                     that.renderErrors(errors);
                                 }
                             });

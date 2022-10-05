@@ -9,13 +9,13 @@
         <button class="dropdown-toggle wa-button transparent bold" type="button">{sprintf('{$} %s', _w("Insert variable"))}</button>
         <div class="dropdown-body left">
             <div class="dropdown-item" data-id="{'{$name}'}">
-                <span class="s-name"><span class="black">&#123;$name&#125;</span> — название товара</span>
+                <span class="s-name"><span class="black">&#123;$name&#125;</span> — [`product name`]</span>
             </div>
             <div class="dropdown-item" data-id="{'{$summary}'}">
-                <span class="s-name"><span class="black">&#123;$summary&#125;</span> — краткое описание товара</span>
+                <span class="s-name"><span class="black">&#123;$summary&#125;</span> — [`product summary`]</span>
             </div>
             <div class="dropdown-item" data-id="{'{$price}'}">
-                <span class="s-name"><span class="black">&#123;$price&#125;</span> — цена товара или его основной модификации</span>
+                <span class="s-name"><span class="black">&#123;$price&#125;</span> — [`product’s and its main variant’s price`]</span>
             </div>
         </div>
     </div>
@@ -435,7 +435,7 @@
                 </div>
                 <div class="s-section-body">
                     <p>[`You can set up multiple storefronts for your online store — for sales in various regions, for several business areas, for sales via social media and other platforms. Each storefront can display its own set of products. Here are shown the storefronts where this particular product is displayed.`]</p>
-                    <p>[`The available storefronts and the products displayed in them can be managed by means of product types (in section “Settings → Product types & Features”) and the storefront settings (in section “Storefront → Settings”). Add new storefronts in section “Structure” of the Site app.`]</p>
+                    <p>[`The available storefronts and the products displayed in them can be managed by means of product types (in section “Settings → Product types & features”) and the storefront settings (in section “Storefront → Settings”). Add new storefronts in section “Structure” of the Site app.`]</p>
 
                     {if !empty($formatted_product.storefronts)}
                         <div class="s-fields-wrapper wa-fields">

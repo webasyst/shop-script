@@ -70,26 +70,26 @@ class shopProdPresentationEditSettingsController extends waJsonController
         if (!$presentation) {
             $this->errors = [
                 'id' => 'presentation_id',
-                'text' => _w('Presentation not found'),
+                'text' => _w('Saved view not found.'),
             ];
             return null;
         }
         if ($view && !in_array($view, [shopPresentation::VIEW_THUMBS, shopPresentation::VIEW_TABLE, shopPresentation::VIEW_TABLE_EXTENDED])) {
             $this->errors = [
                 'id' => 'view',
-                'text' => _w('Incorrect view'),
+                'text' => _w('Incorrect view type.'),
             ];
         }
         if ($rows_on_page && $rows_on_page <= 0) {
             $this->errors = [
                 'id' => 'rows_on_page',
-                'text' => _w('Negative number of products per page'),
+                'text' => _w('Negative number of products per page.'),
             ];
         }
         if ($sort_order && $sort_order != 'ASC' && $sort_order != 'DESC') {
             $this->errors = [
                 'id' => 'sort_order',
-                'text' => _w('Incorrect column sorting'),
+                'text' => _w('Incorrect column sorting.'),
             ];
         }
 
@@ -99,7 +99,7 @@ class shopProdPresentationEditSettingsController extends waJsonController
             if (!$column_data) {
                 $this->errors = [
                     'id' => 'column_type',
-                    'text' => _w('Column not enabled'),
+                    'text' => _w('Column not enabled.'),
                 ];
                 return null;
             }
@@ -107,7 +107,7 @@ class shopProdPresentationEditSettingsController extends waJsonController
             if ($width && ($width <= 0 || $width > 3840)) {
                 $this->errors = [
                     'id' => 'width',
-                    'text' => _w('Width too small or too large'),
+                    'text' => _w('Width too small or too large.'),
                 ];
             }
 

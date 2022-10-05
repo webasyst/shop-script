@@ -19,7 +19,7 @@ class shopProdCategoryMoveController extends waJsonController
         if (count($category_ids) != count(array_unique($category_ids))) {
             $this->errors = [
                 'id' => 'incorrect_params',
-                'text' => _w('Невозможно переместить категорию')
+                'text' => _w('Failed to move the category.')
             ];
             return;
         }
@@ -27,7 +27,7 @@ class shopProdCategoryMoveController extends waJsonController
         if (false !== array_search($parent_id, $category_ids)) {
             $this->errors = [
                 'id' => 'move_error',
-                'text' => _w("List couldn't be parent of itself")
+                'text' => _w("A category cannot be the parent of itself.")
             ];
         }
     }
@@ -57,7 +57,7 @@ class shopProdCategoryMoveController extends waJsonController
                 if ($response !== true) {
                     $this->errors = [
                         'id' => 'move_category',
-                        'text' => ifempty($response, _w('Cannot move the category.')),
+                        'text' => ifempty($response, _w('Failed to move the category.')),
                     ];
                     return;
                 }

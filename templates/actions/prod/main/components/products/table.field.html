@@ -117,8 +117,8 @@
         {* SKU_TYPE *}
         <template v-else-if="column.column_type === 'sku_type'">
             <div class="vue-render-type-text">
-                <span v-if="column_data.value === '1'">[`Артикулы`]</span>
-                <span v-else>[`Характеристики`]</span>
+                <span v-if="column_data.value === '1'">[`SKUs`]</span>
+                <span v-else>[`Features`]</span>
             </div>
         </template>
 
@@ -139,11 +139,21 @@
             <template v-else>
                 <component-product-column-sbratio
                     v-bind:product="product"
+                    v-bind:sku_mod="sku_mod"
                     v-bind:column="column"
                     v-bind:column_info="column_info"
                     v-bind:column_data="column_data"
                     v-on:change="onChange"></component-product-column-sbratio>
             </template>
+        </template>
+
+        {* SKU *}
+        <template v-else-if="column.column_type === 'sku'">
+            <component-product-column-sku
+                v-bind:product="product"
+                v-bind:column="column"
+                v-bind:column_info="column_info"
+                v-bind:column_data="column_data"></component-product-column-sku>
         </template>
 
         {* TAGS/CATEGORIES/SETS *}
@@ -177,10 +187,10 @@
                 </template>
                 <template v-else>
                     <component-input
+                        class="s-field wa-small full-width s-square-field wa-ellipsis"
                         v-model="column_data.value"
                         v-bind:cancel="true"
                         v-bind:readonly="!column_data.editable"
-                        v-bind:class="'s-field wa-small full-width s-square-field'"
                         v-on:change="onChange"></component-input>
                 </template>
             </div>
@@ -266,3 +276,5 @@
 {include file="./table.field.feature.html" scope="parent" inline}
 
 {include file="./table.field.sbratio.html" scope="parent" inline}
+
+{include file="./table.field.sku.html" scope="parent" inline}

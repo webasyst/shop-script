@@ -17,7 +17,7 @@
 
             // VUE VARS
             that.paging               = options["paging"];
-            that.mass_actions         = options["mass_actions"];
+            that.mass_actions         = formatActions(options["mass_actions"]);
             that.stocks               = options["stocks"];
             that.columns_array        = formatColumns(options["columns"]);
             that.columns              = $.wa.construct(that.columns_array, "id");
@@ -183,6 +183,18 @@
                 });
 
                 return presentation;
+            }
+
+            function formatActions(actions) {
+                $.each(actions, function(i, group) {
+                    $.each(group.actions, function(j, action) {
+                        action.states = {
+                            visible: true
+                        };
+                    });
+                });
+
+                return actions;
             }
         }
 
@@ -552,6 +564,7 @@
                     onFocus: function($event) {
                         var self = this;
                         self.start_value = $event.target.value;
+                        self.$emit("focus");
                     },
                     onBlur: function($event) {
                         var self = this,
@@ -578,7 +591,8 @@
                         $textarea
                             .css("overflow", "hidden")
                             .css("min-height", 0);
-                        var scroll_h = $textarea[0].scrollHeight + self.offset;
+                        var x = self.$el.offsetHeight;
+                        var scroll_h = self.$el.scrollHeight + self.offset;
                         $textarea
                             .css("min-height", scroll_h + "px")
                             .css("overflow", "");
@@ -589,14 +603,7 @@
                         $textarea = self.$textarea = $(self.$el);
 
                     self.offset = $textarea[0].offsetHeight - $textarea[0].clientHeight;
-
-                    $textarea
-                        .css("overflow", "hidden")
-                        .css("min-height", 0);
-                    var scroll_h = $textarea[0].scrollHeight + self.offset;
-                    $textarea
-                        .css("min-height", scroll_h + "px")
-                        .css("overflow", "");
+                    self.update();
 
                     self.$emit("ready", self.$el.value);
 
@@ -631,7 +638,8 @@
                         if (self.required && !self.value.length) {
                             result.push("wa-error-field");
                         }
-                        if (self.format === "number") {
+
+                        if (self.format === "number" || self.format === "number-negative") {
                             result.push("is-number");
                         }
 
@@ -682,7 +690,11 @@
                     },
                     onChange: function(value) {
                         var self = this;
-                        if (!self.required || self.value.length) {
+                        if (self.required && self.value === "") {
+                            self.value = self.start_value;
+                            self.$input.val(self.value);
+                            self.$emit('input', self.value);
+                        } else {
                             self.$emit("change", value);
                         }
                     }
@@ -986,6 +998,22 @@
                             }
                         },
                         methods: {
+                            onCopyUrl: function(event, presentation) {
+                                const self = this;
+                                var url = event.currentTarget.href;
+                                var dummy = document.createElement('input');
+                                document.body.appendChild(dummy);
+                                dummy.value = url;
+                                dummy.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(dummy);
+
+                                presentation.states.copy_locked = true;
+                                setTimeout( function() {
+                                    presentation.states.copy_locked = false;
+                                }, 1000)
+                            },
+
                             presentationAdd: function(new_presentation) {
                                 var self = this;
                                 new_presentation = formatPresentation(new_presentation);
@@ -1363,212 +1391,6 @@
                             });
                         }
                     },
-                    "component-mass-actions-footer": {
-                        props: ["products"],
-                        data: function() {
-                            var self = this;
-                            return {
-                                actions: formatActions(that.mass_actions),
-                                states: {
-                                    resize_timer: 0
-                                }
-                            }
-
-                            function formatActions(actions) {
-                                actions = $.wa.clone(actions);
-
-                                $.each(actions, function(i, group) {
-                                    $.each(group, function(j, action) {
-                                        action.visible = true;
-                                    });
-                                });
-
-                                return actions;
-                            }
-                        },
-                        template: that.components["component-mass-actions-footer"],
-                        delimiters: ['{ { ', ' } }'],
-                        components: {
-                        },
-                        computed: {
-                            products_length: function() {
-                                let self = this,
-                                    result = self.products.length,
-                                    unselected = that.products.length - self.products.length;
-
-                                if (that.products_selection === "all_products") {
-                                    result = that.products_total_count - unselected;
-                                }
-
-                                return result;
-                            },
-                            actions_list: function() {
-                                var self = this,
-                                    result = [];
-
-                                $.each(self.actions, function(i, group) {
-                                    $.each(group, function(j, action) {
-                                        result.push(action);
-                                    });
-                                });
-
-                                return result;
-                            },
-                            dropdown_actions: function() {
-                                var self = this,
-                                    result = [];
-
-                                $.each(self.actions, function(i, actions_group) {
-                                    var group = [];
-                                    $.each(actions_group, function(i, action) {
-                                        if (action.visible !== true) {
-                                            group.push(action);
-                                        }
-                                    });
-                                    result.push(group);
-                                });
-
-                                return result;
-                            }
-                        },
-                        methods: {
-                            resize: function(entry) {
-                                var self = this,
-                                    $wrapper = $(self.$el);
-
-                                $wrapper.css("visibility", "hidden");
-                                clearTimeout(self.states.resize_timeout);
-                                self.states.resize_timeout = setTimeout(function() {
-                                    resize();
-                                    $wrapper.css("visibility", "");
-                                }, 100);
-
-                                function resize() {
-                                    // Включаем всё
-                                    $.each(self.actions_list, function(i, action) {
-                                        action.visible = true;
-                                    });
-
-                                    // Дожидаемся ререндера
-                                    self.$nextTick( function() {
-                                        var list_w = self.$list.width();
-
-                                        var width = 0,
-                                            visible_count = 0;
-
-                                        // Считаем сколько пунктов влезает
-                                        self.$list.find(".s-action").each( function() {
-                                            var $action = $(this),
-                                                action_w = $action.outerWidth(true);
-
-                                            width += action_w;
-                                            if (width <= list_w) {
-                                                visible_count += 1;
-                                            } else {
-                                                return false;
-                                            }
-                                        });
-
-                                        // Показываем часть пунктов что влезли
-                                        $.each(self.actions_list, function(i, action) {
-                                            action.visible = (i < visible_count);
-                                        });
-                                    });
-                                }
-                            },
-                            callAction: function(action_id) {
-                                console.log( "TODO: action:" + action_id );
-                            },
-                            pin: function() {
-                                that.states.mass_actions_pinned = true;
-                            },
-                            close: function() {
-                                var self = this;
-
-                                $.each(self.products, function(i, product) {
-                                    product.states.selected = false;
-                                });
-                            }
-                        },
-                        mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
-
-                            self.$list = $wrapper.find(".js-actions-list");
-
-                            $wrapper.find(".dropdown").each( function() {
-                                $(this).waDropdown({ hover : false });
-                            });
-
-                            initObserver(self.$el);
-
-                            //
-
-                            function initObserver(wrapper) {
-                                var resizeObserver = new ResizeObserver(onSizeChange);
-                                resizeObserver.observe(wrapper);
-                                function onSizeChange(entries) {
-                                    var is_exist = $.contains(document, wrapper);
-                                    if (is_exist) {
-                                        var entry = entries[0].contentRect;
-                                        self.resize(entry);
-                                    } else {
-                                        resizeObserver.unobserve(wrapper);
-                                        resizeObserver.disconnect();
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "component-mass-actions-aside": {
-                        props: ["products"],
-                        data: function() {
-                            var self = this;
-                            return {
-                                actions: formatActions(that.mass_actions),
-                                states: {}
-                            }
-
-                            function formatActions(actions) {
-                                return actions;
-                            }
-                        },
-                        template: that.components["component-mass-actions-aside"],
-                        delimiters: ['{ { ', ' } }'],
-                        components: {
-                        },
-                        computed: {
-                            products_length: function() {
-                                let self = this,
-                                    result = self.products.length,
-                                    unselected = that.products.length - self.products.length;
-
-                                if (that.products_selection === "all_products") {
-                                    result = that.products_total_count - unselected;
-                                }
-
-                                return result;
-                            }
-                        },
-                        methods: {
-                            callAction: function(action_id) {
-                                console.log( "TODO: action:" + action_id );
-                            },
-                            close: function() {
-                                var self = this;
-
-                                $.each(self.products, function(i, product) {
-                                    product.states.selected = false;
-                                });
-                            },
-                            unpin: function() {
-                                that.states.mass_actions_pinned = false;
-                            }
-                        },
-                        mounted: function() {
-                            var self = this;
-                        }
-                    },
                     "component-table-filters": {
                         props: [],
                         data: function() {
@@ -1815,6 +1637,10 @@
                                                             }
                                                         }
 
+                                                        if (self.category.is_locked) {
+                                                            result.push("is-locked");
+                                                        }
+
                                                         return result.join(" ");
                                                     }
                                                 },
@@ -1965,6 +1791,10 @@
                                                             }
                                                         }
 
+                                                        if (self.set.is_locked) {
+                                                            result.push("is-locked");
+                                                        }
+
                                                         return result.join(" ");
                                                     }
                                                 },
@@ -2055,8 +1885,6 @@
                                                 $wrapper: $(self.$el),
                                                 protect: false
                                             });
-
-                                            // console.log( self );
                                         }
                                     },
                                     "component-table-filters-types": {
@@ -2117,18 +1945,28 @@
                                     setType: function(type) {
                                         const self = this;
                                         self.content_type = type;
+                                        self.autofocus();
                                     },
                                     success: function(data) {
                                         const self = this;
                                         self.dropbox.hide();
                                         self.$emit("success", data);
+                                    },
+                                    autofocus: function() {
+                                        const self = this;
+                                        self.$nextTick( function() {
+                                            $(self.$el).find("input.js-autofocus").trigger("focus");
+                                        });
                                     }
                                 },
                                 mounted: function() {
                                     const self = this;
                                     self.dropbox = $.wa.new.Dropbox({
                                         $wrapper: $(self.$el),
-                                        protect: false
+                                        protect: false,
+                                        open: function() {
+                                            self.autofocus();
+                                        }
                                     });
                                 }
                             },
@@ -2200,9 +2038,14 @@
                                 },
                                 mounted: function() {
                                     const self = this;
+                                    var $wrapper = $(self.$el);
+
                                     self.dropbox = $.wa.new.Dropbox({
-                                        $wrapper: $(self.$el),
-                                        protect: false
+                                        $wrapper: $wrapper,
+                                        protect: false,
+                                        open: function() {
+                                            $wrapper.find("input.js-autofocus").trigger("focus");
+                                        }
                                     });
                                 }
                             },
@@ -2274,9 +2117,14 @@
                                 },
                                 mounted: function() {
                                     const self = this;
+                                    var $wrapper = $(self.$el);
+
                                     self.dropbox = $.wa.new.Dropbox({
-                                        $wrapper: $(self.$el),
-                                        protect: false
+                                        $wrapper: $wrapper,
+                                        protect: false,
+                                        open: function() {
+                                            $wrapper.find("input.js-autofocus").trigger("focus");
+                                        }
                                     });
                                 }
                             },
@@ -2355,9 +2203,13 @@
                                 },
                                 mounted: function() {
                                     const self = this;
+                                    var $wrapper = $(self.$el);
                                     self.dropbox = $.wa.new.Dropbox({
-                                        $wrapper: $(self.$el),
-                                        protect: false
+                                        $wrapper: $wrapper,
+                                        protect: false,
+                                        open: function() {
+                                            $wrapper.find("input.js-autofocus").trigger("focus");
+                                        }
                                     });
                                 }
                             },
@@ -2366,6 +2218,7 @@
                                     let self = this;
                                     return {
                                         filters: that.filters,
+                                        result_filters: that.filter.rules,
                                         states: { show_add_form: false }
                                     };
                                 },
@@ -2470,6 +2323,10 @@
                                     }
                                 },
                                 computed: {
+                                    can_add_filter: function() {
+                                        const self = this;
+                                        return !!(self.result_filters.length);
+                                    },
                                     active_filter_name: function() {
                                         let self = this,
                                             result = null;
@@ -2486,6 +2343,21 @@
                                     }
                                 },
                                 methods: {
+                                    onCopyUrl: function(event, filter) {
+                                        const self = this;
+                                        var url = event.currentTarget.href;
+                                        var dummy = document.createElement('input');
+                                        document.body.appendChild(dummy);
+                                        dummy.value = url;
+                                        dummy.select();
+                                        document.execCommand('copy');
+                                        document.body.removeChild(dummy);
+
+                                        filter.states.copy_locked = true;
+                                        setTimeout( function() {
+                                            filter.states.copy_locked = false;
+                                        }, 1000);
+                                    },
                                     filterAdd: function(new_filter) {
                                         var self = this;
                                         new_filter = formatFilter(new_filter);
@@ -2850,15 +2722,56 @@
                                                 const self = this;
                                                 var result = "";
 
-                                                if (self.feature_data && self.group.label) {
-                                                    var name = self.feature_data.name,
+                                                var rule_name = getRuleName();
+                                                if (rule_name && self.group.label) {
+                                                    var name = rule_name,
                                                         value = self.group.label;
-
                                                     result = name + ": " + value;
                                                 } else {
                                                     result = self.names.join(" | ");
                                                 }
 
+                                                return result;
+
+                                                function getRuleName() {
+                                                    var result = null;
+
+                                                    var white_list = ["features"],
+                                                        display_type = self.group.display_type;
+
+                                                    if (display_type && white_list.indexOf(display_type) >= 0) {
+                                                        if (self.group.name) {
+                                                            result = self.group.name;
+                                                        } else if (self.feature_data) {
+                                                            result = self.feature_data.name;
+                                                        }
+                                                    }
+
+                                                    return result;
+                                                }
+                                            },
+                                            is_folder_dynamic: function() {
+                                                const self = this;
+                                                var result = false;
+                                                if (self.group.type === 'categories') {
+                                                    try {
+                                                        var category_id = self.group.rules[0].rule_params,
+                                                            category = that.filter_options.categories_object[category_id];
+                                                        result = (category.type === "1");
+                                                    } catch (e) {};
+                                                }
+                                                return result;
+                                            },
+                                            is_list_dynamic: function() {
+                                                const self = this;
+                                                var result = false;
+                                                if (self.group.type === 'sets') {
+                                                    try {
+                                                        var set_id = self.group.rules[0].rule_params,
+                                                            set = that.filter_options.sets_object[set_id];
+                                                        result = (set.type === "1");
+                                                    } catch (e) {};
+                                                }
                                                 return result;
                                             }
                                         },
@@ -3489,9 +3402,9 @@
                                                 html = column_name;
 
                                             if (self.is_feature) {
-                                                html = that.templates["table_tooltip_feature"]
+                                                var template = (column_info.available_for_sku ? that.templates["table_tooltip_feature_sku"] : that.templates["table_tooltip_feature"]);
+                                                html = template
                                                     .replace("%visible_in_frontend%", (column_info.visible_in_frontend ? '<i class="fas fa-eye color-gray"></i>' : '<i class="fas fa-eye-slash color-gray-lighter"></i>'))
-                                                    .replace("%available_for_sku%", (column_info.available_for_sku ? '<i class="fas fa-sitemap color-gray"></i>' : '<i class="fas fa-sitemap color-gray-lighter"></i>'))
                                                     .replace("%name%", column_name);
                                             } else if (self.is_virtual_stock) {
                                                 html = that.templates["table_tooltip_virtual_stock"]
@@ -3499,8 +3412,16 @@
                                             } else if (self.is_stock) {
                                                 html = that.templates["table_tooltip_stock"]
                                                     .replace("%name%", column_name);
+                                            } else {
+                                                switch(self.column.column_type) {
+                                                    case "categories":
+                                                        html = that.locales["column_categories_hint"];
+                                                        break;
+                                                    case "sets":
+                                                        html = that.locales["column_sets_hint"];
+                                                        break;
+                                                }
                                             }
-
                                             return html;
                                         }
 
@@ -3655,13 +3576,35 @@
                                     function showColumn(column_data) {
                                         var result = true;
 
+                                        var product_columns = [
+                                            "image_crop_small", "image_count",
+
+                                            "id", "name", "name", "summary", "meta_title", "meta_keywords",
+                                            "meta_description", "description", "create_datetime", "edit_datetime",
+                                            "status", "type_id", "image_id", "video_url", "sku_id", "url",
+                                            "rating", "currency", "tax_id", "count",
+                                            "order_multiplicity_factor", "stock_unit_id", "base_unit_id", "stock_base_ratio",
+                                            "order_count_min", "order_count_step", "rating_count", "total_sales",
+                                            "category_id", "badge", "sku_type", "sku_count",
+
+                                            "tags", "sets", "categories", "params",
+
+                                            "sales_30days", "stock_worth"
+                                        ];
+
+                                        var sku_columns = [
+                                            "sku", "name", "image_id", "price", "purchase_price", "compare_price", "base_price", "visibility",
+                                            "count", "stock_base_ratio", "order_count_min", "order_count_step"
+                                        ];
+
                                         // table_extended
                                         if (is_extended) {
                                             // ячейка продукта
                                             if (is_product_col) {
                                                 if (is_normal_mode) {
-                                                    var white_list = ["image_crop_small", "name", "status", "badge", "currency"];
-                                                    result = (white_list.indexOf(self.column.column_type) >= 0 || is_feature_col);
+                                                    // var white_list = ["image_crop_small", "name", "status", "badge", "currency"];
+                                                    // result = (white_list.indexOf(self.column.column_type) >= 0 || is_feature_col);
+                                                    result = (product_columns.indexOf(self.column.column_type) >= 0 || is_feature_col);
                                                 }
                                             // ячейка артикула
                                             } else if (is_sku_col) {
@@ -3669,8 +3612,9 @@
 
                                             // ячейка модификации
                                             } else if (is_sku_mod_col) {
-                                                var black_list = ["image_crop_small", "status", "badge", "currency"];
-                                                result = (black_list.indexOf(self.column.column_type) < 0);
+                                                // var black_list = ["image_crop_small", "status", "badge", "currency"];
+                                                // result = (black_list.indexOf(self.column.column_type) < 0);
+                                                result = (sku_columns.indexOf(self.column.column_type) >= 0 || is_feature_col);
                                             }
                                         // table
                                         } else {
@@ -3790,6 +3734,7 @@
                                                     edit_key: 0,
                                                     is_edit: false,
                                                     is_locked: false,
+                                                    name_on_focus: self.column_data.value,
 
                                                     is_extended   : is_extended,
                                                     is_product_col: is_product_col,
@@ -3817,8 +3762,8 @@
                                                         var photos = $.wa.construct(self.product.photos, "id");
                                                         if (photos[self.sku_mod.image_id]) {
                                                             result = photos[self.sku_mod.image_id];
-                                                        } else if (photos[self.product.image_id]) {
-                                                            result = photos[self.product.image_id];
+                                                        // } else if (photos[self.product.image_id]) {
+                                                        //     result = photos[self.product.image_id];
                                                         } else {
                                                             result = {};
                                                         }
@@ -3856,6 +3801,10 @@
                                                 self.states.is_edit = is_edit;
                                             },
 
+                                            onFocus: function() {
+                                                const self = this;
+                                                self.states.name_on_focus = self.column_data.value;
+                                            },
                                             onCancel: function() {
                                                 var self = this;
                                                 self.toggle(false);
@@ -3865,6 +3814,11 @@
 
                                                 if (typeof value === "undefined") {
                                                     console.error("ERROR: value isn't exist");
+                                                    return false;
+
+                                                } else if ($.trim(value) === "") {
+                                                    self.column_data.value = self.states.name_on_focus;
+                                                    self.toggle(false);
                                                     return false;
                                                 }
 
@@ -3884,7 +3838,12 @@
                                                     })
                                                     .done( function(response) {
                                                         if (response.status !== "ok") {
-                                                            console.error("ERROR", response.errors);
+                                                            var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                            if (error_search.length) {
+                                                                $.wa_shop_products.showDeletedProductDialog();
+                                                            } else {
+                                                                console.error("ERROR", response.errors);
+                                                            }
                                                         }
                                                     });
                                             }
@@ -3930,8 +3889,13 @@
                                                         if (response.status === "ok") {
                                                             deferred.resolve(response);
                                                         } else {
-                                                            deferred.reject(response.errors);
-                                                            console.error("ERROR", response.errors);
+                                                            var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                            if (error_search.length) {
+                                                                $.wa_shop_products.showDeletedProductDialog();
+                                                            } else {
+                                                                deferred.reject(response.errors);
+                                                                console.error("ERROR", response.errors);
+                                                            }
                                                         }
                                                     });
 
@@ -4329,9 +4293,18 @@
                                                     prices = [],
                                                     price_strings = {};
 
+                                                var price_key = "price";
+                                                switch (self.column.column_type) {
+                                                    case "price":
+                                                    case "compare_price":
+                                                    case "purchase_price":
+                                                        price_key = self.column.column_type;
+                                                        break;
+                                                }
+
                                                 $.each(self.product.skus, function(i, sku) {
                                                     $.each(sku.modifications, function(i, sku_mod) {
-                                                        var price = parseFloat(sku_mod.price);
+                                                        var price = parseFloat(sku_mod[price_key]);
                                                         prices.push(price);
                                                         price_strings[price] = sku_mod.price_string;
                                                     });
@@ -4344,7 +4317,9 @@
 
                                                 if (min >= 0 && max >= 0) {
                                                     if (min === max) {
-                                                        result = $.wa.price.format(max, { currency: self.product.currency, fraction_size: fraction_size });
+                                                        if (max > 0) {
+                                                            result = $.wa.price.format(max, { currency: self.product.currency, fraction_size: fraction_size });
+                                                        }
                                                     } else {
                                                         var min_value = $.wa.price.format(min, { currency: self.product.currency, only_number: true, fraction_size: fraction_size }),
                                                             max_value = $.wa.price.format(max, { currency: self.product.currency, fraction_size: fraction_size });
@@ -4413,7 +4388,12 @@
                                                     })
                                                     .done( function(response) {
                                                         if (response.status !== "ok") {
-                                                            console.error("ERROR", response.errors);
+                                                            var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                            if (error_search.length) {
+                                                                $.wa_shop_products.showDeletedProductDialog();
+                                                            } else {
+                                                                console.error("ERROR", response.errors);
+                                                            }
                                                         } else {
                                                             self.column_data.value = response.data.value;
                                                         }
@@ -4548,7 +4528,12 @@
                                                     return $.post(that.urls["product_update"], data, "json")
                                                         .done( function(response) {
                                                             if (response.status !== "ok") {
-                                                                console.error("ERROR", response.errors);
+                                                                var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                                if (error_search.length) {
+                                                                    $.wa_shop_products.showDeletedProductDialog();
+                                                                } else {
+                                                                    console.error("ERROR", response.errors);
+                                                                }
                                                             }
                                                         });
                                                 }
@@ -4738,16 +4723,21 @@
                                                         } else {
                                                             deferred.reject(response.errors);
 
-                                                            var html = "";
+                                                            var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                            if (error_search.length) {
+                                                                $.wa_shop_products.showDeletedProductDialog();
+                                                            } else {
+                                                                var html = "";
 
-                                                            $.each(response.errors, function(i, error) {
-                                                                html += '<div class="wa-error-text">'+error.text+'</div>';
-                                                                self.errors.push(error);
-                                                            });
+                                                                $.each(response.errors, function(i, error) {
+                                                                    html += '<div class="wa-error-text">'+error.text+'</div>';
+                                                                    self.errors.push(error);
+                                                                });
 
-                                                            $.waDialog({
-                                                                html: that.templates["errors_dialog"].replace("%content%", html)
-                                                            });
+                                                                $.waDialog({
+                                                                    html: that.templates["errors_dialog"].replace("%content%", html)
+                                                                });
+                                                            }
                                                         }
                                                     });
 
@@ -4793,7 +4783,12 @@
                                                     })
                                                     .done( function(response) {
                                                         if (response.status !== "ok") {
-                                                            console.error("ERROR", response.errors);
+                                                            var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                            if (error_search.length) {
+                                                                $.wa_shop_products.showDeletedProductDialog();
+                                                            } else {
+                                                                console.error("ERROR", response.errors);
+                                                            }
                                                         }
                                                     });
                                             }
@@ -4935,7 +4930,12 @@
                                                     })
                                                     .done( function(response) {
                                                         if (response.status !== "ok") {
-                                                            console.error("ERROR", response.errors);
+                                                            var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                            if (error_search.length) {
+                                                                $.wa_shop_products.showDeletedProductDialog();
+                                                            } else {
+                                                                console.error("ERROR", response.errors);
+                                                            }
                                                         } else {
                                                             self.column_data.value = response.data.value;
                                                         }
@@ -5017,8 +5017,13 @@
                                                         if (response.status === "ok") {
                                                             deferred.resolve(response);
                                                         } else {
-                                                            deferred.reject(response.errors);
-                                                            console.error("ERROR", response.errors);
+                                                            var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                            if (error_search.length) {
+                                                                $.wa_shop_products.showDeletedProductDialog();
+                                                            } else {
+                                                                deferred.reject(response.errors);
+                                                                console.error("ERROR", response.errors);
+                                                            }
                                                         }
                                                     });
 
@@ -5554,9 +5559,18 @@
                                                 props: ["option", "column_data"],
                                                 data: function() {
                                                     var self = this;
+
+                                                    var is_number = (self.column_data.format === "number"),
+                                                        format = (is_number ? "number" : null);
+
+                                                    if (self.column_data.type === "dimension.temperature") {
+                                                        format = "number-negative";
+                                                    }
+
                                                     return {
                                                         states: {
-                                                            is_number: (self.column_data.format === "number"),
+                                                            format: format,
+                                                            is_number: is_number,
                                                             is_preview: (self.column_data.format === "number")
                                                         }
                                                     };
@@ -5573,7 +5587,7 @@
                                                             value = self.option.value;
 
                                                         if (Math.abs(parseFloat(value)) >= 0) {
-                                                            value = $.wa.validate("number", value, {
+                                                            value = $.wa.validate(self.format, value, {
                                                                 group_size: 3,
                                                                 delimiter: ($.wa_shop_products.lang === "ru" ? ",": null)
                                                             });
@@ -5668,7 +5682,12 @@
                                                     })
                                                     .done( function(response) {
                                                         if (response.status !== "ok") {
-                                                            console.error("ERROR", response.errors);
+                                                            var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                            if (error_search.length) {
+                                                                $.wa_shop_products.showDeletedProductDialog();
+                                                            } else {
+                                                                console.error("ERROR", response.errors);
+                                                            }
                                                         } else {
                                                             updateData(self.column_data);
                                                         }
@@ -5713,6 +5732,12 @@
                                                             result.value[self.column_data.code] = self.column_data.options[0].value;
                                                             break;
                                                         case "range":
+                                                            var min = self.column_data.options[0].value,
+                                                                max = self.column_data.options[1].value;
+                                                            if (min > 0 && max > 0 && max < min) {
+                                                                self.column_data.options[0].value = max;
+                                                                self.column_data.options[1].value = min;
+                                                            }
                                                         case "range.date":
                                                             result.value[self.column_data.code] = {
                                                                 "value": {
@@ -5763,7 +5788,16 @@
                                         props: ["column", "column_info", "column_data", "product", "sku_mod"],
                                         data: function() {
                                             var self = this;
+                                            var placeholder = "";
+                                            if (self.sku_mod) {
+                                                var product_column_data = self.product.columns[self.column.column_type];
+                                                if (product_column_data.value) {
+                                                    placeholder = product_column_data.value;
+                                                }
+                                            }
                                             return {
+                                                required: !self.sku_mod,
+                                                placeholder: placeholder,
                                                 states: {
                                                     is_preview: true
                                                 }
@@ -5800,6 +5834,50 @@
                                                 self.states.is_preview = show;
                                             },
                                         }
+                                    },
+                                    "component-product-column-sku": {
+                                        props: ["column", "column_info", "column_data", "product"],
+                                        data: function() {
+                                            var self = this;
+                                            return {};
+                                        },
+                                        template: that.components["component-product-column-sku"],
+                                        delimiters: ['{ { ', ' } }'],
+                                        computed: {
+                                            value: function() {
+                                                const self = this;
+                                                var result = "";
+
+                                                if (self.product.normal_mode) {
+                                                    if (that.presentation.view === "table") {
+                                                        result = getSmartString();
+                                                    } else {
+                                                        result = self.column_data.value;
+                                                    }
+                                                } else if (self.product.sku.sku) {
+                                                    result = self.product.sku.sku;
+                                                }
+
+                                                return result;
+
+                                                function getSmartString() {
+                                                    var result = "";
+
+                                                    if (self.product.normal_mode) {
+                                                        var sku_count = self.product.skus.length,
+                                                            sku_mod_count = self.product.sku_count;
+
+                                                        var string = $.wa.locale_plural(sku_count, that.locales["product_sku_forms"]),
+                                                            sku_mod_string = $.wa.locale_plural(sku_mod_count, that.locales["product_sku_mod_forms"]);
+
+                                                        result = string.replace("%s", sku_mod_string);
+                                                    }
+
+                                                    return result;
+                                                }
+                                            }
+                                        },
+                                        methods: {}
                                     }
                                 },
                                 methods: {
@@ -5829,7 +5907,12 @@
                                                 })
                                                 .done( function(response) {
                                                     if (response.status !== "ok") {
-                                                        console.error("ERROR", response.errors);
+                                                        var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                        if (error_search.length) {
+                                                            $.wa_shop_products.showDeletedProductDialog();
+                                                        } else {
+                                                            console.error("ERROR", response.errors);
+                                                        }
                                                     }
                                                 });
                                         }
@@ -5957,6 +6040,222 @@
                                 });
                             }
                         }
+                    },
+
+                    "component-mass-actions": {
+                        props: ["products", "type"],
+                        data: function() {
+                            var self = this;
+                            self.type = (typeof self.type !== "string" ? "footer" : self.type);
+                            return {
+                                actions: that.mass_actions
+                            };
+                        },
+                        template: that.components["component-mass-actions"],
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-mass-actions-footer": {
+                                props: ["products", "actions"],
+                                data: function() {
+                                    var self = this;
+                                    return {
+                                        states: {
+                                            resize_timer: 0
+                                        }
+                                    }
+                                },
+                                template: that.components["component-mass-actions-footer"],
+                                delimiters: ['{ { ', ' } }'],
+                                computed: {
+                                    products_length: function() {
+                                        let self = this,
+                                            result = self.products.length,
+                                            unselected = that.products.length - self.products.length;
+
+                                        if (that.products_selection === "all_products") {
+                                            result = that.products_total_count - unselected;
+                                        }
+
+                                        return result;
+                                    },
+                                    pinned_actions: function() {
+                                        var self = this,
+                                            result = [];
+
+                                        $.each(self.actions, function(i, group) {
+                                            $.each(group.actions, function(j, action) {
+                                                if (action.pinned) {
+                                                    result.push(action);
+                                                }
+                                            });
+                                        });
+
+                                        return result;
+                                    },
+                                    dropdown_actions: function() {
+                                        var self = this;
+                                        return self.actions;
+                                    }
+                                },
+                                methods: {
+                                    resize: function(entry) {
+                                        var self = this,
+                                            $wrapper = $(self.$el);
+
+                                        $wrapper.css("visibility", "hidden");
+                                        clearTimeout(self.states.resize_timeout);
+                                        self.states.resize_timeout = setTimeout(function() {
+                                            resize();
+                                            $wrapper.css("visibility", "");
+                                        }, 100);
+
+                                        function resize() {
+                                            // Включаем всё
+                                            $.each(self.pinned_actions, function(i, action) {
+                                                action.states.visible = true;
+                                            });
+
+                                            // Дожидаемся ререндера
+                                            self.$nextTick( function() {
+                                                var list_w = self.$list.width();
+
+                                                var width = 0,
+                                                    visible_count = 0;
+
+                                                // Считаем сколько пунктов влезает
+                                                self.$list.find(".s-action").each( function() {
+                                                    var $action = $(this),
+                                                        action_w = $action.outerWidth(true);
+
+                                                    width += action_w;
+                                                    if (width <= list_w) {
+                                                        visible_count += 1;
+                                                    } else {
+                                                        return false;
+                                                    }
+                                                });
+
+                                                // Показываем часть пунктов что влезли
+                                                $.each(self.pinned_actions, function(i, action) {
+                                                    action.states.visible = (i < visible_count);
+                                                });
+                                            });
+                                        }
+                                    },
+                                    pin: function() {
+                                        that.states.mass_actions_pinned = true;
+                                    },
+                                    close: function() {
+                                        var self = this;
+
+                                        $.each(self.products, function(i, product) {
+                                            product.states.selected = false;
+                                        });
+                                    },
+
+                                    callAction: function(action) {
+                                        const self = this;
+                                        self.$emit("call_action", action);
+                                    }
+                                },
+                                mounted: function() {
+                                    var self = this,
+                                        $wrapper = $(self.$el);
+
+                                    self.$list = $wrapper.find(".js-actions-list");
+
+                                    $wrapper.find(".dropdown").each( function() {
+                                        $(this).waDropdown({ hover : false });
+                                    });
+
+                                    initObserver(self.$el);
+
+                                    //
+
+                                    function initObserver(wrapper) {
+                                        var resizeObserver = new ResizeObserver(onSizeChange);
+                                        resizeObserver.observe(wrapper);
+                                        function onSizeChange(entries) {
+                                            var is_exist = $.contains(document, wrapper);
+                                            if (is_exist) {
+                                                var entry = entries[0].contentRect;
+                                                self.resize(entry);
+                                            } else {
+                                                resizeObserver.unobserve(wrapper);
+                                                resizeObserver.disconnect();
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "component-mass-actions-aside": {
+                                props: ["products", "actions"],
+                                template: that.components["component-mass-actions-aside"],
+                                delimiters: ['{ { ', ' } }'],
+                                components: {
+                                },
+                                computed: {
+                                    products_length: function() {
+                                        let self = this,
+                                            result = self.products.length,
+                                            unselected = that.products.length - self.products.length;
+
+                                        if (that.products_selection === "all_products") {
+                                            result = that.products_total_count - unselected;
+                                        }
+
+                                        return result;
+                                    }
+                                },
+                                methods: {
+                                    close: function() {
+                                        var self = this;
+
+                                        $.each(self.products, function(i, product) {
+                                            product.states.selected = false;
+                                        });
+                                    },
+                                    unpin: function() {
+                                        that.states.mass_actions_pinned = false;
+                                    },
+
+                                    callAction: function(action) {
+                                        const self = this;
+                                        self.$emit("call_action", action);
+                                    }
+                                },
+                                mounted: function() {
+                                    var self = this;
+                                }
+                            }
+                        },
+                        computed: {},
+                        methods: {
+                            callAction: function(action) {
+                                $.waDialog({
+                                    html: that.templates["dialog-category-clone"],
+                                    onOpen: function($dialog, dialog) {
+                                        var $section = $dialog.find(".js-vue-section");
+
+                                        var vue_model = new Vue({
+                                            el: $section[0],
+                                            data: {
+                                                action: action
+                                            },
+                                            delimiters: ['{ { ', ' } }'],
+                                            created: function () {
+                                                $section.css("visibility", "");
+                                            },
+                                            mounted: function() {
+                                                var self = this,
+                                                    $wrapper = $(self.$el);
+                                                dialog.resize();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }
                     }
                 },
                 computed: {
@@ -5991,12 +6290,14 @@
                                             presentation: response.data.new_presentation_id
                                         });
                                     } else {
-                                        that.presentation.view = view_id;
-                                        that.keys.table += 1;
+                                        that.reload();
 
-                                        self.$nextTick(function () {
-                                            self.setScrollProductsSection(0);
-                                        });
+                                        // that.presentation.view = view_id;
+                                        // that.keys.table += 1;
+                                        //
+                                        // self.$nextTick(function () {
+                                        //     self.setScrollProductsSection(0);
+                                        // });
                                     }
                                 });
                         });
@@ -6037,7 +6338,7 @@
                         that.broadcast.getPresentationsIds().done( function(ids) {
                             that.reload({
                                 open_presentations: ids,
-                                //active_presentation: that.presentation.id,
+                                active_presentation: that.presentation.id,
                                 presentation: presentation.id
                             });
                         });
@@ -6172,7 +6473,7 @@
                     filter: null,
                     presentation: (that.presentation.id ? that.presentation.id : null),
 
-                    //active_presentation: null,
+                    active_presentation: null,
                     open_presentations: null,
 
                     active_filter: null
@@ -6702,7 +7003,7 @@
                             },
                             focus: function() { return false; }
                         }).data("ui-autocomplete")._renderItem = function( ul, item ) {
-                            return $("<li />").addClass("ui-menu-item-html").append("<div>"+item.value+"</div>").appendTo(ul);
+                            return $("<li />").addClass("ui-menu-item-html").append("<div>"+item.name+"</div>").appendTo(ul);
                         };
 
                         $dialog.on("dialog-closed", function() {
@@ -7250,7 +7551,7 @@
 
                 return columns;
             }
-        }
+        };
 
         return Page;
 
@@ -7281,6 +7582,7 @@
             presentation.states = {
                 is_moving: false,
                 move_locked: false,
+                copy_locked: false,
                 remove_locked: false,
                 rewrite_locked: false,
                 show_rename_form: false
@@ -7293,6 +7595,7 @@
             filter.states = {
                 is_moving: false,
                 move_locked: false,
+                copy_locked: false,
                 remove_locked: false,
                 rewrite_locked: false,
                 show_rename_form: false

@@ -19,12 +19,12 @@ class shopProdCategoryNameController extends waJsonController
         if (!is_string($name)) {
             $this->errors = [
                 'id' => 'incorrect_name',
-                'text' => _w('Name not set')
+                'text' => _w('No name is specified.')
             ];
         } elseif (mb_strlen($name) > 255) {
             $this->errors = [
                 'id' => 'incorrect_name',
-                'text' => _w('Name is too long')
+                'text' => _w('The name is too long.')
             ];
         }
         if (!$this->errors) {
@@ -37,7 +37,7 @@ class shopProdCategoryNameController extends waJsonController
             }
             $this->errors = [
                 'id' => 'not_found',
-                'text' => _w('Category to update not found')
+                'text' => _w('The category to update was not found.')
             ];
         }
     }
@@ -52,7 +52,7 @@ class shopProdCategoryNameController extends waJsonController
         } else {
             $this->errors = [
                 'id' => 'updated',
-                'text' => _w('Failed to update category')
+                'text' => _w('Failed to update the category.')
             ];
         }
     }

@@ -80,7 +80,7 @@ class shopProdFilterAddRuleController extends waJsonController
         if (!$filter) {
             $this->errors = [
                 'id' => 'filter_id',
-                'text' => _w('Filter not found'),
+                'text' => _w('Filter not found.'),
             ];
             return;
         }
@@ -88,7 +88,7 @@ class shopProdFilterAddRuleController extends waJsonController
         if (!isset($types[$rule_type])) {
             $this->errors = [
                 'id' => 'rule_type',
-                'text' => _w('Incorrect rule type'),
+                'text' => _w('Incorrect rule type.'),
             ];
             return;
         }
@@ -99,7 +99,7 @@ class shopProdFilterAddRuleController extends waJsonController
                 if (!mb_strlen($rule_params['unit'])) {
                     $this->errors = [
                         'id' => 'open_interval',
-                        'text' => _w('Range limits set incorrectly'),
+                        'text' => _w('Incorrect range limits.'),
                     ];
                     return;
                 } else {
@@ -117,11 +117,11 @@ class shopProdFilterAddRuleController extends waJsonController
             $rule_params = array_values($rule_params);
         }
 
-        $validated_params = shopFilter::validateValue($rule_type, $rule_params, $types[$rule_type], $unit);
+        $validated_params = shopFilter::validateValue($rule_params, $rule_type, $types[$rule_type], $unit);
         if (empty($validated_params)) {
             $this->errors = [
                 'id' => 'rule_params',
-                'text' => _w('Incorrect rule params'),
+                'text' => _w('Incorrect rule parameters.'),
             ];
         } elseif ($validated_params != $rule_params) {
             $rule_params = $validated_params;

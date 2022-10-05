@@ -11,7 +11,7 @@ class shopProdSetRemoveController extends waJsonController
         if (!$result) {
             $this->errors = [
                 'id' => 'remove_failed',
-                'text' => _w('Failed to delete the set')
+                'text' => _w('Failed to delete the set.')
             ];
         }
     }

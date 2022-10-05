@@ -17,7 +17,7 @@ class shopProdSaveGeneralController extends waJsonController
             return;
         }
 
-        $product_data = $this->prepareProductData($product_raw_data);
+        $product_data = $this->prepareProductData($product_raw_data, $product);
         $this->checkRights($product_id, $product_data);
         if (!$this->errors) {
             shopProdSaveGeneralController::updateMainImage($product_data, $product_data['id'], $product_data['type_id']);
@@ -52,10 +52,11 @@ class shopProdSaveGeneralController extends waJsonController
      * Takes data from POST and prepares format suitable as input for for shopProduct class.
      * If something gets wrong, writes errors into $this->errors.
      *
-     * @param array
+     * @param array $product_raw_data
+     * @param shopProduct $product
      * @return array
      */
-    protected function prepareProductData(array $product_raw_data)
+    protected function prepareProductData(array $product_raw_data, $product)
     {
         $product_data = $product_raw_data;
 
@@ -139,19 +140,23 @@ class shopProdSaveGeneralController extends waJsonController
                 }
                 foreach (['stock_base_ratio' => 16, 'order_count_min' => 15, 'order_count_step' => 15] as $sku_field => $length) {
                     if (isset($sku[$sku_field])) {
-                        $max_number = $sku_field == 'stock_base_ratio' ? 8 : 12;
-                        $min_number = $sku_field == 'stock_base_ratio' ? 7 : 2;
-                        if (is_string($sku[$sku_field]) && strlen($sku[$sku_field]) === 0) {
+                        if ($product->type_id != $product_raw_data['type_id']) {
                             $product_data['skus'][$sku_id][$sku_field] = null;
-                        } elseif ($sku[$sku_field] <= 0 || !is_numeric($sku[$sku_field]) || strlen($sku[$sku_field]) > $length + 1
-                            || $sku[$sku_field] > floatval('1'.str_repeat('0', $max_number))
-                            || $sku[$sku_field] < floatval('0.'.str_repeat('0', $min_number).'1')
-                        ) {
-                            $this->errors[] = [
-                                'id' => $sku_field . '_error',
-                                'name' => "product[skus][$sku_id][$sku_field]",
-                                'text' => _w('Invalid value'),
-                            ];
+                        } else {
+                            $max_number = $sku_field == 'stock_base_ratio' ? 8 : 12;
+                            $min_number = $sku_field == 'stock_base_ratio' ? 7 : 2;
+                            if (is_string($sku[$sku_field]) && strlen($sku[$sku_field]) === 0) {
+                                $product_data['skus'][$sku_id][$sku_field] = null;
+                            } elseif ($sku[$sku_field] <= 0 || !is_numeric($sku[$sku_field]) || strlen($sku[$sku_field]) > $length + 1
+                                || $sku[$sku_field] > floatval('1' . str_repeat('0', $max_number))
+                                || $sku[$sku_field] < floatval('0.' . str_repeat('0', $min_number) . '1')
+                            ) {
+                                $this->errors[] = [
+                                    'id' => $sku_field . '_error',
+                                    'name' => "product[skus][$sku_id][$sku_field]",
+                                    'text' => _w('Invalid value'),
+                                ];
+                            }
                         }
                     }
                 }
@@ -393,7 +398,8 @@ class shopProdSaveGeneralController extends waJsonController
     protected static function isSimpleProduct($product_data, $product_id, $type_id)
     {
         $is_simple_product = true;
-        $has_features_values = shopProdSkuAction::checkProductFeaturesValues($product_id, $type_id);
+        $product_features_model = new shopProductFeaturesModel();
+        $has_features_values = $product_features_model->checkProductFeaturesValues($product_id, $type_id);
         $count_skus = 0;
 
         if (!empty($product_data['skus']) && is_array($product_data['skus'])) {

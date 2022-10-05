@@ -4,14 +4,15 @@ class shopProdDuplicateController extends waJsonController
 {
     public function execute()
     {
+        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
         $new_ids = [];
         if (!$presentation_id) {
-            $product_ids = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+            $product_ids = $product_id;
             if (!$product_ids) {
                 $this->errors[] = [
                     'id' => 'not_selected',
-                    'text' => _w('Товары не выбраны'),
+                    'text' => _w('No products are selected.'),
                 ];
                 return;
             }
@@ -19,7 +20,8 @@ class shopProdDuplicateController extends waJsonController
             $presentation = new shopPresentation($presentation_id, true);
             $options = [];
             if ($presentation->getFilterId() > 0) {
-                $options['prepare_filter_id'] = $presentation->getFilterId();
+                $options['prepare_filter'] = $presentation->getFilterId();
+                $options['exclude_products'] = $product_id;
             }
             $collection = new shopProductsCollection('', $options);
             $product_ids = $presentation->getProducts($collection, [

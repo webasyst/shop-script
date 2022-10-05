@@ -33,7 +33,7 @@ class shopProdSetSortController extends waJsonController
         } else {
             $this->errors = [
                 'id' => 'failed_update',
-                'text' => _w('Failed to update sort')
+                'text' => _w('Failed to update sorting.')
             ];
         }
     }

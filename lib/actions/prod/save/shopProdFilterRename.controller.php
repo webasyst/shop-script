@@ -23,7 +23,7 @@ class shopProdFilterRenameController extends waJsonController
     protected function formatValues(&$data)
     {
         if (mb_strlen($data['name']) === 0) {
-            $data['name'] = _w('(без названия)');
+            $data['name'] = _w('(no name)');
         }
     }
 }

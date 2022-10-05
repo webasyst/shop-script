@@ -17,7 +17,7 @@ class shopProductsMoveListController extends waJsonController
         }
 
         if ($id == $parent_id) {
-            throw new waException("List couldn't be parent of itself");
+            throw new waException("A set cannot be the parent of itself.");
         }
 
         if (($before_id || $parent_id) && $before_id == $parent_id) {

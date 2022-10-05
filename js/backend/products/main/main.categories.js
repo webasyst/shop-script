@@ -26,7 +26,8 @@
             that.storefronts = options["storefronts"];
             that.states = {
                 move_locked: false,
-                create_locked: false
+                create_locked: false,
+                count_locked: true
             };
 
             // INIT
@@ -69,6 +70,10 @@
             var that = this;
 
             that.initDragAndDrop();
+
+            that.updateCategoriesCount().done( function() {
+                that.states.count_locked = false;
+            });
 
             $.each(that.tooltips, function(i, tooltip) {
                 $.wa.new.Tooltip(tooltip);
@@ -143,6 +148,101 @@
                             return new Date(year, mount, day);
                         }
                     });
+                }
+            });
+
+            /**
+             * @description Input
+             * */
+            Vue.component("component-input", {
+                props: ["value", "placeholder", "readonly", "required", "cancel", "focus", "validate", "fraction_size", "format"],
+                data: function() {
+                    var self = this;
+                    self.focus = (typeof self.focus === "boolean" ? self.focus : false);
+                    self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
+                    self.required = (typeof self.required === "boolean" ? self.required : false);
+                    self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
+                    self.format = (typeof self.format === "string" ? self.format : "text");
+                    return {
+                        $input: null,
+                        start_value: null
+                    };
+                },
+                template: '<input type="text" v-bind:class="field_class" v-bind:placeholder="placeholder" v-bind:value="value" v-bind:readonly="readonly" v-on:focus="onFocus" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:keydown.enter="onEnter" v-on:blur="onBlur">',
+                delimiters: ['{ { ', ' } }'],
+                computed: {
+                    field_class: function() {
+                        var self = this,
+                            result = [];
+
+                        if (self.required && !self.value.length) {
+                            result.push("wa-error-field");
+                        }
+                        if (self.format === "number") {
+                            result.push("is-number");
+                        }
+
+                        return result.join(" ");
+                    }
+                },
+                methods: {
+                    onInput: function($event) {
+                        var self = this;
+
+                        if (self.validate) {
+                            var options = {};
+                            if (self.fraction_size > 0) { options.fraction_size = self.fraction_size; }
+
+                            $event.target.value = self.value = $.wa.validate(self.validate, $event.target.value, options);
+                        }
+
+                        self.$emit('input', $event.target.value);
+                    },
+                    onFocus: function($event) {
+                        var self = this;
+                        self.start_value = $event.target.value;
+                        self.$emit("focus");
+                    },
+                    onBlur: function($event) {
+                        var self = this,
+                            value = $event.target.value;
+
+                        if (value === self.start_value) {
+                            if (self.cancel) { self.$emit("cancel"); }
+                        } else {
+                            self.onChange(value);
+                        }
+
+                        self.$emit("blur", value);
+                    },
+                    onEsc: function($event) {
+                        var self = this;
+                        if (self.cancel) {
+                            $event.target.value = self.value = self.start_value;
+                            self.$emit('input', self.value);
+                            self.$input.trigger("blur");
+                        }
+                    },
+                    onEnter: function($event) {
+                        var self = this;
+                        self.$input.trigger("blur");
+                    },
+                    onChange: function(value) {
+                        var self = this;
+                        if (!self.required || self.value.length) {
+                            self.$emit("change", value);
+                        }
+                    }
+                },
+                mounted: function() {
+                    var self = this,
+                        $input = self.$input = $(self.$el);
+
+                    self.$emit("ready", self.$el.value);
+
+                    if (self.focus) {
+                        $input.trigger("focus");
+                    }
                 }
             });
 
@@ -288,8 +388,8 @@
                         active: self.active,
                         disabled: self.disabled,
                         change: function(active, wa_switch) {
-                            self.$emit("change", active);
                             self.$emit("input", active);
+                            self.$emit("change", active);
                         }
                     });
                 }
@@ -319,6 +419,7 @@
                     onFocus: function($event) {
                         var self = this;
                         self.start_value = $event.target.value;
+                        self.$emit("focus");
                     },
                     onBlur: function($event) {
                         var self = this,
@@ -329,6 +430,7 @@
                         } else {
                             self.$emit("change", value);
                         }
+                        self.$emit("blur", value);
                     },
                     onEsc: function($event) {
                         var self = this;
@@ -564,7 +666,10 @@
                                             edit_locked: false,
                                             name_locked: false,
                                             status_locked: false,
-                                            create_locked: false
+                                            create_locked: false,
+                                            view_locked: false,
+                                            delete_locked: false,
+                                            name_on_focus: self.category.name
                                         }
                                     }
                                 },
@@ -650,15 +755,61 @@
                                         props: ["category"],
                                         data: function() {
                                             var self = this;
-                                            return {}
+                                            return {
+                                                keys: { switch: 0 },
+                                                states: { locked: false }
+                                            }
                                         },
                                         template: that.components["component-category-filters"],
                                         delimiters: ['{ { ', ' } }'],
                                         computed: {},
                                         methods: {
+                                            onChange: function(value) {
+                                                const self = this;
+
+                                                self.states.locked = true;
+                                                $.post(that.urls["category_filter_change"], { category_id: self.category.id, switch: (value ? 1 : 0) }, "json")
+                                                    .always( function() {
+                                                        self.states.locked = false;
+                                                    }).done( function() {
+                                                        if (value) { self.setup(); }
+                                                    });
+                                            },
                                             setup: function() {
                                                 var self = this;
-                                                console.log( 111 );
+
+                                                if (!self.states.locked) {
+                                                    self.states.locked = true;
+                                                    $.post(that.urls["category_dialog"], { category_id: self.category.id }, "json")
+                                                        .always( function() {
+                                                            self.states.locked = false;
+                                                        })
+                                                        .done( function(html) {
+                                                            var dialog = that.editCategoryDialog(html);
+
+                                                            dialog.options.vue_ready.done( function(dialog, vue_model) {
+                                                                var $dialog = dialog.$wrapper,
+                                                                    $content = $dialog.find(".dialog-content"),
+                                                                    $section = $dialog.find(".js-category-filter-section");
+
+                                                                var active_class = "is-highlighted";
+
+                                                                var content_offset = $content.offset(),
+                                                                    section_offset = $section.offset(),
+                                                                    scroll_top = (content_offset.top - section_offset.top + 50);
+
+                                                                scroll_top = Math.abs(scroll_top);
+
+                                                                if (scroll_top > 0) {
+                                                                    $content.scrollTop(scroll_top);
+                                                                    $section.addClass(active_class);
+                                                                    setTimeout( function() {
+                                                                        $section.removeClass(active_class);
+                                                                    }, 2000);
+                                                                }
+                                                            });
+                                                        });
+                                                }
                                             }
                                         }
                                     },
@@ -768,6 +919,38 @@
                                         }
 
                                         return result.join(" ");
+                                    },
+                                    category_depth: function() {
+                                        const self = this;
+
+                                        var depth = checkDepth(self.category);
+
+                                        return (depth-1);
+
+                                        function checkDepth(category) {
+                                            var i = 1;
+
+                                            if (category.parent_id !== "0") {
+                                                var parent_category = that.categories_object[category.parent_id];
+                                                if (!parent_category) {
+                                                    console.error("Category not found.");
+                                                } else {
+                                                    i += checkDepth(parent_category);
+                                                }
+                                            }
+
+                                            return i;
+                                        }
+                                    },
+                                    category_view_url: function() {
+                                        const self = this;
+                                        var result = null;
+
+                                        if (self.category.storefronts.length === 1 || that.storefronts.length === 1) {
+                                            result = (that.urls["category_view"] + "&category_id=" + self.category.id);
+                                        }
+
+                                        return result;
                                     }
                                 },
                                 methods: {
@@ -824,8 +1007,17 @@
                                         return result;
                                     },
 
+                                    onFocusName: function() {
+                                        const self = this;
+                                        self.states.name_on_focus = self.category.name;
+                                    },
                                     onChangeName: function() {
                                         var self = this;
+
+                                        if ($.trim(self.category.name) === "") {
+                                            self.category.name = self.states.name_on_focus;
+                                            return false;
+                                        }
 
                                         var data = { category_id: self.category.id, name: self.category.name };
 
@@ -937,95 +1129,48 @@
                                             });
                                         }
                                     },
-                                    categoryDelete: function() {
+                                    categoryView: function() {
                                         var self = this,
                                             category = self.category;
 
-                                        $.waDialog({
-                                            html: that.templates["dialog-category-delete"],
-                                            onOpen: initDialog
-                                        });
+                                        var storefonts = getStorefronts(that.storefronts, category.storefronts);
+
+                                        if (!storefonts.length) {
+                                            console.error("Error: can't find storefronts");
+                                            return false;
+                                        } else {
+                                            self.states.view_locked = true;
+                                            $.post(that.urls["category_get_urls"], { category_id: self.category.id }, "json")
+                                                .always( function() {
+                                                    self.states.view_locked = false;
+                                                })
+                                                .done( function(response) {
+                                                    $.waDialog({
+                                                        html: that.templates["dialog-category-view"],
+                                                        options: {
+                                                            urls: response.data.urls
+                                                        },
+                                                        onOpen: initDialog
+                                                    });
+                                                });
+                                        }
 
                                         function initDialog($dialog, dialog) {
+                                            console.log( dialog, category );
 
                                             var $vue_section = $dialog.find(".js-vue-section");
 
-                                            new Vue({
+                                            var view_model = new Vue({
                                                 el: $vue_section[0],
                                                 data: {
                                                     category: category,
-                                                    remove_products: false,
-                                                    remove_categories: false,
-                                                    locked: false
+                                                    urls: dialog.options.urls
                                                 },
                                                 delimiters: ['{ { ', ' } }'],
-                                                watch: {
-                                                    "remove_categories": function() {
-                                                        const self = this;
-                                                        self.$nextTick( function() { dialog.resize(); });
-                                                    }
-                                                },
-                                                computed: {
-                                                    products_count: function() {
-                                                        const self = this;
-
-                                                        var result = (self.category.count > 0 ? self.category.count : 0);
-
-                                                        if (self.remove_categories && self.category.categories.length) {
-                                                            $.each(self.category.categories, function(i, category) {
-                                                                if (category.type !== '1') {
-                                                                    result += (category.count > 0 ? category.count : 0);
-                                                                }
-                                                            });
-                                                        }
-
-                                                        // if (self.category.type === '1') { result = 0; }
-
-                                                        return result;
-                                                    },
-                                                    categories_count: function() {
-                                                        const self = this;
-                                                        return self.category.categories.length;
-                                                    }
-                                                },
                                                 methods: {
-                                                    removeCategory: function() {
-                                                        var self = this;
-
-                                                        self.locked = true;
-                                                        request()
-                                                            .fail( function() { self.locked = false; })
-                                                            .done( function() {
-                                                                $.wa_shop_products.router.reload().done( function() {
-                                                                    self.locked = false;
-                                                                    dialog.close();
-                                                                });
-                                                            });
-
-                                                        function request() {
-                                                            var href = that.urls["category_delete"],
-                                                                data = {
-                                                                    category_id: self.category.id,
-                                                                    remove_products: (self.remove_products ? "1" : "0"),
-                                                                    remove_categories: (self.remove_categories ? "1" : "0")
-                                                                };
-
-                                                            var deferred = $.Deferred();
-
-                                                            $.post(href, data, "json")
-                                                                .fail( function() {
-                                                                    deferred.reject();
-                                                                })
-                                                                .done( function(response) {
-                                                                    if (response.status === "ok") {
-                                                                        deferred.resolve();
-                                                                    } else {
-                                                                        deferred.reject(response.errors);
-                                                                    }
-                                                                });
-
-                                                            return deferred.promise();
-                                                        }
+                                                    onClick: function() {
+                                                        const self = this;
+                                                        dialog.close();
                                                     }
                                                 },
                                                 created: function () {
@@ -1036,6 +1181,33 @@
                                                     dialog.resize();
                                                 }
                                             });
+                                        }
+
+                                        function getStorefronts(all_fronts, cat_fronts) {
+                                            var result = all_fronts;
+
+                                            if (cat_fronts.length) {
+                                                result = cat_fronts;
+                                            }
+
+                                            return result;
+                                        }
+                                    },
+                                    categoryDelete: function() {
+                                        var self = this;
+
+                                        if (!self.states.delete_locked) {
+                                            self.states.delete_locked = true;
+
+                                            $.post(that.urls["category_delete_dialog"], { category_id: self.category.id }, "json")
+                                                .always( function() {
+                                                    self.states.delete_locked = false;
+                                                })
+                                                .done( function(html) {
+                                                    that.deleteCategoryDialog(html, {
+                                                        category: self.category
+                                                    });
+                                                });
                                         }
                                     }
                                 }
@@ -1143,12 +1315,7 @@
                                     self.states.create_locked = false;
                                 })
                                 .done( function(html) {
-                                    that.editCategoryDialog(html)
-                                        .done( function(category) {
-                                            console.log( "TODO: update category data" );
-                                            that.categories.unshift(category);
-                                            that.categories_object[category.id] = category;
-                                        });
+                                    that.editCategoryDialog(html);
                                 });
                         }
                     },
@@ -1327,13 +1494,10 @@
             category.type    = (typeof category.type === "string" ? category.type : "" + category.type);
             category.count   = (typeof category.count === "string" ? parseInt(category.count) : category.count);
             category.depth   = (typeof category.depth === "string" ? parseInt(category.depth) : category.depth);
-            category.filters = {
-                enabled: true,
-                filters: []
-            };
             category.states  = {
                 visible : (category.status === "1"),
                 expanded: false,
+                count_locked: true,
 
                 // Поля для поиска
                 is_wanted       : false,
@@ -1364,31 +1528,570 @@
             return category;
         };
 
-        Page.prototype.editCategoryDialog = function(html) {
-            var that = this,
-                deferred = $.Deferred(),
-                ready = $.Deferred(),
-                updated_category = null;
+        Page.prototype.initDragAndDrop = function() {
+            var that = this;
 
-            var dialog = $.waDialog({
-                html: html,
-                options: {
-                    ready: ready.promise(),
-                    initDialog: initDialog
-                },
-                onOpen: function($dialog, dialog) {
-                    ready.resolve();
-                },
-                onClose: function() {
-                    if (updated_category) {
-                        deferred.resolve(updated_category);
+            var $document = $(document);
+
+            var drag_data = {},
+                over_locked = false,
+                is_changed = false,
+                timer = 0;
+
+            var $wrapper = that.$wrapper,
+                $droparea = $("<div />", { class: "s-drop-area js-drop-area" });
+
+            var categories = that.categories_object;
+
+            // Drop по зоне триггерит дроп по привязанной категории
+            $droparea
+                .on("dragover", function(event) {
+                    event.preventDefault();
+                })
+                .on("drop", function() {
+                    var $drop_category = $droparea.data("drop_category");
+                    if ($drop_category) {
+                        $drop_category.trigger("drop");
                     } else {
-                        deferred.reject();
+                        console.log( $droparea );
+                        console.log("Drop ERROR #1");
                     }
+                });
+
+            $wrapper.on("dragstart", ".js-category-move-toggle", function(event) {
+                var $move = $(this).closest(".s-category-wrapper");
+
+                var category_id = "" + $move.attr("data-id"),
+                    category = getCategory(category_id);
+
+                if (!category) {
+                    console.error("ERROR: category isn't exist");
+                    return false;
+                }
+
+                event.originalEvent.dataTransfer.setDragImage($move[0], 20, 20);
+
+                drag_data.move_category = category;
+
+                $document.on("drop", ".s-category-wrapper", onDrop);
+                $document.on("dragover", ".s-category-wrapper", onDragOver);
+                $document.on("dragend", onDragEnd);
+            });
+
+            function onDrop(event) {
+                var $category = $(this);
+                moveCategory($category);
+                off();
+            }
+
+            function onDragOver(event) {
+                event.preventDefault();
+
+                if (!drag_data.move_category) { return false; }
+
+                if (!drag_data.move_category.states.move) {
+                    drag_data.move_category.states.move = true;
+                }
+
+                if (!over_locked) {
+                    over_locked = true;
+
+                    var $category = $(this),
+                        is_dummy = $category.hasClass("is-dummy");
+
+                    if (is_dummy) {
+                        var before = null;
+                        if (before !== drag_data.before) {
+                            $category.before($droparea);
+                            $droparea.data("drop_category", $category);
+                            $droparea.data("before", before);
+                            drag_data.before = before;
+                        }
+
+                    } else {
+                        var category_id = "" + $category.attr("data-id"),
+                            drop_category = getCategory(category_id);
+
+                        if (drag_data.drop_category && drag_data.drop_category !== drop_category) {
+                            drag_data.drop_category.states.drop = false;
+                            drag_data.drop_category.states.drop_inside = false;
+                            drag_data.drop_category.states.drop_error = false;
+                        }
+                        drag_data.drop_category = drop_category;
+
+                        var mouse_y = event.originalEvent.pageY,
+                            cat_offset = $category.offset(),
+                            cat_height = $category.outerHeight(),
+                            cat_y = cat_offset.top,
+                            x = (mouse_y - cat_y),
+                            before = ( x <= (cat_height * 0.3) );
+
+                        drop_category.states.drop = true;
+                        drop_category.states.drop_inside = !before;
+                        drop_category.states.drop_error = (!before && drag_data.move_category.type === "0" && drop_category.type === "1");
+
+                        if (before !== drag_data.before) {
+                            if (before) {
+                                $category.before($droparea);
+                            } else {
+                                var is_exist = $.contains(document, $droparea[0]);
+                                if (is_exist) { $droparea.detach(); }
+                            }
+                            $droparea.data("drop_category", $category);
+                            $droparea.data("before", before);
+                            drag_data.before = before;
+                        }
+                    }
+
+                    setTimeout( function() {
+                        over_locked = false;
+                    }, 100);
+                }
+            }
+
+            function onDragEnd() {
+                off();
+            }
+
+            //
+
+            function moveCategory($drop_category) {
+                var category_id = "" + $drop_category.attr("data-id"),
+                    drop_category = getCategory(category_id),
+                    move_category = drag_data.move_category,
+                    before = drag_data.before;
+
+                if (before === null) {
+                    drop_category = that.categories[that.categories.length-1];
+                }
+
+                if (!drop_category) {
+                    console.error("ERROR: category isn't exist");
+                    return false;
+                }
+
+                if (move_category === drop_category) {
+                    return false;
+
+                // В динамическую категорию нельзя
+                } else if (move_category.type === "0" && drop_category.type === "1" && drag_data.before === false) {
+                    return false;
+
+                } else {
+                    set(move_category, drop_category, drag_data.before);
+
+                    move_category.states.move_locked = true;
+                    moveRequest(move_category)
+                        .always( function() {
+                            move_category.states.move_locked = false;
+                        });
+                }
+
+                function set(move_category, drop_category, before) {
+                    remove(move_category);
+
+                    switch (before) {
+                        // Вставляем в конец
+                        case null:
+                            move_category.parent_id = "0";
+                            move_category.depth = 0;
+                            that.categories.push(move_category);
+                            break;
+
+                        // Вставляем выше drop_category
+                        case true:
+                            var categories = that.categories,
+                                parent_id = "0";
+
+                            if (drop_category.parent_id !== "0") {
+                                var parent_category = that.categories_object[drop_category.parent_id];
+                                categories = parent_category.categories;
+                                parent_id = parent_category.id;
+                            }
+
+                            var index = categories.indexOf(drop_category);
+
+                            categories.splice(index, 0, move_category);
+
+                            move_category.parent_id = parent_id;
+                            move_category.depth = drop_category.depth;
+
+                            break;
+
+                        // Вставляем внутрь drop_category
+                        case false:
+                            drop_category.categories.push(move_category);
+                            drop_category.states.expanded = true;
+                            move_category.parent_id = drop_category.id;
+                            move_category.depth = drop_category.depth + 1;
+                            break;
+                    }
+
+                    function remove(move_category) {
+                        var categories = that.categories;
+
+                        if (move_category.parent_id !== "0") {
+                            var parent_category = that.categories_object[move_category.parent_id];
+                            categories = parent_category.categories;
+                        }
+
+                        var index = categories.indexOf(move_category);
+                        if (index >= 0) {
+                            categories.splice(index, 1);
+                        } else {
+                            console.log( "ERROR: remove category from array" );
+                        }
+                    }
+                }
+            }
+
+            function moveRequest(category) {
+                var deferred = $.Deferred();
+
+                var data = {
+                    moved_category_id: category.id,
+                    parent_category_id: category.parent_id,
+                    categories: getCategories()
+                }
+
+                that.states.move_locked = true;
+
+                $.post(that.urls["category_move"], data, "json")
+                    .always( function() {
+                        that.states.move_locked = false;
+                    })
+                    .fail( function() {
+                        deferred.reject();
+                    })
+                    .done( function(response) {
+                        if (response.status === "ok") {
+                            deferred.resolve();
+                        } else {
+                            alert("Error: category move");
+                            console.log(response.errors);
+                            deferred.reject(response.errors);
+                        }
+                    });
+
+                return deferred.promise();
+
+                function getCategories() {
+                    var result = [];
+
+                    if (category.parent_id !== "0") {
+                        var parent_category = that.categories_object[category.parent_id];
+                        result = parent_category.categories.map( function(_category) {
+                            return _category.id;
+                        });
+                    } else {
+                        result = that.categories.map( function(_category) {
+                            return _category.id;
+                        });
+                    }
+
+                    return result;
+                }
+            }
+
+            //
+
+            function getCategory(category_id) {
+                return (categories[category_id] ? categories[category_id] : null);
+            }
+
+            function off() {
+                var is_exist = $.contains(document, $droparea[0]);
+                if (is_exist) { $droparea.detach(); }
+
+                drag_data = {};
+                $document.off("drop", ".s-category-wrapper", onDrop);
+                $document.off("dragover", ".s-category-wrapper", onDragOver);
+                $document.off("dragend", onDragEnd);
+
+                $.each(categories, function(i, category) {
+                    category.states.move = false;
+                    category.states.drop = false;
+                    category.states.drop_inside = false;
+                    category.states.drop_error = false;
+                });
+            }
+        };
+
+        Page.prototype.storage = function(update) {
+            let that = this,
+                storage_name = "shop/products/categories";
+
+            update = (typeof update === "boolean" ? update : false);
+            return (update ? setter() : getter());
+
+            function setter() {
+                var value = getValue();
+                value = JSON.stringify(value);
+
+                localStorage.setItem(storage_name, value);
+
+                function getValue() {
+                    let result = { expanded_categories: [] };
+
+                    $.each(that.categories_object, function(i, category) {
+                        if (category.states.expanded) {
+                            result.expanded_categories.push(category.id);
+                        }
+                    });
+
+                    return result;
+                }
+            }
+
+            function getter() {
+                let storage = localStorage.getItem(storage_name);
+                if (storage) { storage = JSON.parse(storage); }
+                return storage;
+            }
+        };
+
+        Page.prototype.updateRootVariables = function(options) {
+            var that = this;
+
+            // Tooltips
+            $.each(options.tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
+
+            // Components
+            that.components = $.extend(that.components, options.components);
+
+            // Templates
+            that.templates = $.extend(that.templates, options.templates);
+
+            // Locales
+            that.locales = $.extend(that.locales, options.locales);
+
+            // Locales
+            that.urls = $.extend(that.urls, options.urls);
+        };
+
+        Page.prototype.updateCategoriesCount = function(categories_ids) {
+            categories_ids = (Array.isArray(categories_ids) ? categories_ids : []);
+
+            var that = this,
+                deferred = $.Deferred();
+
+            var get_ids = getIds(categories_ids),
+                static_ids = get_ids.static_ids,
+                dynamic_ids = get_ids.dynamic_ids;
+
+            var limit = 10,
+                dynamic_i = 0;
+
+            request({ static_ids: static_ids }).done( function() {
+                if (dynamic_ids.length) {
+                    checkDynamic();
+                } else {
+                    deferred.resolve();
                 }
             });
 
             return deferred.promise();
+
+            function checkDynamic() {
+                var ids = dynamic_ids.slice(dynamic_i, dynamic_i + limit);
+                dynamic_i += limit;
+                request({ dynamic_ids: ids }).done( function() {
+                    if (dynamic_ids.length > dynamic_i) {
+                        checkDynamic();
+                    } else {
+                        deferred.resolve();
+                    }
+                });
+            }
+
+            function request(data) {
+                var ids = static_ids;
+                if (data.dynamic_ids) { ids = data.dynamic_ids; }
+                else if (data.static_ids) { ids = data.static_ids; }
+
+                $.each(ids, function(i, category_id) {
+                    var category = that.categories_object[category_id];
+                    if (category) { category.states.count_locked = true; }
+                });
+
+                return $.post(that.urls["category_recount"], data, "json")
+                    .done( function(response) {
+                        var count_data = response.data.categories;
+
+                        $.each(count_data, function(i, category_data) {
+                            var category = that.categories_object[category_data.id];
+                            if (category) { category.count = category_data.count; }
+                        });
+
+                        $.each(ids, function(i, category_id) {
+                            var category = that.categories_object[category_id];
+                            if (category) { category.states.count_locked = false; }
+                        });
+                    });
+            }
+
+            function getIds(categories_ids) {
+                var static_ids = [],
+                    dynamic_ids = [];
+
+                $.each(that.categories_object, function(i, category) {
+                    if (!categories_ids.length || categories_ids.indexOf(category.id) >= 0) {
+                        if (category.type === "1") {
+                            dynamic_ids.push(category.id);
+                        } else {
+                            static_ids.push(category.id);
+                        }
+                    }
+                });
+
+                return {
+                    static_ids: static_ids,
+                    dynamic_ids: dynamic_ids
+                }
+            }
+        };
+
+        // Dialogs
+
+        Page.prototype.deleteCategoryDialog = function(html, options) {
+            var that = this,
+                ready = $.Deferred(),
+                ready_promise = ready.promise(),
+                vue_ready = $.Deferred();
+
+            $.waDialog({
+                html: html,
+                options: {
+                    category: options.category,
+                    ready: ready_promise,
+                    vue_ready: vue_ready.promise(),
+                    initDialog: initDialog
+                },
+                onOpen: function($dialog, dialog) {
+                    ready.resolve($dialog, dialog);
+                }
+            });
+
+            return ready.promise();
+
+            function initDialog($dialog, dialog, options) {
+
+                var category = formatCategory(dialog.options.category, options.category);
+
+                // VUE
+                var $section = $dialog.find(".js-vue-section");
+
+                new Vue({
+                    el: $section[0],
+                    data: {
+                        category: category,
+                        remove_products: false,
+                        remove_categories: false,
+                        locked: false
+                    },
+                    delimiters: ['{ { ', ' } }'],
+                    computed: {
+                        products_count: function() {
+                            const self = this;
+                            var count = (self.remove_categories ? self.category.count_total : self.category.count);
+                            return (count > 0 ? count : 0);
+                        },
+                        categories_count: function() {
+                            const self = this;
+                            return self.category.categories.length;
+                        }
+                    },
+                    methods: {
+                        removeCategory: function() {
+                            var self = this;
+
+                            self.locked = true;
+                            request()
+                                .fail( function() { self.locked = false; })
+                                .done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        self.locked = false;
+                                        dialog.close();
+                                    });
+                                });
+
+                            function request() {
+                                var href = that.urls["category_delete"],
+                                    data = {
+                                        category_id: self.category.id,
+                                        remove_products: (self.remove_products ? "1" : "0"),
+                                        remove_categories: (self.remove_categories ? "1" : "0")
+                                    };
+
+                                var deferred = $.Deferred();
+
+                                $.post(href, data, "json")
+                                    .fail( function() {
+                                        deferred.reject();
+                                    })
+                                    .done( function(response) {
+                                        if (response.status === "ok") {
+                                            deferred.resolve();
+                                        } else {
+                                            deferred.reject(response.errors);
+                                        }
+                                    });
+
+                                return deferred.promise();
+                            }
+                        },
+                        resizeDialog: function() {
+                            const self = this;
+                            self.$nextTick( function() {
+                                setTimeout( function() {
+                                    dialog.resize();
+                                }, 100);
+                            });
+                        }
+                    },
+                    watch: {
+                        "remove_categories": function() {
+                            const self = this;
+                            self.resizeDialog();
+                        }
+                    },
+                    created: function () {
+                        $section.css("visibility", "");
+                    },
+                    mounted: function () {
+                        var self = this,
+                            $wrapper = $(self.$el);
+
+                        self.resizeDialog();
+
+                        vue_ready.resolve(dialog);
+                    }
+                });
+
+                function formatCategory(category, category_data) {
+                    category.count = category_data.count;
+                    category.count_total = category_data.count_total;
+                    return category;
+                }
+            }
+        };
+
+        Page.prototype.editCategoryDialog = function(html) {
+            var that = this,
+                vue_ready = $.Deferred(),
+                ready = $.Deferred();
+
+            return $.waDialog({
+                html: html,
+                options: {
+                    vue_ready: vue_ready.promise(),
+                    ready: ready.promise(),
+                    initDialog: initDialog
+                },
+                onOpen: function($dialog, dialog) {
+                    ready.resolve(dialog);
+                }
+            });
 
             function initDialog($dialog, dialog, options) {
                 console.log( dialog );
@@ -1421,7 +2124,7 @@ console.log( $.wa.clone(options.category) );
 
                             visible_menu_url: true,
                             visible_menu_url_at_subcategories: false,
-                            update_storefronts_at_subcategories: !!(category.id && category_data.categories.length),
+                            update_storefronts_at_subcategories: false,
 
                             url_sync_started: false,
                             transliterate_xhr: null,
@@ -1465,7 +2168,7 @@ console.log( $.wa.clone(options.category) );
                             }
                         },
                         "component-category-storefronts-section": {
-                            props: ["root_states", "category", "storefronts"],
+                            props: ["root_states", "category", "category_data", "storefronts"],
                             data: function() {
                                 var self = this,
                                     type = (category.storefronts.length ? "selection" : "all");
@@ -1520,7 +2223,7 @@ console.log( $.wa.clone(options.category) );
                             methods: {},
                             mounted: function() {
                                 const self = this,
-                                    $wrapper = $(self.$el);
+                                      $wrapper = $(self.$el);
 
                                 initEditor($wrapper);
 
@@ -1859,6 +2562,7 @@ console.log( $.wa.clone(options.category) );
                                         if (item.code && item.code.length) {
                                             var template_name = (!item.available_for_sku ? "component-category-filter-autocomplete-item-sku" : "component-category-filter-autocomplete-item"),
                                                 html = that.templates[template_name].replace("%name%", item.name).replace("%code%", item.code);
+                                            html = html.replace("%added%", "");
                                             return $(html).appendTo(ul);
                                         } else {
                                             return $("<li />").addClass("ui-menu-item-html").append("<div>"+item.name+"</div>").appendTo(ul);
@@ -1991,7 +2695,7 @@ console.log( $.wa.clone(options.category) );
                             },
                             mounted: function() {
                                 const self = this,
-                                    $wrapper = $(self.$el);
+                                      $wrapper = $(self.$el);
 
                                 self.$input = $wrapper.find('.js-autocomplete');
 
@@ -2013,7 +2717,7 @@ console.log( $.wa.clone(options.category) );
                             delimiters: ['{ { ', ' } }'],
                             components: {
                                 "component-category-feature-item": {
-                                    props: ["item"],
+                                    props: ["item", "index"],
                                     data: function() {
                                         var self = this;
                                         return {
@@ -2025,6 +2729,16 @@ console.log( $.wa.clone(options.category) );
                                     template: that.components["component-category-feature-item"],
                                     delimiters: ['{ { ', ' } }'],
                                     computed: {
+                                        item_class: function() {
+                                            const self = this;
+                                            var result = [];
+
+                                            if (self.item.states.highlighted) {
+                                                result.push("is-highlighted");
+                                            }
+
+                                            return result.join(" ");
+                                        },
                                         values: function() {
                                             const self = this;
 
@@ -2033,47 +2747,93 @@ console.log( $.wa.clone(options.category) );
                                             var result = [];
 
                                             switch (item_data.render_type) {
-                                                case "checkbox":
+                                                case "tags":
                                                 case "select":
-                                                    var values_object = $.wa.construct(item_data.options, "id");
+                                                case "checkbox":
+                                                    var values_object = $.wa.construct(item_data.options, "value");
                                                     if (item_data.values) {
                                                         $.each(item_data.values, function(i, value_id) {
-                                                            if (values_object[value_id]) {
-                                                                result.push(values_object[value_id].name);
+                                                            var option = values_object[value_id];
+                                                            if (option) {
+                                                                var item = { name: option.name };
+                                                                if (option.code) { item.color = option.code; }
+                                                                result.push(item);
                                                             }
                                                         });
                                                     }
                                                     break;
 
                                                 case "range":
-                                                case "range.date":
-                                                    var min = (item_data.options[0].value > 0 ? item_data.options[0].value : 0),
-                                                        max = (item_data.options[1].value > 0 ? item_data.options[1].value : 0);
+                                                    var min = (parseFloat(item_data.options[0].value) >= 0 ? item_data.options[0].value : null),
+                                                        max = (parseFloat(item_data.options[1].value) >= 0 ? item_data.options[1].value : null);
 
-                                                    var value = "";
+                                                    var range_item = {};
 
-                                                    if (min > 0 && max > 0) {
-                                                        value = min + " — " + max;
+                                                    if (parseFloat(min) >= 0 && parseFloat(max) >= 0) {
+                                                        range_item.name = min + " — " + max;
 
-                                                    } else if (min > 0) {
-                                                        value = "< " + min;
+                                                    } else if (parseFloat(min) >= 0) {
+                                                        range_item.name = "≥ " + min;
 
-                                                    } else if (max > 0) {
-                                                        value = "> " + max;
+                                                    } else if (parseFloat(max) >= 0) {
+                                                        range_item.name = "≤ " + max;
                                                     }
 
                                                     if (item_data.currency) {
-                                                        value += " " + item_data.currency.sign_html;
+                                                        range_item.currency = " " + item_data.currency.sign_html;
                                                     }
 
-                                                    result.push(value);
+                                                    if (item_data.active_unit && item_data.active_unit.name) {
+                                                        range_item.unit = " " + item_data.active_unit.name;
+                                                    }
+
+                                                    if (range_item.name) {
+                                                        result.push(range_item);
+                                                    }
                                                     break;
 
-                                                case "tags":
+                                                case "range.date":
+                                                    var min = formatDate(item_data.options[0].value),
+                                                        max = formatDate(item_data.options[1].value);
+
+                                                    var value = "";
+
+                                                    if (min && max) {
+                                                        value = min + " — " + max;
+
+                                                    } else if (min) {
+                                                        value = "≥ " + min;
+
+                                                    } else if (max) {
+                                                        value = "≤ " + max;
+                                                    }
+
+                                                    if (value.length) {
+                                                        result.push({ name: value });
+                                                    }
                                                     break;
                                             }
 
                                             return result;
+
+                                            function formatDate(date_string) {
+                                                var result = null;
+
+                                                if (date_string) {
+                                                    result = date_string;
+                                                    try {
+                                                        if ($.datepicker) {
+                                                            var date = $.datepicker.parseDate("yy-mm-dd", date_string);
+                                                            result = $.datepicker.formatDate($.wa_shop_products.date_format, date);
+                                                        }
+                                                    }
+                                                    catch(error) {
+                                                        console.error(error);
+                                                    }
+                                                }
+
+                                                return result;
+                                            }
                                         }
                                     },
                                     methods: {
@@ -2108,6 +2868,59 @@ console.log( $.wa.clone(options.category) );
                                                         animate: false,
                                                         options: {
                                                             item: self.item,
+                                                            onSuccess: function(item) {
+                                                                // console.log( self.item.data );
+                                                                // console.log( item.data );
+
+                                                                switch (item.data.render_type) {
+                                                                    case "select":
+                                                                        self.$set( self.item.data, "values", [item.data.value]);
+                                                                        break;
+
+                                                                    case "checkbox":
+                                                                        if (!self.item.data.values) { self.$set(self.item.data, "values", []); }
+
+                                                                        self.item.data.values.splice(0);
+                                                                        self.item.data.options.splice(0);
+                                                                        $.each(item.data.options, function(i, option) {
+                                                                            if (option.states.enabled) {
+                                                                                option.value += "";
+                                                                                self.item.data.options.push(option);
+                                                                                self.item.data.values.push(option.value);
+                                                                            }
+                                                                        });
+                                                                        break;
+
+                                                                    case "tags":
+                                                                        if (!self.item.data.values) { self.$set(self.item.data, "values", []); }
+
+                                                                        self.item.data.values.splice(0);
+                                                                        self.item.data.options.splice(0);
+                                                                        $.each(item.data.options, function(i, option) {
+                                                                            self.item.data.options.push(option);
+                                                                            self.item.data.values.push(""+option.value);
+                                                                        });
+                                                                        break;
+
+                                                                    case "range":
+                                                                    case "range.date":
+                                                                        $.each(self.item.data.options, function(i, option) {
+                                                                            var value = item.data.options[i].value + "";
+                                                                            if (item.data.render_type === "range") {
+                                                                                var parsed_value = parseFloat(value);
+                                                                                if (parsed_value >= 0 ? parsed_value + "" : value);
+                                                                            }
+                                                                            self.$set(option, "value", value);
+                                                                        });
+                                                                        if (self.item.data.active_unit) {
+                                                                            var active_unit_search = self.item.data.units.filter( unit => (unit.value === item.data.active_unit.value));
+                                                                            if (active_unit_search.length) {
+                                                                                self.$set(self.item.data, "active_unit", active_unit_search[0]);
+                                                                            }
+                                                                        }
+                                                                        break;
+                                                                }
+                                                            },
                                                             initDialog: function($dialog, dialog, options) {
                                                                 that.initEditCategoryConditionDialog($dialog, dialog, options);
                                                             }
@@ -2116,9 +2929,16 @@ console.log( $.wa.clone(options.category) );
                                                             dialog.animateToggle(true);
                                                         },
                                                         onClose: function() {
-                                                            if (!self.values.length) {
-                                                                self.remove()
-                                                            }
+                                                            self.$nextTick( function() {
+                                                                if (self.item.edit_on_add) {
+                                                                    if (!self.values.length) {
+                                                                        self.remove();
+//console.log( "TODO:remove", self.item );
+                                                                    } else {
+                                                                        self.item.edit_on_add = false;
+                                                                    }
+                                                                }
+                                                            });
                                                         }
                                                     });
                                                 });
@@ -2136,7 +2956,19 @@ console.log( $.wa.clone(options.category) );
                                     }
                                 }
                             },
-                            computed: {},
+                            computed: {
+                                added_conditions: function() {
+                                    const self = this,
+                                          result = {};
+
+                                    $.each(self.category.conditions, function(i, condition) {
+                                        var id = self.getFeatureID(condition);
+                                        result[id] = condition;
+                                    });
+
+                                    return result;
+                                }
+                            },
                             methods: {
                                 initAutocomplete: function($input) {
                                     const self = this;
@@ -2178,13 +3010,20 @@ console.log( $.wa.clone(options.category) );
                                         },
                                         focus: function() { return false; }
                                     }).data("ui-autocomplete")._renderItem = function(ul, item) {
+                                        var id = self.getFeatureID(item),
+                                            condition = self.added_conditions[id];
+
+                                        var html = "<li class='ui-menu-item-html'><div>%added%"+item.name+"</div></li>",
+                                            added_html = "<span class='s-added small color-blue'>" + that.locales["added"] + "</span> ";
+
                                         if (item.type === "feature") {
-                                            var template_name = (!item.data.available_for_sku ? "component-category-filter-autocomplete-item-sku" : "component-category-filter-autocomplete-item"),
-                                                html = that.templates[template_name].replace("%name%", item.name).replace("%code%", item.code);
-                                            return $(html).appendTo(ul);
-                                        } else {
-                                            return $("<li />").addClass("ui-menu-item-html").append("<div>"+item.name+"</div>").appendTo(ul);
+                                            var template_name = (!item.data.available_for_sku ? "component-category-filter-autocomplete-item-sku" : "component-category-filter-autocomplete-item");
+                                            html = that.templates[template_name].replace("%name%", item.name).replace("%code%", item.code);
                                         }
+
+                                        html = html.replace("%added%", (condition ? added_html : ""));
+
+                                        return $(html).appendTo(ul);
                                     };
 
                                     $dialog.on("dialog-closed", function() {
@@ -2192,17 +3031,29 @@ console.log( $.wa.clone(options.category) );
                                     });
                                 },
                                 addItem: function(item) {
-                                    console.log( item );
                                     const self = this;
-                                    self.category.conditions.push( formatItem(item) );
+
+                                    var id = self.getFeatureID(item),
+                                        condition = self.added_conditions[id];
+
+                                    if (condition) {
+                                        condition.states.highlighted = true;
+                                        setTimeout( function() {
+                                            condition.states.highlighted = false;
+                                        }, 2000);
+                                        return false;
+
+                                    } else {
+                                        self.category.conditions.push(formatItem(item));
+                                    }
 
                                     function formatItem(item) {
                                         item.edit_on_add = true;
-                                        switch (item.data.render_type) {
-                                            case "checkbox":
-                                                item.data.values = [];
-                                                break;
-                                        }
+                                        item.data = getItemData(item.data).item_data;
+                                        item.states = {
+                                            highlighted: false
+                                        };
+console.log( item );
                                         return item;
                                     }
                                 },
@@ -2211,6 +3062,20 @@ console.log( $.wa.clone(options.category) );
 
                                     var index = self.category.conditions.indexOf(item);
                                     if (index >= 0) { self.category.conditions.splice(index, 1); }
+                                },
+                                getFeatureID: function(condition) {
+                                    var result = null;
+
+                                    try {
+                                        result = condition.data.id;
+                                        if (condition.type === "feature") {
+                                            result = condition.data.code;
+                                        }
+                                    } catch(e) {
+
+                                    };
+
+                                    return result;
                                 }
                             },
                             mounted: function() {
@@ -2297,6 +3162,16 @@ console.log( $.wa.clone(options.category) );
                                     });
                             }
                         },
+                        onBlurName: function() {
+                            var self = this;
+                            if (!self.category.name.length && !self.errors["category_name"]) {
+                                self.$set(self.errors, "category_name", {
+                                    id  : "category_name",
+                                    text: that.locales["error_category_name_empty"]
+                                });
+                            }
+                        },
+
                         onChangeIncludeSubCategories: function(value) {
                             const self = this;
 
@@ -2305,6 +3180,16 @@ console.log( $.wa.clone(options.category) );
                             }
 
                             self.resizeDialog();
+                        },
+                        onChangeAllowFilter: function(value) {
+                            const self = this;
+                            self.resizeDialog();
+
+                            if (value) {
+                                self.$nextTick( function() {
+                                    $(self.$el).find(".s-category-filter-section .js-autocomplete").trigger("focus");
+                                });
+                            }
                         },
                         getUrlByName: function(time) {
                             const self = this;
@@ -2361,11 +3246,11 @@ console.log( $.wa.clone(options.category) );
                         save: function() {
                             const self = this;
 
-                            self.states.locked = true;
-
                             var data = getData(self.category);
 
 console.log( data );
+
+                            self.states.locked = true;
 
                             $.post(that.urls["category_dialog_save"], data, "json")
                                 .fail( function() {
@@ -2389,6 +3274,7 @@ console.log( data );
                                         id         : category.id,
                                         url        : category.url,
                                         name       : category.name,
+                                        type       : category.type,
                                         parent_id  : category.parent_id,
                                         description: category.description,
 
@@ -2420,6 +3306,21 @@ console.log( data );
                                     }
                                 };
 
+                                if (category.conditions.length) {
+                                    data.condition = {};
+                                    $.each(category.conditions, function(i, condition) {
+                                        var values = getConditionValues(condition);
+                                        if (condition.type === "feature") {
+                                            var code = condition.data.code;
+                                            if (!code) { console.error(condition); }
+                                            if (!data.condition["features"]) { data.condition["features"] = {}; }
+                                            data.condition["features"][code] = values;
+                                        } else {
+                                            data.condition[condition.data.id] = values;
+                                        }
+                                    });
+                                }
+
                                 return data;
 
                                 function getRoutes() {
@@ -2430,6 +3331,52 @@ console.log( data );
                                 function getOG() {
                                     var result = $.wa.clone(self.category.og);
                                     result.enabled = (self.category.og.enabled ? 1 : 0);
+
+                                    if (self.category.og.enabled) {
+                                        result.title = "";
+                                        result.description = "";
+                                        result.image = "";
+                                        result.video = "";
+                                        result.type = "";
+                                    }
+
+                                    return result;
+                                }
+
+                                function getConditionValues(condition) {
+                                    var result = null;
+
+                                    switch (condition.data.render_type) {
+                                        case "select":
+                                            if (condition.data.values.length) {
+                                                result = condition.data.values[0];
+                                            }
+                                            break;
+
+                                        case "checkbox":
+                                            if (condition.data.values.length) {
+                                                result = condition.data.values;
+                                            }
+                                            break;
+
+                                        case "range":
+                                        case "range.date":
+                                            result = {
+                                                begin: condition.data.options[0].value,
+                                                end: condition.data.options[1].value
+                                            };
+                                            if (condition.data.active_unit && condition.data.active_unit.value) {
+                                                result.unit = condition.data.active_unit.value;
+                                            }
+                                            break;
+
+                                        case "tags":
+                                            if (condition.data.values.length) {
+                                                result = condition.data.values;
+                                            }
+                                            break;
+                                    }
+
                                     return result;
                                 }
                             }
@@ -2468,6 +3415,8 @@ console.log( data );
                         if (!self.category.name.length) {
                             $wrapper.find(".js-autofocus").trigger("focus");
                         }
+
+                        vue_ready.resolve(dialog, self);
                     }
                 });
 
@@ -2479,6 +3428,16 @@ console.log( data );
                     } else {
                         $.each(category.allow_filter_data, function(i, filter) {
                             category.allow_filter_data[i] = formatFilter(filter);
+                        });
+                    }
+
+                    if (category.conditions.length)  {
+                        $.each(category.conditions, function(i, condition) {
+                            var data_object = getItemData(condition.data);
+                            condition.data = data_object.item_data;
+                            condition.states = {
+                                highlighted: false
+                            }
                         });
                     }
 
@@ -2500,7 +3459,7 @@ console.log( data );
 
                     $.each(storefronts, function(i, storefront) {
                         storefront.states = {
-                            active: (!category.storefronts.length || category.storefronts.indexOf(storefront.url) >= 0)
+                            active: (category.storefronts.length && category.storefronts.indexOf(storefront.url) >= 0)
                         };
                     });
 
@@ -2518,13 +3477,15 @@ console.log( data );
             // VUE
             var $section = $dialog.find(".js-vue-section");
 
-            var item = $.wa.clone(dialog.options.item);
+            var item = $.wa.clone(dialog.options.item),
+                data_object = getItemData(item.data, options.values);
 
             new Vue({
                 el: $section[0],
                 data: {
                     item: item,
-                    item_data: getItemData(item.data, options.values),
+                    item_data: data_object.item_data,
+                    items_keys: data_object.items_keys,
                     states: {
                         locked: false
                     },
@@ -2581,7 +3542,6 @@ console.log( data );
                                 methods: {
                                     onToggleSwitch: function(value) {
                                         var self = this;
-
                                         self.states.hidden = true;
                                         self.states.jump_animation = true;
                                         clearTimeout(self.states.timer_enable);
@@ -2590,6 +3550,11 @@ console.log( data );
                                             self.states.hidden = false;
                                             self.states.jump_animation = false;
                                         }, 500);
+
+                                        self.$emit("change", {
+                                            value: value,
+                                            item: self.item
+                                        });
                                     }
                                 },
                                 mounted: function() {
@@ -2664,17 +3629,65 @@ console.log( data );
                                 let self = this;
                                 self.search_string = "";
                                 self.search();
+                            },
+
+                            onToggleSwitch: function(options) {
+                                const self = this;
+                                var id = options.item.value + "";
+                                if (options.value) {
+                                    self.item_data.values.push(id);
+                                } else {
+                                    self.item_data.values.splice(self.item_data.values.indexOf(id), 1);
+                                }
                             }
                         }
                     }
                 },
                 computed: {
+                    has_value: function() {
+                        const self = this;
+
+                        var result = false;
+
+                        switch (self.item_data.render_type) {
+                            case "checkbox":
+                                if (self.item_data.values) {
+                                    result = !!self.item_data.values.length;
+                                }
+                                break;
+
+                            case "range":
+                            case "range.date":
+                                $.each(self.item_data.options, function(i, option) {
+                                    if (option.value.length) {
+                                        result = true;
+                                        return false;
+                                    }
+                                });
+                                break;
+
+                            case "tags":
+                                if (self.item_data.options) {
+                                    result = !!self.item_data.options.length;
+                                }
+                                break;
+                        }
+
+                        return result;
+                    },
                     format: function() {
                         const self = this;
                         var result = null;
 
                         if (self.item_data.type.indexOf("double") >= 0) {
                             result = "number";
+
+                        } else {
+                            switch (self.item_data.render_type) {
+                                case "range":
+                                    result = "number";
+                                    break;
+                            }
                         }
 
                         return result;
@@ -2718,7 +3731,7 @@ console.log( data );
                     },
                     disabled: function() {
                         const self = this;
-                        return !!(self.states.locked || Object.keys(self.errors).length);
+                        return !!(self.states.locked || Object.keys(self.errors).length || !self.has_value);
                     }
                 },
                 methods: {
@@ -2728,49 +3741,8 @@ console.log( data );
 
                     save: function() {
                         const self = this;
-
-                        dialog.options.onSuccess({
-                            rule_type: self.item_data.rule_type,
-                            rule_params: getData()
-                        });
-
+                        dialog.options.onSuccess(self.item);
                         dialog.close();
-
-                        function getData() {
-                            var result = [];
-
-                            switch (self.item_data.render_type) {
-                                case "range":
-                                case "range.date":
-                                    result = {
-                                        start: self.item_data.options[0].value,
-                                        end: self.item_data.options[1].value
-                                    }
-                                    if (self.item_data.active_unit) {
-                                        result.unit = self.item_data.active_unit.value;
-                                    }
-                                    break;
-                                case "checkbox":
-                                    $.each(self.item_data.options, function(i, option) {
-                                        if (option.states.enabled) {
-                                            var value = (option.id || option.value);
-                                            if (value) { result.push(value); }
-                                            else { console.error("ERROR: value is not exist"); }
-                                        }
-                                    });
-                                    break;
-                                case "tags":
-                                    $.each(self.item_data.options, function(i, option) {
-                                        result.push(option.id);
-                                    });
-                                    break;
-                                case "boolean":
-                                    result.push(self.item_data.value);
-                                    break;
-                            }
-
-                            return result;
-                        }
                     },
 
                     initAutocomplete: function($input) {
@@ -2785,11 +3757,11 @@ console.log( data );
 
                                 self.states.is_loading = true;
 
-                                $.post(that.urls["filter_feature_value"], data, function(response_data) {
+                                $.post(that.urls["feature_value"], data, function(response_data) {
                                     if (!response_data.length) {
                                         response_data = [{
                                             id: null,
-                                            value: that.locales["no_results"]
+                                            name: that.locales["no_results"]
                                         }];
                                     }
                                     response(response_data);
@@ -2814,7 +3786,11 @@ console.log( data );
                             },
                             focus: function() { return false; }
                         }).data("ui-autocomplete")._renderItem = function( ul, item ) {
-                            return $("<li />").addClass("ui-menu-item-html").append("<div>"+item.value+"</div>").appendTo(ul);
+                            var html = "<div>"+item.name+"</div>";
+                            if (item.code) {
+                                html = "<div class=\"flexbox space-4\"><span class=\"s-color\"><span class=\"s-color icon color shift-2 size-12\" style=\"background-color:"+item.code+";\"></span></span><span class=\"s-name wide\">"+item.name+"</span></div>";
+                            }
+                            return $("<li />").addClass("ui-menu-item-html").append(html).appendTo(ul);
                         };
 
                         $dialog.on("dialog-closed", function() {
@@ -2841,53 +3817,90 @@ console.log( data );
                 },
                 mounted: function() {
                     const self = this;
+
+                    var $wrapper = $(self.$el);
+
+                    var $autocomplete = $wrapper.find('.js-autocomplete');
+                    if ($autocomplete.length) {
+                        self.initAutocomplete($autocomplete);
+                    }
+
+                    dialog.resize();
+
+                    self.$nextTick( function() {
+                        $wrapper.find(":input").first().trigger("focus");
+                    });
                 }
             });
+        };
 
-            function getItemData(item_data, values) {
-                if (item_data.type) {
-                    switch (item_data.type) {
-                        // Одинарное числовое поле превращаем в диапазон
-                        case "double":
-                            if (item_data.render_type === "field") {
-                                item_data.render_type = "range";
-                            }
-                            break;
+        return Page;
 
-                        // Одинарное текстовое поле превращаем в теги
-                        case "varchar":
-                        case "color":
-                            if (item_data.render_type === "field" || item_data.render_type === "color") {
-                                item_data.render_type = "tags";
-                            }
-                            break;
+        function getItemData(item_data, values) {
+            var items_keys = {};
 
-                        case "date":
-                            if (item_data.render_type === "field.date" || item_data.render_type === "range") {
-                                item_data.render_type = "range.date";
-                            }
-                            break;
+            values = (typeof values === "undefined" ? [] : values);
 
-                        // Особый вид для "да/нет"
-                        case "boolean":
-                            item_data.render_type = "boolean";
-                            break;
+            if (item_data.type) {
+                switch (item_data.type) {
+                    // Одинарное числовое поле превращаем в диапазон
+                    case "double":
+                        var white_list = ["field"];
+                        if (white_list.indexOf(item_data.render_type) >= 0) {
+                            item_data.render_type = "range";
+                        }
+                        break;
 
-                        default:
-                            if (item_data.type.indexOf("dimension") >= 0) {
-                                if (item_data.render_type === "field") {
-                                    item_data.render_type = "range";
-                                }
-                            }
-                            break;
+                    // Одинарное текстовое поле превращаем в теги
+                    case "varchar":
+                    case "color":
+                        if (item_data.render_type === "field" || item_data.render_type === "color") {
+                            item_data.render_type = "tags";
+                        }
+                        break;
+
+                    case "date":
+                        if (item_data.render_type === "field.date" || item_data.render_type === "range") {
+                            item_data.render_type = "range.date";
+                        }
+                        break;
+
+                    default:
+                        if (item_data.type.indexOf("dimension") >= 0) {
+                            if (item_data.render_type === "field") { item_data.render_type = "range"; }
+                        }
+                        break;
+                }
+            }
+
+            if (item_data.render_type === "select") {
+                item_data.render_type = "checkbox";
+            }
+
+            switch (item_data.render_type) {
+                case "range":
+                case "range.date":
+                    if (item_data.options.length !== 2) {
+                        item_data.options = [{ name: "", value: "" }, { name: "", value: "" }];
                     }
-                }
+                    break;
 
-                if (item_data.render_type === "select") {
-                    item_data.render_type = "checkbox";
-                }
+                case "tags":
+                    var options = [];
+                    if (item_data.options.length) {
+                        $.each(item_data.options, function(i, option) {
+                            if (option.value) {
+                                options.push(option);
+                                items_keys[option.value] = option;
+                            }
+                        });
+                    }
+                    item_data.options = options;
+                    break;
 
-                if (item_data.render_type === "checkbox") {
+                case "checkbox":
+                    if (!item_data.values) { item_data.values = [] }
+
                     // Добавляем опции в модель
                     if (values.length) { item_data.options = values; }
 
@@ -2898,322 +3911,15 @@ console.log( data );
                             display: true,
                             ready: false
                         };
-                    })
-                }
-
-                return item_data;
-            }
-        };
-
-        Page.prototype.initDragAndDrop = function() {
-            var that = this;
-
-            var $document = $(document);
-
-            var drag_data = {},
-                over_locked = false,
-                is_changed = false,
-                timer = 0;
-
-            var $wrapper = that.$wrapper,
-                $droparea = $("<div />", { class: "s-drop-area js-drop-area" });
-
-            var categories = that.categories_object;
-
-            // Drop по зоне триггерит дроп по привязанной категории
-            $droparea
-                .on("dragover", function(event) {
-                    event.preventDefault();
-                })
-                .on("drop", function() {
-                    var $drop_category = $droparea.data("drop_category");
-                    if ($drop_category) {
-                        $drop_category.trigger("drop");
-                    } else {
-                        console.log( $droparea );
-                        console.log("Drop ERROR #1");
-                    }
-                });
-
-            $wrapper.on("dragstart", ".js-category-move-toggle", function(event) {
-                var $move = $(this).closest(".s-category-wrapper");
-
-                var category_id = "" + $move.attr("data-id"),
-                    category = getCategory(category_id);
-
-                if (!category) {
-                    console.error("ERROR: category isn't exist");
-                    return false;
-                }
-
-                event.originalEvent.dataTransfer.setDragImage($move[0], 20, 20);
-
-                drag_data.move_category = category;
-
-                $document.on("drop", ".s-category-wrapper", onDrop);
-                $document.on("dragover", ".s-category-wrapper", onDragOver);
-                $document.on("dragend", onDragEnd);
-            });
-
-            function onDrop(event) {
-                var $category = $(this);
-                moveCategory($category);
-                off();
-            }
-
-            function onDragOver(event) {
-                event.preventDefault();
-
-                if (!drag_data.move_category) { return false; }
-
-                if (!drag_data.move_category.states.move) {
-                    drag_data.move_category.states.move = true;
-                }
-
-                if (!over_locked) {
-                    over_locked = true;
-
-                    var $category = $(this),
-                        category_id = "" + $category.attr("data-id"),
-                        drop_category = getCategory(category_id);
-
-                    if (drag_data.drop_category && drag_data.drop_category !== drop_category) {
-                        drag_data.drop_category.states.drop = false;
-                        drag_data.drop_category.states.drop_inside = false;
-                        drag_data.drop_category.states.drop_error = false;
-                    }
-                    drag_data.drop_category = drop_category;
-
-                    var mouse_y = event.originalEvent.pageY,
-                        cat_offset = $category.offset(),
-                        cat_height = $category.outerHeight(),
-                        cat_y = cat_offset.top,
-                        x = (mouse_y - cat_y),
-                        before = ( x <= (cat_height * 0.3) );
-
-                    drop_category.states.drop = true;
-                    drop_category.states.drop_inside = !before;
-                    drop_category.states.drop_error = (!before && drag_data.move_category.type === "0" && drop_category.type === "1");
-
-                    if (before !== drag_data.before) {
-                        if (before) {
-                            $category.before($droparea);
-                        } else {
-                            var is_exist = $.contains(document, $droparea[0]);
-                            if (is_exist) { $droparea.detach(); }
-                        }
-                        $droparea.data("drop_category", $category);
-                        $droparea.data("before", before);
-                        drag_data.before = before;
-                    }
-                    setTimeout( function() {
-                        over_locked = false;
-                    }, 100);
-                }
-            }
-
-            function onDragEnd() {
-                off();
-            }
-
-            //
-
-            function moveCategory($drop_category) {
-                var category_id = "" + $drop_category.attr("data-id"),
-                    drop_category = getCategory(category_id),
-                    move_category = drag_data.move_category,
-                    before = drag_data.before;
-
-                if (!drop_category) {
-                    console.error("ERROR: category isn't exist");
-                    return false;
-                }
-
-                if (move_category === drop_category) {
-                    return false;
-
-                // В динамическую категорию нельзя
-                } else if (move_category.type === "0" && drop_category.type === "1" && !drag_data.before) {
-                    return false;
-
-                } else {
-                    set(move_category, drop_category, drag_data.before);
-
-                    move_category.states.move_locked = true;
-                    moveRequest(move_category)
-                        .always( function() {
-                            move_category.states.move_locked = false;
-                        });
-                }
-
-                function set(move_category, drop_category, before) {
-                    remove(move_category);
-
-                    // Вставляем выше drop_category
-                    if (before) {
-                        var categories = that.categories,
-                            parent_id = "0";
-
-                        if (drop_category.parent_id !== "0") {
-                            var parent_category = that.categories_object[drop_category.parent_id];
-                            categories = parent_category.categories;
-                            parent_id = parent_category.id;
-                        }
-
-                        var index = categories.indexOf(drop_category);
-
-                        categories.splice(index, 0, move_category);
-
-                        move_category.parent_id = parent_id;
-                        move_category.depth = drop_category.depth;
-
-                    // Вставляем внутрь drop_category
-                    } else {
-                        drop_category.categories.push(move_category);
-                        move_category.parent_id = drop_category.id;
-                        move_category.depth = drop_category.depth + 1;
-                    }
-
-                    function remove(move_category) {
-                        var categories = that.categories;
-
-                        if (move_category.parent_id !== "0") {
-                            var parent_category = that.categories_object[move_category.parent_id];
-                            categories = parent_category.categories;
-                        }
-
-                        var index = categories.indexOf(move_category);
-                        if (index >= 0) {
-                            categories.splice(index, 1);
-                        } else {
-                            console.log( "ERROR: remove category from array" );
-                        }
-                    }
-                }
-            }
-
-            function moveRequest(category) {
-                var deferred = $.Deferred();
-
-                var data = {
-                    moved_category_id: category.id,
-                    parent_category_id: category.parent_id,
-                    categories: getCategories()
-                }
-
-                that.states.move_locked = true;
-
-                $.post(that.urls["category_move"], data, "json")
-                    .always( function() {
-                        that.states.move_locked = false;
-                    })
-                    .fail( function() {
-                        deferred.reject();
-                    })
-                    .done( function(response) {
-                        if (response.status === "ok") {
-                            deferred.resolve();
-                        } else {
-                            alert("Error: category move");
-                            console.log(response.errors);
-                            deferred.reject(response.errors);
-                        }
                     });
-
-                return deferred.promise();
-
-                function getCategories() {
-                    var result = [];
-
-                    if (category.parent_id !== "0") {
-                        var parent_category = that.categories_object[category.parent_id];
-                        result = parent_category.categories.map( function(_category) {
-                            return _category.id;
-                        });
-                    } else {
-                        result = that.categories.map( function(_category) {
-                            return _category.id;
-                        });
-                    }
-
-                    return result;
-                }
+                    break;
             }
 
-            //
-
-            function getCategory(category_id) {
-                return (categories[category_id] ? categories[category_id] : null);
+            return {
+                item_data: item_data,
+                items_keys: items_keys
             }
-
-            function off() {
-                var is_exist = $.contains(document, $droparea[0]);
-                if (is_exist) { $droparea.detach(); }
-
-                drag_data = {};
-                $document.off("drop", ".s-category-wrapper", onDrop);
-                $document.off("dragover", ".s-category-wrapper", onDragOver);
-                $document.off("dragend", onDragEnd);
-
-                $.each(categories, function(i, category) {
-                    category.states.move = false;
-                    category.states.drop = false;
-                    category.states.drop_inside = false;
-                    category.states.drop_error = false;
-                });
-            }
-        };
-
-        Page.prototype.storage = function(update) {
-            let that = this,
-                storage_name = "shop/products/categories";
-
-            update = (typeof update === "boolean" ? update : false);
-            return (update ? setter() : getter());
-
-            function setter() {
-                var value = getValue();
-                value = JSON.stringify(value);
-
-                localStorage.setItem(storage_name, value);
-
-                function getValue() {
-                    let result = { expanded_categories: [] };
-
-                    $.each(that.categories_object, function(i, category) {
-                        if (category.states.expanded) {
-                            result.expanded_categories.push(category.id);
-                        }
-                    });
-
-                    return result;
-                }
-            }
-
-            function getter() {
-                let storage = localStorage.getItem(storage_name);
-                if (storage) { storage = JSON.parse(storage); }
-                return storage;
-            }
-        };
-
-        Page.prototype.updateRootVariables = function(options) {
-            var that = this;
-
-            // Tooltips
-            $.each(options.tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
-
-            // Components
-            that.components = $.extend(that.components, options.components);
-
-            // Templates
-            that.templates = $.extend(that.templates, options.templates);
-
-            // Locales
-            that.locales = $.extend(that.locales, options.locales);
-        };
-
-        return Page;
+        }
 
     })($);
 
