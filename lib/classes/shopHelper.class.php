@@ -2046,13 +2046,12 @@ SQL;
         }
 
         if (!empty($options['product_codes'])) {
+            $items = [];
             foreach ($order['items'] as $key => $i) {
-                $order['items'][$i['id']] = $i;
-                unset($order['items'][$key]);
+                $items[$i['id']] = $i;
             }
-
             $order_item_codes_model = new shopOrderItemCodesModel();
-            $order['items'] = $order_item_codes_model->extendOrderItems($order['items']);
+            $order['items'] = $order_item_codes_model->extendOrderItems($items);
         }
 
         $order_data = array(
