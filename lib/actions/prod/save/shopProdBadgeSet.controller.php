@@ -1,6 +1,6 @@
 <?php
 
-class shopProductBadgeSetController extends waJsonController
+class shopProdBadgeSetController extends waJsonController
 {
     public function execute()
     {

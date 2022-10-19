@@ -113,7 +113,8 @@ class shopFilterModel extends waModel
                 if (!$template) {
                     throw new waException('template not found: '.$template_id);
                 }
-                $this->copyRules($template['id'], $filter['id'], true);
+                $this->rulesModel()->deleteRules($filter['id'], false);
+                $this->rulesModel()->copyRules($template['id'], $filter['id'], false);
                 $this->updateById($filter['id'], ['parent_id' => $template['id']]);
                 return $this->getById($filter['id'], $options);
             } else {
@@ -142,7 +143,17 @@ class shopFilterModel extends waModel
         if (!$destination_filter) {
             throw new waException('destination filter not found ' . $destination_id);
         }
-        $this->copyRules($filter['id'], $destination_filter['id'], true);
+        $delete_search = true;
+        $copy_search = false;
+        if (!empty($destination_filter['parent_id'])) {
+            if (!empty($filter['parent_id'])) {
+                $copy_search = true;
+            } else {
+                $delete_search = false;
+            }
+        }
+        $this->rulesModel()->deleteRules($destination_filter['id'], $delete_search);
+        $this->rulesModel()->copyRules($filter['id'], $destination_filter['id'], $copy_search);
 
         return $destination_filter['id'];
     }
@@ -179,9 +190,9 @@ class shopFilterModel extends waModel
                 'use_datetime' => null,
                 'browser' => null,
             ];
-        } elseif (self::DUPLICATE_MODE_FILTER) {
+        } elseif ($mode == self::DUPLICATE_MODE_FILTER) {
             $rules['name'] = null;
-        } elseif (self::DUPLICATE_MODE_TEMPLATE) {
+        } elseif ($mode == self::DUPLICATE_MODE_TEMPLATE) {
             $rules['parent_id'] = null;
         }
         $insert = array_merge($filter, $rules, $data);
@@ -193,29 +204,11 @@ class shopFilterModel extends waModel
         $this->correctSort();
 
         if ($copy_rules) {
-            $this->copyRules($filter['id'], $new_filter_id);
+            $copy_search = $mode == self::DUPLICATE_MODE_FILTER;
+            $this->rulesModel()->copyRules($filter['id'], $new_filter_id, $copy_search);
         }
 
         return $new_filter_id;
-    }
-
-    /**
-     * @param int $source_id
-     * @param int $destination_id
-     * @param bool $delete_existing
-     * @return void
-     */
-    protected function copyRules($source_id, $destination_id, $delete_existing = false)
-    {
-        if ($delete_existing) {
-            $this->rulesModel()->deleteByField('filter_id', $destination_id);
-        }
-        $rules = shopFilter::getAllTypes(true);
-        $sql = 'INSERT INTO `shop_filter_rules` (`filter_id`, `rule_type`, `rule_params`, `rule_group`)
-                SELECT ?, `rule_type`, `rule_params`, `rule_group`
-                FROM `shop_filter_rules`
-                WHERE `filter_id` = ? AND `rule_type` IN("' . implode('","', array_keys($rules)) . '")';
-        $this->exec($sql, [(int)$destination_id, (int)$source_id]);
     }
 
     /**

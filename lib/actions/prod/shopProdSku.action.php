@@ -257,7 +257,7 @@ class shopProdSkuAction extends waViewAction
             } elseif (!empty($product["image_id"]) && !$_normal_mode_switch && $modification["id"] === $product["sku_id"]) {
                 /* Код устанавливает фото продукта, если это главный артикул и у него нет фото. Для простого товара */
                 $modification["image_id"] = $product["image_id"];
-                $modification["photo"] = $photos[$modification["image_id"]];
+                $modification["photo"] = ifset($photos, $modification["image_id"], []);
             }
 
             // SELECTABLE_FEATURES

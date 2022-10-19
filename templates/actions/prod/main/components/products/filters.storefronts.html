@@ -39,7 +39,7 @@
             </div>
             <div class="s-section-footer" v-if="storefronts.length">
                 <button class="wa-button wa-small blue" type="button"
-                        v-bind:disabled="!states.is_changed"
+                        v-bind:disabled="!states.is_changed || !has_value"
                         v-on:click="save">[`Apply`]</button>
                 <button class="wa-button wa-small transparent" type="button"
                         v-bind:disabled="!has_value"

@@ -13,7 +13,7 @@
     ],
     "filter-rewrite" => [
         "id" => "filter-rewrite",
-        "html" => _w("Update")|escape,
+        "html" => _w("Overwrite")|escape,
         "class" => "inline",
         "position" => "top"
     ],
@@ -33,10 +33,10 @@
             <div class="s-dropbox-content-section">
                 <div class="s-section-header">
                     <h6>[`Filters`]</h6>
-                    <p>[`You can save selected filters for more convenient work.`]</p>
+                    <p>[`You can save currently selected filters.`]</p>
                     <div class="s-create-section" v-if="!states.show_add_form">
                         <button class="wa-button transparent wa-small no-indent" type="button"
-                                v-bind:disabled="!can_add_filter"
+                                v-bind:disabled="states.disabled"
                                 v-on:click.prevent="toggleForm(true)">
                             <span class="s-icon icon size-12"><i class="fas fa-plus"></i></span>
                             <span class="s-name">[`filter`]</span>
@@ -91,6 +91,7 @@
                                     </div>
                                     <div class="s-action"
                                          data-tooltip-id="filter-rewrite"
+                                         v-bind:class="{ 'is-disabled' : states.disabled }"
                                          v-on:click="rewrite(filter)">
                                         <span class="s-icon icon size-12"
                                               v-if="!filter.states.rewrite_locked"

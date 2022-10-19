@@ -289,6 +289,9 @@ class shopProdPresentationUpdateProductController extends waJsonController
                 $product_skus_model = new shopProductSkusModel();
                 $skus_metadata = $product_skus_model->getMetadata();
                 if (isset($skus_metadata[$field_id])) {
+                    if ($field_id == 'count' && $value === '') {
+                        $value = null;
+                    }
                     $changed_column_value['skus'][$sku_id][$field_id] = $value;
                 } elseif (isset($updated_column['stock_id'])) {
                     $changed_column_value['skus'][$sku_id]['stock'][$updated_column['stock_id']] = $value;
@@ -307,11 +310,10 @@ class shopProdPresentationUpdateProductController extends waJsonController
                             $params['redirect_type']
                         );
                     }
-                    // TODO CHECK
-                    $categories = $product->categories;
                     if ($field_id == 'category_id') {
-                        array_unshift($categories, $value);
-                        $changed_column_value['categories'] = $categories;
+                        $category_ids = array_keys($product->categories);
+                        array_unshift($category_ids, $value, $product->category_id);
+                        $changed_column_value['categories'] = array_unique(array_map('intval', $category_ids));
                     }
 
                     if ($field_id == 'sku_id' && $product->sku_id != $value) {

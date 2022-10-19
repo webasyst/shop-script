@@ -28,7 +28,7 @@
     ],
     "category-params" => [
         "id" => "category-params",
-        "html" => _w("All products matching the selected criteria will be collected in this category.")
+        "html" => _w("All products matching the selected criteria will be collected in this category.")|cat: ' '|cat:sprintf_wp('You can select products by properties “%s” and by any custom features set up in the store settings.', implode(_w('”, “'), [_w('Date added'), _w('Last change date'), _w('Product type'), _w('Tag'), _w('Rating'), _w('Price'), _w('Compare at price'), _w('Purchase price'), _w('In stock'), _w('Badge')]))
     ],
     "category-publication" => [
         "id" => "category-publication",
@@ -127,7 +127,7 @@
     <div class="s-category-filter-section">
         <div class="s-search-section">
             <div class="s-field-wrapper">
-                <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Start typing a feature name")|escape}">
+                <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Start typing a filter parameter name")|escape}">
                 <div class="s-loading-wrapper" v-if="states.is_loading">
                     <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
                 </div>
@@ -216,7 +216,7 @@
                             <template v-for="storefront in storefronts">
                                 <div class="s-option">
                                     <label class="flexbox middle space-8" v-bind:title="storefront.name">
-                                        <component-checkbox v-bind:label="false" v-model="storefront.states.active"></component-checkbox>
+                                        <component-checkbox v-bind:label="false" v-model="storefront.states.enabled"></component-checkbox>
                                         <span class="s-label">{ { storefront.name } }</span>
                                     </label>
                                 </div>
@@ -275,7 +275,7 @@
                 <div class="s-category-features-section">
                     <div class="s-search-section">
                         <div class="s-field-wrapper">
-                            <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Start typing a feature name")|escape}">
+                            <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Start typing a parameter name")|escape}">
                             <div class="s-loading-wrapper" v-if="states.is_loading">
                                 <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
                             </div>
@@ -864,7 +864,7 @@
                             <div class="wa-message wa-small white flexbox space-8">
                                 <div class="message-icon"><i class="fas fa-info-circle"></i></div>
                                 <div class="message-text wide">
-                                    [`Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair must be on a separate line.`]
+                                    [`Optional set of custom <em>key=value</em> parameters which can be used in design theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair must be on a separate line.`]
                                 </div>
                             </div>
 

@@ -16,11 +16,12 @@ class shopProdFilterAddRuleController extends waJsonController
         $rule_params = waRequest::post('rule_params', [], waRequest::TYPE_ARRAY);
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
 
-        $new_presentation_id = shopProdPresentationEditColumnsController::duplicatePresentation($presentation_id, false);
+        $new_presentation_id = shopProdPresentationEditColumnsController::duplicatePresentation($presentation_id);
         if ($new_presentation_id) {
             $this->response['new_presentation_id'] = $new_presentation_id;
             $presentation_model = new shopPresentationModel();
             $filter_id = $presentation_model->select('filter_id')->where('`id` = ?', $new_presentation_id)->fetchField('filter_id');
+            $presentation_id = $new_presentation_id;
         }
 
         $open_interval = null;
@@ -64,6 +65,10 @@ class shopProdFilterAddRuleController extends waJsonController
             }
             $new_rule = $this->formatRules($rule_params, $filter_id, $rule_type, $new_rule_group, $open_interval);
             $this->filter_rules_model->multipleInsert($new_rule);
+
+            if ($rule_type == 'search') {
+                $this->resetSort($presentation_id);
+            }
         }
     }
 
@@ -160,5 +165,15 @@ class shopProdFilterAddRuleController extends waJsonController
         ]);
         $this->filter_rules_model->correctSortAfterDelete($filter_id, $rule['rule_group']);
         $count_deleted_rules++;
+    }
+
+    /**
+     * @param int $presentation_id
+     * @return void
+     */
+    protected function resetSort($presentation_id)
+    {
+        $presentation_model = new shopPresentationModel();
+        $presentation_model->updateById($presentation_id, ['sort_column_id' => null]);
     }
 }

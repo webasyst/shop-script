@@ -527,6 +527,7 @@ class shopFilter
                 case 'badge':
                     if ($count) {
                         $badges = shopProductModel::badges();
+                        $badges['custom'] = [];
                         foreach ($rule_params as $badge) {
                             if (array_key_exists($badge, $badges)) {
                                 $correct_params[] = $badge;

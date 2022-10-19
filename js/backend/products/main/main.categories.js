@@ -2094,10 +2094,6 @@
             });
 
             function initDialog($dialog, dialog, options) {
-                console.log( dialog );
-
-console.log( $.wa.clone(options.category) );
-
                 var category = formatCategory(options.category),
                     category_sort_variants = options.category_sort_variants,
                     lang = options.lang;
@@ -2122,7 +2118,7 @@ console.log( $.wa.clone(options.category) );
                             category_url_focus: false,
                             copy_locked: false,
 
-                            visible_menu_url: true,
+                            visible_menu_url: (category.status === "1"),
                             visible_menu_url_at_subcategories: false,
                             update_storefronts_at_subcategories: false,
 
@@ -2764,18 +2760,18 @@ console.log( $.wa.clone(options.category) );
                                                     break;
 
                                                 case "range":
-                                                    var min = (parseFloat(item_data.options[0].value) >= 0 ? item_data.options[0].value : null),
-                                                        max = (parseFloat(item_data.options[1].value) >= 0 ? item_data.options[1].value : null);
+                                                    var min = (!isNaN(parseFloat(item_data.options[0].value)) ? parseFloat(item_data.options[0].value) : null),
+                                                        max = (!isNaN(parseFloat(item_data.options[1].value)) ? parseFloat(item_data.options[1].value) : null);
 
                                                     var range_item = {};
 
-                                                    if (parseFloat(min) >= 0 && parseFloat(max) >= 0) {
+                                                    if (min !== null && max !== null) {
                                                         range_item.name = min + " — " + max;
 
-                                                    } else if (parseFloat(min) >= 0) {
+                                                    } else if (min !== null) {
                                                         range_item.name = "≥ " + min;
 
-                                                    } else if (parseFloat(max) >= 0) {
+                                                    } else if (max !== null) {
                                                         range_item.name = "≤ " + max;
                                                     }
 
@@ -3248,8 +3244,6 @@ console.log( item );
 
                             var data = getData(self.category);
 
-console.log( data );
-
                             self.states.locked = true;
 
                             $.post(that.urls["category_dialog_save"], data, "json")
@@ -3279,6 +3273,7 @@ console.log( data );
                                         description: category.description,
 
                                         // url at menu
+                                        status              : (self.states.visible_menu_url ? 1 : 0),
                                         hidden              : (self.states.visible_menu_url ? 1 : 0),
                                         update_subcategories: (self.states.visible_menu_url_at_subcategories ? 1 : 0),
 
@@ -3459,7 +3454,7 @@ console.log( data );
 
                     $.each(storefronts, function(i, storefront) {
                         storefront.states = {
-                            active: (category.storefronts.length && category.storefronts.indexOf(storefront.url) >= 0)
+                            enabled: !!(category.storefronts.length && category.storefronts.indexOf(storefront.url) >= 0)
                         };
                     });
 
@@ -3694,7 +3689,18 @@ console.log( data );
                     },
                     validate: function() {
                         const self = this;
-                        return self.format;
+
+                        var validate_format = self.format; // number
+
+                        switch (self.item_data.type) {
+                            case "double":
+                            case "range.temperature":
+                            case "dimension.temperature":
+                                validate_format = "number-negative";
+                                break;
+                        }
+
+                        return validate_format;
                     },
                     errors: function() {
                         const self = this;

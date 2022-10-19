@@ -2216,10 +2216,15 @@
                             "component-table-filters-list": {
                                 data: function() {
                                     let self = this;
+                                    var formatted_filters = that.filter.rules.filter( filter => (filter.type !== "search") );
+
                                     return {
                                         filters: that.filters,
                                         result_filters: that.filter.rules,
-                                        states: { show_add_form: false }
+                                        states: {
+                                            show_add_form: false,
+                                            disabled: !formatted_filters.length
+                                        }
                                     };
                                 },
                                 template: that.components["component-table-filters-list"],
@@ -2323,10 +2328,6 @@
                                     }
                                 },
                                 computed: {
-                                    can_add_filter: function() {
-                                        const self = this;
-                                        return !!(self.result_filters.length);
-                                    },
                                     active_filter_name: function() {
                                         let self = this,
                                             result = null;
@@ -2383,6 +2384,8 @@
                                     },
                                     rewrite: function(filter) {
                                         var self = this;
+
+                                        if (self.states.disabled) { return false; }
 
                                         if (!filter.states.rewrite_locked) {
                                             // Делаем через таймаут, т.к. дропдаун реагирует на event.target которого после рендера не будет в DOM (дропдаун закроется)
@@ -3550,7 +3553,8 @@
                                     const is_product_col = !self.sku,
                                           is_sku_col     = (self.sku && !self.sku_mod),
                                           is_sku_mod_col = (self.sku && self.sku_mod),
-                                          is_feature_col = (self.column.column_type.indexOf('feature_') >= 0);
+                                          is_feature_col = (self.column.column_type.indexOf('feature_') >= 0),
+                                          is_stock_col = (self.column.column_type.indexOf('stocks_') >= 0);
 
                                     const is_normal_mode = self.product.normal_mode,
                                           is_extended = (that.presentation.view === "table_extended");
@@ -3582,7 +3586,7 @@
                                             "id", "name", "name", "summary", "meta_title", "meta_keywords",
                                             "meta_description", "description", "create_datetime", "edit_datetime",
                                             "status", "type_id", "image_id", "video_url", "sku_id", "url",
-                                            "rating", "currency", "tax_id", "count",
+                                            "rating", "currency", "tax_id",
                                             "order_multiplicity_factor", "stock_unit_id", "base_unit_id", "stock_base_ratio",
                                             "order_count_min", "order_count_step", "rating_count", "total_sales",
                                             "category_id", "badge", "sku_type", "sku_count",
@@ -3614,7 +3618,7 @@
                                             } else if (is_sku_mod_col) {
                                                 // var black_list = ["image_crop_small", "status", "badge", "currency"];
                                                 // result = (black_list.indexOf(self.column.column_type) < 0);
-                                                result = (sku_columns.indexOf(self.column.column_type) >= 0 || is_feature_col);
+                                                result = (sku_columns.indexOf(self.column.column_type) >= 0 || is_feature_col || is_stock_col);
                                             }
                                         // table
                                         } else {
@@ -3667,7 +3671,7 @@
                                                 if (sku_mod_data) {
                                                     // Если это характеристика
                                                     if (self.column.column_type.indexOf('feature_') >= 0) {
-                                                        $.each(["value", "options", "active_unit", "active_option"], function(i, key) {
+                                                        $.each(["value", "options", "active_unit", "active_option", "can_be_edited"], function(i, key) {
                                                             if (typeof sku_mod_data[key] !== "undefined") {
                                                                 column_data[key] = sku_mod_data[key];
                                                             }
@@ -4807,19 +4811,16 @@
                                                 stock = self.column_info.stocks[self.column_data.stock_id];
                                                 // Виртуальные склады редактировать нельзя
                                                 if (stock.is_virtual) { editable = false; }
-                                                // В сложном режиме, в простой таблице, в продукте запрещено редактировать значения самих складов (можно в артикулах)
-                                                if (that.presentation.view === "table" && self.product.normal_mode && !self.sku_mod) { editable = false; }
                                             }
+
+                                            // В сложном режиме, в простой таблице, в продукте запрещено редактировать значения самих складов (можно в артикулах)
+                                            if (that.presentation.view === "table" && self.product.normal_mode && !self.sku_mod) { editable = false; }
 
                                             // Запрещаем редактировать общее кол-во если много складов
-                                            if (!stock && has_many_stocks) {
-                                                editable = false;
-                                            }
+                                            if (!stock && has_many_stocks) { editable = false; }
 
                                             var display_value = true;
-                                            if (that.presentation.view === "table" && self.product.normal_mode && stock) {
-                                                display_value = false;
-                                            }
+                                            if (that.presentation.view === "table" && self.product.normal_mode) { display_value = false; }
 
                                             return {
                                                 stock: stock,
@@ -4911,9 +4912,11 @@
 
                                                 self.states.is_locked = true;
 
-                                                self.column_data.value = $.wa.validate("number-negative", self.column_data.value, {
-                                                    remove_start_nulls: true
-                                                });
+                                                if (self.column_data.value !== "") {
+                                                    self.column_data.value = $.wa.validate("number-negative", self.column_data.value, {
+                                                        remove_start_nulls: true
+                                                    });
+                                                }
 
                                                 var data = {
                                                     presentation_id: that.presentation.id,
@@ -6862,7 +6865,7 @@
                         const self = this;
                         var result = null;
 
-                        if (self.item_data.type.indexOf("double") >= 0) {
+                        if (self.item_data.type.indexOf("double") >= 0 || self.item_data.type.indexOf("dimension") >= 0 || self.item_data.type.indexOf("range") >= 0) {
                             result = "number";
                         }
 
@@ -6870,7 +6873,16 @@
                     },
                     validate: function() {
                         const self = this;
-                        return self.format;
+
+                        var validate_format = self.format;
+
+                        if (validate_format === "number") {
+                            if (self.item_data.display_type === "feature") {
+                                validate_format = "number-negative";
+                            }
+                        }
+
+                        return validate_format;
                     },
                     errors: function() {
                         const self = this;
@@ -6907,7 +6919,20 @@
                     },
                     disabled: function() {
                         const self = this;
-                        return !!(self.states.locked || Object.keys(self.errors).length);
+                        var result = false;
+
+                        var has_values = true;
+                        switch (self.item_data.render_type) {
+                            case "tags":
+                                has_values = !!self.item_data.options.length;
+                                break;
+                        }
+
+                        if (self.states.locked || Object.keys(self.errors).length || !has_values) {
+                            result = true;
+                        }
+
+                        return result;
                     }
                 },
                 methods: {
@@ -6977,8 +7002,8 @@
                                 $.post(that.urls["filter_feature_value"], data, function(response_data) {
                                     if (!response_data.length) {
                                         response_data = [{
-                                            id: null,
-                                            value: that.locales["no_results"]
+                                            name: that.locales["no_results"],
+                                            value: null
                                         }];
                                     }
                                     response(response_data);
@@ -6995,7 +7020,7 @@
                                 $(".ui-helper-hidden-accessible").appendTo($input.parent());
                             },
                             select: function(event, ui) {
-                                if (ui.item.id) {
+                                if (ui.item.value) {
                                     self.addItem(ui.item);
                                     $input.val("");
                                 }

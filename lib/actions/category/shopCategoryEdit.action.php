@@ -265,7 +265,7 @@ class shopCategoryEditAction extends waViewAction
             foreach ($settings['conditions']['feature'] as $code => &$condition) {
                 if (isset($settings['features'][$code])) {
                     $feature = $settings['features'][$code];
-                    if ($feature['type'] == 'range.date') {
+                    if ($condition['type'] == 'range' && ($feature['type'] == 'range.date' || $feature['type'] == shopFeatureModel::TYPE_DATE)) {
                         $condition['begin'] = shopDateValue::timestampToDate($condition['begin']);
                         $condition['end'] = shopDateValue::timestampToDate($condition['end']);
                     } elseif (empty($feature['selectable']) && $condition['type'] == 'equal' && $feature['type'] == shopFeatureModel::TYPE_DATE) {

@@ -53,7 +53,7 @@
             <div class="dialog-header">
                 <h3 class="s-title wide">{sprintf(_w("Product sorting for the “%s” set"), "{ { set.name } }")}</h3>
 
-                <template v-if="!render_products || products.length">
+                <template v-if="render_products && products.length">
                     <template v-if="!states.sort_locked">
                         <component-dropdown-products-sorting v-model="sort" v-on:change="changeSort"></component-dropdown-products-sorting>
                     </template>
@@ -113,7 +113,7 @@
                         </div>
                     </template>
                     <template v-else>
-                        <div class="s-empty-message">[`The category has no products for sorting.`]</div>
+                        <div class="s-empty-message">[`The set has no products for sorting.`]</div>
                     </template>
                 </template>
                 <template v-else>

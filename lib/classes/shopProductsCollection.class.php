@@ -281,7 +281,7 @@ class shopProductsCollection
                 } else {
                     $items_alias = $this->addJoin([
                         'table'=> 'shop_order_items',
-                        'on' => ':table.product_id = p.id AND :table.type = "product"',
+                        'on' => ":table.product_id = p.id AND :table.type = 'product'",
                         'type' => 'LEFT'
                     ]);
                 }
@@ -291,7 +291,7 @@ class shopProductsCollection
                 } else {
                     $order_alias = $this->addJoin([
                         'table' => 'shop_order',
-                        'on' => ":table.id = $items_alias.order_id AND :table.paid_date >= " . date('Y-m-d', time() - 3600 * 24 * 30),
+                        'on' => ":table.id = $items_alias.order_id AND :table.paid_date >= '" . date('Y-m-d', time() - 3600 * 24 * 30) . "'",
                         'type' => 'LEFT'
                     ]);
                 }
@@ -830,11 +830,14 @@ SQL;
         $dimension = null;
         $dimension_list = [];
         $feature_types = ['double', 'date'];
+        foreach ($groups as $key => $group) {
+            if ($group['type'] == 'search') {
+                $this->searchPrepare('query=' . $group['rule_params'][0], false);
+                unset($groups[$key]);
+            }
+        }
         foreach ($groups as $group) {
             switch ($group['type']) {
-                case 'search':
-                    $this->searchPrepare('query=' . $group['rule_params'][0], false);
-                    break;
                 case 'categories':
                     /**
                      * @var shopCategoryModel $category_model
@@ -986,7 +989,32 @@ SQL;
                 default:
                     if (isset($all_types['product_fields'][$group['type']])) {
                         $type = $all_types['product_fields'][$group['type']];
-                        $this->addFilterRule('p', $type, $group);
+                        if ($group['type'] == 'badge') {
+                            $has_custom = false;
+                            foreach ($group['rule_params'] as $key => $param) {
+                                if ($param == 'custom') {
+                                    $has_custom = true;
+                                    unset($group['rule_params'][$key]);
+                                }
+                            }
+                            if ($has_custom) {
+                                $all_badges = array_keys(shopProductModel::badges());
+                                if (count($group['rule_params']) != count($all_badges)) {
+                                    if (!empty($group['rule_params'])) {
+                                        $not_included = array_diff($all_badges, $group['rule_params']);
+                                        $in = "('" . implode("','", $not_included) . "')";
+                                    } else {
+                                        $in = "('" . implode("','", $all_badges) . "')";
+                                    }
+                                    $this->where[] = "p.{$group['type']} NOT IN $in";
+                                }
+                                $this->where[] = "p.{$group['type']} IS NOT NULL AND p.{$group['type']} != ''";
+                            } elseif (!empty($group['rule_params'])) {
+                                $this->where[] = "p.{$group['type']} IN ('" . implode("','", $group['rule_params']) . "')";
+                            }
+                        } else {
+                            $this->addFilterRule('p', $type, $group);
+                        }
                     } elseif (isset($all_types['sku_fields'][$group['type']])) {
                         $skus_join = $this->addJoin('shop_product_skus', ':table.product_id = p.id');
                         $type = $all_types['sku_fields'][$group['type']];
@@ -994,16 +1022,19 @@ SQL;
                     } elseif (isset($all_types['dynamic_fields'][$group['type']])) {
                         if ($group['type'] == 'sales_30days') {
                             $alias_items = $this->addJoin([
-                                'table'=> 'shop_order_items',
-                                'on' => ':table.product_id = p.id AND :table.type = "product"',
+                                'table' => 'shop_order_items',
+                                'type' => 'LEFT',
+                                'on' => ":table.product_id = p.id AND :table.type = 'product'",
                             ]);
                             $alias_order = $this->addJoin([
                                 'table' => 'shop_order',
-                                'on' => ":table.id = $alias_items.order_id AND :table.paid_date >= " . date('Y-m-d', time() - 3600 * 24 * 30),
+                                'type' => 'LEFT',
+                                'on' => ":table.id = $alias_items.order_id AND :table.paid_date >= '" . date('Y-m-d', time() - 3600 * 24 * 30) . "'",
                             ]);
                             $this->fields['sales_30days'] = "SUM($alias_items.price * $alias_order.rate * $alias_items.quantity) `sales_30days`";
                             $this->group_by = 'p.id';
-                            $this->having[] = $this->parseRules($group, '`sales_30days`');
+                            $sales_having = $this->parseRules($group, '`sales_30days`');
+                            $this->having[] = "(($sales_having) OR `sales_30days` IS NULL)";
                         } elseif ($group['type'] == 'stock_worth') {
                             $alias_skus = $this->addJoin('shop_product_skus', ":table.product_id = p.id");
                             $this->fields['stock_worth'] = "SUM($alias_skus.primary_price * $alias_skus.count) AS `stock_worth`";
@@ -1013,19 +1044,11 @@ SQL;
                     } elseif (isset($all_types['features'][$group['type']])) {
                         $type = $all_types['features'][$group['type']];
                         if ($type['type'] == 'boolean' || $type['type'] == 'varchar' || $type['type'] == 'color' || $type['selectable']) {
-                            if ($type['available_for_sku']) {
-                                $this->addJoin([
-                                    'table' => 'shop_product_features_selectable',
-                                    'on' => ':table.product_id = p.id',
-                                    'where' => ':table.value_id IN (' . implode(',', $group['rule_params']) . ') AND :table.feature_id = ' . $type['id']
-                                ]);
-                            } else {
-                                $this->addJoin([
-                                    'table' => 'shop_product_features',
-                                    'on' => ':table.product_id = p.id',
-                                    'where' => ':table.feature_value_id IN (' . implode(',', $group['rule_params']) . ') AND :table.feature_id = ' . $type['id']
-                                ]);
-                            }
+                            $this->addJoin([
+                                'table' => 'shop_product_features',
+                                'on' => ':table.product_id = p.id',
+                                'where' => ':table.feature_value_id IN (' . implode(',', $group['rule_params']) . ') AND :table.feature_id = ' . $type['id']
+                            ]);
                         } else {
                             $feature_table_name = shopFeatureModel::getValuesModel($type['type'])->getTableName();
                             if ($feature_table_name) {
@@ -1039,7 +1062,7 @@ SQL;
                                 } elseif (mb_strpos($type['type'], 'dimension.') === 0
                                     && in_array(mb_substr($type['type'], 10), $dimension_list)
                                 ) {
-                                    $where = $this->parseRules($group, ':table.value', $dimension);
+                                    $where = $this->parseRules($group, ':table.value_base_unit', $dimension);
                                 } elseif (mb_strpos($type['type'], 'range.') === 0) {
                                     $dimension_type = mb_substr($type['type'], 6);
                                     if (in_array($dimension_type, $feature_types)) {
@@ -1102,19 +1125,18 @@ SQL;
                 $this->where[] = "$table_alias.{$group['type']} <= $string_type{$group['rule_params'][1]}$string_type";
             }
         } elseif ($type['render_type'] == 'select') {
-            $string_type = $group['type'] == 'badge' ? "'" : '';
-            $in = "($string_type" . implode("$string_type,$string_type", $group['rule_params']) . "$string_type)";
+            $in = "(" . implode(",", $group['rule_params']) . ")";
             $this->where[] = "$table_alias.{$group['type']} IN $in";
         }
     }
 
     /**
      * @param array $group
-     * @param string $value
+     * @param string $field_name
      * @param shopDimension $dimension
      * @return string|null
      */
-    protected function parseRules($group, $value = '', $dimension = [])
+    protected function parseRules($group, $field_name = '', $dimension = [])
     {
         $result = null;
         if (!is_null($group['open_interval'])
@@ -1122,24 +1144,24 @@ SQL;
                 || $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_RIGHT_CLOSED)
         ) {
             $compare_sign = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? '>=' : '<=';
-            if (empty($value)) {
-                $value = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? ':table.begin_base_unit' : ':table.end_base_unit';
-                if ($dimension) {
-                    $type = $this->getTypeByUnit($group['rule_params'][1], $dimension);
-                    $group['rule_params'][0] = $dimension->convert($group['rule_params'][0], $type, '', $group['rule_params'][1]);
-                }
+            if (empty($field_name)) {
+                $field_name = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? ':table.begin_base_unit' : ':table.end_base_unit';
             }
-            $result = "$value $compare_sign {$group['rule_params'][0]}";
+            if ($dimension) {
+                $type = $this->getTypeByUnit($group['rule_params'][1], $dimension);
+                $group['rule_params'][0] = $dimension->convert($group['rule_params'][0], $type, '', $group['rule_params'][1]);
+            }
+            $result = "$field_name $compare_sign {$group['rule_params'][0]}";
         } elseif (count($group['rule_params']) > 1) {
-            $begin = $end = $value;
-            if (empty($value)) {
+            $begin = $end = $field_name;
+            if (empty($field_name)) {
                 $begin = ':table.begin_base_unit';
                 $end = ':table.end_base_unit';
-                if ($dimension) {
-                    $type = $this->getTypeByUnit($group['rule_params'][2], $dimension);
-                    $group['rule_params'][0] = $dimension->convert($group['rule_params'][0], $type, '', $group['rule_params'][2]);
-                    $group['rule_params'][1] = $dimension->convert($group['rule_params'][1], $type, '', $group['rule_params'][2]);
-                }
+            }
+            if ($dimension) {
+                $type = $this->getTypeByUnit($group['rule_params'][2], $dimension);
+                $group['rule_params'][0] = $dimension->convert($group['rule_params'][0], $type, '', $group['rule_params'][2]);
+                $group['rule_params'][1] = $dimension->convert($group['rule_params'][1], $type, '', $group['rule_params'][2]);
             }
             $result = "$begin >= {$group['rule_params'][0]} AND $end <= {$group['rule_params'][1]}";
         }
@@ -1907,36 +1929,66 @@ SQL;
                         }
                     }
 
-                    // 1=1 need to connect conditions
-                    $where = [
-                        'feature' => 'feature_id = i:feature_id',
-                        'end'     => '1=1',
-                        'begin'   => '1=1',
-                    ];
                     $where_placeholder = ['feature_id' => $feature['id']];
+                    if ($feature['type'] == shopFeatureModel::TYPE_DATE
+                        || $feature['type'] == shopFeatureModel::TYPE_DOUBLE
+                        || mb_strpos($feature['type'], 'dimension.') === 0
+                    ) {
+                        if (mb_strpos($feature['type'], 'dimension.') === 0) {
+                            $field_name = 'value_base_unit';
+                            $model = new shopFeatureValuesDimensionModel();
+                        } else {
+                            $field_name = 'value';
+                            $model = new shopFeatureValuesDoubleModel();
+                        }
+                        $where = [
+                            'feature' => 'feature_id = i:feature_id',
+                        ];
 
-                    if ($end) {
-                        $where['end'] .= ' AND end_base_unit <= f:end';
-                        $where['begin'] .= ' AND begin_base_unit <= f:end'; //The initial value should not be greater than the maximum
-                        $where_placeholder['end'] = min($end); //if many conditions take the minimum range
+                        if ($end) {
+                            $where['value'] = "$field_name <= f:value";
+                            $where_placeholder['value'] = min($end);
+                        }
+                        if ($begin) {
+                            $where['value'] = "$field_name >= f:value";
+                            $where_placeholder['value'] = max($begin);
+                        }
+
+                        $where = join(' AND ', $where);
+                        $range_ids = $model->select('id')
+                                           ->where($where, $where_placeholder)
+                                           ->fetchAll('id');
+                    } else {
+                        // 1=1 need to connect conditions
+                        $where = [
+                            'feature' => 'feature_id = i:feature_id',
+                            'end'     => '1=1',
+                            'begin'   => '1=1',
+                        ];
+
+                        if ($end) {
+                            $where['end'] .= ' AND end_base_unit <= f:end';
+                            $where['begin'] .= ' AND begin_base_unit <= f:end'; //The initial value should not be greater than the maximum
+                            $where_placeholder['end'] = min($end); //if many conditions take the minimum range
+                        }
+                        if ($begin) {
+                            $where['end'] .= ' AND end_base_unit >= f:begin'; //The final value should not be less than the starting value.
+                            $where['begin'] .= ' AND begin_base_unit >= f:begin';
+                            $where_placeholder['begin'] = max($begin); //see above
+                        }
+
+                        //If the final or initial value is not specified, use the "end" or "begin" column.
+                        //Because in the column "*** _ base_unit" never is the value NULL
+                        $where['end'] = '(('.$where['end'].') OR end IS NULL)';
+                        $where['begin'] = '(('.$where['begin'].') OR begin IS NULL)';
+
+                        $where = join(' AND ', $where);
+
+                        $feature_range_model = new shopFeatureValuesRangeModel();
+                        $range_ids = $feature_range_model->select('id')
+                                                         ->where($where, $where_placeholder)
+                                                         ->fetchAll('id');
                     }
-                    if ($begin) {
-                        $where['end'] .= ' AND end_base_unit >= f:begin'; //The final value should not be less than the starting value.
-                        $where['begin'] .= ' AND begin_base_unit >= f:begin';
-                        $where_placeholder['begin'] = max($begin); //see above
-                    }
-
-                    //If the final or initial value is not specified, use the "end" or "begin" column.
-                    //Because in the column "*** _ base_unit" never is the value NULL
-                    $where['end'] = '(('.$where['end'].') OR end IS NULL)';
-                    $where['begin'] = '(('.$where['begin'].') OR begin IS NULL)';
-
-                    $where = join(' AND ', $where);
-
-                    $feature_range_model = new shopFeatureValuesRangeModel();
-                    $range_ids = $feature_range_model->select('id')
-                                                     ->where($where, $where_placeholder)
-                                                     ->fetchAll('id');
                     if ($range_ids) {
                         $value_ids = join(', ', array_keys($range_ids));
 
@@ -2436,7 +2488,7 @@ SQL;
         }
         $sql .= $this->_getOrderBy();
         $sql .= "\nLIMIT ".($offset ? $offset.',' : '').(int)$limit;
-
+//wa_dump($sql);
         $data = $this->getModel()->query($sql)->fetchAll('id');
         if (!$data) {
             return array();
@@ -4160,7 +4212,8 @@ SQL;
         $group_by = $this->_getGroupBy();
 
         // This query is basically identical to main collection query
-        $sql = "SELECT".($group_by ? '' : ' DISTINCT')." p.id" . ($with_name ? ', p.name' : '') . "\n";
+        $distinct = $group_by ? '' : 'DISTINCT ';
+        $sql = "SELECT " . $distinct . 'p.id' . ($with_name ? ',p.name' : '') . ($this->fields ? ',' . implode(',', $this->fields) : '') . "\n";
         $sql .= $from_and_where;
         $sql .= $group_by;
         if ($this->having) {

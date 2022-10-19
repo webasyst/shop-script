@@ -286,14 +286,13 @@ class shopPresentation
         $offset = ifempty($options, 'offset', 0);
         $limit = 50;
         if (array_key_exists('limit', $options) && $options['limit'] === null) {
-            $total_count = $offset + ifempty($options, 'limit', $this->getField('rows_on_page'));
+            $limit = $this->getField('rows_on_page');
+            $total_count = $offset + $limit;
         } elseif (isset($options['limit']) && is_numeric($options['limit'])) {
             $total_count = $offset + $options['limit'];
+            $limit = $options['limit'];
         } else {
             $total_count = $collection->count();
-        }
-        if ($total_count < $limit) {
-            $limit = $total_count;
         }
         if (!empty($options['fields']) && is_array($options['fields'])) {
             $fields = join(',', array_unique(array_merge($additional_fields, $options['fields'])));
@@ -422,18 +421,18 @@ class shopPresentation
             ]
         ];
 
-        if (shopFrac::isEnabled()) {
+        if (shopUnits::stockUnitsEnabled()) {
             $cols += [
-                'order_multiplicity_factor' => [
-                    'name' => _w('Add-to-cart step'),
-                    'editable' => false,
-                ],
                 'stock_unit_id' => [
                     'name' => _w('Stock quantity unit'),
                     'editable' => false,
                     'sortable' => false,
                     'nowrap' => true
                 ],
+            ];
+        }
+        if (shopUnits::baseUnitsEnabled()) {
+            $cols += [
                 'base_unit_id' => [
                     'name' => _w('Base quantity unit'),
                     'editable' => false,
@@ -443,6 +442,14 @@ class shopPresentation
                 'stock_base_ratio' => [
                     'name' => _w('Stock to base quantity units ratio'),
                     'min_width' => 150
+                ],
+            ];
+        }
+        if (shopFrac::isEnabled()) {
+            $cols += [
+                'order_multiplicity_factor' => [
+                    'name' => _w('Add-to-cart step'),
+                    'editable' => false,
                 ],
                 'order_count_min' => [
                     'name' => _w('Minimum orderable quantity'),
@@ -940,9 +947,20 @@ class shopPresentation
                                         'value' => round($p['rating'] / 0.5) * 0.5,
                                     ];
                                 } elseif ($active_column['id'] == 'count') {
+                                    if (isset($p['count'])) {
+                                        $count_value = 0;
+                                        foreach ($p['skus'] as $sku) {
+                                            if (isset($sku['count'])) {
+                                                $count_value += $sku['count'];
+                                            }
+                                        }
+                                        $count_value = shop_number_format($count_value, $limit_precision, null, null);
+                                    } else {
+                                        $count_value = '';
+                                    }
                                     $p['columns'][$active_column['id']] = [
                                         'render_type' => 'stock',
-                                        'value' => isset($p['count']) ? shop_number_format($p['count'], $limit_precision, null, null) : '',
+                                        'value' => $count_value,
                                     ];
                                     if ($this->getField('view') == self::VIEW_TABLE_EXTENDED) {
                                         $skus_data = [];
@@ -959,6 +977,8 @@ class shopPresentation
                                                     }
                                                     $sku_stock_value += shopFrac::discardZeros($stock_value);
                                                 }
+                                            } elseif (isset($sku['count'])) {
+                                                $sku_stock_value = shopFrac::discardZeros($sku['count']);
                                             }
                                             if ($sku_stock_value !== '') {
                                                 $sku_stock_value = shop_number_format($sku_stock_value, $limit_precision, null, null);

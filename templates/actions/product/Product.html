@@ -1134,7 +1134,7 @@
                         </div>
                         <div class="value">
                             <textarea name="product[params]" rows="10" cols="5">{if $product->params}{foreach $product->params as $k=>$v}{if $k!='order'}{$k}={$v|escape|cat:"\n"}{/if}{/foreach}{/if}</textarea><br>
-                            <span class="hint">[`Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$product.params.key&#125;</em>. Each key=value pair must be on a separate line.`]</span>
+                            <span class="hint">[`Optional set of custom <em>key=value</em> parameters which can be used in design theme templates as <em>&#123;$product.params.key&#125;</em>. Each key=value pair must be on a separate line.`]</span>
                         </div>
                     </div>
                 </div>

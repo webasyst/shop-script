@@ -2,6 +2,8 @@
 
 class shopProdCategorySortDialogSaveController extends waJsonController
 {
+    protected $category = [];
+
     public function execute()
     {
         $category_id = waRequest::post('category_id', null, waRequest::TYPE_INT);
@@ -10,7 +12,7 @@ class shopProdCategorySortDialogSaveController extends waJsonController
         $this->validateData($category_id, $sort_products);
         if (!$this->errors) {
             if ($sort_products) {
-                $products = $this->getCategoryProducts($category_id, $sort_products);
+                $products = $this->getCategoryProducts($sort_products);
             } else {
                 $products = waRequest::post('products', [], waRequest::TYPE_ARRAY_INT);
             }
@@ -52,8 +54,8 @@ class shopProdCategorySortDialogSaveController extends waJsonController
         if (!$this->errors) {
             if ($category_id > 0) {
                 $category_model = new shopCategoryModel();
-                $category = $category_model->select('id')->where('id = ?', $category_id)->fetchField('id');
-                if ($category) {
+                $this->category = $category_model->getById($category_id);
+                if ($this->category) {
                     return;
                 }
             }
@@ -64,10 +66,20 @@ class shopProdCategorySortDialogSaveController extends waJsonController
         }
     }
 
-    protected function getCategoryProducts($category_id, $sort_products)
+    protected function getCategoryProducts($sort_products)
     {
-        $product_model = new shopProductModel();
-        $products = $product_model->select('id')->where('category_id = ?', $category_id)->order($sort_products)->fetchAll('id');
+        $products = [];
+        $category_model = new shopCategoryModel();
+        $category['subcategories'] = $category_model->descendants($this->category, true)->where('type = '.$category_model::TYPE_STATIC)->fetchAll('id');
+        $descendant_ids = array_keys($category['subcategories']);
+        if ($descendant_ids) {
+            $sql = "SELECT p.id 
+                    FROM shop_product p
+                        JOIN shop_category_products cp ON p.id = cp.product_id
+                    WHERE cp.category_id IN (" . implode(',', $descendant_ids) . ")
+                    ORDER BY p.$sort_products";
+            $products = $category_model->query($sql)->fetchAll('id');
+        }
         return array_keys($products);
     }
 }

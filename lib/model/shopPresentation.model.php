@@ -237,9 +237,9 @@ class shopPresentationModel extends waModel
                 'browser' => null,
                 'filter_id' => null,
             ];
-        } elseif (self::DUPLICATE_MODE_PRESENTATION) {
+        } elseif ($mode == self::DUPLICATE_MODE_PRESENTATION) {
             $rules['name'] = null;
-        } elseif (self::DUPLICATE_MODE_TEMPLATE) {
+        } elseif ($mode == self::DUPLICATE_MODE_TEMPLATE) {
             $rules['parent_id'] = null;
         }
         if (!empty($presentation['filter_id']) && $mode == self::DUPLICATE_MODE_PRESENTATION) {
@@ -267,6 +267,20 @@ class shopPresentationModel extends waModel
 
         if ($copy_columns) {
             $this->copyColumns($presentation['id'], $new_presentation_id);
+            if ($mode == self::DUPLICATE_MODE_PRESENTATION) {
+                $new_sort_column_id = null;
+                $sort_column = $this->columnsModel()->getById($presentation['sort_column_id']);
+                if ($sort_column) {
+                    $new_column = $this->columnsModel()->getByField([
+                        'presentation_id' => $new_presentation_id,
+                        'column_type' => $sort_column['column_type'],
+                    ]);
+                    if ($new_column) {
+                        $new_sort_column_id = $new_column['id'];
+                    }
+                }
+                $this->updateById($new_presentation_id, ['sort_column_id' => $new_sort_column_id]);
+            }
         }
         return $new_presentation_id;
     }
@@ -293,6 +307,7 @@ class shopPresentationModel extends waModel
         if ($enabled_columns) {
             $sql .= ' AND `column_type` IN("' . implode('","', $enabled_columns) . '")';
         }
+        $sql .= ' ORDER BY `id` ASC';
         $this->exec($sql, $dest_presentation_id, $source_presentation_id);
     }
 

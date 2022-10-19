@@ -1243,8 +1243,8 @@ msgstr "Ссылка"
 msgid "Custom parameters"
 msgstr "Дополнительные параметры"
 
-msgid "Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair must be on a separate line."
-msgstr "Необязательный набор дополнительных параметров <em>key=value</em> (используются в шаблоне общедоступной части в виде <em>&#123;$category.params.key&#125;</em>). Каждую пару key=value указывайте с новой строки."
+msgid "Optional set of custom <em>key=value</em> parameters which can be used in design theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair must be on a separate line."
+msgstr "Необязательный набор дополнительных параметров <em>key=value</em> (используются в шаблонах дизайна в виде <em>&#123;$category.params.key&#125;</em>). Каждую пару key=value указывайте с новой строки."
 
 msgid "Rating"
 msgstr "Рейтинг"
@@ -1995,6 +1995,9 @@ msgstr "Удалить из корзины"
 
 msgid "Update"
 msgstr "Обновить"
+
+msgid "Overwrite"
+msgstr "Перезаписать"
 
 msgid "Discount coupon (if you have one)"
 msgstr "Купон на скидку (если есть)"
@@ -3370,8 +3373,8 @@ msgstr "Курьер"
 msgid "No products were found."
 msgstr "Не найдено ни одного товара."
 
-msgid "Optional set of custom <em>key=value</em> parameters which can be used in frontend theme templates as <em>&#123;$product.params.key&#125;</em>. Each key=value pair must be on a separate line."
-msgstr "Необязательный набор дополнительных параметров <em>key=value</em> (используются в шаблоне общедоступной части в виде <em>&#123;$product.params.key&#125;</em>). Каждую пару key=value указывайте с новой строки."
+msgid "Optional set of custom <em>key=value</em> parameters which can be used in design theme templates as <em>&#123;$product.params.key&#125;</em>. Each key=value pair must be on a separate line."
+msgstr "Необязательный набор дополнительных параметров <em>key=value</em> (используются в шаблонах дизайна в виде <em>&#123;$product.params.key&#125;</em>). Каждую пару key=value указывайте с новой строки."
 
 msgid "Only Latin characters, numbers, underscore and hyphen symbols are allowed"
 msgstr "Допускается использовать только латинские буквы, цифры, символ подчеркивания и дефис"
@@ -6242,7 +6245,7 @@ msgid "Maximum of %d orders is allowed for bulk form printing."
 msgstr "Максимальное количество заказов, которые можно распечатать за раз — %d."
 
 msgid "Copy and paste the URL of a product video from the YouTube or Vimeo website."
-msgstr "Скопируйте в это поле адрес видеоролика товара с сайта YouTube или Vimeo."
+msgstr "Скопируйте в это поле адрес видеоролика товара с сайта Rutube, YouTube или Vimeo."
 
 msgid "Virtual stock must include at least one real stock."
 msgstr "Выберите хотя бы один реальный склад для этого виртуального склада."
@@ -12013,6 +12016,9 @@ msgstr "Будьте внимательны, порядок категорий �
 msgid "The category has no products for sorting."
 msgstr "В категории нет товаров для сортировки."
 
+msgid "The set has no products for sorting."
+msgstr "В списке нет товаров для сортировки."
+
 msgid "The category contains too many products. Displaying all of them may cause increased load to your computer. Click the button below if you are sure to display all products."
 msgstr "В категории слишком много товаров. Отображение их всех сразу может чрезмерно загрузить ваш компьютер. Нажмите на кнопку ниже, чтобы отобразить все товары на ваше усмотрение."
 
@@ -12181,8 +12187,14 @@ msgstr "Выберите витрины, на которых будет дост
 msgid "Enter the category name"
 msgstr "Заполните наименование категории"
 
-msgid "Start typing a feature name"
-msgstr "Начните писать название характеристики"
+msgid "Start typing a filter parameter name"
+msgstr "Начните писать название параметра фильтра"
+
+msgid "Start typing a parameter name"
+msgstr "Начните писать название параметра"
+
+msgid "You can select products by properties “%s” and by any custom features set up in the store settings."
+msgstr "Товары можно подбирать по свойствам «%s», а также по характеристикам, добавленным в настройках магазина."
 
 msgid "Selected storefronts"
 msgstr "Выбранные витрины"
@@ -12220,11 +12232,11 @@ msgstr "Настройка столбцов для списков товаров
 msgid "Select the columns that you would like to show in the product listing. Drag & drop to change columns’ sort order."
 msgstr "Выберите столбцы, которые нужно показывать в списке товаров. Изменяйте порядок сортировки столбцов перетаскиванием."
 
-msgid "Always show full column values"
-msgstr "Всегда показывать полностью значения в столбце"
+msgid "Wrap long product names into several lines"
+msgstr "Переносить длинные наименования на несколько строк"
 
-msgid "Try to fit column values in one line"
-msgstr "Пытаться уместить значения в столбце в одну строку"
+msgid "Truncate long product names to fit into one line"
+msgstr "Обрезать длинные наименования, чтобы показать в одну строку"
 
 msgid "Number of tags displayed in the table:"
 msgstr "Количество тегов для отображения в таблице:"
@@ -12358,8 +12370,8 @@ msgstr "Представление"
 msgid "Saved views for the “Products” section"
 msgstr "Представления для раздела «Товары»"
 
-msgid "You can save current screen’s setup, including the selected sorting option, as a <em>saved view</em> for more convenient work."
-msgstr "Для удобства работы над разными задачами вы можете сохранить выбранный вид раздела вместе с выбранной сортировкой в виде <em>представления</em>."
+msgid "You can save current screen setup, including the selected sorting option, as a <em>saved view</em>."
+msgstr "Вы можете сохранить настроенный вид раздела вместе с выбранной сортировкой в виде <em>представления</em>."
 
 msgid "saved view"
 msgstr "представление"
@@ -12379,8 +12391,8 @@ msgstr "Сохраненные фильтры"
 msgid "Filters"
 msgstr "Фильтры"
 
-msgid "You can save selected filters for more convenient work."
-msgstr "Для удобства работы над разными задачами вы можете сохранить выбранные фильтры."
+msgid "You can save currently selected filters."
+msgstr "Вы можете сохранить настроенное в данный момент сочетание фильтров."
 
 msgid "filter"
 msgstr "фильтр"
@@ -12394,8 +12406,8 @@ msgstr "Ввести значения для складов можно в таб
 msgid "You can view the quantity available on a virtual stock in the table mode with SKUs or in the product editor."
 msgstr "Посмотреть количество на виртуальном складе можно в табличном режиме с артикулами или в редакторе товара."
 
-msgid "Show in a dialog"
-msgstr "Показать в диалоге"
+msgid "Show now"
+msgstr "Показать"
 
 msgid "Other actions"
 msgstr "Другие действия"
@@ -12449,7 +12461,7 @@ msgid "Find a set"
 msgstr "Найти список"
 
 msgid "Find a product type"
-msgstr "Найти тип товара"
+msgstr "Найти тип товаров"
 
 msgid "You have no storefronts."
 msgstr "У вас нет витрин."
@@ -12756,3 +12768,18 @@ msgstr "краткое описание товара"
 
 msgid "product’s and its main variant’s price"
 msgstr "цена товара или его основной модификации"
+
+msgid "Bulk product actions"
+msgstr "Массовые действия с товарами"
+
+msgid "Action “%s” is under development"
+msgstr "Действие «%s» находится в разработке."
+
+msgid "All actions"
+msgstr "Все действия"
+
+msgid "The product has been deleted."
+msgstr "Продукт был удален."
+
+msgid "Export to CSV"
+msgstr "Экспорт в CSV"

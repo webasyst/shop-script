@@ -9,7 +9,7 @@ return array(
         'strict' => true,
     ),
     'php' => array(
-        'version' => '>=5.6',
+        'version' => '>=7.2.9',
         'strict'  => true,
     ),
 );

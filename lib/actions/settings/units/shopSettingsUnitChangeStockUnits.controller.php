@@ -18,7 +18,7 @@ class shopSettingsUnitChangeStockUnitsController extends waJsonController
                     'stock_unit_id' => shopTypeModel::PARAM_ALL_PRODUCTS,
                     'base_unit_fixed' => shopTypeModel::PARAM_DISABLED,
                     'base_unit_id' => 'NULL',
-                    'stock_base_ratio' => 'NULL',
+                    'stock_base_ratio' => 1,
                     'stock_base_ratio_fixed' => shopTypeModel::PARAM_DISABLED,
                 ],
                 'products' => [

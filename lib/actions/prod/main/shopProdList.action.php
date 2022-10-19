@@ -65,17 +65,33 @@ class shopProdListAction extends waViewAction
         $this->clearMissingRules($filter['rules'], $filter_options, $categories);
 
         $sort_column_type = $presentation->getSortColumnType();
-        $sorting_options = [
-            'sort' => $sort_column_type !== null ? array_unique([$sort_column_type, 'name']) : ['name'],
-            'order' => strtolower($presentation->getField('sort_order')),
-        ];
+        $has_search = false;
+        foreach ($filter['rules'] as $rule) {
+            if ($rule['rule_type'] == 'search') {
+                $has_search = true;
+                break;
+            }
+        }
+        if ($sort_column_type !== null) {
+            $sorting_options = [
+                'sort' => array_unique([$sort_column_type, 'name']),
+                'order' => strtolower($presentation->getField('sort_order')),
+            ];
+        } elseif (!$has_search) {
+            $sorting_options = [
+                'sort' => ['name'],
+                'order' => strtolower($presentation->getField('sort_order')),
+            ];
+        }
         if ($active_filter->getId() > 0 && !empty($filter['rules'])) {
             $sorting_options['prepare_filter'] = $active_filter->getId();
         }
         $collection = new shopProductsCollection('', $sorting_options);
         $products_total_count = $collection->count();
-        $pages = round($products_total_count / $limit);
-        if (!($pages >= 1)) { $pages = 1; }
+        $pages = ceil($products_total_count / $limit);
+        if (!($pages >= 1)) {
+            $pages = 1;
+        }
         $products = $presentation->getProducts($collection, [
             'offset' => $offset,
             'limit' => $limit,
@@ -1003,87 +1019,87 @@ class shopProdListAction extends waViewAction
         $result = [
             "export" => [
                 "id" => "export",
-                "name" => _w("Экспорт"),
+                "name" => _w("Export"),
                 "actions" => [
                     [
                         "id" => "export_csv",
-                        "name" => _w("Экспорт в CSV")
+                        "name" => _w("Export to CSV")
                     ]
                 ]
             ],
             "organize" => [
                 "id" => "organize",
-                "name" => _w("Организовать"),
+                "name" => _w("Organize"),
                 "actions" => [
                     [
                         "id" => "add_to_category",
-                        "name" => _w("Добавить в категорию"),
+                        "name" => _w("Add to category"),
                         "pinned" => true
                     ],
                     [
                         "id" => "exclude_from_category",
-                        "name" => _w("Исключить из категории")
+                        "name" => _w("Remove from category")
                     ],
                     [
                         "id" => "add_to_set",
-                        "name" => _w("Добавить в список"),
+                        "name" => _w("Add to set"),
                         "pinned" => true
                     ],
                     [
                         "id" => "exclude_from_set",
-                        "name" => _w("Исключить из списка")
+                        "name" => _w("Remove from set")
                     ],
                     [
                         "id" => "add_tags",
-                        "name" => _w("Назначить теги")
+                        "name" => _w("Assign tags")
                     ],
                     [
                         "id" => "remove_tags",
-                        "name" => _w("Убрать теги")
+                        "name" => _w("Remove tags")
                     ]
                 ]
             ],
             "edit" => [
                 "id" => "edit",
-                "name" => _w("Редактирование"),
+                "name" => _w("Editing"),
                 "actions" => [
                     [
                         "id" => "badge",
-                        "name" => _w("Наклейка"),
+                        "name" => _w("Badge"),
                         "pinned" => true
                     ],
                     [
                         "id" => "storefront_publication",
-                        "name" => _w("Публикация на витрине"),
+                        "name" => _w("Publication in storefronts"),
                         "pinned" => true
                     ],
                     [
                         "id" => "change_product_type",
-                        "name" => _w("Сменить тип товара")
+                        "name" => _w("Change product type")
                     ],
                     [
                         "id" => "duplicate",
-                        "name" => _w("Создать дубликат"),
+                        "name" => _w("Duplicate"),
                         "pinned" => true
                     ],
                     [
                         "id" => "delete",
-                        "name" => _w("Удалить"),
+                        "name" => _w("Delete"),
                         "pinned" => true
                     ]
                 ]
             ],
             "marketing" => [
                 "id" => "marketing",
-                "name" => _w("Маркетинг"),
+                "name" => _w("Marketing"),
                 "actions" => [
                     [
                         "id" => "badge",
-                        "name" => _w("Купоны на скидку")
+                        "name" => _w("Discount coupons")
                     ],
                     [
                         "id" => "storefront_publication",
-                        "name" => _w("Добавить в акцию")
+                        "name" => _w("Add to promo")
                     ]
                 ]
             ]
@@ -1093,31 +1109,31 @@ class shopProdListAction extends waViewAction
         // TODO: add plugins to groups
         $result["export"]["actions"][] = [
             "id" => "plugin_1",
-            "name" => _w("Плагин экспорта")
+            "name" => "Плагин экспорта"
         ];
 
         $result["edit"]["actions"][] = [
             "id" => "plugin_1",
-            "name" => _w("Плагин редактирования")
+            "name" => "Плагин редактирования"
         ];
 
         $result["marketing"]["actions"][] = [
             "id" => "plugin_1",
-            "name" => _w("Плагин редактирования")
+            "name" => "Плагин редактирования"
         ];
 
         // TODO: add plugin group
         $result["plugin_group_1"] = [
             "id" => "plugin_group_1",
-            "name" => _w("Группа плагинов"),
+            "name" => "Группа плагинов",
             "actions" => [
                 [
                     "id" => "plugin_1",
-                    "name" => _w("Плагин 1 для группы плагинов")
+                    "name" => "Плагин 1 для группы плагинов"
                 ],
                 [
                     "id" => "plugin_2",
-                    "name" => _w("Плагин 2 для группы плагинов")
+                    "name" => "Плагин 2 для группы плагинов"
                 ]
             ]
         ];

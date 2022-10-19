@@ -76,7 +76,8 @@
                     <div class="s-icon-wrapper">
                         <span class="icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
                     </div>
-                    <input class="s-field wa-small full-width s-square-field align-right is-disabled" type="text" readonly>
+                    <input class="s-field wa-small full-width s-square-field align-right is-disabled" type="text" readonly
+                           v-bind:value="column_data.value">
                 </div>
             </template>
         </template>

@@ -149,10 +149,9 @@ class shopProdCategorySaveController extends waJsonController
             $category_params_model->set($category_id, !empty($data['params']) ? $data['params'] : null);
 
             $data['routes'] = ifset($data['routes'], []);
-            $data['propagate_visibility'] = waRequest::post('propagate_visibility');
 
             $category_routes_model = new shopCategoryRoutesModel();
-            $category_routes_model->setRoutes($category_id, $data['routes'], $data['propagate_visibility']);
+            $category_routes_model->setRoutes($category_id, $data['routes'], !empty($data['propagate_visibility']));
 
             $category_og_model = new shopCategoryOgModel();
             $category_og_model->set($category_id, ifempty($data['og'], []));

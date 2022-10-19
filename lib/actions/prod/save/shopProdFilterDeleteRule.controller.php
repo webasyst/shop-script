@@ -10,7 +10,7 @@ class shopProdFilterDeleteRuleController extends waJsonController
         $rule_group = waRequest::post('rule_group', null, waRequest::TYPE_INT);
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
 
-        $new_presentation_id = shopProdPresentationEditColumnsController::duplicatePresentation($presentation_id, false);
+        $new_presentation_id = shopProdPresentationEditColumnsController::duplicatePresentation($presentation_id);
         if ($new_presentation_id) {
             $this->response['new_presentation_id'] = $new_presentation_id;
             $presentation_model = new shopPresentationModel();

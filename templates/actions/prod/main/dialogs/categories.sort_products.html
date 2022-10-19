@@ -53,7 +53,7 @@
             <div class="dialog-header">
                 <h3 class="s-title wide">{sprintf(_w("Product sorting for the “%s” category"), "{ { category.name } }")}</h3>
 
-                <template v-if="!render_products || products.length">
+                <template v-if="render_products && products.length">
                     <component-dropdown-products-sorting v-model="sort" v-on:change="changeSort"></component-dropdown-products-sorting>
                 </template>
 

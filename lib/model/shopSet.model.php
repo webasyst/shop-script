@@ -295,10 +295,10 @@ class shopSetModel extends waModel
         ];
 
         // TODO: добавить другие варианты сортировки товаров, которые добавляют плагины.
-        $result[] = [
-            'name' => 'TODO:plugin variant',
-            'value' => 'todo:plugin_id'
-        ];
+        // $result[] = [
+        //     'name' => 'TODO:plugin variant',
+        //     'value' => 'todo:plugin_id'
+        // ];
 
         return $result;
     }

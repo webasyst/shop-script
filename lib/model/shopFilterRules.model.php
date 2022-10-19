@@ -58,12 +58,45 @@ class shopFilterRulesModel extends waModel
 
     /**
      * @param int $filter_id
+     * @param bool $delete_search
      * @return bool|resource
-     * @throws waException
      */
-    public function deleteAllRules($filter_id)
+    public function deleteRules($filter_id, $delete_search = true)
     {
-        $sql = "DELETE FROM ".$this->table." WHERE `rule_type` != 'search' AND `filter_id` = " . (int)$filter_id;
-        return $this->exec($sql);
+        $sql = "DELETE FROM " . $this->table . "
+                WHERE `filter_id` = ?";
+        if (!$delete_search) {
+            $sql .= " AND `rule_type` != 'search'";
+        }
+        return $this->exec($sql, (int)$filter_id);
+    }
+
+    /**
+     * @param int $source_id
+     * @param int $destination_id
+     * @param bool $copy_search
+     * @return bool|resource
+     */
+    public function copyRules($source_id, $destination_id, $copy_search = true)
+    {
+        $rules = shopFilter::getAllTypes(true);
+        if (!$copy_search) {
+            unset($rules['search']);
+        }
+        $sql = 'INSERT INTO `'.$this->table.'` (`filter_id`, `rule_type`, `rule_params`, `rule_group`, `open_interval`)
+                SELECT ?, `rule_type`, `rule_params`, `rule_group`, `open_interval`
+                FROM `'.$this->table.'`
+                WHERE `filter_id` = ? AND `rule_type` IN("' . implode('","', array_keys($rules)) . '")
+                ORDER BY `id` ASC';
+        $this->exec($sql, (int)$destination_id, (int)$source_id);
+        $update_group_sql = "UPDATE `".$this->table."` fr, (
+                                SELECT MAX(`rule_group`) + 1 AS `max_rule_group`
+                                FROM `".$this->table."`
+                                WHERE `filter_id` = i:fid
+                                GROUP BY `rule_group`
+                            ) subfr
+                            SET fr.rule_group = subfr.max_rule_group
+                            WHERE fr.filter_id = i:fid AND fr.rule_type = 'search'";
+        return $this->exec($update_group_sql, ['fid' => $destination_id]);
     }
 }
