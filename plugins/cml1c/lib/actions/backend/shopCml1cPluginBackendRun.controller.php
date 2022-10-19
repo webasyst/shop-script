@@ -825,7 +825,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                                 if (!isset($this->data['new_features'])) {
                                     $this->data['new_features'] = array();
                                 }
-                                $this->data['feature_types'][$feature['code']] = $feature['type'];
+                                $this->data['features'][$feature['code']] = $feature;
                                 $this->data['new_features'][$feature['code']] = array(
                                     'id'         => $feature['id'],
                                     'types'      => array($this->data['default_type_id']),
@@ -848,7 +848,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                                     $feature_model = new shopFeatureModel();
                                 }
                                 $_f = $feature_model->getByField(['code' => $target_value]);
-                                $this->data['feature_types'][$target_value] = ifset($_f, 'type', shopFeatureModel::TYPE_VARCHAR);
+                                $this->data['features'][$target_value] = ifset($_f, []);
                                 break;
                             case 'p':
                                 if (ifset($features_map[$namespace][$name]) != 'p:'.$target_value) {
@@ -5822,7 +5822,7 @@ SQL;
      */
     private function formatFeature($features, $code, $value)
     {
-        $selectable = ifset($this->data, 'new_features', $code, 'selectable', 0);
+        $selectable = ifset($this->data, 'features', $code, 'selectable', 0);
         if ($selectable) {
             $feature = ifset($features, $code, []);
             if (is_string($feature)) {
