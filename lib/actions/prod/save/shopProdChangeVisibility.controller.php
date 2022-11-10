@@ -23,7 +23,7 @@ class shopProdChangeVisibilityController extends waJsonController
         $options = [];
         $offset = 0;
         $hash = '';
-        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+        $product_id = waRequest::post('product_ids', [], waRequest::TYPE_ARRAY_INT);
         if (!$presentation_id) {
             if (!$product_id) {
                 $this->response += [

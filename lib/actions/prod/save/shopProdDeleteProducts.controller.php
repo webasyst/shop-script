@@ -1,12 +1,12 @@
 <?php
 
-class shopProdDeleteListController extends waJsonController
+class shopProdDeleteProductsController extends waJsonController
 {
     public function execute()
     {
         $this->getStorage()->close();
 
-        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+        $product_id = waRequest::post('product_ids', [], waRequest::TYPE_ARRAY_INT);
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
         if (!$presentation_id) {
             $all_product_ids = $product_id;
@@ -22,7 +22,7 @@ class shopProdDeleteListController extends waJsonController
                 'fields' => ['id'],
                 'offset' => max(0, waRequest::post('offset', 0, waRequest::TYPE_INT)),
             ]);
-            $all_product_ids = array_values($all_product_ids);
+            $all_product_ids = array_keys($all_product_ids);
         }
 
         $this->deleteProducts($all_product_ids);

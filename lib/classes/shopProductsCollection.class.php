@@ -325,7 +325,7 @@ class shopProductsCollection
                     foreach ($feature_field['feature_ids'] as $feature_id) {
                         $product_features_aliases[] = $this->addJoin([
                             'table'=> 'shop_product_features',
-                            'on' => ":table.product_id = p.id AND :table.feature_id = $feature_id",
+                            'on' => ":table.product_id = p.id AND :table.feature_id = $feature_id AND :table.sku_id IS NULL",
                             'type' => 'LEFT'
                         ]);
                     }
@@ -462,38 +462,37 @@ class shopProductsCollection
                 $feature_id = substr($item, 8);
                 if (is_numeric($feature_id)) {
                     $feature_model = new shopFeatureModel();
-                    $features = $feature_model->where('id = i:main_id OR parent_id = i:id_as_parent_id', [
+                    $features = $feature_model->where("`multiple` = 0 AND `type` NOT IN ('color', 'divider') AND (`id` = i:main_id OR `parent_id` = i:main_id)", [
                         'main_id' => $feature_id,
-                        'id_as_parent_id' => $feature_id
                     ])->order('parent_id, id')->fetchAll('id');
-                    $feature = array_shift($features);
-                    $feature_type = preg_replace('/(^(2d|3d)\.)?(.*)(\..*)/', '$3', $feature['type']);
-                    if (empty($feature['multiple']) && empty($feature['available_for_sku']) && $feature_type &&
-                        !in_array($feature['type'], [shopFeatureModel::TYPE_COLOR, shopFeatureModel::TYPE_DIVIDER])
-                    ) {
-                        $model = 'shopFeatureValues'.ucfirst($feature_type).'Model';
-                        if (class_exists($model)) {
-                            if ($model == 'shopFeatureValuesBooleanModel') {
-                                $table_name = 'shop_product_features';
-                                $sort_field = 'feature_value_id';
-                            } else {
-                                $feature_values_model = new $model();
-                                $table_name = $feature_values_model->getTableName();
-                                $sort_field = 'value';
-                                if ($table_name == 'shop_feature_values_dimension') {
-                                    $sort_field = 'value_base_unit';
-                                } elseif ($table_name == 'shop_feature_values_range') {
-                                    $sort_field = 'begin_base_unit';
+                    if ($features) {
+                        $feature = array_shift($features);
+                        $feature_type = preg_replace('/^(2d\.|3d\.)?(\w*)(\..*)?/', '$2', $feature['type']);
+                        if ($feature_type) {
+                            $model = 'shopFeatureValues' . ucfirst($feature_type) . 'Model';
+                            if (class_exists($model)) {
+                                if ($model == 'shopFeatureValuesBooleanModel') {
+                                    $table_name = 'shop_product_features';
+                                    $sort_field = 'feature_value_id';
+                                } else {
+                                    $feature_values_model = new $model();
+                                    $table_name = $feature_values_model->getTableName();
+                                    $sort_field = 'value';
+                                    if ($table_name == 'shop_feature_values_dimension') {
+                                        $sort_field = 'value_base_unit';
+                                    } elseif ($table_name == 'shop_feature_values_range') {
+                                        $sort_field = 'begin_base_unit';
+                                    }
                                 }
+                                $field = [
+                                    'field' => $item,
+                                    'feature_ids' => $features ? array_column($features, 'id') : [(int)$feature['id']],
+                                    'table_name' => $table_name,
+                                    'sort_field' => $sort_field
+                                ];
                             }
-                            $field = [
-                                'field' => $item,
-                                'feature_ids' => $features ? array_column($features, 'id') : [(int)$feature['id']],
-                                'table_name' => $table_name,
-                                'sort_field' => $sort_field
-                            ];
-                        }
 
+                        }
                     }
                 }
             }
@@ -830,8 +829,10 @@ SQL;
         $dimension = null;
         $dimension_list = [];
         $feature_types = ['double', 'date'];
+        $search_prepared = false;
         foreach ($groups as $key => $group) {
             if ($group['type'] == 'search') {
+                $search_prepared = true;
                 $this->searchPrepare('query=' . $group['rule_params'][0], false);
                 unset($groups[$key]);
             }
@@ -862,7 +863,7 @@ SQL;
                         }
                     } else {
                         $this->setHash('/search/'.$category['conditions']);
-                        $this->prepare(false, false);
+                        $this->prepare($search_prepared, false);
                         while (!empty($category['parent_id'])) {
                             $category = $category_model->getById($category['parent_id']);
                             if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
@@ -1224,7 +1225,7 @@ SQL;
                 'category_url' => waRequest::param('url_type') == 1 ? $category['url'] : $category['full_url']
             ), true);
         } else {
-            $frontend_urls = $category_model->getFrontendUrls($id);
+            $frontend_urls = $category_model->getFrontendUrls($id, true);
             if ($frontend_urls) {
                 $this->info['frontend_url'] = $frontend_urls[0];
                 $this->info['frontend_urls'] = $frontend_urls;
@@ -1941,17 +1942,15 @@ SQL;
                             $field_name = 'value';
                             $model = new shopFeatureValuesDoubleModel();
                         }
-                        $where = [
-                            'feature' => 'feature_id = i:feature_id',
-                        ];
 
+                        $where = ['feature_id = i:feature_id'];
                         if ($end) {
-                            $where['value'] = "$field_name <= f:value";
-                            $where_placeholder['value'] = min($end);
+                            $where[] = "$field_name <= f:begin_value";
+                            $where_placeholder['begin_value'] = min($end);
                         }
                         if ($begin) {
-                            $where['value'] = "$field_name >= f:value";
-                            $where_placeholder['value'] = max($begin);
+                            $where[] = "$field_name >= f:end_value";
+                            $where_placeholder['end_value'] = max($begin);
                         }
 
                         $where = join(' AND ', $where);
@@ -2488,7 +2487,7 @@ SQL;
         }
         $sql .= $this->_getOrderBy();
         $sql .= "\nLIMIT ".($offset ? $offset.',' : '').(int)$limit;
-//wa_dump($sql);
+
         $data = $this->getModel()->query($sql)->fetchAll('id');
         if (!$data) {
             return array();
@@ -3462,7 +3461,7 @@ SQL;
                     $main_sku = reset($product['skus']);
 
                     $image_id = ifset($main_sku, 'image_id', null);
-                    if ($image_id && $product['image_id'] !== $image_id) {
+                    if ($image_id && $product['image_id'] !== $image_id && isset($main_sku['ext'])) {
                         $product['image_id'] = $image_id;
                         $product['ext'] = $main_sku['ext'];
                         $product['image_filename'] = $main_sku['image_filename'];

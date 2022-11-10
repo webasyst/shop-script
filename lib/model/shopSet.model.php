@@ -33,9 +33,13 @@ class shopSetModel extends waModel
         return $this->query("SELECT * FROM {$this->table} ORDER BY sort")->fetchAll($key, $normalize);
     }
 
-    public function getSetsWithGroups()
+    public function getSetsWithGroups($set_id = null, $empty_groups = true)
     {
-        $sets = $this->getAll('id');
+        if (is_numeric($set_id) || is_array($set_id)) {
+            $sets = $this->getById($set_id);
+        } else {
+            $sets = $this->getAll('id');
+        }
 
         $set_group_model = new shopSetGroupModel();
         $groups = $set_group_model->getAll('id');
@@ -60,11 +64,13 @@ class shopSetModel extends waModel
         }
 
         foreach($groups as $group) {
-            $group = [
-                'is_group' => true,
-                "group_id" => $group['id'],
-            ] + $group;
-            $result[] = $group;
+            if ($empty_groups || !empty($group['sets'])) {
+                $group = [
+                    'is_group' => true,
+                    'group_id' => $group['id'],
+                ] + $group;
+                $result[] = $group;
+            }
         }
 
         $sort = array_column($result, 'sort');
@@ -165,6 +171,7 @@ class shopSetModel extends waModel
             $cond
         ) r ON s.id = r.id
         SET s.count = r.cnt";
+
         return $this->exec($sql);
     }
 

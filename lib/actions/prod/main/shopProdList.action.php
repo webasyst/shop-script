@@ -73,6 +73,7 @@ class shopProdListAction extends waViewAction
             }
         }
         if ($sort_column_type !== null) {
+            $sort_column_type = $sort_column_type == 'price' ? 'min_price' : $sort_column_type;
             $sorting_options = [
                 'sort' => array_unique([$sort_column_type, 'name']),
                 'order' => strtolower($presentation->getField('sort_order')),
@@ -204,6 +205,7 @@ class shopProdListAction extends waViewAction
             $divider = '';
             $words_count = 0;
             $rule['name'] = '';
+            $rule['hint'] = null;
             foreach ($rule['rules'] as $item) {
                 if (in_array($rule['type'], ['types', 'storefronts', 'tags'])) {
                     if ($rule['type'] != 'types') {
@@ -216,7 +218,16 @@ class shopProdListAction extends waViewAction
                     }
                 } elseif ($rule['type'] == 'categories') {
                     if (isset($categories[$item['rule_params']])) {
-                        $label[] = $categories[$item['rule_params']]['name'];
+                        $category = &$categories[$item['rule_params']];
+                        $names = $label = [$category['name']];
+                        while ($category['parent_id'] > 0) {
+                            if (isset($categories[$category['parent_id']])) {
+                                $category = &$categories[$category['parent_id']];
+                                $names[] = $category['name'];
+                            }
+                        }
+                        unset($category);
+                        $rule['hint'] = implode(' ⟶ ', array_reverse($names));
                     }
                 } elseif ($rule['type'] == 'sets') {
                     foreach ($options[$rule['type']] as $info) {
@@ -466,6 +477,24 @@ class shopProdListAction extends waViewAction
             $names = shopProdSkuAction::explodeSkuName($modification, $skus_features_values, $selectable_features);
             $modification_name = $names['modification_name'];
             $modification["name_values"] = $names['features_name'];
+
+            // Не ко всякому наименованию артикула добавляются в конце значения характеристик.
+            // Но в табличном виде надо показывать характеристики всегда, поэтому впишем их сами.
+            if ($selectable_features && empty($modification["name_values"])) {
+                $mod_feature_values = ifset($skus_features_values, $modification['id'], []);
+                if ($mod_feature_values) {
+                    $modification["name_values"] = [];
+                    foreach($selectable_features as $f) {
+                        if (isset($f['code']) && isset($mod_feature_values[$f['code']])) {
+                            $modification["name_values"][] = $mod_feature_values[$f['code']];
+                        }
+                    }
+                    $modification["name_values"] = join(', ', $modification["name_values"]);
+                }
+                if (empty($modification["name_values"])) {
+                    $modification['force_empty_name_values'] = true;
+                }
+            }
 
             // MODIFICATIONS
             if ($modification["sku"] || $modification_name) {
@@ -873,7 +902,7 @@ class shopProdListAction extends waViewAction
         return $this->stocks;
     }
 
-    protected function getProductBadges() {
+    public static function getProductBadges() {
         // BADGES
         $badges = shopProductModel::badges();
 
@@ -1016,6 +1045,9 @@ class shopProdListAction extends waViewAction
 
     protected function getMassActions()
     {
+        $wa_app_url = wa()->getAppUrl(null, true);
+        $_sprite_url = wa()->getRootUrl() . "wa-apps/shop/img/backend/products/product/icons.svg?v=" . wa('shop')->getVersion();
+
         $result = [
             "export" => [
                 "id" => "export",
@@ -1023,7 +1055,9 @@ class shopProdListAction extends waViewAction
                 "actions" => [
                     [
                         "id" => "export_csv",
-                        "name" => _w("Export to CSV")
+                        "name" => _w("Export to CSV"),
+                        "icon" => '<i class="fas fa-file-csv"></i>',
+                        "redirect_url" => $wa_app_url."?action=importexport#/csv:product:export/hash/id/"
                     ]
                 ]
             ],
@@ -1032,30 +1066,42 @@ class shopProdListAction extends waViewAction
                 "name" => _w("Organize"),
                 "actions" => [
                     [
-                        "id" => "add_to_category",
+                        "id" => "add_to_categories",
                         "name" => _w("Add to category"),
+                        "icon" => '<i class="fas fa-folder-plus"></i>',
+                        "action_url" => $wa_app_url."?module=prod&action=addToCategoriesDialog",
                         "pinned" => true
                     ],
                     [
-                        "id" => "exclude_from_category",
-                        "name" => _w("Remove from category")
+                        "id" => "exclude_from_categories",
+                        "name" => _w("Remove from category"),
+                        "icon" => '<i class="fas fa-folder-minus"></i>',
+                        "action_url" => $wa_app_url."?module=prod&action=excludeFromCategoriesDialog"
                     ],
                     [
-                        "id" => "add_to_set",
+                        "id" => "add_to_sets",
                         "name" => _w("Add to set"),
+                        "icon" => '<svg><use xlink:href="'.$_sprite_url.'#list-plus"></use></svg>',
+                        "action_url" => $wa_app_url."?module=prod&action=addToSetsDialog",
                         "pinned" => true
                     ],
                     [
-                        "id" => "exclude_from_set",
-                        "name" => _w("Remove from set")
+                        "id" => "exclude_from_sets",
+                        "name" => _w("Remove from set"),
+                        "icon" => '<svg><use xlink:href="'.$_sprite_url.'#list-minus"></use></svg>',
+                        "action_url" => $wa_app_url."?module=prod&action=excludeFromSetsDialog"
                     ],
                     [
-                        "id" => "add_tags",
-                        "name" => _w("Assign tags")
+                        "id" => "assign_tags",
+                        "name" => _w("Assign tags"),
+                        "icon" => '<i class="fas fa-tag"></i>',
+                        "action_url" => $wa_app_url."?module=prod&action=assignTagsDialog"
                     ],
                     [
                         "id" => "remove_tags",
-                        "name" => _w("Remove tags")
+                        "name" => _w("Remove tags"),
+                        "icon" => '<svg><use xlink:href="'.$_sprite_url.'#tag-minus"></use></svg>',
+                        "action_url" => $wa_app_url."?module=prod&action=removeTagsDialog"
                     ]
                 ]
             ],
@@ -1064,27 +1110,37 @@ class shopProdListAction extends waViewAction
                 "name" => _w("Editing"),
                 "actions" => [
                     [
-                        "id" => "badge",
+                        "id" => "set_badge",
                         "name" => _w("Badge"),
+                        "icon" => '<i class="fas fa-certificate"></i>',
+                        "action_url" => $wa_app_url."?module=prod&action=setBadgeDialog",
                         "pinned" => true
                     ],
                     [
-                        "id" => "storefront_publication",
-                        "name" => _w("Publication in storefronts"),
+                        "id" => "set_publication",
+                        "name" => _w("Availability in the storefront"),
+                        "icon" => '<i class="fas fa-share"></i>',
+                        "action_url" => $wa_app_url."?module=prod&action=setPublicationDialog",
                         "pinned" => true
                     ],
                     [
-                        "id" => "change_product_type",
-                        "name" => _w("Change product type")
+                        "id" => "set_type",
+                        "name" => _w("Change product type"),
+                        "icon" => '<i class="fas fa-cube"></i>',
+                        "action_url" => $wa_app_url."?module=prod&action=setTypeDialog"
                     ],
                     [
                         "id" => "duplicate",
                         "name" => _w("Duplicate"),
+                        "icon" => '<i class="fas fa-clone"></i>',
+                        "action_url" => $wa_app_url."?module=prod&action=productDuplicate",
                         "pinned" => true
                     ],
                     [
                         "id" => "delete",
                         "name" => _w("Delete"),
+                        "icon" => '<i class="fas fa-times"></i>',
+                        "action_url" => $wa_app_url."?module=prod&action=deleteProductsDialog",
                         "pinned" => true
                     ]
                 ]
@@ -1094,12 +1150,16 @@ class shopProdListAction extends waViewAction
                 "name" => _w("Marketing"),
                 "actions" => [
                     [
-                        "id" => "badge",
-                        "name" => _w("Discount coupons")
+                        "id" => "discount_coupons",
+                        "name" => _w("Discount coupons"),
+                        "icon" => '<i class="fas fa-percentage"></i>',
+                        "redirect_url" => $wa_app_url."marketing/coupons/create/?products_hash=id/"
                     ],
                     [
-                        "id" => "storefront_publication",
-                        "name" => _w("Add to promo")
+                        "id" => "associate_promo",
+                        "name" => _w("Add to promo"),
+                        "icon" => '<i class="fas fa-bullhorn"></i>',
+                        "action_url" => $wa_app_url."?module=prod&action=associatePromoDialog"
                     ]
                 ]
             ]

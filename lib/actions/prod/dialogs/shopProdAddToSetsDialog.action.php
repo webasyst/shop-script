@@ -8,11 +8,16 @@ class shopProdAddToSetsDialogAction extends waViewAction
             throw new waRightsException(_w('Access denied'));
         }
 
-        $set_model = new shopSetModel();
-        $sets = $set_model->where('type = ' . $set_model::TYPE_STATIC)->order('sort')->fetchAll('id');
-
         $this->view->assign([
-            'sets' => $sets,
+            'items' => $this->getItems(),
         ]);
+
+        $this->setTemplate('templates/actions/prod/main/dialogs/products.add_to_sets.html');
+    }
+
+    protected function getItems()
+    {
+        $set_model = new shopSetModel();
+        return $set_model->getSetsWithGroups();
     }
 }

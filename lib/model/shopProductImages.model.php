@@ -347,7 +347,6 @@ SQL;
 
         $data = array(
             'product_id'        => $product_id,
-            'upload_datetime'   => date('Y-m-d H:i:s'),
             'width'             => $image->width,
             'height'            => $image->height,
             'size'              => filesize($image->file),
@@ -358,6 +357,7 @@ SQL;
         );
 
         if ($image_id) {
+            $data['edit_datetime'] = date('Y-m-d H:i:s');
             if ($this->updateById($image_id, $data)) {
                 $data['id'] = $image_id;
             }
@@ -368,6 +368,7 @@ SQL;
                 waFiles::delete($thumbs_path, true);
             }
         } else {
+            $data['upload_datetime'] = date('Y-m-d H:i:s');
             $data['id'] = $this->add($data);
         }
 

@@ -424,7 +424,7 @@
         var status_deleted   = '{shopProductReviewsModel::STATUS_DELETED}';
         var status_published = '{shopProductReviewsModel::STATUS_PUBLISHED}';
 
-        container.find('.s-reviews').on('click', '.s-review-reply, .s-review-delete, .s-review-restore',
+        container.find('.s-reviews').on('click', '.s-review-reply, .s-review-delete, .s-review-restore, .js-review-publish',
             function() {
                 var self = $(this),
                     li = self.parents('li:first'),
@@ -433,10 +433,34 @@
                     deleteReview(parent_id/*, options.afterDelete*/);
                 } else if (self.hasClass('s-review-restore')) {
                     restoreReview(parent_id/*, options.afterRestore*/);
+                } else if (self.hasClass('js-review-publish')) {
+                    publishReview(parent_id);
                 }
                 return false;
             }
         );
+
+        var publishReview = function(review_id) {
+            $.post('?module=reviews&action=changeStatus',
+                { review_id: review_id, status: status_published },
+                function(r) {
+                    if (r.status == 'ok') {
+                        var review_li = container.find('li[data-id='+review_id+']');
+                        var review_div = review_li.find('div:first');
+                        review_div
+                                .addClass('is-published')
+                                .removeClass('is-unpublished')
+                                .removeClass('s-deleted');
+                        review_div.find('.s-review-delete').show();
+                        review_div.find('.js-review-publish').remove();
+
+                        if (typeof success === 'function') {
+                            success();
+                        }
+                    }
+                },
+            'json');
+        };
 
         var deleteReview = function(review_id, success) {
             //var sidebar_counter = this.sidebar_counter;

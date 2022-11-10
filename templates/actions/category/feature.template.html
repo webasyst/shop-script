@@ -86,7 +86,7 @@
                                             {if $f.type == 'color'}
                                                 <i class="icon16 color s-color-icon" style="{$value.style|default:''}"></i>
                                             {/if}
-                                            {$value|truncate:64|escape}
+                                            {$value|truncate:64:'...':true|escape}
                                         </label>
                                     {/foreach}
                                     {if $f.count > count($f.values)}

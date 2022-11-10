@@ -1,0 +1,173 @@
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_urls = [
+    "create_category" => "{$wa_app_url}?module=category&action=add",
+    "add_to_categories" => "{$wa_app_url}?module=prod&action=addToCategories"
+]}
+
+{$_components = []}
+
+{capture assign="_component_categories_group"}
+    <div class="s-categories-group">
+        <template v-for="category in categories">
+            <div class="s-category-wrapper" v-bind:key="category.id" v-show="category.states.display_category">
+                <component-category
+                    v-bind:category="category"></component-category>
+
+                <component-categories-group
+                    v-if="category.categories.length"
+                    v-bind:categories="category.categories"></component-categories-group>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-categories-group"] = $_component_categories_group|trim}
+
+{capture assign="_component_category"}
+    <div class="s-category" v-bind:data-id="category.id" v-bind:data-parent-id="category.parent_id" v-bind:class="category_class">
+        <div class="flexbox space-8">
+            <div class="s-field">
+                <label class="wa-checkbox" v-if="category.type === '0'">
+                    <input v-bind:id="'category['+category.id+'][checkbox]'" type="checkbox" v-model="category.states.checked">
+                    <span><span class="icon"><i class="fas fa-check"></i></span></span>
+                </label>
+                <div v-else style="width: 13px;"></div>
+            </div>
+
+            <div class="s-icon-column">
+                <label v-bind:for="'category['+category.id+'][checkbox]'">
+                    <template v-if="category.type === '0'">
+                        <span class="s-icon icon size-14 shift-inherit color-gray-light" v-bind:key="'fa-folder'"><i class="fas fa-folder"></i></span>
+                    </template>
+                    <template v-else>
+                        <span class="s-icon icon size-18 shift-inherit color-gray-light" v-bind:key="'fa-folder'">
+                            <svg><use xlink:href="{$_sprite_url}#folder-dynamic"></use></svg>
+                        </span>
+                    </template>
+                </label>
+            </div>
+
+            <div class="s-name">
+                <label class="js-name" v-bind:for="'category['+category.id+'][checkbox]'" v-text="category.name"></label>
+            </div>
+
+            <div class="s-actions" v-if="category.type === '0'">
+                <button class="s-action wa-button transparent-gray" title="{_w("Add new category")|escape}" v-on:click="toggleForm(true)">
+                    <i class="fas fa-plus-circle"></i>
+                </button>
+            </div>
+        </div>
+
+        <component-category-form
+            v-if="states.show_form"
+            v-bind:category="category"
+            v-on:cancel="onFormCancel"
+            v-on:success="onFormSuccess"></component-category-form>
+    </div>
+{/capture}
+{$_components["component-category"] = $_component_category|trim}
+
+{capture assign="_add_category_form"}
+    <form class="s-add-new-form">
+        <div class="flexbox middle space-4">
+            <input class="wa-small js-autofocus" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}"
+                   v-on:input="onInput"
+                   v-bind:class="{ 'wa-error-field' : !!errors['name_required'] }">
+
+            <button class="wa-button wa-small blue" type="button" v-on:click="save">
+                <span class="icon s-icon" v-if="states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                <span class="icon s-icon" v-else v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
+            </button>
+
+            <button class="wa-button wa-small top gray" type="button" v-on:click="cancel">
+                <span class="icon"><i class="fas fa-times"></i></span>
+            </button>
+        </div>
+    </form>
+{/capture}
+{$_components["component-category-form"] = $_add_category_form}
+
+{capture assign="_component_category_search"}
+    <div class="component-category-search flexbox space-8">
+        <div class="s-icon">
+            <span class="icon shift-3"><i class="fas fa-search"></i></span>
+        </div>
+        <div class="s-field-wrapper wide">
+            <component-input class="s-field js-autofocus"
+                             v-model="value"
+                             v-on:input="onInput"
+                             v-bind:cancel="true"
+                             v-bind:placeholder="'{_w("Find a category")|escape}'"></component-input>
+        </div>
+        <template v-if="value.length">
+            <div class="s-actions-wrapper flexbox space-8">
+                <div class="s-action is-active" v-on:click.prevent="revert">
+                    <span class="s-icon icon"><i class="fas fa-times"></i></span>
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-category-search"] = $_component_category_search|trim}
+
+<div class="wa-dialog s-products-add-to-category-dialog" id="js-products-add-to-category-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Adding to category`]</h3>
+                <div class="s-description">[`Select the categories to which selected products must be added. Only static categories are available for selection.`]</div>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-categories-section">
+                    <component-category-search
+                        class="s-search-form"
+                        v-model="search_string"
+                        v-bind:placeholder="'{_w("Find a category")|escape}'"></component-category-search>
+
+                    <div class="s-categories-list">
+                        <div class="s-add-root-category-wrapper">
+                            <component-category-form
+                                v-if="states.show_form"
+                                v-on:cancel="onFormCancel"
+                                v-on:success="onFormSuccess"></component-category-form>
+
+                            <button class="wa-button transparent-gray no-indent" v-else v-on:click="toggleForm(true)">
+                                <span class="s-icon"><i class="fas fa-plus-circle"></i></span>
+                                <span class="s-name">{_w("Add new category")|escape}</span>
+                            </button>
+                        </div>
+
+                        <component-categories-group
+                            v-bind:categories="categories"></component-categories-group>
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
+                    <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name">[`Add`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-products-add-to-category-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.ready.done( function() {
+                dialog.options.initDialog($dialog, dialog, {
+                    components: {$_components|json_encode},
+                    urls: {$_urls|json_encode},
+
+                    categories: {$categories|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

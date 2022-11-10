@@ -261,9 +261,6 @@ class shopProductSaveController extends waJsonController
         $domain_routes = $routing->getByApp($this->getAppId());
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $r) {
-                if (!empty($r['private'])) {
-                    continue;
-                }
                 if (empty($r['type_id']) || (in_array($product->type_id, (array)$r['type_id']))) {
                     $routing->setRoute($r, $domain);
                     $url_params = array('product_url' => $product->url);

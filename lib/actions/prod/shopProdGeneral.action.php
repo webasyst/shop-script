@@ -169,9 +169,6 @@ class shopProdGeneralAction extends waViewAction
 
             foreach ($domain_routes as $domain => $routes) {
                 foreach (array_reverse($routes, true) as $r) {
-                    if (!empty($r['private'])) {
-                        continue; // do not advertise links to private storefronts
-                    }
                     if (!empty($r['type_id']) && !in_array($product->type_id, (array)$r['type_id'])) {
                         continue; // ignore storefronts that disable current product type
                     }

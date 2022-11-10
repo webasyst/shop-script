@@ -172,7 +172,7 @@
                     test_id: {if !empty($test.id)}{$test.id|json_encode}{else}null{/if},
                     errors: {if !empty($errors)}{$errors|json_encode}{else}[]{/if},
                     locales: {
-                        "delete_confirmation": {_w('This A/B test and its results will be deleted without a recovery option. Delete?')|json_encode},
+                        "delete_confirmation": {_w('This A/B test and its results will be deleted without the ability to restore. Delete?')|json_encode},
                         "button_close_text": {_w('Close')|json_encode},
                         "count_error": {_w('Please add at least 2 versions.')|json_encode}
                     },

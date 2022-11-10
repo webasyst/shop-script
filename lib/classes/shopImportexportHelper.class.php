@@ -145,7 +145,6 @@ class shopImportexportHelper
         $info = array(
             'type' => array_shift($raw),
             'name' => self::getDefaultName(),
-
         );
         if (!$info['name']) {
             $info['name'] = date('c');
@@ -185,6 +184,34 @@ class shopImportexportHelper
                 $products = $collection->getProducts('id,name,url', 0, 10000);
                 $info['type'] = 'id';
                 $hash = 'id/'.implode(',', array_keys($products));
+                break;
+            case 'presentation':
+                // e.g. presentation/1,450,850 - where 450 and 850 product ids
+                // or presentation/1
+                $info['type'] = 'id';
+                $ids = array_unique(array_map('intval', explode(',', $tail)));
+                $product_raw_ids = [];
+                $presentation_raw_id = 0;
+                $count_ids = count($ids);
+                if ($count_ids > 1) {
+                    $presentation_raw_id = array_shift($ids);
+                    $product_raw_ids = $ids;
+                } elseif ($count_ids == 1) {
+                    $presentation_raw_id = $ids[0];
+                }
+                $presentation_id = waRequest::post('presentation_id', $presentation_raw_id, waRequest::TYPE_INT);
+                $product_ids = waRequest::post('product_ids', $product_raw_ids, waRequest::TYPE_ARRAY_INT);
+
+                $hash = '*';
+                if ($presentation_id > 0) {
+                    $presentation = new shopPresentation($presentation_id, true);
+                    if ($presentation->getFilterId() > 0) {
+                        $options['exclude_products'] = $product_ids;
+                        $collection = new shopProductsCollection('filter/'.$presentation->getFilterId(), $options);
+                        $products = $collection->getProducts('id', 0, 10000);
+                        $hash = 'id/'.implode(',', array_keys($products));
+                    }
+                }
                 break;
             default:
                 $collection = new shopProductsCollection($hash);

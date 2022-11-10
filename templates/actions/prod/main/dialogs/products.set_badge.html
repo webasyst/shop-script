@@ -1,0 +1,74 @@
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_urls = [
+    "products_set_badge" => "{$wa_app_url}?module=prod&action=badgeSet",
+    "products_delete_badge" => "{$wa_app_url}?module=prod&action=badgeDelete"
+]}
+
+<div class="wa-dialog s-products-set-badge-dialog" id="js-products-set-badge-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Badge`]</h3>
+                <div class="s-description">[`Select the badge to be added to selected products.`]</div>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-badges-section">
+                    <div class="s-badges-list">
+                        <template v-for="badge in badges">
+                            <div class="s-badge-wrapper"
+                                 v-on:click="setBadge(badge)"
+                                 v-bind:class="{ 'is-active cursor-default' : active_badge === badge, 'cursor-pointer' : active_badge !== badge }">
+                                <span class="s-icon icon" v-html="badge.icon"></span>
+                                <span class="s-name" v-text="badge.name"></span>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="s-badge-textarea" v-if="active_badge && active_badge.id === 'custom'">
+                        <component-textarea
+                            class="wa-small wide s-textarea"
+                            v-model="active_badge.value"></component-textarea>
+
+                        <div class="s-code-wrapper">
+                            <div class="wa-message wa-small white flexbox space-8">
+                                <div class="message-icon">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div class="message-text wide">
+                                    <div class="s-title">[`Code example:`]</div>
+                                    <code class="s-code">&lt;div class="badge" style="background-color: #a1fcff;"&gt;&lt;span&gt;ВАШ ТЕКСТ&lt;/span&gt;&lt;/div&gt;</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="disabled">
+                    <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name" v-if="active_badge && active_badge.id === 'remove'">[`Remove`]</span>
+                    <span class="s-name" v-else>[`Add`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-products-set-badge-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.ready.done( function() {
+                dialog.options.initDialog($dialog, dialog, {
+                    urls: {$_urls|json_encode},
+
+                    badges: {$badges|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

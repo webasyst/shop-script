@@ -2464,8 +2464,8 @@ msgstr "Сохранить заказ"
 msgid "PIN is not valid"
 msgstr "PIN-код введен неверно"
 
-msgid "Please enter a 4-digit PIN that you received with your order receipt by email."
-msgstr "Введите четырехзначный PIN-код, который был отправлен вам в уведомлении о заказе по электронной почте."
+msgid "Please enter a 4-digit PIN that you have received in a notification from our online store."
+msgstr "Введите четырехзначный PIN-код, который вы получили в уведомлении от нашего интернет-магазина."
 
 msgid "View order"
 msgstr "Просмотреть заказ"
@@ -5347,8 +5347,8 @@ msgstr "Добавьте код теста в любой шаблон дизай
 msgid "The results of A/B test will be available on the main sales reports page as soon as you get at least one paid orders after embedding this test code."
 msgstr "Результаты A/Б-теста будут доступны в основном отчете о продажах сразу же после того, как будет оплачен хотя бы один заказ, оформленный после размещения кода теста."
 
-msgid "This A/B test and its results will be deleted without a recovery option. Delete?"
-msgstr "A/Б-тест и его результаты будут удалены без возможности восстановления. Удалить?"
+msgid "This A/B test and its results will be deleted without the ability to restore. Delete?"
+msgstr "Этот A/Б-тест и его результаты будут удалены без возможности восстановления. Удалить?"
 
 msgid "Not enough sales data to build cohort chart for the selected period."
 msgstr "Недостаточно данных для построения когорт для указанного отчетного периода."
@@ -12286,11 +12286,11 @@ msgstr "Все подкатегории будут удалены, незави�
 msgid "Subcategories will be moved one level up."
 msgstr "Подкатегории будут перемещены на уровень выше."
 
-msgid "Deletion of products"
+msgid "Products deletion"
 msgstr "Удаление товаров"
 
-msgid "All products directly added to the category are about to delete will also be deleted without a recovery option."
-msgstr "Все товары, добавленные непосредственно в удаляемую категорию, будут удалены без возможности восстановления."
+msgid "All products added to the category you are about to delete will also be deleted without the ability restore."
+msgstr "Все товары, добавленные в удаляемую категорию, также будут удалены без возможности восстановления."
 
 msgid "No products directly added to the category are about to delete will be deleted. Only their links to this category will be deleted."
 msgstr "Товары, привязанные к удаляемой категории, не будут удалены. Будет только удалена информация о привязке к удаляемой категории."
@@ -12779,7 +12779,80 @@ msgid "All actions"
 msgstr "Все действия"
 
 msgid "The product has been deleted."
-msgstr "Продукт был удален."
+msgstr "Товар был удален."
 
 msgid "Export to CSV"
 msgstr "Экспорт в CSV"
+
+msgid "Select the tags to be removed from selected products."
+msgstr "Выберите теги, которые нужно убрать с выделенных товаров."
+
+msgid "Selected products are not linked to any tags."
+msgstr "Выбранные товары не отмечены ни одним тегом."
+
+msgid "Press Enter to add the tag."
+msgstr "Нажмите на Enter, чтобы добавить тег."
+
+msgid "Add the “%s” tag"
+msgstr "Добавить тег «%s»"
+
+msgid "Adding to category"
+msgstr "Добавление в категорию"
+
+msgid "Select the categories to which selected products must be added. Only static categories are available for selection."
+msgstr "Отметьте категории, в которые нужно добавить выделенные товары. Для выбора доступны только статические категории."
+
+msgid "Adding to set"
+msgstr "Добавление в список"
+
+msgid "Select the sets to which selected products must be added. Only static sets are available for selection."
+msgstr "Отметьте списки, в которые нужно добавить выделенные товары. Для выбора доступны только статические списки."
+
+msgid "Removing from sets"
+msgstr "Исключение из списков"
+
+msgid "Select the sets from which selected products must be removed. Only the sets to which at least one of selected products is added are available for selection."
+msgstr "Отметьте списки, из которых нужно исключить выделенные товары. Для выбора доступны только те списки, в которые добавлен хотя бы один из выделенных товаров."
+
+msgid "Remove from categories"
+msgstr "Исключить из категорий"
+
+msgid "Remove from sets"
+msgstr "Исключить из списков"
+
+msgid "Select an availability status for selected products in the storefront."
+msgstr "Выберите статус публикации на сайте для выделенных товаров."
+
+msgid "Unpublished (404)"
+msgstr "Снят с публикации (404)"
+
+msgid "Removing from categories"
+msgstr "Исключение из категорий"
+
+msgid "Select the categories from which selected products must be removed. Only the categories to which at least one of selected products is added are available for selection."
+msgstr "Отметьте категории, из которых нужно исключить выделенные товары. Для выбора доступны только те категории, в которые добавлен хотя бы один из выделенных товаров."
+
+msgid "Select the type to be set for selected products."
+msgstr "Выберите тип, который нужно присвоить выделенным товаам."
+
+msgid "Select the badge to be added to selected products."
+msgstr "Выберите наклейку, которую нужно добавить к выделенным товарам."
+
+msgid "Product tags not found."
+msgstr "Не найдены теги товаров."
+
+msgid "Product sets not found."
+msgstr "Не найдены списки товаров."
+
+msgid "Failed to create a set."
+msgstr "Не удалось создать список."
+
+msgid "Product categories not found."
+msgstr "Не найдены категории товаров."
+
+msgid "Feature (%s)"
+msgstr "Характеристика (%s)"
+
+msgid "Feature values are not set"
+msgstr "Нет значений характеристик"
+

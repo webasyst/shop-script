@@ -5,6 +5,7 @@ class shopOrdersCollection
 
     protected $hash;
     protected $info = array();
+    protected $completed_events = array();
 
     protected $options = array();
 
@@ -125,6 +126,8 @@ class shopOrdersCollection
                     $processed = wa('shop')->event('orders_collection', $params);
                     if (!$processed) {
                         throw new waException('Unknown collection hash type: '.htmlspecialchars($type, ENT_COMPAT, 'utf-8'));
+                    } else {
+                        $this->completed_events['orders_collection'] = $processed;
                     }
                 }
             } else {
@@ -1313,5 +1316,23 @@ class shopOrdersCollection
     public function getTitle()
     {
         return $this->title;
+    }
+
+    /**
+     * @return bool
+     * @throws waException
+     */
+    public function isPluginHash()
+    {
+        $this->prepare();
+        if (!empty($this->completed_events['orders_collection']) && is_array($this->completed_events['orders_collection'])) {
+            foreach ($this->completed_events['orders_collection'] as $plugin_id => $event_processed) {
+                if ($event_processed && strpos($plugin_id, '-plugin') !== false) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

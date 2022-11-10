@@ -35,9 +35,9 @@ class shopProdFilterGetFeaturesOptionsController extends waController
             'search_value' => "%$term%",
             'feature_id' => $feature['id'],
         ];
-        $sql = "SELECT fv.* FROM {$values_model->getTableName()} fv
+        $sql = "SELECT fv.* FROM `{$values_model->getTableName()}` fv
                 JOIN `shop_product_features` pf ON pf.feature_value_id = fv.id
-                WHERE fv.feature_id = i:feature_id AND fv.value LIKE s:search_value";
+                WHERE pf.feature_id = i:feature_id AND fv.value LIKE s:search_value";
         if ($limit > 0) {
             $sql .= " LIMIT i:limit";
             $data['limit'] = $limit;

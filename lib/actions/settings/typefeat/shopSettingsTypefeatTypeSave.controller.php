@@ -146,12 +146,6 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
         } else {
             $data['count_denominator'] = shopFrac::correctCountDenominator($data['count_denominator']);
         }
-        if ($data['order_count_min_fixed'] == shopTypeModel::PARAM_DISABLED) {
-            $data['order_count_min'] = 1;
-        }
-        if ($data['order_count_step_fixed'] == shopTypeModel::PARAM_DISABLED) {
-            $data['order_count_step'] = 1;
-        }
 
         if ($data['base_unit_fixed'] < 0 || $data['base_unit_fixed'] > 2) {
             $data['base_unit_fixed'] = shopTypeModel::PARAM_DISABLED;
@@ -164,6 +158,12 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
                 $data['order_multiplicity_factor'] = 1 / $data['count_denominator'];
             }
             $data['order_multiplicity_factor_fixed'] = $data['count_denominator_fixed'];
+        }
+        if ($data['order_count_min_fixed'] == shopTypeModel::PARAM_DISABLED) {
+            $data['order_count_min'] = $data['order_multiplicity_factor'];
+        }
+        if ($data['order_count_step_fixed'] == shopTypeModel::PARAM_DISABLED) {
+            $data['order_count_step'] = $data['order_multiplicity_factor'];
         }
     }
 
@@ -271,16 +271,12 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
         } else {
             $update_products['count_denominator'] = shopFrac::calculateCountDenominator($update_products['order_multiplicity_factor']);
         }
-
+        $order_multiplicity_factor = isset($update_products['order_multiplicity_factor']) ? $update_products['order_multiplicity_factor'] : $data['order_multiplicity_factor'];
         if ($data['order_count_min_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
             $update_products['order_count_min'] = $data['order_count_min'];
             $update_product_skus['order_count_min'] = null;
         } elseif ($data['order_count_min_fixed'] == shopTypeModel::PARAM_DISABLED) {
-            if (!empty($data['count_denominator'])) {
-                $update_products['order_count_min'] = 1 / $data['count_denominator'];
-            } else {
-                $update_products['order_count_min'] = 1;
-            }
+            $update_products['order_count_min'] = $order_multiplicity_factor;
             $update_product_skus['order_count_min'] = null;
         }
 
@@ -288,11 +284,7 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
             $update_products['order_count_step'] = $data['order_count_step'];
             $update_product_skus['order_count_step'] = null;
         } elseif ($data['order_count_step_fixed'] == shopTypeModel::PARAM_DISABLED) {
-            if (!empty($data['count_denominator'])) {
-                $update_products['order_count_step'] = 1 / $data['count_denominator'];
-            } else {
-                $update_products['order_count_step'] = 1;
-            }
+            $update_products['order_count_step'] = $order_multiplicity_factor;
             $update_product_skus['order_count_step'] = null;
         }
 

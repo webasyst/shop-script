@@ -147,6 +147,7 @@
     $.order_list.init({
         id: {if $view != 'table' && !empty($order.id)}{$order.id}{else}0{/if},
         view: '{$view}',
+        plugin_hash: '{$plugin_hash}',
         filter_params: {json_encode($params)},
         filter_params_str: '{$params_str}',
         orders: {json_encode($orders)},

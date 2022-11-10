@@ -34,7 +34,8 @@
             that.model_data = {};
             that.states = {
                 $animation: null,
-                mass_actions_pinned: false
+                mass_actions_pinned: false,
+                mass_actions_storage_key: "shop_products/mass_actions_pinned"
             };
             that.keys = {
                 table: 0,
@@ -189,7 +190,8 @@
                 $.each(actions, function(i, group) {
                     $.each(group.actions, function(j, action) {
                         action.states = {
-                            visible: true
+                            visible: true,
+                            is_locked: false
                         };
                     });
                 });
@@ -200,6 +202,10 @@
 
         Page.prototype.init = function() {
             var that = this;
+
+            // Режим отображения массовых действий
+            var mass_storage = localStorage.getItem(that.states.mass_actions_storage_key);
+            if (mass_storage) { that.states.mass_actions_pinned = true; }
 
             $.each(that.tooltips, function(i, tooltip) {
                 $.wa.new.Tooltip(tooltip);
@@ -2725,13 +2731,17 @@
                                                 const self = this;
                                                 var result = "";
 
-                                                var rule_name = getRuleName();
-                                                if (rule_name && self.group.label) {
-                                                    var name = rule_name,
-                                                        value = self.group.label;
-                                                    result = name + ": " + value;
+                                                if (self.group.hint) {
+                                                    result = self.group.hint;
                                                 } else {
-                                                    result = self.names.join(" | ");
+                                                    var rule_name = getRuleName();
+                                                    if (rule_name && self.group.label) {
+                                                        var name = rule_name,
+                                                            value = self.group.label;
+                                                        result = name + ": " + value;
+                                                    } else {
+                                                        result = self.names.join(" | ");
+                                                    }
                                                 }
 
                                                 return result;
@@ -3034,10 +3044,14 @@
 
                                     $.post(that.urls["filter_rule_add"], data, "json")
                                         .done( function(response) {
-                                            that.reload({
-                                                page: 1,
-                                                presentation: (response.data.new_presentation_id || that.presentation.id)
-                                            });
+                                            if (response.status === "ok") {
+                                                that.reload({
+                                                    page: 1,
+                                                    presentation: (response.data.new_presentation_id || that.presentation.id)
+                                                });
+                                            } else {
+                                                that.reload({ page: 1 });
+                                            }
                                         });
                                 });
                             }
@@ -4646,7 +4660,6 @@
                                                     })
                                                     .done( function() {
                                                         self.product.sku_id = self.sku_mod.id;
-                                                        self.product.image_id = self.sku_mod.image_id;
                                                     });
                                             },
                                             onChangeVisibility: function() {
@@ -5692,7 +5705,11 @@
                                                                 console.error("ERROR", response.errors);
                                                             }
                                                         } else {
-                                                            updateData(self.column_data);
+                                                            var data = null;
+                                                            if (response.data.value && response.data.value[self.column_data.code]) {
+                                                                data = response.data.value[self.column_data.code];
+                                                            }
+                                                            updateData(data, self.column_data);
                                                         }
                                                     });
 
@@ -5712,7 +5729,13 @@
                                                         case "field":
                                                             $.each(self.column_data.options, function(i, option) {
                                                                 let name = self.column_data.code + (self.column_data.options.length > 1 ? "." + i : "");
-                                                                result.value[name] = { "value": option.value };
+                                                                let value = option.value;
+
+                                                                if (self.column_data.type.indexOf("double") >= 0) {
+                                                                    if (value.substr(0, 1) === ".") { value = "0" + value; }
+                                                                }
+
+                                                                result.value[name] = { "value": value };
                                                             });
 
                                                             if (self.column_data.active_unit) {
@@ -5737,6 +5760,10 @@
                                                         case "range":
                                                             var min = self.column_data.options[0].value,
                                                                 max = self.column_data.options[1].value;
+
+                                                            if (min.substr(0, 1) === ".") { min = "0" + min; }
+                                                            if (max.substr(0, 1) === ".") { max = "0" + max; }
+
                                                             if (min > 0 && max > 0 && max < min) {
                                                                 self.column_data.options[0].value = max;
                                                                 self.column_data.options[1].value = min;
@@ -5757,7 +5784,19 @@
                                                     return result;
                                                 }
 
-                                                function updateData(column_data) {
+                                                function updateData(data, column_data) {
+                                                    if (data) {
+                                                        switch (column_data.render_type) {
+                                                            case "field":
+                                                                column_data.options[0].value = data.value;
+                                                                break;
+                                                            case "range":
+                                                                column_data.options[0].value = data.value.begin;
+                                                                column_data.options[1].value = data.value.end;
+                                                                break;
+                                                        }
+                                                    }
+
                                                     if (column_data.can_be_edited === "partial") {
                                                         var result = false;
 
@@ -6049,6 +6088,7 @@
                         props: ["products", "type"],
                         data: function() {
                             var self = this;
+
                             self.type = (typeof self.type !== "string" ? "footer" : self.type);
                             return {
                                 actions: that.mass_actions
@@ -6147,6 +6187,7 @@
                                     },
                                     pin: function() {
                                         that.states.mass_actions_pinned = true;
+                                        localStorage.setItem(that.states.mass_actions_storage_key, true);
                                     },
                                     close: function() {
                                         var self = this;
@@ -6220,6 +6261,7 @@
                                     },
                                     unpin: function() {
                                         that.states.mass_actions_pinned = false;
+                                        localStorage.removeItem(that.states.mass_actions_storage_key);
                                     },
 
                                     callAction: function(action) {
@@ -6235,28 +6277,8 @@
                         computed: {},
                         methods: {
                             callAction: function(action) {
-                                $.waDialog({
-                                    html: that.templates["dialog-category-clone"],
-                                    onOpen: function($dialog, dialog) {
-                                        var $section = $dialog.find(".js-vue-section");
-
-                                        var vue_model = new Vue({
-                                            el: $section[0],
-                                            data: {
-                                                action: action
-                                            },
-                                            delimiters: ['{ { ', ' } }'],
-                                            created: function () {
-                                                $section.css("visibility", "");
-                                            },
-                                            mounted: function() {
-                                                var self = this,
-                                                    $wrapper = $(self.$el);
-                                                dialog.resize();
-                                            }
-                                        });
-                                    }
-                                });
+                                const self = this;
+                                that.callMassAction(action, self.products, that.products_selection);
                             }
                         }
                     }
@@ -6268,6 +6290,10 @@
                         return self.products.filter( function(product) {
                             return product.states.selected;
                         });
+                    },
+                    show_mass_actions: function() {
+                        const self = this;
+                        return (self.selected_products.length || that.products_selection === "all_products");
                     }
                 },
                 methods: {
@@ -6701,6 +6727,35 @@
                     return filter_promise;
                 }
             };
+        };
+
+        Page.prototype.updateRootVariables = function(options) {
+            var that = this;
+
+            // Tooltips
+            if (options.tooltips) {
+                $.each(options.tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
+            }
+
+            // Components
+            if (options.components) {
+                that.components = $.extend(that.components, options.components);
+            }
+
+            // Templates
+            if (options.templates) {
+                that.templates = $.extend(that.templates, options.templates);
+            }
+
+            // Locales
+            if (options.locales) {
+                that.locales = $.extend(that.locales, options.locales);
+            }
+
+            // Locales
+            if (options.urls) {
+                that.urls = $.extend(that.urls, options.urls);
+            }
         };
 
         // DIALOGS
@@ -7575,6 +7630,2056 @@
                 });
 
                 return columns;
+            }
+        };
+
+        Page.prototype.callMassAction = function(action, products, products_selection) {
+            var that = this;
+
+console.log(products_selection, action.id);
+
+            if (action.states.is_locked) { return false; }
+
+            var product_ids = [],
+                is_all_products = (products_selection === "all_products");
+
+            if (is_all_products) {
+                product_ids = that.products.filter(product => !product.states.selected).map(product => product.id);
+            } else {
+                product_ids = products.map(product => product.id);
+            }
+
+            var dialog_data = { product_ids: product_ids };
+            if (is_all_products) {
+                dialog_data.presentation_id = that.presentation.id;
+            }
+
+            switch (action.id) {
+                case "export_csv":
+                    var redirect_url = action.redirect_url;
+                    if (is_all_products) {
+                        redirect_url = action.redirect_url.replace("id/", "presentation/");
+                        product_ids.unshift(that.presentation.id);
+                    }
+
+                    var href = redirect_url + product_ids.join(",");
+                    var $link = $("<a />", { href: href });
+                    that.$wrapper.prepend($link);
+                    $link.trigger("click").remove();
+                    break;
+
+                //
+
+                case "add_to_categories":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            addToCategoryDialog(html, action);
+                        });
+                    break;
+
+                case "exclude_from_categories":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            excludeFromCategoriesDialog(html, action);
+                        });
+                    break;
+
+                case "add_to_sets":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            addToSetsDialog(html, action);
+                        });
+                    break;
+
+                case "exclude_from_sets":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            excludeFromSetsDialog(html, action);
+                        });
+                    break;
+
+                case "assign_tags":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            assignTagsDialog(html, action);
+                        });
+                    break;
+
+                case "remove_tags":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            removeTagsDialog(html, action);
+                        });
+                    break;
+
+                //
+
+                case "set_badge":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            setBadgeDialog(html, action);
+                        });
+                    break;
+
+                case "set_publication":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            setPublicationDialog(html, action);
+                        });
+                    break;
+
+                case "set_type":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            setTypeDialog(html, action);
+                        });
+                    break;
+
+                case "duplicate":
+                    action.states.is_locked = true;
+
+                    var data = getSubmitData();
+
+                    $.post(action.action_url, data, "json")
+                        .fail( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(response) {
+                            $.wa_shop_products.router.reload();
+                        });
+                    break;
+
+                case "delete":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            removeProductsDialog(html, action);
+                        });
+                    break;
+
+                //
+
+                case "discount_coupons":
+                    var redirect_url = action.redirect_url;
+                    if (is_all_products) {
+                        redirect_url = action.redirect_url.replace("id/", "presentation/");
+                        product_ids.unshift(that.presentation.id);
+                    }
+
+                    var href = redirect_url + product_ids.join(",");
+                    var $link = $("<a />", { href: href });
+                    that.$wrapper.prepend($link);
+                    $link.trigger("click").remove();
+                    break;
+
+                case "associate_promo":
+                    action.states.is_locked = true;
+
+                    var data = getSubmitData();
+
+                    $.post(action.action_url, dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(html) {
+                            associatePromoDialog(html, action);
+                        });
+                    break;
+
+                //
+
+                default:
+                    $.waDialog({
+                        html: that.templates["dialog-category-clone"],
+                        onOpen: function($dialog, dialog) {
+                            var $section = $dialog.find(".js-vue-section");
+
+                            var vue_model = new Vue({
+                                el: $section[0],
+                                data: {
+                                    action: action
+                                },
+                                delimiters: ['{ { ', ' } }'],
+                                created: function () {
+                                    $section.css("visibility", "");
+                                },
+                                mounted: function() {
+                                    var self = this,
+                                        $wrapper = $(self.$el);
+                                    dialog.resize();
+                                }
+                            });
+                        }
+                    });
+                    break;
+            }
+
+            // Functions
+
+            function addToCategoryDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    that.updateRootVariables(options);
+
+                    var categories_object = getCategoryObject(options.categories);
+
+                    var component_category_form = {
+                        props: ["category"],
+                        data: function() {
+                            var self = this;
+                            return {
+                                name: "",
+                                parent_id: (self.category ? self.category.id : ""),
+                                errors: {},
+                                states: {
+                                    is_locked: false
+                                }
+                            };
+                        },
+                        template: that.components["component-category-form"],
+                        delimiters: ['{ { ', ' } }'],
+                        computed: {},
+                        methods: {
+                            save: function() {
+                                const self = this;
+
+                                var errors = self.validate();
+                                if (errors.length) { return false; }
+
+                                if (self.states.is_locked) { return false; }
+                                self.states.is_locked = true;
+
+                                var data = {
+                                    name: self.name,
+                                    parent_id: self.parent_id
+                                };
+
+                                $.post(that.urls["create_category"], data, "json")
+                                    .always( function() {
+                                        self.states.is_locked = false;
+                                    })
+                                    .done( function(response) {
+                                        if (response.status === "ok") {
+                                            self.$emit("success", response.data);
+                                        } else {
+                                            alert("ERROR: create category");
+                                        }
+                                    });
+                            },
+                            onInput: function() {
+                                const self = this;
+                                self.validate();
+                            },
+                            validate: function() {
+                                const self = this;
+                                var errors = [];
+
+                                var error_id = "name_required";
+                                if (!$.trim(self.name).length) {
+                                    var error = { id: error_id, text: error_id };
+                                    self.$set(self.errors, error_id, error);
+                                    errors.push(error);
+                                } else if (self.errors[error_id]) {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return errors;
+                            },
+                            cancel: function() {
+                                const self = this;
+                                self.$emit("cancel");
+                            }
+                        },
+                        mounted: function() {
+                            const self = this;
+                            self.$nextTick( function() {
+                                $(self.$el).find("input.js-autofocus").trigger("focus");
+                            });
+                        }
+                    };
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            categories_array: options.categories,
+                            categories_object: categories_object,
+                            search_string: "",
+                            states: {
+                                is_locked: false,
+                                show_form: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-category-form": component_category_form,
+                            "component-categories-group": {
+                                name: "component-categories-group",
+                                props: ["categories"],
+                                data: function() {
+                                    var self = this;
+                                    return {};
+                                },
+                                template: that.components["component-categories-group"],
+                                delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-category": {
+                                        props: ["category"],
+                                        data: function() {
+                                            var self = this;
+                                            return {
+                                                states: {
+                                                    show_form: false
+                                                }
+                                            };
+                                        },
+                                        template: that.components["component-category"],
+                                        delimiters: ['{ { ', ' } }'],
+                                        components: {
+                                            "component-category-form": component_category_form
+                                        },
+                                        computed: {
+                                            category_class: function() {
+                                                const self = this;
+                                                var result = [];
+
+                                                if (self.category.states.is_wanted) {
+                                                    result.push("is-wanted");
+                                                }
+
+                                                return result.join(" ");
+                                            }
+                                        },
+                                        methods: {
+                                            toggleForm: function(show) {
+                                                const self = this;
+                                                show = (typeof show === "boolean" ? show : false);
+                                                self.states.show_form = show;
+                                            },
+                                            onFormSuccess: function(new_category) {
+                                                const self = this;
+                                                new_category = formatCategory(new_category);
+                                                self.category.categories.unshift(new_category);
+                                                self.$set(categories_object, new_category.id, new_category);
+                                                self.toggleForm(false);
+                                                self.$nextTick( function() {
+                                                    dialog.resize();
+                                                });
+                                            },
+                                            onFormCancel: function() {
+                                                const self = this;
+                                                self.toggleForm(false);
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "component-category-search": {
+                                props: ["value"],
+                                data: function() {
+                                    let self = this;
+                                    return {};
+                                },
+                                template: that.components["component-category-search"],
+                                delimiters: ['{ { ', ' } }'],
+                                methods: {
+                                    onInput: function() {
+                                        let self = this;
+                                        self.$emit("input", self.value);
+                                        self.$emit("search_input", self.value);
+                                    },
+                                    onChange: function() {
+                                        let self = this;
+                                        self.$emit("input", self.value);
+                                        self.$emit("search_change", self.value);
+                                    },
+                                    revert: function() {
+                                        let self = this;
+                                        self.value = "";
+                                        self.onChange();
+                                    }
+                                }
+                            }
+                        },
+                        computed: {
+                            categories: function() {
+                                const self = this;
+
+                                checkCategories(self.categories_array);
+
+                                return self.categories_array;
+
+                                /**
+                                 * @param {Object|Array} categories
+                                 * @return {Boolean}
+                                 * */
+                                function checkCategories(categories) {
+                                    var result = false;
+
+                                    $.each(categories, function(i, category) {
+                                        var is_wanted = checkCategory(category);
+                                        if (is_wanted) {
+                                            result = true;
+                                        }
+                                    });
+
+                                    return result;
+                                }
+
+                                /**
+                                 * @param {Object} category
+                                 * @return {Boolean}
+                                 * */
+                                function checkCategory(category) {
+                                    var is_wanted = (category.name.toLowerCase().indexOf( self.search_string.toLowerCase() ) >= 0),
+                                        is_wanted_inside = (category.categories.length ? checkCategories(category.categories) : false),
+                                        is_display = true;
+
+                                    if (self.search_string === "") {
+                                        is_wanted = is_wanted_inside = false;
+                                    } else {
+                                        is_display = !!(is_wanted || is_wanted_inside);
+                                    }
+
+                                    category.states.is_wanted = is_wanted;
+                                    category.states.is_wanted_inside = is_wanted_inside;
+                                    category.states.display_category = is_display;
+
+                                    return is_display;
+                                }
+                            },
+                        },
+                        methods: {
+                            toggleForm: function(show) {
+                                const self = this;
+                                show = (typeof show === "boolean" ? show : false);
+                                self.states.show_form = show;
+                            },
+                            onFormSuccess: function(new_category) {
+                                const self = this;
+                                new_category = formatCategory(new_category);
+                                self.categories.unshift(new_category);
+                                self.$set(categories_object, new_category.id, new_category);
+                                self.toggleForm(false);
+
+                                self.$nextTick( function() {
+                                    dialog.resize();
+                                });
+                            },
+                            onFormCancel: function() {
+                                const self = this;
+                                self.toggleForm(false);
+                            },
+
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+
+                                var category_ids = [];
+                                $.each(self.categories_object, function(i, category) {
+                                    if (category.states.checked) {
+                                        category_ids.push(category.id);
+                                    }
+                                });
+                                if (!category_ids.length) { return false; }
+
+                                self.states.is_locked = true;
+
+                                var data = getSubmitData();
+                                data.category_ids = category_ids;
+
+                                $.post(that.urls["add_to_categories"], data, "json")
+                                    .fail( function() {
+                                        self.states.is_locked = false;
+                                    }).done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        dialog.close();
+                                    });
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                                $(self.$el).find("input.js-autofocus").trigger("focus");
+                            });
+                        }
+                    });
+                }
+
+                function formatCategory(category) {
+                    if (!category.categories) {
+                        category.categories = [];
+                    }
+
+                    if (!category.states) {
+                        category.states = {
+                            checked: false,
+
+                            is_wanted: false,
+                            is_wanted_inside: false,
+                            display_category: false
+                        }
+                    }
+
+                    return category;
+                }
+
+                function getCategoryObject(categories) {
+                    var categories_object = {};
+
+                    setCategory(categories);
+
+                    formatCategories(categories_object);
+
+                    return categories_object;
+
+                    function setCategory(categories) {
+                        $.each(categories, function(i, category) {
+                            categories_object[category.id] = category;
+                            if (category.categories.length) {
+                                setCategory(category.categories);
+                            }
+                        });
+                    }
+
+                    function formatCategories(items) {
+                        $.each(items, function(i, item) {
+                            formatCategory(item);
+                        });
+                        return items;
+                    }
+                }
+            }
+
+            function excludeFromCategoriesDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    that.updateRootVariables(options);
+
+                    var categories_object = getCategoryObject(options.categories);
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            categories_array: options.categories,
+                            categories_object: categories_object,
+                            search_string: "",
+                            states: {
+                                is_locked: false,
+                                show_form: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-categories-group": {
+                                name: "component-categories-group",
+                                props: ["categories"],
+                                data: function() {
+                                    var self = this;
+                                    return {};
+                                },
+                                template: that.components["component-categories-group"],
+                                delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-category": {
+                                        props: ["category"],
+                                        data: function() {
+                                            var self = this;
+                                            return {
+                                                states: {
+                                                    show_form: false
+                                                }
+                                            };
+                                        },
+                                        template: that.components["component-category"],
+                                        delimiters: ['{ { ', ' } }'],
+                                        computed: {
+                                            category_class: function() {
+                                                const self = this;
+                                                var result = [];
+
+                                                if (self.category.states.is_wanted) {
+                                                    result.push("is-wanted");
+                                                }
+
+                                                return result.join(" ");
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "component-category-search": {
+                                props: ["value"],
+                                data: function() {
+                                    let self = this;
+                                    return {};
+                                },
+                                template: that.components["component-category-search"],
+                                delimiters: ['{ { ', ' } }'],
+                                methods: {
+                                    onInput: function() {
+                                        let self = this;
+                                        self.$emit("input", self.value);
+                                        self.$emit("search_input", self.value);
+                                    },
+                                    onChange: function() {
+                                        let self = this;
+                                        self.$emit("input", self.value);
+                                        self.$emit("search_change", self.value);
+                                    },
+                                    revert: function() {
+                                        let self = this;
+                                        self.value = "";
+                                        self.onChange();
+                                    }
+                                }
+                            }
+                        },
+                        computed: {
+                            categories: function() {
+                                const self = this;
+
+                                checkCategories(self.categories_array);
+
+                                return self.categories_array;
+
+                                /**
+                                 * @param {Object|Array} categories
+                                 * @return {Boolean}
+                                 * */
+                                function checkCategories(categories) {
+                                    var result = false;
+
+                                    $.each(categories, function(i, category) {
+                                        var is_wanted = checkCategory(category);
+                                        if (is_wanted) {
+                                            result = true;
+                                        }
+                                    });
+
+                                    return result;
+                                }
+
+                                /**
+                                 * @param {Object} category
+                                 * @return {Boolean}
+                                 * */
+                                function checkCategory(category) {
+                                    var is_wanted = (self.search_string === "" || category.name.toLowerCase().indexOf( self.search_string.toLowerCase() ) >= 0),
+                                        is_wanted_inside = false;
+
+                                    if (category.categories.length) {
+                                        is_wanted_inside = checkCategories(category.categories);
+                                    }
+
+                                    if (self.search_string !== "") {
+                                        category.states.is_wanted = is_wanted;
+                                        category.states.is_wanted_inside = is_wanted_inside;
+                                    }
+                                    category.states.display_category = (is_wanted || is_wanted_inside);
+
+                                    return !!(is_wanted || is_wanted_inside);
+                                }
+                            },
+                        },
+                        methods: {
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+
+                                var category_ids = [];
+                                $.each(self.categories_object, function(i, category) {
+                                    if (category.states.checked) {
+                                        category_ids.push(category.id);
+                                    }
+                                });
+                                if (!category_ids.length) { return false; }
+
+                                self.states.is_locked = true;
+
+                                var data = getSubmitData();
+                                data.category_ids = category_ids;
+
+                                $.post(that.urls["exclude_from_categories"], data, "json")
+                                    .fail( function() {
+                                        self.states.is_locked = false;
+                                    }).done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        dialog.close();
+                                    });
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                                $(self.$el).find("input.js-autofocus").trigger("focus");
+                            });
+                        }
+                    });
+                }
+
+                function formatCategory(category) {
+                    if (!category.categories) {
+                        category.categories = [];
+                    }
+
+                    if (!category.states) {
+                        category.states = {
+                            checked: false,
+
+                            is_wanted: false,
+                            is_wanted_inside: false,
+                            display_category: false
+                        }
+                    }
+
+                    return category;
+                }
+
+                function getCategoryObject(categories) {
+                    var categories_object = {};
+
+                    setCategory(categories);
+
+                    formatCategories(categories_object);
+
+                    return categories_object;
+
+                    function setCategory(categories) {
+                        $.each(categories, function(i, category) {
+                            categories_object[category.id] = category;
+                            if (category.categories.length) {
+                                setCategory(category.categories);
+                            }
+                        });
+                    }
+
+                    function formatCategories(items) {
+                        $.each(items, function(i, item) {
+                            formatCategory(item);
+                        });
+                        return items;
+                    }
+                }
+            }
+
+            function addToSetsDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    that.updateRootVariables(options);
+
+                    var object = getObject(options.items),
+                        sets_object = object.sets,
+                        groups_object = object.groups;
+
+                    var component_set_form = {
+                        props: ["item"],
+                        data: function() {
+                            var self = this;
+                            return {
+                                name: "",
+                                parent_id: (self.item ? self.item.group_id : ""),
+                                errors: {},
+                                states: {
+                                    is_locked: false
+                                }
+                            };
+                        },
+                        template: that.components["component-set-form"],
+                        delimiters: ['{ { ', ' } }'],
+                        computed: {},
+                        methods: {
+                            save: function() {
+                                const self = this;
+
+                                var errors = self.validate();
+                                if (errors.length) { return false; }
+
+                                if (self.states.is_locked) { return false; }
+                                self.states.is_locked = true;
+
+                                var data = {
+                                    name: self.name,
+                                    parent_id: self.parent_id
+                                };
+
+                                $.post(that.urls["create_set"], data, "json")
+                                    .always( function() {
+                                        self.states.is_locked = false;
+                                    })
+                                    .done( function(response) {
+                                        if (response.status === "ok") {
+                                            self.$emit("success", response.data);
+                                        } else {
+                                            alert("ERROR: create set");
+                                        }
+                                    });
+                            },
+                            onInput: function() {
+                                const self = this;
+                                self.validate();
+                            },
+                            validate: function() {
+                                const self = this;
+                                var errors = [];
+
+                                var error_id = "name_required";
+                                if (!$.trim(self.name).length) {
+                                    var error = { id: error_id, text: error_id };
+                                    self.$set(self.errors, error_id, error);
+                                    errors.push(error);
+                                } else if (self.errors[error_id]) {
+                                    self.$delete(self.errors, error_id);
+                                }
+
+                                return errors;
+                            },
+                            cancel: function() {
+                                const self = this;
+                                self.$emit("cancel");
+                            }
+                        },
+                        mounted: function() {
+                            const self = this;
+                            self.$nextTick( function() {
+                                $(self.$el).find("input.js-autofocus").trigger("focus");
+                            });
+                        }
+                    };
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            items_array: options.items,
+                            sets: sets_object,
+                            groups: groups_object,
+                            search_string: "",
+                            states: {
+                                is_locked: false,
+                                show_form: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-set-form": component_set_form,
+                            "component-set-item-group": {
+                                name: "component-set-item-group",
+                                props: ["items"],
+                                data: function() {
+                                    var self = this;
+                                    return {};
+                                },
+                                template: that.components["component-set-item-group"],
+                                delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-set-item": {
+                                        props: ["item"],
+                                        data: function() {
+                                            var self = this;
+                                            return {
+                                                states: {
+                                                    show_form: false
+                                                }
+                                            };
+                                        },
+                                        template: that.components["component-set-item"],
+                                        delimiters: ['{ { ', ' } }'],
+                                        components: {
+                                            "component-set-form": component_set_form
+                                        },
+                                        computed: {
+                                            item_class: function() {
+                                                const self = this;
+                                                var result = [];
+
+                                                if (self.item.states.is_wanted) {
+                                                    result.push("is-wanted");
+                                                }
+
+                                                return result.join(" ");
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "component-set-search": {
+                                props: ["value"],
+                                data: function() {
+                                    let self = this;
+                                    return {};
+                                },
+                                template: that.components["component-set-search"],
+                                delimiters: ['{ { ', ' } }'],
+                                methods: {
+                                    onInput: function() {
+                                        let self = this;
+                                        self.$emit("input", self.value);
+                                        self.$emit("search_input", self.value);
+                                    },
+                                    onChange: function() {
+                                        let self = this;
+                                        self.$emit("input", self.value);
+                                        self.$emit("search_change", self.value);
+                                    },
+                                    revert: function() {
+                                        let self = this;
+                                        self.value = "";
+                                        self.onChange();
+                                    }
+                                }
+                            }
+                        },
+                        computed: {
+                            items: function() {
+                                const self = this;
+
+                                checkItems(self.items_array);
+
+                                return self.items_array;
+
+                                /**
+                                 * @param {Object|Array} items
+                                 * @return {Boolean}
+                                 * */
+                                function checkItems(items) {
+                                    var result = false;
+
+                                    $.each(items, function(i, item) {
+                                        var is_wanted = checkItem(item);
+                                        if (is_wanted) {
+                                            result = true;
+                                        }
+                                    });
+
+                                    return result;
+                                }
+
+                                /**
+                                 * @param {Object} item
+                                 * @return {Boolean}
+                                 * */
+                                function checkItem(item) {
+                                    var is_wanted = (item.name.toLowerCase().indexOf( self.search_string.toLowerCase() ) >= 0),
+                                        is_wanted_inside = (item.is_group && item.sets.length ? checkItems(item.sets) : false),
+                                        is_display = true;
+
+                                    if (self.search_string === "") {
+                                        is_wanted = is_wanted_inside = false;
+                                    } else {
+                                        is_display = !!(is_wanted || is_wanted_inside);
+                                    }
+
+                                    item.states.is_wanted = is_wanted;
+                                    item.states.is_wanted_inside = is_wanted_inside;
+                                    item.states.display_item = is_display;
+
+                                    return is_display;
+                                }
+                            },
+                        },
+                        methods: {
+                            toggleForm: function(show) {
+                                const self = this;
+                                show = (typeof show === "boolean" ? show : false);
+                                self.states.show_form = show;
+                            },
+                            onFormSuccess: function(new_item) {
+                                const self = this;
+                                new_item = formatItem(new_item);
+                                self.items_array.unshift(new_item);
+                                self.$set(sets_object, new_item.set_id, new_item);
+                                self.toggleForm(false);
+                                self.$nextTick( function() {
+                                    dialog.resize();
+                                });
+                            },
+                            onFormCancel: function() {
+                                const self = this;
+                                self.toggleForm(false);
+                            },
+
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+
+                                var set_ids = [];
+                                $.each(self.sets, function(i, set) {
+                                    if (set.states.checked) { set_ids.push(set.set_id); }
+                                });
+                                if (!set_ids.length) { return false; }
+
+                                self.states.is_locked = true;
+
+                                var data = getSubmitData();
+                                data.set_ids = set_ids;
+
+                                $.post(that.urls["add_to_sets"], data, "json")
+                                    .fail( function() {
+                                        self.states.is_locked = false;
+                                    }).done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        dialog.close();
+                                    });
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                                $(self.$el).find("input.js-autofocus").trigger("focus");
+                            });
+                        }
+                    });
+                }
+
+                function formatItem(item) {
+                    if (item.is_group && !item.sets) {
+                        item.sets = [];
+                    }
+
+                    if (!item.states) {
+                        item.states = {
+                            is_wanted: false,
+                            is_wanted_inside: false,
+                            display_item: false
+                        }
+                        if (item.is_group) {
+                            item.states.expanded = true;
+                        } else {
+                            item.states.checked = false;
+                        }
+                    }
+
+                    return item;
+                }
+
+                function getObject(items) {
+                    var result = {
+                        sets: {},
+                        groups: {}
+                    };
+
+                    setItem(items);
+
+                    formatItems(result.sets);
+                    formatItems(result.groups);
+
+                    return result;
+
+                    function setItem(items) {
+                        $.each(items, function(i, item) {
+                            if (item.is_group) {
+                                result.groups[item.group_id] = item;
+                                if (item.sets.length) {
+                                    setItem(item.sets);
+                                }
+                            } else {
+                                result.sets[item.set_id] = item;
+                            }
+                        });
+                    }
+
+                    function formatItems(items) {
+                        $.each(items, function(i, item) {
+                            formatItem(item);
+                        });
+                        return items;
+                    }
+                }
+            }
+
+            function excludeFromSetsDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    that.updateRootVariables(options);
+
+                    var object = getObject(options.items),
+                        sets_object = object.sets,
+                        groups_object = object.groups;
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            items_array: options.items,
+                            sets: sets_object,
+                            groups: groups_object,
+                            search_string: "",
+                            states: {
+                                is_locked: false,
+                                show_form: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-set-item-group": {
+                                name: "component-set-item-group",
+                                props: ["items"],
+                                data: function() {
+                                    var self = this;
+                                    return {};
+                                },
+                                template: that.components["component-set-item-group"],
+                                delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-set-item": {
+                                        props: ["item"],
+                                        data: function() {
+                                            var self = this;
+                                            return {
+                                                states: {
+                                                    show_form: false
+                                                }
+                                            };
+                                        },
+                                        template: that.components["component-set-item"],
+                                        delimiters: ['{ { ', ' } }'],
+                                        computed: {
+                                            item_class: function() {
+                                                const self = this;
+                                                var result = [];
+
+                                                if (self.item.states.is_wanted) {
+                                                    result.push("is-wanted");
+                                                }
+
+                                                return result.join(" ");
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "component-set-search": {
+                                props: ["value"],
+                                data: function() {
+                                    let self = this;
+                                    return {};
+                                },
+                                template: that.components["component-set-search"],
+                                delimiters: ['{ { ', ' } }'],
+                                methods: {
+                                    onInput: function() {
+                                        let self = this;
+                                        self.$emit("input", self.value);
+                                        self.$emit("search_input", self.value);
+                                    },
+                                    onChange: function() {
+                                        let self = this;
+                                        self.$emit("input", self.value);
+                                        self.$emit("search_change", self.value);
+                                    },
+                                    revert: function() {
+                                        let self = this;
+                                        self.value = "";
+                                        self.onChange();
+                                    }
+                                }
+                            }
+                        },
+                        computed: {
+                            items: function() {
+                                const self = this;
+
+                                checkItems(self.items_array);
+
+                                return self.items_array;
+
+                                /**
+                                 * @param {Object|Array} items
+                                 * @return {Boolean}
+                                 * */
+                                function checkItems(items) {
+                                    var result = false;
+
+                                    $.each(items, function(i, item) {
+                                        var is_wanted = checkItem(item);
+                                        if (is_wanted) {
+                                            result = true;
+                                        }
+                                    });
+
+                                    return result;
+                                }
+
+                                /**
+                                 * @param {Object} item
+                                 * @return {Boolean}
+                                 * */
+                                function checkItem(item) {
+                                    var is_wanted = (item.name.toLowerCase().indexOf( self.search_string.toLowerCase() ) >= 0),
+                                        is_wanted_inside = (item.is_group && item.sets.length ? checkItems(item.sets) : false),
+                                        is_display = true;
+
+                                    if (self.search_string === "") {
+                                        is_wanted = is_wanted_inside = false;
+                                    } else {
+                                        is_display = !!(is_wanted || is_wanted_inside);
+                                    }
+
+                                    item.states.is_wanted = is_wanted;
+                                    item.states.is_wanted_inside = is_wanted_inside;
+                                    item.states.display_item = is_display;
+
+                                    return is_display;
+                                }
+                            },
+                        },
+                        methods: {
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+
+                                var set_ids = [];
+                                $.each(self.sets, function(i, set) {
+                                    if (set.states.checked) { set_ids.push(set.set_id); }
+                                });
+                                if (!set_ids.length) { return false; }
+
+                                self.states.is_locked = true;
+
+                                var data = getSubmitData();
+                                data.set_ids = set_ids;
+
+                                $.post(that.urls["exclude_from_sets"], data, "json")
+                                    .fail( function() {
+                                        self.states.is_locked = false;
+                                    }).done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        dialog.close();
+                                    });
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                                $(self.$el).find("input.js-autofocus").trigger("focus");
+                            });
+                        }
+                    });
+                }
+
+                function formatItem(item) {
+                    if (item.is_group && !item.sets) {
+                        item.sets = [];
+                    }
+
+                    if (!item.states) {
+                        item.states = {
+                            is_wanted: false,
+                            is_wanted_inside: false,
+                            display_item: false
+                        }
+                        if (item.is_group) {
+                            item.states.expanded = true;
+                        } else {
+                            item.states.checked = false;
+                        }
+                    }
+
+                    return item;
+                }
+
+                function getObject(items) {
+                    var result = {
+                        sets: {},
+                        groups: {}
+                    };
+
+                    setItem(items);
+
+                    formatItems(result.sets);
+                    formatItems(result.groups);
+
+                    return result;
+
+                    function setItem(items) {
+                        $.each(items, function(i, item) {
+                            if (item.is_group) {
+                                result.groups[item.group_id] = item;
+                                if (item.sets.length) {
+                                    setItem(item.sets);
+                                }
+                            } else {
+                                result.sets[item.set_id] = item;
+                            }
+                        });
+                    }
+
+                    function formatItems(items) {
+                        $.each(items, function(i, item) {
+                            formatItem(item);
+                        });
+                        return items;
+                    }
+                }
+            }
+
+            function assignTagsDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    that.updateRootVariables(options);
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            tags: [],
+                            tags_keys: {},
+                            states: {
+                                is_locked: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                        },
+                        computed: {
+                        },
+                        methods: {
+                            initAutocomplete: function($input) {
+                                const self = this;
+
+                                $input.on("keypress", function(event) {
+                                    var is_enter = (event.keyCode === 13),
+                                        value = $input.val();
+
+                                    if (is_enter) {
+                                        if (!value) { return false; }
+                                        self.addItem({ name: value, value: value });
+                                        $input.val("").trigger("blur");
+                                    }
+                                });
+
+                                $input.autocomplete({
+                                    source: function (request, response) {
+                                        var search_string = request.term,
+                                            data = { term: search_string, type: "" };
+
+                                        self.states.is_loading = true;
+
+                                        $.post(that.urls["autocomplete_tags"], data, function(response_data) {
+                                            var result = [];
+                                            if (response_data.length) {
+                                                $.each(response_data, function(i, tag) {
+                                                    var is_wanted = !!(search_string === "" || tag.label.toLowerCase().indexOf( search_string.toLowerCase() ) >= 0);
+                                                    if (is_wanted) {
+                                                        result.push({
+                                                            name: tag.label,
+                                                            value: tag.value
+                                                        });
+                                                    }
+                                                });
+                                            }
+
+                                            result.unshift({
+                                                description: that.locales["products_add_tag"].replace("%s", request.term),
+                                                name: request.term,
+                                                value: request.term
+                                            });
+                                            response(result);
+                                        }, "json")
+                                            .always( function() {
+                                                self.states.is_loading = false;
+                                            });
+                                    },
+                                    minLength: 1,
+                                    delay: 300,
+                                    create: function () {
+                                        //move autocomplete container
+                                        $input.autocomplete("widget").appendTo($input.parent());
+                                        $(".ui-helper-hidden-accessible").appendTo($input.parent());
+                                    },
+                                    select: function(event, ui) {
+                                        if (ui.item.value) {
+                                            self.addItem(ui.item);
+                                            $input.val("");
+                                        }
+                                        return false;
+                                    },
+                                    focus: function() { return false; }
+                                }).data("ui-autocomplete")._renderItem = function( ul, item ) {
+                                    var name = (item.description || item.name);
+                                    return $("<li />").addClass("ui-menu-item-html").append("<div>"+name+"</div>").appendTo(ul);
+                                };
+
+                                $dialog.on("dialog-closed", function() {
+                                    $input.autocomplete( "destroy" );
+                                });
+                            },
+                            addItem: function(tag) {
+                                const self = this;
+                                if (!self.tags_keys[tag.value]) {
+                                    self.tags.push(tag);
+                                    self.tags_keys[tag.value] = tag;
+                                    dialog.resize();
+                                }
+                            },
+                            removeTag: function(tag) {
+                                const self = this;
+                                self.tags.splice(self.tags.indexOf(tag), 1);
+                                delete self.tags_keys[tag.value];
+                                dialog.resize();
+                            },
+
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+
+                                var tags = self.tags.map(tag => tag.value);
+                                if (!tags.length) { return false; }
+
+                                self.states.is_locked = true;
+
+                                var data = getSubmitData();
+                                data.tags = tags;
+
+                                $.post(that.urls["assign_tags"], data, "json")
+                                    .fail( function() {
+                                        self.states.is_locked = false;
+                                    }).done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        dialog.close();
+                                    });
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            var $autocomplete = $wrapper.find('.js-autocomplete');
+                            if ($autocomplete.length) {
+                                self.initAutocomplete($autocomplete);
+                            }
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                                $(self.$el).find("input.js-autofocus").trigger("focus");
+                            });
+                        }
+                    });
+                }
+            }
+
+            function removeTagsDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    that.updateRootVariables(options);
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            search_string: "",
+                            tags_array: formatTags(options.tags),
+                            states: {
+                                is_locked: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        components: {
+                        },
+                        computed: {
+                            tags: function() {
+                                const self = this;
+                                $.each(self.tags_array, function(i, tag) {
+                                    tag.states.is_wanted = !!(self.search_string === "" || tag.name.toLowerCase().indexOf( self.search_string.toLowerCase() ) >= 0);
+                                });
+                                return self.tags_array;
+                            }
+                        },
+                        methods: {
+                            toggleTag: function(tag, show) {
+                                const self = this;
+                                tag.states.is_active = show;
+                            },
+
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+
+                                var tags = [];
+                                $.each(self.tags, function(i, tag) {
+                                    if (tag.states.is_active) { tags.push(tag.value); }
+                                });
+                                if (!tags.length) { return false; }
+
+                                self.states.is_locked = true;
+
+                                var data = getSubmitData();
+                                data.tag_ids = tags;
+
+                                $.post(that.urls["remove_tags"], data, "json")
+                                    .fail( function() {
+                                        self.states.is_locked = false;
+                                    }).done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        dialog.close();
+                                    });
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                                $(self.$el).find("input.js-autofocus").trigger("focus");
+                            });
+                        }
+                    });
+
+                    function formatTags(tags) {
+                        $.each(tags, function(i, tag) {
+                            tag.states = {
+                                is_wanted: false,
+                                is_active: false
+                            }
+                        });
+                        return tags;
+                    }
+                }
+            }
+
+            //
+
+            function setBadgeDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    that.updateRootVariables(options);
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            active_badge: null,
+                            badges: options.badges,
+                            states: {
+                                is_locked: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        computed: {
+                            disabled: function() {
+                                const self = this;
+                                return !!(self.states.is_locked || self.active_badge === null);
+                            }
+                        },
+                        methods: {
+                            setBadge: function(badge) {
+                                const self = this;
+                                self.active_badge = badge;
+                            },
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+
+                                self.states.is_locked = true;
+
+                                var data = getSubmitData(),
+                                    href = that.urls["products_set_badge"];
+
+                                if (self.active_badge.id !== "remove") {
+                                    data.code = self.active_badge.value;
+                                } else {
+                                    href = that.urls["products_delete_badge"];
+                                }
+
+                                $.post(href, data, "json")
+                                    .fail( function() {
+                                        self.states.is_locked = false;
+                                    }).done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        dialog.close();
+                                    });
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                            });
+                        }
+                    });
+                }
+            }
+
+            function setPublicationDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    that.updateRootVariables(options);
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            active_option: null,
+                            options: options.options,
+                            states: {
+                                is_locked: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        computed: {
+                            disabled: function() {
+                                const self = this;
+                                return !!(self.states.is_locked || self.active_option === null);
+                            }
+                        },
+                        methods: {
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+
+                                self.states.is_locked = true;
+
+                                var data = getSubmitData();
+
+                                data.status = self.active_option.value;
+                                if (self.active_option.update_skus) {
+                                    data.update_skus = "1";
+                                }
+
+                                $.post(that.urls["products_set_publication"], data, "json")
+                                    .fail( function() {
+                                        self.states.is_locked = false;
+                                    }).done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        dialog.close();
+                                    });
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                            });
+                        }
+                    });
+                }
+            }
+
+            function setTypeDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    that.updateRootVariables(options);
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            type: "",
+                            states: {
+                                is_locked: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        methods: {
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+
+                                self.states.is_locked = true;
+
+                                var data = getSubmitData();
+                                data.type_id = self.type;
+
+                                $.post(that.urls["products_set_type"], data, "json")
+                                    .fail( function() {
+                                        self.states.is_locked = false;
+                                    }).done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        dialog.close();
+                                    });
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                            });
+                        }
+                    });
+                }
+            }
+
+            function removeProductsDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    that.updateRootVariables(options);
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            states: {
+                                is_locked: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        methods: {
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+
+                                self.states.is_locked = true;
+
+                                var data = getSubmitData();
+
+                                $.post(that.urls["delete_products"], data, "json")
+                                    .fail( function() {
+                                        self.states.is_locked = false;
+                                    }).done( function() {
+                                    $.wa_shop_products.router.reload().done( function() {
+                                        dialog.close();
+                                    });
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                            });
+                        }
+                    });
+                }
+            }
+
+            function associatePromoDialog(html, action) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog, options) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        data: {
+                            promo: "",
+                            states: {
+                                is_locked: false
+                            }
+                        },
+                        delimiters: ['{ { ', ' } }'],
+                        methods: {
+                            save: function() {
+                                const self = this;
+
+                                if (self.states.is_locked) { return false; }
+                                self.states.is_locked = true;
+
+                                var promo_id = self.promo ? self.promo : "create";
+                                location.href = options.redirect_pattern.replace("%id%", promo_id);
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                            });
+                        }
+                    });
+                }
+            }
+
+            //
+
+            function getSubmitData() {
+                var result = {
+                    product_ids: product_ids
+                }
+
+                if (is_all_products) {
+                    result.presentation_id = that.presentation.id;
+                }
+
+                return result;
             }
         };
 

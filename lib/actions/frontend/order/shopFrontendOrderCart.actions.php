@@ -342,7 +342,7 @@ class shopFrontendOrderCartActions extends waJsonActions
         $session_data = wa()->getStorage()->get('shop/checkout', array());
         $coupon_data = waRequest::post('coupon', [], 'array');
         if ($coupon_data) {
-            $coupon_code = $coupon_data['code'];
+            $coupon_code = trim($coupon_data['code']);
             if ($coupon_code) {
                 $session_data['coupon_code'] = $coupon_code;
             } else {

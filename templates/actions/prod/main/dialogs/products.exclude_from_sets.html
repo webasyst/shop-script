@@ -1,0 +1,134 @@
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_urls = [
+    "exclude_from_sets" => "{$wa_app_url}?module=prod&action=excludeFromSets"
+]}
+
+{$_components = []}
+
+{capture assign="_component_sets_group"}
+    <div class="s-items-group">
+        <template v-for="item in items">
+            <div class="s-item-wrapper" v-show="item.states.display_item">
+                <component-set-item
+                    v-bind:item="item"></component-set-item>
+
+                <component-set-item-group
+                    v-if="(item.is_group && item.sets.length)"
+                    v-bind:items="item.sets"></component-set-item-group>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-set-item-group"] = $_component_sets_group|trim}
+
+{capture assign="_component_set"}
+    <div class="s-item" v-bind:class="item_class">
+        <div class="flexbox space-8">
+            <div class="s-field" v-if="!item.is_group">
+                <label class="wa-checkbox" v-if="item.type === '0'">
+                    <input v-bind:id="'set['+item.set_id+'][checkbox]'" type="checkbox" v-model="item.states.checked">
+                    <span><span class="icon"><i class="fas fa-check"></i></span></span>
+                </label>
+                <div v-else style="width: 14px;"></div>
+            </div>
+
+            <div class="s-icon-column">
+                <template v-if="item.is_group">
+                    <span class="s-icon icon size-14 shift-inherit color-gray-light" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></span>
+                </template>
+                <template v-else-if="item.type === '1'">
+                    <span class="s-icon icon size-14 shift-inherit color-gray-light" v-bind:key="'fa-list-auto'"><svg><use xlink:href="{$_sprite_url}#list-auto"></use></svg></span>
+                </template>
+                <template v-else>
+                    <label v-bind:for="'set['+item.set_id+'][checkbox]'">
+                        <span class="s-icon icon size-14 shift-inherit color-gray-light" v-bind:key="'fa-list'"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></span>
+                    </label>
+                </template>
+            </div>
+
+            <div class="s-name">
+                <template v-if="!item.is_group && item.type === '0'">
+                    <label class="js-name" v-bind:for="'set['+item.set_id+'][checkbox]'" v-text="item.name"></label>
+                </template>
+                <template v-else>
+                    <span v-text="item.name"></span>
+                </template>
+            </div>
+        </div>
+    </div>
+{/capture}
+{$_components["component-set-item"] = $_component_set|trim}
+
+{capture assign="_component_set_search"}
+    <div class="component-set-search flexbox space-8">
+        <div class="s-icon">
+            <span class="icon shift-3"><i class="fas fa-search"></i></span>
+        </div>
+        <div class="s-field-wrapper wide">
+            <component-input class="s-field js-autofocus"
+                             v-model="value"
+                             v-on:input="onInput"
+                             v-bind:cancel="true"
+                             v-bind:placeholder="'{_w("Find a set")|escape}'"></component-input>
+        </div>
+        <template v-if="value.length">
+            <div class="s-actions-wrapper flexbox space-8">
+                <div class="s-action is-active" v-on:click.prevent="revert">
+                    <span class="s-icon icon"><i class="fas fa-times"></i></span>
+                </div>
+            </div>
+        </template>
+    </div>
+{/capture}
+{$_components["component-set-search"] = $_component_set_search|trim}
+
+<div class="wa-dialog s-products-exclude-from-sets-dialog" id="js-products-exclude-from-sets-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Removing from sets`]</h3>
+                <div class="s-description">[`Select the sets from which selected products must be removed. Only the sets to which at least one of selected products is added are available for selection.`]</div>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-sets-section">
+                    <component-set-search
+                        class="s-search-form"
+                        v-model="search_string"
+                        v-bind:placeholder="'{_w("Find a set")|escape}'"></component-set-search>
+
+                    <div class="s-sets-list">
+                        <component-set-item-group
+                            v-bind:items="items"></component-set-item-group>
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
+                    <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name">[`Remove from sets`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-products-exclude-from-sets-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.ready.done( function() {
+                dialog.options.initDialog($dialog, dialog, {
+                    components: {$_components|json_encode},
+                    urls: {$_urls|json_encode},
+
+                    items: {$items|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

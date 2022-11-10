@@ -1,6 +1,6 @@
 <?php
 
-class shopProdSetTypesController extends waJsonController
+class shopProdSetTypeController extends waJsonController
 {
     /**
      * @var shopTypeModel
@@ -21,7 +21,7 @@ class shopProdSetTypesController extends waJsonController
         }
 
         $all_product_ids = null;
-        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+        $product_id = waRequest::post('product_ids', [], waRequest::TYPE_ARRAY_INT);
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
         $options = [];
         $offset = 0;

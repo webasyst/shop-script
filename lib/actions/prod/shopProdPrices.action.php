@@ -424,9 +424,6 @@ class shopProdPricesAction extends waViewAction
         $storefronts = [];
         foreach ($domain_routes as $domain => $routes) {
             foreach ($routes as $route) {
-                if (!empty($route['private'])) {
-                    continue;
-                }
                 if (!empty($route['type_id']) && !in_array($product->type_id, (array)$route['type_id'])) {
                     continue;
                 }

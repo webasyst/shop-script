@@ -7,6 +7,11 @@
     "html" => _w("This feature is used for product variants selection in the storefront. You can select its value in the variant parameters in the product editor only."),
     "position" => "top"
 ]}
+{$_tooltips["feature-checkbox-cant-be-edit-at-product"] = [
+    "id" => "feature-checkbox-cant-be-edit-at-product",
+    "html" => _w("You cannot select default values for features with the “Multiple values selection from a list” format. Select this feature’s values in product variants’ properties."),
+    "position" => "top"
+]}
 
 {capture assign="_component_product_column_feature"}
 <div class="vue-column-type-feature" v-if="states.is_available">
@@ -177,20 +182,26 @@
 
         {* Продукт со значениями из модификаций *}
         <template v-else-if="product.normal_mode && column_info.available_for_sku">
-            <div class="s-checkbox-group">
-                <template v-if="sku_options.length">
-                    <template v-for="option in sku_options">
-                        <div class="s-option-wrapper">
-                                <span class="s-icon" v-if="option.code">
-                                    <span class="icon size-12 rounded bordered shift-2" v-bind:style="{ 'background-color': option.code }"></span>
-                                </span>
-                            <span class="s-name">{ { option.name } }</span>
-                        </div>
+            <div class="flexbox space-8">
+                <div class="s-icons nowrap" data-tooltip-id="feature-checkbox-cant-be-edit-at-product">
+                    <span class="s-icon icon shift-inherit color-gray-lighter"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
+                    <span class="s-icon icon shift-inherit color-gray-lighter"><i class="fas fa-pen"></i></span>
+                </div>
+                <div class="s-checkbox-group wide">
+                    <template v-if="sku_options.length">
+                        <template v-for="option in sku_options">
+                            <div class="s-option-wrapper">
+                                    <span class="s-icon" v-if="option.code">
+                                        <span class="icon size-12 rounded bordered shift-2" v-bind:style="{ 'background-color': option.code }"></span>
+                                    </span>
+                                <span class="s-name">{ { option.name } }</span>
+                            </div>
+                        </template>
                     </template>
-                </template>
-                <template v-else>
-                    <div class="s-text">[`Not specified`]</div>
-                </template>
+                    <template v-else>
+                        <div class="s-text">[`Not specified`]</div>
+                    </template>
+                </div>
             </div>
         </template>
 

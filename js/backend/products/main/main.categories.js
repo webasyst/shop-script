@@ -3694,8 +3694,29 @@ console.log( item );
 
                         switch (self.item_data.type) {
                             case "double":
+                            case "range.double":
+                            case "range.length":
+                            case "dimension.length":
+                            case "range.weight":
+                            case "dimension.weight":
+                            case "range.frequency":
+                            case "dimension.frequency":
+                            case "range.power":
+                            case "dimension.power":
+                            case "range.memory":
+                            case "dimension.memory":
+                            case "range.time":
+                            case "dimension.time":
                             case "range.temperature":
                             case "dimension.temperature":
+                            case "range.amperage":
+                            case "dimension.amperage":
+                            case "range.electric_charge":
+                            case "dimension.electric_charge":
+                            case "range.area":
+                            case "dimension.area":
+                            case "range.volume":
+                            case "dimension.volume":
                                 validate_format = "number-negative";
                                 break;
                         }

@@ -36,7 +36,7 @@
 
                         <div class="wa-field" v-if="products_count">
                             <div class="name unshifted size-small">
-                                <span class="s-label">[`Deletion of products`]</span>
+                                <span class="s-label">[`Products deletion`]</span>
                             </div>
                             <div class="value">
                                 <div class="flexbox space-12">
@@ -46,7 +46,7 @@
                                     <div class="s-text-wrapper">
                                         <template v-if="remove_products">
                                             <div class="s-title color-black">{sprintf(_w("Delete products (%s)"), "{ { products_count } }")}</div>
-                                            <div class="s-description hint">[`All products directly added to the category are about to delete will also be deleted without a recovery option.`]</div>
+                                            <div class="s-description hint">[`All products added to the category you are about to delete will also be deleted without the ability restore.`]</div>
                                         </template>
                                         <template v-else>
                                             <div class="s-title color-black">[`Don’t delete products`]</div>

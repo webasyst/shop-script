@@ -1,0 +1,90 @@
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+<div class="wa-dialog s-products-associate-promo-dialog" id="js-products-associate-promo-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>{sprintf('[`Add selected products to promo %s`]', "<span class='gray'>(`$count`)</span>")}</h3>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-promos-section">
+                    <div class="s-options-list">
+                        <div class="s-option-wrapper">
+                            <label class="flexbox space-8">
+                                <span class="s-radio">
+                                    <component-radio v-model="promo"
+                                                     v-bind:label="false"
+                                                     v-bind:val="'create'"
+                                                     v-bind:name="'promo-radio-option'"></component-radio></span>
+                                <span class="s-label">[`Add a new promo`]</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {if !empty($active_promos)}
+                    <div class="s-promos-section">
+                        <h4 class="s-section-title">[`Active promos`]</h4>
+                        <div class="s-options-list">
+                            {foreach $active_promos as $_promo}
+                                <div class="s-option-wrapper">
+                                    <label class="flexbox space-8">
+                                    <span class="s-radio">
+                                        <component-radio v-model="promo"
+                                                         v-bind:label="false"
+                                                         v-bind:val="'{$_promo.id|escape}'"
+                                                         v-bind:name="'promo-radio-option'"></component-radio></span>
+                                        <span class="s-label">{$_promo.name|default:""|escape}</span>
+                                    </label>
+                                </div>
+                            {/foreach}
+                        </div>
+                    </div>
+                {/if}
+
+                {if !empty($planned_promos)}
+                    <div class="s-promos-section">
+                        <h4 class="s-section-title">[`Scheduled promos`]</h4>
+                        <div class="s-options-list">
+                            {foreach $planned_promos as $_promo}
+                                <div class="s-option-wrapper">
+                                    <label class="flexbox space-8">
+                                    <span class="s-radio">
+                                        <component-radio v-model="promo"
+                                                         v-bind:label="false"
+                                                         v-bind:val="'{$_promo.id|escape}'"
+                                                         v-bind:name="'promo-radio-option'"></component-radio></span>
+                                        <span class="s-label">{$_promo.name|default:""|escape}</span>
+                                    </label>
+                                </div>
+                            {/foreach}
+                        </div>
+                    </div>
+                {/if}
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
+                    <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name">[`Add`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-products-associate-promo-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.ready.done( function() {
+                dialog.options.initDialog($dialog, dialog, {
+                    "redirect_pattern": "{$wa_app_url}marketing/promo/%id%/?options[action]=associate&options[products_hash]={$products_hash|escape}"
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

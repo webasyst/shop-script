@@ -145,9 +145,13 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="min-width: 200px;width: 32%;">
-                                                    <label><input class="js-condition-create-datetime-interval s-condition" type="checkbox" name="condition[create_datetime]" value="create_datetime"
-                                                                  {if isset($settings.conditions.create_datetime)}checked{/if}>
-                                                        [`Date added`]</label>
+                                                    {if isset($settings.conditions.create_datetime)}
+                                                        <label><input class="js-condition-create-datetime-interval s-condition" type="checkbox" name="condition[create_datetime]" value="create_datetime" checked>
+                                                            [`Date added`]
+                                                        </label>
+                                                    {else}
+                                                        [`Date added`]
+                                                    {/if}
                                                 </td>
                                                 <td colspan="2">
                                                     {if isset($settings.conditions.create_datetime)}
@@ -182,9 +186,13 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="min-width: 200px;width: 32%;">
-                                                    <label><input class="js-condition-edit-datetime-interval s-condition" type="checkbox" name="condition[edit_datetime]" value="edit_datetime"
-                                                                  {if isset($settings.conditions.edit_datetime)}checked{/if}>
-                                                        [`Last change date`]</label>
+                                                    {if isset($settings.conditions.edit_datetime)}
+                                                        <label><input class="js-condition-edit-datetime-interval s-condition" type="checkbox" name="condition[edit_datetime]" value="edit_datetime" checked>
+                                                            [`Last change date`]
+                                                        </label>
+                                                    {else}
+                                                        [`Last change date`]
+                                                    {/if}
                                                 </td>
                                                 <td colspan="2">
                                                     {if isset($settings.conditions.edit_datetime)}
@@ -219,9 +227,13 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="min-width: 200px;width: 32%;">
-                                                    <label><input class="js-condition-type s-condition" type="checkbox" name="condition[type]" value="type"
-                                                                  {if isset($settings.conditions.type)}checked{/if}>
-                                                        [`Product type`]</label>
+                                                    {if isset($settings.conditions.type)}
+                                                        <label><input class="js-condition-type s-condition" type="checkbox" name="condition[type]" value="type" checked>
+                                                            [`Product type`]
+                                                        </label>
+                                                    {else}
+                                                        [`Product type`]
+                                                    {/if}
                                                 </td>
                                                 <td colspan="2">
                                                     {if isset($settings.conditions.type) && !empty($settings.conditions.type.options)}
@@ -271,7 +283,6 @@
                                                         [`to`]
                                                         <input type="text" name="rating[1]" class="js-end short" placeholder="{if isset($settings.conditions.rating['end'])}{$settings.conditions.rating['end']}{else}&infin;{/if}"
                                                                value="{if isset($settings.conditions.rating['end'])}{$settings.conditions.rating['end']}{/if}">
-                                                        <div class="js-range-slider"></div>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -346,16 +357,18 @@
                                                         [`to`]
                                                         <input type="text" name="count[1]" class="js-end short" placeholder="{if isset($settings.conditions.count['end'])}{$settings.conditions.count['end']}{else}&infin;{/if}"
                                                                value="{if isset($settings.conditions.count['end'])}{$settings.conditions.count['end']}{/if}">
-                                                        {$currency}
-                                                        <div class="js-range-slider"></div>
                                                     </div>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="min-width: 200px;width: 32%;">
-                                                    <label><input class="js-condition-edit-badge s-condition" type="checkbox" name="condition[badge]" value="badge"
-                                                                  {if isset($settings.conditions.badge)}checked{/if}>
-                                                        [`Badge`]</label>
+                                                    {if isset($settings.conditions.badge)}
+                                                        <label><input class="js-condition-edit-badge s-condition" type="checkbox" name="condition[badge]" value="badge" checked>
+                                                            [`Badge`]
+                                                        </label>
+                                                    {else}
+                                                        [`Badge`]
+                                                    {/if}
                                                 </td>
                                                 <td colspan="2">
                                                     {if !empty($settings.conditions.badge) && !empty($settings.conditions.badge.values)}

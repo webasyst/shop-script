@@ -433,8 +433,9 @@
         };
 
         $table.on('click', '.s-reports-drilldown-link', function() {
-            var link = $(this);
-            var hash = applyNameFilterToHash(link.data('name'));
+            var link = $(this),
+                name = link.data('name').replace(/\//g, '%2F');
+            var hash = applyNameFilterToHash(name);
             if (hash !== $.reports.hash) {
                 $.wa.setHash('/' + hash);
             }

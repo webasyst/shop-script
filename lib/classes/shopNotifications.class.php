@@ -62,6 +62,7 @@ class shopNotifications
                     'log_id' => null,
                     'transport' => null
                 );
+                self::addFrontendUrls($data, $n);
                 if (!isset($n['sources'])
                     || in_array('all_sources', $n['sources']) !== false
                     || in_array($data['source'], $n['sources']) !== false
@@ -152,6 +153,7 @@ class shopNotifications
 
         $method = 'send'.ucfirst($n['transport']);
         if (method_exists('shopNotifications', $method)) {
+            self::addFrontendUrls($data, $n);
             if (isset($data['storefront_route'])) {
                 $old_route = wa()->getRouting()->getRoute();
                 $old_domain = wa()->getRouting()->getDomain();
@@ -226,39 +228,8 @@ class shopNotifications
             }
         }
 
-        // Routing params to generate full URLs to products
-        $source = 'backend';
-        $storefront_route = null;
-        $storefront_domain = null;
-        $storefront_route_url = null;
-        if (isset($data['order']['params']['storefront'])) {
-            $storefront = $data['order']['params']['storefront'];
-            if (substr($storefront, -1) === '/') {
-                $source = $storefront.'*';
-            } else {
-                $source = $storefront.'/*';
-            }
-
-            $storefront = rtrim($storefront, '/');
-
-            foreach (wa()->getRouting()->getByApp('shop') as $domain => $routes) {
-                foreach ($routes as $r) {
-                    if (!isset($r['url'])) {
-                        continue;
-                    }
-                    $st = rtrim(rtrim($domain, '/').'/'.$r['url'], '/.*');
-                    if ($st == $storefront) {
-                        $storefront_route = $r;
-                        $storefront_route_url = $r['url'];
-                        $storefront_domain = $domain;
-                        break 2;
-                    }
-                }
-            }
-        }
-        $data['source'] = $source;
-        $data['storefront_route'] = $storefront_route;
-        $data['storefront_domain'] = $storefront_domain;
+        $storefront_params = self::getStorefrontParams(ifset($data['order']['params']['storefront']));
+        $data = array_merge($data, $storefront_params);
 
         // Products info
         $product_ids = array();
@@ -271,7 +242,7 @@ class shopNotifications
         $root_url = rtrim(wa()->getRootUrl(true), '/');
         $root_url_len = strlen($root_url);
 
-        $d = $storefront_domain ? 'http://'.$storefront_domain : $root_url;
+        $d = $data['storefront_domain'] ? 'http://'.$data['storefront_domain'] : $root_url;
 
         $collection = new shopProductsCollection(
             'id/'.join(',', array_keys($product_ids)),
@@ -282,9 +253,6 @@ class shopNotifications
         );
         $products = $collection->getProducts('*,image');
         foreach ($products as &$p) {
-            $p['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
-                'product_url' => $p['url'],
-            ), true, $storefront_domain, $storefront_route_url);
             if (!empty($p['image'])) {
                 if ($d !== $root_url) {
                     foreach (array('thumb_url', 'big_url', 'crop_url') as $url_type) {
@@ -415,11 +383,6 @@ SQL;
             $data['add_affiliate_bonus'] = shopAffiliate::calculateBonus($data['order']);
         }
 
-        $data['order_url'] = wa()->getRouteUrl('/frontend/myOrderByCode', array(
-            'id' => $data['order']['id'],
-            'code' => ifset($data['order']['params']['auth_code'])
-        ), true, $storefront_domain, $storefront_route_url);
-
         shopHelper::workupOrders($data['order'], true);
 
         $data['courier'] = null;
@@ -443,6 +406,86 @@ SQL;
         $data = self::arrayMergeRecursive($data, $empties);
 
         return $data;
+    }
+
+    /**
+     * @param $storefront
+     * @return array
+     * @throws waException
+     */
+    protected static function getStorefrontParams($storefront)
+    {
+        $source = 'backend';
+        $storefront_route = null;
+        $storefront_domain = null;
+        if (isset($storefront)) {
+            if (substr($storefront, -1) === '/') {
+                $source = $storefront.'*';
+            } elseif (substr($storefront, -2) !== '/*') {
+                $source = $storefront.'/*';
+            }
+
+            $storefront = rtrim($storefront, '/*');
+
+            foreach (wa()->getRouting()->getByApp('shop') as $domain => $routes) {
+                foreach ($routes as $r) {
+                    if (!isset($r['url'])) {
+                        continue;
+                    }
+                    $st = rtrim(rtrim($domain, '/').'/'.$r['url'], '/.*');
+                    if ($st == $storefront) {
+                        $storefront_route = $r;
+                        $storefront_domain = $domain;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        return [
+            'source' => $source,
+            'storefront_route' => $storefront_route,
+            'storefront_domain' => $storefront_domain
+        ];
+    }
+
+    /**
+     * @param $data
+     * @param $notification
+     * @depends prepareData
+     * @throws waException
+     */
+    protected static function addFrontendUrls(&$data, $notification)
+    {
+        $storefront_domain = $data['storefront_domain'];
+        $storefront_route_url = isset($data['storefront_route']['url']) ? $data['storefront_route']['url'] : null;
+        if (!isset($storefront_route_url) && !empty($notification['sources'])) {
+            foreach ($notification['sources'] as $source) {
+                if ($source != 'backend') {
+                    $storefront_params = self::getStorefrontParams($source);
+                    $storefront_domain = $storefront_params['storefront_domain'];
+                    $storefront_route_url = ifset($storefront_params['storefront_route']['url']);
+                    break;
+                }
+            }
+        }
+        $data['order_url'] = wa()->getRouteUrl('/frontend/myOrderByCode', array(
+            'id' => $data['order']['id'],
+            'code' => ifset($data['order']['params']['auth_code'])
+        ), true, $storefront_domain, $storefront_route_url);
+        foreach ($data['order']['items'] as &$i) {
+            if (!empty($i['file_name'])) {
+                $i['download_link'] = wa()->getRouteUrl('shop/frontend/myOrderDownload', array(
+                    'id'   => $data['order']['id'],
+                    'code' => $data['order']['params']['auth_code'],
+                    'item' => $i['id'],
+                ), true, $storefront_domain, $storefront_route_url);
+            }
+            $i['product']['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
+                'product_url' => $i['product']['url'],
+            ), true, $storefront_domain, $storefront_route_url);
+        }
+        unset($i);
     }
 
     private static function getDataEmpties()

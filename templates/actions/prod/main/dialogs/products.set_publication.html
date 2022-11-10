@@ -1,0 +1,88 @@
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_urls = [
+    "products_set_publication" => "{$wa_app_url}?module=prod&action=changeVisibility"
+]}
+
+{$_options = [
+    [
+        "name" => _w("Visible on website"),
+        "value" => "1",
+        "description" => _w("Set all selected product SKUs as available for purchase too"),
+        "update_skus" => false
+    ],
+    [
+        "name" => _w("Hidden"),
+        "value" => "0",
+        "description" => _w("Temporarily remove all SKUs from sale too"),
+        "update_skus" => false
+    ],
+    [
+        "name" => _w("Unpublished (404)"),
+        "value" => "-1"
+    ]
+]}
+
+<div class="wa-dialog s-products-set-publication-dialog" id="js-products-set-publication-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Availability in the storefront`]</h3>
+                <div class="s-description">[`Select an availability status for selected products in the storefront.`]</div>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-options-section">
+                    <div class="s-options-list">
+                        <template v-for="option in options">
+                            <div class="s-option-wrapper">
+                                <label class="flexbox space-8">
+                                    <span class="s-radio">
+                                        <component-radio v-model="active_option"
+                                                         v-bind:label="false"
+                                                         v-bind:val="option"
+                                                         v-bind:name="'products-radio-option'"></component-radio>
+                                    </span>
+                                    <span class="s-label" v-text="option.name"></span>
+                                </label>
+
+                                <template v-if="active_option && active_option === option">
+                                    <div class="s-description" v-if="active_option.description">
+                                        <label class="flexbox middle space-8">
+                                            <component-checkbox v-bind:label="false" v-model="active_option.update_skus"></component-checkbox>
+                                            <span class="s-text" v-text="active_option.description"></span>
+                                        </label>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="disabled">
+                    <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name">[`Apply`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-products-set-publication-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.ready.done( function() {
+                dialog.options.initDialog($dialog, dialog, {
+                    urls: {$_urls|json_encode},
+
+                    options: {$_options|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

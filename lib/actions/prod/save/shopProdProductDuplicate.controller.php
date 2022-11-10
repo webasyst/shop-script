@@ -1,14 +1,13 @@
 <?php
 
-class shopProdDuplicateController extends waJsonController
+class shopProdProductDuplicateController extends waJsonController
 {
     public function execute()
     {
-        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+        $product_ids = waRequest::post('product_ids', [], waRequest::TYPE_ARRAY_INT);
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
         $new_ids = [];
         if (!$presentation_id) {
-            $product_ids = $product_id;
             if (!$product_ids) {
                 $this->errors[] = [
                     'id' => 'not_selected',
@@ -21,7 +20,7 @@ class shopProdDuplicateController extends waJsonController
             $options = [];
             if ($presentation->getFilterId() > 0) {
                 $options['prepare_filter'] = $presentation->getFilterId();
-                $options['exclude_products'] = $product_id;
+                $options['exclude_products'] = $product_ids;
             }
             $collection = new shopProductsCollection('', $options);
             $product_ids = $presentation->getProducts($collection, [

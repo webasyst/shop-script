@@ -75,7 +75,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         foreach ($products as &$p) {
             $p['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
                 'product_url' => $p['url'],
-            ), true, $storefront_domain, $storefront_route['url']);
+            ), true, $storefront_domain, ifset($storefront_route, 'url', '*'));
             if (!empty($p['image'])) {
                 $p['image']['thumb_url'] = $d.$p['image']['thumb_url'];
                 $p['image']['big_url'] = $d.$p['image']['big_url'];

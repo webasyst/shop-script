@@ -40,6 +40,8 @@ class shopMarketingCouponSaveController extends waJsonController
         if (empty($post_coupon['code'])) {
             $this->addError('name', 'code', _w('This field is required.'));
             return;
+        } else {
+            $post_coupon['code'] = trim($post_coupon['code']);
         }
 
         if (!empty($post_coupon['expire_datetime']) && strlen($post_coupon['expire_datetime']) == 10) {

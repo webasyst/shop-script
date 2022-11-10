@@ -144,7 +144,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
                 //regenerate SKUs
 
 
-                $sku_map = $this->generateSku($product, $selected, $data, $exists);
+                $sku_map = $this->generateSku($product, $selected, $data);
 
                 //XXX check product features need to be updated
                 $added = array();
@@ -420,6 +420,7 @@ class shopProductFeaturesSelectableModel extends waModel implements shopProductS
 
         $feature_model = new shopFeatureModel();
         if ($product->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
+            $sort = [];
             $selected = $this->getByProduct($product->id, $sort);
 
             if ($env == 'backend') {

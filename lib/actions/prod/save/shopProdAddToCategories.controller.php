@@ -19,7 +19,7 @@ class shopProdAddToCategoriesController extends waJsonController
             ];
         }
 
-        $category_ids = waRequest::post('category_id', [], waRequest::TYPE_ARRAY_INT);
+        $category_ids = waRequest::post('category_ids', [], waRequest::TYPE_ARRAY_INT);
         $new_category_id = null;
         $new_category = waRequest::post('new_category', '', waRequest::TYPE_STRING_TRIM);
         if ($new_category) {
@@ -30,7 +30,7 @@ class shopProdAddToCategoriesController extends waJsonController
             return;
         }
 
-        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+        $product_id = waRequest::post('product_ids', [], waRequest::TYPE_ARRAY_INT);
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
         if (!$presentation_id) {
             $all_product_ids = $product_id;
@@ -46,7 +46,7 @@ class shopProdAddToCategoriesController extends waJsonController
                 'fields' => ['id'],
                 'offset' => max(0, waRequest::post('offset', 0, waRequest::TYPE_INT)),
             ]);
-            $all_product_ids = array_values($all_product_ids);
+            $all_product_ids = array_keys($all_product_ids);
         }
         $hash = 'id/'.join(',', $all_product_ids);
 

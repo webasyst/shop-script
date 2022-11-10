@@ -96,7 +96,15 @@
                                         </div>
                                     </div>
                                     <div class="s-column-image">
-                                        <div class="s-image"></div>
+                                        <div class="s-image-wrapper">
+                                            <template v-if="product.photo">
+                                                <div class="s-image" v-bind:style="{ 'background-image' : 'url('+product.photo.url+')' }">
+                                            </template>
+                                            <template v-else>
+                                                {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+                                                <span class="s-icon icon size-18"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>
+                                            </template>
+                                        </div>
                                     </div>
                                     <div class="s-column-name">
                                         <div class="s-middle-content">

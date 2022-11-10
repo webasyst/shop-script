@@ -584,7 +584,7 @@ class shopPresentation
                     'required' => false,
                     'editable' => true,
                     'editing_rule' => self::EDITING_RULE_NO,
-                    'sortable' => true,
+                    'sortable' => empty($feature['multiple']) && $feature['type'] != shopFeatureModel::TYPE_COLOR,
                     'multiple' => !empty($feature['multiple']),
                     'type' => $feature['type'],
                     'available_for_sku' => (bool)$feature['available_for_sku'],
@@ -818,7 +818,11 @@ class shopPresentation
                                 }
                                 $can_be_edited = 'yes';
                                 if ($feature_missing_in_type) {
-                                    $can_be_edited = isset($product_features_values[$formatted_feature['code']]) ? 'partial' : 'no';
+                                    if ($formatted_feature['selectable'] && $formatted_feature['available_for_sku'] && count($p['skus']) > 1) {
+                                        $can_be_edited = isset($skus_features_values[$sku['id']][$formatted_feature['code']]) ? 'partial' : 'no';
+                                    } else {
+                                        $can_be_edited = isset($product_features_values[$formatted_feature['code']]) ? 'partial' : 'no';
+                                    }
                                 }
                                 $p['columns'][$active_column['id']] = [
                                         'skus' => $sku_features,
@@ -992,10 +996,12 @@ class shopPresentation
                                     }
                                 } elseif (strpos($active_column['id'], 'stocks_') === 0) {
                                     $skus_data = [];
+                                    $stock_sum = 0;
                                     foreach ($p['skus'] as $sku) {
                                         $sku_stock_value = '';
                                         if ($sku['stock']) {
                                             if (isset($active_column['substocks'])) {
+                                                // if it is a virtual stock
                                                 foreach ($active_column['substocks'] as $stock_id) {
                                                     if (isset($sku['stock'][$stock_id])) {
                                                         if ($sku_stock_value === '') {
@@ -1007,6 +1013,11 @@ class shopPresentation
                                             } elseif (isset($sku['stock'][$active_column['stock_id']])) {
                                                 $sku_stock_value = shopFrac::discardZeros($sku['stock'][$active_column['stock_id']]);
                                             }
+                                        }
+                                        if ($sku_stock_value !== '' && $stock_sum !== null) {
+                                            $stock_sum += $sku_stock_value;
+                                        } else {
+                                            $stock_sum = null;
                                         }
                                         if ($sku_stock_value !== '') {
                                             if ($active_column['editable']) {
@@ -1023,7 +1034,7 @@ class shopPresentation
 
                                     $p['columns'][$active_column['id']] = [
                                         'render_type' => 'stock',
-                                        'value' => ifset($skus_data, $p['sku_id'], 'value', null),
+                                        'value' => $stock_sum,
                                         'stock_id' => $active_column['stock_id'],
                                         'skus' => $skus_data,
                                     ];
@@ -1288,27 +1299,21 @@ class shopPresentation
         $is_copy_template = true;
 
         if ($presentation && $template) {
-            foreach (['sort_column_id', 'rows_on_page', 'sort_order'] as $main_field) {
-                if ($presentation[$main_field] != $template[$main_field]) {
-                    $is_copy_template = false;
-                    break;
-                }
-            }
-            if ($is_copy_template) {
-                if (count($presentation['columns']) != count($template['columns'])) {
-                    $is_copy_template = false;
-                } else {
-                    foreach ($presentation['columns'] as $key => $column) {
-                        if (!isset($template['columns'][$key])) {
-                            $is_copy_template = false;
-                            break;
-                        } else {
-                            foreach (['column_type', 'width', 'data', 'sort'] as $column_field) {
-                                if ($column[$column_field] != $template['columns'][$key][$column_field]
-                                ) {
-                                    $is_copy_template = false;
-                                    break 2;
-                                }
+            if ($presentation['rows_on_page'] != $template['rows_on_page']
+                || count($presentation['columns']) != count($template['columns'])
+            ) {
+                $is_copy_template = false;
+            } else {
+                foreach ($presentation['columns'] as $key => $column) {
+                    if (!isset($template['columns'][$key])) {
+                        $is_copy_template = false;
+                        break;
+                    } else {
+                        foreach (['column_type', 'width', 'data', 'sort'] as $column_field) {
+                            if ($column[$column_field] != $template['columns'][$key][$column_field]
+                            ) {
+                                $is_copy_template = false;
+                                break 2;
                             }
                         }
                     }
@@ -1701,7 +1706,7 @@ class shopPresentation
      */
     protected function getCollectionFields($additional_fields = [])
     {
-        $fields = ['*', 'skus', 'image', 'images', 'stock_counts'];
+        $fields = ['*', 'skus', 'image', 'images', 'skus_image', 'stock_counts'];
         foreach ($this->getEnabledColumns() as $col) {
             if (in_array($col['column_type'],
                 array_merge(['image_crop_small', 'image_count', 'sales_30days', 'stock_worth'], $additional_fields))

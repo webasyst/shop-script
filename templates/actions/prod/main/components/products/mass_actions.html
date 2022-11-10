@@ -25,13 +25,14 @@
                     <span class="s-label">[`Selected`]</span>
                     <span class="s-count" v-text="products_length"></span>
                 </div>
-                <div class="s-actions-list js-actions-list flexbox space-8">
+                <div class="s-actions-list js-actions-list flexbox space-12">
                     <template v-for="action in pinned_actions">
-                        <div class="s-action link"
+                        <div class="s-action bold link"
                              v-if="action.states.visible"
                              v-bind:key="action.id"
                              v-on:click.prevent="callAction(action)">
-                            <span class="s-icon" v-html="action.icon"></span>
+                            <span class="s-icon icon shift-inherit" v-if="action.states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                            <span class="s-icon icon shift-inherit" v-else-if="action.icon" v-html="action.icon"></span>
                             <span class="s-name" v-text="action.name"></span>
                         </div>
                     </template>
@@ -39,16 +40,18 @@
                 <div class="s-more-actions">
 
                     <div class="dropdown">
-                        <div class="dropdown-toggle link cursor-pointer">
-                            <span class="s-icon"><i class="fas fa-cog"></i></span>
+                        <div class="dropdown-toggle bold link cursor-pointer">
+                            <span class="s-icon"><i class="fas fa-ellipsis-h"></i></span>
                             <span class="s-name">[`All actions`]</span>
                         </div>
                         <div class="dropdown-body">
                             <template v-for="group in dropdown_actions">
                                 <div class="dropdown-group" v-if="group.actions.length">
+                                    <div class="s-group-name" v-text="group.name"></div>
                                     <template v-for="action in group.actions">
                                         <div class="dropdown-item" v-on:click.prevent="callAction(action)">
-                                            <span class="s-icon" v-html="action.icon"></span>
+                                            <span class="s-icon icon shift-inherit" v-if="action.states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                                            <span class="s-icon icon shift-inherit" v-else-if="action.icon" v-html="action.icon"></span>
                                             <span class="s-name" v-text="action.name"></span>
                                         </div>
                                     </template>
@@ -102,7 +105,8 @@
                         <template v-for="action in group.actions">
                             <div class="s-action-wrapper">
                                 <div class="s-action" v-on:click.prevent="callAction(action)">
-                                    <span class="s-icon" v-html="action.icon"></span>
+                                    <span class="s-icon icon shift-inherit" v-if="action.states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                                    <span class="s-icon icon shift-inherit" v-else-if="action.icon" v-html="action.icon"></span>
                                     <span class="s-name" v-text="action.name"></span>
                                 </div>
                             </div>

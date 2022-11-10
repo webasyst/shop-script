@@ -28,6 +28,8 @@ class shopSettingsShippingSaveController extends waJsonController
                     $this->logAction('shipping_plugin_add', $log_params);
                 }
 
+                $this->disableShipping();
+
                 $this->response['message'] = _w('Saved');
             } catch (waException $ex) {
                 $this->setError($ex->getMessage());
@@ -95,5 +97,77 @@ class shopSettingsShippingSaveController extends waJsonController
             }
             shopShipping::flushCache();
         }
+    }
+
+    public function disableShipping()
+    {
+        $plugin_model = new shopPluginModel();
+        $all_plugins_disabled = empty($plugin_model->listPlugins($plugin_model::TYPE_SHIPPING));
+        if ($all_plugins_disabled) {
+            $this->saveCheckout();
+            $this->saveCheckout2();
+        }
+    }
+
+    protected function getCheckout($version = '')
+    {
+        $path = wa()->getConfig()->getConfigPath("checkout$version.php", true, 'shop');
+        $file = [];
+        if (file_exists($path)) {
+            $file = include($path);
+        } else {
+            if (empty($version)) {
+                $file = [
+                    'contactinfo' => true,
+                    'shipping' => true,
+                    'payment' => true,
+                    'confirmation' => true
+                ];
+            }
+        }
+        return $file;
+    }
+
+    protected function saveCheckout()
+    {
+        $checkout = $this->getCheckout();
+        if (isset($checkout['shipping'])) {
+            unset($checkout['shipping']);
+        }
+        $app_settings_model = new waAppSettingsModel();
+        $app_settings_model->set('shop', 'checkout_flow_changed', time());
+        $this->saveFile($checkout);
+    }
+
+    protected function saveCheckout2()
+    {
+        $checkout2 = $this->getCheckout(2);
+        foreach ($checkout2 as &$params) {
+            if (isset($params['shipping'])) {
+                $params['shipping']['used'] = false;
+            }
+        }
+        unset($params);
+        $this->saveFile($checkout2, 2);
+
+        $storefronts = wa()->getRouting()->getByApp('shop');
+        foreach ($storefronts as $routes) {
+            foreach ($routes as $route) {
+                if ($route['checkout_version'] == 2 && !isset($checkout2[$route['checkout_storefront_id']])) {
+                    $checkout_config = new shopCheckoutConfig($route['checkout_storefront_id']);
+                    $checkout_config->setData([
+                        'shipping' => [
+                            'used' => false
+                        ]
+                    ]);
+                    $checkout_config->commit();
+                }
+            }
+        }
+    }
+
+    protected function saveFile($data, $version = '')
+    {
+        waUtils::varExportToFile($data, $this->getConfig()->getConfigPath("checkout$version.php", true, 'shop'));
     }
 }

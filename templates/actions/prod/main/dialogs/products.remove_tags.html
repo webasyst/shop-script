@@ -1,0 +1,76 @@
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_urls = [
+    "remove_tags" => "{$wa_app_url}?module=prod&action=removeTags"
+]}
+
+{$_components = []}
+
+<div class="wa-dialog s-products-remove-tags-dialog" id="js-products-remove-tags-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Remove tags`]</h3>
+                <div class="s-description" v-if="tags.length">[`Select the tags to be removed from selected products.`]</div>
+                <div class="s-description" v-else>[`Selected products are not linked to any tags.`]</div>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-tags-section" v-if="tags.length">
+                    <div class="s-value-list">
+                        <template v-for="tag in tags">
+                            <div class="s-value-wrapper cursor-default" v-if="tag.states.is_active">
+                                <span class="s-name" v-text="tag.name"></span>
+                                <span class="s-icon icon cursor-pointer" v-on:click="toggleTag(tag, false)"><i class="fas fa-times"></i></span>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="s-search-section">
+                        <div class="s-field-wrapper">
+                            <input class="s-field js-autofocus wa-small" type="text" v-model="search_string" placeholder="{_w("Enter a value")|escape}">
+                            <div class="s-loading-wrapper" v-if="states.is_loading">
+                                <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="s-value-list">
+                        <template v-for="tag in tags">
+                            <div class="s-value-wrapper cursor-pointer"
+                                 v-if="tag.states.is_wanted && !tag.states.is_active"
+                                 v-on:click="toggleTag(tag, true)">
+                                <span class="s-name" v-text="tag.name"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked" v-if="tags.length">
+                    <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name">[`Remove`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-products-remove-tags-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.ready.done( function() {
+                dialog.options.initDialog($dialog, dialog, {
+                    components: {$_components|json_encode},
+                    urls: {$_urls|json_encode},
+
+                    tags: {$tags|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

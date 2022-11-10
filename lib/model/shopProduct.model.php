@@ -605,6 +605,8 @@ class shopProductModel extends waModel
      */
     public function updateType($id, $type_id)
     {
+        $type_model = new shopTypeModel();
+        $data = $this->getUpdateData($type_id);
         if (!is_array($id)) {
             $item = $this->getById($id);
             if (!$item) {
@@ -613,19 +615,25 @@ class shopProductModel extends waModel
             if ($item['type_id'] == $type_id) {
                 return true;
             }
-            if (!$this->updateById($id, array('type_id' => $type_id))) {
+            if (!$this->updateById($id, $data)) {
                 return false;
             }
-            $type_model = new shopTypeModel();
+            $this->resetSkusFractional($id);
             $type_model->incCounters(array(
                 $item['type_id'] => '-1',
-                $type_id         => '+1'
+                $type_id => '+1'
             ));
         } else {
-            if (!$this->updateById($id, array('type_id' => $type_id))) {
+            $product_ids_with_another_type = [];
+            if ($id) {
+                $product_ids_with_another_type = $this->select('id')->where('`type_id` != ? AND `id` IN (?)', $type_id, $id)->fetchAll('id');
+            }
+            if (!$this->updateById($id, $data)) {
                 return false;
             }
-            $type_model = new shopTypeModel();
+            if ($product_ids_with_another_type) {
+                $this->resetSkusFractional(array_keys($product_ids_with_another_type));
+            }
             $type_model->recount();
         }
         return true;
@@ -639,8 +647,19 @@ class shopProductModel extends waModel
      */
     public function changeType($from_type_id, $to_type_id)
     {
-        $sql = "UPDATE `{$this->table}` SET type_id = ".(int)$to_type_id." WHERE type_id = ".(int)$from_type_id;
-        if (!$this->exec($sql)) {
+        if ($from_type_id == $to_type_id) {
+            return true;
+        }
+        $product_skus_model = new shopProductSkusModel();
+        $sql = "UPDATE `{$product_skus_model->getTableName()}` ps
+                    JOIN `{$this->table}` p ON p.id = ps.product_id
+                SET ps.stock_base_ratio = NULL, ps.order_count_min = NULL, ps.order_count_step = NULL
+                WHERE p.type_id = ?";
+        if (!$product_skus_model->exec($sql, $from_type_id)) {
+            return false;
+        }
+        $data = $this->getUpdateData($to_type_id);
+        if (!$this->updateByField(['type_id' => $from_type_id], $data)) {
             return false;
         }
 
@@ -648,6 +667,74 @@ class shopProductModel extends waModel
         $type_model->recount(array($from_type_id, $to_type_id));
 
         return true;
+    }
+
+    protected function getUpdateData($type_id)
+    {
+        $data = [
+            'type_id' => $type_id
+        ];
+        if (shopFrac::isEnabled()) {
+            $type_model = new shopTypeModel();
+            $type = $type_model->getById($type_id);
+            if ($type) {
+                $fields = [
+                    'stock_unit_id',
+                    'base_unit_id',
+                    'stock_base_ratio',
+                    'count_denominator',
+                    'order_multiplicity_factor',
+                    'order_count_min',
+                    'order_count_step',
+                ];
+                $data += array_intersect_key($type, array_flip($fields));
+
+                if ($type['stock_unit_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                    $data['stock_unit_id'] = 0;
+                }
+                if ($type['order_multiplicity_factor_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                    $data['order_multiplicity_factor'] = 1;
+                }
+                if ($type['base_unit_fixed'] == shopTypeModel::PARAM_DISABLED
+                    || $type['stock_base_ratio_fixed'] == shopTypeModel::PARAM_DISABLED
+                ) {
+                    $data['base_unit_id'] = $data['stock_unit_id'];
+                    $data['stock_base_ratio'] = 1;
+                }
+                if ($type['count_denominator_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                    $data['count_denominator'] = 1;
+                }
+                if (!isset($data['order_multiplicity_factor'])) {
+                    if (!empty($data['count_denominator'])) {
+                        $data['order_multiplicity_factor'] = 1 / $data['count_denominator'];
+                    }
+                } else {
+                    $data['count_denominator'] = shopFrac::calculateCountDenominator($data['order_multiplicity_factor']);
+                }
+                if ($type['order_count_min_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                    $data['order_count_min'] = $data['order_multiplicity_factor'];
+                }
+                if ($type['order_count_step_fixed'] == shopTypeModel::PARAM_DISABLED) {
+                    $data['order_count_step'] = $data['order_multiplicity_factor'];
+                }
+                foreach ($fields as $field) {
+                    if ($data[$field] == null) {
+                        $data[$field] = $field == 'stock_unit_id' || $field == 'base_unit_id' ? 0 : 1;
+                    }
+                }
+            }
+        }
+        return $data;
+    }
+
+    protected function resetSkusFractional($product_id)
+    {
+        $product_skus_model = new shopProductSkusModel();
+        $product_skus_model->updateByField(['product_id' => $product_id], [
+            'stock_base_ratio' => null,
+            'order_count_min' => null,
+            'order_count_step' => null,
+        ]);
     }
 
     public function getCurrency($product_id)

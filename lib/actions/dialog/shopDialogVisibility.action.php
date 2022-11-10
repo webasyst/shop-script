@@ -122,6 +122,9 @@ class shopDialogVisibilityAction extends waViewAction
                 break; // being paranoid
             }
         }
+        if ($update_sku_availability) {
+            $product_model->correctCount();
+        }
 
         if (count($all_updated_products) > 1) {
             $this->logAction('products_edit', count($all_updated_products) . '$' . implode(',', $all_updated_products));

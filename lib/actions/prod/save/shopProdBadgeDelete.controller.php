@@ -7,7 +7,7 @@ class shopProdBadgeDeleteController extends waJsonController
         $product_model = new shopProductModel();
         $all_product_ids = null;
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
-        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+        $product_id = waRequest::post('product_ids', [], waRequest::TYPE_ARRAY_INT);
         $options = ['filter_by_rights' => true];
         $offset = 0;
         $hash = '';
@@ -46,7 +46,7 @@ class shopProdBadgeDeleteController extends waJsonController
 
             foreach ($products as $product) {
                 $product_ids[] = $product['id'];
-            };
+            }
 
             $product_ids = array_unique($product_ids);
 
@@ -62,8 +62,8 @@ class shopProdBadgeDeleteController extends waJsonController
                 }
             }
 
-            $product_model->updateById($product_ids, array('badge' => null));
-            $all_updated_products += $product_ids;
+            $product_model->updateById($product_ids, array('badge' => ""));
+            $all_updated_products = array_merge($all_updated_products, $product_ids);
             $offset += count($product_ids);
             if (!$product_ids) {
                 break;

@@ -76,6 +76,9 @@ class shopFeatureModel extends waModel
 
         $multidimensional = substr($feature['type'], 0, 2) == '2d' || substr($feature['type'], 0, 2) == '3d';
         $feature['code'] = $this->getUniqueCode($feature['code'], $id, $multidimensional);
+        if (!mb_strlen($feature['name'])) {
+            $feature['name'] = sprintf_wp('Feature (%s)', $feature['code']);
+        }
         if ($id > 0) {
             if (isset($feature['type'])) {
                 unset($feature['type']);
@@ -158,7 +161,7 @@ SQL;
                 $unique_code = $code;
             }
         } else {
-            $unique_code = time();
+            $unique_code = 'f_' . time();
         }
         return $unique_code;
     }

@@ -85,6 +85,7 @@ class shopProdSaveImageDetailsController extends waJsonController
             // Simply update description.
             //
             $product_images_model->updateById($image['id'], [
+                'edit_datetime' => date('Y-m-d H:i:s'),
                 'description' => $image['description'],
             ]);
         }

@@ -175,19 +175,19 @@
                                     </p>
                                 {/if}
                             {/strip}
+                        {/if}
 
-                            <!-- shipping plugin output -->
-                            {if !empty($params.tracking_number)}
-                                <h3>
-                                    <span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number|escape}</strong>
-                                    <a href="javascript:void(0)"  class="wf-action hint" data-action-id="editshippingdetails" data-container="#workflow-content"><i class="icon10 edit"></i></a>
-                                </h3>
-                            {/if}
-                            {if !empty($tracking) && $order.state_id != 'completed'}
-                                <blockquote class="plugin s-tracking">
-                                    {$tracking}
-                                </blockquote>
-                            {/if}
+                        <!-- shipping plugin output -->
+                        {if !empty($params.tracking_number)}
+                            <h3>
+                                <span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number|escape}</strong>
+                                <a href="javascript:void(0)"  class="wf-action hint" data-action-id="editshippingdetails" data-container="#workflow-content"><i class="icon10 edit"></i></a>
+                            </h3>
+                        {/if}
+                        {if !empty($tracking) && $order.state_id != 'completed'}
+                            <blockquote class="plugin s-tracking">
+                                {$tracking}
+                            </blockquote>
                         {/if}
                     {/if}
 

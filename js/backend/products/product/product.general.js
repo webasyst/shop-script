@@ -2880,12 +2880,10 @@
                                 var is_stocks_mode = false;
 
                                 $.each(sku_mod.stock, function(stock_id, stock_value) {
+                                    is_stocks_mode = true;
+
                                     var value = parseFloat(stock_value);
-                                    if (Math.abs(value) >= 0) {
-                                        is_stocks_mode = true;
-                                    } else {
-                                        value = "";
-                                    }
+                                    if (isNaN(value)) { value = ""; }
 
                                     stocks_data.push({
                                         name: prefix + "[stock][" + stock_id + "]",

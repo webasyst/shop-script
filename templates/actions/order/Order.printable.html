@@ -156,18 +156,18 @@
                                         </p>
                                     {/if}
                                 {/strip}
+                            {/if}
 
-                                <!-- shipping plugin output -->
-                                {if !empty($params.tracking_number)}
-                                    <h3>
-                                        <span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number|escape}</strong>
-                                    </h3>
-                                {/if}
-                                {if !empty($tracking) && $order.state_id != 'completed'}
-                                    <blockquote class="plugin s-tracking">
-                                        {$tracking}
-                                    </blockquote>
-                                {/if}
+                            <!-- shipping plugin output -->
+                            {if !empty($params.tracking_number)}
+                                <h3>
+                                    <span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number|escape}</strong>
+                                </h3>
+                            {/if}
+                            {if !empty($tracking) && $order.state_id != 'completed'}
+                                <blockquote class="plugin s-tracking">
+                                    {$tracking}
+                                </blockquote>
                             {/if}
                         {/if}
 

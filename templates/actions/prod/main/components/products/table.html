@@ -72,7 +72,7 @@
                             <div class="s-sku-section">
                                 {* SKU ROW *}
                                 <div class="s-table-row s-sku-wrapper"
-                                     v-if="((sku.sku || sku.name) && (sku.modifications.length > 1 || sku.modifications[0].name_values))"
+                                     v-if="((sku.sku || sku.name) && (sku.modifications.length > 1 || sku.modifications[0].name_values) || sku.modifications[0].force_empty_name_values)"
                                      v-bind:key="sku.id">
                                     <div class="s-column s-column-checkbox">{ { sku.id } }</div>
                                     <template v-for="column in presentation.columns">

@@ -1,0 +1,71 @@
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_urls = [
+    "assign_tags" => "{$wa_app_url}?module=prod&action=assignTags",
+    "autocomplete_tags" => "{$wa_app_url}?module=product&action=tagsAutocomplete"
+]}
+
+{$_locales = [
+    "products_add_tag" => _w("Add the “%s” tag")
+]}
+
+{$_components = []}
+
+<div class="wa-dialog s-products-assign-tags-dialog" id="js-products-assign-tags-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Assign tags`]</h3>
+            </div>
+            <div class="dialog-content">
+
+                <div class="s-tags-section">
+                    <div class="s-value-list">
+                        <template v-if="tags.length">
+                            <template v-for="tag in tags">
+                                <div class="s-value-wrapper">
+                                    <span class="s-name" v-text="tag.name"></span>
+                                    <span class="s-icon icon cursor-pointer" v-on:click="removeTag(tag)"><i class="fas fa-times"></i></span>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+
+                    <div class="s-search-section">
+                        <div class="s-field-wrapper">
+                            <div class="s-magic-hint">[`Press Enter to add the tag.`]</div>
+                            <input class="s-field js-autocomplete js-autofocus wa-small" type="text" placeholder="{_w("Enter a value")|escape}">
+                            <div class="s-loading-wrapper" v-if="states.is_loading">
+                                <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
+                    <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name">[`Assign tags`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-products-assign-tags-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.ready.done( function() {
+                dialog.options.initDialog($dialog, dialog, {
+                    components: {$_components|json_encode},
+                    locales: {$_locales|json_encode},
+                    urls: {$_urls|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

@@ -1505,4 +1505,24 @@ SQL;
     {
         return shop_number_format($float, $limit_precision, $decimal_separator);
     }
+
+    public function roundNumber($float, $limit_precision = null, $decimal_separator = '.')
+    {
+        if (is_numeric($float)) {
+            if ($float < 1) {
+                $parts = explode('.', (string)$float, 2);
+                if (isset($parts[1])) {
+                    $deleted_zero = ltrim((string)$parts[1], '0');
+                    $stock_base_ratio_round = round($float, mb_strlen($parts[1]) - mb_strlen($deleted_zero) + $limit_precision);
+                } else {
+                    $stock_base_ratio_round = round($float, $limit_precision);
+                }
+            } else {
+                $stock_base_ratio_round = round($float, $limit_precision);
+            }
+            return $this->numberFormat($stock_base_ratio_round, null, $decimal_separator);
+        } else {
+            return $this->numberFormat($float, $limit_precision, $decimal_separator);
+        }
+    }
 }

@@ -19,19 +19,13 @@ class shopProdAddToSetsController extends waJsonController
             ];
         }
 
-        $set_ids = waRequest::post('set_id', []);
+        $set_ids = waRequest::post('set_ids', []);
 
-        $new_set_id = null;
-        $new_set = waRequest::post('new_set', '', waRequest::TYPE_STRING_TRIM);
-        if ($new_set) {
-            $new_set_id = $this->createSet($new_set);
-            $set_ids[] = $new_set_id;
-        }
         if (!$set_ids) {
             return;
         }
 
-        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+        $product_id = waRequest::post('product_ids', [], waRequest::TYPE_ARRAY_INT);
         $all_product_ids = null;
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
         $options = [];
@@ -52,8 +46,7 @@ class shopProdAddToSetsController extends waJsonController
         /**
          * Attaches a product to the sets. Get data before changes
          *
-         * @param int $new_set_id
-         * @param array $set_ids with $new_set_id
+         * @param array $set_ids
          * @param string $hash
          * @param array|string $all_product_ids products_id
          *
@@ -61,7 +54,6 @@ class shopProdAddToSetsController extends waJsonController
          */
         $params = [
             'set_ids'     => $set_ids,
-            'new_set_id'  => $new_set_id,
             'hash'        => $hash,
             'products_id' => $all_product_ids,
         ];
@@ -88,16 +80,11 @@ class shopProdAddToSetsController extends waJsonController
         }
 
         $sets = $this->set_model->getByField('id', $set_ids, 'id');
-        if (isset($sets[$new_set_id])) {
-            $this->response['new_set'] = $sets[$new_set_id];
-            unset($sets[$new_set_id]);
-        }
 
         /**
          * Attaches a product to the sets
          *
-         * @param int $new_set_id
-         * @param array $set_ids with $new_set_id
+         * @param array $set_ids
          * @param string $hash
          * @param array|string $all_product_ids products_id
          *
@@ -105,25 +92,11 @@ class shopProdAddToSetsController extends waJsonController
          */
         $params = [
             'set_ids'     => $set_ids,
-            'new_set_id'  => $new_set_id,
             'hash'        => $hash,
             'products_id' => $all_product_ids,
         ];
         wa('shop')->event('products_add_sets.after', $params);
 
         $this->response['sets'] = $sets;
-    }
-
-    public function createSet($name)
-    {
-        $id = str_replace('-', '_', shopHelper::transliterate($name));
-        $id = $this->set_model->suggestUniqueId($id);
-        if (empty($name)) {
-            $name = _w('(no name)');
-        }
-        return $this->set_model->add([
-            'id'   => $id,
-            'name' => $name,
-        ]);
     }
 }

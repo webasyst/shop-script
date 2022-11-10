@@ -194,7 +194,7 @@ class shopFilter
             ],
         ];
 
-        if (shopFrac::isEnabled()) {
+        if (shopUnits::stockUnitsEnabled()) {
             $product_fields += [
                 'stock_unit_id' => [
                     'name' => _w('Stock quantity unit'),
@@ -203,6 +203,10 @@ class shopFilter
                     'options' => [],
                     'table' => 'unit',
                 ],
+            ];
+        }
+        if (shopUnits::baseUnitsEnabled()) {
+            $product_fields += [
                 'base_unit_id' => [
                     'name' => _w('Base quantity unit'),
                     'type' => 'select',
@@ -475,10 +479,11 @@ class shopFilter
                             } else {
                                 $correct_params = [$rule_params[0], $rule_params[1]];
                             }
+                            $correct_params = array_map('floatval', $correct_params);
                         }
                     } elseif ($count == 1) {
                         if (is_numeric($rule_params[0])) {
-                            $correct_params[] = $rule_params[0];
+                            $correct_params[] = (float)$rule_params[0];
                         }
                     }
                     break;
@@ -556,12 +561,13 @@ class shopFilter
                         } else {
                             $correct_params = [$rule_params[0], $rule_params[1]];
                         }
+                        $correct_params = array_map('floatval', $correct_params);
                     }
                 } elseif ($count == 1 && is_numeric($rule_params[0])
                     && ($type['type'] == shopFeatureModel::TYPE_DOUBLE || mb_strpos($type['type'], 'range.') === 0
                         || mb_strpos($type['type'], 'dimension.') === 0)
                 ) {
-                    $correct_params = [$rule_params[0]];
+                    $correct_params = [(float)$rule_params[0]];
                 }
             }
         }

@@ -41,9 +41,33 @@ class shopProdSetSortDialogAction extends waViewAction
     }
 
     protected function formatProduct($product) {
+        // Фотографии продукта
+        $photo = null;
+
+        if (!empty($product["images"])) {
+            foreach ($product["images"] as $_image) {
+                if (empty($photo) || $_image["id"] === $product["image_id"]) {
+                    // Append file modification time to image URL
+                    // in order to avoid browser caching issues
+                    $last_modified = "";
+                    $path = shopImage::getPath($_image);
+                    if (file_exists($path)) {
+                        $last_modified = "?".filemtime($path);
+                    }
+
+                    $photo = [
+                        "id" => $_image["id"],
+                        "url" => $_image["url_thumb"].$last_modified,
+                        "description" => $_image["description"]
+                    ];
+                }
+            }
+        }
+
         return [
             "id" => $product["id"],
             "name" => $product["name"],
+            "photo" => $photo,
             "price_html" => shop_currency_html($product["price"], true),
         ];
     }

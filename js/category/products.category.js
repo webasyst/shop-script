@@ -55,6 +55,7 @@ var shopDialogProductsCategory = (function ($) {
         that.initShowMore();
         that.initShowAllFeatureValue();
         that.initGetFeatures();
+        that.initFieldValidation();
     };
 
 
@@ -430,6 +431,46 @@ var shopDialogProductsCategory = (function ($) {
             }
         });
     };
+
+    shopDialogProductsCategory.prototype.initFieldValidation = function () {
+        var $wrapper = this.$wrapper;
+
+        function validateNumber(value) {
+            var white_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", ",", "-"],
+                letters_array = [],
+                divider_exist = false;
+
+            $.each(value.split(""), function(i, letter) {
+                if (letter === "-") {
+                    if (letters_array.length === 0) {
+                        letters_array.push(letter);
+                    }
+                } else if (letter === "." || letter === ",") {
+                    letter = ".";
+                    if (!divider_exist) {
+                        divider_exist = true;
+                        letters_array.push(letter);
+                    }
+                } else {
+                    if (white_list.indexOf(letter) >= 0) {
+                        letters_array.push(letter);
+                    }
+                }
+            });
+
+            return letters_array.join("");
+        }
+
+        $wrapper.on('input', '.js-begin, .js-end', function () {
+            var value = $(this).val(),
+                new_value = (typeof value === "string" ? value : "" + value);
+
+            new_value = validateNumber(new_value);
+            if (new_value !== value) {
+                $(this).val(new_value);
+            }
+        });
+    }
 
     shopDialogProductsCategory.prototype.renderFeature = function (item_id) {
         var that = this,

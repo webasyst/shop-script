@@ -204,6 +204,7 @@ return array(
     0xFFDB58 => 'Mustard',
     0xFFDEAD => 'Navajo white',
     0xFFE5B4 => 'Peach',
+    0XFFE67B => 'Sunny Yellow',
     0xFFEFD5 => 'Papaya whip',
     0xFFF0F5 => 'Lavender Blush',
     0xFFF5EE => 'Seashell',

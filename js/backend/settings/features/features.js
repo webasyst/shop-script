@@ -1645,7 +1645,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         self.fractional.stock_base_ratio.value =  self.validate("number", self.fractional.stock_base_ratio.value);
 
                         if (self.fractional.base_unit.status && self.fractional.base_unit.enabled && self.fractional.stock_unit.value && self.fractional.base_unit.value) {
-                            var case_1 = (self.fractional.stock_base_ratio.value && !(parseFloat(self.fractional.stock_base_ratio.value) > 0));
+                            var case_1 = (!self.fractional.stock_base_ratio.value || !(parseFloat(self.fractional.stock_base_ratio.value) > 0));
                                 //case_2 = (!self.fractional.stock_base_ratio.value && !self.fractional.base_unit.editable);
 
                             if (case_1) {

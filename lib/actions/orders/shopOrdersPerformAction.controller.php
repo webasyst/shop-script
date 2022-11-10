@@ -100,6 +100,25 @@ class shopOrdersPerformActionController extends waJsonController
                 $hash = "search/{$k}={$v}";
             }
         }
+        if (!$hash) {
+            $hash_param = waRequest::get('hash', '', waRequest::TYPE_STRING_TRIM);
+            if ($hash_param) {
+                $collection = new shopOrdersCollection($hash_param);
+                if ($collection->isPluginHash()) {
+                    $hash = $hash_param;
+                } else {
+                    $order_model = new shopOrderModel();
+                    $number_selected_orders = $collection->count();
+                    $number_all_orders = $order_model->countAll();
+                    // if a hash is set and there are all products in the collection, then something went wrong
+                    // paranoia mode
+                    if ($number_selected_orders >= $number_all_orders) {
+                        return null;
+                    }
+                }
+            }
+        }
+
         return $hash;
     }
 

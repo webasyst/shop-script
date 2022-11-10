@@ -38,6 +38,12 @@
         select_all_input: null,
 
         /**
+         * Plugin hash for filtering
+         * {String}
+         */
+        plugin_hash: '',
+
+        /**
          * Params by which list is filtered
          * {Object}
          */
@@ -91,6 +97,7 @@
 
         init: function(options) {
             this.options = options = options || {};
+            this.plugin_hash = options.plugin_hash || '';
             this.filter_params = options.filter_params || {};
             this.filter_params_str = options.filter_params_str || '';
             this.container = $('#order-list');
@@ -972,6 +979,9 @@
                 }).join('&');
 
                 url += '&' + params_str + '&' + forms_str;
+                if ($.order_list.plugin_hash) {
+                    url += '&hash=' + $.order_list.plugin_hash;
+                }
 
                 var target_id = ('' + Math.random()).slice(2);
                 window.open(url, target_id);

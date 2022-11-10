@@ -16,7 +16,7 @@ class shopProdBadgeSetController extends waJsonController
         $product_model = new shopProductModel();
 
         $all_product_ids = null;
-        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+        $product_id = waRequest::post('product_ids', [], waRequest::TYPE_ARRAY_INT);
         $presentation_id = waRequest::post('presentation_id', null, waRequest::TYPE_INT);
         $options = ['filter_by_rights' => true];
         $offset = 0;

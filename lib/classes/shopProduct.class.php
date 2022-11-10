@@ -925,6 +925,13 @@ class shopProduct implements ArrayAccess
             } elseif ($type['order_multiplicity_factor_fixed'] == shopTypeModel::PARAM_DISABLED) {
                 $value = 1;
             }
+            foreach (['order_count_min', 'order_count_step'] as $field) {
+                if (!empty($this->dependent_fields[$field])) {
+                    $this->data[$field] = $value;
+                    $this->is_dirty[$field] = true;
+                    $this->dependent_fields[$field] = false;
+                }
+            }
         }
         if ($name == 'count_denominator') {
             // Silently ignore any attempt to set count_denominator without order_multiplicity_factor
@@ -934,14 +941,16 @@ class shopProduct implements ArrayAccess
             if ($type['order_count_min_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
                 $value = $type['order_count_min'];
             } elseif ($type['order_count_min_fixed'] == shopTypeModel::PARAM_DISABLED) {
-                $value = 1 / $this->getData('count_denominator');
+                $value = $this->getData('order_multiplicity_factor');
+                $this->dependent_fields['order_count_min'] = true;
             }
         }
         if ($name == 'order_count_step') {
             if ($type['order_count_step_fixed'] == shopTypeModel::PARAM_ONLY_TYPES) {
                 $value = $type['order_count_step'];
             } elseif ($type['order_count_step_fixed'] == shopTypeModel::PARAM_DISABLED) {
-                $value = 1 / $this->getData('count_denominator');
+                $value = $this->getData('order_multiplicity_factor');
+                $this->dependent_fields['order_count_step'] = true;
             }
         }
         if ($name == 'stock_base_ratio') {

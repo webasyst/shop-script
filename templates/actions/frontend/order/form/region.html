@@ -98,7 +98,7 @@
     <div class="wa-section-body">
         <form autocomplete="off">
             {if empty($region.disabled)}
-                <div class="wa-line wa-required-text">
+                <div class="wa-line wa-required-text" {if !empty($_nothing_to_change)}style="display: none;"{/if}>
                     <span class="wa-required"></span>[`To view shipping cost and estimated shipping time, please complete fields with an asterisk`]
                 </div>
 

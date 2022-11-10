@@ -23,7 +23,7 @@ class shopFrontendCartAction extends shopFrontendAction
 
         if (waRequest::method() == 'post') {
             $data = wa()->getStorage()->get('shop/checkout', array());
-            if ($coupon_code = waRequest::post('coupon_code')) {
+            if ($coupon_code = waRequest::post('coupon_code', '', waRequest::TYPE_STRING_TRIM)) {
                 $data['coupon_code'] = $coupon_code;
             } elseif (isset($data['coupon_code'])) {
                 unset($data['coupon_code']);

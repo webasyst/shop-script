@@ -149,15 +149,29 @@ class shopPresentationModel extends waModel
                 if (!$template) {
                     throw new waException('template not found: '.$template_id);
                 }
+
+                $sort_column = [];
+                if ($presentation['sort_column_id']) {
+                    $sort_column = $this->columnsModel()->getById($presentation['sort_column_id']);
+                }
                 $this->copyColumns($template['id'], $presentation['id'], true);
 
                 $update = [
                     'parent_id' => $template['id'],
-                    'sort_column_id' => $template['sort_column_id'],
+                    'sort_column_id' => null,
                     'view' => $template['view'],
                     'rows_on_page' => $template['rows_on_page'],
-                    'sort_order' => $template['sort_order'],
                 ];
+                if ($sort_column) {
+                    $new_sort_column = $this->columnsModel()->getByField([
+                        'presentation_id' => $presentation['id'],
+                        'column_type' => $sort_column['column_type'],
+                    ]);
+                    if ($new_sort_column) {
+                        $update['sort_column_id'] = $new_sort_column['id'];
+                    }
+                }
+
                 $update = array_merge($update, $duplicate_options);
                 $this->updateById($presentation['id'], $update);
                 return $this->getById($presentation['id'], $options);
@@ -191,12 +205,12 @@ class shopPresentationModel extends waModel
             throw new waException('template ' . $destination_template_id . ' cannot be a presentation');
         }
         // update only parameter fields
-        $update_fields = array_intersect_key($source_presentation, [
-            'sort_column_id' => 1,
-            'view' => 1,
-            'rows_on_page' => 1,
-            'sort_order' => 1,
-        ]);
+        $update_fields = [
+            'sort_column_id' => null,
+            'view' => $source_presentation['view'],
+            'rows_on_page' => $source_presentation['rows_on_page'],
+            'sort_order' => 'ASC',
+        ];
 
         $this->updateById($destination_template_id, $update_fields);
         $this->copyColumns($source_presentation['id'], $destination_template['id'], true);
@@ -233,6 +247,8 @@ class shopPresentationModel extends waModel
         } elseif ($mode == self::DUPLICATE_MODE_CREATE) {
             $rules += [
                 'parent_id' => null,
+                'sort_column_id' => null,
+                'sort_order' => 'ASC',
                 'use_datetime' => null,
                 'browser' => null,
                 'filter_id' => null,
@@ -240,7 +256,13 @@ class shopPresentationModel extends waModel
         } elseif ($mode == self::DUPLICATE_MODE_PRESENTATION) {
             $rules['name'] = null;
         } elseif ($mode == self::DUPLICATE_MODE_TEMPLATE) {
-            $rules['parent_id'] = null;
+            $rules += [
+                'parent_id' => null,
+                'sort_column_id' => null,
+                'sort_order' => 'ASC',
+                'use_datetime' => null,
+                'browser' => null,
+            ];
         }
         if (!empty($presentation['filter_id']) && $mode == self::DUPLICATE_MODE_PRESENTATION) {
             $filter_model = new shopFilterModel();

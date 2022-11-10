@@ -223,9 +223,15 @@ class shopCategorySaveController extends waJsonController
             if (isset($raw_condition[$field])) {
                 $field_conditions = waRequest::post($field);
                 if (isset($field_conditions[0]) && mb_strlen($field_conditions[0])) {
+                    if ($field != 'create_datetime' && $field != 'edit_datetime') {
+                        $field_conditions[0] = (float)$field_conditions[0];
+                    }
                     $conditions[] = $field.'>='.$field_conditions[0];
                 }
                 if (isset($field_conditions[1]) && mb_strlen($field_conditions[1])) {
+                    if ($field != 'create_datetime' && $field != 'edit_datetime') {
+                        $field_conditions[0] = (float)$field_conditions[1];
+                    }
                     $conditions[] = $field.'<='.$field_conditions[1];
                 }
             }
@@ -255,10 +261,10 @@ class shopCategorySaveController extends waJsonController
                         $end = shopDateValue::dateToTimestamp($end);
                     }
                     if (is_numeric($begin)) {
-                        $conditions[] = $f_code.'.value>='.$begin;
+                        $conditions[] = $f_code.'.value>='.(float)$begin;
                     }
                     if (is_numeric($end)) {
-                        $conditions[] = $f_code.'.value<='.$end;
+                        $conditions[] = $f_code.'.value<='.(float)$end;
                     }
                     $unit = ifset($f_values, 'unit', null);
                     if (mb_strlen($unit)) {

@@ -104,6 +104,7 @@ class shopOrdersAction extends shopOrderListAction
             'order'       => $this->getOrder($orders),
             'currency'    => $config->getCurrency(),
             'state_names' => $state_names,
+            'plugin_hash' => waRequest::get('hash', '', waRequest::TYPE_STRING_TRIM),
             'params'      => $this->getFilterParams(),
             'params_str'  => $this->getFilterParams(true),
             'view'        => $view,

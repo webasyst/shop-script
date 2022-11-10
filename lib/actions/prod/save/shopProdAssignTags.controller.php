@@ -7,9 +7,9 @@ class shopProdAssignTagsController extends waJsonController
         $tag_model = new shopTagModel();
         $product_tags_model = new shopProductTagsModel();
 
-        $product_id = waRequest::post('product_id', [], waRequest::TYPE_ARRAY_INT);
+        $product_id = waRequest::post('product_ids', [], waRequest::TYPE_ARRAY_INT);
         $delete_tags = waRequest::post('delete_tags', [], waRequest::TYPE_ARRAY_INT);
-        $tags = waRequest::post('tags', [], waRequest::TYPE_ARRAY_INT);
+        $tags = waRequest::post('tags', [], waRequest::TYPE_ARRAY);
 
         if (!$delete_tags && !$tags) {
             $this->errors[] = [
@@ -76,8 +76,8 @@ class shopProdAssignTagsController extends waJsonController
             }
             $all_updated_products = array_merge($all_updated_products, $product_ids);
             $offset += count($product_ids);
-            foreach ($product_ids as $product_id) {
-                $index_search->onUpdate($product_id);
+            foreach ($product_ids as $id) {
+                $index_search->onUpdate($id);
             }
         }
 

@@ -1,0 +1,66 @@
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_urls = [
+    "products_set_type" => "{$wa_app_url}?module=prod&action=setType"
+]}
+
+<div class="wa-dialog s-products-set-type-dialog" id="js-products-set-type-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Change product type`]</h3>
+                <div class="s-description">[`Select the type to be set for selected products.`]</div>
+                <div class="wa-message wa-small gray flexbox space-8" style="margin: 1rem 0 0;">
+                    <div class="message-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="message-text wide">
+                        <p>[`Changing product type may affect products’ publication status and access settings.`]</p>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-content">
+                <div class="s-types-section">
+                    <div class="s-types-list">
+                        {foreach $types as $type}
+                            <div class="s-type-wrapper">
+                                <label class="flexbox space-8">
+                                        <span class="s-radio">
+                                            <component-radio v-model="type"
+                                                             v-bind:label="false"
+                                                             v-bind:val="'{$type.id|escape}'"
+                                                             v-bind:name="'type-radio-option'"></component-radio></span>
+                                    <span class="s-label">{$type.name|escape}</span>
+                                </label>
+                            </div>
+                        {foreachelse}
+                            <p>[`You have no product types in your online store. Create one in the store settings.`]</p>
+                        {/foreach}
+                    </div>
+                </div>
+
+            </div>
+            <div class="dialog-footer">
+                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked || !type">
+                    <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="s-name">[`Change`]</span>
+                </button>
+                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-products-set-type-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.ready.done( function() {
+                dialog.options.initDialog($dialog, dialog, {
+                    urls: {$_urls|json_encode},
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

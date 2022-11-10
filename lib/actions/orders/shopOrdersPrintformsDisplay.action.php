@@ -95,6 +95,16 @@ class shopOrdersPrintformsDisplayAction extends waViewAction
                 $hash = "search/{$k}={$v}";
             }
         }
+        if (!$hash) {
+            $hash_param = waRequest::get('hash', '', waRequest::TYPE_STRING_TRIM);
+            if ($hash_param) {
+                $collection = new shopOrdersCollection($hash_param);
+                if ($collection->isPluginHash()) {
+                    $hash = $hash_param;
+                }
+            }
+        }
+
         return $hash;
     }
 
