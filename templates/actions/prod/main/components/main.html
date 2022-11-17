@@ -71,7 +71,8 @@
             <input class="size-color js-color-field" placeholder="#000000" type="text"
                    v-model="value"
                    v-bind:class="field_class"
-                   v-bind:disabled="readonly"
+                   v-bind:readonly="readonly"
+                   v-bind:disabled="disabled"
                    v-on:focus="onFocus"
                    v-on:input="onInput"
                    v-on:change="onChange">

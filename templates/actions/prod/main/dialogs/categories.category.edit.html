@@ -507,7 +507,7 @@
                                 <div class="s-dropdown-wrapper" style="margin-bottom: .5rem;">
                                     <component-dropdown
                                         v-model="category.type"
-                                        v-bind:disabled="!!category.id"
+                                        v-bind:disabled="!!category.id || category.preselected"
                                         v-bind:button_class="'gray-field'"
                                         v-bind:options="category_types"></component-dropdown>
                                 </div>

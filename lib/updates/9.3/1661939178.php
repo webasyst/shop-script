@@ -6,3 +6,4 @@ waFiles::delete('wa-apps/shop/lib/actions/prod/shopProdFormatFeature.controller.
 waFiles::delete('wa-apps/shop/lib/actions/prod/shopProdOrigImage.controller.php', true);
 waFiles::delete('wa-apps/shop/lib/actions/prod/shopProdSuggestUrl.controller.php', true);
 waFiles::delete('wa-apps/shop/lib/actions/prod/shopProdTypeSettings.controller.php', true);
+waFiles::delete('wa-apps/shop/lib/actions/prod/save/shopProdDuplicate.controller.php', true);

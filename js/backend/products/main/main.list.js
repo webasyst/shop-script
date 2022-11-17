@@ -447,10 +447,11 @@
              * @description Color Picker
              * */
             Vue.component("component-color-picker", {
-                props: ["value", "readonly", "field_class"],
+                props: ["value", "readonly", "disabled", "field_class"],
                 data: function() {
                     var self = this;
                     self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
+                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
                     if (self.value) { self.value = self.value.toLowerCase() }
                     return {
                         is_ready: true,
@@ -485,7 +486,7 @@
                     toggle: function(show) {
                         var self = this;
 
-                        if (self.readonly) { return false; }
+                        if (self.readonly || self.disabled) { return false; }
 
                         show = (typeof show === "boolean" ? show : !self.extended);
                         self.extended = show;
@@ -547,19 +548,20 @@
              * @description Textarea
              * */
             Vue.component("component-textarea", {
-                props: ["value", "placeholder", "readonly", "cancel", "focus"],
+                props: ["value", "placeholder", "readonly", "disabled", "cancel", "focus"],
                 data: function() {
                     var self = this;
                     self.focus = (typeof self.focus === "boolean" ? self.focus : false);
                     self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
                     self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
+                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
                     return {
                         offset: 0,
                         $textarea: null,
                         start_value: null
                      };
                 },
-                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-bind:readonly="readonly" v-on:focus="onFocus" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:blur="onBlur"></textarea>',
+                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-bind:readonly="readonly" v-bind:disabled="disabled" v-on:focus="onFocus" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:blur="onBlur"></textarea>',
                 delimiters: ['{ { ', ' } }'],
                 methods: {
                     onInput: function($event) {
@@ -621,20 +623,21 @@
              * @description Input
              * */
             Vue.component("component-input", {
-                props: ["value", "placeholder", "readonly", "required", "cancel", "focus", "validate", "fraction_size", "format"],
+                props: ["value", "placeholder", "readonly", "disabled", "required", "cancel", "focus", "validate", "fraction_size", "format"],
                 data: function() {
                     var self = this;
                     self.focus = (typeof self.focus === "boolean" ? self.focus : false);
                     self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
                     self.required = (typeof self.required === "boolean" ? self.required : false);
                     self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
+                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
                     self.format = (typeof self.format === "string" ? self.format : "text");
                     return {
                         $input: null,
                         start_value: null
                      };
                 },
-                template: '<input type="text" v-bind:class="field_class" v-bind:placeholder="placeholder" v-bind:value="value" v-bind:readonly="readonly" v-on:focus="onFocus" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:keydown.enter="onEnter" v-on:blur="onBlur">',
+                template: '<input type="text" v-bind:class="field_class" v-bind:placeholder="placeholder" v-bind:value="value" v-bind:readonly="readonly" v-bind:disabled="disabled" v-on:focus="onFocus" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:keydown.enter="onEnter" v-on:blur="onBlur">',
                 delimiters: ['{ { ', ' } }'],
                 computed: {
                     field_class: function() {
@@ -5154,7 +5157,7 @@
                                         delimiters: ['{ { ', ' } }'],
                                         components: {
                                             "component-product-feature-color": {
-                                                props: ["data", "readonly"],
+                                                props: ["data", "readonly", "disabled"],
                                                 data: function() {
                                                     var self = this;
                                                     return {

@@ -900,7 +900,7 @@ SQL;
                         $set_alias = $this->addJoin('shop_set_products');
                         $this->where[] = $set_alias . ".set_id = '" . $set_model->escape($set['id']) . "'";
                     } else {
-                        $inner_sql = "(SELECT p.* FROM shop_product p ";
+                        $inner_sql = "(SELECT DISTINCT p.* FROM shop_product p ";
                         $rule = ifset($set, 'rule', false);
                         $json_params = ifset($set, 'json_params', '');
                         $params = json_decode($json_params, true);

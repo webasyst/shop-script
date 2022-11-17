@@ -25,8 +25,15 @@ class shopProdCategoryDialogAction extends waViewAction
             $category["frontend_base_url"] = $category["frontend_urls"][0]["base"];
         }
 
+        $category['preselected'] = false;
         if (!empty($_parent_category_id)) {
             $category["parent_id"] = (string)$_parent_category_id;
+            $category_model = new shopCategoryModel();
+            $parent_category = $category_model->getById($_parent_category_id);
+            if (empty($category['id']) && $parent_category && $parent_category['type'] == $category_model::TYPE_DYNAMIC) {
+                $category['type'] = (string)$category_model::TYPE_DYNAMIC;
+                $category['preselected'] = true;
+            }
         }
 
         $this->view->assign([

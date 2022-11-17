@@ -1008,6 +1008,9 @@ class shopPresentation
                                                             $sku_stock_value = 0;
                                                         }
                                                         $sku_stock_value += shopFrac::discardZeros($sku['stock'][$stock_id]);
+                                                    } else {
+                                                        $sku_stock_value = '';
+                                                        break;
                                                     }
                                                 }
                                             } elseif (isset($sku['stock'][$active_column['stock_id']])) {

@@ -60,7 +60,7 @@
         <template v-else-if="column_data.render_type === 'color'">
             <component-product-feature-color
                 v-bind:data="column_data.options[0]"
-                v-bind:readonly="!column_data.editable"
+                v-bind:disabled="!column_data.editable"
                 v-on:change="onChange"></component-product-feature-color>
         </template>
 
@@ -89,7 +89,7 @@
             <component-textarea
                 v-model="column_data.value"
                 v-bind:cancel="true"
-                v-bind:readonly="!column_data.editable"
+                v-bind:disabled="!column_data.editable"
                 v-bind:class="'wa-small wide s-square-field'"
                 v-on:change="onChange"></component-textarea>
         </template>
@@ -147,6 +147,7 @@
                     <component-input
                         v-model="data.value"
                         v-bind:cancel="true"
+                        v-bind:disabled="disabled"
                         v-bind:readonly="readonly"
                         v-bind:class="'s-field wa-small full-width s-square-field'"
                         v-on:focus="onFocus"
@@ -155,6 +156,7 @@
                 <div class="s-field-wrapper">
                     <component-color-picker
                         v-model="data.code"
+                        v-bind:disabled="disabled"
                         v-bind:readonly="readonly"
                         v-bind:field_class="'s-field wa-small s-square-field'"
                         v-on:focus="onFocus"

@@ -69,8 +69,9 @@
             <template v-else>
                 <div class="s-stock-wrapper" v-if="stock && stock.is_virtual">
                     <div class="s-icon-wrapper" data-tooltip-id="stock-virtual-edit-disabled">
-                        <span class="icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
+                        <span class="icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse_stroke'></use></svg></span>
                     </div>
+                    <div class="s-count-wrapper">{ { column_data.value ? formatted_value : '∞' } }</div>
                 </div>
 
                 <div class="s-stock-wrapper is-edit" v-else  data-tooltip-id="stock-edit-disabled">
@@ -78,7 +79,7 @@
                         <span class="icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
                     </div>
                     <input class="s-field wa-small full-width s-square-field align-right is-disabled" type="text" readonly
-                           v-bind:value="column_data.value">
+                           v-bind:value="column_data.value ? formatted_value : '∞'">
                 </div>
             </template>
         </template>
