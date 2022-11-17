@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="facebook" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:facebook" version="1.2.17">
+<theme id="facebook" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:facebook" version="1.2.18">
     <name locale="en_US">Facebook</name>
     <name locale="ru_RU">Фейсбук</name>
     <files>
@@ -42,7 +42,7 @@
         </file>
         <file path="product.html">
             <description locale="en_US">Dedicated product page</description>
-            <description locale="ru_RU">Шаблон основной страницы продукта</description>
+            <description locale="ru_RU">Шаблон основной страницы товара</description>
         </file>
         <file path="product.cart.html">
             <description locale="en_US">Product add to cart block</description>
@@ -50,11 +50,11 @@
         </file>
         <file path="product.js">
             <description locale="en_US">Product page JS</description>
-            <description locale="ru_RU">JS-скрипты страницы продукта</description>
+            <description locale="ru_RU">JS-скрипты страницы товара</description>
         </file>
         <file path="product.page.html">
             <description locale="en_US">Product static subpage content</description>
-            <description locale="ru_RU">Информационная подстраница продукта</description>
+            <description locale="ru_RU">Информационная подстраница товара</description>
         </file>
         <file path="review.html">
             <description locale="en_US">A single product review template</description>
