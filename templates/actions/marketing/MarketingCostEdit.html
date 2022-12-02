@@ -15,7 +15,7 @@
 {/if}
 
 <div class="block double-padded js-edit-costs-form-section">
-    <form action="{$wa_app_url}?module=marketingCostEdit">
+    <form action="{$wa_app_url}?module=marketingCostSave">
         <div class="fields form width100px">
 
             <input type="hidden" name="expense_id" value="{$expense.id|escape}">
@@ -32,14 +32,14 @@
             <div class="field">
                 <div class="name">[`Amount`]</div>
                 <div class="value">
-                    <input type="text" name="expense[amount]" class="large bold numerical" value="{$expense.amount|floatval}" placeholder="0" style="max-width: 185px; min-width: auto; width: auto;">
+                    <input type="text" name="expense[amount]" class="large bold numerical" value="{if !empty($expense.amount)}{$expense.amount|floatval}{/if}" style="max-width: 185px; min-width: auto; width: auto;">
                     {$def_cur}
                 </div>
             </div>
             <div class="field">
                 <div class="name">[`Channel`]</div>
                 <div class="value no-shift">
-                    <select class="channel-selector" name="channel_selector" required>
+                    <select class="channel-selector" name="channel_selector">
                         <option></option>
                         {if !empty($promos)}
                             <option disabled>--- [`Promos`] ---</option>

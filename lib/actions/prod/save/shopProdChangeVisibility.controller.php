@@ -100,7 +100,10 @@ class shopProdChangeVisibilityController extends waJsonController
             }
 
             // Update products and skus
-            $product_model->updateById($products_id, ['status' => $set_status]);
+            $product_model->updateById($products_id, [
+                'status' => $set_status,
+                'edit_datetime' => date('Y-m-d H:i:s'),
+            ]);
             $all_updated_products += $products_id;
             if ($update_sku_availability) {
                 $product_skus_model->updateByField('product_id', $products_id, [

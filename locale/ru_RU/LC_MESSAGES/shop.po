@@ -10846,8 +10846,11 @@ msgstr "Перейдите в раздел «Цены и характерист�
 msgid "Product page"
 msgstr "Страница товара"
 
-msgid "This field may contain a maximum of 255 characters."
-msgstr "Это поле должно содержать не более 255 символов."
+msgid "This field may contain a maximum of %d character."
+msgid_plural "This field may contain a maximum of %d characters."
+msgstr[0] "Это поле должно содержать не более %d символа."
+msgstr[1] "Это поле должно содержать не более %d символов."
+msgstr[2] "Это поле должно содержать не более %d символов."
 
 msgid "%d product variant is not displayed in the storefront because of an error."
 msgid_plural "%d product variants are not displayed in the storefront because of an error."
@@ -12856,3 +12859,14 @@ msgstr "Характеристика (%s)"
 msgid "Feature values are not set"
 msgstr "Нет значений характеристик"
 
+msgid "Enter a set name"
+msgstr "Введите наименование списка"
+
+msgid "Enter a set ID"
+msgstr "Введите ID списка"
+
+msgid "Static set"
+msgstr "Статический"
+
+msgid "Dynamic set"
+msgstr "Динамический"

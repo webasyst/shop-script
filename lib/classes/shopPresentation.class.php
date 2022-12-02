@@ -111,10 +111,10 @@ class shopPresentation
 
         $view = waRequest::request('view', null, waRequest::TYPE_STRING_TRIM);
         $replace_params = [
-            'categories' => waRequest::request('category_id', null, waRequest::TYPE_INT),
-            'sets' => waRequest::request('set_id', null, waRequest::TYPE_STRING_TRIM),
-            'types' => waRequest::request('type_id', null, waRequest::TYPE_INT),
-            'tags' => waRequest::request('tag_name', null, waRequest::TYPE_STRING_TRIM),
+            'categories' => waRequest::get('category_id', null, waRequest::TYPE_INT),
+            'sets' => waRequest::get('set_id', null, waRequest::TYPE_STRING_TRIM),
+            'types' => waRequest::get('type_id', null, waRequest::TYPE_INT),
+            'tags' => waRequest::get('tag_name', null, waRequest::TYPE_STRING_TRIM),
         ];
         $open_from_side_section = false;
         foreach ($replace_params as $param) {
@@ -300,20 +300,21 @@ class shopPresentation
             $fields = $this->getCollectionFields($additional_fields);
         }
 
-        $products = [];
+        $all_products = [];
         while ($offset < $total_count) {
-            $products += $collection->getProducts($fields, $offset, $limit, false);
+            $products = $collection->getProducts($fields, $offset, $limit, false);
             if (!$products) {
                 break;
             }
+            $all_products += $products;
             $offset += count($products);
         }
 
         if (!empty($options['format'])) {
-            $this->formatProducts($products, $collection);
+            $this->formatProducts($all_products, $collection);
         }
 
-        return $products;
+        return $all_products;
     }
 
     public function getColumnsList()
@@ -670,6 +671,7 @@ class shopPresentation
         $presentation = new shopPresentation($presentation_id, true);
         if ($presentation->getId() && $product_id) {
             $sort_column_type = $presentation->getSortColumnType();
+            $sort_column_type = $sort_column_type == 'price' || $sort_column_type == 'base_price' ? 'min_' . $sort_column_type : $sort_column_type;
             $collection = new shopProductsCollection('', [
                 'sort' => $sort_column_type !== null ? array_unique([$sort_column_type, 'name']) : ['name'],
                 'order' => strtolower($presentation->getField('sort_order')),
@@ -1060,17 +1062,15 @@ class shopPresentation
                                     $skus_data = [];
                                     $_product_value = '';
 
+                                    $base_prices = [];
                                     foreach ($p['skus'] as $sku) {
                                         $sku_base_price = $sku['price'] / ifempty($sku['stock_base_ratio'], $p['stock_base_ratio']);
                                         if (!empty($p['base_unit_id']) && ($p['stock_unit_id'] !== $p['base_unit_id']) && !empty($this->units[$p['base_unit_id']])) {
+                                            $base_prices[] = $sku_base_price;
                                             $base_unit = $this->units[$p['base_unit_id']];
                                             $_sku_value = shopViewHelper::formatPrice($sku_base_price, ['currency' => $p['currency'], 'unit' => $base_unit['name_short'], 'format' => $_format]);
                                         } else {
                                             $_sku_value = '';
-                                        }
-
-                                        if ($sku['id'] === $p['sku_id']) {
-                                            $_product_value = $_sku_value;
                                         }
 
                                         $skus_data[$sku['id']] = [
@@ -1079,6 +1079,16 @@ class shopPresentation
                                         ];
                                     }
 
+                                    if ($base_prices) {
+                                        $min_base_price = min($base_prices);
+                                        $max_base_price = max($base_prices);
+                                        if ($min_base_price == $max_base_price) {
+                                            $_product_value = shopViewHelper::formatPrice($min_base_price, ['currency' => $p['currency'], 'unit' => $base_unit['name_short'], 'format' => $_format]);
+                                        } else {
+                                            $_product_value = sprintf('<span class="price-wrapper"><span class="price">%s</span> ... %s</span>', waCurrency::format($_format, $min_base_price, $p['currency']),
+                                                shopViewHelper::formatPrice($max_base_price, ['currency' => $p['currency'], 'unit' => $base_unit['name_short'], 'format' => $_format, 'wrap' => false]));
+                                        }
+                                    }
                                     $p['columns'][$active_column['id']] = [
                                         'render_type' => 'html',
                                         'value' => $_product_value,

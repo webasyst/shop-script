@@ -60,14 +60,6 @@ class shopProdCategorySaveController extends waJsonController
             throw new waException('You cannot create a static category in a dynamic category.');
         }
 
-        if (!empty($category['url'])) {
-            $categegory_id = isset($category['id']) ? $category['id'] : null;
-            if ($this->model->urlExists($category['url'], $categegory_id, $category['parent_id'])) {
-                $this->errors['url'] = _w('The URL is already in use.');
-                return;
-            }
-        }
-
         if (!empty($category['allow_filter']) && !empty($category['filter'])) {
             $category['filter'] = implode(',', array_map('trim', $category['filter']));
         } else {

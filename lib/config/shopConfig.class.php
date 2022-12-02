@@ -1049,10 +1049,7 @@ function shop_number_format($float, $limit_precision=null, $decimal_separator='.
         $exp = $limit_precision;
     }
 
-    if ($exp < 0) {
-        return strval(floatval($float));
-    }
-    $result = sprintf('%.'.$exp.'f', $float);
+    $result = $exp < 0 ? strval(floatval($float)) : sprintf('%.'.$exp.'f', $float);
 
     if ($thousands_separator !== '') {
         if ($thousands_separator === null) {

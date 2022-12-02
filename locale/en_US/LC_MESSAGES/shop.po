@@ -48,3 +48,9 @@ msgstr "View"
 
 msgid "Show now"
 msgstr "Show"
+
+msgid "Static set"
+msgstr "Static"
+
+msgid "Dynamic set"
+msgstr "Dynamic"

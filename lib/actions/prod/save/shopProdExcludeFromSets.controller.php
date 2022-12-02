@@ -60,19 +60,7 @@ class shopProdExcludeFromSetsController extends waJsonController
     protected function exclude($product_ids, $set_ids)
     {
         $set_products_model = new shopSetProductsModel();
-        $products_count = count($product_ids);
-        for ($processed_products_count = 0; $processed_products_count < $products_count; $processed_products_count += 100) {
-            $where = [];
-            $product_part_ids = array_slice($product_ids, $processed_products_count, 100);
-            foreach ($product_part_ids as $product_id) {
-                foreach ($set_ids as $set_id) {
-                    $where[] = "(`product_id` = " . (int)$product_id . " AND `set_id` = '" . $set_products_model->escape($set_id) . "')";
-                }
-            }
-            $sql = "DELETE FROM `" . $set_products_model->getTableName() . "`
-                    WHERE " . implode(' OR ', $where);
-            $set_products_model->exec($sql);
-        }
+        $set_products_model->deleteProducts($set_ids, $product_ids);
         $set_model = new shopSetModel();
         $set_model->recount($set_ids);
     }

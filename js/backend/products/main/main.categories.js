@@ -1879,25 +1879,33 @@
                 static_ids = get_ids.static_ids,
                 dynamic_ids = get_ids.dynamic_ids;
 
-            var limit = 10,
-                dynamic_i = 0;
+            var limit = 100,
+                recount_offset = 0;
 
-            request({ static_ids: static_ids }).done( function() {
-                if (dynamic_ids.length) {
-                    checkDynamic();
-                } else {
-                    deferred.resolve();
-                }
-            });
+            if (static_ids.length) {
+                recountCategories(true);
+            }
+            if (dynamic_ids.length) {
+                limit = 10;
+                recount_offset = 0;
+                recountCategories(false);
+            }
+            if (!static_ids.length && !dynamic_ids.length) {
+                deferred.resolve();
+            }
 
             return deferred.promise();
 
-            function checkDynamic() {
-                var ids = dynamic_ids.slice(dynamic_i, dynamic_i + limit);
-                dynamic_i += limit;
-                request({ dynamic_ids: ids }).done( function() {
-                    if (dynamic_ids.length > dynamic_i) {
-                        checkDynamic();
+            function recountCategories(is_static) {
+                var data = is_static ? {
+                    static_ids: static_ids.slice(recount_offset, recount_offset + limit)
+                } : {
+                    dynamic_ids: dynamic_ids.slice(recount_offset, recount_offset + limit)
+                };
+                recount_offset += limit;
+                request(data).done( function() {
+                    if ((is_static ? static_ids.length : dynamic_ids.length) > recount_offset) {
+                        recountCategories(is_static);
                     } else {
                         deferred.resolve();
                     }
@@ -3049,7 +3057,7 @@
                                         item.states = {
                                             highlighted: false
                                         };
-console.log( item );
+                                        console.log( item );
                                         return item;
                                     }
                                 },

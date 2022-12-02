@@ -65,6 +65,10 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
             unset($products);
 
             $this->multipleInsert($data);
+
+            $update_product_ids = array_column($data, 'product_id');
+            $this->updateProductEditDatetime($update_product_ids);
+
             // update counts
             foreach ($counts as $category_id => $count) {
                 $this->query("UPDATE `shop_category` SET count = count + $count WHERE id = $category_id");
@@ -143,13 +147,12 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
 
         $category_model = new shopCategoryModel();
 
-
+        $where = $this->getWhereByField('category_id', $category_id);
+        if ($product_ids !== true) {
+            $where .= ' AND ' . $this->getWhereByField('product_id', $product_ids);
+        }
+        $update_product_ids = array_keys($this->select('product_id')->where($where)->fetchAll('product_id'));
         if ($product_ids === true) {
-
-            $product_ids = array_keys($this->select('product_id')->
-                where('category_id = :c_id', array('c_id' => $category_id))->
-                fetchAll('product_id', true));
-
             if (!$this->deleteByField('category_id', $category_id)) {
                 return false;
             }
@@ -166,8 +169,9 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
             }
         }
 
+        $this->updateProductEditDatetime($update_product_ids);
         $product_model = new shopProductModel();
-        $product_model->correctMainCategory($product_ids);
+        $product_model->correctMainCategory($update_product_ids);
 
         return true;
     }
@@ -274,5 +278,11 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
             WHERE product_id IN(" . implode(',', $product_ids) . ") 
                 AND category_id IN(" . implode(',', $category_ids) . ")";
         return array_keys($this->query($sql)->fetchAll('product_id'));
+    }
+
+    protected function updateProductEditDatetime($product_ids)
+    {
+        $product_model = new shopProductModel();
+        $product_model->updateById($product_ids, ['edit_datetime' => date('Y-m-d H:i:s')]);
     }
 }

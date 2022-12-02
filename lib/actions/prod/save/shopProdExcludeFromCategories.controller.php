@@ -60,22 +60,9 @@ class shopProdExcludeFromCategoriesController extends waJsonController
     protected function exclude($product_ids, $category_ids)
     {
         $category_products_model = new shopCategoryProductsModel();
-        $products_count = count($product_ids);
-        for ($processed_products_count = 0; $processed_products_count < $products_count; $processed_products_count += 100) {
-            $where = [];
-            $product_part_ids = array_slice($product_ids, $processed_products_count, 100);
-            foreach ($product_part_ids as $product_id) {
-                foreach ($category_ids as $category_id) {
-                    $where[] = '(`product_id` = ' . (int)$product_id . ' AND `category_id` = ' . (int)$category_id . ')';
-                }
-            }
-            $sql = "DELETE FROM `" . $category_products_model->getTableName() . "`
-                    WHERE " . implode(' OR ', $where);
-            $category_products_model->exec($sql);
-
-            $product_model = new shopProductModel();
-            $product_model->correctMainCategory($product_part_ids);
-        }
+        $category_products_model->deleteProducts($category_ids, $product_ids);
+        $product_model = new shopProductModel();
+        $product_model->correctMainCategory($product_ids);
         $category_model = new shopCategoryModel();
         $category_model->recount($category_ids);
     }

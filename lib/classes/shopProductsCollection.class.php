@@ -900,7 +900,8 @@ SQL;
                         $set_alias = $this->addJoin('shop_set_products');
                         $this->where[] = $set_alias . ".set_id = '" . $set_model->escape($set['id']) . "'";
                     } else {
-                        $inner_sql = "(SELECT DISTINCT p.* FROM shop_product p ";
+                        $inner_select = 'DISTINCT p.*';
+                        $inner_from = 'shop_product p';
                         $rule = ifset($set, 'rule', false);
                         $json_params = ifset($set, 'json_params', '');
                         $params = json_decode($json_params, true);
@@ -912,21 +913,22 @@ SQL;
                             !empty($params['date_end'])
                         ) {
                             $alias_items = 'oi';
-                            $inner_sql .= "\nJOIN shop_order_items $alias_items ON $alias_items.product_id=p.id AND $alias_items.type='product'";
+                            $inner_from .= "\nJOIN shop_order_items $alias_items ON $alias_items.product_id=p.id AND $alias_items.type='product'";
 
                             $alias_order = 'o';
-                            $inner_sql .= "\nJOIN shop_order $alias_order ON $alias_items.order_id=$alias_order.id";
+                            $inner_from .= "\nJOIN shop_order $alias_order ON $alias_items.order_id=$alias_order.id";
                         }
 
                         $inner_where = [];
+                        $group_by = '';
                         if ($rule === shopSetModel::BESTSELLERS_RULE) {
-                            $this->fields['sales'] = "$alias_items.price * $alias_order.rate * $alias_items.quantity AS sales";
-                            $this->groupBy('p.id');
+                            $inner_select .= ", $alias_items.price * $alias_order.rate * $alias_items.quantity AS sales";
+                            $group_by = 'p.id';
                             $order_by = 'sales DESC';
                         } elseif ($rule === shopSetModel::TOTAL_COUNT_RULE) {
-                            $this->groupBy('p.id');
-                            // If you call the function - there will be infinite recursion :[
-                            $order_by = "SUM($alias_items.quantity) DESC";
+                            $inner_select .= ", SUM($alias_items.quantity) AS sum_quantity";
+                            $group_by = 'p.id';
+                            $order_by = 'sum_quantity DESC';
                         } elseif ($rule == 'compare_price DESC') {
                             $set_alias = 'p';
                             if (isset($this->join_index['ps'])) {
@@ -946,8 +948,12 @@ SQL;
                             $inner_where[] = "$alias_order.paid_date <= '{$params['date_end']}'";
                         }
 
+                        $inner_sql = 'SELECT ' . $inner_select . "\nFROM " . $inner_from;
                         if ($inner_where) {
                             $inner_sql .= "\nWHERE " . implode(' AND ', $inner_where);
+                        }
+                        if ($group_by) {
+                            $inner_sql .= "\nGROUP BY $group_by";
                         }
                         $inner_sql .= "\nORDER BY $order_by, p.id";
                         $limit = $this->count();
@@ -955,7 +961,7 @@ SQL;
                             $inner_sql .= "\nLIMIT $limit";
                         }
                         $this->addJoin([
-                            'table' => $inner_sql . ')',
+                            'table' => '(' . $inner_sql . ')',
                             'alias' => 'iq',
                             'on'    => 'p.id = :table.id',
                         ]);

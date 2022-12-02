@@ -985,7 +985,7 @@
 
                     function toggleDescription($button, $desc, limit, locale) {
                         var description = null,
-                            limit_string = locale.replace("%s", (limit ? "<div class=\"wa-step\">"+limit+"</div>" : ""));
+                            limit_string = locale.replace("%s", (limit ? "<div class=\"wa-step\">"+window.waOrder.ui.localizeNumber(limit)+"</div>" : ""));
 
                         $button
                             .removeClass(locked_class)
@@ -1002,7 +1002,7 @@
                                     $button.addClass(near_limit_class);
                                     description = limit_string;
                                 } else {
-                                    description = that.step;
+                                    description = window.waOrder.ui.localizeNumber(that.step);
                                 }
                             }
                         }
@@ -1227,15 +1227,65 @@
                     var $ratio_section = $product.find(".wa-product-ratio-wrapper");
                     if ($ratio_section.length) {
                         var ratio = $ratio_section.data("ratio"),
-                            stock_value = str2float(api_product.quantity),
-                            base_value = str2float(ratio * stock_value);
+                            stock_value = formatNumber(api_product.quantity),
+                            base_value = formatNumber(parseFloat(ratio) * stock_value);
 
-                        $ratio_section.find(".js-stock-value").text(stock_value);
-                        $ratio_section.find(".js-base-value").text(base_value);
+                        $ratio_section.find(".js-stock-value").text(window.waOrder.ui.localizeNumber(stock_value));
+                        $ratio_section.find(".js-base-value").text(window.waOrder.ui.localizeNumber(base_value));
 
-                        function str2float(value) {
-                            value = parseFloat(value);
-                            return value.toFixed(8) * 1;
+                        function formatNumber(number) {
+                            var float_num = parseFloat(number),
+                                result = parseFloat(float_num.toFixed(3));
+
+                            if (float_num < 1) {
+                                if (typeof number !== "string") {
+                                    number = String(number);
+                                }
+                                var split_num = number.split(".");
+                                if (split_num.length === 2) {
+                                    var decimal_part = split_num[1].replace(/^0+/, '');
+                                    number = roundNumber(float_num, split_num[1].length - decimal_part.length + 3).toFixed(8);
+                                }
+                            } else {
+                                number = roundNumber(float_num, 3).toFixed(8);
+                            }
+
+                            var parts = number.split(".");
+                            if (parts.length === 2) {
+                                var tail = parts[1],
+                                    result2 = [],
+                                    result3 = [parts[0]];
+
+                                if (tail.length) {
+                                    for (var i = 0; i < tail.length; i++) {
+                                        var letter = tail[tail.length - (i+1)];
+                                        if (letter !== "0" || result2.length) {
+                                            result2.push(letter);
+                                        }
+                                    }
+                                    if (result2.length) {
+                                        result3.push(result2.reverse().join(""));
+                                    }
+                                }
+
+                                result = parseFloat(result3.join("."));
+                            }
+
+                            return result;
+                        }
+
+                        function roundNumber(num, scale) {
+                            if(!String(num).includes("e")) {
+                                return +(Math.round(num + "e+" + scale)  + "e-" + scale);
+                            } else {
+                                var parts = String(num).split("e"),
+                                    sig = "";
+
+                                if(+parts[1] + scale > 0) {
+                                    sig = "+";
+                                }
+                                return +(Math.round(+parts[0] + "e" + sig + (+parts[1] + scale)) + "e-" + scale);
+                            }
                         }
                     }
                 }

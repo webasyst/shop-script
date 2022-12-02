@@ -1441,6 +1441,7 @@ SQL;
         $unit = (!empty($options["unit"]) ? $options["unit"] : null);
         $format = (!empty($options["format"]) ? $options["format"] : "%");
         $currency = (!empty($options["currency"]) ? $options["currency"] : null);
+        $wrap = (isset($options["wrap"]) ? $options["wrap"] : true);
 
         // Форматируем цену
         $price_and_currency_template = waCurrency::format('%{h}', 0, $currency);
@@ -1454,7 +1455,7 @@ SQL;
             $price_and_currency = sprintf_wp("%s/%s", $price_and_currency, '<span class="unit">'.$unit.'</span>');
         }
 
-        return '<span class="price-wrapper">'.$price_and_currency.'</span>';
+        return $wrap ? sprintf('<span class="price-wrapper">%s</span>', $price_and_currency) : $price_and_currency;
     }
 
     /**
@@ -1501,12 +1502,12 @@ SQL;
      * When shop_number_format() is used in theme and theme is installed over Shop version < 9.0.0,
      * this will result in Smarty compilation exception. $wa->shop->numberFormat() is ok everywhere.
      */
-    public function numberFormat($float, $limit_precision=null, $decimal_separator='.')
+    public function numberFormat($float, $limit_precision=null, $decimal_separator='.', $thousands_separator='')
     {
-        return shop_number_format($float, $limit_precision, $decimal_separator);
+        return shop_number_format($float, $limit_precision, $decimal_separator, $thousands_separator);
     }
 
-    public function roundNumber($float, $limit_precision = null, $decimal_separator = '.')
+    public function roundNumber($float, $limit_precision = null, $decimal_separator = '.', $thousands_separator = '')
     {
         if (is_numeric($float)) {
             if ($float < 1) {
@@ -1520,9 +1521,9 @@ SQL;
             } else {
                 $stock_base_ratio_round = round($float, $limit_precision);
             }
-            return $this->numberFormat($stock_base_ratio_round, null, $decimal_separator);
+            return $this->numberFormat($stock_base_ratio_round, null, $decimal_separator, $thousands_separator);
         } else {
-            return $this->numberFormat($float, $limit_precision, $decimal_separator);
+            return $this->numberFormat($float, $limit_precision, $decimal_separator, $thousands_separator);
         }
     }
 }

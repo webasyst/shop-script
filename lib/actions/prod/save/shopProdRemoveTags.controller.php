@@ -53,19 +53,7 @@ class shopProdRemoveTagsController extends waJsonController
     protected function exclude($product_ids, $tag_ids)
     {
         $product_tags_model = new shopProductTagsModel();
-        $products_count = count($product_ids);
-        for ($processed_products_count = 0; $processed_products_count < $products_count; $processed_products_count += 100) {
-            $where = [];
-            $product_part_ids = array_slice($product_ids, $processed_products_count, 100);
-            foreach ($product_part_ids as $product_id) {
-                foreach ($tag_ids as $tag_id) {
-                    $where[] = "(`product_id` = " . (int)$product_id . " AND `tag_id` = " . (int)$tag_id . ")";
-                }
-            }
-            $sql = "DELETE FROM `" . $product_tags_model->getTableName() . "`
-                    WHERE " . implode(' OR ', $where);
-            $product_tags_model->exec($sql);
-        }
+        $product_tags_model->delete($product_ids, $tag_ids);
         $tag_model = new shopTagModel();
         $tag_model->recount($tag_ids);
         // clear cache

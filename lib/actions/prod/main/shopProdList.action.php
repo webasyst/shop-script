@@ -73,7 +73,7 @@ class shopProdListAction extends waViewAction
             }
         }
         if ($sort_column_type !== null) {
-            $sort_column_type = $sort_column_type == 'price' ? 'min_price' : $sort_column_type;
+            $sort_column_type = $sort_column_type == 'price' || $sort_column_type == 'base_price' ? 'min_' . $sort_column_type : $sort_column_type;
             $sorting_options = [
                 'sort' => array_unique([$sort_column_type, 'name']),
                 'order' => strtolower($presentation->getField('sort_order')),
@@ -124,6 +124,17 @@ class shopProdListAction extends waViewAction
         $filters = array_values($filter_model->getTemplatesByUser($user_id, ['fields' => ['id', 'name']]));
         $this->getRulesLabels($filter['rules'], $filter_options, $categories);
 
+        /**
+         * @event backend_prod_list
+         * @since 9.4.1
+         */
+        $backend_prod_list = wa('shop')->event('backend_prod_list', ref([
+            "products"             => $products,
+            "products_total_count" => $products_total_count,
+            "current_page"         => $page,
+            "pages_count"          => $pages,
+        ]));
+
         $this->view->assign([
             "filter"               => $filter,
             "filters"              => $filters,
@@ -142,7 +153,8 @@ class shopProdListAction extends waViewAction
             "page"                 => $page,
             "pages"                => $pages,
 
-            "mass_actions"         => $this->getMassActions()
+            "mass_actions"         => $this->getMassActions(),
+            "backend_prod_list"    => $backend_prod_list,
         ]);
         $this->setTemplate('templates/actions/prod/main/List.html');
         $this->setLayout(new shopBackendProductsListSectionLayout());
@@ -1165,39 +1177,20 @@ class shopProdListAction extends waViewAction
             ]
         ];
 
-        /*
-        // TODO: add plugins to groups
-        $result["export"]["actions"][] = [
-            "id" => "plugin_1",
-            "name" => "Плагин экспорта"
-        ];
+        /**
+         * @event backend_prod_mass_actions
+         * @since 9.4.1
+         */
+        wa('shop')->event('backend_prod_mass_actions', ref([
+            'actions' => &$result,
+        ]));
 
-        $result["edit"]["actions"][] = [
-            "id" => "plugin_1",
-            "name" => "Плагин редактирования"
-        ];
-
-        $result["marketing"]["actions"][] = [
-            "id" => "plugin_1",
-            "name" => "Плагин редактирования"
-        ];
-
-        // TODO: add plugin group
-        $result["plugin_group_1"] = [
-            "id" => "plugin_group_1",
-            "name" => "Группа плагинов",
-            "actions" => [
-                [
-                    "id" => "plugin_1",
-                    "name" => "Плагин 1 для группы плагинов"
-                ],
-                [
-                    "id" => "plugin_2",
-                    "name" => "Плагин 2 для группы плагинов"
-                ]
-            ]
-        ];
-        */
+        foreach($result as $group_id => &$group) {
+            if (!isset($group['id'])) {
+                $group['id'] = $group_id;
+            }
+        }
+        unset($group);
 
         return array_values($result);
     }

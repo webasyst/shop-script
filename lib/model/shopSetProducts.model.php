@@ -64,6 +64,10 @@ class shopSetProductsModel extends waModel implements shopProductStorageInterfac
             unset($products);
 
             $this->multipleInsert($data);
+
+            $product_ids = array_column($data, 'product_id');
+            $this->updateProductEditDatetime($product_ids);
+
             // update counts
 
             foreach ($counts as $set_id => $count) {
@@ -130,6 +134,11 @@ class shopSetProductsModel extends waModel implements shopProductStorageInterfac
         if (!$set_id) {
             return false;
         }
+        $where = $this->getWhereByField('set_id', $set_id);
+        if ($product_ids !== true) {
+            $where .= ' AND ' . $this->getWhereByField('product_id', $product_ids);
+        }
+        $update_product_ids = array_keys($this->select('product_id')->where($where)->fetchAll('product_id'));
         if ($product_ids === true) {
             if (!$this->deleteByField('set_id', $set_id)) {
                 return false;
@@ -139,6 +148,7 @@ class shopSetProductsModel extends waModel implements shopProductStorageInterfac
                 return false;
             }
         }
+        $this->updateProductEditDatetime($update_product_ids);
         $set_model = new shopSetModel();
         if ($cache = wa('shop')->getCache()) {
             $cache->deleteGroup('sets');
@@ -214,5 +224,11 @@ class shopSetProductsModel extends waModel implements shopProductStorageInterfac
         $set_ids && $this->add(array($product->id), $set_ids);
 
         return $this->getData($product);
+    }
+
+    protected function updateProductEditDatetime($product_ids)
+    {
+        $product_model = new shopProductModel();
+        $product_model->updateById($product_ids, ['edit_datetime' => date('Y-m-d H:i:s')]);
     }
 }

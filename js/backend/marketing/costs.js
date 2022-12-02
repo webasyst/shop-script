@@ -16,7 +16,6 @@
 
             that.request_options = options["request_options"];
             that.chart_data = options["chart_data"];
-            that.errors = options["errors"];
             that.limit = options["limit"];
 
             that.cost_id = options["cost_id"];
@@ -698,7 +697,6 @@
             var that = this;
 
             var $wrapper = that.$wrapper.find(".js-edit-costs-form-section");
-            var errors = that.errors;
 
             var $form = $wrapper.children('form');
             var $button = $form.find(':submit:first');
@@ -708,6 +706,8 @@
             var $channel_input_color = $channel_selector.parent().find('input[name="expense[color]"]');
             var $period_radios = $wrapper.find('input[name="expense_period_type"]');
             var expense_id = $form.find('[name="expense_id"]').val();
+
+            $form.find('input[name="expense[amount]"]').focus();
 
             if (!expense_id) {
                 // Remember last selected storefront in local storage
@@ -723,12 +723,6 @@
                     }
                 })();
             }
-
-            // Show error messages
-            $.each(errors, function(name, error) {
-                var $input = $form.find('[name="'+name+'"]').addClass('error');
-                $input.closest('.value').append($('<em class="errormsg"></em>').text(error));
-            });
 
             // Clear error messages when user modifies something
             $form.on('change keyup', '.error', function() {
@@ -774,7 +768,10 @@
             var animation_speed = 0;
             updateElements();
             $channel_selector.change(updateElements);
-            $period_radios.change(updateElements);
+            $period_radios.change(function() {
+                updateElements();
+                clearErrors($(this).closest('.field'));
+            });
             animation_speed = 'fast';
 
             // Close the editor when user clicks 'cancel' link
@@ -797,15 +794,62 @@
                 }
             });
 
+            var is_locked = false;
             // Validate and save via XHR
             $form.on("submit", function(event) {
+                clearErrors($form);
                 event.preventDefault();
                 var $loading = $('<i class="icon16 loading"></i>').insertAfter($button);
-                $.post($form.attr('action'), $form.serialize(), function(r) {
-                    $loading.removeClass("loading").addClass("yes").after('<span>'+ that.locales["saved"] +'</span>');
-                    $.shop.marketing.content.reload();
-                });
+                if (!is_locked) {
+                    is_locked = true;
+                    $button.attr("disabled", true);
+                    var form_data = $form.serialize();
+                    $.post($form.attr("action"), form_data)
+                        .always( function() {
+                            is_locked = false;
+                            $button.attr("disabled", false);
+                        })
+                        .done( function(response) {
+                            if (response.status === "ok") {
+                                $loading.removeClass("loading").addClass("yes").after("<span>"+ that.locales["saved"] +"</span>");
+                                $.shop.marketing.content.reload();
+                            } else if (response.errors) {
+                                $loading.remove();
+                                renderErrors(response.errors);
+                            }
+                        });
+                }
             });
+
+            function clearErrors($field_wrapper) {
+                $field_wrapper.find('.errormsg').remove();
+                $field_wrapper.find('.error').removeClass('error');
+            }
+
+            function renderErrors(errors) {
+                $.each(errors, function(i, error) {
+                    if (error.id && error.text) {
+                        var $field = $form.find('[name="' + error.id + '"]');
+                        if ($field.length) {
+                            renderError(error, $field);
+                        }
+                    }
+                });
+
+                function renderError(error, $field) {
+                    var $error = $('<em class="errormsg"></em>').text(error.text);
+                    var error_class = "error";
+
+                    if (!$field.hasClass(error_class)) {
+                        $field.on("change keyup", removeFieldError).addClass(error_class).closest('.value').append($error);
+                    }
+
+                    function removeFieldError() {
+                        $field.off("change keyup", removeFieldError).removeClass(error_class);
+                        $error.remove();
+                    }
+                }
+            }
 
             // Helper to update visibility of form elements and values of hidden fields
             // depending on what's selected in radios and selects

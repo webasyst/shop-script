@@ -47,8 +47,8 @@
 
 {capture assign="_component_dropdown_set_sorting"}
     <div class="dropdown">
-        <button class="dropdown-toggle wa-button wa-small" type="button"
-                v-bind:class="button_class">{ { active_item.name } }</button>
+        <button class="dropdown-toggle wa-button gray-field wa-small" type="button"
+                v-bind:class="button_class" v-bind:disabled="disabled">{ { active_item.name } }</button>
         <div class="dropdown-body">
             <template v-for="item in items">
                 <div class="dropdown-item"
@@ -108,16 +108,17 @@
 {$_components["component-search-sets"] = $_component_search_sets|trim}
 
 {capture assign="_component_set_sorting"}
-    <div class="vue-component-set-sorting">
+    <div class="vue-component-set-sorting" v-if="set.type === '0'">
         <div class="s-locked-message" v-show="states.sort_locked">
             <span class="s-icon icon size-16"><i class="fas fa-spinner fa-spin"></i></span>
         </div>
         <div class="flexbox middle space-8" v-show="!states.sort_locked">
             <component-dropdown-set-sorting v-model="set.sort_products"
                                             v-bind:options="options"
+                                            v-bind:disabled="disabled"
                                             v-bind:button_class="'s-square-field'"
                                             v-on:change="change"></component-dropdown-set-sorting>
-            <template v-if="set.sort_products === '' && set.type === '0'">
+            <template v-if="set.sort_products === ''">
                 <span class="link" v-on:click.prevent="setup">[`configure`]</span>
             </template>
         </div>
@@ -244,7 +245,8 @@
             </div>
             <div class="s-column s-column-count" v-bind:style="{ width: getColumnWidth('count') }">
                 <div class="s-count-wrapper">
-                    <a v-if="!item.is_group" v-bind:href="'{$wa_app_url}products/?set_id='+ item.set_id">{ { item.count } }</a>
+                    <span class="s-icon icon size-12" v-if="item.states.count_locked"><i class="fas fa-spinner fa-spin"></i></span>
+                    <a v-else-if="!item.is_group" v-bind:href="'{$wa_app_url}products/?set_id='+ item.set_id">{ { item.count } }</a>
                 </div>
             </div>
             <div class="s-column s-column-sort" v-bind:style="{ width: getColumnWidth('sort') }">
@@ -314,10 +316,24 @@
 {$_templates["set-clone-confirm"] = $_set_clone_confirm}
 
 {* ПОДСКАЗКИ *}
-{$_tooltips = []}
+{$_tooltips = [
+    "error-set-name" => [
+        "id" => "error-set-name",
+        "html" => _w("This field may contain a maximum of %d character.", "This field may contain a maximum of %d characters.", 255)
+    ],
+    "error-set-id" => [
+        "id" => "error-set-id",
+        "html" => _w("This field may contain a maximum of %d character.", "This field may contain a maximum of %d characters.", 64)
+    ]
+]}
 
 {* ЛОКАЛИЗАЦИЯ *}
-{$_locales = []}
+{$_locales = [
+    "error_set_name_empty" => _w("Enter a set name"),
+    "error_set_name" => "{_w("Invalid value")} <span class=\"s-icon\" data-tooltip-id=\"error-set-name\"><i class=\"fas fa-question-circle\"></i></span>",
+    "error_set_id_empty" => _w("Enter a set ID"),
+    "error_set_id" => "{_w("Invalid value")} <span class=\"s-icon\" data-tooltip-id=\"error-set-id\"><i class=\"fas fa-question-circle\"></i></span>"
+]}
 
 {* template will update components array *}
 {include file="./dialogs/callback.html" scope="parent" inline}
@@ -350,6 +366,12 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="s-plugins-section-header-left">
+                            <!-- plugin hook: 'backend_prod_sets.header_left' -->
+                            {* @event backend_prod_sets.%plugin_id%.header_left *}
+                            {if !empty($backend_prod_sets)}{foreach $backend_prod_sets as $_}{ifset($_, 'header_left', '')}{/foreach}{/if}
+                        </div>
                     </div>
 
                     <div class="flexbox middle space-20">
@@ -358,6 +380,12 @@
                                 <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
                                 <span class="s-name">[`How do you like the new products section?`]</span>
                             </button>
+                        </div>
+
+                        <div class="s-plugins-section-header-right">
+                            <!-- plugin hook: 'backend_prod_sets.header_right' -->
+                            {* @event backend_prod_sets.%plugin_id%.header_right *}
+                            {if !empty($backend_prod_sets)}{foreach $backend_prod_sets as $_}{ifset($_, 'header_right', '')}{/foreach}{/if}
                         </div>
 
                         <div class="s-sets-sorting-section flexbox middle space-12">
@@ -415,6 +443,7 @@
                     tooltips: {$_tooltips|json_encode},
                     locales: {$_locales|json_encode},
                     urls: {
+                        "transliterate"  : "{$wa_app_url}?action=transliterate",
                         "sets_sort"      : "{$wa_app_url}?module=prod&action=setsSort",
                         "group_add"      : "{$wa_app_url}?module=prod&action=setGroupAdd",
                         "group_remove"   : "{$wa_app_url}?module=prod&action=setGroupRemove",
@@ -426,6 +455,7 @@
                         "set_rename"     : "{$wa_app_url}?module=prod&action=setRename",
                         "set_remove"     : "{$wa_app_url}?module=prod&action=setRemove",
                         "set_sort"       : "{$wa_app_url}?module=prod&action=setSort",
+                        "set_recount"    : "{$wa_app_url}?module=prod&action=setsRecount",
                         "set_sort_dialog": "{$wa_app_url}?module=prod&action=setSortDialog",
                         "callback_submit": "{$wa_app_url}?module=prod&action=feedback"
                     },

@@ -28,7 +28,8 @@
                 sort_locked: false,
                 move_locked: false,
                 add_set_locked: false,
-                add_group_locked: false
+                add_group_locked: false,
+                count_locked: true
             };
 
             // INIT
@@ -62,6 +63,10 @@
             let that = this;
 
             that.initDragAndDrop();
+
+            that.updateSetsCount().done( function() {
+                that.states.count_locked = false;
+            });
 
             $.each(that.tooltips, function(i, tooltip) {
                 $.wa.new.Tooltip(tooltip);
@@ -98,11 +103,12 @@
             });
 
             Vue.component("component-dropdown-set-sorting", {
-                props: ["value", "options", "button_class"],
+                props: ["value", "options", "button_class", "disabled"],
                 data: function () {
                     let self = this;
                     return {
                         button_class: (typeof self.button_class !== "undefined" ? self.button_class : ""),
+                        disabled: (typeof self.disabled !== "undefined" ? self.disabled : false),
                         items: (typeof self.options !== "undefined" ? self.options : that.sort_options)
                     };
                 },
@@ -403,20 +409,28 @@
                                     "component-set-sorting": {
                                         props: ["set"],
                                         data: function() {
-                                            let self = this;
+                                            let self = this,
+                                                disabled = false;
+
                                             return {
-                                                options: getOptions(self.set),
+                                                options: getOptions(),
+                                                disabled: disabled,
                                                 states: {
                                                     sort_locked: false
                                                 }
                                             };
 
-                                            function getOptions(set) {
-                                                let result = that.sort_options;
+                                            function getOptions() {
+                                                let result;
 
                                                 if (self.set.type === "1") {
                                                     result = that.sort_options.filter( function(option) {
                                                         return (!!option.value.length);
+                                                    });
+                                                } else {
+                                                    disabled = true;
+                                                    result = that.sort_options.filter( function(option) {
+                                                        return (!option.value.length);
                                                     });
                                                 }
 
@@ -960,6 +974,7 @@
 
             item.states = {
                 expanded: false,
+                count_locked: !item.is_group,
                 // Поля для поиска
                 is_wanted: false,
                 is_wanted_inside: false,
@@ -1002,8 +1017,11 @@
                 data: {
                     set: formatSet(set),
                     states: {
-                        locked: false
-                    }
+                        locked: false,
+                        transliterate_xhr: null,
+                        transliterate_timer: null
+                    },
+                    errors: {}
                 },
                 components: {
                     "component-datepicker": {
@@ -1104,6 +1122,145 @@
                             let self = this;
                             self.dropdown = $(self.$el).waDropdown({ hover : false }).waDropdown("dropdown");
                         }
+                    },
+                    "component-flex-textarea": {
+                        props: ["value", "placeholder", "cancel", "focus"],
+                        data: function() {
+                            var self = this;
+                            self.focus = (typeof self.focus === "boolean" ? self.focus : false);
+                            self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
+                            return {
+                                offset: 0,
+                                $textarea: null,
+                                start_value: null
+                            };
+                        },
+                        template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:blur="onBlur" v-on:focus="onFocus"></textarea>',
+                        delimiters: ['{ { ', ' } }'],
+                        methods: {
+                            onInput: function($event) {
+                                var self = this;
+                                self.update();
+                                self.$emit('input', $event.target.value);
+                            },
+                            onBlur: function($event) {
+                                var self = this,
+                                    value = $event.target.value;
+
+                                if (value === self.start_value) {
+                                    if (self.cancel) { self.$emit("cancel"); }
+                                } else {
+                                    self.$emit("change", value);
+                                }
+                                self.$emit("blur", value);
+                            },
+                            onFocus: function($event) {
+                                var self = this;
+                                self.start_value = $event.target.value;
+                                self.$emit("focus");
+                            },
+                            onEsc: function($event) {
+                                var self = this;
+                                if (self.cancel) {
+                                    $event.target.value = self.value = self.start_value;
+                                    self.$emit('input', self.value);
+                                    self.$textarea.trigger("blur");
+                                }
+                            },
+                            update: function() {
+                                var self = this;
+                                var $textarea = $(self.$el);
+
+                                $textarea
+                                    .css("overflow", "hidden")
+                                    .css("min-height", 0);
+                                var scroll_h = $textarea[0].scrollHeight + self.offset;
+                                $textarea
+                                    .css("min-height", scroll_h + "px")
+                                    .css("overflow", "");
+                            }
+                        },
+                        mounted: function() {
+                            var self = this,
+                                $textarea = self.$textarea = $(self.$el);
+
+                            setTimeout(function() {
+                                self.offset = $textarea[0].offsetHeight - $textarea[0].clientHeight;
+                                self.update();
+                                $textarea.trigger("focus");
+                                self.$emit("ready", self.$el.value);
+                            }, 0);
+                        }
+                    },
+                    "component-dropdown-set-edit-sorting": {
+                        props: ["value", "disabled"],
+                        data: function () {
+                            let self = this;
+                            return {
+                                button_class: "",
+                                disabled: false
+                            };
+                        },
+                        template: that.components["component-dropdown-set-sorting"],
+                        delimiters: ['{ { ', ' } }'],
+                        computed: {
+                            active_item: function() {
+                                let self = this,
+                                    active_item = self.items[0];
+
+                                if (typeof self.value === "string") {
+                                    let filter_item_search = self.items.filter(function (item) {
+                                        return (item.value === self.value);
+                                    });
+                                    active_item = (filter_item_search.length ? filter_item_search[0] : active_item);
+                                }
+
+                                return active_item;
+                            },
+                            items: function() {
+                                let self = this, result;
+
+                                if (!self.disabled) {
+                                    result = that.sort_options.filter( function(option) {
+                                        return (!!option.value.length);
+                                    });
+                                } else {
+                                    result = that.sort_options.filter( function(option) {
+                                        return (!option.value.length);
+                                    });
+                                }
+
+                                return result;
+                            }
+                        },
+                        methods: {
+                            change: function(item) {
+                                let self = this;
+                                self.$emit("input", item.value);
+                                self.$emit("change", item.value);
+                                self.dropdown.hide();
+                            }
+                        },
+                        mounted: function () {
+                            let self = this;
+
+                            self.dropdown = $(self.$el).waDropdown({ hover : false }).waDropdown("dropdown");
+                        }
+                    },
+                },
+                computed: {
+                    use_transliterate: function() {
+                        const self = this;
+                        return self.set.id === null || !(self.set.id.length > 0);
+                    },
+                    has_errors: function() {
+                        const self = this;
+
+                        var result = !!Object.keys(self.errors).length;
+
+                        if (!self.set.name.length) { result = true; }
+
+                        return result;
                     }
                 },
                 watch: {
@@ -1112,9 +1269,98 @@
                         self.$nextTick( function() {
                             dialog.resize();
                         });
+                    },
+                    "set.name": function(value) {
+                        const self = this;
+
+                        if (!value.length) {
+                            self.$set(self.errors, "set_name", {
+                                id: "set_name",
+                                text: that.locales["error_set_name_empty"]
+                            });
+                        } else if (value.length > 255) {
+                            self.$set(self.errors, "set_name", {
+                                id: "set_name",
+                                text: that.locales["error_set_name"]
+                            });
+                        } else {
+                            self.$delete(self.errors, "set_name");
+                        }
+                    },
+                    "set.id": function(value) {
+                        const self = this;
+
+                        if (!value.length) {
+                            self.$set(self.errors, "set_id", {
+                                id: "set_id",
+                                text: that.locales["error_set_id_empty"]
+                            });
+                        } else if (value.length > 64) {
+                            self.$set(self.errors, "set_id", {
+                                id: "set_id",
+                                text: that.locales["error_set_id"]
+                            });
+                        } else {
+                            self.$delete(self.errors, "set_id");
+                        }
                     }
                 },
                 methods: {
+                    onChangeName: function() {
+                        var self = this;
+                        if (self.use_transliterate) {
+                            self.getIdByName(1000)
+                                .done( function(id) {
+                                    if (self.use_transliterate) {
+                                        self.set.id = id;
+                                    }
+                                });
+                        }
+                    },
+                    onBlurName: function() {
+                        var self = this;
+                        if (!self.set.name.length && !self.errors["set_name"]) {
+                            self.$set(self.errors, "set_name", {
+                                id  : "set_name",
+                                text: that.locales["error_set_name_empty"]
+                            });
+                        }
+                    },
+                    onBlurId: function() {
+                        var self = this;
+                        if (!self.set.id.length && !self.errors["set_id"]) {
+                            self.$set(self.errors, "set_id", {
+                                id  : "set_id",
+                                text: that.locales["error_set_id_empty"]
+                            });
+                        }
+                    },
+                    getIdByName: function(time) {
+                        const self = this;
+                        var deferred = $.Deferred();
+
+                        var time = (typeof time === "number" ? time : 0);
+
+                        clearTimeout(self.states.transliterate_timer);
+
+                        if (!$.trim(self.set.name).length) {
+                            deferred.reject();
+                        } else {
+                            if (self.states.transliterate_xhr) {
+                                self.states.transliterate_xhr.abort();
+                            }
+
+                            self.states.transliterate_timer = setTimeout( function() {
+                                self.states.transliterate_xhr = $.get(that.urls["transliterate"], { str: self.set.name }, "json")
+                                    .always( function() { self.states.transliterate_xhr = null; })
+                                    .fail( function() { deferred.reject(); })
+                                    .done( function(response) { deferred.resolve(response.data); });
+                            }, time);
+                        }
+
+                        return deferred.promise();
+                    },
+
                     save: function() {
                         let self = this,
                             $form = $dialog.find("form:first");
@@ -1125,6 +1371,14 @@
                             request(data)
                                 .always( function() {
                                     self.states.locked = false;
+                                })
+                                .fail( function(errors) {
+                                    if (errors.length && errors[0].id === "id_in_use") {
+                                        self.$set(self.errors, "set_id", {
+                                            id: "set_id",
+                                            text: errors[0].text
+                                        });
+                                    }
                                 })
                                 .done( function(set) {
                                     dialog.options.onSuccess(set);
@@ -1149,13 +1403,23 @@
 
                             return deferred.promise();
                         }
+                    },
+                    resizeDialog: function() {
+                        const self = this;
+                        self.$nextTick( function() {
+                            setTimeout( function() {
+                                dialog.resize();
+                            }, 100);
+                        });
                     }
                 },
                 created: function () {
                     $vue_section.css("visibility", "");
                 },
                 mounted: function() {
-                    dialog.resize();
+                    var self = this;
+
+                    self.resizeDialog();
                 }
             });
 
@@ -1483,6 +1747,96 @@
                 let storage = localStorage.getItem(storage_name);
                 if (storage) { storage = JSON.parse(storage); }
                 return storage;
+            }
+        };
+
+        Page.prototype.updateSetsCount = function(sets_ids) {
+            sets_ids = (Array.isArray(sets_ids) ? sets_ids : []);
+
+            var that = this,
+                deferred = $.Deferred();
+
+            var get_ids = getIds(sets_ids),
+                static_ids = get_ids.static_ids,
+                dynamic_ids = get_ids.dynamic_ids;
+
+            var limit = 100,
+                recount_offset = 0;
+
+            if (static_ids.length) {
+                recountSets(true);
+            }
+            if (dynamic_ids.length) {
+                limit = 10;
+                recount_offset = 0;
+                recountSets(false);
+            }
+            if (!static_ids.length && !dynamic_ids.length) {
+                deferred.resolve();
+            }
+
+            return deferred.promise();
+
+            function recountSets(is_static) {
+                var data = is_static ? {
+                    static_ids: static_ids.slice(recount_offset, recount_offset + limit)
+                } : {
+                    dynamic_ids: dynamic_ids.slice(recount_offset, recount_offset + limit)
+                };
+                recount_offset += limit;
+                request(data).done( function() {
+                    if ((is_static ? static_ids.length : dynamic_ids.length) > recount_offset) {
+                        recountSets(is_static);
+                    } else {
+                        deferred.resolve();
+                    }
+                });
+            }
+
+            function request(data) {
+                var ids = static_ids;
+                if (data.dynamic_ids) { ids = data.dynamic_ids; }
+                else if (data.static_ids) { ids = data.static_ids; }
+
+                $.each(ids, function(i, set_id) {
+                    var set = that.sets[set_id];
+                    if (set) { set.states.count_locked = true; }
+                });
+
+                return $.post(that.urls["set_recount"], data, "json")
+                    .done( function(response) {
+                        var count_data = response.data.sets;
+
+                        $.each(count_data, function(i, set_data) {
+                            var set = that.sets[set_data.id];
+                            if (set) { set.count = set_data.count; }
+                        });
+
+                        $.each(ids, function(i, set_id) {
+                            var set = that.sets[set_id];
+                            if (set) { set.states.count_locked = false; }
+                        });
+                    });
+            }
+
+            function getIds(sets_ids) {
+                var static_ids = [],
+                    dynamic_ids = [];
+
+                $.each(that.sets, function(i, set) {
+                    if (!sets_ids.length || sets_ids.indexOf(set.id) >= 0) {
+                        if (set.type === "1") {
+                            dynamic_ids.push(set.id);
+                        } else {
+                            static_ids.push(set.id);
+                        }
+                    }
+                });
+
+                return {
+                    static_ids: static_ids,
+                    dynamic_ids: dynamic_ids
+                }
             }
         };
 

@@ -4957,14 +4957,16 @@
                                 });
                                 break;
                             case "checkbox":
-                                $.each(feature.options, function(i, option) {
-                                    if (option.active) {
-                                        data.push({
-                                            name: prefix + "[]",
-                                            value: (clear ? "" : option["value"])
-                                        });
-                                    }
-                                });
+                                if (!(feature.available_for_sku && feature.multiple && feature.selectable)) {
+                                    $.each(feature.options, function (i, option) {
+                                        if (option.active) {
+                                            data.push({
+                                                name: prefix + "[]",
+                                                value: (clear ? "" : option["value"])
+                                            });
+                                        }
+                                    });
+                                }
                                 break;
                             case "textarea":
                                 data.push({

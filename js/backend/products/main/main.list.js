@@ -5580,11 +5580,7 @@
                                                     var self = this;
 
                                                     var is_number = (self.column_data.format === "number"),
-                                                        format = (is_number ? "number" : null);
-
-                                                    if (self.column_data.type === "dimension.temperature") {
-                                                        format = "number-negative";
-                                                    }
+                                                        format = (is_number ? "number-negative" : null);
 
                                                     return {
                                                         states: {
@@ -7816,9 +7812,6 @@ console.log(products_selection, action.id);
 
                 case "associate_promo":
                     action.states.is_locked = true;
-
-                    var data = getSubmitData();
-
                     $.post(action.action_url, dialog_data, "json")
                         .always( function() {
                             action.states.is_locked = false;
@@ -7831,6 +7824,38 @@ console.log(products_selection, action.id);
                 //
 
                 default:
+
+                    var products_hash;
+                    if (is_all_products) {
+                        products_hash = 'presentation/'+that.presentation.id;
+                    } else {
+                        products_hash = 'id/'+product_ids.join(",");
+                    }
+
+                    if (action.action_url) {
+                        action.states.is_locked = true;
+                        $.post(action.action_url, $.extend(getSubmitData(), {
+                            products_hash: products_hash
+                        }), "json")
+                            .always( function() {
+                                action.states.is_locked = false;
+                            })
+                            .done( function() {
+
+                            });
+                        break;
+                    } else if (action.redirect_url) {
+                        var redirect_url = action.redirect_url;
+                        redirect_url += redirect_url.indexOf('?') < 0 ? '?' : '&';
+                        redirect_url += 'products_hash=' + encodeURIComponent(products_hash);
+
+                        var $link = $('<a />', { href: redirect_url });
+                        that.$wrapper.prepend($link);
+                        $link.trigger("click").remove();
+                        break;
+                    }
+
+                    // Диалог показывет сообщение "действие ещё не сделано"
                     $.waDialog({
                         html: that.templates["dialog-category-clone"],
                         onOpen: function($dialog, dialog) {

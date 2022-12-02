@@ -41,6 +41,7 @@ class shopProdSetSaveController extends waJsonController
                 }
                 $saved_set['is_group'] = false;
                 $saved_set['set_id'] = $saved_set["id"];
+                $this->recount($id, $saved_set);
                 $this->response = $saved_set;
 
                 /**
@@ -209,5 +210,14 @@ class shopProdSetSaveController extends waJsonController
         $date = trim($date);
         $date_object = DateTime::createFromFormat('Y-m-d', $date);
         return $date_object !== false ? $date_object->format('Y-m-d') : false;
+    }
+
+    protected function recount($set_id, &$set)
+    {
+        if ($set['type'] == shopSetModel::TYPE_DYNAMIC) {
+            $product_collection = new shopProductsCollection("set/$set_id");
+            $set_right_count = $product_collection->count();
+            $set['count'] = $set_right_count;
+        }
     }
 }

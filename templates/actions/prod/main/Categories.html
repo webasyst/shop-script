@@ -422,6 +422,12 @@
                             <span class="icon size-12" v-else v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                             <span class="s-name">[`new category`]</span>
                         </button>
+
+                        <div class="s-plugins-section-header-left">
+                            <!-- plugin hook: 'backend_prod_categories.header_left' -->
+                            {* @event backend_prod_categories.%plugin_id%.header_left *}
+                            {if !empty($backend_prod_categories)}{foreach $backend_prod_categories as $_}{ifset($_, 'header_left', '')}{/foreach}{/if}
+                        </div>
                     </div>
 
                     <div class="flexbox middle space-20">
@@ -430,6 +436,12 @@
                                 <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
                                 <span class="s-name">[`How do you like the new products section?`]</span>
                             </button>
+                        </div>
+
+                        <div class="s-plugins-section-header-right">
+                            <!-- plugin hook: 'backend_prod_categories.header_right' -->
+                            {* @event backend_prod_categories.%plugin_id%.header_right *}
+                            {if !empty($backend_prod_categories)}{foreach $backend_prod_categories as $_}{ifset($_, 'header_right', '')}{/foreach}{/if}
                         </div>
 
                         <div class="s-categories-sorting-section flexbox middle space-12">

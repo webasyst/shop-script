@@ -277,6 +277,24 @@ class shopProdPresentationUpdateProductController extends waJsonController
                     ];
                 }
                 if ($sku_id) {
+                    if ($updated_column['multiple'] && $updated_column['available_for_sku']) {
+                        $skus_features = $product->sku_features;
+                        foreach ($skus_features as $id_sku => $sku_features) {
+                            $sku_value = '';
+                            if (isset($sku_features[$updated_column['feature_code']])
+                                && is_object($sku_features[$updated_column['feature_code']])
+                            ) {
+                                $sku_value = $sku_features[$updated_column['feature_code']]->value;
+                            }
+                            $changed_column_value['skus'][$id_sku]['features'][$updated_column['feature_code']] = $sku_value;
+                        }
+                        $product_features_model = new shopProductFeaturesModel();
+                        $product_features_model->deleteByField([
+                            'product_id' => $product->getId(),
+                            'sku_id' => null,
+                            'feature_id' => $updated_column['feature_id'],
+                        ]);
+                    }
                     $changed_column_value['skus'][$sku_id]['features'] = $value;
                 } else {
                     $changed_column_value['features'] = $value;

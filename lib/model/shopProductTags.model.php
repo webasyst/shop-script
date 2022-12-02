@@ -110,6 +110,7 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         if ($add_tag_ids) {
             $this->multipleInsert(array('product_id' => $product_id, 'tag_id' => $add_tag_ids));
             $tag_model->incCounters($add_tag_ids);
+            $this->updateProductEditDatetime($product_id);
         }
         if ($cache = wa('shop')->getCache()) {
             $cache->delete('tags');
@@ -128,8 +129,11 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         $old_tag_ids = $this->query($sql, array('id' => $product_id))->fetchAll(null, true);
         $delete_tag_ids = array_intersect($tag_ids, $old_tag_ids);
         if ($delete_tag_ids) {
+            $where = $this->getWhereByField('tag_id', $delete_tag_ids) . ' AND ' . $this->getWhereByField('product_id', $product_id);
+            $update_product_ids = array_keys($this->select('product_id')->where($where)->fetchAll('product_id'));
             $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $delete_tag_ids));
             $tag_model->incCounters($delete_tag_ids, -1);
+            $this->updateProductEditDatetime($update_product_ids);
         }
         if ($cache = wa('shop')->getCache()) {
             $cache->delete('tags');
@@ -188,6 +192,8 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         // adding itself
         if ($add) {
             $this->multipleInsert($add);
+            $update_product_ids = array_column($add, 'product_id');
+            $this->updateProductEditDatetime($update_product_ids);
         }
 
         // recounting counters for this tags
@@ -211,8 +217,11 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         }
         $product_id = (array)$product_id;
 
+        $where = $this->getWhereByField('tag_id', $tag_id) . ' AND ' . $this->getWhereByField('product_id', $product_id);
+        $update_product_ids = array_keys($this->select('product_id')->where($where)->fetchAll('product_id'));
         // delete tags
         $this->deleteByField(array('product_id' => $product_id, 'tag_id' => $tag_id));
+        $this->updateProductEditDatetime($update_product_ids);
         // decrease count for tags
         $tag_model = new shopTagModel();
         $tag_model->recount($tag_id);
@@ -220,5 +229,11 @@ class shopProductTagsModel extends waModel implements shopProductStorageInterfac
         if ($cache = wa('shop')->getCache()) {
             $cache->delete('tags');
         }
+    }
+
+    protected function updateProductEditDatetime($product_ids)
+    {
+        $product_model = new shopProductModel();
+        $product_model->updateById($product_ids, ['edit_datetime' => date('Y-m-d H:i:s')]);
     }
 }

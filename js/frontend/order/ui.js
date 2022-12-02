@@ -826,6 +826,86 @@
 
     var price_format = null;
 
+    function getGroupedString(string, size, divider) {
+        var result = "";
+
+        if (!(size && string && divider)) {
+            return string;
+        }
+
+        var string_array = string.split("").reverse();
+
+        var groups = [];
+        var group = [];
+
+        for (var i = 0; i < string_array.length; i++) {
+            var letter = string_array[i],
+                is_first = (i === 0),
+                is_last = (i === string_array.length - 1),
+                delta = (i % size);
+
+            if (delta === 0 && !is_first) {
+                groups.unshift(group);
+                group = [];
+            }
+
+            group.unshift(letter);
+
+            if (is_last) {
+                groups.unshift(group);
+            }
+        }
+
+        for (i = 0; i < groups.length; i++) {
+            var is_last_group = (i === groups.length - 1),
+                _group = groups[i].join("");
+
+            result += _group + ( is_last_group ? "" : divider );
+        }
+
+        return result;
+    }
+
+    var localizeNumber = function(number, remove_start_nulls) {
+        var result = String(number),
+            format = price_format;
+
+        if (!format) { return result; }
+
+        if (typeof result === "string") {
+            var parts = result.split(".");
+
+            if (remove_start_nulls) {
+                let string_with_nulls = parts[0].split(""),
+                    string_without_nulls = [];
+
+                $.each(string_with_nulls, function(i, letter) {
+                    if (string_without_nulls.length || (letter !== "0")) {
+                        string_without_nulls.push(letter);
+                    }
+                });
+
+                if (!string_without_nulls.length) {
+                    string_without_nulls.push(0);
+                }
+
+                parts[0] = string_without_nulls.join("");
+            }
+
+            if (format.group_size > 0) {
+                parts[0] = getGroupedString(parts[0], format.group_size, format.group_divider);
+            }
+
+            result = parts.join(".");
+
+            if (format.fraction_divider) {
+                result = result.replace(".", format.fraction_divider);
+            }
+        }
+
+        return result;
+    };
+
     /**
      * @param {string|number} price
      * @param {boolean?} text
@@ -855,46 +935,6 @@
         }
 
         return result;
-
-        function getGroupedString(string, size, divider) {
-            var result = "";
-
-            if (!(size && string && divider)) {
-                return string;
-            }
-
-            var string_array = string.split("").reverse();
-
-            var groups = [];
-            var group = [];
-
-            for (var i = 0; i < string_array.length; i++) {
-                var letter = string_array[i],
-                    is_first = (i === 0),
-                    is_last = (i === string_array.length - 1),
-                    delta = (i % size);
-
-                if (delta === 0 && !is_first) {
-                    groups.unshift(group);
-                    group = [];
-                }
-
-                group.unshift(letter);
-
-                if (is_last) {
-                    groups.unshift(group);
-                }
-            }
-
-            for (i = 0; i < groups.length; i++) {
-                var is_last_group = (i === groups.length - 1),
-                    _group = groups[i].join("");
-
-                result += _group + ( is_last_group ? "" : divider );
-            }
-
-            return result;
-        }
 
         function getFractionString(number) {
             var result = "";
@@ -929,7 +969,8 @@
         },
         load: load,
         formatPrice: formatPrice,
-        initFormatPrice: initFormatPrice
+        initFormatPrice: initFormatPrice,
+        localizeNumber: localizeNumber,
     };
 
     if ("ontouchstart" in window) {

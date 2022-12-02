@@ -672,7 +672,8 @@ class shopProductModel extends waModel
     protected function getUpdateData($type_id)
     {
         $data = [
-            'type_id' => $type_id
+            'type_id' => $type_id,
+            'edit_datetime' => date('Y-m-d H:i:s'),
         ];
         if (shopFrac::isEnabled()) {
             $type_model = new shopTypeModel();

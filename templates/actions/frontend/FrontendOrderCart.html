@@ -281,9 +281,9 @@
                                                         {$_base_price = $wa->shop->formatPrice($_base_price, ["unit" => $_base_unit["name_short"], "currency" => $_currency])}
 
                                                         <div class="wa-product-ratio-wrapper" data-ratio="{shop_number_format($_active_sku["stock_base_ratio"])}">
-                                                            <span class="js-stock-value">{shop_number_format($_item.quantity)}</span>&nbsp;<span>{$_stock_unit["name_short"]}</span>
+                                                            <span class="js-stock-value">{$wa->shop->roundNumber($_item.quantity, 3, null, null)}</span>&nbsp;<span>{$_stock_unit["name_short"]}</span>
                                                             <span>&nbsp;=&nbsp;</span>
-                                                            <span class="js-base-value">{shop_number_format($_item.quantity * $_active_sku["stock_base_ratio"])}</span>&nbsp;<span>{$_base_unit["name_short"]}</span>
+                                                            <span class="js-base-value">{$wa->shop->roundNumber($_item.quantity * $_active_sku["stock_base_ratio"], 3, null, null)}</span>&nbsp;<span>{$_base_unit["name_short"]}</span>
                                                         </div>
                                                         <div class="wa-product-price">{$_stock_price}</div>
                                                         <div class="wa-product-base-price">{$_base_price}</div>

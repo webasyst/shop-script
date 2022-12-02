@@ -12,10 +12,20 @@ class shopProdCategoriesAction extends waViewAction
 
         shopHelper::setChapter('new_chapter');
 
+        /**
+         * @event backend_prod_categories
+         * @since 9.4.1
+         */
+        $backend_prod_categories = wa('shop')->event('backend_prod_categories', ref([
+            "storefronts" => &$storefronts,
+            "categories"  => &$categories,
+        ]));
+
         $this->view->assign([
             "categories"             => $categories,
             "storefronts"            => $storefronts,
-            "category_sort_variants" => self::getCategorySortVariants()
+            "category_sort_variants" => self::getCategorySortVariants(),
+            "backend_prod_categories" => $backend_prod_categories,
         ]);
 
         $this->setTemplate("templates/actions/prod/main/Categories.html");

@@ -69,9 +69,7 @@ class shopFeatureValuesColorModel extends shopFeatureValuesModel
         } else {
             $value = trim(strip_tags($value));
             $code = shopColorValue::getCode($value);
-            if ($value === '' && $code !== null) {
-                $suggest = true;
-            }
+            $suggest = true;
         }
         $value = substr($value, 0, 255);
         $data = array(
