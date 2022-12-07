@@ -127,7 +127,7 @@
     </div>
 </div>
 {/capture}
-{$_templates["dialog-list-feature-value"] = $_dialog_list_feature_value|trim}
+{$_templates["dialog-list-feature-value"] = $_dialog_list_feature_value|strip}
 
 {capture assign="_component_feature_value_checkbox"}
     <div class="vue-component-feature-value-checkbox">
@@ -164,7 +164,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-feature-value-checkbox"] = $_component_feature_value_checkbox|trim}
+{$_components["component-feature-value-checkbox"] = $_component_feature_value_checkbox|strip}
 
 {capture assign="_component_feature_value_checkbox_item"}
     <div class="s-item-wrapper" v-bind:class="item_class" v-bind:key="item.value" v-if="item.states.display">
@@ -178,4 +178,4 @@
         </div>
     </div>
 {/capture}
-{$_components["component-feature-value-checkbox-item"] = $_component_feature_value_checkbox_item|trim}
+{$_components["component-feature-value-checkbox-item"] = $_component_feature_value_checkbox_item|strip}

@@ -42,7 +42,7 @@
     </div>
 </div>
 {/capture}
-{$_components["component-table-filters-rules"] = $_component_table_filters_result|trim}
+{$_components["component-table-filters-rules"] = $_component_table_filters_result|strip}
 
 {capture assign="_component_table_filters_result_item"}
 <div class="s-filter-item-wrapper"
@@ -85,4 +85,4 @@
     </div>
 </div>
 {/capture}
-{$_components["component-table-filters-rules-item"] = $_component_table_filters_result_item|trim}
+{$_components["component-table-filters-rules-item"] = $_component_table_filters_result_item|strip}

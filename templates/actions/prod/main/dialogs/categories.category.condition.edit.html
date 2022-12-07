@@ -50,7 +50,7 @@
     </template>
 </div>
 {/capture}
-{$_components["component-feature-value-checkbox"] = $_component_feature_value_checkbox|trim}
+{$_components["component-feature-value-checkbox"] = $_component_feature_value_checkbox|strip}
 
 {capture assign="_component_feature_value_checkbox_item"}
 <div class="s-item-wrapper" v-bind:class="item_class" v-bind:key="item.value" v-if="item.states.display">
@@ -65,7 +65,7 @@
     </div>
 </div>
 {/capture}
-{$_components["component-feature-value-checkbox-item"] = $_component_feature_value_checkbox_item|trim}
+{$_components["component-feature-value-checkbox-item"] = $_component_feature_value_checkbox_item|strip}
 
 <div class="wa-dialog s-category-condition-edit-dialog" id="js-category-condition-edit-dialog">
     <div class="dialog-background"></div>

@@ -134,7 +134,7 @@
     </div>
 </div>
 {/capture}
-{$_components["component-product-column-feature"] = $_component_product_column_feature|trim}
+{$_components["component-product-column-feature"] = $_component_product_column_feature|strip}
 
 {capture assign="_component_product_feature_color"}
     <div class="vue-component-product-feature-color">
@@ -166,7 +166,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-product-feature-color"] = $_component_product_feature_color|trim}
+{$_components["component-product-feature-color"] = $_component_product_feature_color|strip}
 
 {capture assign="_component_product_feature_checkbox"}
     <div class="vue-component-product-feature-checkbox">
@@ -245,7 +245,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-product-feature-checkbox"] = $_component_product_feature_checkbox|trim}
+{$_components["component-product-feature-checkbox"] = $_component_product_feature_checkbox|strip}
 
 {capture assign="_dialog_product_feature_checkbox"}
     <div class="wa-dialog s-product-feature-checkbox-dialog">
@@ -295,7 +295,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["dialog-product-feature-checkbox"] = $_dialog_product_feature_checkbox|trim}
+{$_templates["dialog-product-feature-checkbox"] = $_dialog_product_feature_checkbox|strip}
 
 {capture assign="_component_feature_option_search"}
     <div class="s-search-section flexbox space-8">
@@ -312,7 +312,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-feature-option-search"] = $_component_feature_option_search|trim}
+{$_components["component-feature-option-search"] = $_component_feature_option_search|strip}
 
 {capture assign="_component_feature_option_form"}
     <div class="s-form-wrapper">
@@ -358,7 +358,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-feature-option-form"] = $_component_feature_option_form|trim}
+{$_components["component-feature-option-form"] = $_component_feature_option_form|strip}
 
 {capture assign="_component_feature_input"}
     <div class="s-field-wrapper">
@@ -384,4 +384,4 @@
         </template>
     </div>
 {/capture}
-{$_components["component-feature-input"] = $_component_feature_input|trim}
+{$_components["component-feature-input"] = $_component_feature_input|strip}

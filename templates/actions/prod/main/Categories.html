@@ -83,7 +83,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-categories"] = $_component_categories|trim}
+{$_components["component-categories"] = $_component_categories|strip}
 
 {capture assign="_component_categories_header_column"}
     <div class="s-column" v-bind:class="'s-column-'+column.id" v-bind:style="{ width: column_width }">
@@ -96,7 +96,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-categories-header-column"] = $_component_categories_header_column|trim}
+{$_components["component-categories-header-column"] = $_component_categories_header_column|strip}
 
 {capture assign="_component_category"}
     <div class="s-category-section">
@@ -222,7 +222,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-category"] = $_component_category|trim}
+{$_components["component-category"] = $_component_category|strip}
 
 {capture assign="_component_category_sorting"}
     <div class="vue-component-category-sorting">
@@ -248,7 +248,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-category-sorting"] = $_component_category_sorting|trim}
+{$_components["component-category-sorting"] = $_component_category_sorting|strip}
 
 {capture assign="_component_category_filters"}
     <div class="vue-component-category-filters">
@@ -267,7 +267,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-category-filters"] = $_component_category_filters|trim}
+{$_components["component-category-filters"] = $_component_category_filters|strip}
 
 {capture assign="_component_dropdown_storefronts"}
     <div class="vue-component-dropdown-storefronts">
@@ -317,7 +317,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-dropdown-storefronts"] = $_component_dropdown_storefronts|trim}
+{$_components["component-dropdown-storefronts"] = $_component_dropdown_storefronts|strip}
 
 {capture assign="_component_search_categories"}
     <div class="s-search-section flexbox space-8">
@@ -347,7 +347,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-search-categories"] = $_component_search_categories|trim}
+{$_components["component-search-categories"] = $_component_search_categories|strip}
 
 {capture assign="_component_dropdown_categories_sorting"}
     <div class="vue-component-categories-sorting">
@@ -364,19 +364,19 @@
         </div>
     </div>
 {/capture}
-{$_components["component-dropdown-categories-sorting"] = $_component_dropdown_categories_sorting|trim}
+{$_components["component-dropdown-categories-sorting"] = $_component_dropdown_categories_sorting|strip}
 
 {* ШАБЛОНЫ *}
 {$_templates = []}
 
 {capture assign="_dialog_category_delete"}{include file="./dialogs/categories.category.delete.html" inline}{/capture}
-{$_templates["dialog-category-delete"] = $_dialog_category_delete|trim}
+{$_templates["dialog-category-delete"] = $_dialog_category_delete|strip}
 
 {capture assign="_dialog_category_clone"}{include file="./dialogs/categories.category.clone.html" inline}{/capture}
-{$_templates["dialog-category-clone"] = $_dialog_category_clone|trim}
+{$_templates["dialog-category-clone"] = $_dialog_category_clone|strip}
 
 {capture assign="_dialog_category_view"}{include file="./dialogs/categories.category.storefronts.html" inline}{/capture}
-{$_templates["dialog-category-view"] = $_dialog_category_view|trim}
+{$_templates["dialog-category-view"] = $_dialog_category_view|strip}
 
 {capture assign="_categories_sort_confirm"}{include file="./dialogs/categories.sort_confirm.html" inline}{/capture}
 {$_templates["categories-sort-confirm"] = $_categories_sort_confirm}

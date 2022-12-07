@@ -281,10 +281,12 @@ class shopProdPresentationUpdateProductController extends waJsonController
                         $skus_features = $product->sku_features;
                         foreach ($skus_features as $id_sku => $sku_features) {
                             $sku_value = '';
-                            if (isset($sku_features[$updated_column['feature_code']])
-                                && is_object($sku_features[$updated_column['feature_code']])
-                            ) {
-                                $sku_value = $sku_features[$updated_column['feature_code']]->value;
+                            if (isset($sku_features[$updated_column['feature_code']])) {
+                                if (is_object($sku_features[$updated_column['feature_code']])) {
+                                    $sku_value = $sku_features[$updated_column['feature_code']]->value;
+                                } else {
+                                    $sku_value = $sku_features[$updated_column['feature_code']];
+                                }
                             }
                             $changed_column_value['skus'][$id_sku]['features'][$updated_column['feature_code']] = $sku_value;
                         }

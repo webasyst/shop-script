@@ -122,7 +122,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-dropdown-presentations"] = $_component_dropdown_presentations|trim}
+{$_components["component-dropdown-presentations"] = $_component_dropdown_presentations|strip}
 
 {capture assign="_component_presentation_add_form"}
     <div class="s-presentation-add-form flexbox middle space-12">
@@ -150,7 +150,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-presentation-add-form"] = $_component_presentation_add_form|trim}
+{$_components["component-presentation-add-form"] = $_component_presentation_add_form|strip}
 
 {capture assign="_component_presentation_rename_form"}
     <div class="s-presentation-rename-form flexbox middle space-12">
@@ -176,7 +176,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-presentation-rename-form"] = $_component_presentation_rename_form|trim}
+{$_components["component-presentation-rename-form"] = $_component_presentation_rename_form|strip}
 
 {capture assign="_presentation_delete_confirm_dialog"}{include file="../../dialogs/products.presentations.presentation_delete_confirm.html" inline}{/capture}
-{$_templates["dialog-presentation-delete-confirm"] = $_presentation_delete_confirm_dialog|trim}
+{$_templates["dialog-presentation-delete-confirm"] = $_presentation_delete_confirm_dialog|strip}

@@ -9,7 +9,7 @@ class shopProdListAction extends waViewAction
     protected $stocks = null;
     protected $fractional_config = null;
     protected $currencies = [];
-    protected $static_categories_tree = [];
+    protected $static_categories_tree = null;
     /**
      * @var shopProductFeaturesModel $product_features_model
      */
@@ -642,7 +642,7 @@ class shopProdListAction extends waViewAction
         return $result;
     }
 
-    protected function mergeColumns($columns, $presentation_columns)
+    public function mergeColumns($columns, $presentation_columns, $remove_disabled=true)
     {
         $position = 0;
         foreach ($presentation_columns as $enabled_column) {
@@ -656,14 +656,20 @@ class shopProdListAction extends waViewAction
             }
             $position = max($enabled_column['sort'], $position);
         }
-        foreach ($columns as &$column) {
-            if (!isset($column['enabled'])) {
-                $column['enabled'] = false;
+        foreach ($columns as $col_id => &$column) {
+            if (empty($column['enabled'])) {
+                if ($remove_disabled) {
+                    unset($columns[$col_id]);
+                    continue;
+                } else {
+                    $column['enabled'] = false;
+                }
             }
             if (!isset($column['sort'])) {
                 $column['sort'] = ++$position;
             }
         }
+        unset($column);
 
         usort($columns, function($a, $b) {
             if ($a['sort'] == $b['sort']) {
@@ -675,7 +681,7 @@ class shopProdListAction extends waViewAction
         return $columns;
     }
 
-    protected function formatColumns($columns) {
+    public function formatColumns($columns) {
         $feature_model = new shopFeatureModel();
         $all_features = $feature_model->getFeatures(true);
         $all_features = shopPresentation::addSelectableValues($all_features);
@@ -864,7 +870,16 @@ class shopProdListAction extends waViewAction
             return $options;
         }
 
-        return forEachCategory($this->static_categories_tree);
+        if ($this->static_categories_tree === null) {
+            $category_model = new shopCategoryModel();
+            $static_categories_tree = $category_model->buildNestedTree(array_filter($category_model->getFullTree('id, name, parent_id, type'), function($v) {
+                return empty($v['type']);
+            }));
+        } else {
+            $static_categories_tree = $this->static_categories_tree;
+        }
+
+        return forEachCategory($static_categories_tree);
     }
 
     protected function getProductTypes() {

@@ -6,7 +6,7 @@
         </span>
     </component>
 {/capture}
-{$_components["component-checkbox"] = $_component_checkbox|trim}
+{$_components["component-checkbox"] = $_component_checkbox|strip}
 
 {* DROPDOWN *}
 {capture assign="_component_dropdown"}
@@ -40,7 +40,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-dropdown"] = $_component_dropdown|trim}
+{$_components["component-dropdown"] = $_component_dropdown|strip}
 
 {* RADIO *}
 {capture assign="_component_radio"}
@@ -49,7 +49,7 @@
         <span></span>
     </component>
 {/capture}
-{$_components["component-radio"] = $_component_radio|trim}
+{$_components["component-radio"] = $_component_radio|strip}
 
 {* DATE PICKER *}
 {capture assign="_component_date_picker"}
@@ -61,7 +61,7 @@
         <input name="" type="hidden" value="">
     </div>
 {/capture}
-{$_components["component-date-picker"] = $_component_date_picker|trim}
+{$_components["component-date-picker"] = $_component_date_picker|strip}
 
 {* COLOR PICKER *}
 {capture assign="_component_color_picker"}
@@ -86,4 +86,4 @@
     </div>
 {/strip}
 {/capture}
-{$_components["component-color-picker"] = $_component_color_picker|trim}
+{$_components["component-color-picker"] = $_component_color_picker|strip}

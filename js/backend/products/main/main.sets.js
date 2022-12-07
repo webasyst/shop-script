@@ -1758,18 +1758,18 @@
 
             var get_ids = getIds(sets_ids),
                 static_ids = get_ids.static_ids,
-                dynamic_ids = get_ids.dynamic_ids;
-
-            var limit = 100,
-                recount_offset = 0;
+                dynamic_ids = get_ids.dynamic_ids,
+                limit = 100,
+                recount_offset = 0,
+                is_static = true;
 
             if (static_ids.length) {
-                recountSets(true);
-            }
-            if (dynamic_ids.length) {
-                limit = 10;
-                recount_offset = 0;
-                recountSets(false);
+                recountSets();
+                deferred.done(function () {
+                    recountDynamic();
+                });
+            } else {
+                recountDynamic();
             }
             if (!static_ids.length && !dynamic_ids.length) {
                 deferred.resolve();
@@ -1777,7 +1777,16 @@
 
             return deferred.promise();
 
-            function recountSets(is_static) {
+            function recountDynamic() {
+                if (dynamic_ids.length) {
+                    limit = 10;
+                    recount_offset = 0;
+                    is_static = false;
+                    recountSets();
+                }
+            }
+
+            function recountSets() {
                 var data = is_static ? {
                     static_ids: static_ids.slice(recount_offset, recount_offset + limit)
                 } : {
@@ -1786,7 +1795,7 @@
                 recount_offset += limit;
                 request(data).done( function() {
                     if ((is_static ? static_ids.length : dynamic_ids.length) > recount_offset) {
-                        recountSets(is_static);
+                        recountSets();
                     } else {
                         deferred.resolve();
                     }

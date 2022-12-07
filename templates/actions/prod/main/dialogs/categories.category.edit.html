@@ -67,7 +67,7 @@
         </div>
     </li>
 {/capture}
-{$_templates["component-category-filter-autocomplete-item"] = $_template_category_filter_autocomplete_item|trim}
+{$_templates["component-category-filter-autocomplete-item"] = $_template_category_filter_autocomplete_item|strip}
 
 {capture assign="_template_category_filter_autocomplete_item_sku"}
     <li class="ui-menu-item-html">
@@ -79,7 +79,7 @@
         </div>
     </li>
 {/capture}
-{$_templates["component-category-filter-autocomplete-item-sku"] = $_template_category_filter_autocomplete_item_sku|trim}
+{$_templates["component-category-filter-autocomplete-item-sku"] = $_template_category_filter_autocomplete_item_sku|strip}
 
 {capture assign="_dialog_load"}
     <div class="wa-dialog s-category-feature-edit-dialog" id="js-category-feature-edit-dialog">
@@ -99,7 +99,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["dialog-load"] = $_dialog_load|trim}
+{$_templates["dialog-load"] = $_dialog_load|strip}
 
 {$_components = []}
 
@@ -121,7 +121,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-category-visible-storefronts"] = $_component_category_visible_storefronts|trim}
+{$_components["component-category-visible-storefronts"] = $_component_category_visible_storefronts|strip}
 
 {capture assign="_component_category_filter_section"}
     <div class="s-category-filter-section">
@@ -147,7 +147,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-category-filter-section"] = $_component_category_filter_section|trim}
+{$_components["component-category-filter-section"] = $_component_category_filter_section|strip}
 
 {capture assign="_component_category_filter_item"}
     <div class="s-filter-wrapper flexbox"
@@ -175,7 +175,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-category-filter-item"] = $_component_category_filter_item|trim}
+{$_components["component-category-filter-item"] = $_component_category_filter_item|strip}
 
 {capture assign="_component_category_storefronts_section"}
     <div class="wa-fields">
@@ -239,7 +239,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-category-storefronts-section"] = $_component_category_storefronts_section|trim}
+{$_components["component-category-storefronts-section"] = $_component_category_storefronts_section|strip}
 
 {capture assign="_component_category_description_redactor"}
     <div class="s-category-description-redactor">
@@ -262,7 +262,7 @@
         </section>
     </div>
 {/capture}
-{$_components["component-category-description-redactor"] = $_component_category_description_redactor|trim}
+{$_components["component-category-description-redactor"] = $_component_category_description_redactor|strip}
 
 {capture assign="_component_category_features_section"}
     <div class="vue-component-category-features-section">
@@ -306,7 +306,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-category-features-section"] = $_component_category_features_section|trim}
+{$_components["component-category-features-section"] = $_component_category_features_section|strip}
 
 {capture assign="_component_category_feature_item"}
     <div class="s-feature-wrapper" v-bind:class="item_class">
@@ -357,7 +357,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-category-feature-item"] = $_component_category_feature_item|trim}
+{$_components["component-category-feature-item"] = $_component_category_feature_item|strip}
 
 <div class="wa-dialog s-category-edit-dialog" id="js-category-edit-dialog">
     <div class="dialog-background"></div>

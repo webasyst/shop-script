@@ -24,7 +24,7 @@
     </template>
 </div>
 {/capture}
-{$_components["component-product-column-summary"] = $_component_product_column_summary|trim}
+{$_components["component-product-column-summary"] = $_component_product_column_summary|strip}
 
 {capture assign="_dialog_product_column_summary"}
     <div class="wa-dialog s-product-column-summary-dialog">
@@ -60,4 +60,4 @@
         </div>
     </div>
 {/capture}
-{$_templates["dialog-product-column-summary"] = $_dialog_product_column_summary|trim}
+{$_templates["dialog-product-column-summary"] = $_dialog_product_column_summary|strip}

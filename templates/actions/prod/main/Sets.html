@@ -34,7 +34,7 @@
         <span></span>
     </component>
 {/capture}
-{$_components["component-radio"] = $_component_radio|trim}
+{$_components["component-radio"] = $_component_radio|strip}
 
 {capture assign="_component_datepicker"}
     <div class="vue-component-date-picker" v-bind:class="{ 'is-disabled': disabled }">
@@ -43,7 +43,7 @@
         <input v-bind:name="name" type="hidden" value="">
     </div>
 {/capture}
-{$_components["component-datepicker"] = $_component_datepicker|trim}
+{$_components["component-datepicker"] = $_component_datepicker|strip}
 
 {capture assign="_component_dropdown_set_sorting"}
     <div class="dropdown">
@@ -58,7 +58,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-dropdown-set-sorting"] = $_component_dropdown_set_sorting|trim}
+{$_components["component-dropdown-set-sorting"] = $_component_dropdown_set_sorting|strip}
 
 {capture assign="_component_dropdown_sets_sorting"}
     <div class="vue-component-sets-sorting">
@@ -75,7 +75,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-dropdown-sets-sorting"] = $_component_dropdown_sets_sorting|trim}
+{$_components["component-dropdown-sets-sorting"] = $_component_dropdown_sets_sorting|strip}
 
 {capture assign="_component_search_sets"}
     <div class="s-search-section flexbox space-8">
@@ -105,7 +105,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-search-sets"] = $_component_search_sets|trim}
+{$_components["component-search-sets"] = $_component_search_sets|strip}
 
 {capture assign="_component_set_sorting"}
     <div class="vue-component-set-sorting" v-if="set.type === '0'">
@@ -124,7 +124,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-set-sorting"] = $_component_set_sorting|trim}
+{$_components["component-set-sorting"] = $_component_set_sorting|strip}
 
 {capture assign="_component_sets"}
     <div class="s-table-body">
@@ -150,7 +150,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-sets"] = $_component_sets|trim}
+{$_components["component-sets"] = $_component_sets|strip}
 
 {capture assign="_component_sets_header_column"}
     <div class="s-column" v-bind:class="'s-column-'+column.id" v-bind:style="{ width: column_width }">
@@ -163,7 +163,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-sets-header-column"] = $_component_sets_header_column|trim}
+{$_components["component-sets-header-column"] = $_component_sets_header_column|strip}
 
 {capture assign="_component_model_item"}
     <div class="s-item-section">
@@ -304,7 +304,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-model-item"] = $_component_model_item|trim}
+{$_components["component-model-item"] = $_component_model_item|strip}
 
 {* ШАБЛОНЫ *}
 {$_templates = []}

@@ -16,13 +16,13 @@
 {$_templates = []}
 
 {capture assign="_delete_confirm_dialog"}{include file="./dialogs/pages_delete_page_confirm.html" inline}{/capture}
-{$_templates["delete-confirm-dialog"] = $_delete_confirm_dialog|trim}
+{$_templates["delete-confirm-dialog"] = $_delete_confirm_dialog|strip}
 
 {capture assign="_edit_page_dialog"}{include file="./dialogs/pages_edit_page.html" inline}{/capture}
-{$_templates["edit-page-dialog"] = $_edit_page_dialog|trim}
+{$_templates["edit-page-dialog"] = $_edit_page_dialog|strip}
 
 {capture assign="_unsaved_confirm_dialog"}{include file="./dialogs/pages_unsaved_changes_confirm.html" inline}{/capture}
-{$_templates["unsaved-confirm-dialog"] = $_unsaved_confirm_dialog|trim}
+{$_templates["unsaved-confirm-dialog"] = $_unsaved_confirm_dialog|strip}
 
 {* ЛОКАЛИЗАЦИЯ *}
 

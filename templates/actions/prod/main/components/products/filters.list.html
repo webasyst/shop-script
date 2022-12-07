@@ -127,7 +127,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-table-filters-list"] = $_component_table_filters_list|trim}
+{$_components["component-table-filters-list"] = $_component_table_filters_list|strip}
 
 {capture assign="_component_filter_add_form"}
     <div class="s-filter-add-form flexbox middle space-12">
@@ -155,7 +155,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-filter-add-form"] = $_component_filter_add_form|trim}
+{$_components["component-filter-add-form"] = $_component_filter_add_form|strip}
 
 {capture assign="_component_filter_rename_form"}
     <div class="s-filter-rename-form flexbox middle space-12">
@@ -181,7 +181,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-filter-rename-form"] = $_component_filter_rename_form|trim}
+{$_components["component-filter-rename-form"] = $_component_filter_rename_form|strip}
 
 {capture assign="_filter_delete_confirm_dialog"}{include file="../../dialogs/products.filters.filter_delete_confirm.html" inline}{/capture}
-{$_templates["dialog-filter-delete-confirm"] = $_filter_delete_confirm_dialog|trim}
+{$_templates["dialog-filter-delete-confirm"] = $_filter_delete_confirm_dialog|strip}

@@ -1684,7 +1684,6 @@
                                                         var is_wanted = checkCategory(category);
                                                         if (is_wanted) {
                                                             result = true;
-                                                            return false;
                                                         }
                                                     });
 
@@ -1705,7 +1704,7 @@
                                                         category.states.is_wanted_inside = checkCategories(category.categories);
                                                     }
 
-                                                    return is_wanted;
+                                                    return category.states.is_wanted || category.states.is_wanted_inside;
                                                 }
                                             },
                                         },
@@ -1847,7 +1846,6 @@
                                                         var is_wanted = checkSet(set);
                                                         if (is_wanted) {
                                                             result = true;
-                                                            return false;
                                                         }
                                                     });
 
@@ -1868,7 +1866,7 @@
                                                         set.states.is_wanted_inside = checkSets(set.sets);
                                                     }
 
-                                                    return is_wanted;
+                                                    return is_wanted || set.states.is_wanted_inside;
                                                 }
                                             }
                                         },
@@ -6072,13 +6070,56 @@
                             showColumnManager: function() {
                                 var self = this;
 
+                                var columns_ready = getColumns();
+
                                 $.waDialog({
                                     html: that.templates["dialog-list-column-manager"],
-                                    options: { vue_model: self },
+                                    options: {
+                                        ready: columns_ready,
+                                        vue_model: self
+                                    },
                                     onOpen: function($dialog, dialog) {
-                                        that.initDialogColumnManager($dialog, dialog);
+                                        columns_ready.then(function(columns) {
+                                            that.initDialogColumnManager($dialog, dialog, columns);
+                                        });
                                     }
                                 });
+
+                                function getColumns() {
+
+                                    var ready = $.Deferred();
+
+                                    (function(resolve) {
+                                        if (that.full_columns_array_loaded) {
+                                            resolve();
+                                        } else {
+                                            $.get(that.urls["presentation_get_columns"], { presentation_id: that.presentation.id }, function(result) {
+                                                that.full_columns_array_loaded = true;
+                                                that.columns_array = result.data;
+                                                that.columns = $.wa.construct(that.columns_array, "id");
+                                                resolve();
+                                            }, "json");
+                                        }
+                                    }(function() {
+                                        ready.resolve(prepareColumns());
+                                    }));
+
+                                    return ready.promise();
+                                }
+
+                                function prepareColumns() {
+                                    let columns = $.wa.clone(that.columns_array);
+                                    $.each(columns, function(i, column) {
+                                        column.settings = (column.settings ? column.settings : {});
+                                        column.states = {
+                                            move: false,
+                                            highlighted: false,
+                                            display: true,
+                                            ready: false
+                                        }
+                                    });
+                                    return columns;
+                                }
                             }
                         }
                     },
@@ -7187,14 +7228,10 @@
             }
         };
 
-        Page.prototype.initDialogColumnManager = function($dialog, dialog) {
+        Page.prototype.initDialogColumnManager = function($dialog, dialog, columns) {
             var that = this;
 
-            console.log( dialog );
-
             var $section = $dialog.find(".js-vue-section");
-
-            var columns = getColumns();
 
             var vue_model = new Vue({
                 el: $section[0],
@@ -7614,22 +7651,6 @@
                     self.initDragAndDrop( $(self.$el) );
                 }
             });
-
-            function getColumns() {
-                let columns = $.wa.clone(that.columns_array);
-
-                $.each(columns, function(i, column) {
-                    column.settings = (column.settings ? column.settings : {});
-                    column.states = {
-                        move: false,
-                        highlighted: false,
-                        display: true,
-                        ready: false
-                    }
-                });
-
-                return columns;
-            }
         };
 
         Page.prototype.callMassAction = function(action, products, products_selection) {

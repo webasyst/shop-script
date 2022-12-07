@@ -63,7 +63,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-crop-section"] = $_component_crop_section|trim}
+{$_components["component-crop-section"] = $_component_crop_section|strip}
 
 {$_globals_components = $wa->globals("components")}
 {if !empty($_globals_components)}

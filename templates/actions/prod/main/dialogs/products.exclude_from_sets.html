@@ -20,7 +20,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-set-item-group"] = $_component_sets_group|trim}
+{$_components["component-set-item-group"] = $_component_sets_group|strip}
 
 {capture assign="_component_set"}
     <div class="s-item" v-bind:class="item_class">
@@ -58,7 +58,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-set-item"] = $_component_set|trim}
+{$_components["component-set-item"] = $_component_set|strip}
 
 {capture assign="_component_set_search"}
     <div class="component-set-search flexbox space-8">
@@ -81,7 +81,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-set-search"] = $_component_set_search|trim}
+{$_components["component-set-search"] = $_component_set_search|strip}
 
 <div class="wa-dialog s-products-exclude-from-sets-dialog" id="js-products-exclude-from-sets-dialog">
     <div class="dialog-background"></div>

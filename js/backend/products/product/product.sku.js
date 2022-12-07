@@ -4957,7 +4957,8 @@
                                 });
                                 break;
                             case "checkbox":
-                                if (!(feature.available_for_sku && feature.multiple && feature.selectable)) {
+                                if (!(feature.available_for_sku && feature.multiple && feature.selectable
+                                    && (that.product.skus.length > 1 || that.product.skus[0].modifications.length > 1))) {
                                     $.each(feature.options, function (i, option) {
                                         if (option.active) {
                                             data.push({

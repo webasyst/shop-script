@@ -27,7 +27,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["callback_dialog"] = $_callback_dialog}
+{$_templates["callback_dialog"] = $_callback_dialog|strip}
 
 {capture assign="_callback_dialog_success"}
     <div class="align-center" style="padding: 2rem 0;">
@@ -39,4 +39,4 @@
         <p>[`This window will automatically close in 3 seconds.`]</p>
     </div>
 {/capture}
-{$_templates["callback_dialog_success"] = $_callback_dialog_success}
+{$_templates["callback_dialog_success"] = $_callback_dialog_success|strip}

@@ -27,7 +27,7 @@
     <component-table-filters-rules></component-table-filters-rules>
 </div>
 {/capture}
-{$_components["component-table-filters"] = $_component_table_filters|trim}
+{$_components["component-table-filters"] = $_component_table_filters|strip}
 
 {capture assign="_component_table_filters_search"}
     <div class="component-table-filters-search flexbox space-8">
@@ -52,7 +52,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-table-filters-search"] = $_component_table_filters_search|trim}
+{$_components["component-table-filters-search"] = $_component_table_filters_search|strip}
 
 {capture assign="_component_table_product_search"}
     <div class="component-table-filters-search flexbox space-8">
@@ -76,7 +76,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-table-product-search"] = $_component_table_product_search|trim}
+{$_components["component-table-product-search"] = $_component_table_product_search|strip}
 
 {capture assign="_template_autocomplete_product"}
     <div class="s-item-product-wrapper flexbox space-4">
@@ -91,7 +91,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["autocomplete-product"] = $_template_autocomplete_product|trim}
+{$_templates["autocomplete-product"] = $_template_autocomplete_product|strip}
 
 {capture assign="_template_autocomplete_product_with_image"}
     <div class="s-item-product-wrapper flexbox space-4">
@@ -104,7 +104,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["autocomplete-product-with-image"] = $_template_autocomplete_product_with_image|trim}
+{$_templates["autocomplete-product-with-image"] = $_template_autocomplete_product_with_image|strip}
 
 {capture assign="_template_autocomplete_product_empty"}
     <div class="s-item-product-wrapper">
@@ -113,7 +113,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["autocomplete-product-empty"] = $_template_autocomplete_product_empty|trim}
+{$_templates["autocomplete-product-empty"] = $_template_autocomplete_product_empty|strip}
 
 {include file="./filters.categories.html" scope="parent" inline}
 {include file="./filters.storefronts.html" scope="parent" inline}

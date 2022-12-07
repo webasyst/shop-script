@@ -7,10 +7,10 @@
 {$_templates = []}
 
 {capture assign="_dialog_review_delete"}{include file="./dialogs/reviews_review_delete_confirm.html" inline}{/capture}
-{$_templates["dialog-review-delete"] = $_dialog_review_delete|trim}
+{$_templates["dialog-review-delete"] = $_dialog_review_delete|strip}
 
 {capture assign="_dialog_image_delete"}{include file="./dialogs/reviews_image_delete_confirm.html" inline}{/capture}
-{$_templates["dialog-image-delete"] = $_dialog_image_delete|trim}
+{$_templates["dialog-image-delete"] = $_dialog_image_delete|strip}
 
 {* COMPONENTS *}
 
@@ -31,7 +31,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-dropdown"] = $_component_dropdown|trim}
+{$_components["component-dropdown"] = $_component_dropdown|strip}
 
 {capture assign="_component_pagination"}
     <ul class="vue-component-pagination wa-paging">
@@ -48,7 +48,7 @@
         </template>
     </ul>
 {/capture}
-{$_components["component-pagination"] = $_component_pagination|trim}
+{$_components["component-pagination"] = $_component_pagination|strip}
 
 {/strip}
 {capture assign="_component_review"}
@@ -213,7 +213,7 @@
 
     </div>
 {/capture}
-{$_components["component-review"] = $_component_review|trim}
+{$_components["component-review"] = $_component_review|strip}
 {strip}
 
 {* LOCALES *}

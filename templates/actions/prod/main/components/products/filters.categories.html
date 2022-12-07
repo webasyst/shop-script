@@ -68,7 +68,7 @@
     </div>
 </div>
 {/capture}
-{$_components["component-table-filters-categories-sets-types"] = $_component_table_filters_categories_sets_types|trim}
+{$_components["component-table-filters-categories-sets-types"] = $_component_table_filters_categories_sets_types|strip}
 
 {capture assign="_component_table_filters_categories"}
 <div>
@@ -93,7 +93,7 @@
     </div>
 </div>
 {/capture}
-{$_components["component-table-filters-categories"] = $_component_table_filters_categories|trim}
+{$_components["component-table-filters-categories"] = $_component_table_filters_categories|strip}
 
 {capture assign="_component_table_filters_sets"}
 <div>
@@ -118,7 +118,7 @@
     </div>
 </div>
 {/capture}
-{$_components["component-table-filters-sets"] = $_component_table_filters_sets|trim}
+{$_components["component-table-filters-sets"] = $_component_table_filters_sets|strip}
 
 {capture assign="_component_table_filters_sets_set"}
     <div class="s-item-wrapper" v-if="display_item">
@@ -160,7 +160,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-table-filters-sets-set"] = $_component_table_filters_sets_set|trim}
+{$_components["component-table-filters-sets-set"] = $_component_table_filters_sets_set|strip}
 
 {capture assign="_component_table_filters_types"}
 <div>
@@ -194,7 +194,7 @@
     </div>
 </div>
 {/capture}
-{$_components["component-table-filters-types"] = $_component_table_filters_types|trim}
+{$_components["component-table-filters-types"] = $_component_table_filters_types|strip}
 
 {capture assign="_component_table_filters_categories_category"}
 <div class="s-item-wrapper" v-if="display_item">
@@ -225,4 +225,4 @@
     </div>
 </div>
 {/capture}
-{$_components["component-table-filters-categories-category"] = $_component_table_filters_categories_category|trim}
+{$_components["component-table-filters-categories-category"] = $_component_table_filters_categories_category|strip}

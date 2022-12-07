@@ -12,7 +12,7 @@
             v-on:call_action="callAction"></component-mass-actions-footer>
     </div>
 {/capture}
-{$_components["component-mass-actions"] = $_component_mass_actions|trim}
+{$_components["component-mass-actions"] = $_component_mass_actions|strip}
 
 {capture assign="_component_mass_actions_footer"}
     <div class="vue-mass-actions-footer">
@@ -73,7 +73,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-mass-actions-footer"] = $_component_mass_actions_footer|trim}
+{$_components["component-mass-actions-footer"] = $_component_mass_actions_footer|strip}
 
 {capture assign="_component_mass_actions_aside"}
     <div class="vue-mass-actions-aside">
@@ -122,7 +122,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-mass-actions-aside"] = $_component_mass_actions_aside|trim}
+{$_components["component-mass-actions-aside"] = $_component_mass_actions_aside|strip}
 
 {capture assign="_dialog_mass_actions_apply"}{include file="../../dialogs/list.mass_actions.call_action.html" inline}{/capture}
-{$_templates["dialog-category-clone"] = $_dialog_mass_actions_apply|trim}
+{$_templates["dialog-category-clone"] = $_dialog_mass_actions_apply|strip}

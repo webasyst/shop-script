@@ -29,7 +29,7 @@
     </div>
 </div>
 {/capture}
-{$_components["component-table-filters-features"] = $_component_table_filters_features|trim}
+{$_components["component-table-filters-features"] = $_component_table_filters_features|strip}
 
 {capture assign="_component_table_filters_features_item"}
 <div class="s-feature-wrapper cursor-pointer" v-on:click="toggle">
@@ -44,4 +44,4 @@
     </div>
 </div>
 {/capture}
-{$_components["component-table-filters-features-item"] = $_component_table_filters_features_item|trim}
+{$_components["component-table-filters-features-item"] = $_component_table_filters_features_item|strip}

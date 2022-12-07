@@ -73,7 +73,7 @@
 {$_components = []}
 
 {capture assign="_component_fractional_section"}{include file="./components/component_fractional_section.html" inline}{/capture}
-{$_components["component-fractional-section"] = $_component_fractional_section|trim}
+{$_components["component-fractional-section"] = $_component_fractional_section|strip}
 
 {$_globals_components = $wa->globals("components")}
 {if !empty($_globals_components)}
@@ -293,7 +293,7 @@
 {/capture}
 {$_tooltips["visible_in_storefront"] = [
     "id" => "visible_in_storefront",
-    "html" => $_tooltip_visible_in_storefront|trim,
+    "html" => $_tooltip_visible_in_storefront|strip,
     "width" => "15rem"
 ]}
 
@@ -415,7 +415,7 @@
                         <span class="s-name">[`Select`]</span>
                     </button>
                 </template>
-                <template v-else-if="product.normal_mode && feature.available_for_sku">
+                <template v-else-if="product.normal_mode_switch && feature.available_for_sku">
                     <button class="wa-button wa-small wa-short transparent is-disabled" data-tooltip-id="product-feature-type-select">
                         <span class="s-icon"><i class="fas fa-pen"></i></span>
                         &nbsp;
@@ -568,7 +568,7 @@
         </template>
     </div>
 {/capture}
-{$_templates["component-feature"] = $_component_feature|trim}
+{$_templates["component-feature"] = $_component_feature|strip}
 
 {capture assign="_component_feature_color"}
     <div class="flexbox wrap space-12">
@@ -705,7 +705,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["component-features"] = $_component_features|trim}
+{$_templates["component-features"] = $_component_features|strip}
 
 {capture assign="_dropdown_currency"}
     <div class="dropdown" v-bind:class="{ 'wide': wide }">
@@ -764,7 +764,7 @@
         <input name="" type="hidden" value="">
     </div>
 {/capture}
-{$_templates["component-date-picker"] = $_component_date_picker|trim}
+{$_templates["component-date-picker"] = $_component_date_picker|strip}
 
 {capture assign="_component_color_picker"}
     <div class="vue-component-color-picker" v-bind:class="{ 'is-extended': extended }">
@@ -775,7 +775,7 @@
         <div class="s-color-picker js-color-picker" v-show="extended"></div>
     </div>
 {/capture}
-{$_templates["component-color-picker"] = $_component_color_picker|trim}
+{$_templates["component-color-picker"] = $_component_color_picker|strip}
 
 {capture assign="_component_feature_color_picker"}
     <div class="vue-component-color-picker" v-bind:class="{ 'is-extended': extended }">
@@ -786,14 +786,14 @@
         <div class="s-color-picker js-color-picker" v-show="extended"></div>
     </div>
 {/capture}
-{$_templates["component-feature-color-picker"] = $_component_feature_color_picker|trim}
+{$_templates["component-feature-color-picker"] = $_component_feature_color_picker|strip}
 
 {capture assign="_component_switch"}
     <div class="switch wa-small">
         <input type="checkbox" v-bind:id="id" v-bind:checked="checked" v-bind:disabled="disabled">
     </div>
 {/capture}
-{$_templates["component-switch"] = $_component_switch|trim|strip}
+{$_templates["component-switch"] = $_component_switch|strip}
 
 {capture assign="_component_dropdown_units"}
     <div class="dropdown s-dropdown-units"
@@ -806,7 +806,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["component-dropdown-units"] = $_component_dropdown_units|trim}
+{$_templates["component-dropdown-units"] = $_component_dropdown_units|strip}
 
 {capture assign="_component_feature_value_form"}
     <div class="s-component-feature-value-form">
@@ -837,7 +837,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["component-feature-value-form"] = $_component_feature_value_form|trim}
+{$_templates["component-feature-value-form"] = $_component_feature_value_form|strip}
 
 {capture assign="_add_feature_value_form"}
     <div class="s-add-feature-value-form js-add-feature-value-form">
@@ -852,7 +852,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["add-feature-value-form"] = $_add_feature_value_form|trim}
+{$_templates["add-feature-value-form"] = $_add_feature_value_form|strip}
 
 {capture assign="_component_file_manager"}
     <div class="component-file-manager">
@@ -906,10 +906,10 @@
         </div>
     </div>
 {/capture}
-{$_templates["component-file-manager"] = $_component_file_manager|trim}
+{$_templates["component-file-manager"] = $_component_file_manager|strip}
 
 {capture assign="_sku_file_delete_confirm_dialog"}{include file="./dialogs/sku_file_delete_confirm.html" inline}{/capture}
-{$_templates["sku-file-delete-confirm-dialog"] = $_sku_file_delete_confirm_dialog|trim}
+{$_templates["sku-file-delete-confirm-dialog"] = $_sku_file_delete_confirm_dialog|strip}
 
 {/strip}
 
@@ -937,7 +937,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["component-plugin-price"] = $_component_plugin_price|trim}
+{$_templates["component-plugin-price"] = $_component_plugin_price|strip}
 
 {capture assign="_component_plugin_field"}
     <div class="wa-field s-field-plugin-field"
@@ -979,7 +979,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["component-plugin-field"] = $_component_plugin_field|trim}
+{$_templates["component-plugin-field"] = $_component_plugin_field|strip}
 
 {capture assign="_component_plugin_dropdown"}
     <div class="dropdown s-dropdown-units">
@@ -994,7 +994,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["component-plugin-dropdown"] = $_component_plugin_dropdown|trim}
+{$_templates["component-plugin-dropdown"] = $_component_plugin_dropdown|strip}
 
 <div id="js-product-sku-section-wrapper">
     <script>
@@ -1176,7 +1176,7 @@
                                 </div>
 
                                 {capture assign="_select_selectable_features_dialog"}{include file="./dialogs/select_sku_feature.html" inline}{/capture}
-                                {$_templates["dialog_select_selectable_features"] = $_select_selectable_features_dialog|trim|strip}
+                                {$_templates["dialog_select_selectable_features"] = $_select_selectable_features_dialog|strip}
                             </div>
                             {/strip}
 
@@ -1214,7 +1214,7 @@
                                           v-html="option.html"></span>
                                 </div>
                             {/capture}
-                            {$_templates["component-toggle"] = $_component_toggle|trim|strip}
+                            {$_templates["component-toggle"] = $_component_toggle|strip}
                         </component-toggle>
 
                     </div>

@@ -120,7 +120,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-products-table"] = $_component_products_table|trim}
+{$_components["component-products-table"] = $_component_products_table|strip}
 
 {capture assign="_component_products_table_mass_selecttion"}
     <div class="s-check-all-section" v-bind:class="{ 'is-disabled' : states.is_disabled }">
@@ -165,7 +165,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-products-table-mass-selection"] = $_component_products_table_mass_selecttion|trim}
+{$_components["component-products-table-mass-selection"] = $_component_products_table_mass_selecttion|strip}
 
 {* Компонент: заголовок колонки *}
 {include file="./table.header.html" scope="parent" inline}

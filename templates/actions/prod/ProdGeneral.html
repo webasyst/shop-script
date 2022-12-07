@@ -149,15 +149,15 @@
         </div>
     </div>
 {/capture}
-{$_templates["component-file-manager"] = $_component_file_manager|trim}
+{$_templates["component-file-manager"] = $_component_file_manager|strip}
 
 {capture assign="_sku_file_delete_confirm_dialog"}{include file="./dialogs/sku_file_delete_confirm.html" inline}{/capture}
-{$_templates["sku-file-delete-confirm-dialog"] = $_sku_file_delete_confirm_dialog|trim}
+{$_templates["sku-file-delete-confirm-dialog"] = $_sku_file_delete_confirm_dialog|strip}
 
 {$_components = []}
 
 {capture assign="_component_fractional_section"}{include file="./components/component_fractional_section.html" inline}{/capture}
-{$_components["component-fractional-section"] = $_component_fractional_section|trim}
+{$_components["component-fractional-section"] = $_component_fractional_section|strip}
 
 {$_globals_components = $wa->globals("components")}
 {if !empty($_globals_components)}

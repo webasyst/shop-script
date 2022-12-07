@@ -8,7 +8,7 @@
     </template>
 </div>
 {/capture}
-{$_components["component-product-column-description"] = $_component_product_column_description|trim}
+{$_components["component-product-column-description"] = $_component_product_column_description|strip}
 
 {capture assign="_dialog_product_column_description"}
     <div class="wa-dialog s-product-column-description-dialog">
@@ -29,4 +29,4 @@
         </div>
     </div>
 {/capture}
-{$_templates["dialog-product-column-description"] = $_dialog_product_column_description|trim}
+{$_templates["dialog-product-column-description"] = $_dialog_product_column_description|strip}

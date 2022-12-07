@@ -19,7 +19,7 @@
     </template>
 </div>
 {/capture}
-{$_components["component-product-column-badge"] = $_component_product_column_badge|trim}
+{$_components["component-product-column-badge"] = $_component_product_column_badge|strip}
 
 {capture assign="_dialog_product_column_badge"}
 <div class="wa-dialog s-product-column-badge-dialog">
@@ -66,4 +66,4 @@
     </div>
 </div>
 {/capture}
-{$_templates["dialog-product-column-badge"] = $_dialog_product_column_badge|trim}
+{$_templates["dialog-product-column-badge"] = $_dialog_product_column_badge|strip}

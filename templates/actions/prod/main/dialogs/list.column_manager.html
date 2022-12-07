@@ -40,7 +40,7 @@
         </div>
     </div>
 {/capture}
-{$_templates["dialog-list-column-manager"] = $_dialog_list_column_manager|trim}
+{$_templates["dialog-list-column-manager"] = $_dialog_list_column_manager|strip}
 
 {capture assign="_component_list_column_item"}
     <div class="s-item-wrapper" v-bind:data-id="column.id" v-bind:class="item_class" v-show="column.states.display">
@@ -193,7 +193,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-list-column-item"] = $_component_list_column_item|trim}
+{$_components["component-list-column-item"] = $_component_list_column_item|strip}
 
 {capture assign="_component_search_column"}
     <div class="s-search-section flexbox space-8">
@@ -210,4 +210,4 @@
         </template>
     </div>
 {/capture}
-{$_components["component-search-column"] = $_component_search_column|trim}
+{$_components["component-search-column"] = $_component_search_column|strip}

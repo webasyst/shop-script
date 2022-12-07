@@ -90,7 +90,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-generator-feature"] = $_component_generator_feature|trim}
+{$_components["component-generator-feature"] = $_component_generator_feature|strip}
 
 {$_globals_components = $wa->globals("components")}
 {if !empty($_globals_components)}

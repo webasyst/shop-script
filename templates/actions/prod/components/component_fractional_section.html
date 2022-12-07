@@ -24,7 +24,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-fractional-dropdown"] = $_component_fractional_dropdown|trim}
+{$_components["component-fractional-dropdown"] = $_component_fractional_dropdown|strip}
 
 {capture assign="_component_fractional_changes"}
     <template v-if="revert">
@@ -40,7 +40,7 @@
               v-bind:class="{ 'color-gray' : has_changes, 'color-gray-light' : !has_changes }"><i class="fas fa-sitemap"></i></span>
     </template>
 {/capture}
-{$_components["component-fractional-changes"] = $_component_fractional_changes|trim}
+{$_components["component-fractional-changes"] = $_component_fractional_changes|strip}
 
 {$_globals_components = $wa->globals("components")}
 {if !empty($_globals_components)}

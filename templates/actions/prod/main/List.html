@@ -17,7 +17,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-view-toggle"] = $_component_view_toggle|trim}
+{$_components["component-view-toggle"] = $_component_view_toggle|strip}
 
 {capture assign="_component_paging"}
     <div class="vue-component-paging">
@@ -73,7 +73,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-paging"] = $_component_paging|trim}
+{$_components["component-paging"] = $_component_paging|strip}
 
 {capture assign="_component_paging_dropdown"}
     <div class="dropdown s-paging-dropdown">
@@ -87,7 +87,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-paging-dropdown"] = $_component_paging_dropdown|trim}
+{$_components["component-paging-dropdown"] = $_component_paging_dropdown|strip}
 
 {capture assign="_component_product_slider"}
     <div class="s-slider-wrapper"
@@ -124,7 +124,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-product-slider"] = $_component_product_slider|trim}
+{$_components["component-product-slider"] = $_component_product_slider|strip}
 
 {* ШАБЛОНЫ *}
 {$_templates = []}
@@ -392,6 +392,7 @@
                         "presentation_create"       : "{$wa_app_url}?module=prod&action=presentationDuplicate",
                         "presentation_edit_columns" : "{$wa_app_url}?module=prod&action=presentationEditColumns",
                         "presentation_edit_settings": "{$wa_app_url}?module=prod&action=presentationEditSettings",
+                        "presentation_get_columns"  : "{$wa_app_url}?module=prod&action=presentationGetColumns",
 
                         "product_search"            : "{$wa_app_url}?action=autocomplete",
                         "product_update"            : "{$wa_app_url}?module=prod&action=presentationUpdateProduct",

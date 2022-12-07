@@ -25,7 +25,7 @@
     </template>
 </div>
 {/capture}
-{$_components["component-product-column-status"] = $_component_product_column_status|trim}
+{$_components["component-product-column-status"] = $_component_product_column_status|strip}
 
 {capture assign="_dialog_product_column_status"}
 <div class="wa-dialog s-product-column-status-dialog">
@@ -93,4 +93,4 @@
     </div>
 </div>
 {/capture}
-{$_templates["dialog-product-column-status"] = $_dialog_product_column_status|trim}
+{$_templates["dialog-product-column-status"] = $_dialog_product_column_status|strip}

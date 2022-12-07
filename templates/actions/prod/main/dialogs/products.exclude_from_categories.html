@@ -20,7 +20,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-categories-group"] = $_component_categories_group|trim}
+{$_components["component-categories-group"] = $_component_categories_group|strip}
 
 {capture assign="_component_category"}
     <div class="s-category" v-bind:data-id="category.id" v-bind:data-parent-id="category.parent_id" v-bind:class="category_class">
@@ -50,7 +50,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-category"] = $_component_category|trim}
+{$_components["component-category"] = $_component_category|strip}
 
 {capture assign="_component_category_search"}
     <div class="component-category-search flexbox space-8">
@@ -73,7 +73,7 @@
         </template>
     </div>
 {/capture}
-{$_components["component-category-search"] = $_component_category_search|trim}
+{$_components["component-category-search"] = $_component_category_search|strip}
 
 <div class="wa-dialog s-products-exclude-from-categories-dialog" id="js-products-exclude-from-categories-dialog">
     <div class="dialog-background"></div>
