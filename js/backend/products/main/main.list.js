@@ -6683,48 +6683,53 @@
         Page.prototype.initBroadcast = function() {
             var that = this;
 
-            var broadcast = new BroadcastChannel("presentation_channel"),
+            var broadcast;
                 presentation_data = [],
                 presentation_promise = null,
                 filter_data = [],
                 filter_promise = null;
 
-            var time = 200;
+            try {
+                var time = 200;
+                broadcast = new BroadcastChannel("presentation_channel");
+                broadcast.onmessage = function(event) {
+                    // Закрываем если страница уже в прошлом
+                    if (!$.contains(document, that.$wrapper[0])) {
+                        broadcast.close();
+                        return false;
+                    }
 
-            broadcast.onmessage = function(event) {
-                // Закрываем если страница уже в прошлом
-                if (!$.contains(document, that.$wrapper[0])) {
-                    broadcast.close();
-                    return false;
+                    switch (event.data.action) {
+                        case "get_presentation_id":
+                            broadcast.postMessage({
+                                action: "presentation_id",
+                                value: that.presentation.id
+                            });
+                            break;
+                        case "presentation_id":
+                            if (presentation_data.indexOf(event.data.value) < 0) {
+                                presentation_data.push(event.data.value);
+                            }
+                            break;
+
+                        case "get_filter_id":
+                            broadcast.postMessage({
+                                action: "filter_id",
+                                value: that.filter.id
+                            });
+                            break;
+                        case "filter_id":
+                            if (filter_data.indexOf(event.data.value) < 0) {
+                                filter_data.push(event.data.value);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
-
-                switch (event.data.action) {
-                    case "get_presentation_id":
-                        broadcast.postMessage({
-                            action: "presentation_id",
-                            value: that.presentation.id
-                        });
-                        break;
-                    case "presentation_id":
-                        if (presentation_data.indexOf(event.data.value) < 0) {
-                            presentation_data.push(event.data.value);
-                        }
-                        break;
-
-                    case "get_filter_id":
-                        broadcast.postMessage({
-                            action: "filter_id",
-                            value: that.filter.id
-                        });
-                        break;
-                    case "filter_id":
-                        if (filter_data.indexOf(event.data.value) < 0) {
-                            filter_data.push(event.data.value);
-                        }
-                        break;
-                    default:
-                        break;
-                }
+            } catch (e) {
+                console.log('BroadcastChannel is not supported', e);
+                broadcast = null;
             }
 
             return {
@@ -6735,13 +6740,16 @@
 
                     presentation_data = [];
 
-                    broadcast.postMessage({ action: "get_presentation_id" });
-
-                    setTimeout( function() {
-                        var ids = presentation_data;
-                        deferred.resolve(ids);
-                        presentation_promise = null;
-                    }, time);
+                    if (broadcast) {
+                        broadcast.postMessage({ action: "get_presentation_id" });
+                        setTimeout( function() {
+                            var ids = presentation_data;
+                            deferred.resolve(ids);
+                            presentation_promise = null;
+                        }, time);
+                    } else {
+                        deferred.resolve(presentation_data);
+                    }
 
                     presentation_promise = deferred.promise();
 
@@ -6754,13 +6762,16 @@
 
                     filter_data = [];
 
-                    broadcast.postMessage({ action: "get_filter_id" });
-
-                    setTimeout( function() {
-                        var ids = filter_data;
-                        deferred.resolve(ids);
-                        filter_promise = null;
-                    }, time);
+                    if (broadcast) {
+                        broadcast.postMessage({ action: "get_filter_id" });
+                        setTimeout( function() {
+                            var ids = filter_data;
+                            deferred.resolve(ids);
+                            filter_promise = null;
+                        }, time);
+                    } else {
+                        deferred.resolve(filter_data);
+                    }
 
                     filter_promise = deferred.promise();
 
