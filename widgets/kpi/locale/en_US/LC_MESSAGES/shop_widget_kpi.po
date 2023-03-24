@@ -11,7 +11,7 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
 "Language: en_US\n"
-"X-Generator: Poedit 1.8.4\n"
+"X-Generator: Poedit 1.8.7.1\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -28,7 +28,7 @@ msgid "AMPU (Average Margin per Customer)"
 msgstr ""
 
 #: /wa-apps/shop/widgets/kpi/lib/config/settings.php:11
-msgid "CAC (Customer Acquisition cost)"
+msgid "CAC (Customer Acquisition Cost)"
 msgstr ""
 
 #: /wa-apps/shop/widgets/kpi/lib/config/settings.php:12

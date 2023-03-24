@@ -1,0 +1,122 @@
+@import "nib";
+
+$padding = 0.75rem
+
+.customers-oneline-widget-wrapper
+    height: 100%
+    padding: $padding;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    :where(h1, h2, h3, h4, h5, h6)
+        margin: 0
+
+    .heading
+        justify-content: center
+
+    .text-wrapper
+        flex: 1 1 0
+        padding: 0 !important
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        .heading
+            font-size: 14px;
+            line-height: 120%;
+            color: #AAAAAA;
+            text-align: center
+            font-weight: 500
+            .s-customers-header-2x1
+                display: none
+        .s-customer-count-new
+            color:#00C2ED
+            text-align: center;
+            font-size: 80px;
+            line-height: 94px;
+        .s-customer-count
+            font-weight: 500;
+            font-size: 32px;
+            line-height: 120%;
+            text-align: center;
+            color: #777777
+    .graph-wrapper
+        flex: 0 1 35%
+        position static
+        margin-bottom: 4px
+        overflow: hidden;
+        svg
+            display: block;
+            fill: rgba(0,0,0,0.1);
+            border-radius: 0 0 3px 3px;
+            path
+                fill: #f0f0f0;
+                stroke-width 0
+                shape-rendering: auto
+            .area
+                fill #cbedd1
+            .line
+                stroke-width 2px
+                stroke #00C0ED
+                fill: none
+
+            .chart-1
+                .line
+                    stroke #00C0ED
+
+
+.widget-2x1
+    .customers-oneline-widget-wrapper
+        .text-wrapper
+            text-align: center
+            .heading
+                margin-bottom: 8px
+                .s-customers-header-2x1
+                    display: inline-block
+            .s-customer-wrapper
+                display: flex
+                justify-content: center
+                .heading
+                    display: none
+                & > *:not(:first-child)
+                    margin-left: 16px
+            .s-customer-count
+            .s-customer-count-new
+                font-size: 25.6px;
+                line-height: 120%;
+.widget-1x1
+    .customers-oneline-widget-wrapper
+        .text-wrapper
+            display: flex
+            flex-direction: column
+            justify-content: space-between
+            .s-customer-count-new
+                font-size: 25.6px;
+                line-height: 120%;
+            .s-customer-count-label
+                text-transform: none
+                font-weight: 400;
+                font-size: 13px;
+                line-height: 120%;
+            .s-customer-count
+                font-size: 18px;
+                line-height: 21px;
+                letter-spacing: 0em;
+
+        .graph-wrapper
+            display: none
+
+
+
+// .tv
+//     .customers-oneline-widget-wrapper
+//         .graph-wrapper
+//             svg
+//                 .chart-1
+//                     .line
+//                         stroke #7be
+
+//         .text-wrapper
+//             .s-customer-count
+//                 color: #7be;

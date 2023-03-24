@@ -1,0 +1,88 @@
+.s-orders-widget
+    font-size: 14px
+    padding: 3.73px 0
+    height: 100%;
+    box-sizing: border-box;
+
+    ul.menu
+        margin-top: 0;
+        font-size: 1em;
+
+    li
+        padding: 0;
+        position relative
+        &:hover
+            span
+                color: var(--red) !important;
+        a
+            margin: 0;
+            padding: .59em .75em;
+            span.s-icon svg
+                font-size: 0.75rem;
+            .s-amount
+                font-weight: 500;
+                font-size: 13px;
+                line-height: 120%;
+                color: #444444 !important;
+                > *
+                    color: inherit !important;
+            .s-name
+                font-weight: 400;
+                font-size: 14px;
+                line-height: 120%;
+                color: #777777
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            .red
+                color: #FF3115
+        &.s-processing
+            a
+                font-weight: 700;
+                font-size: 14px;
+                line-height: 120%;
+                .heading
+                    margin: 0
+                    color: #AAAAAA;
+                .s-amount
+                .s-count
+                    font-weight: 700
+                    color: var(--text-color-strongest) !important
+                    > *
+                        color: inherit !important;
+
+    .s-count
+        display: none;
+
+
+.widget-2x2
+    .s-orders-widget
+        &:after
+            content: ''
+            position: absolute
+            width: 100%;
+            height: 28px;
+            left: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 69.18%)
+
+[data-theme="dark"] .widget-2x2 .s-orders-widget::after
+    background: linear-gradient(180deg, rgba(8, 4, 29, 0) 0%, #08041D 69.18%)
+
+.widget-1x1
+    .s-orders-widget
+        .s-name
+            font-size: 0.75rem
+        .s-amount
+            display: none
+        .s-count
+            display: inline
+
+.tv .s-orders-widget
+.mobile .s-orders-widget
+    font-size: 1rem
+
+.tv .s-orders-widget
+    .s-amount
+    .s-count
+        color: var(--text-color-link) !important

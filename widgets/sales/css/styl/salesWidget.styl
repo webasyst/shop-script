@@ -1,0 +1,146 @@
+@import "nib";
+
+$primary_green = #00C27C
+$primary_gray= #AAAAAA
+$padding = 0.75rem
+
+.sales-widget-wrapper
+    :where(h1, h3, h6)
+        margin: 0
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    overflow: hidden;
+
+    height: 100%
+    padding: $padding;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .text-wrapper
+        flex: 1 1 0
+        padding: 0 !important
+        .heading
+            justify-content: center
+            font-size: 14px;
+            line-height: 120%;
+            color: #AAAAAA;
+            white-space: normal !important
+            text-align: center
+            font-weight: 500
+        .s-sales
+            color: $primary_green
+            text-align: center
+            font-size: 80px;
+            line-height: 94px;
+            margin-bottom: 0;
+        .s-sales-compare
+            text-align: center
+            font-size: 40px;
+            line-height: 120%;
+            &.green
+                color: $primary_green
+            &.red
+                color: #FF3115;
+
+    .graph-wrapper
+        flex: 0 1 40%
+        position static
+        margin-bottom: 4px
+        svg
+            display: block;
+            fill: rgba(0,0,0,0.1);
+            border-radius: 0 0 3px 3px;
+            path
+                fill: #f0f0f0;
+                stroke-width 0
+                shape-rendering: auto
+            .line
+                stroke-width 2px
+                stroke #00BF60
+                fill: none
+
+            .area
+                fill #cbedd1
+
+            .chart-1
+                .line
+                    stroke #80DFAF
+
+            .chart-2
+                .line
+                    stroke #00BF60
+            .chart-3
+                .area
+                    fill #ae4410
+                .line
+                    stroke #69361c
+
+    .redirect-to-reports-link
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+
+
+.widget-2x1
+    .sales-widget-wrapper
+        .text-wrapper
+            text-align: center
+            .heading
+                margin-bottom: 8px
+            .s-sales-wrapper
+                display: flex
+                justify-content: center
+                & > *:not(:first-child)
+                    margin-left: 16px
+            .s-sales
+            .s-sales-compare
+                font-size: 25.6px;
+                line-height: 120%;
+.widget-1x1
+    .sales-widget-wrapper
+        .text-wrapper
+            display: flex
+            flex-direction: column
+            justify-content: space-between
+            .s-sales
+                font-size: 25.6px;
+                line-height: 120%;
+            .s-sales-compare
+                font-size: 18px;
+                line-height: 21px;
+                letter-spacing: 0em;
+
+        .graph-wrapper
+            display: none
+
+// .tv
+//     .sales-widget-wrapper
+//         background: transparent;
+
+//         .text-wrapper
+//             .s-sales
+//                 color: #5ac847;
+
+//         .s-sales-compare
+//             &.green
+//                 color: #437843;
+
+//         .graph-wrapper
+//             .chart-1
+//                 .line
+//                     stroke #418a41; // 437843
+
+//             .chart-2
+//                 .line
+//                     stroke #5ac847;

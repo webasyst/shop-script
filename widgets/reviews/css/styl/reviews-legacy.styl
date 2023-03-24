@@ -1,0 +1,137 @@
+$gradient(start, end)
+    background: -moz-linear-gradient(top, start 0%, end 50%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, start), color-stop(50%, end));
+    background: -webkit-linear-gradient(top, start 0%, end 50%);
+    background: -o-linear-gradient(top, start 0%, end 50%);
+    background: -ms-linear-gradient(top, start 0%, end 50%);
+    background: linear-gradient(to bottom, start 0%, end 50%);
+
+.s-reviews-widget
+    font-size: 14px;
+
+    &:after
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 0;
+        height: 0;
+        border: 10px solid #90c108;
+        border-left-color: transparent;
+        border-bottom-color: transparent;
+
+    &:hover
+        .sr-link-to-all-reviews
+            opacity: 1;
+
+    .heading
+        justify-content: center
+
+    .sr-review
+        margin: 1.5em 0 0;
+
+        &:first-of-type
+            margin-top: .5em
+
+        .sr-header
+            display table
+            width 100%
+            table-layout fixed
+            $_image_size = 2.285714285714286em
+
+            .left-column
+            .main-column
+                display table-cell
+                vertical-align middle
+
+            .left-column
+                width: $_image_size
+                padding: 0 .75em 0 0
+
+            .main-column
+                padding: 0 0 .1em
+
+            .sr-author-image
+                display block
+                width: $_image_size
+                height: $_image_size
+
+                img
+                    width: 100%
+                    max-height: 100%
+
+            .sr-author-name
+            .sr-review-date
+                display block
+                max-width: 100%
+                white-space nowrap
+                overflow hidden
+                text-overflow ellipsis
+
+            .sr-author-name
+                padding: .2em 0 0
+
+            .sr-review-date
+                margin: .25em 0 0
+
+        .sr-review-text
+            margin: .3em 0 0
+
+        .sr-review-subtext
+            margin: .2em 0 0
+
+    .sr-no-reviews
+        margin: 35px 20px;
+        font-weight: normal;
+
+    .sr-link-to-all-reviews
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        opacity: 0;
+        padding: 18px 0 0;
+        $gradient(rgba(255,255,255,0), #fff)
+        transition: opacity 0.5s;
+
+.widget-2x1
+    .s-reviews-widget
+        .sr-no-reviews
+            margin: 45px 55px;
+
+.widget-2x2
+    .s-reviews-widget
+        .sr-no-reviews
+            margin: 105px 35px;
+
+.tv
+    .s-reviews-widget
+        font-size: 1rem
+
+        .hint
+            a
+                color #e2e25b
+
+        .sr-review
+            .sr-header
+                .sr-review-date
+                    color: #aaa
+                    font-size: .9em
+
+                .sr-author-name
+                    a
+                        color: #eee
+
+            .sr-review-text
+                font-size: 1.1em
+
+            .sr-review-subtext
+                font-size: .9em
+
+        .sr-link-to-all-reviews
+            $gradient(rgba(51,51,51,0), #333)
+
+.mobile
+    .s-reviews-widget
+        font-size: 1rem

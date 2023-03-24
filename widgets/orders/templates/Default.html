@@ -1,3 +1,4 @@
+{if $ui == '1.3'}
 <style>
     .s-orders-widget { font-size: 14px; }
     .s-orders-widget ul.menu-v { margin-top: 0; font-size: 1em; }
@@ -18,7 +19,7 @@
 
     <ul class="menu-v">
         <li class="s-processing">
-            <a href="{$wa_backend_url}shop/?action=orders#/orders/state_id=new|processing|paid/">
+            <a href="{$wa_backend_url}shop/?action=orders#/orders/state_id=new|processing|auth|paid/">
                 [`Processing`]
                 <span class="count s-amount" title="{_w('%d order', '%d orders', $processing_count)}">{shop_currency_html($processing_amount)}</span>
                 <span class="count s-count" title="{shop_currency($processing_amount)|escape}">{$processing_count}</span>
@@ -37,3 +38,33 @@
     </ul>
 
 </div>
+{else}
+    <style>
+        {include file="../css/orders.css" inline}
+    </style>
+    <div class="s-orders-widget">
+
+        <ul class="menu">
+            <li class="s-processing">
+                <a href="{$wa_backend_url}shop/?action=orders#/orders/state_id=new|processing|auth|paid/">
+                    <span class="heading">[`Processing`]</span>
+                    <span class="count s-amount" title="{_w('%d order', '%d orders', $processing_count)}">{shop_currency_html($processing_amount)}</span>
+                    <span class="count s-count" title="{shop_currency($processing_amount)|escape}">{$processing_count}</span>
+                </a>
+            </li>
+
+            {foreach $states as $id => $state name=states}
+                <li>
+                    <a href="{$wa_backend_url}shop/?action=orders#/orders/state_id={$id}/">
+                        {$icon = $wa->shop->convertIcon($state.icon)|default:''}
+                        <span class="s-icon icon">{if $icon}<i class="{$icon}" style="{$state.style}"></i>{/if}</span>
+                        <span class="s-name" title="{$state.name|escape}" data-style="{$state.style}">{$state.name|escape}</span>
+                        <span class="count s-amount {if $state.amount < 0}red{/if}" data-style="{$state.style}" title="{_w('%d order', '%d orders', $state.count)}">{shop_currency_html($state.amount)}</span>
+                        <span class="count s-count" title="{shop_currency($state.amount)|escape}">{$state.count}</span>
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+
+    </div>
+{/if}

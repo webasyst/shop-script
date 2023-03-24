@@ -1,16 +1,25 @@
+{if $ui == '1.3'}
 <style>
     td.s-product-img img { width: 48px; height: 48px; padding-left: 0.4rem !important; }
     td.s-product-metric { text-align: right; }
-    
-    .widget-1x1 .s-product-img { display: none; }
-    .widget-1x1 .s-product-name { padding-left: 0.7rem !important; }
+
+
     .widget-2x2 .s-product-metric { white-space: nowrap; }
-    
+    .widget-2x2 h6 { font-size: 1em; }
+
+    .widget-1x1 .s-products-widget-table td { text-align: left; }
+    .widget-1x1 .s-products-widget-table td.s-product-img { display: none; }
+    .widget-1x1 .s-products-widget-table td.s-product-name { padding-left: 0.7rem !important; }
+    .widget-1x1 .s-products-widget-table td:not(:first-child) { display: block; }
+    .widget-1x1 h6 { overflow: hidden;text-overflow: ellipsis; }
+
     .tv td.s-product-img img { width: 4rem; height: 4rem; }
     .tv td.s-product-metric { color: #ffa; }
+
+    .s-products-widget-wrapper .heading { margin-inline: 0; overflow: hidden;text-overflow: ellipsis;display: block; }
 </style>
-<div class="block">
-    <h6 class="heading nowrap">{$title|escape}</h6>
+<div class="block box s-products-widget-wrapper">
+    <h6 class="heading nowrap" title="{$title|escape}">{$title|escape}</h6>
 </div>
 <table class="zebra s-products-widget-table">
     {if $wa->shop->config('enable_2x')}
@@ -22,7 +31,7 @@
         <tr>
             <td class="s-product-img">{$wa->shop->getProductImgHtml($p, $size, ['height' => 96, 'width' => 96])}</td>
             <td class="s-product-name">{$p.name|escape}</td>
-            <td class="s-product-metric">{$p.metric}</td>
+            <td class="s-product-metric nowrap">{$p.metric}</td>
         </tr>
     {foreachelse}
         <tr>
@@ -30,7 +39,61 @@
         </tr>
     {/foreach}
 </table>
+{else}
+<style>
+    .s-products-widget { padding: 12px; height: 100%; box-sizing: border-box; }
+    .s-products-widget::after { content: ''; position: absolute; bottom: 0; left: 0; background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 69.18%); height: 9%; width: 100%; }
+    [data-theme="dark"] .s-products-widget::after { background: linear-gradient(180deg, rgba(8, 4, 29, 0) 0%, #08041D 69.18%); }
 
+    .s-products-widget-header .heading { margin: 0; justify-content: flex-start; margin-left: 0; font-weight: 500; font-size: 14px; line-height: 120%; color: #aaa; }
+
+    ul.s-products-widget-list { margin: 0; padding-top: 5px;}
+    ul.s-products-widget-list li, ul.s-products-widget-list li .s-products-widget-item-left { text-align: left; display: flex; justify-content: space-between; align-items: center; }
+    ul.s-products-widget-list li { height: 50px;  }
+
+    .s-products-widget-list li .s-product-img { display: flex; border-radius: 5px; padding-right: 11px;}
+    .s-products-widget-list li .s-product-name { font-size: 13px; line-height: 120%; color: #777777; line-height: 120%; max-height: 2.6em; overflow: hidden; display: flex; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;}
+    .s-products-widget-list li .s-product-metric { padding-left: 5px; white-space: nowrap; font-weight: 500; font-size: 13px; line-height: 120%; text-align: right; }
+
+    .widget-1x1 .s-products-widget-list, .widget-2x1 .s-products-widget-list { padding-top: 3px; }
+
+    .widget-1x1 .s-products-widget-list li { height: 2.35em; }
+    .widget-1x1 .s-products-widget-list li .s-product-img img { width: 24px; height: 24px; }
+    .widget-1x1 .s-products-widget-list li .s-product-name { display: none; }
+
+    .tv .s-products-widget-list .s-product-img img { width: 2rem; height: 2rem; }
+    .tv .s-products-widget-list .s-product-metric { color: var(--text-color-link); }
+</style>
+
+<div class="s-products-widget">
+    <div class="s-products-widget-header">
+        <h6 class="heading" title="{$title|escape}">{$title|escape}</h6>
+    </div>
+    <ul class="menu s-products-widget-list">
+        {if $wa->shop->config('enable_2x')}
+            {$size = '48x48@2x'}
+        {else}
+            {$size = '48x48'}
+        {/if}
+        {foreach $products as $p}
+            <li>
+                <div class="s-products-widget-item-left">
+                    {$image_html = $wa->shop->getProductImgHtml($p, $size, ['height' => 34, 'width' => 34])}
+                    <div class="s-product-img" title="{$p.name|escape}">
+                        {if $image_html}{$image_html}{else}{include file="../img/image-dummy-small.svg" inline}{/if}
+                    </div>
+                    <div class="s-product-name">{$p.name|escape}</div>
+                </div>
+                <div class="s-product-metric nowrap">{$p.metric}</div>
+            </li>
+        {foreachelse}
+            <li>
+                <div class="custom-pl-12 custom-mt-12">[`No products to show.`]</div>
+            </li>
+        {/foreach}
+    </ul>
+</div>
+{/if}
 <script>(function($) {
 
     var widget_id = "{$widget_id}",

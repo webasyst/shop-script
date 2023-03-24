@@ -6,10 +6,10 @@ class shopOrdersWidget extends waWidget
     {
         $states = self::getStates();
 
-        // Sum of totals for all orders currently procesing
+        // Sum of totals for all orders currently processing
         $processing_count = 0;
         $processing_amount = 0;
-        foreach(array('new', 'processing', 'paid') as $state_id) {
+        foreach (array('new', 'processing', 'paid') as $state_id) {
             if (!empty($states[$state_id])) {
                 $processing_amount += $states[$state_id]['amount'];
                 $processing_count += $states[$state_id]['count'];
@@ -17,10 +17,10 @@ class shopOrdersWidget extends waWidget
         }
 
         $this->display(array(
-            'states' => $states,
+            'states'            => $states,
             'processing_amount' => $processing_amount,
-            'processing_count' => $processing_count,
-            'size' => $this->info['size'],
+            'processing_count'  => $processing_count,
+            'size'              => $this->info['size'],
         ));
     }
 
@@ -30,16 +30,18 @@ class shopOrdersWidget extends waWidget
 
         $wf = new shopWorkflow();
         $states = $wf->getAllStates();
+        /**
+         * @var shopWorkflowState[] $states
+         */
 
         // Put states in resulting list in order specified by the workflow
-        foreach($states as $state_id => $s) {
-            $st = $states[$state_id];
+        foreach ($states as $state_id => $state) {
             $result[$state_id] = array(
-                'name' => $st->getName(),
-                'icon' => $st->getOption('icon'),
-                'style' => $st->getStyle(),
+                'name'   => $state->getName(),
+                'icon'   => $state->getOption('icon'),
+                'style'  => $state->getStyle(),
                 'amount' => 0,
-                'count' => 0,
+                'count'  => 0,
             );
         }
 
@@ -48,12 +50,12 @@ class shopOrdersWidget extends waWidget
         $sql = "SELECT state_id, SUM(total*rate) AS amount, COUNT(*) AS `count`
                 FROM shop_order
                 GROUP BY state_id";
-        foreach($m->query($sql) as $row) {
+        foreach ($m->query($sql) as $row) {
             // Deleted state?
             if (empty($states[$row['state_id']])) {
                 $result[$row['state_id']] = array(
-                    'name' => $row['state_id'],
-                    'icon' => 'icon16 broom-bw',
+                    'name'  => $row['state_id'],
+                    'icon'  => 'icon16 broom-bw',
                     'style' => 'color:#999999',
                 );
             }

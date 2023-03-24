@@ -20,6 +20,14 @@ msgstr ""
 msgid "Customers"
 msgstr "Покупатели"
 
+#: /wa-apps/shop/widgets/customers/templates/OneLine.html:5
+msgid "For all history"
+msgstr "За всю историю"
+
+#: /wa-apps/shop/widgets/customers/templates/OneLine.html:5
+msgid "Total"
+msgstr "Всего"
+
 #: /wa-apps/shop/widgets/customers/lib/config/settings.php:14
 msgid "Period"
 msgstr "Период"
@@ -41,4 +49,3 @@ msgid_plural "+%d new"
 msgstr[0] "+%d новый"
 msgstr[1] "+%d новых"
 msgstr[2] "+%d новых"
-

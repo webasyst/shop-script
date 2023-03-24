@@ -1,15 +1,16 @@
+{if $ui == '1.3'}
 <style>
     table.zebra.s-sources-widget-table td,
     table.zebra.s-sources-widget-table tr:hover td { background: transparent; }
     table.zebra.s-sources-widget-table tr { background: transparent; }
     table.zebra.s-sources-widget-table tr:nth-child(2n+1) { background: #f2f7ff; }
-    
+
     .s-sources-widget-table .source-name { padding-left: 0.8rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 10rem; }
     .s-sources-widget-table .source-metric { text-align: right; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-    
+
     .widget-1x1 .s-sources-widget-table .source-name { max-width: 5rem; }
     .widget-2x2 .s-sources-widget-table .source-metric { white-space: nowrap; }
-    
+
     .tv .s-sources-widget-table .source-metric { color: #ffa; }
     .tv table.zebra.s-sources-widget-table tr:nth-child(2n+1) { background: #282828; }
 
@@ -52,8 +53,65 @@
         </tr>
     {/foreach}
 </table>
+{else}
+    <style>
+        .s-sources-widget-list { --progressbar_color:#00C27C; }
+        .s-sources-widget { padding: 12px; }
+        .s-sources-widget::after { content: ''; position: absolute; bottom: 0; left: 0; background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 69.18%); height: 9%; width: 100%; }
+        [data-theme="dark"] .s-sources-widget::after { background: linear-gradient(180deg, rgba(8, 4, 29, 0) 0%, #08041D 69.18%); }
 
-<script>(function($) {
+        .s-sources-widget-header { margin-bottom: 12px;  }
+        .s-sources-widget-header .heading { margin: 0; justify-content: flex-start; margin-left: 0; font-weight: 500; font-size: 14px; line-height: 120%; color: #aaa; }
+
+        .menu.s-sources-widget-list { margin: 0; }
+        ul.s-sources-widget-list li { display: flex; justify-content: space-between; align-items: center; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 100%; margin-bottom: 6px; }
+        .s-sources-widget-list .source-name-wrapper { position: relative; padding: 0.257rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; width: 55%; }
+        .s-sources-widget-list .source-name { line-height: 120%; }
+        .s-sources-widget-list .source-progress { position: absolute; width: 100%; height: 100%; left: 0; top: 0; opacity: 0.3; border-radius: 2px;  }
+        .s-sources-widget-list .source-metric { text-align: right; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-weight: 500; font-size: 13px; }
+
+        .widget-1x1 .s-sources-widget-header { margin-bottom: 6px; }
+        .widget-1x1 .s-sources-widget-list .source-metric { display: none; }
+        .widget-1x1 .s-sources-widget-list .source-name-wrapper { padding: 2.1px; width: 100%;}
+        .widget-2x2 .s-sources-widget-list .source-metric { white-space: nowrap; }
+
+        .tv .s-sources-widget-list { --progressbar_color:#197a8f; }
+        .tv .s-sources-widget-list .source-metric { color: #ffa; }
+    </style>
+    <div class="s-sources-widget">
+        <div class="s-sources-widget-header">
+            <h6 class="heading">
+                {if $metric == 'sales'}
+                    [`Sales by source`]
+                {elseif $metric == 'profit'}
+                    [`Profit by source`]
+                {elseif $metric == 'orders'}
+                    [`Orders by source`]
+                {/if}
+            </h6>
+        </div>
+
+        <ul class="s-sources-widget-list menu">
+            {foreach $sources as $s}
+                {$progressbar_color = 'var(--progressbar_color)'}
+                {$background_style = "background:linear-gradient(to right, {$progressbar_color} 0%, {$progressbar_color} {$s.percent}%, transparent {$s.percent}%, transparent 100%);"}
+                <li class="s-sources-widget-item">
+                    <div class="source-name-wrapper">
+                        <span class="source-progress" style="{$background_style}"></span>
+                        <span class="source-name">{$s.name|escape}</span>
+                    </div>
+                    <div class="source-metric">{$s.metric_html}</div>
+                </li>
+                {foreachelse}
+                <li>
+                    <div class="custom-pl-12">[`No sources to show.`]</div>
+                </li>
+            {/foreach}
+        </ul>
+    </div>
+{/if}
+<script>
+(function($) {
 
     var widget_id = "{$widget_id}",
         uniqid = '' + (new Date).getTime() + Math.random();
@@ -75,4 +133,5 @@
         }
     }, 0);
 
-})(jQuery);</script>
+})(jQuery);
+</script>

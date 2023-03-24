@@ -81,7 +81,7 @@ class shopProductsWidget extends waWidget
 
         // Sort in PHP because create_datetime does not necessarily come in the same order as o.id
         // for stub orders created via demoutil plugin.
-        usort($result, create_function('$a,$b', 'return $a["delta"] > $b["delta"] ? 1 : ($a["delta"] < $b["delta"] ? -1 : 0);'));
+        usort($result, wa_lambda('$a,$b', 'return $a["delta"] > $b["delta"] ? 1 : ($a["delta"] < $b["delta"] ? -1 : 0);'));
 
         return $result;
     }
@@ -177,7 +177,7 @@ class shopProductsWidget extends waWidget
             $result[] = $p;
         }
 
-        usort($result, create_function('$a, $b', 'return $a["est"] > $b["est"] ? 1 : ($a["est"] < $b["est"] ? -1 : 0);'));
+        usort($result, wa_lambda('$a, $b', 'return $a["est"] > $b["est"] ? 1 : ($a["est"] < $b["est"] ? -1 : 0);'));
 
         return array_slice($result, 0, self::LIMIT);
     }

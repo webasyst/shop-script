@@ -1,3 +1,23 @@
+{$is_wa2 = $ui == '2.0'}
+{if $is_wa2}
+<style>{include file="../css/oneline.css" inline}</style>
+<div class="customers-oneline-widget-wrapper">
+    <div class="text-wrapper">
+        <h6 class="heading s-customers-header">
+            <span>[`New customers`] <span class="s-customers-header-2x1">| [`Total`]</span> </span>
+        </h6>
+        <div class="s-customer-wrapper">
+            <h1 class="s-customer-count-new">+{$new_customers}</h1>
+            <div class="heading custom-my-4 s-customer-count-label nowrap">
+                [`For all history`]
+            </div>
+            <h3 class="s-customer-count">{$total_customers}</h3>
+        </div>
+    </div>
+    <div class="graph-wrapper" id="graph-wrapper-{$widget_id}"></div>
+</div>
+{else}
+<style>{include file="../css/oneline-legacy.css" inline}</style>
 <div class="customers-oneline-widget-wrapper">
     <div class="graph-wrapper" id="graph-wrapper-{$widget_id}"></div>
     <div class="text-wrapper">
@@ -10,25 +30,24 @@
         <h3 class="s-customer-count-new">{_wp('+%d new', '+%d new', $new_customers)}</h3>
     </div>
 </div>
-<script>(function() {
-    var widget_id = "{$widget_id}";
-    var script_url = "{$widget_url}js/customersGraph.js?{$wa->version()}";
-    var graph_data = {json_encode($graph_data)};
+{/if}
+<script>
+( function($) {
+    $.is_wa2 = {json_encode($is_wa2)};
 
-    if (typeof CustomersGraph !== "undefined") {
-        initGraph();
-    } else {
-        $.getScript(script_url, function() {
-            initGraph();
-        });
-    }
+    var is_loaded = (typeof CustomersGraph !== "undefined"),
+        js_href = "{$widget_url}js/customersGraph.js?{$wa->version()}",
+        widget = DashboardWidgets["{$widget_id}"],
+        options = {
+            widget_id: {$widget_id},
+            node: document.getElementById("graph-wrapper-{$widget_id}"),
+            data: {json_encode($graph_data)}
+        };
 
-    function initGraph() {
-        DashboardWidgets[widget_id].sales = new CustomersGraph({
-            widget_id: widget_id,
-            graph_data: graph_data,
-            graph_id: "graph-wrapper-"+widget_id
-        });
+    (is_loaded) ? initWidget() : $.getScript(js_href, initWidget);
+
+    function initWidget() {
+        widget.customers = new CustomersGraph(options);
     }
-})();</script>
-<style>{include file="../css/oneline.css" inline}</style>
+})(jQuery);
+</script>

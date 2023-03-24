@@ -1,10 +1,67 @@
+{if $ui == '2.0'}
+{$colors_map = [
+    'green' => '#00C27C',
+    'red' => 'red'
+]}
 <style>
-    .heading { cursor: default; }
+    .kpi-widget-wrapper :where(h1, h2, h3, h4, h5, h6) {
+        margin: 0;
+    }
+
+    .kpi-widget-wrapper {
+        padding: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+    }
+
+    .kpi-widget-wrapper .heading {
+        cursor: default;
+        font-size: 14px;
+        line-height: 120%;
+        color: #AAAAAA;
+        text-align: center;
+        font-weight: 500;
+    }
+    .kpi-widget-wrapper .heading svg {
+        font-size: 0.85rem;
+    }
+
+    .kpi-widget-wrapper h1 { font-size: 80px; line-height: 120%; }
+    .kpi-widget-wrapper h2 { font-size: 40px; line-height: 120%; }
+
+    .widget-2x2 .kpi-widget-wrapper .kpi-widget-body { margin-top: 16px !important; }
+
+    .widget-2x1 .kpi-widget-wrapper h1 { font-size: 40px; }
+    .widget-2x1 .kpi-widget-wrapper h2 { font-size: 25.6px; }
+
+    .widget-1x1 .kpi-widget-wrapper h1 { font-size: 32px; }
+    .widget-1x1 .kpi-widget-wrapper h2 { font-size: 20.8px;  }
+</style>
+
+<div class="align-center kpi-widget-wrapper height-100">
+    <h3 class="heading custom-mb-16">
+        <div class="height-100">
+            {$title|escape}
+            <span id="tooltip-metric" data-wa-tooltip-content="{$settings['metric_title']}">
+                <i class="fas fa-question-circle"></i>
+            </span>
+        </div>
+    </h3>
+    <div class="kpi-widget-body custom-my-auto">
+        <h1 class="nowrap">{$total_formatted}</h1>
+        {if $dynamic !== null}
+            <h2 style="color:{$colors_map[$dynamic_color]|default:$dynamic_color};">{$dynamic_html}</h2>
+        {/if}
+    </div>
+</div>
+{else}
+<style>
     .widget-1x1 h1 { margin-bottom: 0.1em; }
 </style>
 
-<div class="block top-padded align-center">
-    <h3 class="heading">
+<div class="block box top-padded align-center kpi-widget-wrapper">
+    <h3 class="heading custom-mb-16">
         {$title|escape}
     </h3>
     <h1 class="nowrap">{$total_formatted}</h1>
@@ -12,7 +69,7 @@
         <h2 style="color:{$dynamic_color};">{$dynamic_html}</h2>
     {/if}
 </div>
-
+{/if}
 <script>(function($) {
 
     var widget_id = "{$widget_id}",
@@ -34,5 +91,7 @@
             console && console.log('Error setting up KPI widget updater', e);
         }
     }, 0);
+
+    $("#tooltip-metric").waTooltip({ placement: 'right' });
 
 })(jQuery);</script>

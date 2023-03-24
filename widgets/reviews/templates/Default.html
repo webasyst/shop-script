@@ -1,8 +1,9 @@
+{if $ui == '2.0'}
 <style>
     {include file="../css/reviews.css" inline}
 </style>
 
-<div class="block s-reviews-widget">
+<div class="s-reviews-widget">
 
     {if !count($reviews)}
 
@@ -10,7 +11,97 @@
 
     {else}
 
-        <h6 class="heading">[`Latest reviews`]</h6>
+        <h6 class="heading custom-mb-16">[`Latest reviews`]</h6>
+
+        {foreach $reviews as $review}
+            <div class="sr-review">
+
+                <header class="sr-header">
+                    {$_author_uri = "javascript:void(0);"}
+                    {if !empty($review.author.site)}
+                        {$_author_uri = $review.author.site|escape}
+                    {/if}
+
+                    {* UserPic *}
+                    <div class="left-column nowrap">
+                        <a class="sr-author-image" href="{$_author_uri}">
+                            <span class="icon userpic userpic-20"><img src="{if empty($review.author.photo_url_20)}/wa-content/img/userpic.svg{else}{$review.author.photo_url_20}{/if}" alt=""></span>
+                        </a>
+                        {* Name *}
+                        <span class="sr-author-name bold">
+                            {if !empty($review.author.name)}
+                                <a href="{$_author_uri}">{$review.author.name}</a>
+                            {else}
+                                {if empty($review.author.id) && !empty($review.author.email)}
+                                    <span class="hint">{$review.author.email|escape}</span>
+                                {/if}
+                            {/if}
+                        </span>
+                    </div>
+
+                    <div class="right-column">
+                        {* Date *}
+                        <span class="sr-review-date hint">
+                            {$date = $review.datetime|wa_datetime:"Y-m-d"}
+                            {$str_format = "datetime"}
+                            {if date("Y-m-d") == $date}
+                                {$str_format = "time"}
+                            {else if date("Y-m-d", strtotime("-1 day")) == $date}
+                                {$str_format = "humandatetime"}
+                            {/if}
+                            {$review.datetime|wa_datetime:$str_format}
+                        </span>
+                    </div>
+                </header>
+
+                <div class="sr-header-body">
+                    <div class="sr-review-comment">
+                        <span class="truncate-text">{$review.text|escape|nl2br}</span>
+                    </div>
+                </div>
+
+                {if !empty($review.product_name)}
+                <footer class="sr-footer">
+                    {sprintf(
+                    '[`<a class="sr-review-product-name" href="%s">%s</a>`]',
+                    "{$wa_backend_url}shop/?action=products#/product/{$review.product_id}/",
+                    {$review.product_name|escape}
+                    )}
+
+                    <div class="sr-review-rate">
+                        {if !empty($review.rating_html)}
+                            {$review.rating_html}
+                        {else}
+                            <i class="box"></i>
+                        {/if}
+                    </div>
+                </footer>
+                {/if}
+            </div>
+        {/foreach}
+
+        <div class="sr-link-to-all-reviews">
+            <a href="{$wa_backend_url}shop/?action=products#/reviews/">
+                [`Show all reviews`]
+            </a>
+        </div>
+
+    {/if}
+</div>
+{else}
+<style>
+    {include file="../css/reviews-legacy.css" inline}
+</style>
+
+<div class="block box s-reviews-widget">
+
+    {if !count($reviews)}
+
+        <h5 class="align-center hint sr-no-reviews">[`There are no reviews in your shop yet.`]</h5>
+
+    {else}
+
+        <h6 class="heading custom-mb-16">[`Latest reviews`]</h6>
 
         {foreach $reviews as $review}
             <div class="sr-review">
@@ -62,7 +153,7 @@
         {/foreach}
 
         <div class="sr-link-to-all-reviews">
-            <div class="block">
+            <div class="block box">
                 <a href="{$wa_backend_url}shop/?action=products#/reviews/">
                     [`Show all reviews`]
                 </a>
@@ -71,3 +162,4 @@
 
     {/if}
 </div>
+{/if}

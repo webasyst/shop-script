@@ -1,0 +1,185 @@
+$gradient(start, end)
+    background: -moz-linear-gradient(top, start 0%, end 50%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, start), color-stop(50%, end));
+    background: -webkit-linear-gradient(top, start 0%, end 50%);
+    background: -o-linear-gradient(top, start 0%, end 50%);
+    background: -ms-linear-gradient(top, start 0%, end 50%);
+    background: linear-gradient(to bottom, start 0%, end 50%);
+
+.s-reviews-widget
+    line-height: 120%;
+    font-size: 14px;
+    padding: 12px
+
+    &:hover
+        .sr-link-to-all-reviews
+            opacity: 1;
+
+    .heading
+        justify-content: flex-start
+        margin-left 0
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 120%;
+        color: #AAAAAA;
+
+    .sr-review
+        margin: 1.5em 0 0;
+
+        &:first-of-type
+            margin-top: .5em
+
+        .sr-header
+        .sr-footer
+            display flex
+            justify-content: space-between
+            align-items: center
+
+            .left-column
+                flex: 1 1 60%;
+                max-width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+            .right-column
+                flex: 1 1 40%;
+                white-space: nowrap;
+                text-align: right
+
+            .sr-author-name a
+                font-weight: 500;
+                font-size: 14px;
+                color: #777777;
+            .sr-review-date
+                font-weight: 400;
+                font-size: 13px;
+                line-height: 120%;
+                color: #AAAAAA;
+
+            .sr-author-name
+                padding: .2em 0 0
+
+            .sr-review-date
+                margin: .25em 0 0
+
+            .sr-review-rate
+                font-size: 75%;
+                *
+                    padding-right: 1px
+
+        .sr-review-comment
+            line-height: 120%;
+            font-size: 13px;
+            margin: 6px 0
+            padding: 8px 10px
+            background: rgba(201, 233, 255, 0.3)
+            border-radius: 0px 10px 10px 10px
+            .truncate-text
+                line-height: 120%;
+                max-height: 4.6em
+                overflow: hidden;
+                display: flex;
+                display: -webkit-box;
+                -webkit-line-clamp: 3
+                -webkit-box-orient: vertical
+
+        .sr-review-product-name
+            font-weight: 500;
+            font-size: 13px;
+            line-height: 120%;
+            flex: 1 1 60%;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+    .sr-no-reviews
+        margin: 35px 20px;
+        font-weight: normal;
+
+    .sr-link-to-all-reviews
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        opacity: 0;
+        padding: 12px 0;
+        $gradient(rgba(255,255,255,0), #fff)
+        transition: opacity 0.5s;
+
+.widget-1x1
+    .s-reviews-widget
+        .sr-review
+            margin-top: 0
+        .sr-header
+            display: block
+            .sr-author-image
+                display: none
+            .right-column
+                text-align: left
+        .sr-review-comment
+            display: none
+        .sr-footer
+            display: block
+            margin-top: 4px
+            .sr-review-rate
+                margin-bottom: 2px
+        .sr-link-to-all-reviews
+            font-size: .75rem
+            padding-bottom: 8px
+
+.widget-2x1
+    .s-reviews-widget
+        .sr-no-reviews
+            margin: 45px 55px;
+
+        .sr-review-comment
+            .truncate-text
+                max-height: 1.5em
+                -webkit-line-clamp: 1
+
+.widget-2x2
+    .s-reviews-widget
+        &:after
+            content: ''
+            position: absolute
+            width: 100%;
+            height: 32px;
+            left: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 69.18%)
+        .sr-no-reviews
+            margin: 105px 35px;
+
+[data-theme="dark"] .widget-2x2 .s-reviews-widget::after
+    background: linear-gradient(180deg, rgba(8, 4, 29, 0) 0%, #08041D 69.18%)
+
+
+.tv
+    .s-reviews-widget
+        font-size: 1rem
+        .sr-review
+            .sr-header
+                .sr-review-name
+                .sr-review-date
+                    font-size: .75em
+
+            .sr-review-text
+                font-size: 1.1em
+
+            .sr-review-subtext
+                font-size: .9em
+
+        .sr-link-to-all-reviews
+            $gradient(rgba(51,51,51,0), #333)
+
+.mobile
+    .s-reviews-widget
+        font-size: 1rem
+
+[data-theme="dark"]
+    .s-reviews-widget
+        .sr-link-to-all-reviews
+            $gradient(rgba(8, 4, 29, 0), #08041D)

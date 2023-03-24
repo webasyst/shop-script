@@ -1,36 +1,44 @@
 {$sales_link = "{$wa_backend_url}shop/?action=reports#/sales/type=sources"}
 
+<style>
+{if $ui == '1.3'}
+    {include file="../css/salesWidget-legacy.css" inline}
+{else}
+    {include file="../css/salesWidget.css" inline}
+{/if}
+</style>
+
 <div class="sales-widget-wrapper">
-    <div class="graph-wrapper" id="graph-wrapper-{$widget_id}"></div>
     <div class="text-wrapper">
         <h6 class="heading nowrap">{$title|escape}</h6>
-        <h1 class="s-sales nowrap">{$total_formatted}</h1>
-        <h3 class="s-sales-compare {$dynamic_class}">{$dynamic_html}</h3>
+        <div class="s-sales-wrapper">
+            <h1 class="s-sales nowrap">{$total_formatted}</h1>
+            <h3 class="s-sales-compare {$dynamic_class}">{$dynamic_html}</h3>
+        </div>
     </div>
+    <div class="graph-wrapper" id="graph-wrapper-{$widget_id}"></div>
     <a class="redirect-to-reports-link" href="{$sales_link}" title="{shop_currency($total)|escape}"></a>
 </div>
 
 {* Initialize *}
 <script>
-( function() {
+( function($) {
+    $.is_wa2 = {json_encode($ui == '2.0')};
+
     var is_loaded = (typeof SalesGraph !== "undefined"),
         js_href = "{$widget_url}js/salesWidget.js?{$wa->version()}",
         widget = DashboardWidgets["{$widget_id}"],
         options = {
             widget_id: {$widget_id},
-            graph_data: {json_encode($graph_data)},
-            graph_id: "graph-wrapper-{$widget_id}"
+            node: document.getElementById("graph-wrapper-{$widget_id}"),
+            data: {json_encode($graph_data)}
         };
 
-    if (is_loaded) {
-        widget.sales = new SalesGraph(options);
-    } else {
-        $.getScript(js_href, function() {
-            widget.sales = new SalesGraph(options);
-        });
-    }
-})();
-</script>
+    (is_loaded) ? initWidget() : $.getScript(js_href, initWidget);
 
-{* CSS *}
-<style>{include file="../css/salesWidget.css" inline}</style>
+    function initWidget() {
+        widget.sales = new SalesGraph(options);
+    }
+
+})(jQuery);
+</script>

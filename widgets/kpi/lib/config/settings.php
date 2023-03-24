@@ -8,7 +8,7 @@ return array(
         'options' => array(
             array('value' => 'arpu', 'title' => /*_wp*/('ARPU (Average Revenue per Customer)')),
             array('value' => 'ampu', 'title' => /*_wp*/('AMPU (Average Margin per Customer)')),
-            array('value' => 'cac', 'title' => /*_wp*/('CAC (Customer Acquisition cost)')),
+            array('value' => 'cac', 'title' => /*_wp*/('CAC (Customer Acquisition Cost)')),
             array('value' => 'ltv', 'title' => /*_wp*/('LTV (Customer Lifetime Value)')),
             array('value' => 'roi', 'title' => /*_wp*/('ROI (Return on Investment)')),
         ),

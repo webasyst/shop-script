@@ -5,6 +5,7 @@ class shopKpiWidget extends waWidget
     public function defaultAction()
     {
         $settings = $this->getSettings();
+        $metric = $this->getSettingsConfig()['metric'];
 
         $period = (int) $settings['period'];
         $period = ifempty($period, 30*24*3600);
@@ -16,6 +17,13 @@ class shopKpiWidget extends waWidget
 
         if ($settings['metric'] == 'roi') {
             $total .= '%';
+        }
+
+        foreach ($metric['options'] as $option) {
+            if ($option['value'] === $settings['metric']) {
+                $settings['metric_title'] = $option['title'];
+                break;
+            }
         }
 
         $this->display(array(
@@ -176,7 +184,11 @@ class shopKpiWidget extends waWidget
             return $total;
         }
 
-        $currency = wa()->getConfig()->getCurrency();
+        $config = wa('shop')->getConfig();
+        /**
+         * @var shopConfig $config
+         */
+        $currency = $config->getCurrency();
         if ($info['size'] == '2x1') {
             return wa_currency($total, $currency, '%0{h}');
         } else {
@@ -235,7 +247,7 @@ class shopKpiWidget extends waWidget
     protected function getSettingsConfig()
     {
         $result = parent::getSettingsConfig();
-        foreach(shopReportsSalesAction::getStorefronts() as $s) {
+        foreach (shopReportsSalesAction::getStorefronts() as $s) {
             if ($s) {
                 $result['storefront']['options'][] = array(
                     'value' => $s,

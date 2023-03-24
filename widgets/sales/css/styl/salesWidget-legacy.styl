@@ -1,0 +1,122 @@
+@import "nib";
+
+.sales-widget-wrapper
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    border-radius: 3px;
+    overflow: hidden;
+
+    .s-sales-compare
+        &.red
+            color: red;
+
+        &.green
+            color: #86cd86;
+
+    .redirect-to-reports-link
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+
+    .text-wrapper
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+
+        .s-sales
+            margin-bottom: 0;
+            color: #008000;
+
+    .graph-wrapper
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40%;
+        overflow: hidden;
+
+        svg
+            display: block;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            fill: rgba(0,0,0,0.1);
+            border-radius: 0 0 3px 3px;
+
+            path
+                fill: #f0f0f0;
+                stroke-width 0
+                shape-rendering: auto
+
+            .area
+                fill #cbedd1
+
+            .line
+                stroke-width 3px
+                stroke #090
+                fill: none
+
+            .chart-1
+                //.area
+                //    fill #e5f6e5;
+                .line
+                    stroke #a7e0a7;
+
+            .chart-2
+                //.area
+                //    fill #a1dba1;
+                .line
+                    stroke #090;
+
+            .chart-3
+                .area
+                    fill #ae4410
+                .line
+                    stroke #69361c
+
+.widget-1x1
+    .sales-widget-wrapper
+        .text-wrapper
+            padding: 0.5rem;
+
+.widget-2x1
+    .sales-widget-wrapper
+        .text-wrapper
+            padding: 0.75rem;
+
+.widget-2x2
+    .sales-widget-wrapper
+        .text-wrapper
+            padding: 0.75rem;
+
+.tv
+    .sales-widget-wrapper
+        background: transparent;
+
+        .text-wrapper
+            .s-sales
+                color: #5ac847;
+
+        .s-sales-compare
+            &.green
+                color: #437843;
+
+        .graph-wrapper
+            .chart-1
+                .line
+                    stroke #418a41; // 437843
+
+            .chart-2
+                .line
+                    stroke #5ac847;

@@ -1,0 +1,84 @@
+@import "nib";
+
+.customers-oneline-widget-wrapper
+    :where(h1, h2, h3)
+        margin: 0
+        line-height: 1.2em
+
+    .heading
+        justify-content: center
+
+    .graph-wrapper
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 35%;
+        overflow: hidden;
+
+        svg
+            display: block;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            fill: rgba(0,0,0,0.1);
+            border-radius: 0 0 3px 3px;
+
+            path
+                fill: #f0f0f0;
+                stroke-width 0
+                shape-rendering: auto
+
+            .area
+                fill #cbedd1
+
+            .line
+                stroke-width 3px
+                stroke #4d7ab3
+                fill: none
+
+            .chart-1
+                .line
+                    stroke #4d7ab3;
+
+    .text-wrapper
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+
+        .s-customer-count
+            color: #4d7ab3;
+            margin-bottom: 0 !important;
+
+        .s-customer-count-new
+            color: #8ab;
+
+.widget-1x1
+    .customers-oneline-widget-wrapper
+        .text-wrapper
+            padding: 0.5rem;
+
+.widget-2x1
+    .customers-oneline-widget-wrapper
+        .text-wrapper
+            padding: 0.75rem;
+
+.widget-2x2
+    .customers-oneline-widget-wrapper
+        .text-wrapper
+            padding: 0.75rem
+
+.tv
+    .customers-oneline-widget-wrapper
+        .graph-wrapper
+            svg
+                .chart-1
+                    .line
+                        stroke #7be
+
+        .text-wrapper
+            .s-customer-count
+                color: #7be;
