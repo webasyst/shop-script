@@ -1,0 +1,76 @@
+.ymarket-setup-page
+    .ymarket-promos-section
+        .s-promo-section
+            margin 0
+            padding 0
+
+            & + .s-promo-section
+                margin-top 2em
+
+            & > .name
+                padding-top 3px
+
+            & > .value
+                p
+                    margin 1em 0 0
+                    &:first-child
+                        margin-top 0
+
+                    & + .hint
+                        margin-top 0
+
+            table
+                max-width: 800px
+
+            .s-promo-item
+                a
+                    display: inline-block;
+                    margin: 0 1em 0 0;
+                    font-size: 12px;
+                    &:last-child
+                        margin-right 0
+
+                &.is-disabled
+                    .s-details-column
+                        color #888
+
+                .s-checkbox-column
+                    width 12px
+                    vertical-align top
+                    text-align right
+                    padding-right: 0
+
+                .s-actions-column
+                    vertical-align top
+
+                .s-errors-wrapper
+                    margin 1em 0 0
+                    font-size 12px
+                    line-height (15/12)em
+                    color #000
+
+                    .s-errors-list
+                        color: red;
+                        font-size: 12px;
+                        margin: 0
+                        padding 0
+
+                        & > li
+                            position relative
+                            margin 0
+                            padding 0 0 0 8px
+                            list-style none
+
+                            &:before
+                                content ""
+                                position absolute
+                                top (15/2)px
+                                right 100%
+                                width 3px
+                                height 3px
+                                border-radius 50%
+                                background red
+                                transform translate(100%, -50%)
+
+                            &:first-child
+                                margin-top 0
