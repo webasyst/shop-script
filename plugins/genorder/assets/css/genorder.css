@@ -1,0 +1,3 @@
+/** исправляет отступ для главного меню, которое в плагине отсутствует */
+#mainmenu > .s-level2 { display: none; }
+#maincontent { margin-top: 52px; }

@@ -1,0 +1,106 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/plugins/genorder\n"
+"POT-Creation-Date: 2022-12-21 09:29+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: shop/plugins/genorder\n"
+"Language-Team: shop/plugins/genorder\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"X-Poedit-Language: ru_RU\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: utf-8\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+msgid "Number of orders to generate"
+msgstr "Сколько заказов создать"
+
+msgid "Time interval"
+msgstr "Период времени"
+
+msgid "Distribute orders randomly between selected dates"
+msgstr "Распределить заказы случайным образом между выбранными датами"
+
+msgid "Storefront"
+msgstr "Витрина"
+
+msgid "Customer source"
+msgstr "Источник покупателей"
+
+msgid "Leave blank for direct acquisition"
+msgstr "Оставьте пустое поле, чтобы засчитать прямой переход на сайт"
+
+msgid "Referring web-site"
+msgstr "Ссылающийся сайт"
+
+msgid "UTM campaign"
+msgstr "UTM кампания"
+
+msgid "Action to perform with the order"
+msgstr "Действие, которое следует выполнить с заказом"
+
+msgid "0 to 3 days from order date"
+msgstr "От 0 до 3 дней с даты создания заказа"
+
+msgid "Leave in New state"
+msgstr "Оставить в состоянии Новый"
+
+msgid "Pay"
+msgstr "Оплатить"
+
+msgid "Ship"
+msgstr "Отправить"
+
+msgid "Complete"
+msgstr "Завершить"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Percentage of new customers"
+msgstr "Процент новых покупателей"
+
+msgid "Returning customers will be selected randomly from contacts created prior to order date"
+msgstr "Повторные покупатели выбираются случайным образом из контактов, созданных до времени создания заказа"
+
+msgid "randomdatatools.ru (Russian)"
+msgstr "randomdatatools.ru (русский)"
+
+msgid "randomuser.me (English)"
+msgstr "randomuser.me (английский)"
+
+msgid "No API"
+msgstr "Без API"
+
+msgid "Percentage of new customers with a photo"
+msgstr "Процент покупателей с фотографией"
+
+msgid "Photos are only available via randomuser.me API"
+msgstr "Фотографии доступны только по API randomuser.me"
+
+msgid "Generate"
+msgstr "Запустить генерацию"
+
+msgid "Abort"
+msgstr "Остановить"
+
+msgid "%d orders generated successfully"
+msgstr "Успешно создано заказов: %d"
+
+msgid "%d attempts failed"
+msgstr "Неудачных попыток: %d"
+
+msgid "from a %snew customer%s"
+msgstr "от %sнового покупателя%s"
+
+msgid "from an %sexisting customer%s"
+msgstr "от %sсуществующего покупателя%s"
+
+msgid "Order generation"
+msgstr "Генератор заказов"
+
+msgid "Bulk order and customer creation for demo accounts and testing purposes"
+msgstr "Массовая генерация заказов и покупателей для тестирования"
