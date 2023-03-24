@@ -13,4 +13,24 @@ class shopGenorderPlugin extends shopPlugin
             </li>',
         ];
     }
+
+    /** Добавляет ссылку в боковое меню магазина WA2.0 по хуку backend_extended_menu */
+    public function backendExtendedMenu($params)
+    {
+        $wa_app_url = wa('shop')->getAppUrl(null, true);
+
+        // Вставить новый пункт в глобальном меню перед пунктом Настройки ('settings')
+        $offset = array_search('settings', array_keys($params['menu']));
+        $params['menu'] = array_merge(
+            array_slice($params['menu'], 0, $offset),
+            array('genorder' => [
+                "id" => "genorder",
+                "name" => _wp('Order generation'),
+                "url" => "{$wa_app_url}?plugin=genorder&action=generator",
+                "icon" => '<i class="fas fa-solid fa-truck-monster"></i>',
+                "placement" => 'footer',
+            ]),
+            array_slice($params['menu'], $offset, null)
+        );
+    }
 }

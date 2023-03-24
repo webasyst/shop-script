@@ -10,5 +10,6 @@ return array(
     ),
     'handlers' => array(
         'backend_menu'   => 'backendMenu', // 1.3 tab main menu
+        'backend_extended_menu' => 'backendExtendedMenu', // 2.0 sidebar main menu
     ),
 );

@@ -1,0 +1,123 @@
+<form>
+    <div id="{$uniqid}" class="block double-padded">
+
+        <div class="fields">
+            <div class="field">
+                <div class="name">[`Number of orders to generate`]</div>
+                <div class="value">
+                    <input type="text" id="orders-count" class="short numeric" value="3">
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">
+                    [`Time interval`]
+                    <br><span class="hint">[`Distribute orders randomly between selected dates`]</span>
+                </div>
+                <div class="value">
+                    <input type="text" name="settings[date_start]" class="js-datepicker" value="{date('Y-m-d', time() - 30*24*3600)}" style="width:100px;min-width:100px;">
+                    &ndash;
+                </div>
+                <div class="value">
+                    <input type="text" name="settings[date_end]" class="js-datepicker" value="{date('Y-m-d')}" style="width:100px;min-width:100px;">
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">[`Storefront`]</div>
+                <div class="value">
+                    <input type="text" name="settings[storefront]">
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">
+                    [`Customer source`]
+                    <br><span class="hint">[`Leave blank for direct acquisition`]</span>
+                </div>
+                <div class="value">
+                    <label>
+                        <input type="radio" name="settings[source_type]" value="referer">
+                        [`Referring web-site`]
+                    </label>
+                </div>
+                <div class="value">
+                    <label>
+                        <input type="radio" name="settings[source_type]" value="campaign" checked>
+                        [`UTM campaign`]
+                    </label>
+                </div>
+                <div class="value">
+                    <input type="text" name="settings[source]">
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">
+                    [`Action to perform with the order`]
+                    <br><span class="hint">[`0 to 3 days from order date`]</span>
+                </div>
+                <div class="value">
+                    <select name="settings[action]">
+                        <option value="">[`Leave in New state`]</option>
+                        <option value="pay">[`Pay`]</option>
+                        <option value="ship">[`Ship`]</option>
+                        <option value="complete" selected>[`Complete`]</option>
+                        <option value="delete">[`Delete`]</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">
+                    [`Percentage of new customers`]
+                    <br><span class="hint">[`Returning customers will be selected randomly from contacts created prior to order date`]</span>
+                </div>
+                <div class="value">
+                    <input type="text" name="settings[new_percent]" value="80" class="short numeric">%
+                </div>
+                <div class="value"><label>
+                    <input type="radio" name="settings[customer_api]" value="randomdatatools">
+                    [`randomdatatools.ru (Russian)`]
+                </label></div>
+                <div class="value"><label>
+                    <input type="radio" name="settings[customer_api]" value="randomuser">
+                    [`randomuser.me (English)`]
+                </label></div>
+                <div class="value"><label>
+                    <input type="radio" name="settings[customer_api]" value="" checked>
+                    [`No API`]
+                </label></div>
+            </div>
+            <div class="field">
+                <div class="name">
+                    [`Percentage of new customers with a photo`]
+                    <br><span class="hint">[`Photos are only available via randomuser.me API`]</span>
+                </div>
+                <div class="value">
+                    <input type="text" name="settings[photo_percent]" value="10" class="short numeric">%
+                </div>
+            </div>
+            <div class="field">
+                <div class="value">
+                    <input type="submit" class="button green" value="[`Generate`]">
+                    <button class="hidden button red" id="cancel-button">[`Abort`]</button>
+                </div>
+            </div>
+            <div class="field" style="display:none" id="generation-log">
+                <div class="value">
+                    <pre></pre>
+                </div>
+                <div class="log-record hidden template"><span class="text"></span></div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<script src="{$wa_app_static_url}plugins/genorder/assets/js/genorder.js?v{$wa->shop->genorderPlugin->version()}"></script>
+<link href="{$wa_app_static_url}plugins/genorder/assets/css-legacy/genorder.css?v{$wa->shop->genorderPlugin->version()}" rel="stylesheet" type="text/css" />
+<script>
+    setTimeout(function() { "use strict";
+        $.genorder.initGeneratorPage({
+            finish_msg: "[`%d orders generated successfully`]",
+            finish_error_msg: "[`%d attempts failed`]",
+            wrapper_id: '#{$uniqid}'
+        });
+    }, 1);
+</script>
