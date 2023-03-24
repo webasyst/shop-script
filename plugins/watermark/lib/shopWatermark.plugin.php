@@ -147,8 +147,10 @@ class shopWatermarkPlugin extends shopPlugin
             'settings' => $settings,
             'image' => $this->getProductImage(),
         ));
+
+        $html = (wa()->whichUI() == '2.0' ? 'Settings' : 'Settings-legacy');
         return array(
-            '' => $view->fetch($this->path.'/templates/Settings.html'),
+            '' => $view->fetch($this->path.'/templates/'.$html.'.html' ),
         );
     }
 

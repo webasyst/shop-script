@@ -1,14 +1,14 @@
-<div class="watermark-settings width-100">
 <link rel="stylesheet" type="text/css" href="{$wa_url}wa-content/js/jquery-plugins/jquery-imageareaselect/imgareaselect-default.css?{$wa->version(true)}" />
 <link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
 <style>
-#region-selector .main-img { width: 450px; }
+.watermark-settings .value label { margin: 8px 0; }
+#region-selector .main-img { width: 450px; margin-bottom: 5px; }
 #region-selector .main-img .imgareaselect-outer { background: transparent; }
 #region-selector .main-img .main-img-wrapper .imgareaselect-selection { opacity: .3; background-size: 100%; background-position: 50% 50%; background-repeat: no-repeat; line-height: normal; text-align: center; white-space: nowrap; }
 #region-selector .main-img .main-img-wrapper .imgareaselect-selection .text { position: relative; top: 50%; transform: translateY(-50%); color: white; font-size: 12px; white-space: normal; }
 #region-selector { margin-bottom: 30px; overflow: hidden; }
-#region-selector .main-img .main-img-wrapper-outer { display: inline-block; border: 2px solid var(--border-color-hard); line-height: 0px; border-radius: 0.5rem; }
-#region-selector .main-img .main-img-wrapper { display: inline-block; position: relative; line-height: 0px; overflow: hidden; border-radius: 0.5rem; }
+#region-selector .main-img .main-img-wrapper-outer { display: inline-block; border: 2px solid #999; line-height: 0px; }
+#region-selector .main-img .main-img-wrapper { display: inline-block; position: relative; line-height: 0px; overflow: hidden; }
 #region-selector .main-img img { min-height: 200px; min-width: 200px; max-height: 400px; max-width: 400px; }
 #region-selector .img-controls { float: left; width: 300px; }
 #region-selector .main-img-wrapper .corner { position: absolute; z-index: 200; border-radius: 50%; background: rgba(255,255,180,0.75); padding: 13px; }
@@ -30,17 +30,16 @@
 #opacity-slider .ui-slider-handle { cursor: pointer; }
 </style>
 
-<div class="fields custom-mt-12">
+
+<div class="watermark-settings">
     <div class="field">
-        <div class="name for-switch">[`Watermark type`]</div>
-        <div class="value">
-            <div class="flexbox middle space-8">
-                <label for="s-watermark-type"><span id="s-watermark-type-text">[`Text`]</span></label>
-                <span class="switch small" id="s-watermark-switch">
-                    <input type="checkbox" name="shop_watermark[watermark_type]" id="s-watermark-type"{if $settings.watermark_type == 'image'} checked{/if}>
-                </span>
-                <label for="s-watermark-type"><span id="s-watermark-type-image">[`Image`]</span></label>
-            </div>
+        <div class="name">[`Watermark type`]</div>
+        <div class="value no-shift s-ibutton-checkbox">
+            <ul class="menu-h">
+                <li><label for="s-watermark-type"><span class="s-unselected">[`Text`]</span></label></li>
+                <li><input type="checkbox" name="shop_watermark[watermark_type]" id="s-watermark-type"{if $settings.watermark_type == 'image'} checked{/if}></li>
+                <li><label for="s-watermark-type"><span>[`Image`]</span></label></li>
+            </ul>
         </div>
     </div>
 
@@ -69,10 +68,10 @@
                 </div>
             {/strip}</div>
 
-            <div class="sub-links custom-mb-12">
-                <a href="javascript:void(0)" class="button light-gray rounded small custom-mt-8" id="load-another-product-image-link"><i class="fas fa-random text-dark-gray icon"></i> [`Change sample product`]</a>
-                <a href="?plugin=watermark&module=image&action=preview" target="_blank" id="preview-link">[`Preview thumbnail`] <i class="fas fa-external-link-alt fa-sm"></i></a>
-
+            <div class="sub-links">
+                <a href="?plugin=watermark&module=image&action=preview" target="_blank" id="preview-link">[`Preview thumbnail`] <i class="icon10 new-window"></i></a>
+                <br>
+                <a href="javascript:void(0)" class="gray inline-link" id="load-another-product-image-link"><b><i>[`Change sample product`]</i></b></a>
             </div>
 
             <input type="hidden" class="position-input" name="shop_watermark[pos_x1]" value="{$settings.pos_x1|replace:',':'.'}">
@@ -84,7 +83,7 @@
 
     <div class="field hide-in-image-mode">
         <div class="name">[`Rotation`]</div>
-        <div class="value ">
+        <div class="value no-shift">
             <select name="shop_watermark[orientation]" style="display:none">
                 <option value="h"{if $settings.orientation == 'h'} selected{/if}>[`Horizontal`]</option>
                 <option value="v"{if $settings.orientation == 'v'} selected{/if}>[`Vertical`]</option>
@@ -105,17 +104,14 @@
     </div>
     <div class="field hide-in-image-mode">
         <div class="name">[`Color`]</div>
-        <div class="value s-color-picker">
-            <div class="flexbox middle space-8">
-                #<input type="text" class="short" name="shop_watermark[text_color]" value="{$settings.text_color|escape}">
-                <i class="fas fa-circle color large cursor-pointer" style="color:#{$settings.text_color|escape};"></i>
-            </div>
+        <div class="value">
+            #<input type="text" class="short" name="shop_watermark[text_color]" value="{$settings.text_color|escape}"> <i class="icon16 color" style="background-color:#{$settings.text_color|escape};cursor:pointer;"></i>
             <div id="colorpicker-wrapper" style="display:none"></div>
         </div>
     </div>
     <div class="field hide-in-image-mode">
         <div class="name">[`Font size`]</div>
-        <div class="value ">
+        <div class="value no-shift">
             <select name="shop_watermark[font_size]">
                 {foreach [
                     12 => "[`Very small`]",
@@ -132,74 +128,60 @@
     <div class="field hide-in-text-mode">
         <div class="name">[`Image`]</div>
         <div class="value">
-            <div id="s-watermark-file-upload" class="custom-mb-8">
-                <div class="upload">
-                    <label class="link">
-                        <i class="fas fa-file-upload"></i>
-                        <span>[`Choose file`]</span>
-                        <input type="file" name="shop_watermark[image]" class="custom file">
-                    </label>
-                </div>
-            </div>
+            <input type="file" name="shop_watermark[image]" class="custom file">
+            <br>
             <span id="uploaded-watermark"{if empty($src)} style="display:none"{/if}>
-                <img src="{$src}">
+                <img src="{$src}"><br>
             </span>
         </div>
     </div>
 
     <div class="field">
         <div class="name">[`Opacity`]</div>
-        <div class="value ">
-            <div class="slider" id="opacity-slider"></div>
+        <div class="value no-shift">
+            <div id="opacity-slider"></div>
             <input type="hidden" name="shop_watermark[opacity]" class="input" placeholder="0.3" value="{$settings.opacity|replace:',':'.'}">
         </div>
     </div>
 
-    <div class="field custom-my-24">
-        <div class="name for-switch">[`Overlay mode`]</div>
-        <div class="value">
-            <div>
-                <label>
-                    <input type="radio" name="shop_watermark[overlay]" value="thumbnails"{if $settings.overlay == 'thumbnails'} checked{/if}>
-                    [`Thumbnails`] [`(recommended)`]
+    <div class="field">
+        <div class="name">[`Overlay mode`]</div>
+        <div class="value no-shift">
+            <label>
+                <input type="radio" name="shop_watermark[overlay]" value="thumbnails"{if $settings.overlay == 'thumbnails'} checked{/if}>
+                [`Thumbnails`] [`(recommended)`]
+            </label>
+            <div id="thumb-min-wrapper">
+                <label class="small">
+                    <input type="checkbox"{if $settings.thumb_min > 0} checked{/if}>
+                    [`Only for thumbnails larger than`]
                 </label>
-                <div id="thumb-min-wrapper">
-                    <label>
-                        <span class="wa-checkbox small">
-                            <input type="checkbox"{if $settings.thumb_min > 0} checked{/if}>
-                            <span>
-                                <span class="icon">
-                                    <i class="fas fa-check"></i>
-                                </span>
-                            </span>
-                        </span>
-                        [`Only for thumbnails larger than`]
-                    </label>
-                    <input type="text" class="small shortest numerical" value="{ifempty($settings.thumb_min, 200)}">
-                    <span class="small">px</span>
-                    <input type="hidden" name="shop_watermark[thumb_min]" value="{$settings.thumb_min}">
-                    <div class="hint">[`Watermark will be applied to every product thumbnail at the moment of thumbnail generation after the scaling is complete. Original product image will not be modified.`]</div>
-                </div>
+                <input type="text" class="small short numerical" value="{ifempty($settings.thumb_min, 200)}">
+                <span class="small">px</span>
+                <input type="hidden" name="shop_watermark[thumb_min]" value="{$settings.thumb_min}">
+                <br>
+                <span class="hint">[`Watermark will be applied to every product thumbnail at the moment of thumbnail generation after the scaling is complete. Original product image will not be modified.`]</span>
             </div>
-            <div class="custom-mt-16">
-                <label>
-                    <input type="radio" name="shop_watermark[overlay]" value="original"{if $settings.overlay == 'original'} checked{/if}>
-                    [`Original image`]
-                </label>
-                <div class="hint custom-mt-4">[`Watermark will be applied to the original product image at the moment of upload, and thus all custom-sized product thumbnails will contain this watermark automatically. This option is not recommended, because in case you would like to change watermark in the future, you will have to re-upload all product images.`]</div>
-            </div>
-            {if $settings.overlay != 'thumbnails'}
-            <div class="custom-mt-16" style="display: none;" id="thumbnails-mode-warning">
-                <span class="alert warning"><i class="fas fa-exclamation-triangle text-yellow"></i> {sprintf('[`<strong>IMPORTANT</strong>: If you already have products with watermark applied to the original image, switching overlay mode to Thumbnails will add double watermarks to all product thumbnails that will be generated in the future. You may want to <a href="%s">re-generate all product image thumbnails</a> after you switch the overlay mode.`]', '?action=settings#/images/')}</span>
-            </div>
-            {/if}
         </div>
+        <div class="value no-shift">
+            <label>
+                <input type="radio" name="shop_watermark[overlay]" value="original"{if $settings.overlay == 'original'} checked{/if}>
+                [`Original image`]
+            </label>
+            <div style="margin-top:5px"><span class="hint">[`Watermark will be applied to the original product image at the moment of upload, and thus all custom-sized product thumbnails will contain this watermark automatically. This option is not recommended, because in case you would like to change watermark in the future, you will have to re-upload all product images.`]</span></div>
+        </div>
+        {if $settings.overlay != 'thumbnails'}
+            <div class="value no-shift" style="display: none;" id="thumbnails-mode-warning">
+                <span class="small"><i class="icon10 exclamation"></i> {sprintf('[`<strong>IMPORTANT</strong>: If you already have products with watermark applied to the original image, switching overlay mode to Thumbnails will add double watermarks to all product thumbnails that will be generated in the future. You may want to <a href="%s">re-generate all product image thumbnails</a> after you switch the overlay mode.`]', '?action=settings#/images/')}</span>
+            </div>
+        {/if}
     </div>
 </div>
-</div>
+<br>
 
 <script>(function() { "use strict";
     var farbtastic_url = "{$wa_url}wa-content/js/farbtastic/farbtastic.js?{$wa->version(true)}";
+    var jquery_slider_url = "{$wa_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?{$wa->version(true)}";
     var imgareaselect_url = "{$wa_url}wa-content/js/jquery-plugins/jquery-imageareaselect/jquery.imgareaselect.min.js?{$wa->version(true)}";
     var msg_save_to_preview = "[`Please save watermark settings first to apply changes, and then click Preview again.`]";
     var msg_upload_watermark = "[`Upload watermark image using the form below.`]";
@@ -211,36 +193,38 @@
     var $opacity_input = $form.find('[name="shop_watermark[opacity]"]');
     var $color_input = $form.find('[name="shop_watermark[text_color]"]');
 
+    // iButton checkbox logic
+    (function() {
+        var $wrapper = $watermark_type_checkbox.closest('ul');
+        var $label1 = $wrapper.find('li span').first();
+        var $label2 = $wrapper.find('li span').last();
+        $watermark_type_checkbox.change(function () {
+            if (this.checked) {
+                $label2.removeClass('s-unselected');
+                $label1.addClass('s-unselected');
+                $form.addClass('image-mode').removeClass('text-mode');
+            } else {
+                $label2.addClass('s-unselected');
+                $label1.removeClass('s-unselected');
+                $form.removeClass('image-mode').addClass('text-mode');
+            }
+        }).change().iButton({
+            labelOn: '',
+            labelOff: '',
+            className: 'mini'
+        });
+    })();
 
-    // Init switch
-    var toggleWatermarkText = function(active) {
-        var $type_text = $('#s-watermark-type-text');
-        var $type_image = $('#s-watermark-type-image');
-        var class_unselect = 'text-gray';
-        if (active) {
-            $type_text.addClass(class_unselect);
-            $type_image.removeClass(class_unselect);
-            $form.addClass('image-mode').removeClass('text-mode');
-        } else {
-            $type_text.removeClass(class_unselect);
-            $type_image.addClass(class_unselect);
-            $form.removeClass('image-mode').addClass('text-mode');
+    // Update visibility of fields when user changes watermark type (text/image)
+    (function() {
+        var $radios = $form.find('[name="shop_watermark[watermark_type]"]').change(update);
+        update();
+
+        function update() {
+            $radios.filter(':checked').closest('.value').removeClass('not-selected').addClass('selected');
+            $radios.filter(':not(:checked)').closest('.value').removeClass('selected').addClass('not-selected');
         }
-    };
-
-    $("#s-watermark-switch").waSwitch({
-        ready: function(wa_switch) {
-            toggleWatermarkText(wa_switch.is_active);
-        },
-        change: function(active) {
-            toggleWatermarkText(active);
-        }
-    });
-
-    // Init fileupload button
-    $("#s-watermark-file-upload").waUpload({
-        show_file_name: false
-    });
+    })();
 
     // Save-related logic
     (function() {
@@ -287,12 +271,7 @@
         // Only allow preview link when form is saved
         $('#preview-link').click(function() {
             if ($submit_button.hasClass('yellow')) {
-                $.waDialog.alert({
-                    title: msg_save_to_preview,
-                    button_title: '[`Close`]',
-                    button_class: 'light-gray',
-                });
-
+                alert(msg_save_to_preview);
                 return false;
             }
         });
@@ -325,17 +304,31 @@
         });
     })();
 
-    // Slider for opacity
-    $('#opacity-slider').waSlider({
-        hide: { min: true, max: false },
-        limit: { min: 0, max: 1 },
-        values: {
-            min: 0,
-            max: parseFloat($opacity_input.val().replace(',', '.')) || 0,
-        },
-        move: function(values, slider) {
-            $opacity_input.val(values[1]).change();
+    // Sliders
+    (function(init) {
+        // Load jquery ui slider if not loaded yet
+        if ($.fn.slider) {
+            init();
+        } else {
+            $.ajax({
+                dataType: "script",
+                url: jquery_slider_url,
+                cache: true
+            }).done(function() {
+                init();
+            });
         }
+    })(function() {
+        // Slider for opacity
+        $('#opacity-slider').slider({
+            min: 0,
+            max: 1,
+            step: 0.05,
+            value: parseFloat($opacity_input.val().replace(',', '.')) || 0,
+            slide: function(e, ui) {
+                $opacity_input.val(ui.value).change();
+            }
+        });
     });
 
     // Region selector logic
@@ -385,17 +378,15 @@
         })();
 
         // Load another product image when user clicks on a link
-        var $btn_load_image = $('#load-another-product-image-link');
-        $btn_load_image.on('click', function() {
-            if ($btn_load_image.find('.loading').length > 0) {
+        var $load_product_image_link = $('#load-another-product-image-link');
+        $load_product_image_link.on('click', function() {
+            if ($load_product_image_link.find('.loading').length > 0) {
                 return false;
             }
-            var $icon = $('.icon', $btn_load_image).hide();
-            $btn_load_image.prepend('<i class="fas fa-spinner fa-spin loading text-gray"></i>');
+            $load_product_image_link.append('<i class="icon16 loading"></i>');
             $.post('?plugin=watermark&module=image&action=product', null, function(r) {
                 $main_img.off('load').one('load', function() {
-                    $icon.show();
-                    $btn_load_image.find('.loading').remove();
+                    $load_product_image_link.find('.loading').remove();
                     updateImgAreaSelect();
                 }).prop('src', r.data.url_default);
             }, 'json');
@@ -577,12 +568,12 @@
         }
     })(function() {
         var $wrapper = $('#colorpicker-wrapper');
-        var $color_icon = $color_input.parent().find('.color').click(function() {
+        var $color_icon = $color_input.parent().find('i.color').click(function() {
             $wrapper.slideToggle();
         });
         var farbtastic = $.farbtastic($wrapper, function (color) {
             $color_input.val(color.substr(1).toUpperCase()).change();
-            $color_icon.css('color', color);
+            $color_icon.css('background', color);
         });
         $color_input.on('keyup', function() {
             farbtastic.setColor('#'+this.value);
