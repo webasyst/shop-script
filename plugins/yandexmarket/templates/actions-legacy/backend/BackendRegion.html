@@ -20,7 +20,7 @@
                 $(':input.js-edit-region-input:first').change(function () {
                     if (this.value != '') {
                         var $this = $(this);
-                        $this.parent().append('<i class="fas fa-spinner fa-spin text-gray"></i>');
+                        $this.parent().append('<i class="icon16 loading"></i>');
                         $this.parents('div.js-edit-region:first').load('?plugin=yandexmarket&action=region&region_id=' + this.value);
                         $this.attr('disabled', true);
                     }
@@ -29,7 +29,7 @@
         </script>
     {/if}
 {elseif $error}
-    <span class="state-error-hint">
+    <span class="errormsg">
         {$error|escape}
     </span>
 {/if}

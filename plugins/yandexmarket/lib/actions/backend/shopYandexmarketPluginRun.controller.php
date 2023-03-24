@@ -1239,6 +1239,10 @@ SQL;
     {
         $report = '<div class="successmsg">';
         $report .= sprintf('<i class="icon16 yes"></i>%s ', _wp('Экспортировано'));
+        if (wa()->whichUI() == '2.0') {
+            $report = '<div class="state-success">';
+            $report .= sprintf('<i class="fas fa-check custom-mr-4"></i>%s ', _wp('Экспортировано'));
+        }
         $chunks = array();
 
         foreach ($this->data['current'] as $stage => $current) {

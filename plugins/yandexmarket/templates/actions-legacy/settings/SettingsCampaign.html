@@ -1,0 +1,800 @@
+{*Файл отмечен на удаление. Удалить после 01.10.2021*}
+
+{*<style>*}
+{*    td.ui-datepicker-holiday span {*}
+{*        background-color: #FCC !important;*}
+{*    }*}
+{*    td a.ui-state-active {*}
+{*        background-color: white !important;*}
+{*    }*}
+{*</style>*}
+{*{$settings_url='#/yandexmarket/'}*}
+{*<h1 class="js-bread-crumbs">{$campaign_id|string_format:'Настройки кампании №%s (Заказ на Маркете)'|escape}</h1>*}
+
+{*{if empty($cpa_available)}*}
+
+{*    {include file="../../includes/api.error.html"*}
+{*        message='Для полноценной корректной работы API оформления заказов требуется версия Shop-Script 7.1.1.60 или выше.'*}
+{*        hint='Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API</a>.'}*}
+
+{*{elseif empty($api_available)}*}
+
+{*    {include file="../../includes/api.error.html"*}
+{*        message='Для приема заказов через API заполните секции «OAuth-приложение» и «Заказ на Маркете» в <a href="?action=plugins#/yandexmarket/main/">основных настройках плагина</a>.'*}
+{*        hint='Обработка заказов возможна вручную в партнерском интерфейсе «Яндекс.Маркета» или автоматически через <a href="?action=plugins#/yandexmarket/api/">API</a>.'}*}
+
+{*{elseif !empty($error)}*}
+
+{*    {include file="../../includes/api.error.html"*}
+{*        message='Для отображения настроек кампании настройте <a href="?action=plugins#/yandexmarket/api/">авторизацию партнерского API</a> и проверьте настройки кампании в личном кабинете «Яндекс.Маркета».'}*}
+
+{*{else}*}
+
+{*    <div class="block double-padded" id="s-yandexmarket-form">*}
+{*        <form id="s-plugin-yandexmarket-campaign-form" method="post" action="?plugin=yandexmarket&module=settings&action=campaignSave">*}
+{*            <input type="hidden" name="campaign_id" value="{$campaign_id}">*}
+{*            <div class="fields form">*}
+
+
+
+
+{*                <div class="field-group block">*}
+
+{*                    <h2 class="gray">1. API «Заказ на Маркете»</h2>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">Авторизационный токен</div>*}
+{*                        <div class="value">*}
+{*                            <input type="text" value="{$campaign.market_token|default:''|escape}"*}
+{*                                   placeholder="{$plugin_settings.market_token|default:'B3000001C136C238'|escape}" name="campaign[market_token]">*}
+{*                            <br/>*}
+{*                            <span class="hint">Укажите <i>авторизационный токен</i>, сгенерированный на странице «Настройки API заказа» в кабинете «Яндекс.Маркета».</span>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">URL API</div>*}
+{*                        <div class="value">*}
+{*                            <input type="text" value="{$api_url|default:''|rtrim:'/'|escape}/" readonly="readonly" class="long">*}
+{*                            <br/>*}
+{*                            <span class="hint">Скопируйте этот адрес и укажите его на странице «Настройки API заказа» в кабинете «Яндекс.Маркета».</span>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                </div>*}
+
+
+
+
+
+{*                <div class="field-group block top-padded">*}
+
+{*                    <h2 class="gray">2. Параметры магазина</h2>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">Учет остатков</div>*}
+{*                        <div class="value no-shift">*}
+{*                            {if !empty($app_settings.ignore_stock_count)}*}
+{*                                Покупатель может оформить заказ, даже если товара нет в наличии.*}
+{*                            {else}*}
+{*                                Максимальное количество товаров, которое может быть добавлено в корзину, не может превышать остаток на складе:*}
+{*                                <br/>*}
+{*                                <b>*}
+{*                                    {if empty($app_settings.limit_main_stock)}*}
+{*                                        Суммарный остаток на всех складах*}
+{*                                    {else}*}
+{*                                        Остаток на основном складе, который указан в настройках экспорта*}
+{*                                    {/if}*}
+{*                                </b>*}
+{*                            {/if}*}
+{*                            <br/>*}
+{*                            <span class="hint"><i class="icon10 info"></i>Значение указано для справки, настройки учета остатков осуществляются в разделе*}
+{*                                «<a href="?action=settings#/stock/" target="_blank">Настройки &rarr; Склады</a>»<i class="icon16 new-window"></i>.</span>*}
+{*                            <br/>*}
+{*                            <br/>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">Обновление склада</div>*}
+{*                        <div class="value no-shift">*}
+{*                            Остатки товаров на складе будут обновлены в момент выполнения действия с заказом, выбранного в настройках складов:*}
+{*                            <br/>*}
+{*                            <b>*}
+{*                                {if !empty($app_settings.update_stock_count_on_create_order)}*}
+{*                                    Заказ оформлен*}
+{*                                {else}*}
+{*                                    Заказ подтвержден и принят в обработку*}
+{*                                {/if}*}
+{*                            </b>*}
+{*                        </div>*}
+{*                        <div class="value">*}
+{*                            <span class="hint">*}
+{*                                {if empty($app_settings.update_stock_count_on_create_order)}*}
+{*                                    <i class="icon10 exclamation"></i>*}
+{*                                {else}*}
+{*                                    <i class="icon10 info"></i>*}
+{*                                {/if}*}
+{*                                Для исключения ситуации отсутствия товара на складе и невозможности выполнить заказ с последующими штрафными санкциями рекомендуется обновлять складские*}
+{*                                    остатки при оформлении заказа.*}
+{*                            </span>*}
+{*                            <br/>*}
+{*                            <span class="hint"><i class="icon10 info"></i>Значение указано для справки, настройки обновления склада осуществляются в разделе*}
+{*                                «<a href="?action=settings#/stock/" target="_blank">Настройки &rarr; Склады</a>»<i class="icon16 new-window"></i>.</span>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">Товары на заказ</div>*}
+{*                        <div class="value no-shift"><label><input type="checkbox" name="campaign[over_sell]"{if !empty($campaign.over_sell)} checked="checked"{/if}> Разрешить оформление*}
+{*                            заказов с товарами, которых нет на складе</label></div>*}
+{*                    </div>*}
+
+{*                </div>*}
+
+
+
+
+
+{*                <div class="field-group block top-padded">*}
+
+{*                    <h2 class="gray">3. Оплата</h2>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">Предоплата на «Маркете» подключена</div>*}
+{*                        <div class="value no-shift">*}
+{*                            <label><input type="checkbox" name="campaign[payment][YANDEX]" value="1" {if !empty($campaign.payment.YANDEX)} checked="checked"{/if}>*}
+{*                                Я подключил прием предоплаты к своему магазину на «Яндекс.Маркете».</label>*}
+{*                            <br/>*}
+{*                            <span class="hint">*}{*<i class="icon16 yes-bw"></i>*}
+{*                                Доступность предоплаты включается в настройках личного кабинета «Яндекс.Маркета». Для этого магазин должен работать по модели CPA.</span>*}
+{*                            <br />*}
+{*                            <span class="hint">*}
+{*                                Для заказов, предоплаченных на «Яндекс.Маркете», этот сервис сам выдает чеки покупателям и отправляет данные по ним в ФНС. Магазину не нужно дублировать отправку чеков ни в налоговую инспекцию, ни покупателю.</span>*}
+{*                            <br/>*}
+{*                            <span class="hint">*}
+{*                                Типы предоплаты (банковской картой, «Яндекс.Деньгами») предлагаются на странице оформления заказа, только если магазин подключен к приему предоплаты. </span>*}
+{*                            <br/>*}
+{*                            <span class="hint">Как подключить прием предоплаты для заказов с «Маркета», описано в*}
+{*                                <a href="https://yandex.ru/support/partnermarket/purchase/prepaid-orders.xml" target="_blank">документации<i class="icon16 new-window"></i></a>.*}
+{*                                </span>*}
+{*                            *}
+{*                            <div class="field">*}
+{*                                <div class="name">Система налогообложения магазина</div>*}
+{*                                <div class="value no-shift">*}
+{*                                    <label>*}
+{*                                    <select name="campaign[tax_system]">*}
+{*                                        <option value=""{if empty($campaign.tax_system)} selected="selected"{/if}>Не передавать</option>*}
+{*                                        <option value="OSN"{if ifset($campaign.tax_system)=='OSN'} selected="selected"{/if}>Общая СН</option>*}
+{*                                        <option value="USN"{if ifset($campaign.tax_system)=='USN'} selected="selected"{/if}>Упрощенная СН (доходы)</option>*}
+{*                                        <option value="USN_MINUS_COST"{if ifset($campaign.tax_system)=='USN_MINUS_COST'} selected="selected"{/if}>Упрощенная СН (доходы минус расходы)</option>*}
+{*                                        <option value="ENVD"{if ifset($campaign.tax_system)=='ENVD'} selected="selected"{/if}>Единый налог на вмененный доход</option>*}
+{*                                        <option value="ECHN"{if ifset($campaign.tax_system)=='ECHN'} selected="selected"{/if}>Единый сельскохозяйственный налог</option>*}
+{*                                        <option value="PSN"{if ifset($campaign.tax_system)=='PSN'} selected="selected"{/if}>Патентная СН</option>*}
+{*                                    </select>*}
+{*                                    </label>*}
+{*                                    <br/>*}
+{*                                    <span class="hint">Если выбрано «Не передавать», то «Яндекс.Маркет» будет использовать тип системы налогообложения из настроек магазина в личном кабинете.</span>*}
+{*                                </div>*}
+{*                            </div>*}
+
+{*                            <div class="field">*}
+{*                                <div class="name">Ставка НДС для товаров</div>*}
+{*                                <div class="value no-shift">*}
+{*                                    <label>*}
+{*                                        <select name="campaign[offer_tax]">*}
+{*                                            <option value="NO_VAT"{if ifset($campaign.offer_tax)=='NO_VAT'} selected="selected"{/if}>НДС не облагается</option>*}
+{*                                            <option value=""{if empty($campaign.offer_tax)} selected="selected"{/if}>Передавать ставки НДС по каждой позиции</option>*}
+{*                                        </select>*}
+{*                                    </label>*}
+{*                                    <br/>*}
+{*                                    <span class="hint">Если ваша организация работает по ОСН, выберите вариант «Передавать ставки НДС по каждой позиции».<br />*}
+{*Ставка НДС может быть равна 0%, 10% или 18%. В настройках налогов Shop-Script выберите, чтобы НДС был включен в цену товара.</span>*}
+{*                                </div>*}
+{*                            </div>*}
+{*        *}
+{*                            <div class="field">*}
+{*                                <div class="name">Ставка НДС для доставки</div>*}
+{*                                <div class="value no-shift">*}
+{*                                    <label>*}
+{*                                        <select name="campaign[shipping_tax]">*}
+{*                                            <option value="NO_VAT"{if ifset($campaign.shipping_tax)=='NO_VAT'} selected="selected"{/if}>НДС не облагается</option>*}
+{*                                            <option value="VAT_0"{if ifset($campaign.shipping_tax)=='VAT_0'} selected="selected"{/if}>НДС 0%</option>*}
+{*                                            <option value="VAT_10"{if ifset($campaign.shipping_tax)=='VAT_10'} selected="selected"{/if}>НДС 10%</option>*}
+{*                                            <option value="VAT_18"{if ifset($campaign.shipping_tax)=='VAT_18'} selected="selected"{/if}>НДС 18%</option>*}
+{*                                        </select>*}
+{*                                    </label>*}
+{*                                </div>*}
+{*                            </div>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">Оплата наличными</div>*}
+{*                        <div class="value no-shift">*}
+{*                            <label><input type="checkbox" name="campaign[payment][CASH_ON_DELIVERY]"*}
+{*                                value="1" {if !empty($campaign.payment.CASH_ON_DELIVERY)} checked="checked"{/if}> Наличный расчет при получении заказа</label>*}
+{*                            <br/>*}
+{*                            <span class="hint">Укажите доступность оплаты наличными для каждого вида доставки</span>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">Оплата банковской картой курьеру</div>*}
+{*                        <div class="value no-shift">*}
+{*                            {if !empty($payment_methods)}*}
+{*                                <label>*}
+{*                                    <select name="campaign[payment][CARD_ON_DELIVERY]">*}
+{*                                        <option value="" {if empty($campaign.payment.CARD_ON_DELIVERY)} selected{/if}>Не принимать</option>*}
+{*                                        {foreach $payment_methods as $payment_method}*}
+{*                                            <option value="{$payment_method.id|escape}"*}
+{*                                                title="{"`$payment_method.id` `$payment_method.description`"|escape}"*}
+{*                                                {if $payment_method.id ==ifset($campaign.payment.CARD_ON_DELIVERY) } selected{/if}*}
+{*                                                >{$payment_method.name|default:$payment_method.plugin|escape}</option>*}
+{*                                        {/foreach}*}
+{*                                        <option value="manual"{if (ifset($campaign.payment.CARD_ON_DELIVERY)=='manual')} selected{/if}>Другой мобильный терминал</option>*}
+{*                                    </select> Оплата банковской картой при получении заказа*}
+{*                                </label>*}
+{*                                <br/>*}
+{*                                <span class="hint">Укажите доступность оплаты картой для каждого вида доставки</span>*}
+{*                                <br/>*}
+{*                                <span class="hint"><i class="icon10 info"></i><a href="https://www.shop-script.ru/help/11846/yandex-mpos/" target="_blank">Инструкция</a><i*}
+{*                                    class="icon16 new-window"></i> по подключению мобильного терминала «Яндекс.Кассы»</span>*}
+{*                            {else}*}
+{*                                <span class="hint">Для приема оплаты банковскими картами <a href="?action=settings#/payment/">настройте</a> плагин «Яндекс.Деньги» на прием*}
+{*                                    банковских карт.</span>*}
+{*                            {/if}*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field js-validate-payment">*}
+{*                        <div class="value">*}
+{*                            <span class="errormsg"><i class="icon16 exclamation"></i>Выберите хотя бы один способ оплаты для способов доставки в секции «Условия доставки и оплаты».</span>*}
+{*                        </div>*}
+{*                    </div>*}
+{*                </div>*}
+
+
+{*                <div class="field-group block top-padded">*}
+
+{*                    <h2 class="gray">4. Общие параметры доставки</h2>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">*}
+{*                            Точки продаж*}
+{*                        </div>*}
+{*                        <div class="value no-shift">*}
+{*                            <label><input name="campaign[pickup]" id="s-plugin-yandexmarket-campaign-pickup" type="checkbox"*}
+{*                               value="1"{if !empty($campaign.pickup)} checked="checked"{/if}>*}
+{*                            Показывать покупателю при оформлении заказа на Маркете пункты самовывоза из справочника точек продаж «Яндекс.Маркета»*}
+{*<span class="hint">(типы «пункт выдачи заказов» и «торговый зал, совмещенный с пунктом выдачи заказов»)</span></label>*}
+{*                            <br/>*}
+{*                            <span class="hint"><i class="icon10 exclamation"></i>Точки продаж настраиваются в кабинете на сайте «Яндекс.Маркета» и дополнительно в настройках списка точек продаж в плагине.*}
+{*                                *}{**}
+{*                                <a href="{$settings_url}outlets/{$campaign_id}/" target="_blank">Текущий список точек продаж</a><i class="icon16 new-window"></i>.*}
+{*                                *}
+{*                                <br/>Покупатель на Маркете увидит пункты самовывоза при оформлении заказа, только если они включены и прошли модерацию в кабинете*}
+{*                                    «Яндекс.Маркета».</span>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">*}
+{*                            Доставка*}
+{*                        </div>*}
+{*                        <div class="value no-shift">*}
+{*                            <label>*}
+{*                                <input name="campaign[delivery]" id="s-plugin-yandexmarket-campaign-delivery" type="checkbox"*}
+{*                                    value="1"{if !empty($campaign.delivery)} checked="checked"{/if}>*}
+{*                                <span class="hint">Осуществляет ли ваш магазин доставку</span>*}
+{*                            </label>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    {if !empty($campaign_settings.localRegion.delivery.schedule)}*}
+
+{*                    <div class="field">*}
+{*                        {$_schedule = $campaign_settings.localRegion.delivery.schedule}*}
+{*                        <div class="name">График работы</div>*}
+{*                        <div class="value"><div class="js-holidays" data-holidays="{$_schedule.totalHolidays|json_encode|escape}" data-from="{$_schedule.period.fromDate|escape}" data-to="{$_schedule.period.toDate|escape}"></div> </div>*}
+{*                        <div class="value hint">*}
+{*                            <i class="icon16 info"></i>Показаны данные для периода с {$_schedule.period.fromDate|wa_datetime:'humandate'} по {$_schedule.period.toDate|wa_datetime:'humandate'} из настроек графика работы в кабинете «Яндекс.Маркета».*}
+{*                        </div>*}
+{*                        <div class="value hint">*}
+{*                            <i class="icon16 exclamation"></i>Список выходных и рабочих дней редактируется в настройках кампании в личном кабинете «Яндекс.Маркета».*}
+{*                            Данные на этой странице обновляются раз в сутки.<br>*}
+{*                            После изменения графика работы в кабинете «Яндекс.Маркета» проверьте правильность отображения графика на этой странице. Если данные не обновились, очистите кеш в «<a href="{$wa_backend_url}installer/?module=settings">Инсталлере</a>».*}
+{*                        </div>*}
+{*                    </div>*}
+{*                    {/if}*}
+{*                    <div class="field">*}
+{*                        <div class="name">*}
+{*                            Дни и время приема и доставки заказов*}
+{*                        </div>*}
+{*                        <div class="value no-shift">*}
+{*                            <label><input type="radio" name="campaign[order_before_mode]"*}
+{*                              value="generic" {if ifset($campaign.order_before_mode)!=='per-day'} checked="checked"{/if}>&nbsp;Без учета дня недели</label>*}
+{*                        </div>*}
+{*                        <div class="value">*}
+{*                            <label><input type="radio" name="campaign[order_before_mode]"*}
+{*                                value="per-day" {if ifset($campaign.order_before_mode)==='per-day'} checked="checked"{/if}>&nbsp;В соответствии с режимом работы</label>*}
+{*                        </div>*}
+
+{*                        <div class="value js-delivery-time-generic-options">*}
+{*                            {$campaign.order_before=min(24,max(1,intval(ifset($campaign.order_before,24))))}*}
+{*                            <input type="text" name="campaign[order_before]" value="{$campaign.order_before|escape}" placeholder="24"*}
+{*                               class="numerical short" id="s-plugin-yandexmarket-campaign-order_before">*}
+{*                        </div>*}
+
+{*                        {$_week_days = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']}*}
+{*                        {foreach $_week_days as $_day => $_name}*}
+{*                            <div class="value js-delivery-time-options{if !empty($_schedule.weeklyHolidays) && in_array($_day+1,$_schedule.weeklyHolidays)} grey{/if}">*}
+{*                                <input type="text" placeholder="17" class="numerical short" size="2"*}
+{*                                   name="campaign[order_before_per_day][{$_day}][before]"*}
+{*                                   value="{$campaign.order_before_per_day[$_day]|default:$campaign.order_before|default:24|escape}"*}
+{*                                >&nbsp;<label>*}
+{*                                    <input type="checkbox" name="campaign[order_before_per_day][{$_day}][workday]" value="1"*}
+
+{*                                        {if !empty($campaign.order_before_per_day[$_day])} checked="checked"{/if}>&nbsp;{$_name|escape}*}
+{*                                </label>*}
+{*                            </div>*}
+{*                        {/foreach}*}
+{*                        <div class="value">*}
+{*                            <span class="hint">*}
+{*                                Дни и время приема и доставки заказов. Серым цветом в списке дней недели отмечены еженедельные нерабочие дни.<br>*}
+{*                                Указанные сроки и условия доставки действуют до наступления указанного времени только в выбранные дни. Это правило относится и к точкам продаж*}
+{*                                справочника «Яндекс.Маркета», и ко всем видам доставки Shop-Script.<br>*}
+{*                                *}
+{*                                Время и день приема заказа игнорируются, если этот день в кабинете «Яндекс.Маркета» отмечен как <em>нерабочий</em>.*}
+{*                                Такой день можно не отключать на этой странице — ошибок по качеству не возникнет.<br>*}
+{*                                *}
+{*                                <i class="icon10 exclamation"></i>Другие настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.*}
+{*                            </span>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">Домашний регион</div>*}
+{*                        <div class="value no-shift">*}
+{*                            {if !empty($address)}*}
+{*                                {$address.value}*}
+{*                                <br/>*}
+{*                                <span class="hint">Домашний регион определен на основе настроек личного кабинета на сайте «Яндекс.Маркета», используется для расчета*}
+{*                                    стоимости доставки.</span>*}
+{*                            {else}*}
+{*                                <i class="icon16 exclamation"></i> Не удалось определить домашний регион.*}
+{*                                {if !empty($address_error)}*}
+{*                                    <br/>*}
+{*                                    <span class="red"><i class="icon16 no"></i>{$address_error|escape}</span>*}
+{*                                {/if}*}
+{*                                <ul class="menu-v with-icons">*}
+{*                                    <li{if !empty($campaign_id)} style="" {/if}>{if !empty($campaign_id)}<i class="icon10 yes"></i>{/if}Проверьте настройки партнерского API</li>*}
+{*                                    <li>Убедитесь, что вы указали URL магазина в настройках</li>*}
+{*                                    <li>Укажите URL YML-файла в настройках магазина</li>*}
+{*                                </ul>*}
+{*                            {/if}*}
+{*                        </div>*}
+
+{*                        <div class="value">*}
+{*                            <label>*}
+{*                                <input type="checkbox" name="campaign[local_delivery_only]"*}
+{*                                   value="1" {if !empty($campaign.local_delivery_only)} checked="checked"{/if}> Доставка только в домашнем регионе*}
+{*                            </label>*}
+{*                            <br/>*}
+{*                            <span class="hint">Если этот параметр включен, то заказы через «Маркет» вне домашнего регионы приниматься не будут.*}
+{*                                Домашний регион настраивается в личном кабинете «Яндекс.Маркета».</span>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">Часовой пояс магазина</div>*}
+{*                        <div class="value">*}
+{*                            <select name="campaign[timezone]">*}
+{*                                <option value=""{if empty($campaign.timezone)} selected="selected"{/if}></option>*}
+{*                                {foreach $timezones as $timezone=>$timezone_name}*}
+{*                                    <option value="{$timezone}"{if ifset($campaign.timezone)==$timezone} selected="selected"{/if}>{$timezone_name|escape}</option>*}
+{*                                {/foreach}*}
+{*                            </select>*}
+{*                            <br/>*}
+{*                            <span class="hint">Значение часового пояса используется для правильного пересчета графика работы магазина, указанного в поле «Время приема заказа».</span>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name">*}
+{*                            Сроки доставки товаров на заказ*}
+{*                        </div>*}
+{*                        <div class="value">*}
+{*                            <p>*}
+{*                                <input type="text" name="campaign[estimate_over_sell]" value="{ifset($campaign.estimate_over_sell)|escape}" placeholder="32" class="numerical short"*}
+{*                                   id="s-plugin-yandexmarket-campaign-estimate_over_sell">*}
+{*                                <br/>*}
+{*                                <span class="hint">Применяется для расчета сроков доставки товаров, которых нет в наличии.*}
+{*                                    <br/><i class="icon10 exclamation"></i>Внимание! Магазин обязуется изготовить и доставить товары «на заказ» в срок до двух месяцев.*}
+{*                                    Точный срок должен быть обязательно согласован с покупателем.</span>*}
+{*                            </p>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                    <div class="field js-delivery-included">*}
+{*                        <div class="name">Доставка включена</div>*}
+{*                        <div class="value no-shift">*}
+{*                            <label>*}
+{*                                <input type="checkbox" name="campaign[deliveryIncluded]" value="true"{if ifempty($campaign.deliveryIncluded) eq 'true'} checked="checked"{/if}>*}
+{*                                Доставка включена в стоимость товара</label>*}
+{*                        </div>*}
+{*                    </div>*}
+
+{*                </div>*}
+
+
+
+
+{*                <div class="field-group block top-padded js-delivery">*}
+
+{*                    <h2 class="gray">5. Условия доставки и оплаты</h2>*}
+
+{*                    <div class="field">*}
+{*                        <div class="name"></div>*}
+{*                        <div class="value no-shift">*}
+{*                            <span class="hint">*}
+{*                                <i class="icon16 exclamation"></i>Точки самовывоза необходимо настроить в кабинете на сайте «Яндекс.Маркета»! Не рекомендуется настраивать*}
+{*в кампании передачу в «Яндекс.Маркет» способов доставки с помощью плагинов «Самовывоз» и «Пункты выдачи заказов» — они не будут показаны покупателю на Маркете в типе доставки*}
+{*«Самовывоз», и они не связаны со справочником точек продаж «Яндекс.Маркета».*}
+{*                                <br/><br/>*}
+{*                                Сроки доставки указываются в рабочих днях (значение или интервал с разницей не более 3 дней).*}
+{*                                <br/>*}
+{*                                Если товар изготавливается на заказ и срок доставки не может быть указан точно, используйте в атрибуте <tt>days</tt> значение*}
+{*                                <em>32</em> или больше (либо оставьте значение пустым — в этом случае срок доставки будет считаться равным 32 или более дням). Для таких*}
+{*                                товаров на «Маркете» будет показана надпись «на заказ».*}
+{*                                <br/>*}
+{*                                <br/>*}
+{*                                Укажите максимальную цену доставки для <em>домашнего</em> и <em>остальных</em> регионов, чтобы не возникло ошибок по качеству.</span>*}
+{*                            <br/>*}
+{*                            <br/>*}
+{*                        </div>*}
+
+{*                        {if empty($address)}*}
+{*                            <div class="field">*}
+{*                                <div class="value">*}
+{*                                    <i class="icon16 exclamation"></i> Для того чтобы использовать стомость, рассчитанную <a href="?action=settings#/shipping/">плагинами*}
+{*                                    доставки</a>, сохраните <em>ID</em> и <em>токен</em> OAuth-приложения в <a href="?action=plugins#/yandexmarket/main/">настройках плагина*}
+{*                                    «Яндекс.Маркет»</a>.*}
+{*                                </div>*}
+{*                            </div>*}
+{*                        {/if}*}
+
+{*                        {foreach $shipping_methods as $method_id => $method}*}
+{*                            {include file="../../includes/shipping_method.html"}*}
+{*                        {foreachelse}*}
+{*                            <div class="field">*}
+{*                                <div class="value">*}
+{*                                    Не настроено ни одного способа доставки, позволяющего рассчитать стоимость доставки в домашнем регионе.*}
+{*                                </div>*}
+{*                            </div>*}
+{*                        {/foreach}*}
+
+{*                    </div>*}
+{*                </div>*}
+
+{*                <div class="clear"></div>*}
+
+{*                <div class="field-group">*}
+{*                    <div class="field">*}
+{*                        <div class="value">*}
+{*                            <input type="submit" value="Сохранить" class="button green">*}
+{*                            <span id="s-plugin-yandexmarket-campaign-form-status" style="display:none"><!-- message placeholder --></span>*}
+{*                        </div>*}
+{*                    </div>*}
+{*                </div>*}
+{*                {$wa->csrf()}*}
+{*
+                <div class="field-group">
+                    <div class="field">
+                        <div class="value">
+                            <pre>{$campaign_data|default:'-'|var_export:true|escape}</pre>
+                        </div>
+                    </div>
+                </div>
+*}
+{*        </form>*}
+{*    </div>*}
+{*{/if}*}
+{*<div class="clear"></div>*}
+
+{*<script type="text/javascript">*}
+{*    (function () {*}
+{*        "use strict";*}
+{*        var $form = $('#s-plugin-yandexmarket-campaign-form');*}
+{*        var payment = {*}
+{*            "yandex": false,*}
+{*            "cash": false,*}
+{*            "card": false*}
+{*        };*}
+
+{*        var toggle = function ($item, event, show) {*}
+{*            if (show === null) {*}
+{*                show = !$item.is(':visible');*}
+{*            }*}
+{*            if (show) {*}
+{*                if (event.originalEvent) {*}
+{*                    $item.slideDown();*}
+{*                } else {*}
+{*                    $item.show();*}
+{*                }*}
+{*            } else {*}
+{*                if (event.originalEvent) {*}
+{*                    $item.slideUp();*}
+{*                } else {*}
+{*                    $item.hide();*}
+{*                }*}
+{*            }*}
+{*            return show;*}
+{*        };*}
+
+{*        var checkPayments = function ($method, event) {*}
+{*            var valid = false;*}
+{*            var type = $method.find(':input[name$="\\[type\\]"]').val();*}
+{*            if (payment.yandex && (type !== 'POST')) {*}
+{*                valid = true;*}
+{*            } else {*}
+{*                var $cash = $method.find(':input[type="checkbox"][name$="\\[cash\\]"]');*}
+{*                var $card = $method.find(':input[type="checkbox"][name$="\\[card\\]"]');*}
+{*                var $yandex = $method.find(':input[type="checkbox"][name$="\\[!yandex\\]"]');*}
+
+
+{*                valid = (*}
+{*                    (payment.cash && (!$cash.length || $cash.attr('checked')))*}
+{*                    ||*}
+{*                    (payment.card && (!$card.length || $card.attr('checked')))*}
+{*                    ||*}
+{*                    (payment.yandex && (!$yandex.length || (type !== 'POST') || !$yandex.attr('checked')))*}
+{*                );*}
+{*            }*}
+{*            toggle($method.find('.js-validate-payment'), event, !valid);*}
+{*        };*}
+
+
+{*        $form.find('input[name$="\\[before\\]"], input[name$="\\[order_before\\]"]').bind('change, keyup', function () {*}
+{*            var value = this.value.replace(/\D+/, '');*}
+{*            this.value = (value === '') ? value : Math.max(1, Math.min(24, parseInt(value)));*}
+{*        });*}
+
+{*        $form.find('input[name$="\\[estimate_over_sell\\]"], input[name$="\\[estimate\\]"], input[name$="\\[estimate_ext\\]"]').bind('change, keyup', function () {*}
+{*            this.value = this.value.replace(/^.*?(\d+)(-\d*)?.*?$/, '$1$2');*}
+{*        });*}
+
+{*        /***}
+{*         * delivery settings control*}
+{*         */*}
+{*        $form.find(':input[name$="\\[delivery\\]"]').change(function (event) {*}
+{*            /***}
+{*             * @this HTMLInputElement*}
+{*             */*}
+{*            toggle($form.find('div.js-delivery-options, div.js-delivery-included, div.js-delivery'), event, this.checked);*}
+{*        }).change();*}
+
+{*        /***}
+{*         * delivery price control*}
+{*         */*}
+{*        $form.find(':input[name$="\\[deliveryIncluded\\]"]').change(function (event) {*}
+{*            /***}
+{*             * @this HTMLInputElement*}
+{*             */*}
+{*            toggle($form.find('div.js-delivery-options'), event, !this.checked);*}
+{*        }).change();*}
+
+{*        /***}
+{*         * delivery region control*}
+{*         */*}
+{*        $form.find(':input[name$="\\[local_delivery_only\\]"]').change(function (event) {*}
+{*            /***}
+{*             * @this HTMLInputElement*}
+{*             */*}
+{*            toggle($form.find('.js-delivery-not-home'), event, !this.checked);*}
+{*        }).change();*}
+
+{*        /***}
+{*         * delivery mode control*}
+{*         */*}
+{*        $form.find(':input[name$="\\[order_before_mode\\]"]').change(function (event) {*}
+{*            /***}
+{*             * @this HTMLInputElement*}
+{*             */*}
+{*            var show_generic = false;*}
+{*            var show_options = false;*}
+{*            if (this.checked) {*}
+{*                switch (this.value) {*}
+{*                    case 'generic':*}
+{*                        show_generic = true;*}
+{*                        break;*}
+{*                    case'per-day':*}
+{*                        show_options = true;*}
+{*                        break;*}
+{*                }*}
+{*            }*}
+
+{*            var $scope = $(this).parents('div.field:first');*}
+{*            toggle($scope.find('div.js-delivery-time-generic-options'), event, show_generic);*}
+{*            toggle($scope.find('div.js-delivery-time-options'), event, show_options);*}
+{*        }).change();*}
+
+
+{*        var $holidays = $form.find('div.js-holidays');*}
+
+{*        var holidays = $holidays.data('holidays');*}
+
+{*        $holidays.datepicker();*}
+{*        $holidays.datepicker("option", {*}
+{*            "dateFormat": 'dd-mm-yy',*}
+{*            'minDate': $holidays.data('from'),*}
+{*            'maxDate': $holidays.data('to'),*}
+{*            'numberOfMonths':2,*}
+{*                beforeShowDay: function (date) {*}
+{*                    if (holidays && holidays.length) {*}
+{*                        var string_date = $.datepicker.formatDate('dd-mm-yy', date);*}
+{*                        var holiday = holidays.indexOf(string_date) !== -1;*}
+{*                        return [!holiday, holiday ? 'ui-datepicker-holiday' : null];*}
+{*                    } else {*}
+{*                        return [true];*}
+{*                    }*}
+{*                }*}
+{*            });*}
+{*            $('.ui-datepicker').css('zIndex', 999999);*}
+
+{*        /***}
+{*         * delivery method control*}
+{*         */*}
+{*        $form.find('div.js-shipping-method :input[type="checkbox"][name$="\\[enabled\\]"]').change(function (event) {*}
+{*            /***}
+{*             * @this HTMLInputElement*}
+{*             */*}
+{*            toggle($(this).parents('div.js-shipping-method').find('>div.value:not(:first)'), event, this.checked);*}
+{*        }).change();*}
+
+{*        $form.find(':input[name="campaign\\[payment\\]\\[YANDEX\\]"]:first').change(function (event) {*}
+{*            payment['yandex'] = this.checked;*}
+{*            var $this = $(this);*}
+{*            checkPayments($(this).parents('div.field-group:first'), event);*}
+{*            $form.find('div.js-shipping-method').each(function () {*}
+{*                /***}
+{*                 * @this HTMLInputElement*}
+{*                 */*}
+
+{*                var $scope = $(this);*}
+{*                $scope.find(':input[name$=\\[type\\]]').trigger('change');*}
+{*                checkPayments($scope, event);*}
+{*            });*}
+{*            toggle($this.parents('div.value:first').find('div.field'), event, this.checked);*}
+
+{*        }).change();*}
+
+{*        $form.find(':input[name="campaign\\[payment\\]\\[CASH_ON_DELIVERY\\]"]:first').change(function (event) {*}
+{*            payment['cash'] = this.checked;*}
+{*            toggle($form.find('div.js-payment-cash'), event, this.checked);*}
+{*            checkPayments($(this).parents('div.field-group:first'), event);*}
+{*            $form.find('div.js-shipping-method').each(function () {*}
+{*                checkPayments($(this), event);*}
+{*            });*}
+{*        }).change();*}
+
+{*        $form.find(':input[name="campaign\\[payment\\]\\[CARD_ON_DELIVERY\\]"]:first').change(function (event) {*}
+{*            /***}
+{*             * @this HTMLInputElement*}
+{*             */*}
+{*            payment['card'] = (this.value !== '');*}
+{*            toggle($form.find('div.js-payment-card'), event, (this.value !== ''));*}
+{*            checkPayments($(this).parents('div.field-group:first'), event);*}
+{*            $form.find('div.js-shipping-method').each(function () {*}
+{*                checkPayments($(this), event);*}
+{*            });*}
+{*        }).change();*}
+
+{*        /***}
+{*         * delivery method payment control*}
+{*         */*}
+{*        $form.find('div.js-shipping-method :input[type="checkbox"][name$="\\[cash\\]"], div.js-shipping-method :input[type="checkbox"][name$="\\[card\\]"], div.js-shipping-method :input[type="checkbox"][name$="\\[!yandex\\]"]').change(function (event) {*}
+{*            /***}
+{*             * @this HTMLInputElement*}
+{*             */*}
+{*            var $scope = $(this).parents('div.js-shipping-method');*}
+{*            checkPayments($scope, event);*}
+{*        }).change();*}
+
+{*        /***}
+{*         * delivery method type control*}
+{*         */*}
+{*        $form.find('div.js-shipping-method :input[name$="\\[type\\]"]').change(function (event) {*}
+{*            /***}
+{*             * @this HTMLInputElement*}
+{*             */*}
+{*            var $scope = $(this).parents('div.js-shipping-method');*}
+{*            toggle($scope.find('div.js-payment-yandex'), event, payment.yandex && (this.value === 'POST'));*}
+{*            checkPayments($scope, event);*}
+{*        }).change();*}
+
+{*        /***}
+{*         * delivery time control*}
+{*         */*}
+{*        $form.find(':input[name*="\\[order_before_per_day\\]"][name$="\\[workday\\]"]').change(function (event) {*}
+{*            /***}
+{*             * @this HTMLInputElement*}
+{*             */*}
+{*            var $hours = $(this).parents('div.value:first').find(':input[name$="\\[before\\]"]');*}
+{*            $hours.attr('disabled', this.checked ? null : 'disabled');*}
+{*        }).change();*}
+{*        var timer = null;*}
+{*        var icon = {*}
+{*            submit: '<i style="vertical-align:middle" class="icon16 loading"></i>',*}
+{*            success: '<i style="vertical-align:middle" class="icon16 yes"></i>',*}
+{*            error: '<i style="vertical-align:middle" class="icon16 no"></i>'*}
+{*        };*}
+{*        var displayMessage = function (status, message) {*}
+{*            /* enable previous disabled inputs */*}
+
+{*            var $container = $('#s-plugin-yandexmarket-campaign-form-status');*}
+{*            $container.empty().show();*}
+{*            var $parent = $container.parents('div.value');*}
+{*            $parent.removeClass('errormsg successmsg status');*}
+
+{*            if (timer) {*}
+{*                clearTimeout(timer);*}
+{*            }*}
+{*            var timeout = null;*}
+{*            $container.append(icon[status] || '');*}
+{*            switch (status) {*}
+{*                case 'submit':*}
+{*                    $parent.addClass('status');*}
+{*                    break;*}
+{*                case 'error':*}
+{*                    $parent.addClass('errormsg');*}
+{*                    for (var i = 0; i < message.length; i++) {*}
+{*                        $container.append(message[i][0]);*}
+{*                    }*}
+{*                    timeout = 20000;*}
+{*                    break;*}
+{*                case 'success':*}
+{*                    if (message) {*}
+{*                        $parent.addClass('successmsg');*}
+{*                        $container.append(message);*}
+{*                    }*}
+{*                    timeout = 3000;*}
+{*                    break;*}
+{*            }*}
+{*            if (timeout) {*}
+{*                timer = setTimeout(function () {*}
+{*                    $parent.removeClass('errormsg successmsg status');*}
+{*                    $container.empty().show();*}
+{*                }, timeout);*}
+{*            }*}
+{*        };*}
+
+{*        $form.submit(function () {*}
+{*            displayMessage('submit');*}
+{*            $.ajax({*}
+{*                type: 'POST',*}
+{*                url: $form.attr('action'),*}
+{*                data: $form.serializeArray(),*}
+{*                iframe: true,*}
+{*                dataType: 'json',*}
+{*                success: function (data, textStatus, jqXHR) {*}
+{*                    if (data && (data.status === 'ok')) {*}
+{*                        var message = '[s`Saved`]';*}
+{*                        if (data.data && data.data.message) {*}
+{*                            message = data.data.message;*}
+{*                        }*}
+{*                        displayMessage('success', message);*}
+{*                    } else {*}
+{*                        displayMessage('error', data.errors || []);*}
+{*                    }*}
+{*                },*}
+{*                error: function (jqXHR, errorText) {*}
+{*                    displayMessage('error', [*}
+{*                        [errorText]*}
+{*                    ]);*}
+{*                }*}
+{*            });*}
+{*            return false;*}
+{*        });*}
+{*    }());*}
+{*</script>*}

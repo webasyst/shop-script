@@ -13,7 +13,7 @@ if (typeof($) !== 'undefined') {
     $.plugin_yandexmarket = {
         options: {
             null: null,
-            loading: 'Загрузка... <i class="fas fa-spinner fa-spin text-gray"><i>'
+            loading: 'Загрузка...<i class="icon16 loading"><i>'
         },
 
         tab: null,
@@ -182,40 +182,38 @@ if (typeof($) !== 'undefined') {
         actionCampaignsSettle: function (a, campaign_id) {
             var name = $(a).parents('tr').find('.js-campaign-name').text();
             var self = this;
-            $.waDialog({
-                html: $('#s-settings-plugin-yandexmarket-settle-dialog').clone()[0],
-                onOpen: function ($d, dialog) {
-                    $d.find('.state-error-hint').hide();
-                    $d.find(':input[name="campaign_id"]').val(campaign_id);
-                    $d.find('.js-campaign-name').text(name);
-
-                    $d.find('form').on('submit', function() {
-                        var form = $(this);
-                        var data = form.serialize();
-                        var submit_section = form.find('.dialog-footer > .dialog-buttons');
-                        var cancel_button = submit_section.find('.js-close-dialog').hide();
-                        var submit_button = submit_section.find(':submit').attr('disabled', true);
-                        submit_button.after('<i class="fas fa-spinner fa-spin text-gray"/>');
-
-                        $.post(form.attr('action'), data, function (r) {
-                            submit_button.find('.fa-spinner').remove();
-
-                            if (r.status !== 'ok' && r.errors) {
-                                submit_button.attr('disabled', false);
-                                cancel_button.show();
-                                $d.find('.state-error-hint').show().text(r.errors[0]);
-                            } else {
-                                try {
-                                    self.actionCampaignsReload();
-                                    dialog.close();
-                                } catch (e) {
-                                    $.shop.error(e.gmessage, e);
-                                }
-                            }
-                        }, 'json');
-                        return false;
-                    });
+            $('#s-settings-plugin-yandexmarket-settle-dialog').waDialog({
+                onLoad: function () {
+                    var d = $(this);
+                    d.find('.errormsg').hide();
+                    d.find(':input[name="campaign_id"]').val(campaign_id);
+                    d.find('.js-campaign-name').text(name);
                 },
+                onSubmit: function (dialog) {
+                    var form = $(this);
+                    var data = form.serialize();
+                    var submit_section = form.find('.dialog-buttons>.dialog-buttons-gradient');
+                    submit_section.find(':not(:submit)').hide();
+                    submit_section.find(':submit').attr('disabled', true);
+                    submit_section.find(':submit').after('<i class="icon16 loading"></i>');
+                    $.post(form.attr('action'), data, function (r) {
+                        if (r.status !== 'ok' && r.errors) {
+                            dialog.find('.errormsg').show().text(r.errors[0]);
+                            submit_section.find('*').show();
+                            submit_section.find(':submit.icon16').remove();
+                            submit_section.find(':submit').attr('disabled', null);
+                        } else {
+                            try {
+                                submit_section.find(':submit.icon16').removeClass('loading').addClass('success');
+                                self.actionCampaignsReload();
+                            } catch (e) {
+                                $.shop.error(e.gmessage, e);
+                            }
+                        }
+                    }, 'json');
+                    return false;
+
+                }
             });
             return false;
         }

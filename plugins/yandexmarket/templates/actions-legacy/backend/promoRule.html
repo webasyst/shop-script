@@ -15,16 +15,7 @@
 
 <tr class="s-promo-item {$_item_classes|join:" "}">
     <td class="s-checkbox-column">
-        <label>
-            <span class="wa-checkbox">
-                <input class="s-checkbox" type="checkbox" name="export[promo_rules][{$id|escape}]" value="1" id="s_plugins_yandexmarket_export_promo_rules_{$id|escape}" {if !empty($_is_disabled)}disabled{/if} {if !empty($_is_enabled)}checked{/if}>
-                <span>
-                    <span class="icon">
-                        <i class="fas fa-check"></i>
-                    </span>
-                </span>
-            </span>
-        </label>
+        <input class="s-checkbox" type="checkbox" name="export[promo_rules][{$id|escape}]" value="1" id="s_plugins_yandexmarket_export_promo_rules_{$id|escape}" {if !empty($_is_disabled)}disabled{/if} {if !empty($_is_enabled)}checked{/if}>
     </td>
     <td class="s-details-column">
         <label for="s_plugins_yandexmarket_export_promo_rules_{$id|escape}">
@@ -32,13 +23,11 @@
         </label>
 
         <span class="hint">{$promo_description|default:$promo.description|escape}</span>
-        <span class="wa-tooltip" data-wa-tooltip-content="{$_title|escape}">
-            <div class="baseline icon size-10 text-dark-gray"><i class="fas fa-info-circle"></i></div>
-        </span>
+        <span class="shop-tooltip"><i class="icon10 info"></i><span>{$_title|escape}</span></span>
 
         {if empty($promo.valid) && !empty($promo.errors)}
             <div class="s-errors-wrapper">
-                <div>Не соответствует <a hreff="https://yandex.ru/support/partnermarket/elements/promos.html" target="_blank">правилам Яндекс.Маркета</a>:</div>
+                <div>Не соответствует <a href="https://yandex.ru/support/partnermarket/elements/promos.html" target="_blank">правилам Яндекс.Маркета</a>:</div>
                 <ul class="s-errors-list">
                     {foreach $promo.errors as $_error}
                         <li>{$_error|escape}</li>
@@ -48,7 +37,7 @@
         {/if}
     </td>
     <td class="s-actions-column align-right">
-        <a href="{$promo.settings}" class="inline-link" target="_blank"><i class="fas fa-cog text-dark-gray"></i>&nbsp;{$promo.source|escape}</a>
-        <a href="?plugin=yandexmarket&action=products&promo_rule={$id|escape}" target="_blank"><i class="fas fa-search text-dark-gray"></i>&nbsp;Смотреть товары</a>
+        <a href="{$promo.settings}" class="inline-link" target="_blank"><i class="icon16 settings"></i>{$promo.source|escape}</a>
+        <a href="?plugin=yandexmarket&action=products&promo_rule={$id|escape}" target="_blank"><i class="icon16 search"></i>Смотреть товары</a>
     </td>
 </tr>

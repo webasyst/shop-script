@@ -20,13 +20,13 @@
             > {$method.name|escape}
         </label>&nbsp;{if $method_id == 'dummy'}<span class="hint">Фиксированные сроки и стоимость доставки для домашнего региона</span>{else}
         <a href="?action=settings#/shipping/plugin/setup/{$method_id}/" class="inline-link small hint">
-            настройки способа доставки <i class="fas fa-cog"></i>&nbsp;
+            настройки способа доставки <i class="icon10 settings"></i>
             {if isset($method.rate)}
                 &nbsp;&nbsp;&nbsp;(<span class="gray"><strong>{wa_currency_html(round(max((array)$method.rate)),$primary_currency)}</strong> — стоимость доставки в пределах домашнего региона, рассчитанная плагином
                     в качестве примера для заказа стоимостью 1 руб. и весом 1 кг.</span>)
             {/if}
             <br/><br/>
-            <span class="gray"><i class="fas fa-exclamation-triangle text-yellow"></i>&nbsp;Стоимость доставки рассчитывается плагином автоматически.</span>
+            <span class="gray"><i class="icon10 exclamation"></i>Стоимость доставки рассчитывается плагином автоматически.</span>
             <br/>
             <br/>
         </a>{/if}
@@ -90,7 +90,7 @@
                     <span class="hint">Дни и время приема и доставки заказов. Указанные сроки и условия доставки действуют до наступления указанного времени только по указанным дням.<br>
                     <strong>Если выбраны отдельные дни недели для доставки заказов, то эти дни должны точно соответствовать дням, выбранным в настройке «4. Общие параметры доставки → Дни и время приема и доставки заказов».</strong><br>
                     <em>Время</em> для этого способа доставки может отличаться от указанного в настройке «4. Общие параметры доставки → Дни и время приема и доставки заказов».<br>
-                    <i class="fas fa-exclamation-triangle text-yellow"></i>&nbsp;Настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.</span>
+                    <i class="icon10 exclamation"></i>Настройки должны соответствовать настройкам в кабинете «Яндекс.Маркета», чтобы не возникло ошибок по качеству.</span>
             </div>
         </div>
 
@@ -212,7 +212,7 @@
 
         <div class="field js-validate-payment">
             <div class="value">
-                <span class="errormsg"><i class="fas fa-exclamation-triangle text-yellow"></i>&nbsp;Выберите ниже хотя бы один способ оплаты для этого способа доставки.</span>
+                <span class="errormsg"><i class="icon16 exclamation"></i>Выберите ниже хотя бы один способ оплаты для этого способа доставки.</span>
             </div>
         </div>
 

@@ -69,9 +69,9 @@ $.extend($.importexport.plugins, {
             var $el = $(this);
             var value = $el.val();
             if (!value || (value === 'skip:')) {
-                $el.addClass('state-error');
+                $el.addClass('error');
             } else {
-                $el.removeClass('state-error');
+                $el.removeClass('error');
             }
         },
 
@@ -158,17 +158,15 @@ $.extend($.importexport.plugins, {
                 self.helpers.toggle($(this).parents('div.js-shipping-method').find('>div.value:not(:first)'), event, checked);
             }).change();
 
-            const selectorCrip = '#js-cheatsheet-crib';
-            this.$form.find(selectorCrip).on('click', function (e) {
-                e.preventDefault();
-                const show = $(selectorCrip + '-content').toggle().is(':hidden');
-                const $arrow = $(this).find('.arrow');
-
+            this.$form.find('a.js-cheatsheet:first').click(function (event) {
+                var show = self.helpers.toggle(self.$form.find('div.js-cheatsheet:first'), event, null);
+                var $icon = $(this).find('.icon10');
                 if (show) {
-                    $arrow.addClass('fa-caret-right').removeClass('fa-caret-down');
+                    $icon.addClass('darr').removeClass('rarr');
                 } else {
-                    $arrow.addClass('fa-caret-down').removeClass('fa-caret-right');
+                    $icon.addClass('rarr').removeClass('darr');
                 }
+                return false;
             });
 
             /**
@@ -323,7 +321,7 @@ $.extend($.importexport.plugins, {
 
         regionEdit: function () {
             this.$form.find('div.js-edit-region').slideDown();
-            this.$form.find('div.js-edit-region:first').html('<i class="fas fa-spinner fa-spin text-gray"></i>').load('?plugin=yandexmarket&action=region');
+            this.$form.find('div.js-edit-region:first').html('<i class="icon16 loading"></i>').load('?plugin=yandexmarket&action=region');
             $(el).hide();
         },
 
@@ -341,7 +339,7 @@ $.extend($.importexport.plugins, {
             this.$form.find('div.js-edit-region').slideUp();
             this.$form.find('div.js-edit-region:first').html('');
             var self = this;
-            this.$form.find('div.field-group.js-delivery-options:first').html('<i class="fas fa-spinner fa-spin text-gray"></i>').load('?plugin=yandexmarket&action=shipping&profile=' + profile_id + '&region_id=' + region_id, function () {
+            this.$form.find('div.field-group.js-delivery-options:first').html('<i class="icon16 loading"></i>').load('?plugin=yandexmarket&action=shipping&profile=' + profile_id + '&region_id=' + region_id, function () {
                 self.reloadShipping();
             });
         },
@@ -496,7 +494,7 @@ $.extend($.importexport.plugins, {
             /**
              * reset required form fields errors
              */
-            this.form.find('.value.js-required :input.state-error').unbind('change.yandexmarket').removeClass('state-error');
+            this.form.find('.value.js-required :input.error').unbind('change.yandexmarket').removeClass('error');
 
             /**
              * verify form
@@ -507,16 +505,16 @@ $.extend($.importexport.plugins, {
                 var $this = $(this);
                 var value = $this.val();
                 if (!value || (value === 'skip:')) {
-                    $this.addClass('state-error');
+                    $this.addClass('error');
                     $this.bind('change.yandexmarket', self.invalidInputChangeHandler);
                     valid = false;
                 }
             });
             if (!valid) {
-                var $target = this.form.find('.value.js-required :input.state-error:first');
+                var $target = this.form.find('.value.js-required :input.error:first');
 
                 $('html, body').animate({
-                    scrollTop: $target.offset().top - 100
+                    scrollTop: $target.offset().top - 10
                 }, 1000, function () {
                     $target.focus();
                 });
@@ -527,7 +525,7 @@ $.extend($.importexport.plugins, {
             this.progress = true;
 
             var data = this.form.serialize();
-            this.form.find('.state-error-hint').text('');
+            this.form.find('.errormsg').text('');
             this.form.find(':input').attr('disabled', true);
             this.form.find('a.js-action:visible').data('visible', 1).hide();
             this.form.find(':submit').hide();
@@ -554,7 +552,7 @@ $.extend($.importexport.plugins, {
                         self.form.find('.js-progressbar-container').hide();
                         self.form.find('.shop-ajax-status-loading').remove();
                         self.progress = false;
-                        self.form.find('.state-error-hint').text(response.error);
+                        self.form.find('.errormsg').text(response.error);
                     } else {
                         self.form.find('.progressbar').attr('title', '0.00%');
                         self.form.find('.progressbar-description').text('0.00%');
@@ -648,7 +646,7 @@ $.extend($.importexport.plugins, {
                 self.form.find('.js-progressbar-container').hide();
                 self.form.find('.shop-ajax-status-loading').remove();
                 self.form.find('.progressbar').hide();
-                self.form.find('.state-error-hint').text(response.error);
+                self.form.find('.errormsg').text(response.error);
             } else {
                 var $description;
                 if (response && (typeof(response.progress) !== 'undefined')) {
@@ -672,7 +670,7 @@ $.extend($.importexport.plugins, {
                 }
                 if (response && (typeof(response.warning) !== 'undefined')) {
                     $description = self.form.find('.progressbar-description');
-                    $description.append('<i class="fas fa-exclamation-triangle text-yellow custom-pr-4"></i><p>' + response.warning + '</p>');
+                    $description.append('<i class="icon16 exclamation"></i><p>' + response.warning + '</p>');
                 }
 
                 var ajax_url = url;

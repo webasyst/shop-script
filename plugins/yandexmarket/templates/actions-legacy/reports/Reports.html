@@ -1,4 +1,4 @@
-<div>
+<div class="block double-padded">
     <h1>Интеграция с Яндекс.Маркет</h1>
 
     <p>Отчет показывает состояния кампаний в Яндекс.Маркет, статус программы «Заказ на Маркете»</p>
@@ -6,14 +6,14 @@
     @TODO описать назначение и смысл экрана
     *}</span>
         {if !empty($error)}
-    <p class="state-error-hint">
+    <p class="errormsg">
 
         {$error|escape}
         {if !empty($error_code)}
             <span class="hint">
             {if $error_code==403}
                 Ошибка авторизации, проверьте корректность настроек
-                <a href="?action=plugins#/yandexmarket/" class="inline-link">плагина&nbsp;<i class="fas fa-external-link-alt fa-xs"></i></a>
+                <a href="?action=plugins#/yandexmarket/" class="inline-link">плагина<i class="icon16 new-window"></i></a>
             {elseif $error_code==420}
                 Превышены лимиты на обращения через API
             {/if}
@@ -24,7 +24,7 @@
     {if !empty($graph_data)}
 
         {* Too easy to shoot yourself in the foot *}
-        <div class="hidden">
+        <div class="hidden block float-right half-padded">
             [`Группировать`]:
             <select id="s-yandexmarket-group-by-selector">
                 {foreach $group_by_options as $value => $name}
@@ -72,7 +72,7 @@
             {foreach $campaigns as $campaign}
                 <tr{if empty($campaign.settlements)} class="grey"{/if}>
                     <td>
-                        <a href="https://partner.market.yandex.ru/order.xml?id={$campaign.id|escape}" target="_blank" class="inline-link">{$campaign.id|escape}&nbsp;<i class="fas fa-external-link-alt fa-xs"></i></a>
+                        <a href="https://partner.market.yandex.ru/order.xml?id={$campaign.id|escape}" target="_blank" class="inline-link">{$campaign.id|escape}<i class="icon16 new-window"></i></a>
                         <br/>
                         {$campaign.domain|escape}
                         {if !empty($campaign.settlements)}
@@ -86,15 +86,15 @@
                         {if !empty($campaign.feeds)}
                             {foreach $campaign.feeds as $feed}
                                 {if empty($feed.profile_id)}
-                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <i class="icon16 exclamation"></i>
                                     Профиль для прайс-листа {$feed.id} не найден.
                                     <br/>Проверьте настройки плагина или обновите URL прайс-листа.
                                     <br/>Текущий URL: {$feed.url|escape}
                                 {else}
                                     <a href="?action=importexport#/yandexmarket:{$feed.profile_id}/" target="_blank" class="inline-link"
-                                       title="{$feed.id}"><i class="fas fa-file-export fa-xs text-dark-gray"></i>&nbsp;{$feed.profile_info.name|escape}{if !empty($feed.path_mtime)}
+                                       title="{$feed.id}"><i class="icon16 export"></i>{$feed.profile_info.name|escape}{if !empty($feed.path_mtime)}
                                         <br/><span class="hint">{$feed.path_mtime|wa_datetime:'humandatetime'}</span>
-                                        {/if}&nbsp;<i class="fas fa-external-link-alt fa-xs"></i></a>
+                                        {/if}<i class="icon16 new-window"></i></a>
                                 {/if}
                                 {if !$feed@last}
                                     <br/>
@@ -105,16 +105,16 @@
                         {/if}
                     </td>
                     <td>
-                        {if !empty($campaign.stateIcon)}<span class="icon baseline custom-pr-4">{$wa->shop->getIcon($campaign.stateIcon)}</span>{/if}
+                        {if !empty($campaign.stateIcon)}<i class="icon16 {$campaign.stateIcon|escape}"></i>{/if}
                         {$campaign.stateDescription|escape}
                         {if isset($campaign.offers_count)}
                             <span class="indicator" title="Количество опубликованных предложений">{$campaign.offers_count}</span>
                         {/if}
                         {if !empty($campaign.stateReasons)}
-                            <ul class="menu">
+                            <ul class="menu-v with-icons">
                                 {foreach $campaign.stateReasons as $description}
                                     <li class="hint">
-                                        <i class="fas fa-exclamation-triangle text-yellow"></i>&nbsp;{$description|escape}
+                                        <i class="icon10 exclamation"></i>{$description|escape}
                                     </li>
                                 {/foreach}
                             </ul>
@@ -122,42 +122,42 @@
                         {if !empty($campaign.balance)}
                             <br/>
                             <span class="" title="{$campaign.balance.balance|escape}">
-                                {if $campaign.balance.daysLeft<700}<i class="fas fa-exclamation-triangle"></i>{else}<i class="fas fa-check text-green"></i>{/if}
-                                &nbsp;{$campaign.balance.balance_str}
+                                {if $campaign.balance.daysLeft<700}<i class="icon16 exclamation"></i>{else}<i class="icon16 yes"></i>{/if}
+                                {$campaign.balance.balance_str}
                             </span>
                         {/if}
                     </td>
                     <td>
-                        {if !empty($campaign.stateIconCpa)}<span class="icon baseline custom-pr-4">{$wa->shop->getIcon($campaign.stateIconCpa)}</span>{/if}
+                        {if !empty($campaign.stateIconCpa)}<i class="icon16 {$campaign.stateIconCpa|escape}"></i>{/if}
                         {$campaign.stateDescriptionCpa|escape}
 
                         {if isset($campaign.orders_count)}
                             <span class="indicator" title="Количество заказов за последние 30 дней"><a href="?action=orders#/orders/sales_channel=plugin_yandexmarket%3A">{$campaign.orders_count|default:'N/A'}</a></span>
                         {/if}
                         {if !empty($campaign.stateReasonsCpa)}
-                            <ul class="menu">
+                            <ul class="menu-v with-icons">
                                 {foreach $campaign.stateReasonsCpa as $description}
-                                    <li class="hint"><i class="fas fa-exclamation-triangle text-yellow"></i>&nbsp;{$description|escape}</li>
+                                    <li class="hint"><i class="icon10 exclamation"></i>{$description|escape}</li>
                                 {/foreach}
                             </ul>
                         {/if}
                     </td>
                     <td>
                         {if !empty($campaign.outlets)}
-                            <ul class="menu" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
+                            <ul class="menu-v" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
                                 {foreach $campaign.outlets as $outlet}
                                     <li class="hint" title="{"`$outlet.type` `$outlet.id`"|escape}">
                                         {if !empty($outlet.statusIcon)}
-                                            <span class="icon" title="{$outlet.statusName|escape}">{$wa->shop->getIcon($outlet.statusIcon)}</span>
+                                            <i class="icon10 {$outlet.statusIcon}" title="{$outlet.statusName|escape}"></i>
                                         {/if}
 
                                         {if !empty($outlet.type)}
-                                            <span class="icon" title="{$outlet.typeName|escape}">{$wa->shop->getIcon($outlet.typeIcon)}</span>
+                                            <i class="icon16 {$outlet.typeIcon}" title="{$outlet.typeName|escape}"></i>
                                         {/if}
                                         {$outlet.name|escape}
 
                                         {if !empty($outlet.visibility)}
-                                            <span class="icon" title="{$outlet.visibilityName|escape}">{$wa->shop->getIcon($outlet.visibilityIcon)}</span>
+                                            <i class="icon10 {$outlet.visibilityIcon}" title="{$outlet.visibilityName|escape}"></i>
                                         {/if}
                                     </li>
                                 {/foreach}
@@ -181,7 +181,7 @@
 <div class="clear-both"></div>
 {*
 <div class="hidden">
-    <ul class="menu">
+    <ul class="menu-h">
         <li>
             <select id="s-yandexmarket-report-storefront-selector" class="storefront-selector">
                 <option value="">Общие данные</option>
@@ -217,7 +217,7 @@
         // Reload page when user changes something in the selector
         $storefront_selector.change(function () {
 
-            $storefront_selector.parent().append('<i class="fas fa-spinner fa-spin text-gray"></i>');
+            $storefront_selector.parent().append('<i class="icon16 loading"></i>');
             $.post(action_url, $.extend({ }, request_params, {storefront: $storefront_selector.val()}), function (r) {
 
                 $('#reportscontent').html(r);
@@ -227,7 +227,7 @@
         // Group by period
         var $group_by_selector = $('#s-yandexmarket-group-by-selector');
         $group_by_selector.change(function() {
-            $group_by_selector.after('<i class="fas fa-spinner fa-spin text-gray"></i>');
+            $group_by_selector.after('<i class="icon16 loading"></i>');
             $.post(action_url, $.extend({ }, request_params, { group_period: $group_by_selector.val() }), function(r) {
                 $('#reportscontent').html(r);
             });

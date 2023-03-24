@@ -116,13 +116,14 @@
         {/if}
 
         {* Field source user value *}
-        <input type="text" name="map[{$type_id}][{$field}][text]" class="js-value-custom long" placeholder="Пользовательское значение"{if strpos(ifset($info['source']),'text:')!==0} value="" style="display: none;"{else} value="{$info['source']|regex_replace:'@^text:@':''|escape}"{/if}>
-        <a href="{$js_base_href|default:'#'}/source/select/{$type_id}/{$field}/" class="js-action" style="display: none;"><span class="icon text-red"><i class="fas fa-times-circle"></i></span></a>
+        <input type="text" name="map[{$type_id}][{$field}][text]" class="js-value-custom" placeholder="Пользовательское значение"{if strpos(ifset($info['source']),'text:')!==0} value="" style="display: none;"{else} value="{$info['source']|regex_replace:'@^text:@':''|escape}"{/if}>
+        <a href="{$js_base_href|default:'#'}/source/select/{$type_id}/{$field}/" class="js-action" style="display: none;"><i class="icon16 close"></i></a>
         {/if}
 
             &nbsp;&rarr;
             {if $param}
-                <span class="js-target">&lt;param <b>name</b>="<span class="js-target-name">name</span>" <b>unit</b>="<span class="js-target-unit">unit</span><input type="text" class="shorter" placeholder="" value="{$selected_unit|escape}">"&gt;</span>
+
+                <span class="js-target">&lt;param <b>name</b>="<span class="js-target-name">name</span>" <b>unit</b>="<span class="js-target-unit">unit</span><input class="short" placeholder="" value="{$selected_unit|escape}">"&gt;</span>
             {else}
                 {if !empty($info.attribute)}
                     {if !empty($info.path)}
@@ -147,7 +148,7 @@
         {if !empty($info.description)}
             <br/>
             <span class="hint">{$info.description|escape|nl2br}</span>
-
+    
             {if !empty($info.available_options)}
                 {foreach $info.available_options as $_option=>$_option_description}
                     {if is_array($_option_description)}
@@ -159,25 +160,15 @@
                         </select>
                         </label>
                     {else}
-                    <br/>
-                    <label class="hint">
-                        <span class="custom-mr-4 wa-checkbox">
-                            <input type="checkbox" name="map[{$type_id}][{$field}][options][{$_option|escape}]" value="1"{if !empty($info.options[$_option])} checked{/if}>
-                            <span>
-                                <span class="icon">
-                                    <i class="fas fa-check"></i>
-                                </span>
-                            </span>
-                        </span>
-                        <span>{$_option_description}</span>
-                    </label>
+                    <br/><label class="hint"><input type="checkbox" name="map[{$type_id}][{$field}][options][{$_option|escape}]" value="1"{if !empty($info.options[$_option])} checked{/if}>&nbsp;{$_option_description}</label>
                     {/if}
                 {/foreach}
             {/if}
         {/if}
         {if !empty($info.help)}
             <br/>
-            <span class="hint">{$_info_icon}{$info.help|nl2br}</span>
+            <span class="hint"><i class="icon10 info"></i>{$info.help|nl2br}</span>
+
         {/if}
 
     </div>

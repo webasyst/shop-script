@@ -26,13 +26,13 @@
                 a
                     display: inline-block;
                     margin: 0 1em 0 0;
-                    font-size: 14px;
+                    font-size: 12px;
                     &:last-child
                         margin-right 0
 
                 &.is-disabled
                     .s-details-column
-                        color var(--grey)
+                        color #888
 
                 .s-checkbox-column
                     width 12px
@@ -47,9 +47,10 @@
                     margin 1em 0 0
                     font-size 12px
                     line-height (15/12)em
+                    color #000
 
                     .s-errors-list
-                        color: var(--red)
+                        color: red;
                         font-size: 12px;
                         margin: 0
                         padding 0
@@ -68,7 +69,7 @@
                                 width 3px
                                 height 3px
                                 border-radius 50%
-                                background var(--red)
+                                background red
                                 transform translate(100%, -50%)
 
                             &:first-child
