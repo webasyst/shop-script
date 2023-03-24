@@ -1,0 +1,222 @@
+<div id="s-filter-settings" style="display: none">
+
+    {if $filter_id}
+        <div class="float-right block half-padded">
+            <ul class="menu-h">
+                <li>
+                    <a href="javascript:void(0);" id="s-delete-filter"><i class="icon16 delete"></i>[`Delete filter`]</a>
+                </li>
+            </ul>
+        </div>
+    {/if}
+
+    <form action="?module=customers&action=filterSave&id={$filter.id|default:''}" method="post">
+        <div class="fields form">
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">
+                        [`Filter name`]
+                    </div>
+                    <div class="value bold">
+                        <input type="text" class="large long" name="filter[name]" value="{$filter.name|escape}" placeholder="[`Filter name`]">
+                    </div>
+                </div>
+                {$can_edit = $filter.mass_edit == 0 || $filter.mass_edit == $wa->user()->getId()}
+                <div class="field">
+                    <div class="name">
+                        [`Visible to`]
+                    </div>
+                    <div class="value no-shift s-ibutton-checkbox">
+                        <ul class="menu-h">
+                            <li><label for="s-filter-visibility"><span class="s-unselected">[`Only me`]</span></label></li>
+                            <li><input type="checkbox" id="s-filter-visibility" {if $filter.contact_id < 1}checked="checked"{/if} {if !$can_edit}disabled{/if}></li>
+                            <li><label for="s-filter-visibility"><span>[`Everybody`]</span></label></li>
+                        </ul>
+                    </div>
+                    <!-- PUBLIC FILTER details -->
+                    <div class="value no-shift">
+                        <p class="small">
+                            [`Limit visibility only to the selected user groups`]:
+                            <select name="filter[contact_id]" {if !$can_edit}disabled{/if}>
+                                <option value="0" {if $filter.contact_id == 0} selected="selected"{/if}>[`Everybody`]</option>
+                                {foreach $groups as $group_id => $group}
+                                    <option value="-{$group_id}" {if $filter.contact_id == -$group_id} selected="selected"{/if}>{$group|escape}</option>
+                                {/foreach}
+                            </select>
+                        </p>
+                    </div>
+                </div>
+                <div class="field" id="dependent-field" {if $filter.contact_id > 0}style="display:none"{/if}>
+                    <div class="name">
+                        [`Who can edit`]
+                    </div>
+                    <div class="value no-shift s-ibutton-checkbox">
+                        <ul class="menu-h">
+                            <li><label for="s-filter-editable"><span class="s-unselected">[`Only me`]</span></label></li>
+                            <li><input type="checkbox" id="s-filter-editable" name="filter[mass_edit]" {if $filter.mass_edit == 0}checked="checked"{/if}  {if !$can_edit}disabled{/if}></li>
+                            <li><label for="s-filter-editable"><span>[`Other users`]</span></label></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Icon`]
+                    </div>
+                    <div class="value">
+                        <ul class="menu-h js-icon-templates s-filter-icon">
+                            {foreach $icons as $icon}
+                                <li class="{if ($filter.icon == $icon)} selected{/if}" title="{$icon|escape}"><a href="#" data-icon="{$icon|escape}"><i class="icon16 {$icon|escape}"></i></a></li>
+                            {/foreach}
+                            <input type="hidden" name="filter[icon]" value="{$filter.icon|escape|default:''}">
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="s-order-customer-details">
+                {wa_action app="shop" module="customers" action="searchForm" hash=$filter.hash|default:'' just_fields=true container_id='s-customers-filter-hash-form'}
+            </div>
+
+            <div class="field">
+                <div class="value">
+                    <input type="hidden" name="filter[hash]" value="{$filter.hash|default:''}">
+                    <input type="submit" class="button green submit" value="[`Save`]">
+                    [`or`] <a class="cancel" href="#">[`cancel`]</a>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="clear-both"></div>
+
+    </form>
+</div>
+
+<script>
+    $(function() {
+
+        var init = function(container) {
+
+            (function(checkbox) {
+                var duration = 0,
+                    $filter_editable = $('#dependent-field'),
+                    wrapper = checkbox.closest('div.value'),
+                    related = wrapper.nextAll('div.value'),
+                    label_only_me = wrapper.find('li span').first(),
+                    label_everybody = wrapper.find('li span').last();
+
+                checkbox.change(function () {
+                    if (this.checked) {
+                        related.find(':input').prop('disabled', false);
+                        related.slideDown(duration);
+                        $filter_editable.slideDown(duration);
+                        label_everybody.removeClass('s-unselected');
+                        label_only_me.addClass('s-unselected');
+                    } else {
+                        related.find(':input').prop('disabled', true);
+                        related.slideUp(duration);
+                        $filter_editable.slideUp(duration);
+                        label_everybody.addClass('s-unselected');
+                        label_only_me.removeClass('s-unselected');
+                    }
+                }).change().iButton({
+                    labelOn: '',
+                    labelOff: '',
+                    className: 'mini'
+                });
+            })($('#s-filter-visibility'));
+
+            (function(checkbox) {
+                var duration = 0,
+                    wrapper = checkbox.closest('div.value'),
+                    related = wrapper.next('div.value'),
+                    label_only_me = wrapper.find('li span').first(),
+                    label_everybody = wrapper.find('li span').last();
+
+                checkbox.change(function () {
+                    if (this.checked) {
+                        related.find(':input').prop('disabled', false);
+                        related.slideDown(duration);
+                        label_everybody.removeClass('s-unselected');
+                        label_only_me.addClass('s-unselected');
+                    } else {
+                        related.find(':input').prop('disabled', true);
+                        related.slideUp(duration);
+                        label_everybody.addClass('s-unselected');
+                        label_only_me.removeClass('s-unselected');
+                    }
+                }).change().iButton({
+                    labelOn: '',
+                    labelOff: '',
+                    className: 'mini'
+                });
+            })($('#s-filter-editable'));
+
+            (function(icons) {
+                icons.on('click', 'li a', function() {
+                    icons.find('.selected').removeClass();
+                    $(this).closest('li').addClass('selected');
+                    icons.find('[name="filter[icon]"]').val($(this).data('icon'));
+                    return false;
+                });
+                if (!icons.find('.selected').length) {
+                    icons.find('li:first a').click();
+                } else {
+                    icons.find('.selected a').click();
+                }
+            })($('.s-filter-icon', container));
+
+            (function(form) {
+                form.submit(function() {
+                    var form = $(this);
+                    var filter_hash_form = $('#s-customers-filter-hash-form');
+                    $('[name="filter[hash]"]').val(filter_hash_form.getHash());
+                    $.post(form.attr('action'), form.serialize(), function(r) {
+                        if (r.status === 'ok') {
+                            // update sidebar
+                            var filter = r.data.filter;
+                            var filters = $('#s-customer-filters');
+                            if (r.data.filter_id) {
+                                filters.trigger('update', [filter]);
+                            } else {
+                                filters.trigger('add', [filter]);
+                            }
+                        }
+                        container.trigger('afterSubmit', [r]);
+                    }, 'json');
+                    return false;
+                });
+            })($('form', container));
+
+            {if $filter_id}
+                (function(delete_filter_link) {
+                    delete_filter_link.click(function() {
+                        if (confirm('[`Delete this customer search?`]')) {
+                            $.post('?module=customers&action=filterDelete', {
+                                id: '{$filter_id}'
+                            }, function(r) {
+                                if (r && r.status === 'ok') {
+                                    $('#s-customer-filters').trigger('delete', ['{$filter_id}']);
+                                    $.wa.setHash('#/all/');
+                                }
+                            }, 'json');
+                        }
+                        return false;
+                    });
+                })($('#s-delete-filter'));
+            {/if}
+        };
+
+        $('#s-filter-settings').bind('init', function() {
+            if (!$(this).data('inited')) {
+                init($(this));
+                $(this).data('inited', 1);
+            }
+        });
+
+
+
+    });
+</script>

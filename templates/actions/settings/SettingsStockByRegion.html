@@ -2,47 +2,78 @@
 <script src="{$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.min.js?{$wa->version(true)}"></script>
 
 <script type="text/template" id="by_region_condition_template">
-    <p>[`Shipping countries and regions`]:
-        <input class="tagsinput" placeholder="[`country or region name`]" value="">
-    </p>
+    <div class="wide">
+        <p>[`Shipping countries and regions`]:</p>
+
+        <ul class="chips small custom-my-0 js-tags-list">
+            <li class="js-tags-input-place">
+                <input type="text" id="js-tags-input" class="small tagsinput" placeholder="[`country or region name`]">
+            </li>
+        </ul>
+
+        <div class="hidden js-tag-template">
+            <li class="tag" data-id="">
+                <a href="#">
+                    <span class="js-tag-name"></span>
+                    <i class="fas fa-times-circle js-tag-remove"></i>
+                </a>
+            </li>
+        </div>
+    </div>
 </script>
 
 <script>(function() { "use strict";
 
-    var template_form = $('#by_region_condition_template').html();
-    var $table_tbody = $('#s-settings-stock-rules-form table tbody').first();
-    var autocomplete_options = prepareAutocompleteOptions({json_encode($countries)});
+    const template_form = $('#by_region_condition_template').html();
+    const $table_tbody = $('#s-settings-stock-rules-form table tbody').first();
+    const autocomplete_options = prepareAutocompleteOptions({json_encode($countries)});
 
     // Initialize condition editor when new one is added or existing loaded
     $table_tbody.on('rules:condition_init.by_region', '.stock-rule-condition', function(evt) {
-        var $condition_wrapper = $(this).append($.parseHTML(template_form));
-        var tag_names = (evt.rule_data || '').split(',').map(function(id) {
-            return autocomplete_options.hash[id] || '';
-        }).join(',');
+        const $condition_wrapper = $(this).append($.parseHTML(template_form));
+        const tag_names = (evt.rule_data || '')
+            .split(',')
+            .map((id) => {
+                if (!id) {
+                    return '';
+                }
+                const $tag = $($condition_wrapper.find('.js-tag-template').html());
+                $tag.find('.js-tag-name').text(autocomplete_options.hash[id] || '');
+                $tag.insertBefore($condition_wrapper.find('.js-tags-input-place'));
+                return autocomplete_options.hash[id] || '';
+            })
+            .join(',');
         initTagsInput($condition_wrapper.find('.tagsinput').val(tag_names));
+
+        const inputText = $condition_wrapper.find('.ui-autocomplete-input:input');
+        inputText.attr('placeholder', '[`country or region name`]');
+
+        if ($condition_wrapper.data('rule-id') < 0 && !inputText.val()) {
+            setTimeout(() => inputText.focus())
+        }
     });
 
-    function initTagsInput($input) {
+    function triggerChange() {
+        $('#s-settings-stock-rules-form').change();
+    }
 
-        var $hidden_input = $input.closest('.stock-rule-condition').find('input[name$="[rule_data]"]');
+    function initTagsInput($input) {
+        const $hidden_input = $input.closest('.stock-rule-condition').find('input[name$="[rule_data]"]');
 
         // tagsInput() breaks unless input has an id attribute
-        if (!$input.attr('id')) {
-            $input.attr('id', 'ti'+String(Math.random()).substr(2));
-        }
-
-        var timeout = null;
+        $input.attr('id', 'ti' + String(Math.random()).substr(7) + Date.now());
 
         $input.tagsInput({
-            width: '300px',
-            height: '120px',
-            defaultText: $input.attr('placeholder'),
+            trimValue: true,
+            width: '',
+            height: '',
+            defaultText: '',
             autocomplete_url: function(data, callback) {
-                var matcher = new RegExp('\\'+data.term.split('').join('\\'), 'i');
-                var candidates = autocomplete_options.options;
-                var len = candidates.length;
-                var options = [];
-                for (var i = 0; i < len; i++) {
+                const matcher = new RegExp('\\'+data.term.split('').join('\\'), 'i');
+                const candidates = autocomplete_options.options;
+                const len = candidates.length;
+                const options = [];
+                for (let i = 0; i < len; i++) {
                     if (matcher.test(candidates[i].name)) {
                         options.push(candidates[i].name);
                         if (options.length >= 5) {
@@ -52,36 +83,57 @@
                 }
                 callback(options);
             },
-            onChange: function(_, tag) {
+            onAddTag: function(tag) {
                 // Filter out bad tags and prepare ids for hidden input
-                var ids = [];
-                var original_tags = $input.val();
-                var tags = original_tags.split(',').map(function(tag_name) {
-                    if (autocomplete_options.hash[tag_name]) {
-                        ids.push(autocomplete_options.hash[tag_name]);
-                        return tag_name;
-                    } else {
-                        return null;
-                    }
-                }).filter(function(v) { return !!v; });
+                const $list = $input.closest('.js-tags-list');
+                const $inputPlace = $list.find('.js-tags-input-place');
+                const $tag = $($list.siblings('.js-tag-template').html());
 
-                // Set ids into hidden input
-                $hidden_input.val(ids.join(','));
+                $tag.find('.js-tag-name').text(tag);
+                $tag.insertBefore($inputPlace);
 
-                // Change human-readable tags removing bad ones
-                var new_tags = tags.join(',');
-                timeout && clearTimeout(timeout);
-                if (original_tags != new_tags) {
-                    setTimeout(function() {
-                        $input.importTags(new_tags);
-                    }, 100);
-                }
+                tagAction($input.val(), $input, $hidden_input);
+                triggerChange();
             }
+        });
+
+        $input.closest('.js-tags-list').on('click', '.js-tag-remove', function(event) {
+            event.preventDefault();
+
+            const tagName = $(this).siblings('.js-tag-name').text();
+            const tags = $input.val().split(',').filter(tag => tag !== tagName).join(',');
+            $(this).closest('li').remove();
+            tagAction(tags, $input, $hidden_input);
+            triggerChange();
         });
     }
 
+    function tagAction(tags, $input, $hidden_input) {
+        const timeout = null;
+
+        const ids = [];
+        const original_tags = tags;
+        const old_tags = original_tags.split(',').map(function(tag_name) {
+            if (autocomplete_options.hash[tag_name]) {
+                ids.push(autocomplete_options.hash[tag_name]);
+                return tag_name;
+            } else {
+                return null;
+            }
+        }).filter(function(v) { return !!v; });
+
+        // Set ids into hidden input
+        $hidden_input.val(ids.join(','));
+
+        // Change human-readable tags removing bad ones
+        const new_tags = old_tags.join(',');
+        $input.importTags(new_tags);
+    }
+
     function prepareAutocompleteOptions(countries) {
-        var options = [], hash = {};
+        const options = [];
+        const hash = {};
+
         $.each(countries, function(i, country) {
             hash[country.name] = country.id;
             hash[country.id] = country.name;
@@ -101,7 +153,7 @@
         });
         return {
             options: options,
-            hash: hash
+            hash
         };
     }
 

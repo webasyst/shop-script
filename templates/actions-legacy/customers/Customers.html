@@ -1,0 +1,17 @@
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/customers/customers.js?{$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/customers/orders.js?{$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/lazy.load.js?{$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/form/customer/backend.js?{$wa->version()}"></script>
+
+<div class="sidebar left200px s-inner-sidebar" id="s-sidebar">
+    {wa_action app="shop" module="customers" action="sidebar"}
+</div>
+
+<div class="content left200px blank" id="s-content">
+    <div class="block triple-padded"><i class="icon16 loading"></i>[`Loading...`]</div>
+</div>
+
+<script>$(function() { "use strict";
+    $.customers.init();
+});</script>
+

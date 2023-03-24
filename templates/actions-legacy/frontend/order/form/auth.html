@@ -1,0 +1,187 @@
+{strip}
+
+{$_form_globals = $wa->globals("wa_order_form")}
+{$_form_globals["auth"] = [
+    "locked" => false
+]}
+
+{$_config = $config.customer}
+
+{$_errors = []}
+{if !empty($error_step_id) && $error_step_id === "auth"}{$_errors = $errors}{/if}
+
+{$_person = shopCheckoutConfig::CUSTOMER_TYPE_PERSON}
+{$_company = shopCheckoutConfig::CUSTOMER_TYPE_COMPANY}
+{$_show_types_toggle = ($_config.type == shopCheckoutConfig::CUSTOMER_TYPE_PERSON_AND_COMPANY)}
+{if !empty($auth.contact_id)}
+    {$_show_types_toggle = false}
+{/if}
+
+{$_error_text = null}
+{$_me_is_person = null}
+{$_me_is_company = null}
+{if !empty($auth.contact_id)}
+    {$_me_is_person = empty($contact["is_company"])}
+    {$_me_is_company = !empty($contact["is_company"])}
+{/if}
+{if $_config.type == shopCheckoutConfig::CUSTOMER_TYPE_PERSON}
+    {if !empty($_me_is_company)}
+        {$_form_globals["auth"]["locked"] = true}
+        {$_error_text = sprintf('[`You are authorized as a company, and orders can be placed only by persons. Please %slog out%s of your account to check out as a person.`]', "<a class=\"js-logout-button\" href=\"?logout\">", "</a>")}
+    {/if}
+{elseif $_config.type == shopCheckoutConfig::CUSTOMER_TYPE_COMPANY}
+    {if !empty($_me_is_person)}
+        {$_form_globals["auth"]["locked"] = true}
+        {$_error_text = sprintf('[`You are authorized as a person, and orders can be placed only by companies. Please %slog out%s of your account to check out as a company.`]', "<a class=\"js-logout-button\" href=\"?logout\">", "</a>")}
+    {/if}
+{elseif $_config.type == shopCheckoutConfig::CUSTOMER_TYPE_PERSON_AND_COMPANY}
+    {if !empty($_me_is_person) || !empty($_me_is_company)}
+        {$_show_types_toggle = false}
+    {/if}
+{/if}
+
+{$_types = [
+    "`$_person`" => [
+        id => $_person,
+        name => $_config.person_mode_name
+    ],
+    "`$_company`" => [
+        id => $_company,
+        name => $_config.company_mode_name
+    ]
+]}
+
+{$_active_type = $_types["person"]}
+{if !empty($auth.selected_mode) && !empty($_types[$auth.selected_mode])}
+    {$_active_type = $_types[$auth.selected_mode]}
+{/if}
+
+{$_is_company = ($_active_type.id == "company")}
+
+<section class="wa-step-section wa-step-auth-section" id="wa-step-auth-section">
+
+    {* HEADER *}
+    <header class="wa-section-header">
+        {if !empty($auth.contact_id)}
+            {$_hint = $_config.offer_logout}
+            {if !empty($_is_company)}
+                {$_hint = $_config.company_hint}
+            {/if}
+
+            <h3 class="wa-header">{$_config.block_name}:</h3>
+            <span class="wa-contact-name">{$contact.name|escape}</span>
+            <a class="wa-logout-link js-logout-button wa-tooltip bottom" href="?logout" data-title="{$_hint|escape}">[`Logout`]</a>
+        {else}
+
+            <h3 class="wa-header">{$_config.block_name}</h3>
+
+            {if $wa->isAuthEnabled()}
+                <a class="wa-login-link js-show-login-dialog wa-tooltip bottom" href="{$wa->getUrl('shop/login/')}" data-title="{$_config.offer_login|escape}">[`Log in or sign up`]</a>
+            {/if}
+        {/if}
+    </header>
+
+    {* BODY *}
+    <div class="wa-section-body">
+        <form>
+            {if !empty($_error_text)}
+                <div class="wa-errors-wrapper">
+                    <div class="wa-error-text">{$_error_text}</div>
+                </div>
+
+            {else}
+                {if !empty($_show_types_toggle)}
+                    <div class="wa-line">
+                        <div class="wa-field-wrapper">
+                            <label class="wa-label">[`Customer type`]</label>
+                            <div class="wa-toggle js-type-toggle">
+                                {foreach $_types as $_type}
+                                    {$_is_active = false}
+                                    {if $_active_type.id == $_type.id}{$_is_active = true}{/if}
+
+                                    <span class="{if !empty($_is_active)}selected{/if}" data-id="{$_type.id|escape}">{$_type.name|escape}</span>
+                                {/foreach}
+                            </div>
+                            <input class="js-type-field" name="auth[mode]" type="hidden" value="{$_active_type.id|escape}">
+                        </div>
+                    </div>
+                {/if}
+
+                {if !empty($_is_company) && !empty($_config["company_hint"])}
+                    <div class="wa-line">
+                        {$_config["company_hint"]|escape}
+                    </div>
+                {/if}
+
+                {if !empty($auth.fields_order)}
+                    <div class="wa-line wa-fields-group line">
+
+                        {* shop_order_render_field function here *}
+                        {include file="./render_field.function.html" inline}
+
+                        {foreach $auth.fields_order as $_field_id}
+                            {if !empty($auth.fields[$_field_id])}
+                                {$_field = $auth.fields[$_field_id]}
+                            {else}
+                                {continue}
+                            {/if}
+
+                            {shop_order_render_field _field=$_field}
+                        {/foreach}
+                    </div>
+                {/if}
+
+                {if !empty($_config["service_agreement"]) && !empty($_config["service_agreement_hint"])}
+                    <div class="wa-line wa-agreement-wrapper">
+                        {if ($_config["service_agreement"] == "checkbox")}
+                            <div class="wa-field-wrapper is-agreement-field">
+                                <input type="hidden" name="auth[service_agreement]" value="0">
+                                <label class="wa-checkbox-wrapper">
+                                    <input class="wa-checkbox" type="checkbox" name="auth[service_agreement]" value="1" required{if !empty($auth.service_agreement)} checked="checked"{/if}>
+                                    <span class="wa-text">{$_config["service_agreement_hint"]}</span>
+                                </label>
+                            </div>
+                        {else}
+                            <div class="wa-text">{$_config["service_agreement_hint"]}</div>
+                            <input type="hidden" name="auth[service_agreement]" value="1">
+                        {/if}
+                    </div>
+                {/if}
+
+                {if !empty($_is_company) && !empty($_config["company_terms"])}
+                    <div class="wa-line wa-agreement-wrapper">
+                        <div class="wa-text">{$_config["company_terms"]}</div>
+                    </div>
+                {/if}
+
+                <input name="auth[user_id]" value="{$wa->userId()|default:""|escape}" type="hidden">
+            {/if}
+
+            {* @event checkout_render_auth *}
+            {foreach $event_hook.auth as $_}
+                <div class="wa-plugin-hook">{$_}</div>
+            {/foreach}
+        </form>
+    </div>
+
+    <script>
+        ( function($) {
+            var $section = $("#wa-step-auth-section"),
+                $wrapper = $("#wa-order-form-wrapper");
+
+            var ready_promise = $wrapper.data("ready").promise();
+            ready_promise.then( function(controller) {
+                controller.initAuth({
+                    $wrapper: $section,
+                    contact_id: {if !empty($auth.contact_id)}{$auth.contact_id|escape}{else}null{/if},
+                    errors: {$_errors|json_encode},
+                    templates: { }
+                });
+            });
+        })(jQuery);
+    </script>
+</section>
+
+{$wa->globals("wa_order_form", $_form_globals)}
+
+{/strip}

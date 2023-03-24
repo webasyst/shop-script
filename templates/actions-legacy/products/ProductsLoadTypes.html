@@ -1,0 +1,21 @@
+{if count($types)}
+    <div class="s-collection-list" id="s-type-list"
+         data-on-collapse-url="?module=products&amp;action=loadTypes&amp;hide=1"
+         data-on-expand-url="?module=products&amp;action=loadTypes&amp;hide=0"
+        >
+        <ul class="menu-v with-icons">
+            {foreach $types as $type}
+                <li data-type="type" id="type-{$type.id}">
+                    <span class="count">{$type.count}</span>
+                    <a href="#/products/type_id={$type.id}/">
+                        {shopHelper::getIcon($type.icon, 'icon.box')}{$type.name|escape}
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+    </div>
+{else}
+    <div class="block">
+        <p class="hint align-center">[`You have no product types in your online store. Create one in the store settings.`]</p>
+    </div>
+{/if}

@@ -35,9 +35,9 @@
                     <div class="s-search-section">
                         <div class="s-field-wrapper">
                             <div class="s-magic-hint">[`Press Enter to add the tag.`]</div>
-                            <input class="s-field js-autocomplete js-autofocus wa-small" type="text" placeholder="{_w("Enter a value")|escape}">
+                            <input class="s-field js-autocomplete js-autofocus small" type="text" placeholder="{_w("Enter a value")|escape}">
                             <div class="s-loading-wrapper" v-if="states.is_loading">
-                                <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
+                                <span class="icon top text-light-gray"><i class="fas fa-spinner fa-spin"></i></span>
                             </div>
                         </div>
                     </div>
@@ -45,11 +45,11 @@
 
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
+                <button class="button" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
                     <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name">[`Assign tags`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

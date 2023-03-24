@@ -1,57 +1,62 @@
 var ShopSettingsCheckoutSidebar = ( function($) {
 
     ShopSettingsCheckoutSidebar = function(options) {
-        var that = this;
-
         // DOM
-        that.$wrapper = options["$wrapper"];
+        this.$wrapper = options["$wrapper"];
 
-        // VARS
-
-        // DYNAMIC VARS
-
-        // INIT
-        that.initClass();
+        this.initClass();
     };
 
     ShopSettingsCheckoutSidebar.prototype.initClass = function() {
-        var that = this;
-
-        that.initExpandCollapse();
+        this.initExpandCollapse();
     };
 
     ShopSettingsCheckoutSidebar.prototype.initExpandCollapse = function() {
-        var that = this;
+        const that = this;
+        const hideSelectLinks = () => {
+            that.$wrapper.find('.js-storefronts-list li').removeClass('selected');
+        };
 
-        that.$wrapper.on('click', '.js-list-header', function(event) {
-            var $target = $(event.target),
-                cancel_class = "js-link",
-                cancel_target = !!($target.hasClass(cancel_class) || $target.closest("." + cancel_class).length);
+        that.$wrapper.on('click', '.js-list-header', function(e) {
+            const $target = $(e.target);
+            const cancel_class = 'js-link';
+            const cancel_target = $target.hasClass(cancel_class) || $target.closest("." + cancel_class).length;
 
-            if (!cancel_target) {
-                var version = $(this).data('version'),
-                    $arrow = $(this).find('.icon16'),
-                    $list = that.$wrapper.find('.js-storefronts-list[data-version="'+ version +'"]');
+            if (cancel_target) {
+                hideSelectLinks();
+                return;
+            }
 
-                if ($list.is(':visible')) {
-                    $list.hide();
-                    $arrow.removeClass('darr').addClass('rarr');
-                    $.storage.set('shop/checkout_sidebar_hidden_'+version, 1);
-                } else {
-                    $list.show();
-                    $arrow.removeClass('rarr').addClass('darr');
-                    $.storage.del('shop/checkout_sidebar_hidden_'+version);
-                }
+            e.preventDefault();
+            const version = $(this).data('version');
+            const $list = that.$wrapper.find('.js-storefronts-list[data-version="'+ version +'"]');
+            const $icon = $(this).find('.icon');
+
+            if ($list.is(':visible')) {
+                $icon.css({'transform':'rotate(-90deg)'});
+                $list.hide();
+                $.storage.set('shop/checkout_sidebar_hidden_'+version, 1);
+            } else {
+                $icon.css({'transform':'rotate(0deg)'});
+                $list.show();
+                $.storage.del('shop/checkout_sidebar_hidden_'+version);
             }
         });
 
         that.$wrapper.find('.js-list-header').each(function () {
-            var version = $(this).data('version'),
-                is_hidden = $.storage.get('shop/checkout_sidebar_hidden_'+version);
+            const version = $(this).data('version');
+            const is_hidden = $.storage.get('shop/checkout_sidebar_hidden_'+version);
 
             if (is_hidden) {
                 $(this).click();
             }
+        });
+
+        that.$wrapper.find('.js-storefronts-list').on('click', 'li.js-item', function () {
+            const $el = $(this);
+
+            hideSelectLinks();
+            $el.addClass('selected');
         });
     };
 

@@ -1004,7 +1004,7 @@ class shopCheckoutConfig implements ArrayAccess
         }
 
         $invalid_region = !$fixed_delivery_area['country'] || !isset($fixed_delivery_area['region']) || !is_string($fixed_delivery_area['region']);
-        $region = trim(ifset($fixed_delivery_area, 'region', null));
+        $region = trim(ifset($fixed_delivery_area, 'region', ''));
         if ($invalid_region || empty($region)) {
             $fixed_delivery_area['region'] = null;
         }
@@ -1620,6 +1620,14 @@ class shopCheckoutConfig implements ArrayAccess
         return $system_address_field_names;
     }
 
+    /**
+     * https://www.php.net/manual/ru/migration81.incompatible.php#migration81.incompatible.core.type-compatibility-internal
+     *
+     * @param $offset
+     * @param $value
+     * @return void
+     */
+    #[ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         if (is_null($offset)) {
@@ -1629,16 +1637,19 @@ class shopCheckoutConfig implements ArrayAccess
         }
     }
 
+    #[ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return isset($this->config[$offset]);
     }
 
+    #[ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->config[$offset]);
     }
 
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return isset($this->config[$offset]) ? $this->config[$offset] : null;

@@ -156,7 +156,8 @@ class shopCheckoutConfirmation extends shopCheckout
 
         $terms = isset($terms[$locale]) ? $terms[$locale] : reset($terms);
 
-        return '<div class="field">
+        if (wa()->whichUI() == '1.3') {
+            return '<div class="field">
                 <div class="name">'._w('Terms of service').'<br><span class="hint">HTML</span></div>
                 <div class="value">
                     <textarea id="confirmation-terms" name="config[terms]">'.(!empty($config['terms']) ? $config['terms'] : '').'</textarea>
@@ -184,5 +185,41 @@ class shopCheckoutConfirmation extends shopCheckout
                     });
                 </script>
             </div>';
+        }
+
+        return '<div class="field">
+                <div class="name">'._w('Terms of service').'<br><span class="hint">HTML</span></div>
+                <div class="value">
+                    <ul>
+                        <li>
+                            <textarea id="confirmation-terms" name="config[terms]">'.(!empty($config['terms']) ? $config['terms'] : '').'</textarea>
+                        </li>
+                        <li>
+                            <p class="hint">'._w('If you want your customers to be prompted to read and agree to your company’s terms of service, refund and privacy policies or any other legal information during the checkout, enter the text to the field above. A checkbox to agree and a link to read this legal information will be shown on the Confirmation checkout step.').'
+                            <a id="confirmation-generate-terms" href="#">'._w('Generate sample policy').'</a></p>
+                            <div style="display:none" id="confirmation-terms-sample">'.$terms.'</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <script style="display: none">
+                    $("#confirmation-generate-terms").click(function () {
+                        var t = $("#confirmation-terms");
+                        if (!t.val().length || confirm("'._w('Your current terms of service content will be erased. Are you sure?').'")) {
+                            t.val($("#confirmation-terms-sample").html());
+                            $("#confirmation-terms-red").show();
+                        }
+                        return false;
+                    });
+                    $("#confirmation-terms").keyup(function () {
+                        if ($(this).val().length) {
+                            $("#confirmation-terms-red").show();
+                        } else {
+                            $("#confirmation-terms-red").hide();
+                        }
+                    });
+                </script>
+            </div>';
+
     }
 }

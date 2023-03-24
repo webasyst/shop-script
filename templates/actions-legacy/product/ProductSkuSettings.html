@@ -1,0 +1,169 @@
+
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js"></script>
+
+<div class="fields form extra-padded-left">
+
+    <div class="field">
+        <div class="name">[`SKU ID`]</div>
+        <div class="value no-shift">
+            {if ($sku_id > 0)}{$sku_id|escape}{else}—{/if}
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">[`Available for purchase`]</div>
+        <input type="hidden" name="skus[{$sku_id}][available]" value="0">
+        <div class="value no-shift"><input type="checkbox" name="skus[{$sku_id}][available]" {if !empty($sku.available)} checked="checked"{/if} value="1"></div>
+    </div>
+    <div class="field">
+        <div class="name">[`Visibility in the storefront`]</div>
+        <input type="hidden" name="skus[{$sku_id}][status]" value="0">
+        <div class="value no-shift"><input type="checkbox" name="skus[{$sku_id}][status]" {if !empty($sku.status)} checked="checked"{/if} value="1"></div>
+    </div>
+
+    <!-- plugin hook: 'backend_product_sku_settings' -->
+    {* @event backend_product_sku_settings *}
+    {if !empty($backend_product_sku_settings)}{foreach $backend_product_sku_settings as $_}{$_}{/foreach}{/if}
+
+    {*
+     * Show weight here separately from other features.
+     *}
+    {if !empty($features.weight)}
+        {$feature = $features.weight}
+        {if empty($feature.multiple) && (strpos($feature.type,'dimension.') === 0)}
+            {$code = 'weight'}
+            <div class="field">
+                <div class="name">{$feature.name|escape}<br><span class="hint">{$code|escape}</span></div>
+                <div class="value">
+                    {$units = shopDimension::getUnits($feature.type)}
+                    <input type="text" name="skus[{$sku_id}][features][{$code}][value]"
+                        value="{if isset($sku_features[$code])}{$sku_features[$code]->value|escape}{/if}"
+                        {if !isset($sku_features[$code]) && isset($product.features[$code])}
+                            placeholder="{$product.features[$code]->value|escape}"
+                        {/if}
+                    >
+                    <select name="skus[{$sku_id}][features][{$code}][unit]">
+                        {$default_unit = isset($feature['default_unit']) && isset($units[$feature['default_unit']])}
+                        {foreach $units as $unit}
+                            {if isset($sku_features[$code])}
+                                {$selected_ = $sku_features[$code]->unit == $unit.value}
+                            {else}
+                                {if $default_unit}
+                                    {$selected_ = $feature['default_unit'] == $unit.value}
+                                {else}
+                                    {$selected_ = $unit@first}
+                                {/if}
+                            {/if}
+                            <option value="{$unit.value|escape}"
+                                title="{$unit.title|escape}"
+                                {if $selected_} selected="selected"{/if}
+                            >{$unit.title|escape}</option>
+                        {/foreach}
+                    </select>
+                    {if !empty($product.features[$code])}
+                        <p class="hint">{sprintf('[`Set this SKU weight in case it differs from the product default weight value (%s).`]', $product.features.weight)} [`Weight value will be used to calculate order shipping cost.`]</p>
+                    {/if}
+                </div>
+            </div>
+        {/if}
+    {/if}
+
+    <div class="field s-product-sku-images" {if count($product->images) <= 1}style="display:none"{/if}>
+        <div class="name">[`SKU image`]</div>
+        <div class="value">
+        <input type="text" name="skus[{$sku_id}][image_id]" value="{$sku.image_id}" style="display:none;">
+        <ul class="s-product-image-crops">
+
+            {* @see js-template in Product.html template *}
+
+            {foreach $product->images as $image_id => $image}
+            <li data-image-id="{$image_id}"{if ($sku.image_id == $image_id)} class="selected"{/if}>
+                <a href="#/product/{$product.id}/edit/main/sku/image/select/{$sku_id}/{$image_id}/" class="js-action"><img src="{$image.url_crop}"></a>
+            </li>
+            {/foreach}
+
+        </ul>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">
+            [`Attachment`]
+        </div>
+        <div class="value no-shift">
+            <input type="file" name="" class="fileupload" {if $sku_id < 0} disabled="disabled"{/if} {if !empty($sku.file_name)} style="display:none;"{/if}>
+
+            {if $sku_id < 0}<span class="hint"><br>[`Save product information to be able to upload an attachment`]</span>{/if}
+
+            <div class="js-progressbar-container" style="display:none;">
+                <div class="progressbar blue float-left" style="width: 70%;">
+                    <div class="progressbar-outer">
+                        <div class="progressbar-inner" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <br clear="left">
+                <span class="small italic">[`Please do not close your browser window and do not leave this page until the entire upload process is finished.`]</span>
+            </div>
+
+            <div class="s-sku-attachment" {if empty($sku.file_name)} style="display: none;"{/if}>
+                <input type="hidden" name="skus[{$sku_id}][eproduct_manage]" value="1">
+                <input type="checkbox" name="skus[{$sku_id}][eproduct]" value="1" {if !empty($sku.file_name)} checked="checked"{/if}>
+                <strong class="s-file-name">
+                    {if !empty($sku.file_name)}
+                        {$sku.file_name|escape}
+                    {/if}
+                </strong>
+                <span class="s-file-size hint">
+                    {if !empty($sku.file_size)}
+                        {$sku.file_size|wa_format_file_size}
+                    {/if}
+                </span>
+                <input type="hidden" name="skus[{$sku_id}][file_name]" class="s-input-file-name" value="{if !empty($sku.file_name)}{$sku.file_name|escape}{/if}">
+                <p class="small">[`Optional file description`]:<br>
+                    <textarea rows="5" cols="40" name="skus[{$sku_id}][file_description]" class="s-file-description">{strip}
+                        {if !empty($sku.file_description)}{$sku.file_description|escape}{/if}
+                    {/strip}</textarea>
+                </p>
+            </div>
+
+            <p class="hint">[`A link to download attached file will be sent to customer in the order notification email. The link will be functional only when the order is paid.`] [`Great for products that are shipped online.`]</p>
+
+            <span class="error-message"></span>
+        </div>
+    </div>
+
+    {if count($features)>1}
+        <h5 class="heading">[`SKU features`]</h5>
+        <p class="hint">
+            [`Defining feature values for SKUs is great for dynamic product filtering customer experience. When customer finds a product using by-feature filters, product’s default SKU will be selected according to the filter conditions.`]
+            <a href="{$wa_app_url}?action=settings#/typefeat/" target="_blank" style="display: inline-block;"><i class="icon16 settings" style="display: inline-block; margin: 0 4px 0 0; position: static; float: none;"></i>[`Set up types &amp; features`]</a>
+        </p>
+    {/if}
+    {foreach $features as $code => $feature}
+        {if ($code !== 'weight')}
+            {* Weight is already shown above *}
+            {if empty($feature.multiple)}
+                {include file="./include.feature.html"
+                    namespace="skus[{$sku_id}]"
+                    item_features=$sku_features
+                inline}
+            {else}
+                <div class="field" title="{$code|escape}">
+                    <div class="name">{$feature.name|escape}<br><span class="hint">{$code|escape}</span></div>
+                    <div class="value">
+                        <select name="skus[{$sku_id}][features][{$code}]">
+                            <option value=""></option>
+                            {foreach $feature.values as $value}
+                                <option value="{(string)$value|escape}" {if isset($sku_features[$code]) && ($value == (string)$sku_features[$code])}selected="selected"{/if}>
+                                    {$value|escape}
+                                </option>
+                            {/foreach}
+                        </select>
+
+                    </div>
+                </div>
+            {/if}
+        {/if}
+    {/foreach}
+
+</div>

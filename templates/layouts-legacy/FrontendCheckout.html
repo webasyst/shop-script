@@ -1,0 +1,270 @@
+{$_shop_theme_url = "`$wa_url`wa-apps/shop/themes/default/"}
+{$_site_theme_url = "`$wa_url`wa-apps/site/themes/default/"}
+
+<!DOCTYPE html>
+<html lang="{if $wa->locale()}{$wa->locale()}{else}en{/if}">
+<head>
+    <title>{$wa->title()|escape}</title>
+
+    {* META *}
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta name="keywords" content="{$wa->meta('keywords')|escape}" />
+    <meta name="description" content="{$wa->meta('description')|escape}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1{if $wa->isMobile()}, maximum-scale=1, user-scalable=0{/if}" />
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+
+    <link rel="icon" href="/favicon.ico"/>
+    <link rel="shortcut icon" href="/favicon.ico"/>
+
+    {if !empty($canonical)}
+        <link rel="canonical" href="{$canonical}"/>
+    {/if}
+
+    {if $wa->blog}
+        {if $rss = $wa->blog->rssUrl()}
+            <link rel="alternate" type="application/rss+xml" title="{$wa->accountName()}" href="{$rss}">
+        {/if}
+    {/if}
+
+    {*FONTS*}
+    <link href='https://fonts.googleapis.com/css?family=Fira+Sans:400,500,700,400italic,500italic,700italic&subset=latin,cyrillic' rel='stylesheet'>
+
+    {*CSS*}
+    <link href="{$_site_theme_url}default.css?v={$wa_theme_version}" rel="stylesheet">
+    <link href="{$_shop_theme_url}css/order.css?v={$wa_theme_version}" rel="stylesheet">
+    <link href="{$wa_app_static_url}css/frontend/order/layout.css?v={$wa->version()}" rel="stylesheet">
+
+    {$wa->css()}
+
+    {*JS*}
+    <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js" ></script>
+    <script src="{$wa_url}wa-content/js/jquery/jquery-migrate-1.2.1.min.js"></script>
+
+    {$wa->js()}
+    {$wa->head()}
+
+    {if !empty($design_settings.custom_css)}
+        <style>{$design_settings.custom_css}</style>
+    {/if}
+
+    {if !empty($design_settings.order_background)}
+        <style>.wa-order-body { background: {$design_settings.order_background} !important; }</style>
+    {/if}
+
+    {if !empty($design_settings.layout_background)}
+        <style>html, body, .wa-order-header, .wa-order-footer { background: {$design_settings.layout_background} !important; }</style>
+    {/if}
+
+    <!-- plugin hook: 'frontend_head' -->
+    {* @event frontend_head.%plugin_id% *}
+    {foreach $frontend_head as $_}{$_}{/foreach}
+</head>
+<body>
+
+<div class="wa-order-layout font_family_google_fira">
+    <header class="wa-order-header">
+        <div class="container">
+            {if !empty($design_settings.logo_url)}
+                <div class="wa-logo-section">
+                    <div class="wa-logo">
+                        <a href="{$wa_app_url}">
+                            <img src="{$design_settings.logo_url|escape}" alt="">
+                        </a>
+                    </div>
+
+                    {if !empty($design_settings.business_scope)}
+                        <div class="wa-description">{$design_settings.business_scope|escape}</div>
+                    {/if}
+                </div>
+            {/if}
+
+            {if !empty($design_settings.phone)}
+                <div class="wa-phone-section">
+
+                    <div class="wa-phone">
+                        <i class="wa-icon phone size-13"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg#phone"></use></svg></i>
+                        <a href="tel:{$design_settings.phone|escape}">{$design_settings.phone|escape}</a>
+                    </div>
+
+                    {if !empty($design_settings.phone_hint)}
+                        <div class="wa-description">{$design_settings.phone_hint|escape}</div>
+                    {/if}
+                </div>
+            {/if}
+        </div>
+    </header>
+
+    <main class="wa-order-body">
+        <div class="container">
+            <!-- plugin hook: 'frontend_header' -->
+            {* @event frontend_header.%plugin_id% *}
+            {foreach $frontend_header as $_}{$_}{/foreach}
+            {$content}
+        </div>
+    </main>
+
+    <footer class="wa-order-footer">
+        <div class="container">
+
+            <div class="wa-shop-details-section">
+                {if !empty($design_settings.address)}
+                    <div class="wa-line">
+                        <i class="wa-icon location"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg#location"></use></svg></i>
+                        {$design_settings.address|escape}
+                    </div>
+                {/if}
+
+                {if !empty($design_settings.working_hours)}
+                    <div class="wa-line">
+                        <i class="wa-icon time size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg#time"></use></svg></i>
+                        {$design_settings.working_hours|escape}
+                    </div>
+                {/if}
+            </div>
+
+        </div>
+        <!-- plugin hook: 'frontend_footer' -->
+        {* @event frontend_footer.%plugin_id% *}
+        {foreach $frontend_footer as $_}{$_}{/foreach}
+    </footer>
+
+    <script>
+        ( function($) { "use strict";
+
+            load([
+                {
+                    id: "wa-order-ui-css",
+                    type: "css",
+                    uri: "{$wa_app_static_url}css/frontend/order/ui.css?v={$wa->version()}"
+                },
+                {
+                    id: "wa-order-ui-js",
+                    type: "js",
+                    uri: "{$wa_app_static_url}js/frontend/order/ui.js?v={$wa->version()}"
+                }
+            ]).then(init);
+
+            function load(sources) {
+                var deferred = $.Deferred();
+
+                loader(sources).then( function() {
+                    deferred.resolve();
+                }, function(bad_sources) {
+                    if (console && console.error) {
+                        console.error("Error loading resource", bad_sources);
+                    }
+                    deferred.reject(bad_sources);
+                });
+
+                return deferred.promise();
+
+                function loader(sources) {
+                    var deferred = $.Deferred(),
+                        counter = sources.length;
+
+                    var bad_sources = [];
+
+                    $.each(sources, function(i, source) {
+                        switch (source.type) {
+                            case "css":
+                                loadCSS(source).then(onLoad, onError);
+                                break;
+                            case "js":
+                                loadJS(source).then(onLoad, onError);
+                                break;
+                        }
+                    });
+
+                    return deferred.promise();
+
+                    function loadCSS(source) {
+                        var deferred = $.Deferred(),
+                            promise = deferred.promise();
+
+                        var $link = $("#" + source.id);
+                        if ($link.length) {
+                            promise = $link.data("promise");
+
+                        } else {
+                            $link = $("<link />", {
+                                id: source.id,
+                                rel: "stylesheet"
+                            }).appendTo("head")
+                                .data("promise", promise);
+
+                            $link
+                                .on("load", function() {
+                                    deferred.resolve(source);
+                                }).on("error", function() {
+                                deferred.reject(source);
+                            });
+
+                            $link.attr("href", source.uri);
+                        }
+
+                        return promise;
+                    }
+
+                    function loadJS(source) {
+                        var deferred = $.Deferred(),
+                            promise = deferred.promise();
+
+                        var $script = $("#" + source.id);
+                        if ($script.length) {
+                            promise = $script.data("promise");
+
+                        } else {
+                            var script = document.createElement("script");
+                            document.getElementsByTagName("head")[0].appendChild(script);
+
+                            $script = $(script)
+                                .attr("id", source.id)
+                                .data("promise", promise);
+
+                            $script
+                                .on("load", function() {
+                                    deferred.resolve(source);
+                                }).on("error", function() {
+                                deferred.reject(source);
+                            });
+
+                            $script.attr("src", source.uri);
+                        }
+
+                        return promise;
+                    }
+
+                    function onLoad(source) {
+                        counter -= 1;
+                        watcher();
+                    }
+
+                    function onError(source) {
+                        bad_sources.push(source);
+                        counter -= 1;
+                        watcher();
+                    }
+
+                    function watcher() {
+                        if (counter === 0) {
+                            if (!bad_sources.length) {
+                                deferred.resolve();
+                            } else {
+                                deferred.reject(bad_sources);
+                            }
+                        }
+                    }
+                }
+            }
+
+            function init() {
+                //
+            }
+
+        })(jQuery);
+    </script>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+<h1>Установите Shop-Script</h1>
+
+<p>Shop-Script успешно установлен и почти готов принимать новых покупателей и новые заказы.</p>
+
+<p>Полезные ссылки:</p>
+
+<ul>
+    <li><strong>{$wa->domainUrl()|cat:$wa_backend_url}</strong> — URL для входа в административную панель (бекенд), в которой вы сейчас находитесь</li>
+    <li>
+        <a href="{$wa->getUrl('shop/frontend')}" class="bold" target="_blank">{$wa->domainUrl()}{$wa->getUrl('shop/frontend')}</a> <i class="icon10 new-window" style="margin-top:0.4em;"></i> — адрес вашей онлайн-витрины 
+        <br><br>
+        <div class="s-storefront-preview">
+            <iframe src="{$wa->getUrl('shop/frontend')}" scrolling="no" seamless="seamless"></iframe>
+            <div class="s-preview-mask"></div>
+        </div>
+        <br><br>
+        <p><em>С помощью  <a href="{$wa->domainUrl()|cat:$wa_backend_url}site/">приложения &laquo;Сайт&raquo;</a> можно подключить к интернет-магазину любые собственные домены .RU</em></p>
+    </li>
+</ul>

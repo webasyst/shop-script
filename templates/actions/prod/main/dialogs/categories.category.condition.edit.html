@@ -80,7 +80,7 @@
                             <span class="s-label" v-if="item.type === 'product'">[`Product property`]</span>
                             <span class="s-label" v-if="item.type === 'sku'">[`SKU property`]</span>
                             <span class="s-label" v-if="item.type === 'dynamic'">[`Dynamic property`]</span>
-                            <span class="s-name bold color-gray-dark">«{ { item.name } }»</span>
+                            <span class="s-name bold text-gray-dark">«{ { item.name } }»</span>
                         </div>
                     </div>
                 </div>
@@ -108,15 +108,15 @@
                         <div class="s-fields-wrapper flexbox space-12">
                             <template v-for="(option, index) in item_data.options">
                                 <div class="s-field-wrapper with-divider" v-bind:class="{ 'is-price' : format === 'price' }">
-                                    <component-input class="s-field wa-small" v-model="option.value"
+                                    <component-input class="s-field small" v-model="option.value"
                                                      v-bind:class="{ 'wa-error-field': errors['value_error_' + index] }"
                                                      v-bind:validate="validate"
                                                      v-bind:format="format"></component-input>
                                     <span class="s-currency" v-if="item_data.currency" v-html="item_data.currency.sign_html"></span>
 
-                                    <div class="wa-error-text" v-if="errors['value_error_' + index]">
+                                    <div class="state-error" v-if="errors['value_error_' + index]">
                                         {_w("Invalid value")|escape}
-                                        <span class="s-tooltip-icon" data-tooltip-id="price-error"><i class="fas fa-question-circle color-red"></i></span>
+                                        <span class="s-tooltip-icon" data-tooltip-id="price-error"><i class="fas fa-question-circle text-red"></i></span>
                                     </div>
                                 </div>
                             </template>
@@ -135,7 +135,7 @@
                                 <div class="s-field-wrapper with-divider">
                                     <component-date-picker
                                         v-model="option.value"
-                                        v-bind:field_class="'s-field wa-small'"></component-date-picker>
+                                        v-bind:field_class="'s-field small'"></component-date-picker>
                                 </div>
                             </template>
                         </div>
@@ -155,9 +155,9 @@
 
                             <div class="s-search-section">
                                 <div class="s-field-wrapper">
-                                    <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Enter a value")|escape}">
+                                    <input class="s-field js-autocomplete small" type="text" placeholder="{_w("Enter a value")|escape}">
                                     <div class="s-loading-wrapper" v-if="states.is_loading">
-                                        <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
+                                        <span class="icon top text-light-gray"><i class="fas fa-spinner fa-spin"></i></span>
                                     </div>
                                 </div>
                             </div>
@@ -179,13 +179,13 @@
                 {**}
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button"
+                <button class="button" type="button"
                         v-bind:disabled="disabled"
                         v-on:click.prevent="save">
                     <span class="s-icon" v-if="states.locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name">[`Apply`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

@@ -2,13 +2,11 @@
     <form id="s-csvproduct" method="post" action="?module=csv&action=productrun">
         <input type="hidden" name="direction" value="{$direction|escape}">
         {$wa->csrf()}
-        <div class="fields form" style="width: 100%;">
+        <div class="fields" style="width: 100%;">
             {include file="./CsvProductsetup.{$direction|default:'import'}.html"}
         </div>
     </form>
 </div>
-
-<div class="clear"></div>
 
 
 {if $direction eq 'import'}

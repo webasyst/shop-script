@@ -33,7 +33,11 @@ class shopReviewsAddController extends waJsonController
         $this->view->assign('reply_allowed', true);
         $this->response['id'] = $data['id'];
         $this->response['parent_id'] = $data['parent_id'];
-        $this->response['html'] = $this->view->fetch('templates/actions/product/include.review.html');
+        if(wa()->whichUI() === '1.3') {
+            $this->response['html'] = $this->view->fetch('templates/actions-legacy/product/include.review.html');
+        }else{
+            $this->response['html'] = $this->view->fetch('templates/actions/product/include.review.html');
+        }
     }
 
     protected function getReqiestData()

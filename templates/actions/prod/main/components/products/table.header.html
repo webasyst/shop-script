@@ -1,7 +1,7 @@
-{$_templates["table_tooltip_stock"] = "<span class=\"s-icon icon shift-up-1 color-gray-light\"><svg><use xlink:href=\"{$_sprite_url}#warehouse\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("stock")}</span>"}
-{$_templates["table_tooltip_virtual_stock"] = "<span class=\"s-icon icon shift-up-1 color-gray-light\"><svg><use xlink:href=\"{$_sprite_url}#warehouse_stroke\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("virtual stock")}</span>"}
-{$_templates["table_tooltip_feature"] = "<span class='icon size-14'>%visible_in_frontend%</span> <span class='icon size-12 color-gray-lighter'><svg><use xlink:href=\"{$_sprite_url}#sitemap-slash\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("feature")}</span>"}
-{$_templates["table_tooltip_feature_sku"] = "<span class='icon size-14'>%visible_in_frontend%</span> <span class='icon size-12 color-gray'><svg><use xlink:href=\"{$_sprite_url}#sitemap\"></use></svg></span> %name% <span class=\"color-gray-light\">{_w("feature")}</span>"}
+{$_templates["table_tooltip_stock"] = "<span class=\"s-icon icon shift-up-1 text-light-gray\"><svg><use xlink:href=\"{$_sprite_url}#warehouse\"></use></svg></span> %name% <span class=\"text-light-gray\">{_w("stock")}</span>"}
+{$_templates["table_tooltip_virtual_stock"] = "<span class=\"s-icon icon shift-up-1 text-light-gray\"><svg><use xlink:href=\"{$_sprite_url}#warehouse_stroke\"></use></svg></span> %name% <span class=\"text-light-gray\">{_w("virtual stock")}</span>"}
+{$_templates["table_tooltip_feature"] = "<span class='icon size-14'>%visible_in_frontend%</span> <span class='icon size-12 text-light-grayer'><svg><use xlink:href=\"{$_sprite_url}#sitemap-slash\"></use></svg></span> %name% <span class=\"text-light-gray\">{_w("feature")}</span>"}
+{$_templates["table_tooltip_feature_sku"] = "<span class='icon size-14'>%visible_in_frontend%</span> <span class='icon size-12 text-gray'><svg><use xlink:href=\"{$_sprite_url}#sitemap\"></use></svg></span> %name% <span class=\"text-light-gray\">{_w("feature")}</span>"}
 {$_locales["column_categories_hint"] = _w("Extra static categories the product has been added to.")}
 {$_locales["column_sets_hint"] = _w("Static sets the product has been added to.")}
 
@@ -20,17 +20,17 @@
                 </template>
                 <template v-else>
                     <template v-if="is_virtual_stock">
-                        <span class="s-icon icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse_stroke'></use></svg></span>
+                        <span class="s-icon icon shift-up-1 text-light-gray"><svg><use xlink:href='{$_sprite_url}#warehouse_stroke'></use></svg></span>
                     </template>
                     <template v-else-if="is_stock">
-                        <span class="s-icon icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
+                        <span class="s-icon icon shift-up-1 text-light-gray"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
                     </template>
                     <template v-else-if="is_feature">
                         <template v-if="column_available_for_sku">
-                            <span class="s-icon icon shift-up-1 color-gray"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
+                            <span class="s-icon icon shift-up-1 text-gray"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
                         </template>
                         <template v-else>
-                            <span class="s-icon icon shift-up-1 color-gray-lighter"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
+                            <span class="s-icon icon shift-up-1 text-light-grayer"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
                         </template>
                     </template>
 

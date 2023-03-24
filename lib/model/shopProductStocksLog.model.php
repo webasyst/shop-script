@@ -25,24 +25,25 @@ class shopProductStocksLogModel extends waModel
 
     public static function getIcon($type)
     {
+        $isWA2 = wa()->whichUI() == '2.0';
         switch ($type) {
             case self::TYPE_PRODUCT:
-                $icon = '<i class="icon16 ss pencil-bw" title="'._w('Stock information was edited').'"></i>';
+                $icon = '<i class="'.($isWA2 ? 'fas fa-pencil-alt' : 'icon16 ss pencil-bw').'" title="'._w('Stock information was edited').'"></i>';
                 break;
             case self::TYPE_IMPORT:
-                $icon = '<i class="icon16 ss file-bw" title="'._w('Stock information was updated during bulk product import').'"></i>';
+                $icon = '<i class="'.($isWA2 ? 'fas fa-file-alt' : 'icon16 ss file-bw').'" title="'._w('Stock information was updated during bulk product import').'"></i>';
                 break;
             case self::TYPE_ORDER:
-                $icon = '<i class="icon16 ss cart-bw" title="'._w('Stock information was updated when processing an order').'"></i>';
+                $icon = '<i class="'.($isWA2 ? 'fas fa-shopping-cart' : 'icon16 ss cart-bw').'" title="'._w('Stock information was updated when processing an order').'"></i>';
                 break;
             case self::TYPE_STOCK:
-                $icon = '<i class="icon16 ss transfer-bw" title="'._w('Inventory transferred from one stock to another').'"></i>';
+                $icon = '<i class="'.($isWA2 ? 'fas fa-exchange-alt' : 'icon16 ss transfer-bw').'" title="'._w('Inventory transferred from one stock to another').'"></i>';
                 break;
             case self::TYPE_TRANSFER:
-                $icon = '<i class="icon16 ss transfer-bw" title="'._w('Inventory transferred to warehouse').'"></i>';
+                $icon = '<i class="'.($isWA2 ? 'fas fa-exchange-alt' : 'icon16 ss transfer-bw').'" title="'._w('Inventory transferred to warehouse').'"></i>';
                 break;
             default:
-                $icon = '<i class="icon16 ss pencil-bw" title="'._w('Unrecognized stock operation').'"></i>';
+                $icon = '<i class="'.($isWA2 ? 'fas fa-pencil-alt' : 'icon16 ss pencil-bw').'" title="'._w('Unrecognized stock operation').'"></i>';
                 break;
         }
         return $icon;

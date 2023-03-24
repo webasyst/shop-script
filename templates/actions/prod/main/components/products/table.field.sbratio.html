@@ -5,7 +5,7 @@
                 <div class="s-text" v-text="column_data.text_left_part"></div>
                 <div class="s-field-wrapper">
                     <template v-if="states.is_preview">
-                        <input class="s-field wa-small full-width is-number s-square-field" type="text" readonly
+                        <input class="s-field small full-width is-number s-square-field" type="text" readonly
                                v-bind:placeholder="placeholder"
                                v-bind:value="formatted_value"
                                v-on:click="togglePreview(false)">
@@ -18,7 +18,7 @@
                             v-bind:validate="'number'"
                             v-bind:fraction_size="8"
                             v-bind:required="required"
-                            v-bind:class="'s-field wa-small full-width is-number s-square-field'"
+                            v-bind:class="'s-field small full-width is-number s-square-field'"
                             v-on:blur="togglePreview(true)"
                             v-on:change="onChange"></component-input>
                     </template>

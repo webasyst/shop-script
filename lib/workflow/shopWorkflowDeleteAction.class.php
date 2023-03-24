@@ -79,14 +79,23 @@ class shopWorkflowDeleteAction extends shopWorkflowAction
                     'order_id' => $order_id,
                     'log_id'   => $data['id'],
                 ));
+                if ($order['paid_datetime']) {
+                    $order_log_params_model->insert([
+                        'name'     => 'paid_datetime',
+                        'value'    => $order['paid_datetime'],
+                        'order_id' => $order_id,
+                        'log_id'   => $data['id'],
+                    ]);
+                }
 
                 // Empty paid_date and update stats so that deleted orders do not affect reports
                 $this->order_model->updateById($order_id, array(
-                    'paid_date'    => null,
-                    'paid_year'    => null,
-                    'paid_month'   => null,
-                    'paid_quarter' => null,
-                    'auth_date'    => null,
+                    'paid_date'     => null,
+                    'paid_datetime' => null,
+                    'paid_year'     => null,
+                    'paid_month'    => null,
+                    'paid_quarter'  => null,
+                    'auth_date'     => null,
                 ));
                 $this->order_model->recalculateProductsTotalSales($order_id);
                 shopCustomer::recalculateTotalSpent($order['contact_id']);

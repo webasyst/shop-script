@@ -1,0 +1,54 @@
+<div class="field">
+    <div class="name">[`Send from`]</div>
+    <div class="value no-shift">
+        <select class="notification-from" name="params[from]">
+            <option value="" {if empty($params.from)}selected{/if}>{$default_email_from}</option>
+            <option value="other" {if !empty($params.from)}selected{/if}>[`Other email...`]</option>
+        </select>
+        {if !empty($params.from)}
+            <input type="text" name="from" value="{$params.from}">
+        {/if}
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`Send to`]</div>
+    <div class="value no-shift">
+        <select class="notification-to" name="params[to]">
+            {if empty($params.to)}<option selected value="unknown"></option>{/if}
+            {if !empty($params.to) && $params.to == 'unknown'}<option selected value="unknown"></option>{/if}
+            <option {if !empty($params.to) && $params.to == 'customer'}selected{/if} value="customer">[`Customer`]</option>
+            <option {if !empty($params.to) && $params.to == 'admin'}selected{/if} value="admin">[`Store admin`]</option>
+            <option {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin' && $params.to != 'unknown'}selected{/if} value="">[`Other...`]</option>
+        </select>
+        {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin' && $params.to != 'unknown'}
+            <input type="text" name="params[to]" value="{$params.to}" placeholder="[`Enter email address`]">
+        {/if}
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`Email subject`]</div>
+    <div class="value">
+        <input name="params[subject]" type="text" value="{if !empty($params.subject)}{$params.subject}{/if}" class="bold long subject">
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`Email body`]<br><span class="hint">HTML + Smarty</span></div>
+    <div class="value no-shift">
+        <textarea id="n-email-body" class="body" name="params[body]">{if !empty($params.body)}{$params.body}{/if}</textarea>
+        <div class="ace bordered">
+            <div id="n-email-body-container"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        wa_url = '{$wa_url}';
+        waEditorAceInit({
+            'prefix': 'n-send-',
+            'id': 'n-email-body',
+            'ace_editor_container': 'n-email-body-container'
+        });
+        $('#n-email-body').data('wa_editor', wa_editor);
+    });
+</script>

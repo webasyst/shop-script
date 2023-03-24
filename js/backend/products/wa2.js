@@ -2666,7 +2666,7 @@
 
         $(document).ajaxError(function(e, xhr, settings, exception) {
             // Ignore 502 error in background process
-            if (xhr.status === 502 && exception === 'abort' || (settings.url && settings.url.indexOf('background_process') >= 0) || (settings.data && settings.data.indexOf('background_process') >= 0)) {
+            if (xhr.status === 502 && exception === 'abort' || (settings.url && settings.url.indexOf('background_process') >= 0) || (settings.data && typeof settings.data === 'string' && settings.data.indexOf('background_process') >= 0)) {
                 console && console.error && console.error('Notice: XHR failed on load: '+ settings.url);
                 return true;
             }
@@ -2740,6 +2740,142 @@
     }
 
 })($);
+
+/**
+ * @description sidebar component
+ * @example /webasyst/ui/component/sidebar/
+ * */
+( function($) { "use strict";
+
+    var Sidebar = ( function($) {
+
+        Sidebar = function(options) {
+            // DOM
+            this.$window = $(window);
+            this.$document = $(document);
+            this.$wrapper = options["$wrapper"];
+            this.$toggler = this.$wrapper.find('.sidebar-mobile-toggle');
+
+            this.$sidebar_content = this.$toggler.siblings();
+
+            // VARS
+            this.is_open = options.is_open || false;
+            //that.direction = options.direction || 'down';
+
+            // CSS CLASSES
+            this.classes = {
+                active: '-active'
+            };
+
+            this.checkIsMobile();
+            this.bindEvents();
+        }
+
+        Sidebar.prototype.bindEvents = function() {
+            this.$toggler.on('click.sidebar touchstart.sidebar', $.proxy(this.toggleAction, this));
+            this.$document.on('wa_loaded.sidebar', $.proxy(this.toggleAction, this));
+            this.$window.on('resize.sidebar', $.proxy(this.checkIsMobile, this));
+            this.$wrapper.on('click.sidebar', $.proxy(this.toggleClass, this));
+        }
+
+        Sidebar.prototype.toggleAction = function(event) {
+            if (!this.is_mobile) {
+                return;
+            }
+
+            if (event) {
+                event.preventDefault();
+            }
+
+            this.is_open = !this.is_open;
+
+            window.scrollTo({
+                top:0,
+                behavior: 'smooth'
+            });
+
+            this.$toggler.siblings().each((i, el) => {
+                if (el.nodeName !== 'SCRIPT' && el.nodeName !== 'STYLE') {
+                    $(el).slideToggle(400, function () {
+                        const self = $(this);
+
+                        if (self.is(':hidden')) {
+                            self.css('display', '');
+                        }
+                    });
+                }
+            });
+
+            this.toggleClass();
+        }
+
+        Sidebar.prototype.checkIsMobile = function() {
+            this.is_mobile = this.$toggler.is(':visible');
+
+            if (!this.is_mobile || this.is_open) {
+                this.$toggler.siblings().each((i, el) => {
+                    if (el.nodeName !== 'SCRIPT' && el.nodeName !== 'STYLE') {
+                        $(el).show();
+                    }
+                });
+                this.toggleClass();
+            }
+        }
+
+        Sidebar.prototype.toggleClass = function() {
+            if (!this.is_mobile) {
+                return;
+            }
+
+            this.$wrapper.toggleClass(this.classes.active, this.is_open);
+        }
+
+        Sidebar.prototype.unbindEvents = function() {
+            this.$toggler.off('.sidebar');
+            this.$document.off('.sidebar');
+        }
+
+        Sidebar.prototype.destroy = function() {
+            this.unbindEvents();
+        }
+
+        return Sidebar;
+
+    })($);
+
+    const plugin_name = "sidebar";
+
+    $.fn.waShowSidebar = function(plugin_options) {
+        let return_instance = ( typeof plugin_options === "string" && plugin_options === plugin_name),
+            $items = this,
+            result = this;
+
+        plugin_options = ( typeof plugin_options === "object" ? plugin_options : {});
+
+        if (return_instance) { result = getInstance(); } else { init(); }
+
+        return result;
+
+        function init() {
+            $items.each( function(index, item) {
+                let $wrapper = $(item);
+
+                if (!$wrapper.data(plugin_name)) {
+                    let options = $.extend(true, plugin_options, {
+                        $wrapper: $wrapper
+                    });
+
+                    $wrapper.data(plugin_name, new Sidebar(options));
+                }
+            });
+        }
+
+        function getInstance() {
+            return $items.first().data(plugin_name);
+        }
+    };
+
+})(jQuery);
 
 var sourceLoader = function(sources, async) {
     async = (typeof async === "boolean" ? async : true);

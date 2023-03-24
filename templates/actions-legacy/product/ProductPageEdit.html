@@ -1,0 +1,204 @@
+<div class="s-page-editor">
+<form id="s-page-form" method="post" action="?module=product&action=pageSave{if $page}&id={$page.id}{/if}&product_id={$product_id}">
+    <div class="block s-page-gray-toolbar">
+        {if $page}
+        <div class="float-right ie-menu-h-fix">
+            <ul class="menu-h">
+                <li><a href="javascript:void(0);" class="inline-link" id="s-page-settings-toggle"><i class="icon16 edit"></i><b><i>[`Page settings`]</i></b></a></li>
+                <li><a class="s-page-delete" href="?module=product&action=PageDelete"><i class="icon16 delete"></i>[`Delete`]</a></li>
+            </ul>
+        </div>
+        {/if}
+        <div class="js-product-page-name">
+            <h2>{if $page}{$page.name|escape}{if $page.status == shopProductPagesModel::STATUS_DRAFT} <span class="s-page-draft">[`draft`]</span>{/if}{else}[`New page`]{/if}</h2>
+            <div class="s-page-urls small">
+                {if $page}
+                    {if !empty($url)}
+                        <a href="{$url}/{$page.url|escape}{if !$page.status}?preview={$preview_hash}{/if}" title="[`Preview`]" target="_blank">{$url}/{$page.url|escape}/</a>
+                        <a href="{$url}/{$page.url|escape}{if !$page.status}?preview={$preview_hash}{/if}" target="_blank"><i class="icon10 new-window"></i></a>
+                    {/if}
+                {/if}
+                <br />
+            </div>
+        </div>
+        <div id="s-page-settings" style="{if $page}display: none;{/if}">
+            <div class="fields form">
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name bold">[`Page name`]</div>
+                        <div class="value">
+                            <input type="text" class="bold large" name="info[name]" value="{if $page}{$page.name|escape}{/if}" />
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="value s-ibutton-checkbox">
+                            <ul class="menu-h">
+                                <li><span id="s-page-v-open-label" class="s-page-gray">[s`Draft`]</span></li>
+                                <li><input type="checkbox" id="s-page-v" name="info[status]" {if !$page || $page.status == shopProductPagesModel::STATUS_PUBLISHED}checked="checked"{/if} /></li>
+                                <li><span id="s-page-v-private-label">[s`Published`]</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="field s-page-url">
+                        <div class="name bold">[`Page URL`]</div>
+                        <div class="value s-page-app-url">
+                            <input type="text" name="info[url]" class="bold" value="{if $page}{$page.url|escape}{/if}" />
+                        </div>
+                        <div class="value small s-page-app-url">
+                            <span>{if !empty($url)}{$url|escape}/{/if}<span class="s-page-url-part">{if $page}{$page.url|escape}/{/if}</span></span>
+                        </div>
+                    </div>
+                </div>
+                {if !$page || !$page.id}
+                <a id="s-page-advanced-params-link" href="#" class="hint inline-link"><b><i>[s`more`]</i></b><i class="icon10 darr"></i></a>
+                <div id="s-page-advanced-params" style="display:none">
+                {/if}
+                    <div class="field-group">
+                        <div class="field">
+                            <div class="name"><strong class="title">[`Title`]</strong></div>
+                            <div class="value"><input type="text" name="info[title]" value="{if $page}{$page.title|escape}{/if}" class="bold long" placeholder="{if $page}{$page.name|escape}{/if}" /></div>
+                        </div>
+                        <div class="field">
+                            <div class="name">[`META Keywords`]</div>
+                            <div class="value"><textarea name="info[keywords]">{if !empty($page.keywords)}{$page.keywords|escape}{/if}</textarea></div>
+                        </div>
+                        <div class="field">
+                            <div class="name">[`META Description`]</div>
+                            <div class="value"><textarea name="info[description]">{if !empty($page.description)}{$page.description|escape}{/if}</textarea></div>
+                        </div>
+                    </div>
+                {if !$page || !$page.id}
+                </div>
+                <script type="text/javascript">
+                    $("#s-page-advanced-params-link").click(function () {
+                        $("#s-page-advanced-params").show();
+                        $(this).remove();
+                        return false;
+                    });
+                </script>
+                {/if}
+            </div>
+            <br clear="left" />
+        </div>
+    </div>
+    <div class="wa-editor-core-wrapper s-editor-core-wrapper">
+        <ul class="wa-editor-wysiwyg-html-toggle s-wysiwyg-html-toggle">
+            <li class="selected"><a class="wysiwyg" href="#">[s`WYSIWYG`]</a></li>
+            <li><a class="html" href="#">HTML</a></li>
+        </ul>
+        <div>
+            <textarea style="display:none" id="s-page-content" name="info[content]">{if $page}{$page.content|escape}{/if}</textarea>
+            <div class="wa-editor-upload-img hidden" title="[`Upload image`]">
+                <i class="icon16 image"></i>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="dialog" id="s-upload-dialog">
+    <div class="dialog-background"> </div>
+    <div class="dialog-window" style="height: 225px; min-height: 225px; width: 450px; min-width: 450px">
+        <form id="s-upload-form" method="post" action="?module=pages&action=uploadimage&r=2" enctype="multipart/form-data">
+            {$wa->csrf()}
+            <div class="dialog-content">
+                <div class="dialog-content-indent">
+                    <h2>[`Upload image`]</h2>
+                    <div id="redactor-droparea" style="text-align: center;">
+                        <input id="s-input-file" type="file" name="file" multiple>
+                        <input type="hidden" name="path" id="s-upload-path" value="" />
+                        <div class="loading" style="display:none; margin-top: 10px">
+                            <i class="icon16 loading"></i> [`Uploading...`]
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <div class="dialog-buttons-gradient">
+                    <input type="submit" class="button green" value="[`Upload`]">
+                    [`or`] <a href="#" class="inline-link cancel"><b><i>[`cancel`]</i></b></a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+
+        $('#s-page-content').waEditor({
+            lang: "{$lang}",
+            smarty_wysiwyg_msg: {_ws('WYSIWYG editor is disabled because page source contains Smarty code tags.')|json_encode},
+            modification_wysiwyg_msg: {_ws('WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?')|json_encode},
+            toolbarFixedTopOffset: $('#mainmenu').length ? $('#mainmenu').height() : 0,
+            upload_img_dialog: '#s-upload-dialog',
+            saveButton: $('#s-product-save-button'),
+            callbacks: {
+                change: function() {
+                    $('#s-product-save-button').addClass('yellow');
+                    $('#s-page-content').waEditor('sync');
+                }
+            }
+        });
+
+        var page_settings_container = $('#s-page-settings');
+
+        var iButtonInit = function () {
+            $("#s-page-v").iButton({
+                labelOn: "",
+                labelOff: "",
+                classContainer: 'ibutton-container mini'
+            });
+        };
+        if (page_settings_container.is(":visible")) {
+            setTimeout(iButtonInit, 200);
+        } else {
+            $("#s-page-settings-toggle").one('click', function () {
+                setTimeout(iButtonInit, 100);
+                return false;
+            });
+        }
+        $('#s-page-settings-toggle').click(function(){
+            $('#s-page-settings').toggle();
+            return false;
+        });
+
+        var status_check = function(item){
+            if ($(item).is(':checked')) {
+                $('#s-page-v-open-label').addClass('s-page-gray');
+                $('#s-page-v-private-label').removeClass('s-page-gray');
+            }
+            else {
+                $('#s-page-v-open-label').removeClass('s-page-gray');
+                $('#s-page-v-private-label').addClass('s-page-gray');
+            }
+        };
+        status_check($('#s-page-v'));
+        $('#s-page-v').change(function(){
+            $('#s-page-button').removeClass('green').addClass('yellow');
+            status_check(this);
+        });
+
+        var url_input = page_settings_container.find('input[name="info[url]"]');
+        url_input.keyup(function() {
+            var val = url_input.val().replace(/(\/+)$/, '');
+            page_settings_container.find('.s-page-url-part').text(val + '/');
+        });
+
+        {if !$page || !$page.id}
+            page_settings_container.find('input:first').focus();
+            page_settings_container.find('input[name="info[name]"]').blur(function () {
+                if ($(this).val() && !url_input.val()) {
+                    $.getJSON("?action=transliterate&str="+$(this).val(), function (r) {
+                        if (!url_input.val()) {
+                            url_input.val(r.data);
+                            url_input.trigger('keyup');
+                        }
+                    });
+                }
+            });
+        {/if}
+    });
+</script>
+
+<div class="clear"></div>
+</div>

@@ -46,6 +46,7 @@ class shopInstallerEnd_installationHandler extends waEventHandler
 
             if (
                 !$compatibility
+                && isset($data['type'])
                 && (shopFrac::isEnabled() || shopUnits::isEnabled())
             ) {
                 /**

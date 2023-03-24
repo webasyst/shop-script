@@ -76,9 +76,9 @@
                     return false;
                 }
                 var count = $table.children().length;
-                $load_more_link.append('<i class="icon16 loading"></i>');
+                $spinner = $load_more_link.append('<span class="box loading"><i class="fas fa-spinner fa-spin"></i></span>');
                 $.post('?module=marketingCostRows', { start: count }, function(r) {
-                    $load_more_link.find('.loading').remove();
+                    $spinner.remove();
                     $table.append($.parseHTML(r));
                     updatePeriods();
                     if ($table.children().length === count) {
@@ -92,7 +92,7 @@
             // Helper to load HTML for expense editor
             var editor_xhr = null;
             function showEditor(expense_id) {
-                $editor_wrapper.show().html('<div class="block"><i class="icon16 loading"></i></div>');
+                $editor_wrapper.show().html('<div class="box"><i class="fas fa-spinner fa-spin"></i></div>');
 
                 if (editor_xhr) {
                     editor_xhr.abort();
@@ -162,9 +162,9 @@
             var that = this;
 
             var $section = that.$wrapper.find(".js-timeframe-filter"),
-                $custom = $section.find(".js-timeframe-custom");
+                $custom = $section.prev(".js-timeframe-custom");
 
-            initDatePickers($section);
+            initDatePickers($custom);
 
             $custom.on("submit", "form", function(event) {
                 event.preventDefault();
@@ -189,7 +189,7 @@
                     $section.find(".js-active-name").text(name);
 
                     // hide menu
-                    var $list = $link.closest(".menu-v");
+                    var $list = $link.closest(".menu");
                     $list.hide();
                     setTimeout( function() {
                         $list.removeAttr("style");
@@ -231,12 +231,12 @@
             var that = this;
 
             if (!d3) {
-                console.log("D3 is required");
+                console.error("D3 is required");
                 return false;
             }
 
             if (!that.chart_data) {
-                console.log("Chart data is required");
+                console.error("Chart data is required");
                 return false;
             }
 
@@ -246,7 +246,7 @@
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
                     clearTimeout(resize_timer);
-                    setTimeout( function () {
+                    resize_timer = setTimeout( function () {
                         renderChart(that.chart_data, "reload");
                     }, 100);
 
@@ -255,17 +255,15 @@
                 }
             }
 
-            // INIT
-            return renderChart(that.chart_data);
+            renderChart(that.chart_data);
 
-            // CONSTRUCTOR
             function renderChart(dataset, type) {
                 var groups,rect_ornament,rect;
 
                 var storage = {
                     wrapper: that.$wrapper.find(".s-graph-wrapper"),
                     hint_wrapper: that.$wrapper.find(".s-hint-wrapper"),
-                    document_width: false,
+                    hint_width: false,
                     padding: {
                         top: 8,
                         bottom: 28,
@@ -351,54 +349,6 @@
                     }
                 };
 
-                //costs-wrapper
-                var data_count = dataset[0].data.length;
-
-                //Set up stack method
-                var stack = d3.layout.stack();
-
-                //Data, stacked
-                stack( d3.range(dataset.length).map( function(d) {
-                    var data = dataset[d].data;
-                    return d3.range(data.length).map( function(d) {
-                        return data[d];
-                    });
-                }));
-
-                var first_data = dataset[0].data,
-                    xMin = first_data[0].time,
-                    xMax = first_data[first_data.length-1].time,
-                    yMax = d3.max(dataset, function(d) {
-                        d = d.data;
-                        return d3.max(d, function(d) {
-                            return d.y0 + d.y;
-                        });
-                    });
-
-                xMin -= (xMax - xMin)/(9 * 5);
-                xMax += (xMax - xMin)/(9);
-                yMax += yMax/9;
-
-                //Set up scales
-                var xScale = d3.time.scale()
-                    .domain([new Date(xMin),new Date(xMax)])
-                    .rangeRound([0, storage.getInnerWidth()]);
-
-                var yScale = d3.scale.linear()
-                    .domain([0,yMax])
-                    .range([storage.getInnerHeight(),0]);
-
-                var xAxis = d3.svg.axis()
-                    .scale(xScale)
-                    .orient("bottom")
-                    .ticks(storage.xTicks);
-
-                var yAxis = d3.svg.axis()
-                    .scale(yScale)
-                    .innerTickSize(2)
-                    .orient("right")
-                    .ticks(storage.yTicks);
-
                 if ( type && type === "refresh" ) {
                     svg = d3.select( storage.wrapper.find("svg")[0] );
 
@@ -460,16 +410,6 @@
                                 .attr("y2", yVal)
                             ;
                         }
-
-                        //for ( i = 0; i <= xTicks; i++) {
-                        //    var xVal = 1 + (width - 2) / xTicks * i;
-                        //    background.append("line")
-                        //        .attr("x1", xVal)
-                        //        .attr("x2", xVal)
-                        //        .attr("y1", 1)
-                        //        .attr("y2", height)
-                        //    ;
-                        //}
                     })(storage, svg);
 
                     // Render Осей
@@ -483,12 +423,67 @@
 
                 }
 
+                //costs-wrapper
+                var data_count = dataset[0].data.length;
+
+                //Set up stack method
+                var stack = d3.layout.stack();
+
+                //Data, stacked
+                stack( d3.range(dataset.length).map( function(d) {
+                    var data = dataset[d].data;
+                    return d3.range(data.length).map( function(d) {
+                        return data[d];
+                    });
+                }));
+
+                var first_data = dataset[0].data,
+                    xMin = first_data[0].time,
+                    xMax = first_data[first_data.length-1].time,
+                    yMax = d3.max(dataset, function(d) {
+                        d = d.data;
+                        return d3.max(d, function(d) {
+                            return d.y0 + d.y;
+                        });
+                    });
+
+                xMin -= (xMax - xMin)/(9 * 5);
+                xMax += (xMax - xMin)/(9);
+                yMax += yMax/9;
+
+                //Set up scales
+                var xScale = d3.time.scale()
+                    .domain([new Date(xMin),new Date(xMax)])
+                    .rangeRound([0, storage.getInnerWidth()]);
+
+                var yScale = d3.scale.linear()
+                    .domain([0,yMax])
+                    .range([storage.getInnerHeight(),0]);
+
+                var xAxis = d3.svg.axis()
+                    .scale(xScale)
+                    .orient("bottom")
+                    .ticks(storage.xTicks);
+
+                var yAxis = d3.svg.axis()
+                    .scale(yScale)
+                    .innerTickSize(2)
+                    .orient("right")
+                    .ticks(storage.yTicks);
+
                 // Render Осей
                 var $x = svg.select(".x.axis"),
                     $y = svg.select(".y.axis");
 
                 $x.call(xAxis);
                 $y.call(yAxis);
+
+                var yFirst = $y.select(".tick:first-child");
+                var yFirstTranslateXY = yFirst.attr("transform").match(new RegExp('(\\d+),(\\d+)'));
+                var yFirstPosX = parseFloat(yFirstTranslateXY[1]) - 6;
+                var yFirstPosY = parseFloat(yFirstTranslateXY[2]) - 8;
+
+                yFirst.attr("transform","translate(" + yFirstPosX + "," + yFirstPosY + ")");
 
                 // RENDERING RECT
                 //UPDATE GROUP
@@ -664,28 +659,27 @@
                 };
 
                 var getHintPosition = function(event) {
-                    var margin = {
-                        top: - parseInt( $("#maincontent").css("margin-top")) - 32,
-                        left: 24
+                    var offsetHint = {
+                        y: 40,
+                        x: 20
                     };
+                    var $wrapper_graph = $('#costs_graph'),
+                        rectGraph = $wrapper_graph[0].getBoundingClientRect();
+                        hint_left = event.clientX - rectGraph.left + offsetHint.x + 5,
+                        hint_right = "auto";
 
-                    var mouse_left = event.pageX,
-                        hint_left = mouse_left + margin.left,
-                        hint_right = "auto",
-                        hint_width = 200;
-
-                    // set document width
-                    if (!storage.document_width) {
-                        storage.document_width = $(document).width();
+                    // set hint width
+                    if (!storage.hint_width) {
+                        storage.hint_width = $wrapper_graph.find('.s-hint-wrapper').width();
                     }
 
-                    // Check mouse place
-                    if (mouse_left >= (storage.document_width - hint_width)) {
+                    if (event.clientX >= rectGraph.right - storage.hint_width * 1.7) {
+                        hint_right = rectGraph.right - event.clientX  + offsetHint.x;
                         hint_left = "auto";
-                        hint_right = storage.document_width - mouse_left + margin.left
                     }
+
                     return {
-                        top: event.pageY + margin.top,
+                        top: event.clientY - rectGraph.top + offsetHint.y,
                         left: hint_left,
                         right: hint_right
                     }
@@ -700,10 +694,11 @@
 
             var $form = $wrapper.children('form');
             var $button = $form.find(':submit:first');
-            var $channel_selector = $wrapper.find('select.channel-selector');
-            var $channel_input_text = $channel_selector.parent().find('input[name="expense[name]"]');
-            var $channel_input_hidden = $channel_selector.parent().find('input[name="expense[type]"]');
-            var $channel_input_color = $channel_selector.parent().find('input[name="expense[color]"]');
+            var $channel_wrapper = $('#channel_controls')
+            var $channel_selector = $channel_wrapper.find('select.channel-selector');
+            var $channel_input_text = $channel_wrapper.find('input[name="expense[name]"]');
+            var $channel_input_hidden = $channel_wrapper.find('input[name="expense[type]"]');
+            var $channel_input_color = $channel_wrapper.find('input[name="expense[color]"]');
             var $period_radios = $wrapper.find('input[name="expense_period_type"]');
             var expense_id = $form.find('[name="expense_id"]').val();
 
@@ -724,11 +719,21 @@
                 })();
             }
 
+            function formChanged(change = true) {
+                if (change) {
+                    $button.addClass('yellow').removeClass('green');
+                } else {
+                    $button.addClass('green').removeClass('yellow');
+                }
+            }
+
+            $form.on("input change", ":input", formChanged);
+
             // Clear error messages when user modifies something
-            $form.on('change keyup', '.error', function() {
+            $form.on('change keyup', '.state-error', function() {
                 var $field = $(this).closest('.field');
-                $field.find('.errormsg').remove();
-                $field.find('.error').removeClass('error');
+                $field.find('.state-error-hint').remove();
+                $field.find('.state-error').removeClass('state-error');
                 return true;
             });
 
@@ -745,23 +750,23 @@
             // Open colorpicker when user clicks on its icon
             var setColor = (function() { "use strict";
                 var $colorpicker_wrapper = $wrapper.find('.js-colorpicker');
-                var $icon = $colorpicker_wrapper.closest('.value').find('i.icon16.color');
-                var $hiden = $channel_input_color;
+                var $icon = $colorpicker_wrapper.closest('.value').find('.js-color');
 
                 var farbtastic = $.farbtastic($colorpicker_wrapper, setColor);
+                $colorpicker_wrapper.on('click', formChanged);
+
+                function setColor(color) {
+                    $channel_input_color.val(color);
+                    $icon.css('color', color);
+                    farbtastic.setColor(color);
+                    $channel_selector.children(':selected').data('color', color);
+                }
 
                 $icon.css('cursor', 'pointer').click(function() {
                     $colorpicker_wrapper.slideToggle();
                 });
 
                 return setColor;
-
-                function setColor(color) {
-                    $hiden.val(color);
-                    $icon.css('background', color);
-                    farbtastic.setColor(color);
-                    $channel_selector.children(':selected').data('color', color);
-                }
             })();
 
             // Show/hide form elements depending on radios, etc.
@@ -783,15 +788,22 @@
             $wrapper.on("click", ".js-delete-expense-link", function(event) {
                 event.preventDefault();
 
-                if (confirm(that.locales["confirm"])) {
-                    $.post('?module=marketingCostDelete', { expense_id: expense_id }, function() {
-                        setTimeout(function() {
-                            $wrapper.remove();
-                        }, 0);
+                $.waDialog.confirm({
+                    title: that.locales["confirm"],
+                    success_button_title: $_('Delete'),
+                    success_button_class: 'danger',
+                    cancel_button_title: $_('Cancel'),
+                    cancel_button_class: 'light-gray',
+                    onSuccess: function() {
+                        $.post('?module=marketingCostDelete', { expense_id: expense_id }, function() {
+                            setTimeout(function() {
+                                $wrapper.remove();
+                            }, 0);
 
-                        $.shop.marketing.content.reload();
-                    });
-                }
+                            $.shop.marketing.content.reload();
+                        });
+                    }
+                });
             });
 
             var is_locked = false;
@@ -799,22 +811,24 @@
             $form.on("submit", function(event) {
                 clearErrors($form);
                 event.preventDefault();
-                var $loading = $('<i class="icon16 loading"></i>').insertAfter($button);
+
                 if (!is_locked) {
-                    is_locked = true;
                     $button.attr("disabled", true);
+                    $button.append('<i class="custom-ml-4 fas fa-spinner fa-spin loading">');
+                    is_locked = true;
                     var form_data = $form.serialize();
+                    formChanged(false);
                     $.post($form.attr("action"), form_data)
                         .always( function() {
                             is_locked = false;
                             $button.attr("disabled", false);
+                            $button.find('.loading').remove();
                         })
                         .done( function(response) {
                             if (response.status === "ok") {
-                                $loading.removeClass("loading").addClass("yes").after("<span>"+ that.locales["saved"] +"</span>");
+                                $button.after('<i class="fas fa-check-circle text-green custom-mr-4"></i><span>'+ that.locales["saved"] +'</span>');
                                 $.shop.marketing.content.reload();
                             } else if (response.errors) {
-                                $loading.remove();
                                 renderErrors(response.errors);
                             }
                         });
@@ -822,8 +836,8 @@
             });
 
             function clearErrors($field_wrapper) {
-                $field_wrapper.find('.errormsg').remove();
-                $field_wrapper.find('.error').removeClass('error');
+                $field_wrapper.find('.state-error-hint').remove();
+                $field_wrapper.find('.state-error').removeClass('state-error');
             }
 
             function renderErrors(errors) {
@@ -837,8 +851,8 @@
                 });
 
                 function renderError(error, $field) {
-                    var $error = $('<em class="errormsg"></em>').text(error.text);
-                    var error_class = "error";
+                    var $error = $('<div class="state-error-hint"></div>').text(error.text);
+                    var error_class = "state-error";
 
                     if (!$field.hasClass(error_class)) {
                         $field.on("change keyup", removeFieldError).addClass(error_class).closest('.value').append($error);
@@ -889,5 +903,3 @@
     };
 
 })(jQuery);
-
-

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>{$wa->appName()}{if !empty($order)} &mdash; {$wa->shop->orderId($order.id)}{/if}</title>
+
+    {* CSS *}
+    {$wa->css()}
+    <link href="{$wa_app_static_url}css-legacy/shop.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
+
+    {* JS *}
+    <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
+    <script src="{$wa_url}wa-content/js/jquery/jquery-migrate-1.2.1.min.js"></script>
+</head>
+<body>
+
+<div class="s-printable block double-padded">
+    {if !empty($order)}
+        <div class="s-order">
+            <div class="s-split-order-wrapper">
+                <div class="s-split-order-block">
+
+                    {* CONTENT *}
+                    <div class="s-split-order-content">
+
+                        {* TITLE *}
+                        <h1 id="s-order-title">
+                            {$wa->shop->orderId($order.id)}
+
+                            {if $order.state}
+                                <span class="small" style="font-size: 16px; margin-left: 10px; position: relative; top: -2px; {$order.state->getStyle()}">
+                                    <i class="{$order.state->getOption('icon')}" style="margin-top: 9px;"></i><span style="margin-right: 10px;">{$order.state->getName()|escape}</span>
+                                    {if $last_action_datetime}
+                                        <em class="hint nowrap s-print-only">{$last_action_datetime|wa_datetime:'datetime'}</em>
+                                    {/if}
+                                </span>
+                            {else}
+                                [`Unknown state`]: {$order.state_id}
+                            {/if}
+                        </h1>
+
+                        {* CUSTOMER INFO *}
+                        <div class="profile image50px">
+                            <div class="image">
+                                {if $order.contact.id|default:'0'}
+                                    <a href="?action=customers#/id/{$order.contact.id|default:'0'}">
+                                        <img src="{$order.contact.photo_50x50}" class="userpic" />
+                                    </a>
+                                {else}
+                                    <img src="{$order.contact.photo_50x50}" class="userpic" />
+                                {/if}
+                            </div>
+                            <div class="details">
+                                {$customers_rights = $wa->userRights('customers')}
+                                <h3>
+                                    {if $customers_rights && $order.contact.id|default:'0'}
+                                        <a href="?action=customers#/id/{$order.contact.id|default:'0'}" {if !$order.contact.name} class="gray"{/if}>
+                                            {$order.contact.name|default:'[`(no name)`]'}
+                                        </a>
+                                    {else}
+                                        {$order.contact.name|default:'[`(no name)`]'}
+                                        {if !$order.contact.id|default:'0'} <span class="hint">[`deleted`]</span>{/if}
+                                    {/if}
+                                    {if $order.contact.registered|default:false}
+                                        <i class="icon10 lock" title="[`Registered customer`]"></i>
+                                    {/if}
+                                    {if $customer.number_of_orders == 1}
+                                        <em class="hint">[`New customer`]</em>
+                                    {else}
+                                        <em class="hint">{_w('%d order', '%d orders', $customer.number_of_orders)}</em>
+                                    {/if}
+                                </h3>
+
+                                <ul class="menu-v with-icons compact">
+
+                                    {if $main_contact_info}
+                                        {foreach $main_contact_info as $top_field}
+                                            {if !empty($top_field.all_values)}
+                                                {foreach $top_field.all_values as $_value}
+                                                    <li>
+                                                        {if $top_field.id !== 'im'}
+                                                            <i class="icon16 {$top_field.id}{if $_value.is_confirmed}-confirmed ss{/if}" {if $_value.is_confirmed}title="[`Confirmed`]"{/if}></i>
+                                                        {/if}
+                                                        {$_value.formatted}
+                                                    </li>
+                                                {/foreach}
+                                            {/if}
+                                        {/foreach}
+                                    {/if}
+
+                                    <!-- plugin hook: 'backend_order_print.info_section' -->
+                                    {* @event backend_order_print.%plugin_id%.info_section *}
+                                    {if !empty($backend_order_print)}
+                                        {foreach $backend_order_print as $_}
+                                            <li>{if (!empty($_.info_section))}{$_.info_section}{/if}</li>
+                                        {/foreach}
+                                    {/if}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="clear-right"></div>
+
+                        {* SHIPPING *}
+                        {if ($shipping_address) || !empty($params.shipping_name)}
+                            <h3><span class="gray">[`Shipping`]{if !empty($params.shipping_name)} —{/if}</span> <strong>{ifset($params.shipping_name)}</strong></h3>
+                            {if $shipping_address}
+                                <p class="s-order-address">
+                                    {$shipping_address}
+                                </p>
+                                {if !empty($shipping_custom_fields)}
+                                    <p class="s-order-shipping-custom-fields">
+                                        {foreach $shipping_custom_fields as $f}
+                                            {$f.title}: {$f.value|escape}<br>
+                                        {/foreach}
+                                    </p>
+                                {/if}
+                                {if $customer_delivery_date || $customer_delivery_date_str}
+                                    <p class="s-order-customer-delivery-date{if !empty($shipping_date)} grey{/if}">
+                                        [`Preferred shipping time:`]
+                                        {if $customer_delivery_date}
+                                            <span class="customer-delivery-date">{wa_date('date', $customer_delivery_date, waDateTime::getDefaultTimezone())|escape}</span>
+                                        {elseif $customer_delivery_date_str}
+                                            <span>{$customer_delivery_date_str|escape}</span>
+                                        {/if}
+                                        {if $customer_delivery_time}
+                                            {if $customer_delivery_date}
+                                                &nbsp;
+                                            {/if}
+                                            <span class="customer-delivery-time-from">{$customer_delivery_time.from_hours|escape}:{$customer_delivery_time.from_minutes|escape}</span>
+                                            -
+                                            <span class="customer-delivery-time-to">{$customer_delivery_time.to_hours|escape}:{$customer_delivery_time.to_minutes|escape}</span>
+                                        {/if}
+                                    </p>
+                                {/if}
+
+                                {if !empty($courier)}
+                                    <!-- Courier -->
+                                    <h3>
+                                        <span class="gray">[`Courier`] —</span> <a href="#/orders/search/params.courier_id={$courier.id}/" class="bold highlighted">{$courier.name|escape}</a>
+                                    </h3>
+                                {/if}
+
+                                {strip}
+                                    {$edit_shipping_details_available = false}
+                                    {if !empty($order.state)}
+                                        {$available_actions = $order.state->getActions()}
+                                        {$edit_shipping_details_available = !empty($available_actions.editshippingdetails)}
+                                    {/if}
+                                    {if $edit_shipping_details_available || !empty($shipping_date)}
+                                        <p style="padding-left: 20px;">
+                                            {if !empty($shipping_date)}
+                                                [`Shipping time`]: {wa_date('date', $shipping_date, waDateTime::getDefaultTimezone())|escape} {$shipping_time_start|escape} - {$shipping_time_end|escape}
+                                                {if !empty($order.state)}<br>{/if}
+                                            {/if}
+                                        </p>
+                                    {/if}
+                                {/strip}
+                            {/if}
+
+                            <!-- shipping plugin output -->
+                            {if !empty($params.tracking_number)}
+                                <h3>
+                                    <span class="gray">[`Shipment tracking number`] —</span> <strong class="highlighted">{$params.tracking_number|escape}</strong>
+                                </h3>
+                            {/if}
+                            {if !empty($tracking) && $order.state_id != 'completed'}
+                                <blockquote class="plugin s-tracking">
+                                    {$tracking}
+                                </blockquote>
+                            {/if}
+                        {/if}
+
+                        {* PAYMENT *}
+                        {if !empty($params.payment_name)}
+                            <h3><span class="gray">[`Payment`] —</span> <strong>{$params.payment_name}</strong></h3>
+                            {if $billing_address !== null}
+                                <p class="s-order-address">{$billing_address}</p>
+                            {/if}
+                        {/if}
+
+                        <div class="clear-right"></div>
+                    </div>
+
+                    {* SIDEBAR *}
+                    <div class="s-split-order-sidebar s-order-aux">
+
+                        {* BUTTON *}
+                        <div class="block half-padded s-printable-print-button align-center">
+                            <input type="button" value="[`Print`]" onClick="window.print();">
+                        </div>
+
+                        {* PAID BADGE *}
+                        {if !empty($order.paid_date)}
+                            <div class="s-paid-order-stamp" title="{sprintf('[`Order was paid on %s`]', $order.paid_date|wa_date:'humandate')}"><div class="s-stamp-inner"></div><span>[`Paid`]</span></div>
+                        {elseif !empty($order.auth_date)}
+                            <div class="s-paid-order-stamp" title="{sprintf('[`Payment was authorized on %s`]', $order.auth_date|wa_date:'humandate')}"><div class="s-stamp-inner"></div><span>[`Payment authorized`]</span></div>
+                        {/if}
+
+                        {* MAP *}
+                        {if $shipping_address}
+                            <div class="s-order-aux">{$map}</div>
+                        {/if}
+                    </div>
+                </div>
+
+                {* ORDER COMMENT *}
+                {if $order.comment}
+                    <pre class="block double-padded s-order-comment">{$order.comment|escape}</pre>
+                {/if}
+
+                {* ORDER CONTENT *}
+                <table id="s-order-items" class="light s-order-readable">
+                    {if $order.items}
+                        <tr>
+                            <th colspan="2"></th>
+                            <th class="align-right">[`Qty`]</th>
+                            <th class="align-right">[`Total`]</th>
+                        </tr>
+
+                        {$subtotal = 0}
+                        {foreach $order.items as $item}
+                            <tr data-id="{$item.id}" {if $item.type == 'service'} class="small"{/if}>
+                                <td class="min-width valign-top">
+                                    {if $item.type != 'service'}
+                                        {if !empty($item.image_id)}
+                                            {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48')}
+                                        {else}
+                                            <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">
+                                        {/if}
+                                    {/if}
+                                </td>
+                                <td>
+                                    {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
+                                    <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name|escape}</a>
+                                    {if isset($item.sku_code)}
+                                        <br><span class="hint">{$item.sku_code|escape}</span>
+                                    {/if}
+
+                                    {if !empty($item.stock)}
+                                        <br><span class="small">@{$item.stock.name|escape}</span>
+                                    {/if}
+                                    {if !empty($item.stock_icon)}
+                                        <br>{$item.stock_icon}
+                                    {/if}
+                                </td>
+                                <td class="align-right nowrap"><span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
+                                <td class="align-right nowrap">{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
+                            </tr>
+                            {$subtotal = $subtotal + $item.price*$item.quantity}
+                        {/foreach}
+                        <tr class="no-border">
+                            <td colspan="2"></td>
+                            <td class="align-right"><br>[`Subtotal`]</td>
+                            <td class="align-right nowrap"><br>{wa_currency_html($subtotal, $order.currency)}</td>
+                        </tr>
+                    {else}
+                        <tr>
+                            <td colspan="4" class="s-empty-order-note">[`Order content is unknown`]</td>
+                        </tr>
+                    {/if}
+                    <tr class="no-border">
+                        <td colspan="2"></td>
+                        <td class="align-right">
+                            [`Discount`]
+                            {if !empty($order.coupon)}
+                                <a href="{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/"><i class="icon16 ss coupon"></i><strong>{$order.coupon.code|escape}</strong></a>
+                            {/if}
+                        </td>
+                        <td class="align-right nowrap">&minus; {wa_currency_html($order.discount, $order.currency)}</td>
+                    </tr>
+                    {if isset($params.shipping_name) || $order.shipping > 0}
+                        <tr class="no-border">
+                            <td colspan="2"></td>
+                            <td class="align-right">[`Shipping`]</td>
+                            <td class="align-right nowrap">{wa_currency_html($order.shipping, $order.currency)}</td>
+                        </tr>
+                    {/if}
+                    <tr class="no-border">
+                        <td colspan="2"></td>
+                        <td class="align-right">[`Tax`]</td>
+                        <td class="align-right nowrap">{wa_currency_html($order.tax, $order.currency)}</td>
+                    </tr>
+                    <tr class="no-border bold large" style="font-size: 150%;">
+                        <td colspan="2"></td>
+                        <td class="align-right">[`Total`]</td>
+                        <td class="align-right nowrap">{wa_currency_html($order.total, $order.currency)}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    {/if}
+</div>
+
+</body>
+</html>

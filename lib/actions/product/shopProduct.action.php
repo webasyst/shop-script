@@ -4,7 +4,6 @@ class shopProductAction extends waViewAction
 {
     public function execute()
     {
-        $force_old = !!waRequest::get('force-old');
         $product = new shopProduct(waRequest::get('id', 0, waRequest::TYPE_INT), [
             'format_fractional_values' => true,
         ]);
@@ -184,12 +183,6 @@ class shopProductAction extends waViewAction
 
         $product_model = new shopProductModel();
         $this->view->assign('storefront_map', $product_model->getStorefrontMap($product->id));
-
-        /** раздел по умолчанию */
-        $default_chapter = $curr_user->getSettings('shop', 'default_chapter');
-        if (empty($default_chapter) || true === $force_old) {
-            $curr_user->setSettings('shop', 'default_chapter', 'old_chapter');
-        }
 
         /**
          * Backend product profile page

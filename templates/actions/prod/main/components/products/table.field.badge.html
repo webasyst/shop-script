@@ -33,10 +33,10 @@
                 <component-textarea
                     v-model="column_data.value"
                     v-bind:focus="true"
-                    v-bind:class="'wa-small wide'"></component-textarea>
+                    v-bind:class="'small wide'"></component-textarea>
 
                 <div class="s-code-wrapper">
-                    <div class="wa-message wa-small white flexbox space-8">
+                    <div class="wa-message small white flexbox space-8">
                         <div class="message-icon">
                             <i class="fas fa-info-circle"></i>
                         </div>
@@ -49,18 +49,18 @@
 
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button"
+                <button class="button yellow" type="button"
                         v-if="is_changed"
                         v-on:click="onSave"
                         v-bind:disabled="states.is_locked">
                     <span class="s-text">[`Save`]</span>
                     <span class="s-icon icon size-12" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                 </button>
-                <button class="js-dialog-close wa-button blue" type="button" v-else>
+                <button class="js-dialog-close button green" type="button" v-else>
                     <span class="s-text">[`Save`]</span>
                 </button>
 
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

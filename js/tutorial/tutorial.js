@@ -56,11 +56,8 @@
                 $.tutorial.skip_dispatch--;
                 return;
             }
-            if (hash === undefined) {
-                hash = window.location.hash;
-            }
-            hash = $.tutorial.cleanHash(hash).replace(/(^[^#]*#\/*|\/+$)/g, '');
-            /* fix syntax highlight */
+
+            hash = 'profit';
 
             if (this.hash === hash) {
                 return;
@@ -68,46 +65,8 @@
             this.hash = hash;
 
             try {
-                if (hash) {
-                    hash = hash.split('/');
-                    if (hash[0]) {
-                        var actionName = "";
-                        var attrMarker = hash.length;
-                        for (var i = 0; i < hash.length; i++) {
-                            var h = hash[i];
-                            if (i < 2) {
-                                if (i === 0) {
-                                    actionName = h;
-                                } else if ({page:1}[actionName]) {
-                                    attrMarker = i;
-                                    break;
-                                } else if (parseInt(h, 10) != h && h.indexOf('=') == -1) {
-                                    actionName += h.substr(0, 1).toUpperCase() + h.substr(1);
-                                } else {
-                                    attrMarker = i;
-                                    break;
-                                }
-                            } else {
-                                attrMarker = i;
-                                break;
-                            }
-                        }
-                        var attr = hash.slice(attrMarker);
-                        this.preExecute(actionName, attr);
-                        if (typeof(this[actionName + 'Action']) == 'function') {
-                            $.shop.trace('$.tutorial.dispatch', [actionName + 'Action', attr]);
-                            this[actionName + 'Action'].apply(this, attr);
-                        } else {
-                            $.shop.error('Invalid action name:', actionName + 'Action');
-                        }
-                    } else {
-                        this.preExecute();
-                        this.defaultAction();
-                    }
-                } else {
-                    this.preExecute();
-                    this.defaultAction();
-                }
+                this.preExecute();
+                this.defaultAction();
             } catch (e) {
                 $.shop.error(e.message, e);
             }
@@ -153,143 +112,19 @@
 
                 $('body > .dialog').trigger('close').remove();
 
-                $.tutorial.highlightSidebar();
             } catch (e) {
                 $.shop.error('preExecute error: ' + e.message, e);
             }
         },
 
         defaultAction: function () {
-            // Find first non-checked action and load it.
-            var $li = $('#tutorial-actions li:not(.complete):first');
-            if ($li.length) {
-                $.wa.setHash($li.find('a[href]').attr('href'));
-            } else {
-                this.profitAction();
-            }
+            this.load('?module=tutorial&action=profit');
+            $.wa.setHash(`/${this.hash}/`);
         },
 
         installAction: function () {
             this.load('?module=tutorial&action=install');
         },
-
-        productsAction: function () {
-            localStorage.removeItem('tutorial_step_link');
-            localStorage.setItem('tutorial_step_link', '?module=tutorial#/products/');
-            this.load('?module=tutorial&action=products');
-        },
-
-        pageAction: function (page) {
-            localStorage.removeItem('tutorial_step_link');
-            localStorage.setItem('tutorial_step_link', '?module=tutorial#/page/'+page+'/');
-            this.load('?module=tutorial&action=custom&page='+page);
-        },
-
-        designAction: function () {
-            localStorage.removeItem('tutorial_step_link');
-            localStorage.setItem('tutorial_step_link', '?module=tutorial#/design/');
-            this.load('?module=tutorial&action=design');
-        },
-
-        paymentAction: function () {
-            localStorage.removeItem('tutorial_step_link');
-            localStorage.setItem('tutorial_step_link', '?module=tutorial#/payment/');
-            this.load('?module=tutorial&action=payment');
-        },
-
-        shippingAction: function () {
-            localStorage.removeItem('tutorial_step_link');
-            localStorage.setItem('tutorial_step_link', '?module=tutorial#/shipping/');
-            this.load('?module=tutorial&action=shipping');
-        },
-
-        profitAction: function () {
-            localStorage.removeItem('tutorial_step_link');
-            localStorage.setItem('tutorial_step_link', '?module=tutorial#/profit/');
-            this.load('?module=tutorial&action=profit');
-        },
-
-        /** Make sure hash has a # in the begining and exactly one / at the end.
-          * For empty hashes (including #, #/, #// etc.) return an empty string.
-          * Otherwise, return the cleaned hash.
-          * When hash is not specified, current hash is used. */
-        cleanHash: function (hash) {
-            if(typeof hash == 'undefined') {
-                hash = window.location.hash.toString();
-            }
-
-            if (!hash.length) {
-                hash = ''+hash;
-            }
-            while (hash.length > 0 && hash[hash.length-1] === '/') {
-                hash = hash.substr(0, hash.length-1);
-            }
-            hash += '/';
-
-            if (hash[0] != '#') {
-                if (hash[0] != '/') {
-                    hash = '/' + hash;
-                }
-                hash = '#' + hash;
-            } else if (hash[1] && hash[1] != '/') {
-                hash = '#/' + hash.substr(1);
-            }
-
-            if(hash == '#/') {
-                return '';
-            }
-
-            return hash;
-        },
-
-        /** Add .selected css class to li with <a> whose href attribute matches current hash.
-          * If no such <a> found, then the first partial match is highlighted.
-          * Hashes are compared after this.cleanHash() applied to them. */
-        highlightSidebar: function(hash) {
-            var currentHash = $.tutorial.cleanHash(hash || window.location.hash);
-            var partialMatch = false;
-            var partialMatchLength = 2;
-            var match = false;
-            var $sidebar = $('#maincontent > .s-tutorial > .sidebar');
-            $sidebar.find('a').each(function(k, v) {
-                v = $(v);
-                if (!v.attr('href')) {
-                    return;
-                }
-                var h = $.tutorial.cleanHash(v.attr('href'));
-
-                // Perfect match?
-                if (h == currentHash) {
-                    match = v;
-                    return false;
-                }
-
-                // Partial match? (e.g. for urls that differ in paging only)
-                if (h.length > partialMatchLength && currentHash.substr(0, h.length) === h) {
-                    partialMatch = v;
-                    partialMatchLength = h.length;
-                }
-            });
-
-            if (!match && partialMatch) {
-                match = partialMatch;
-            }
-
-            if (match) {
-                $sidebar.find('.selected').removeClass('selected');
-
-                // Only highlight items that are inside <li>, but outside of dropdown menus
-                if (match.parents('li').length > 0 && match.parents('ul.dropdown').size() <= 0) {
-                    var p = match.parent();
-                    while(p.size() > 0 && p[0].tagName.toLowerCase() != 'li') {
-                        p = p.parent();
-                    }
-                    if (p.size() > 0) {
-                        //p.addClass('selected');
-                    }
-                }
-            }
-        }
     };
 
 })(jQuery);

@@ -5,7 +5,7 @@ if (data.length) {
     var storage = {
         wrapper: $(".sales-wrapper"),
         hint_wrapper: $(".hint-wrapper"),
-        document_width: false,
+        hint_width: false,
         padding: {
             top: 24,
             bottom: 24,
@@ -13,13 +13,13 @@ if (data.length) {
             left: 8
         },
         point_radius: {
-            default: 4,
-            hover: 6
+            default: 3,
+            hover: 3
         },
         xTicks: 10,
         yTicks: 3,
-        colorsArray: ["#a7e0a7","#009900","#ae4410"],
-        hovered_point: false, // Container for points logic
+        colorsArray: ["#80DFAF", "#00BF60", "#ae4410"],
+        hovered_point: true, // Container for points logic
         getStepWidth: function() {
             var that = this.getStepWidth,
                 point_step;
@@ -167,6 +167,40 @@ if (data.length) {
                 .attr("id","bottom-cut-clip2")
                 .append("rect");
 
+        var topCutLg = defs.append("linearGradient")
+            .attr("id", "top-cut-clip-grad")
+            .attr("x1", "0%")
+            .attr("x2", "0%")
+            .attr("y1", "0%")
+            .attr("y2", "100%");
+
+            topCutLg.append("stop")
+            .attr("offset", "0%")
+            .style("stop-color", "#80DFAF")
+            .style("stop-opacity", 1);
+
+            topCutLg.append("stop")
+            .attr("offset", "100%")
+            .style("stop-color", "rgba(128, 223, 175, 0.4)")
+            .style("stop-opacity", 1)
+
+        var bottomCutLg = defs.append("linearGradient")
+            .attr("id", "bottom-cut-clip-grad")
+            .attr("x1", "0%")
+            .attr("x2", "0%")
+            .attr("y1", "0%")
+            .attr("y2", "100%");
+
+            bottomCutLg.append("stop")
+            .attr("offset", "0%")
+            .style("stop-color", "#00BF60")
+            .style("stop-opacity", 1);
+
+            bottomCutLg.append("stop")
+            .attr("offset", "100%")
+            .style("stop-color", "rgba(0, 191, 96, 0.4)")
+            .style("stop-opacity", 1)
+
         topClipPath
             .attr("width", storage.getInnerWidth())
             .attr("height", function() {
@@ -295,7 +329,6 @@ if (data.length) {
                 .attr("class", function(d) {
                     return d.name + " graph";
                 });
-
         // Строим тело
         graph.append("path")
             .attr("class", "area")
@@ -308,7 +341,9 @@ if (data.length) {
             .attr("clip-path", function(d) {
                 return (d.name === "loss") ? "url(#bottom-cut-clip)" : "url(#top-cut-clip)";
             })
-            .style("fill", function(d) { return color(d.name); });
+            .style("fill", function(d) {
+                return (d.name === "profit") ? "url(#bottom-cut-clip-grad)" : "url(#top-cut-clip-grad)";
+            });
 
         // Строим линию
         graph.append("path")
@@ -372,7 +407,7 @@ if (data.length) {
         var $wrapper = storage.hint_wrapper,
             point_class = $target.data("point-class"),
             tickFormat = storage.getTickFormat(),
-            position = getHintPosition(event, $target.offset()),
+            position = getHintPosition(event),
             month_array,
             profit_class,
             html = "",
@@ -383,8 +418,9 @@ if (data.length) {
         // Animate Point
         d3.selectAll("." + point_class)
             .transition()
+            .style("stroke-width", '6px')
             .attr("r", storage.point_radius.hover)
-            .duration(150);
+            .duration(50);
 
         // Generate Date
         month_array = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
@@ -433,34 +469,30 @@ if (data.length) {
             d3.selectAll("." + point_class)
                 .transition()
                 .attr("r", storage.point_radius.default)
-                .duration(150);
+                .style("stroke-width", '0')
+                .duration(50);
         }
     };
 
-    var getHintPosition = function( event, offset ) {
-        var margin = {
-            top: - parseInt( $("#maincontent").css("margin-top")) - 32,
-            left: 36
-        };
+    var getHintPosition = function(event) {
+        var offsetHint = {x: 10, y: -90 };
+        var rectGraph = storage.wrapper[0].getBoundingClientRect();
+            hint_left = event.clientX - rectGraph.left + offsetHint.x + 5,
+            hint_right = "auto";
 
-        var mouse_left = offset.left,
-            hint_left = mouse_left + margin.left,
-            hint_right = "auto",
-            hint_width = 200;
-
-        // set document width
-        if (!storage.document_width) {
-            storage.document_width = $(document).width();
+        // set hint width
+        if (!storage.hint_width) {
+            storage.hint_width = storage.hint_wrapper.width();
         }
 
         // Check mouse place
-        if (mouse_left >= (storage.document_width - hint_width)) {
+        if (event.clientX >= rectGraph.right - storage.hint_width * 1.7) {
             hint_left = "auto";
-            hint_right = storage.document_width - mouse_left + margin.left
+            hint_right = rectGraph.right - event.clientX  + offsetHint.x;
         }
 
         return {
-            top: offset.top + margin.top,
+            top: event.clientY - rectGraph.top + offsetHint.y,
             left: hint_left,
             right: hint_right
         }

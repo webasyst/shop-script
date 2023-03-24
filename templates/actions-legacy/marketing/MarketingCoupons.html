@@ -1,0 +1,108 @@
+{* PAGE *}
+<div class="s-coupons-page block double-padded" id="js-coupons-page">
+    {* HEADER *}
+    <header class="s-page-header">
+        <h1 class="s-title">[`Discount coupons`]</h1>
+    </header>
+
+    {* BODY *}
+    <div class="s-page-body">
+        <div class="s-table-box space-20">
+            <div class="sidebar left200px">
+
+                <ul class="menu-v with-icons s-coupon-list">
+                    <li class="bottom-padded">
+                        <a href="{$marketing_url}coupons/create/" class="bold"><i class="icon16 add"></i>[`New coupon`]</a>
+                    </li>
+
+                    {if $pages_count > 1 || strlen($coupon_name)}
+                    <li class="s-coupon-search">
+                        <i class="s-icon icon16 ss search-bw"></i>
+                        <input class="s-coupon-field" id="coupon-name" type="search" name="coupon_name" value="{$coupon_name}" placeholder="[`Coupons search`]" autocomplete="off">
+                    </li>
+                    {/if}
+
+                    {foreach $coupons as $_coupon}
+                        {$_is_active = false}
+                        {if !empty($coupon) && $coupon.id === $_coupon.id}
+                            {$_is_active = true}
+                        {/if}
+
+                        {$_classes = []}
+                        {if !$_coupon.enabled}
+                            {$_classes[] = "s-expired"}
+                        {/if}
+                        {if !empty($_is_active)}
+                            {$_classes[] = "selected"}
+                        {/if}
+
+                        <li class="{$_classes|join:" "}">
+                            <span class="count">{$_coupon.hint}</span>
+                            {$params = []}
+                            {if $page_number > 1}
+                                {$params['page'] = $page_number}
+                            {/if}
+                            {if strlen($coupon_name)}
+                                {$params['coupon_name'] = $coupon_name}
+                            {/if}
+                            {$page_params = ''}
+                            {if $params}
+                                {$page_params = "?{http_build_query($params)}"}
+                            {/if}
+                            <a href="{$marketing_url}coupons/{$_coupon.id}/{$page_params}" class="gray" data-coupon-id="{$_coupon.id}">
+                                <i class="icon16 ss coupon"></i>{$_coupon.code}
+                            </a>
+                        </li>
+                    {/foreach}
+                </ul>
+
+                {if $pages_count > 1}
+                    <div class="block pagination s-coupon-list-pagination">
+                        {wa_pagination page=$page_number coupon_name=$coupon_name total=$pages_count attrs=['class' => "menu-h"] url="`$wa_app_url`marketing/coupons/" nb=3}
+                    </div>
+                {/if}
+
+            </div>
+
+            <div class="content">
+                {include file="./MarketingCouponsEditor.html" inline}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+            $.shop.marketing.setTitle({_w("Discount coupons")|json_encode});
+
+            var sources = [{
+                id: "wa-shop-marketing-coupons-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/backend/marketing/coupons.js?v={$wa->version()}"
+            }, {
+                id: "wa-shop-importexport-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/importexport/importexport.js?v={$wa->version()}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                $.shop.marketing.init.couponsPage({
+                    $wrapper: $("#js-coupons-page"),
+                    coupon_id: {if !empty($coupon.id)}{$coupon.id|json_encode}{else}null{/if},
+                    urls: {
+                        "delete": "{$marketing_url}?module=marketingCouponDelete",
+                        "coupons": "{$marketing_url}coupons/?page=%page_number%&coupon_name=%coupon_name%",
+                        "coupon": "{$marketing_url}coupons/%id%/?page=%page_number%&coupon_name=%coupon_name%",
+                        "first_page": "{$marketing_url}coupons/"
+                    },
+                    locales: {
+                        "url_no_valid": {_w("Invalid URL")|json_encode},
+                        "url_max_len": {_w("Maximum URL length is 2048 characters")|json_encode},
+                        "incorrect_1": {_w("Must be a value from 0 to 100")|json_encode},
+                        "delete": {_w("This will permanently delete discount coupon %s. Are you sure?")|json_encode},
+                        "required": {_w("This field is required.")|json_encode}
+                    }
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

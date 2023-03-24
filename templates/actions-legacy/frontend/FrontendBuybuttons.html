@@ -1,0 +1,147 @@
+{strip}
+
+{$_background_color = "#`$params['background_color']`"}
+{$_link_color = "#`$params['links_color']`"}
+{$_text_color = "#`$params['text_color']`"}
+{$_button_color = "#`$params['button_color']`"}
+{$_price_color = "#`$params['price_color']`"}
+{$_font_family = $params['font_family']|default:''}
+{$_show_image = ( !empty($params['show_image']) && $img_url )}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>{include file="../../../css-legacy/buyButton.css" inline}</style>
+    <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
+    <style>
+        {if $_font_family}
+            .wa-widget-wrapper {
+                font-family: {$_font_family};
+            }
+        {/if}
+        .wa-content-wrapper {
+            background: {$_background_color};
+            color: {$_text_color};
+        }
+        .wa-add-button {
+            background: {$_button_color};
+        }
+        .wa-price {
+            color: {$_price_color};
+        }
+        a {
+            color: {$_link_color};
+        }
+    </style>
+</head>
+<body>
+
+<form class="wa-buy-button-form" action="{$wa->get('storefront')}" method="post" target="_blank">
+    <div class="wa-widget-wrapper">
+        <div class="wa-widget" id="{$container_id}">
+            {if $_show_image}
+                <div class="wa-image-wrapper">
+                    <img src="{$img_url}">
+                </div>
+            {/if}
+
+            <div class="wa-content-wrapper">
+                <div class="wa-text-wrapper">
+                    <h3><a href="{$product_url}" target="_blank">{$product.name|escape}</a></h3>
+                    <p>{$product.summary}</p>
+                </div>
+                <div class="wa-footer-wrapper">
+
+                    <div class="table-layout">
+                        <div class="left-column">
+                            {if $product.sku_type}
+                                {$default_sku_features = $product.sku_features}
+                                <div class="wa-options">
+                                    {foreach $features_selectable as $f}
+                                        {$f.name}:
+                                        <select data-feature-id="{$f.id}" class="wa-sku-feature" name="buybutton[features][{$f.id}]">
+                                            {foreach $f.values as $v_id => $v}
+                                                <option value="{$v_id}" {if $v_id == ifset($default_sku_features[$f.id])}selected{/if}>{$v}</option>
+                                            {/foreach}
+                                        </select>
+                                        <br>
+                                    {/foreach}
+                                </div>
+                            {elseif count($product.skus) > 1}
+                                <select class="wa-sku-selector" name="buybutton[sku_id]">
+                                    {foreach $product.skus as $sku}
+                                        {if $sku.available}
+                                            <option {if $sku.id == $product.sku_id} selected="selected"{/if} {if !$sku.orig_available}disabled="disabled"{/if} value="{$sku.id}">{$sku.name|escape}</option>
+                                        {/if}
+                                    {/foreach}
+                                </select>
+                            {/if}
+                            <span class="wa-price">{shop_currency_html($product.price)}</span>
+                        </div>
+                        <div class="right-column">
+                            <input class="wa-add-button" type="submit" value="{if $params.goto === 'checkout'}[`Buy`]{else}[`Add to cart`]{/if}">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {foreach $params as $name => $value}
+        <input type="hidden" name="buybutton[{$name}]" value="{$value}">
+    {/foreach}
+</form>
+
+</body>
+</html>
+
+{/strip}
+
+<script>
+    $(function () {
+
+        var purchasing_disabled = true;
+
+        {if $product.sku_type}
+            purchasing_disabled = false;
+            var features = {json_encode($sku_features_selectable)};
+            $(".wa-sku-feature").change(function () {
+                var key = "";
+                $(".wa-sku-feature").each(function () {
+                    key += $(this).data('feature-id') + ':' + $(this).val() + ';';
+                });
+                var sku = features[key];
+                if (sku) {
+                    purchasing_disabled = !sku.available;
+                    $('.wa-price').html(sku.price_html || '');
+                } else {
+                    $('.wa-price').html('');
+                    purchasing_disabled = true;
+                }
+            }).trigger('change');
+        {else}
+            var skus = {json_encode($product->skus)};
+            purchasing_disabled = skus.length <= 0;
+            $('.wa-sku-selector').change(function () {
+                var val = $(this).find('option:selected').val() || '';
+                var sku = skus[val];
+                if (sku) {
+                    purchasing_disabled = !sku.available;
+                    $('.wa-price').html(skus[val].price_html || '');
+                    $('.wa-price[data-sku-id="' + val + '"]').show();
+                } else {
+                    $('.wa-price').html('');
+                    purchasing_disabled = true;
+                }
+            }).trigger('change');
+        {/if}
+
+        $('.wa-buy-button-form').submit(function (e) {
+            if (purchasing_disabled) {
+                alert('[`Out of stock`]');
+                e.preventDefault();
+            }
+        });
+    });
+</script>

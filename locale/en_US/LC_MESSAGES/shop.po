@@ -54,3 +54,6 @@ msgstr "Static"
 
 msgid "Dynamic set"
 msgstr "Dynamic"
+
+msgid "Promos on website"
+msgstr "Campaigns"

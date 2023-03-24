@@ -8,7 +8,7 @@ var ShopSettingsCheckout2 = ( function($) {
         that.$form = that.$wrapper.find('form');
         that.$footer_actions = that.$form.find('.js-footer-actions');
         that.$button = that.$footer_actions.find('.js-submit-button');
-        that.$loading = that.$footer_actions.find('.s-loading');
+        that.$loading = that.$footer_actions.find('.js-loading');
         that.$big_table = that.$form.find('.js-big-table');
         that.$design_block = that.$form.find('.js-block-wrapper[data-block="design"]');
         that.$order_block = that.$big_table.find('.js-block-wrapper[data-block="order"]');
@@ -63,8 +63,6 @@ var ShopSettingsCheckout2 = ( function($) {
         //
         that.initConfirmationBlock();
         //
-        that.initFixedActions();
-        //
         that.initSubmit();
         //
         $(window).trigger('scroll');
@@ -72,53 +70,39 @@ var ShopSettingsCheckout2 = ( function($) {
 
     ShopSettingsCheckout2.prototype.initSortTables = function() {
         var that = this,
-            $sort_tables = that.$wrapper.find('.js-sort-table');
+            $sort_tables = that.$wrapper.find('.js-sort-table tbody');
 
-        $.each($sort_tables, function () {
-            var $sort_table = $(this);
-
-            $sort_table.sortable({
-                axis: 'y',
-                distance: 5,
-                helper: 'clone',
-                items: 'tr',
-                opacity: 0.75,
-                handle: '.sort',
-                tolerance: 'pointer',
-                containment: $sort_table
+        $sort_tables.sortable({
+                animation: 150
             });
-        });
     };
 
     ShopSettingsCheckout2.prototype.initDesignBlock = function() {
-        var that = this,
-            $block = that.$design_block,
-            $design_toggle = $block.find('.js-design-toggle'),
-            $design_values = $block.find('.js-design-values');
+        const that = this;
+        const $block = that.$design_block;
+        const $design_toggle = $block.find('.js-design-toggle');
+        const $design_values = $block.find('.js-design-values');
 
-        $design_toggle.iButton({
-            labelOn : "",
-            labelOff : "",
-            className: 'mini'
-        }).change(function() {
-            if (this.checked) {
-                $design_values.show();
-            } else {
-                $design_values.hide();
+        $design_toggle.waSwitch({
+            change(active) {
+                if (active) {
+                    $design_values.show();
+                } else {
+                    $design_values.hide();
+                }
+
+                $(window).trigger('scroll');
             }
-            that.buttonViewToggle(true);
-
-            $(window).trigger('scroll');
         });
 
         // Logo upload
-        var $logo_wrapper = $block.find('.js-logo-wrapper'),
-            $delete_logo = $logo_wrapper.find('.js-delete-design-logo'),
-            $loading = $logo_wrapper.find('.loading'),
-            $input_file = $logo_wrapper.find('.js-design-logo'),
-            $logo_field = $logo_wrapper.find('.js-design-logo-field'),
-            $logo_preview_wrapper = $logo_wrapper.find('.js-design-logo-preview-wrapper'),
-            $logo_preview = $logo_preview_wrapper.find('.js-design-logo-preview');
+        const $logo_wrapper = $block.find('.js-logo-wrapper');
+        const $delete_logo = $logo_wrapper.find('.js-delete-design-logo');
+        const $loading = $logo_wrapper.find('.loading');
+        const $input_file = $logo_wrapper.find('.js-design-logo');
+        const $logo_field = $logo_wrapper.find('.js-design-logo-field');
+        const $logo_preview_wrapper = $logo_wrapper.find('.js-design-logo-preview-wrapper');
+        const $logo_preview = $logo_preview_wrapper.find('.js-design-logo-preview');
 
         $input_file.on('change', function (e) {
             e.preventDefault();
@@ -127,15 +111,18 @@ var ShopSettingsCheckout2 = ( function($) {
                 return;
             }
 
-            var href = "?module=settingsCheckout2UploadLogo",
-                data = new FormData();
+            const href = "?module=settingsCheckout2UploadLogo";
+            const data = new FormData();
 
             data.append("storefront_id", that.storefront_id);
             data.append("logo", $(this)[0].files[0]);
 
-            $loading.removeClass('no').addClass('loading').show();
-            $input_file.removeClass('error shake animated');
+            $loading.show();
+            $input_file.removeClass('state-error wa-animation-swing');
             that.$button.prop('disabled', true);
+
+            const waloadingContainer = $.settings.$container;
+            waloadingContainer.trigger("wa_before_load");
 
             $.ajax({
                 url: href,
@@ -143,59 +130,78 @@ var ShopSettingsCheckout2 = ( function($) {
                 data: data,
                 cache: false,
                 contentType: false,
-                processData: false
+                processData: false,
+                xhr: function() {
+                    var xhr = new window.XMLHttpRequest();
+
+                    xhr.addEventListener("progress", function(event) {
+                        waloadingContainer.trigger("wa_loading", event);
+                    }, false);
+
+                    xhr.addEventListener("abort", function(event) {
+                        waloadingContainer.trigger("wa_abort");
+                    }, false);
+
+                    return xhr;
+                }
             }).done(function(res) {
-                if (res.status == 'ok') {
-                    $logo_field.val(res.data.name);
-                    $logo_preview.attr('src', res.data.url);
-                    $logo_preview_wrapper.show();
-                    $loading.hide();
-                } else {
+                if (res.status !== 'ok') {
                     $logo_field.val('');
                     $logo_preview_wrapper.hide();
                     $logo_preview.removeAttr('src');
-                    $loading.removeClass('loading').addClass('no');
-                    $input_file.addClass('error shake animated');
+                    $loading.removeClass('loading');
+                    $input_file.addClass('state-error shake animated');
                     setTimeout(function () {
                         $loading.hide();
-                    }, 2000);
+                    });
+
+                    return;
                 }
+
+                $logo_field.val(res.data.name);
+                $logo_preview.attr('src', res.data.url);
+                $logo_preview_wrapper.show();
+                $loading.hide();
+                waloadingContainer.trigger("wa_loaded");
             });
+
             that.$button.prop('disabled', false);
             $(this).val('');
         });
 
         // Delete logo
-        $delete_logo.on('click', function () {
+        $delete_logo.on('click', function (event) {
+            event.preventDefault();
+
             $input_file.val('');
             $logo_field.val('');
             $logo_preview_wrapper.hide();
             $logo_preview.removeAttr('src');
-            that.buttonViewToggle(true);
+            that.buttonViewChange(true);
         });
 
         // Colorpickers
         $block.find('.js-color-input').each(function() {
-            var $input = $(this),
-                $replacer = $('<span class="s-color-replacer"><i class="icon16 s-color" style="background: #'+$input.val().substr(1)+'"></i></span>').insertAfter($input),
-                $picker = $('<div class="s-color-picker" style="display:none;"></div>').insertAfter($replacer),
-                farbtastic = $.farbtastic($picker, function(color) {
-                    $replacer.find('i').css('background', color);
-                    $input.val(color);
-                });
+            const $input = $(this);
+            const $replacer = $('<span class="s-color-replacer"><i class="icon rounded bordered-top bordered-right bordered-bottom bordered-left s-color" style="background: #'+$input.val().substr(1)+'"></i></span>').insertAfter($input);
+            const $picker = $('<div class="s-color-picker" style="display:none;"></div>').insertAfter($replacer);
+            const farbtastic = $.farbtastic($picker, function(color) {
+                $replacer.find('i').css('background', color);
+                $input.val(color);
+            });
 
-            farbtastic.setColor('#'+$input.val());
+            farbtastic.setColor($input.val());
 
             $replacer.click(function() {
                 $picker.slideToggle(200);
                 return false;
             });
 
-            $input.on('keydown', function () {
-                that.buttonViewToggle(true);
+            $picker.on('click', function () {
+                that.buttonViewChange(true);
             });
 
-            var timer_id;
+            let timer_id;
             $input.unbind('keydown').bind('keydown', function() {
                 if (timer_id) {
                     clearTimeout(timer_id);
@@ -213,7 +219,7 @@ var ShopSettingsCheckout2 = ( function($) {
             $block_toggles = $big_table.find('.js-block-toggle-wrapper');
 
         $big_table.on('click', '.js-settings-link', function () {
-            var $block_wrapper = $(this).parents('tr.js-block-wrapper'),
+            var $block_wrapper = $(this).parents('.js-block-wrapper'),
                 $content_wrapper = $block_wrapper.find('.js-block-content');
 
             if ($content_wrapper.is(':visible')) {
@@ -230,24 +236,21 @@ var ShopSettingsCheckout2 = ( function($) {
                 $toggle = $toggle_wrapper.find('.js-toggle'),
                 $block_wrapper = $toggle_wrapper.parents('.js-block-wrapper'),
                 $block_content = $block_wrapper.find('.js-block-content'),
-                $toggle_status = $block_wrapper.find('.js-toggle-status'),
                 $settings_link = $block_wrapper.find('.js-settings-link');
 
-            $toggle.iButton({
-                labelOn : "",
-                labelOff : "",
-                className: 'mini inline-toggle'
-            }).change(function() {
-                if (this.checked) {
-                    $settings_link.show();
-                    $block_content.show();
-                    $toggle_status.text(that.locale.enabled).removeClass('disabled');
-                } else {
-                    $settings_link.hide();
-                    $block_content.hide();
-                    $toggle_status.text(that.locale.disabled).addClass('disabled');
+            $toggle.waSwitch({
+                ready(wa_switch) {
+                    let $label = wa_switch.$wrapper.siblings('label');
+                    wa_switch.$label = $label;
+                    wa_switch.active_text = $label.data('active-text');
+                    wa_switch.inactive_text = $label.data('inactive-text');
+                },
+                change(active, wa_switch) {
+                    wa_switch.$label.text(active ? wa_switch.active_text : wa_switch.inactive_text);
+                    $block_content.toggle(active);
+                    $settings_link.toggle(active);
+                    $(window).trigger('scroll');
                 }
-                $(window).trigger('scroll');
             });
         });
     };
@@ -369,23 +372,22 @@ var ShopSettingsCheckout2 = ( function($) {
 
         function ensureFieldEditorsConsistency() {
             var $current_radio = $type_wrapper.find('.js-customer-type-variant:checked'),
-                $current_variant = $current_radio.parents('.js-variant'),
                 current_value = $current_radio.val();
 
             $type_wrapper.find('.js-variant-params').html('');
 
             if (current_value == 'person') {
-                $current_variant.find('.js-variant-params').html($person_fields_editor);
+                $type_wrapper.find('.js-variant-params').html($person_fields_editor);
             }
 
             if (current_value == 'company') {
-                $current_variant.find('.js-variant-params')
+                $type_wrapper.find('.js-variant-params')
                     .append($company_settings)
                     .append($company_fields_editor);
             }
 
             if (current_value == 'person_and_company') {
-                $current_variant.find('.js-variant-params')
+                $type_wrapper.find('.js-variant-params')
                     .append($person_company_settings)
                     .append($company_settings)
                     .append($person_fields_editor)
@@ -502,7 +504,7 @@ var ShopSettingsCheckout2 = ( function($) {
 
         function ensureServiceAgreementConsistency() {
             var $current_radio = $service_agreement_wrapper.find('.js-customer-service-agreement-variant:checked'),
-                $current_variant = $current_radio.parents('.js-variant'),
+                $current_variant = $current_radio.parents('.js-customer-service-agreement-wrapper'),
                 current_value = $current_radio.val();
 
             $service_agreement_wrapper.find('.js-variant-params').removeClass('block-padded').html('');
@@ -581,7 +583,7 @@ var ShopSettingsCheckout2 = ( function($) {
                     $current_variant = $current_radio.parents('.js-variant');
 
                 $shipping_mode_wrapper.find('.js-variant-params').hide(); // Close all
-                $current_variant.find('.js-variant-params').show();    // Show current
+                $current_variant.next('.js-variant-params').show();    // Show current
 
                 var value = $(this).val();
                 if (value === "minimum") {
@@ -613,7 +615,7 @@ var ShopSettingsCheckout2 = ( function($) {
                     $locations_table.append($no_locations);
                 }
 
-                that.buttonViewToggle(true);
+                that.buttonViewChange(true);
             });
 
             // Ensure regions with country consistency
@@ -950,9 +952,9 @@ var ShopSettingsCheckout2 = ( function($) {
             }
             that.is_locked = true;
             that.$button.prop('disabled', true);
-            that.$loading.removeClass('yes').removeClass('no').addClass('loading').show();
+            that.$loading.show();
             that.$wrapper.find('.js-submit-error').remove();
-            that.$wrapper.find('.error').removeClass('error shake animated');
+            that.$wrapper.find('.state-error').removeClass('state-error shake animated');
 
             setNames();
 
@@ -961,11 +963,7 @@ var ShopSettingsCheckout2 = ( function($) {
 
             $.post(href, data, function (res) {
                 if (res.status === 'ok') {
-                    that.buttonViewToggle(false);
-                    that.$loading.removeClass('loading').addClass('yes');
-                    setTimeout(function(){
-                        that.$loading.hide();
-                    },2000);
+                    that.buttonViewChange(false);
                 } else {
                     if (res.errors) {
                         $.each(res.errors, function (i, error) {
@@ -974,11 +972,10 @@ var ShopSettingsCheckout2 = ( function($) {
                             }
                         });
                     }
-                    that.$loading.removeClass('loading').addClass('no');
-                    setTimeout(function(){
-                        that.$loading.hide();
-                    }, 2000);
                 }
+                setTimeout(function(){
+                    that.$loading.hide();
+                });
                 that.is_locked = false;
                 that.$button.prop('disabled', false);
             });
@@ -998,30 +995,30 @@ var ShopSettingsCheckout2 = ( function($) {
                         $interrelated_field_block_wrapper = $interrelated_field.parents('tr.js-block-wrapper'),
                         $interrelated_field_content_wrapper = $interrelated_field_block_wrapper.find('.js-block-content');
                     $interrelated_field_content_wrapper.show();
-                    $interrelated_field.addClass('error shake animated');
+                    $interrelated_field.addClass('state-error shake animated');
                 }
 
                 var $field_block_wrapper = $field.parents('tr.js-block-wrapper'),
                     $field_content_wrapper = $field_block_wrapper.find('.js-block-content');
                 $field_content_wrapper.show();
 
-                $field.addClass('error shake animated');
+                $field.addClass('state-error shake animated');
 
                 console.log(error);
             }
         });
 
-        that.$form.on('input', '.error', function () {
-            if ($(this).hasClass('error')) {
-                $(this).removeClass('error');
+        that.$form.on('input', '.state-error', function () {
+            if ($(this).hasClass('state-error')) {
+                $(this).removeClass('state-error');
             }
             if ($(this).next().hasClass('js-submit-error')) {
                 $(this).next().remove();
             }
         });
 
-        that.$form.on('input', function () {
-            that.buttonViewToggle(true);
+        that.$form.on('change input', function () {
+            that.buttonViewChange(true);
         });
 
         function setNames() {
@@ -1098,12 +1095,12 @@ var ShopSettingsCheckout2 = ( function($) {
         }
     };
 
-    ShopSettingsCheckout2.prototype.buttonViewToggle = function(show) {
+    ShopSettingsCheckout2.prototype.buttonViewChange = function(changed) {
         var that = this,
             default_class = "green",
             active_class = "yellow";
 
-        if (show) {
+        if (changed) {
             that.$button
                 .removeClass(default_class)
                 .addClass(active_class);

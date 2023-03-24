@@ -44,7 +44,6 @@ class shopProdSkuAction extends waViewAction
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
 
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setChapter();
 
         $this->view->assign([
             'product'                       => $product,

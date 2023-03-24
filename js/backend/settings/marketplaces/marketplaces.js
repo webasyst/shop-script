@@ -19,8 +19,6 @@
 
             // INIT
             that.init();
-
-            console.log( that );
         }
 
         Page.prototype.init = function() {

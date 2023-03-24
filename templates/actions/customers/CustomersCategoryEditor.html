@@ -1,57 +1,53 @@
-<div class="block double-padded">
-    {if $category.id}
-        <h1>{$category.name|escape}</h1>
-    {else}
-        <h1>[`New customer category`]</h1>
-    {/if}
+{if $category.id}
+    <h1>{$category.name|escape}</h1>
+{else}
+    <h1>[`New customer category`]</h1>
+{/if}
 
-    <form id="category-editor-form" action="?module=customers&action=categoryEditor">
-        <div class="fields form">
-          <div class="field-group">
-            <div class="field">
-                <div class="name bold">[`Category name`]</div>
-                <div class="value bold">
-                    <input id="name" class="large" value="{$category.name|escape}" type="text">
-                    <br>
-                    <br>
-                </div>
+<form id="category-editor-form" action="?module=customers&action=categoryEditor">
+    <div class="fields form">
+        <div class="field-group">
+        <div class="field">
+            <div class="name bold">[`Category name`]</div>
+            <div class="value bold">
+                <input id="name" class="long" value="{$category.name|escape}" type="text">
             </div>
-
-            <div class="field">
-                <div class="name">[`Discount`]</div>
-                <div class="value no-shift">
-
-                        {$discount|default:0}% <a href="?action=settings#/discounts/category/" title="[`Edit`]"><i class="icon16 settings"></i></a>
-
-                </div>
-            </div>
-
-            <div class="field">
-                <div class="name">[`Icon`]</div>
-                <div class="value s-category-icons no-shift">
-                    <ul class="menu-h" id="icons">
-                        {foreach $icons as $i}
-                            <li{if $category.icon == $i} class="selected"{/if}><a href="javascript:void(0)"><i class="icon16 {$i}"></i></a></li>
-                        {/foreach}
-                    </ul>
-                    <span class="small">[`Or specify image URL (must be exactly 16x16 pixels):`]<br>
-                        <input value="{if substr($category.icon, 0, 4) == 'http'}{$category.icon|escape}{/if}" type="text" id="icon">
-                    </span>
-                </div>
-            </div>
-
-          </div>
-          <div class="field-group">
-            <div class="field">
-                <div class="value submit">
-                    <input type="submit" class="button green" id="submit" value="[`Save`]">
-                </div>
-            </div>
-          </div>
         </div>
-    </form>
 
-</div>
+        <div class="field">
+            <div class="name">[`Discount`]</div>
+            <div class="value ">
+                    {$discount|default:0}% <a href="?action=settings#/discounts/category/" title="[`Edit`]"><i class="fas fa-cog"></i></a>
+            </div>
+        </div>
+
+        <div class="field custom-mt-32">
+            <div class="name">[`Icon`]</div>
+            <div class="value s-category-icons ">
+                <ul class="chips thumbs" id="icons">
+                    {foreach $icons as $i}
+                        <li{if $category.icon == $i} class="selected"{/if} data-icon="{$i}">
+                        <a href="javascript:void(0)" class="chip">
+                            <span class="icon"><i class="{$wa->shop->convertIcon($i)}"></i></span>
+                        </a></li>
+                    {/foreach}
+                </ul>
+                <span class="small">[`Or specify image URL (must be exactly 16x16 pixels):`]<br>
+                    <input class="long" value="{if substr($category.icon, 0, 4) == 'http'}{$category.icon|escape}{/if}" type="text" id="icon">
+                </span>
+            </div>
+        </div>
+
+        </div>
+        <div class="field-group">
+        <div class="field">
+            <div class="value submit">
+                <input type="submit" class="button green" id="submit" value="[`Save`]">
+            </div>
+        </div>
+        </div>
+    </div>
+</form>
 
 <script>$(function() { "use strict";
 
@@ -77,16 +73,15 @@
         }
 
         var icon = $icon_field.val();
-
         if (icon.length < 9 || icon.substr(0, 4) !== 'http') {
-            if ($('#icons li.selected i').length > 0) {
-                icon = $('#icons li.selected i').attr('class').replace('icon16 ', '');
+            if ($('#icons li.selected').length > 0) {
+                icon = $('#icons li.selected').data('icon');
             } else {
                 icon = 'c-white';
             }
         }
 
-        $('#submit').attr('disabled', true).parent().append($('<i class="icon16 loading">'));
+        $('#submit').attr('disabled', true).parent().append($('<i class="fas fa-spinner fa-spin text-gray">'));
         var data = {
             name: name,
             icon: icon,
@@ -119,7 +114,7 @@
     var warn = function(input) {
         var msg = input.next('.max255');
         if (input.val().length > 255 && !msg.length) {
-            input.after('<em class="hint max255">'+loc.max+'</em>');
+            input.after('<em class="state-error-hint max255">'+loc.max+'</em>');
         } else if (input.val().length <= 255 && msg.length) {
             msg.remove();
         }

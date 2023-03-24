@@ -1,0 +1,217 @@
+{strip}
+
+{$_config = $config["confirmation"]}
+{$_locked = !empty($_confirm_locked)}
+
+{$_cart_is_invalid = false}
+
+{$_errors = []}
+{if !empty($error_step_id) && $error_step_id === "confirm"}
+    {$_errors = $errors}
+{else}
+    {foreach $errors as $_error}
+        {if !empty($_error.id) && $_error.id === "cart_invalid"}
+            {$_errors[] = $_error}
+            {break}
+        {/if}
+    {/foreach}
+{/if}
+
+{foreach $errors as $_error}
+    {if !empty($_error.id) && $_error.id === "cart_invalid"}
+        {$_cart_is_invalid = true}
+        {break}
+    {/if}
+{/foreach}
+
+{$_button_text = _w("Confirm order")}
+{if !empty($config["shipping"]["used"])}
+    {if $error_step_id === "region" || $error_step_id === "shipping"}
+        {$_button_text = _w("Select shipping")}
+        {if !empty($errors)}
+            {foreach $errors as $_error}
+                {if !empty($_error.id) && $_error.id === "empty_region_options"}
+                    {$_locked = true}
+                    {break}
+                {/if}
+            {/foreach}
+        {/if}
+    {/if}
+{/if}
+{if !empty($config["payment"]["used"])}
+    {if $error_step_id === "payment"}
+        {$_button_text = _w("Select payment")}
+    {/if}
+{/if}
+
+<section class="wa-step-section wa-step-confirm-section" id="wa-step-confirm-section">
+    {* BODY *}
+    <div class="wa-section-body">
+        <form style="{if !empty($_cart_is_invalid)}display: none;{/if}">
+            <div class="wa-flex-wrapper">
+                {if empty($_locked) && !empty($_config["order_comment"])}
+                    <div class="wa-comment-section {if !empty($confirm.comment)}is-opened{/if}">
+                        <div class="wa-visible">
+                            <span class="wa-link js-open-section">
+                                [`Comment to the order`]&nbsp;&nbsp;<i class="wa-icon arrow-bottom size-8"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#arrow-bottom"></use></svg></i>
+                            </span>
+                        </div>
+                        <div class="wa-hidden">
+                            <div class="wa-field-wrapper full-line">
+                                <textarea class="wa-textarea js-order-comment-field" name="confirm[comment]">{$confirm.comment|default:""|escape}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                {/if}
+
+                <div class="wa-total-section">
+                    {* SUBTOTAL *}
+                    <div class="wa-item wa-item-price">
+                        <div class="wa-name">[`Items cost`]</div>
+                        <div class="wa-value">
+                            <span class="wa-price">{shop_currency($confirm.subtotal, ['in_currency' => true, 'format' => 'h'])}</span>
+                        </div>
+                    </div>
+
+                    {* DISCOUNT *}
+                    {if !empty($confirm.discount)}
+                        <div class="wa-item wa-item-discount">
+                            <div class="wa-name">[`Discount`]</div>
+                            <div class="wa-value">
+                                {capture assign="_discout_html"}
+                                    <span class="wa-price">{shop_currency($confirm.discount, ['in_currency' => true, 'format' => 'h'])}</span>
+                                {/capture}
+
+                                {$_round_discounts = $wa->shop->settings('round_discounts')}
+                                {if !empty($_round_discounts)}
+                                    <span class="wa-tooltip is-inline top with-underline" data-title="[`Rounded discount value`]">{$_discout_html}</span>
+                                {else}
+                                    {$_discout_html}
+                                {/if}
+                            </div>
+                        </div>
+                    {/if}
+
+                    {* DELIVERY *}
+                    <div class="wa-item wa-item-shipping" {if empty($config["shipping"]["used"])}style="display: none;"{/if}>
+                        <div class="wa-name">[`Shipping cost`]</div>
+                        <div class="wa-value">
+                            {if $confirm.shipping !== null}
+                                {if $confirm.shipping > 0}
+                                    <span class="wa-price">{shop_currency($confirm.shipping, ['in_currency' => true, 'format' => 'h'])}</span>
+                                {else}
+                                    [`free`]
+                                {/if}
+                            {else}
+                                [`not selected`]
+                            {/if}
+                        </div>
+                    </div>
+
+                    {* TAX *}
+                    {if !empty($confirm.tax)}
+                    <div class="wa-item wa-item-tax">
+                        <div class="wa-name">[`Tax`]</div>
+                        <div class="wa-value">
+                            <span class="wa-price">{shop_currency($confirm.tax, ['in_currency' => true, 'format' => 'h'])}</span>
+                        </div>
+                    </div>
+                    {/if}
+
+                    {* TOTAL *}
+                    <div class="wa-item wa-item-total">
+                        {$_total_title = _w("Total")}
+                        {$_is_small = true}
+                        {if !empty($config["shipping"]["used"])}
+                            {if $confirm.shipping === null}
+                                {$_is_small = false}
+                                {$_total_title = _w("Total less shipping cost")}
+                            {/if}
+                        {/if}
+
+                        <div class="wa-name {if !empty($_is_small)}is-small{else}is-large{/if}">{$_total_title|escape}</div>
+                        <div class="wa-value">
+                            <span class="wa-price">{shop_currency($confirm.total, ['in_currency' => true, 'format' => 'h'])}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wa-actions-section">
+                    {$_terms_dialog = ''}
+                    {if empty($_locked) && !empty($_config["terms"])}
+                        <div class="wa-terms-section">
+                            <div class="wa-field-wrapper is-agreement-field full-line">
+                                <label class="wa-checkbox-wrapper">
+                                    <input class="wa-checkbox" type="checkbox" name="confirm[terms]" value="1" {if !empty($confirm.terms)}checked{/if} required>
+                                    <span class="wa-text">
+                                        [`accept our <a class="js-show-terms-dialog" href="javascript:void(0);">terms of service</a>`]
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {if !empty($_config["terms_text"])}
+                            {capture assign="_terms_dialog"}
+                                {$_html = $_config["terms_text"]}
+                                {include file="./dialog/terms.html" _html=$_html inline}
+                            {/capture}
+                        {/if}
+                    {/if}
+
+                    {$_create_order = empty($errors)}
+                    <button class="wa-button wa-submit-button js-submit-order-button" type="button" data-action="{if !empty($_create_order)}create{else}calculate{/if}" {if !empty($_locked)}disabled{/if}>{$_button_text|escape}</button>
+                </div>
+            </div>
+
+            {* @event checkout_render_confirm *}
+            {foreach $event_hook.confirm as $_}
+                <div class="wa-plugin-hook">{$_}</div>
+            {/foreach}
+        </form>
+
+        {if !empty($_cart_is_invalid)}
+            {capture name='delete_icon'}&nbsp;<span class="gray">(&nbsp;<i class="wa-icon delete size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#trash"></use></svg></i>&nbsp;)</span>&nbsp;{/capture}
+            {capture name='minus_icon'}&nbsp;<span class="gray">(&nbsp;<i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#minus"></use></svg></i>&nbsp;)</span>&nbsp;{/capture}
+            {capture name='edit_icon'}&nbsp;<span class="gray">(&nbsp;<i class="wa-icon edit size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#edit"></use></svg></i>&nbsp;)</span>{/capture}
+
+            <div class="s-message is-cart-invalid">
+                <p>[`To complete your order, please change the products in your shopping cart which are not available in stock:`]</p>
+                <ul>
+                    <li>{sprintf(_w("either delete them %s"), $smarty.capture.delete_icon)}</li>
+                    <li>{sprintf(_w("or reduce their quantity %s"), $smarty.capture.minus_icon)}</li>
+                    {if !empty($config.cart.change_sku)}
+                        <li>{sprintf(_w("or select other SKUs %s"), $smarty.capture.edit_icon)}</li>
+                    {/if}
+                </ul>
+            </div>
+        {/if}
+    </div>
+
+    {capture assign="_loading_html"}
+        <span class="s-points-wrapper"><span class="s-point"></span><span class="s-point"></span><span class="s-point"></span></span>
+    {/capture}
+
+    <script>
+        ( function($) {
+            var $step = $("#wa-step-confirm-section"),
+                $wrapper = $("#wa-order-form-wrapper");
+
+            var ready_promise = $wrapper.data("ready").promise();
+            ready_promise.then( function(controller) {
+                controller.initConfirm({
+                    $wrapper: $step,
+                    errors: {$_errors|json_encode},
+                    templates: {
+                        loading_html: {waUtils::jsonEncode(trim(ifset($_loading_html, '')))},
+                        terms_dialog: {waUtils::jsonEncode(trim(ifset($_terms_dialog, '')))}
+                    },
+                    urls: {
+                        "channel_dialog": {$wa->getUrl('shop/frontendOrderConfirmation/defaultDialog/')|json_encode}
+                    }
+                });
+            });
+        })(jQuery);
+    </script>
+</section>
+
+{/strip}

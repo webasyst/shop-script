@@ -17,7 +17,7 @@ class shopPresentationColumnsModel extends waModel
                     WHERE presentation_id IN (?)
                     ORDER BY presentation_id, sort";
             foreach ($this->query($sql, [array_keys($presentations)]) as $row) {
-                $row['data'] = json_decode($row['data'], true);
+                $row['data'] = json_decode((string)$row['data'], true);
                 $presentations[$row['presentation_id']]['columns'][] = $row;
             }
         }

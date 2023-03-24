@@ -41,7 +41,13 @@ class shopProductAddToListController extends waJsonController
                 if (!$product_ids) {
                     return;
                 }
+                if ($type == 'set') {
+                    $this->addToSetEvent($id, $hash, $product_ids);
+                }
                 $model->add($product_ids, $id);
+                if ($type == 'set') {
+                    $this->addToSetEvent($id, $hash, $product_ids, 'after');
+                }
             } else {
                 $collection = new shopProductsCollection($hash);
                 $offset = 0;
@@ -49,7 +55,13 @@ class shopProductAddToListController extends waJsonController
                 $total_count = $collection->count();
                 while ($offset < $total_count) {
                     $product_ids = array_keys($collection->getProducts('*', $offset, $count));
+                    if ($type == 'set') {
+                        $this->addToSetEvent($id, $hash, $product_ids);
+                    }
                     $model->add($product_ids, $id);
+                    if ($type == 'set') {
+                        $this->addToSetEvent($id, $hash, $product_ids, 'after');
+                    }
                     $offset += count($product_ids);
                     if (!$product_ids) {
                         break;
@@ -78,5 +90,22 @@ class shopProductAddToListController extends waJsonController
             return new shopSetProductsModel();
         }
         return null;
+    }
+
+    protected function addToSetEvent($id, $hash, $product_ids, $type = 'before')
+    {
+        /**
+         * Attaches a product to the sets
+         *
+         * @param array $id
+         * @param string $hash
+         * @param array|string $product_ids products_id
+         */
+        $params = [
+            'set_ids' => $id,
+            'hash' => $hash,
+            'products_id' => $product_ids,
+        ];
+        wa('shop')->event('products_add_sets.'.$type, $params);
     }
 }

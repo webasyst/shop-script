@@ -1,0 +1,232 @@
+{* This template is used for both "Ship" and "Edit shipping details" action forms. *}
+{* Note: this template is also used in CRM applications. *}
+
+<form id="wf-ship-form" action="?module=workflow&action=perform" method="post">
+    <input type="hidden" name="id" value="{$order_id}">
+    <input type="hidden" name="action_id" value="{$action_id}">
+    {* begin shipping plugin form*}
+    {if !empty($shipping_controls)}
+        <div class="form">
+    {foreach $shipping_controls as $control}
+
+        {$control}
+    {/foreach}
+        </div>
+    {/if}
+    {* end shipping plugin form *}
+
+
+    [`Tracking number`]: <input name="tracking_number" placeholder="[`Optional`]" value="{$tracking_number|default:''|escape}">
+
+    <br><br>
+    [`Courier shipping`]:
+    <span class="shipping-date-fields">
+        <input type="text" placeholder="[`Date`]">
+        <input type="hidden" name="shipping_date" value="{$shipping_date|escape}">
+    </span>
+    <span class="shipping-time-from-fields">
+        <label>[`from `] <input type="text" name="shipping_time_from" data-time-format="H:i" value="{$shipping_time_start|escape}"></label>
+    </span>
+    <span class="shipping-time-to-fields">
+        <label>[`to `] <input type="text" name="shipping_time_to" data-time-format="H:i" value="{$shipping_time_end|escape}"></label>
+    </span>
+    <span class="hint">[`specify date and time`]</span>
+    {if $customer_delivery_date || $customer_delivery_date_str || $customer_delivery_time}
+        <br><br>
+        [`Preferred shipping time:`]
+        {if $customer_delivery_date}
+            <span class="customer-delivery-date" data-date="{$customer_delivery_date|escape}">{$customer_delivery_date|wa_date:date|escape}</span>
+        {elseif $customer_delivery_date_str}
+            <span>{$customer_delivery_date_str|escape}</span>
+        {/if}
+        {if $customer_delivery_time}
+            {if $customer_delivery_date}
+                &nbsp;
+            {/if}
+            {strip}
+            <span class="customer-delivery-time-from">{$customer_delivery_time.from_hours|escape}:{$customer_delivery_time.from_minutes|escape}</span>
+            –
+            <span class="customer-delivery-time-to">{$customer_delivery_time.to_hours|escape}:{$customer_delivery_time.to_minutes|escape}</span>
+            {/strip}
+        {/if}
+            <a href="javascript:void(0)" class="small inline-link use-customer-delivery-time-link"><b>[`apply`]</b></a>
+    {/if}
+    {if $couriers || $contacts || $contacts_as_courier}
+        <br><br>
+        <label>[`Courier`]:
+        <select name="courier_id">
+            <option value="0">[`None`]</option>
+            {if $couriers || $contacts_as_courier}
+                <optgroup label="[`Couriers`]">
+                    {foreach $contacts_as_courier as $c}
+                        <option value="-{$c.id|escape}"{if -$c.id == $selected_courier_id} selected{/if}>{$c.name|escape}</option>
+                    {/foreach}
+                    {foreach $couriers as $c}
+                        <option value="{$c.id|escape}"{if $c.id == $selected_courier_id} selected{/if}>{$c.name|escape}</option>
+                    {/foreach}
+                </optgroup>
+            {/if}
+            {if $contacts}
+                <optgroup label="[`Webasyst users`]">
+                    {foreach $contacts as $c}
+                        <option value="-{$c.id|escape}"{if -$c.id == $selected_courier_id} selected{/if}>{$c.name|escape}</option>
+                    {/foreach}
+                </optgroup>
+            {/if}
+        </select>
+        </label>
+        {if $other_couriers_exist && $storefront}
+            <span class="hint">{sprintf_wp('Only couriers for storefront %s are shown.', "<strong>{$storefront}</strong>")}</span>
+        {/if}
+        {foreach $couriers as $c}{if $c.note}
+            <span class="hint" data-courier-id="{$c.id|escape}" style="display:none"><br><br>{$c.note|escape}</span>
+        {/if}{/foreach}
+    {/if}
+
+    {if !$couriers && $other_couriers_exist && $storefront}
+        <br><br>
+        <span class="hint">{sprintf_wp('Set up couriers for storefront %s to be able assign orders to them.', "<strong>{$storefront}</strong>")}</span>
+    {/if}
+
+    {if !empty($plugins_html)}
+        {foreach $plugins_html as $plugin_id => $html}
+            <!-- {$plugin_id} -->
+            {$html}
+        {/foreach}
+    {/if}
+
+    <br><br>
+
+    {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
+    <footer class="js-form-footer-actions">
+        <input class="js-submit-button" type="submit" value="[`Save`]">
+        [`or`]
+        <a class="cancel inline-link js-cancel-button" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+    </footer>
+</form>
+
+<script type="text/javascript">(function() { "use strict";
+
+
+    var show_couriers = {if $couriers}1{else}0{/if};
+    var datepicker_format = {waDateTime::getFormatJS('date')|json_encode};
+    var wrong_time_warning_msg = {_w('End time is earlier than start time. Are you sure?')|json_encode};
+
+    var $form = $('#wf-ship-form');
+
+    if (show_couriers) {
+        $form.find('select[name="courier_id"]').change(function () {
+            var courier_id = $(this).val();
+            $form.find('[data-courier-id]').hide().filter('[data-courier-id="' + courier_id + '"]').show();
+        });
+    }
+
+    // cancel link
+    $form.find('.js-cancel-button').click(function () {
+        $('#workflow-content').empty().hide();
+        $('.workflow-actions').show();
+        return false;
+    });
+
+    // Datepicker
+    var $datepicker_text_input = $form.find('.shipping-date-fields input[type="text"]');
+    (function() { "use strict";
+        var $hidden_input = $form.find('.shipping-date-fields input[type="hidden"]');
+        var date = $.datepicker.parseDate('yy-mm-dd', $hidden_input.val());
+        $datepicker_text_input.datepicker({
+            dateFormat: datepicker_format,
+            altField: $hidden_input,
+            altFormat: "yy-mm-dd",
+            changeMonth : true,
+            changeYear : true,
+            shortYearCutoff: 2,
+            showOtherMonths: true,
+            selectOtherMonths: true,
+            numberOfMonths: 2,
+            stepMonths: 2
+        }).datepicker('setDate', date).datepicker('widget').hide();
+
+        $datepicker_text_input.on('change', function () {
+            if ($(this).val() === '') {
+                $hidden_input.val('');
+            }
+        });
+    }());
+
+    // Time picker
+    var $time_from_input = $form.find('.shipping-time-from-fields input').timepicker();
+    var $time_to_input = $form.find('.shipping-time-to-fields input').timepicker();
+
+    // When user clicks on a Use link, load customer delivery date and time into main fields
+    (function() { "use strict";
+        var $date_span = $form.find('.customer-delivery-date');
+        var $time_from_span = $form.find('.customer-delivery-time-from');
+        var $time_to_span = $form.find('.customer-delivery-time-to');
+
+        $form.find('.use-customer-delivery-time-link').click(function() {
+            if ($date_span.length) {
+                $datepicker_text_input.datepicker('setDate', $.datepicker.parseDate('yy-mm-dd', $date_span.data('date')));
+            }
+            if ($time_from_span.length) {
+                $time_from_input.val($time_from_span.text());
+                $time_to_input.val($time_to_span.text());
+            }
+        });
+    }());
+
+    // Submit voa XHR
+    $form.submit(function () {
+
+        // Reset validation
+        $form.find('.error').removeClass('error');
+        $form.find('.errormsg').remove();
+        var validation_passed = true;
+
+        // Make sure time interval is sane
+        var time_from = $time_from_input.val();
+        var time_to = $time_to_input.val();
+        if (time_from || time_to) {
+            var valid_time_regex = /^((\d\d)|(\d)):\d\d$/;
+            if (!time_from.match(valid_time_regex)) {
+                $time_from_input.addClass('error');
+                validation_passed = false;
+            }
+            if (!time_to.match(valid_time_regex)) {
+                $time_to_input.addClass('error');
+                validation_passed = false;
+            }
+            if (validation_passed) {
+                time_from = time_from.split(':');
+                time_from = time_from[0]*60 + time_from[1]*1;
+                time_to = time_to.split(':');
+                time_to = time_to[0]*60 + time_to[1]*1;
+                if (time_from > time_to) {
+                    if (!confirm(wrong_time_warning_msg)) {
+                        $time_from_input.addClass('error');
+                        $time_to_input.addClass('error');
+                        validation_passed = false;
+                    }
+                }
+            }
+        }
+
+        if (!validation_passed) {
+            return false;
+        }
+
+        $form.find(':submit').attr('disabled', true);
+        $.post($form.attr('action'), $form.serialize(), function () {
+            $form.trigger("formSend"); // this event is used in CRM app
+            if ("order" in $) { $.order.reload(); }
+        }, "json");
+        return false;
+    });
+
+    //scroll to input and focus
+    $('html, body').animate({
+        scrollTop: 0
+    }, 500, function () {
+        $form.find('> input[name="tracking_number"]').focus();
+    });
+
+}());</script>

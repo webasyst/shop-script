@@ -5,7 +5,9 @@
 {$_content_exist = true}
 
 {if $theme_settings.homepage_sidebar_layout != 'hidden'}
-<div class="sidebar{if $theme_settings.homepage_sidebar_layout == 'left'} left-sidebar{/if}">
+<div class="row gap32 cols2{if $theme_settings.homepage_sidebar_layout == 'right'} right-sidebar{/if}{if $theme_settings.homepage_sidebar_layout == 'left'} left-sidebar{/if} cols1-mobile cols1-tablet">
+    {strip}
+    <div class="sidebar col w3">
 
     <!-- CONTACT INFO -->
     {if $theme_settings.homepage_sidebar_storeinfo}
@@ -19,7 +21,6 @@
                     {/if}
                 {/if}
             </h3>
-            {strip}
             {if !empty($theme_settings.use_shop_schedule) && method_exists($wa->shop, 'schedule')}
                 {$_schedule = $wa->shop->schedule()}
 
@@ -32,8 +33,9 @@
                     <div class="s-hidden">
                         <div class="s-days-wrapper">
                             {foreach $_schedule.current_week as $_day}
-                                <div class="s-day-wrapper">
+                                <div class="s-day-wrapper wa-flex justify-content-between">
                                     <div class="s-date">{$_day.name|escape}</div>
+                                    <div class="s-day-dot-divider wa-flex-fill"></div>
                                     <div class="s-value">
                                         {if !empty($_day.work)}
                                             <div class="s-time">{$_day.start_work|escape} — {$_day.end_work|escape}</div>
@@ -44,7 +46,11 @@
                                 </div>
                             {/foreach}
                         </div>
-                        <i class="s-close-icon js-close-schedule" title="[`Close`]"></i>
+                        <span class="s-close-icon js-close-schedule" title="[`Close`]">
+                            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" version="1.1" preserveAspectRatio="xMinYMin">
+                                <use xlink:href="#img-close"></use>
+                            </svg>
+                        </span>
                     </div>
 
                     <script>
@@ -105,7 +111,6 @@
                     </div>
                 </div>
             {/if}
-            {/strip}
 
             <meta itemprop="address" content="{$wa->shop->settings('country')}">
             <meta itemprop="currenciesAccepted" content="{$wa->shop->currency()}">
@@ -129,22 +134,31 @@
     <!-- BULLETS -->
     <section class="bullets">
         {if !empty($theme_settings.homepage_bullet_title_1)}
-        <figure class="bullet">
-            <h4><span class="b-glyph b-shipping"></span> {$theme_settings.homepage_bullet_title_1}</h4>
-            <p>{$theme_settings.homepage_bullet_body_1}</p>
-        </figure>
+            <figure class="bullet">
+                <svg width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" version="1.1" preserveAspectRatio="xMinYMin">
+                    <use xlink:href="#img-delivery"></use>
+                </svg>
+                <h4>{$theme_settings.homepage_bullet_title_1}</h4>
+                <p>{$theme_settings.homepage_bullet_body_1}</p>
+            </figure>
         {/if}
         {if !empty($theme_settings.homepage_bullet_title_2)}
-        <figure class="bullet">
-            <h4><span class="b-glyph b-payment"></span> {$theme_settings.homepage_bullet_title_2}</h4>
-            <p>{$theme_settings.homepage_bullet_body_2}</p>
-        </figure>
+            <figure class="bullet">
+                <svg width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" version="1.1" preserveAspectRatio="xMinYMin">
+                    <use xlink:href="#img-pay"></use>
+                </svg>
+                <h4>{$theme_settings.homepage_bullet_title_2}</h4>
+                <p>{$theme_settings.homepage_bullet_body_2}</p>
+            </figure>
         {/if}
         {if !empty($theme_settings.homepage_bullet_title_3)}
-        <figure class="bullet">
-            <h4><span class="b-glyph b-location"></span> {$theme_settings.homepage_bullet_title_3}</h4>
-            <p>{$theme_settings.homepage_bullet_body_3}</p>
-        </figure>
+            <figure class="bullet">
+                <svg width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" version="1.1" preserveAspectRatio="xMinYMin">
+                    <use xlink:href="#img-point"></use>
+                </svg>
+                <h4>{$theme_settings.homepage_bullet_title_3}</h4>
+                <p>{$theme_settings.homepage_bullet_body_3}</p>
+            </figure>
         {/if}
     </section>
 
@@ -173,9 +187,10 @@
     </aside>
 
 </div>
+    {/strip}
 {/if}
 
-<div class="content{if $theme_settings.homepage_sidebar_layout != 'hidden'} with-sidebar{/if}{if $theme_settings.homepage_sidebar_layout == 'left'} left-sidebar{/if}">
+<div class="content{if $theme_settings.homepage_sidebar_layout != 'hidden'} col w9{/if}">
 
     {$promocards = $wa->shop->promos('link', '900')}
 
@@ -242,7 +257,7 @@
                 {/if}
                 {if !empty($theme_settings.homepage_productset_bestsellers)}
                     {if !empty($bestsellers)}
-                        {include file="list-thumbs.html" products=$bestsellers}
+                        {include file="list-thumbs.html" products=$bestsellers has_sidebar=($theme_settings.homepage_sidebar_layout != 'hidden')}
                     {else}
                         <p class="hint align-center"><br><em>{sprintf('[`Drag&amp;drop some products to set with id “%s” in your online store’s backend.`]', $theme_settings.homepage_productset_bestsellers)}</em></p>
                     {/if}
@@ -257,19 +272,15 @@
 
 </div>
 
-<div class="clear-both"></div>
+{if $theme_settings.homepage_sidebar_layout != 'hidden'}
+    </div>
+{/if}
 
 {if !empty($_content_exist)}
     <!-- WELCOME note -->
     {if !empty($theme_settings.homepage_welcome_note)}
         <figure class="olives">
-            <div class="olives-left">
-            <div class="olives-right">
-                <div class="olives-content">
-                    {$theme_settings.homepage_welcome_note}
-                </div>
-            </div>
-            </div>
+            {$theme_settings.homepage_welcome_note}
         </figure>
     {/if}
 
@@ -290,17 +301,23 @@
 
     <!-- BLOG posts -->
     {if $theme_settings.homepage_blogposts && $wa->blog}
-        {$blog_posts = $wa->blog->posts(null,4)}
-        {if count($blog_posts)}
+        {$blog_posts = $wa->blog->posts(null,3)}
+        {if is_countable($blog_posts) && count($blog_posts)}
             <h4 class="section-header">[`Latest blog updates`]</h4>
-            <ul class="thumbs text-content">
-            {foreach $blog_posts as $post}
-                <li>
-                    <a href="{$post.link}" class="bold">{$post.title}</a>
-                    <p class="small">{strip_tags($post.text)|truncate:128}</p>
-                    <span class="hint">{$post.datetime|wa_datetime:"humandate"}</span>
-                </li>
-            {/foreach}
+            <ul class="cards blog-posts row gap20 cols1-mobile cols2-tablet wa-pt-16">
+                {foreach $blog_posts as $post}
+                    <li class="col w4 card">
+                        {if !empty($post.thumb_image)}
+                            <img class="card-img" src="{$post.thumb_image}" alt="{$post.title}">
+                        {/if}
+                        <div class="card-body wa-flex wa-flex-column">
+                            <p class="text-gray wa-mb-8">{$post.datetime|wa_datetime:"humandate"}</p>
+                            <a href="{$post.link}" title="{$post.title|escape}" class="card-title">{$post.title|escape}</a>
+                            <p class="card-text gray">{strip_tags($post.text)|truncate:128}</p>
+                            <a class="card-read-more wa-mt-auto" href="{$post.link}" title="{$post.title|escape}">[`Read more`]</a>
+                        </div>
+                    </li>
+                {/foreach}
             </ul>
         {/if}
     {/if}

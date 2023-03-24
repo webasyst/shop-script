@@ -6,6 +6,7 @@ if (data.length) {
     var storage = {
         wrapper: $(".pie-wrapper"),
         hint_wrapper: $(".hint-wrapper"),
+        hint_width: false,
         padding: {
             top: 30,
             bottom: 30,
@@ -301,28 +302,24 @@ if (data.length) {
     };
 
     var getHintPosition = function(event) {
-        var margin = {
-            top: - parseInt( $("#maincontent").css("margin-top")) - 32,
-            left: 24
-        };
+        var offsetHint = { x: 15, y: -60 };
+        var rectGraph = storage.wrapper[0].getBoundingClientRect();
+            hint_left = event.clientX - rectGraph.left + offsetHint.x + 5,
+            hint_right = "auto";
 
-        var mouse_left = event.pageX,
-            hint_left = mouse_left + margin.left,
-            hint_right = "auto",
-            hint_width = 200;
-
-        // set document width
-        if (!storage.document_width) {
-            storage.document_width = $(document).width();
+        // set hint width
+        if (!storage.hint_width) {
+            storage.hint_width = storage.hint_wrapper.width();
         }
 
         // Check mouse place
-        if (mouse_left >= (storage.document_width - hint_width)) {
+        if (event.clientX >= rectGraph.right - storage.hint_width * 1.5) {
             hint_left = "auto";
-            hint_right = storage.document_width - mouse_left + margin.left
+            hint_right = rectGraph.right - event.clientX + offsetHint.x;
         }
+
         return {
-            top: event.pageY + margin.top,
+            top: event.clientY - rectGraph.top + offsetHint.y,
             left: hint_left,
             right: hint_right
         }

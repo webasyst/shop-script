@@ -2,43 +2,51 @@ $.extend($.settings = $.settings || {}, {
     recommendationsInit : function (options) {
         this.recommendations_options = options;
         // cross-selling
-        $(".cross-selling .i-button-mini").iButton({
-            labelOn : "",
-            labelOff : "",
-            classContainer: 'ibutton-container mini'
-        }).change(function () {
-            $(this).closest("div.s-ibutton-checkbox").find('span.status')
-                .html(this.checked ? $_("On") : $_("Off")).toggleClass('s-off');
-            var f = $(this).closest('div.field');
-            if (this.checked) {
-                f.find('.field-settings').show().find('select').removeAttr('disabled').val('alsobought');
-            } else {
-                f.find('.field-settings').hide().find('select').attr('disabled', 'disabled');
+        $(".js-switch-cross_selling").waSwitch({
+            ready: function (wa_switch) {
+                let $label = wa_switch.$wrapper.siblings('label');
+                wa_switch.$label = $label;
+                wa_switch.active_text = $label.data('active-text');
+                wa_switch.inactive_text = $label.data('inactive-text');
+            },
+            change: function(active, wa_switch) {
+                wa_switch.$label.text(active ? wa_switch.active_text : wa_switch.inactive_text);
+
+                const f = wa_switch.$wrapper.closest('div.field');
+                if (active) {
+                    f.find('.field-settings').show().find('select').removeAttr('disabled').val('alsobought');
+                } else {
+                    f.find('.field-settings').hide().find('select').attr('disabled', 'disabled');
+                }
+                self.recommendationsSaveCrossSelling(wa_switch.$wrapper, active ? 'alsobought': '');
             }
-            self.recommendationsSaveCrossSelling(this, this.checked ? 'alsobought': '');
         });
 
         var self = this;
         $(".cross-selling select").change(function () {
             self.recommendationsSaveCrossSelling(this, $(this).val());
         });
-        // upselling
-        $(".upselling .i-button-mini").iButton({
-            labelOn : "",
-            labelOff : "",
-            className: 'mini'
-        }).change(function () {
-            $(this).closest("div.s-ibutton-checkbox").find('span.status')
-            .   html(this.checked ? $_("On") : $_("Off")).toggleClass('s-off');
 
-            var f = $(this).closest('div.field');
-            if (this.checked) {
-                f.find('.field-settings').show();
-                self.recommendationsRenderEdit(f);
-            } else {
-                // save off
-                self.recommendationsSaveUpSelling(this);
-                f.find('.field-settings').empty().hide();
+        // upselling
+        $(".js-switch-upselling").waSwitch({
+            ready: function (wa_switch) {
+                let $label = wa_switch.$wrapper.siblings('label');
+                wa_switch.$label = $label;
+                wa_switch.active_text = $label.data('active-text');
+                wa_switch.inactive_text = $label.data('inactive-text');
+            },
+            change: function(active, wa_switch) {
+                wa_switch.$label.text(active ? wa_switch.active_text : wa_switch.inactive_text);
+
+                const f = wa_switch.$wrapper.closest('div.field');
+                if (active) {
+                    f.find('.field-settings').show();
+                    self.recommendationsRenderEdit(f);
+                } else {
+                    // save off
+                    self.recommendationsSaveUpSelling(f);
+                    f.find('.field-settings').empty().hide();
+                }
             }
         });
         $("div.upselling").on('click', 'a.customize', function () {
@@ -56,7 +64,7 @@ $.extend($.settings = $.settings || {}, {
             $.post("?module=marketingRecommendationsSave&setting=upselling", $(this).serialize(), function (response) {
                 if (response.status == 'ok') {
                     elem.find('.field-settings').html('<p class="small">' + response.data.html +
-                        ' <a href="javascript:void(0)" class="customize inline-link"><b><i>' + $_('Customize') + '</i></b></a>' + '</p>');
+                        ' <a href="javascript:void(0)" class="customize inline-link semibold">' + $_('Customize') + '</a>' + '</p>');
                     self.recommendations_options.data[response.data.type_id] = response.data.data;
                 }
             }, "json");
@@ -68,11 +76,35 @@ $.extend($.settings = $.settings || {}, {
             this.recommendationsRenderEditFeature(data[i], table, type_id);
         }
         table.append('<tr class="white"><td colspan="4"><input type="submit" class="button green" value="' + $_("Save") + '"></td></tr>');
+
+        function initSubmitChanged($form) {
+            const $submit = $form.find('[type="submit"]');
+            let is_changed = false;
+
+            const submitChanged = () => {
+                if (is_changed) return true;
+
+                $submit.removeClass('green').addClass('yellow');
+                is_changed = true;
+            };
+
+            $form.on('change', submitChanged);
+            $(':input:not(:submit)', $form).on('input', submitChanged);
+
+            $submit.on('click', function() {
+                $submit.removeClass('yellow').removeClass('red').addClass('green');
+                is_changed = false;
+            });
+        }
+
+        initSubmitChanged(form);
     },
 
     recommendationsRenderEditFeature: function (data, table, type_id) {
         var locales = this.recommendations_options.locales;
         var f = this.recommendationsGetFeature(data);
+        if (!f) return;
+
         var tr = $('<tr></tr>');
         var checkbox = $('<input name="data[' + data.feature + '][feature]" id="checkbox-' + type_id + '-' + data.feature + '" value="' + data.feature + '" type="checkbox" ' + (data.cond ? 'checked' : '') +'>').click(function () {
             var p = $(this).closest('tr');
@@ -136,7 +168,7 @@ $.extend($.settings = $.settings || {}, {
                     conds.push(['is', $_('is')]);
                 }
             }
-            var elem_values = $('<div class="v"></div>');
+            var elem_values = $('<div class="v flexbox wrap space-8"></div>');
             var select = $('<select ' + (data.cond ? '' : 'disabled="disabled"') + ' name="data[' + data.feature + '][cond]"></select>');
             for (var i = 0; i < conds.length; i++) {
                 select.append('<option ' + (data.cond == conds[i][0] || conds.length == 1 ? 'selected' : '') + ' value="' + conds[i][0] + '">' + conds[i][1] + '</option>')
@@ -161,7 +193,7 @@ $.extend($.settings = $.settings || {}, {
                             var vs = data.value ? data.value.split(',') : [];
                             var html = '';
                             for (var i = 0; i < f.values.length; i++) {
-                                html += '<label><input ' + ($.inArray('' + f.values[i][0], vs) != -1 ? 'checked' : '') + ' name="data[' + data.feature + '][value][]" value="' + f.values[i][0] + '" type="checkbox">' + f.values[i][1] + '</label> ';
+                                html += '<label><input class="custom-mr-4"' + ($.inArray('' + f.values[i][0], vs) != -1 ? 'checked' : '') + ' name="data[' + data.feature + '][value][]" value="' + f.values[i][0] + '" type="checkbox">' + f.values[i][1] + '</label> ';
                             }
                             elem_values.html(html);
                         } else {
@@ -207,33 +239,29 @@ $.extend($.settings = $.settings || {}, {
             type_id: f.data('type-id'),
             value: value
         }, function (response) {
-            var icon = $('<i style="display: none; margin-left: 20px" class="icon10 yes"></i>');
-            var s = f.find('div.field-settings select');
-            if (!s.next('i.icon10').length) {
-                icon.insertAfter(s);
-                icon.fadeIn('slow', function () {
-                    icon.fadeOut(1000, function () {
-                        $(this).remove();
-                    });
+            var $icon = $('<span class="js-icon-yes"><i class="fas fa-check-circle text-green"></i></span>');
+            var s = f.find('.field-settings');
+            if (!s.find('.js-icon-yes').length) {
+                s.append($icon);
+                $icon.animate({ opacity: 0 }, 1000, function () {
+                    $icon.remove();
                 });
-            }
+        }
         }, "json");
     },
 
-    recommendationsSaveUpSelling: function (elem) {
-        var f = $(elem).closest('.field');
+    recommendationsSaveUpSelling: function (f) {
         $.post("?module=marketingRecommendationsSave&setting=upselling", {
             type_id: f.data('type-id'),
             value: 0
         }, function (response) {
-            var icon = $('<i style="display: none; margin-left: 20px" class="icon10 yes"></i>');
-            var s = f.find('label.s-ibutton-and-label > span');
-            if (!s.find('i.icon10').length) {
-                s.append(icon);
-                icon.fadeIn('slow', function () {
-                    icon.fadeOut(1000, function () {
-                        $(this).remove();
-                    });
+            var $icon = $('<span class="js-icon-yes"><i class="fas fa-check-circle text-green"></i></span>');
+            var s = f.find('.value');
+
+            if (!s.find('.js-icon-yes').length) {
+                s.append($icon);
+                $icon.animate({ opacity: 0 }, 1000, function () {
+                    $icon.remove();
                 });
             }
         }, "json");

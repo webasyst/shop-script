@@ -118,6 +118,7 @@ class shopCartItemsModel extends waModel
             $s['price'] = $variants[$v_id]['price'];
 
             // price variant for sku
+            $is_converted = false;
             if (!empty($p_services['skus'][$sku_id][$s_id]['variants'][$v_id]['price'])) {
                 shopRounding::roundServiceVariants(
                     $p_services['skus'][$sku_id][$s_id]['variants'],
@@ -128,7 +129,9 @@ class shopCartItemsModel extends waModel
                         ),
                     )
                 );
-                $s['price'] = $p_services['skus'][$sku_id][$s_id]['variants'][$v_id]['price'];
+                $sku_service = $p_services['skus'][$sku_id][$s_id]['variants'][$v_id];
+                $s['price'] = $sku_service['price'];
+                $is_converted = $sku_service['currency'] != $sku_service['unconverted_currency'];
             }
 
             if ($s['currency'] == '%') {
@@ -142,7 +145,7 @@ class shopCartItemsModel extends waModel
                     $sku_price = shop_currency($product_price, $product_currency, $frontend_currency, false);
                 }
                 $s['price'] = shop_currency($s['price'] * $sku_price / 100, $frontend_currency, $frontend_currency, false);
-            } else {
+            } elseif (!$is_converted) {
                 $s['price'] = shop_currency($s['price'], $variants[$v_id]['currency'], $frontend_currency, false);
             }
 

@@ -1,0 +1,73 @@
+{* Note: this template is also used in CRM applications. *}
+<form id="wf-delete-form" action="?module=workflow&action=perform" method="post">
+    <input type="hidden" name="id" value="{$order_id}">
+    <input type="hidden" name="action_id" value="{$action_id}">
+        <div class="form">
+            {* begin shipping plugin form*}
+            {if !empty($shipping_controls)}
+                {foreach $shipping_controls as $_control}
+                    {$_control}
+                {/foreach}
+            {/if}
+            {* end shipping plugin form *}
+
+            {if !empty($stocks)}
+                <div class="field">
+                    <div class="name">[`Return refunded items to selected stocks`]</div>
+                    <div class="value">
+                        <select name="return_stock">
+                            <option value="" selected="selected">[`To items’ original stocks`]</option>
+                            {foreach $stocks as $stock}
+                                <option value="{$stock.id}">{$stock.name|escape}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </div>
+            {/if}
+
+
+
+            <div class="field">
+                <div class="name">[`Comment`]</div>
+                <div class="value">
+                    <textarea name="text" placeholder="[`Order deletion reason`]"></textarea>
+                </div>
+            </div>
+        </div>
+    {if !empty($plugins_html)}
+        {foreach $plugins_html as $plugin_id => $html}
+            <!-- {$plugin_id} -->
+            {$html}
+        {/foreach}
+    {/if}
+
+    {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
+    <footer class="js-form-footer-actions">
+        <input class="js-submit-button" type="submit" value="[`Save`]">
+        [`or`]
+        <a class="cancel inline-link js-cancel-button" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+    </footer>
+</form>
+
+<script type="text/javascript">
+    ( function($) {
+        var $form = $("#wf-delete-form");
+
+        // cancel link
+        $form.find('.js-cancel-button').click(function() {
+            $('#workflow-content').empty().hide();
+            $('.workflow-actions').show();
+            return false;
+        });
+
+        $form.submit(function () {
+            var f = $(this);
+            f.find(':submit').attr('disabled', true);
+            $.post(f.attr('action'), f.serialize(), function () {
+                $form.trigger("formSend"); // this event is used in CRM app
+                if ("order" in $) { $.order.reload(); }
+            }, "json");
+            return false;
+        });
+    })(jQuery);
+</script>

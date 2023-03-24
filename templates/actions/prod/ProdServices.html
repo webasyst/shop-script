@@ -109,7 +109,7 @@
 {* PAGE *}
 <div id="js-product-services-section-wrapper">
     {* VUE *}
-    <div class="article s-product-services-section js-product-services-section" style="visibility: hidden;">
+    <div class="article wider s-product-services-section js-product-services-section" style="visibility: hidden;">
         {* HEADER *}
 
         <!-- plugin hook: 'backend_prod_content.top' -->
@@ -119,20 +119,22 @@
         <div class="s-section-header">
             <h4 class="s-title">[`Services`]</h4>
 
-            <div class="wa-message wa-small white flexbox space-8">
-                <div class="message-icon">
-                    <i class="fas fa-info-circle"></i>
-                </div>
-                <div class="message-body wide">
-                    <p>[`Set up services for all products or for selected product types, or for individual products.`]</p>
-                    <p>[`To apply a service to an individual product, disable its use for the entire product type.`]</p>
-                </div>
-                <div class="message-actions middle">
-                    <a class="wa-button wa-small gray" href="{$wa_app_url}?action=products#services/" target="_blank">
-                        <span class="s-icon"><i class="fas fa-cog"></i></span>
-                        <span class="s-name">[`Configure services`]</span>
-                        <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
-                    </a>
+            <div class="alert small">
+                <div class="flexbox space-8">
+                    <div class="message-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="message-body wide">
+                        <div>[`Set up services for all products or for selected product types, or for individual products.`]</div>
+                        <div>[`To apply a service to an individual product, disable its use for the entire product type.`]</div>
+                    </div>
+                    <div class="message-actions middle">
+                        <a class="button nobutton rounded" href="{$wa_app_url}?action=products#services/" target="_blank">
+                            <span class="s-icon"><i class="fas fa-cog"></i></span>
+                            <span class="s-name">[`Configure services`]</span>
+                            <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -142,7 +144,7 @@
             {* GLOBAL ERRORS *}
             <div class="s-errors-place" id="js-errors-place" v-if="errors_global.length">
                 <template v-for="error in errors_global" v-bind:key="error.id">
-                    <div class="wa-message wa-small error flexbox space-8" v-bind:data-id="error.id">
+                    <div class="wa-message small error flexbox space-8" v-bind:data-id="error.id">
                         <div class="message-icon">
                             <i class="fas fa-info-circle"></i>
                         </div>
@@ -157,28 +159,25 @@
             </div>
 
             {* PRODUCT TYPE *}
-            <div class="wa-fields space-24">
+            <div class="fields custom-mb-40 custom-mt-40">
                 {* TYPE *}
-                <div class="wa-field">
+                <div class="field">
                     <div class="name">
 
                         <div class="wa-label">
-                            <div class="flexbox space-10">
-                                <span class="s-name">[`Product type`]</span>
-                                <span class="s-icon" data-tooltip-id="product-services-1">
-                                    <i class="fas fa-question-circle gray"></i>
-                                </span>
-                            </div>
+                            <span class="s-name">[`Product type`]</span>
+                            <span class="s-icon" data-tooltip-id="product-services-1">
+                                <i class="fas fa-question-circle gray"></i>
+                            </span>
                         </div>
 
                     </div>
-                    <div class="value s-small-text">
-
+                    <div class="value">
                         <div class="s-product-type-section">
                             {if !empty($product_type)}
                                 {strip}
                                 <div class="s-name-wrapper">
-                                    <span class="s-icon">{$product_type.icon_html}</span>
+                                    <span class="s-icon text-gray">{$product_type.icon_html}</span>
                                     <span class="s-name">{$product_type.name|escape}</span>
                                 </div>
                                 {/strip}
@@ -186,7 +185,7 @@
                                 <div class="s-hint hint">{_w("You can change the product type on the “Basic data” tab.")}</div>
 
                             {else}
-                                <div class="color-red">[`Error: product type does not exist.`]</div>
+                                <div class="text-red">[`Error: product type does not exist.`]</div>
                             {/if}
                         </div>
 
@@ -195,11 +194,11 @@
             </div>
 
             {* SERVICES *}
-            <div class="s-services-section">
+            <div class="s-services-section small">
                 <div class="s-section-header">
-                    <button class="wa-button wa-small wa-short bold transparent" type="button"
+                    <button class="button light-gray rounded" type="button"
                             v-on:click.prevent="changeServicesList">
-                        <span class="s-icon"><i class="fas fa-project-diagram"></i></span>
+                        <span class="s-icon text-blue"><i class="fas fa-project-diagram"></i></span>
                         <span class="s-name">[`Select available services`]</span>
                     </button>
                 </div>
@@ -213,18 +212,19 @@
                                  v-bind:key="service.id">
                                 {* ACTION *}
                                 <div class="s-column-service-actions">
-                                    <div class="flexbox middle nowrap">
-                                        <button class="wa-button wa-small wa-short transparent align-center cursor-default"
-                                                v-bind:data-tooltip-id="'product-services-'+(service.type_id? '2' : '3')">
+                                    <div class="flexbox middle nowrap" style="max-width: 63px;">
+                                        <a class="box nobutton small cursor-default gray"
+                                            href="javascript:void(0);"
+                                            v-bind:data-tooltip-id="'product-services-'+(service.type_id? '2' : '3')">
                                             <span v-if="service.type_id" v-html="product_type.icon_html"></span>
-                                            <span class="s-action color-blue cursor-pointer" v-else><i class="fas fa-project-diagram"></i></span>
-                                        </button>
+                                            <span class="s-action text-blue cursor-pointer" v-else><i class="fas fa-project-diagram"></i></span>
+                                        </a>
 
-                                        <button class="wa-button wa-small wa-short transparent" type="button"
+                                        <button class="button nobutton small" type="button"
                                                 v-bind:data-tooltip-id="'product-services-'+(!!service.product_id ? '5' : '6')"
                                                 v-on:click.prevent="toggleProduct(service)">
 
-                                            <span class="s-icon color-gray-light"
+                                            <span class="s-icon text-light-gray"
                                                   v-show="!service.product_id"><i class="fas fa-lock"></i></span>
                                             <span class="s-icon"
                                                   v-show="!!service.product_id"><i class="fas fa-lock-open"></i></span>
@@ -234,17 +234,15 @@
                                 {* BODY *}
                                 <div class="s-column-service-body wide">
                                     <div class="s-service-body"
-                                         v-bind:data-tooltip-id="(!service.product_id ? 'product-services-14' : '')"
                                          v-bind:class="{ 'is-locked': !service.product_id }">
                                         {* SERVICE *}
                                         <div class="s-service-wrapper s-tablebox-line tablebox space-16"
                                              v-bind:class="{ 'is-active' : service.status_model }">
-
                                             {* BODY *}
                                             <div class="s-column-name wide">
 
                                                 <div class="s-service-name">
-                                                    <label class="s-label flexbox space-6">
+                                                    <label class="s-label flexbox middle space-8">
                                                         <span class="wa-checkbox"
                                                               v-bind:data-tooltip-id="'product-services-' + (!!service.product_id ? (service.status_model ? '8':'9') : '7')">
                                                             <input type="checkbox"
@@ -252,7 +250,7 @@
                                                                    v-model="service.status_model">
                                                             <span><span class="icon size-10"><i class="fas fa-check"></i></span></span>
                                                         </span>
-                                                        <span class="s-name wide">{ { service.name } }</span>
+                                                        <span class="s-name" v-bind:data-tooltip-id="(!service.product_id ? 'product-services-14' : '')">{ { service.name } }</span>
                                                     </label>
                                                 </div>
 
@@ -262,9 +260,9 @@
                                             <div class="s-column-price nowrap">
 
                                                 <template v-if="service.variants.length === 1">
-                                                    <div class="s-price-wrapper color-black"
+                                                    <div class="s-price-wrapper text-black"
                                                          v-bind:style="{ 'visibility' : (service.status_model ? '' : 'hidden') }">
-                                                        <input class="s-price wa-small bold is-price" type="text"
+                                                        <input class="s-price small bold is-price" type="text"
                                                                v-model="service.variants[0].price"
                                                                v-bind:placeholder="service.variants[0].base_price"
                                                                v-bind:class="{ 'wa-error-field' : !!errors['service['+service.id+'][price]'] }"
@@ -272,12 +270,12 @@
                                                         <span class="s-currency bold">{ { service.currency } }</span>
                                                     </div>
 
-                                                    <div class="wa-error-text"
+                                                    <div class="state-error"
                                                          v-if="!!errors['service[' + service.id + '][price]']"
                                                          v-show="service.status_model">
                                                         {_w("Invalid value")|escape}
                                                         <span data-tooltip-id="product-services-4">
-                                                            <i class="fas fa-question-circle color-red"></i>
+                                                            <i class="fas fa-question-circle text-red"></i>
                                                         </span>
                                                     </div>
                                                 </template>
@@ -289,7 +287,7 @@
 
                                                 <div class="s-toggle-wrapper">
                                                     <template v-if="service.variants.length === 1 && service.status_model && !!service.product_id">
-                                                        <button class="wa-button wa-small wa-short bold transparent"
+                                                        <button class="button light-gray nobutton text-blue"
                                                                 v-bind:disabled="isOverwritten(service)"
                                                                 v-on:click.prevent="toggleService(service)">
                                                             <span class="s-name">[`SKUs & variants`]</span>
@@ -316,7 +314,7 @@
                                                             <div class="s-column-name wide">
 
                                                                 <div class="s-variant-name">
-                                                                    <div class="flexbox space-6">
+                                                                    <div class="flexbox middle space-8">
                                                                         <label class="wa-checkbox"
                                                                                v-bind:data-tooltip-id="'product-services-'+(variant.status_model ? '10':'11')">
                                                                             <input type="checkbox"
@@ -324,7 +322,7 @@
                                                                                    v-model="variant.status_model">
                                                                             <span><span class="icon size-10"><i class="fas fa-check"></i></span></span>
                                                                         </label>
-                                                                        <label class="s-label wide flexbox space-6">
+                                                                        <label class="s-label wide flexbox middle space-4">
                                                                             <span class="wa-radio"
                                                                                   v-bind:data-tooltip-id="'product-services-'+(service.variant_id === variant.id ? '12':'13')">
                                                                                 <input type="radio"
@@ -344,28 +342,28 @@
                                                             <div class="s-column-price nowrap">
 
                                                                 <template v-if="service.product_id">
-                                                                    <div class="s-price-wrapper color-black"
+                                                                    <div class="s-price-wrapper text-black"
                                                                          v-bind:style="{ 'visibility' : (variant.status_model ? '' : 'hidden') }">
-                                                                        <input class="s-price wa-small bold is-price" type="text"
+                                                                        <input class="s-price small bold is-price" type="text"
                                                                                v-model="variant.price"
                                                                                v-bind:placeholder="variant.base_price"
                                                                                v-bind:class="{ 'wa-error-field' : !!errors['service['+service.id+'][variant]['+variant.id+'][price]'] }"
                                                                                v-on:input="validate($event, 'price', variant, 'price', 'service['+service.id+'][variant]['+variant.id+'][price]')">
                                                                         <span class="s-currency bold">{ { service.currency } }</span>
                                                                     </div>
-                                                                    <div class="wa-error-text"
+                                                                    <div class="state-error"
                                                                          v-show="variant.status_model"
                                                                          v-if="!!errors['service['+service.id+'][variant]['+variant.id+'][price]']">
                                                                         {_w("Invalid value")|escape}
                                                                         <span data-tooltip-id="product-services-4">
-                                                                            <i class="fas fa-question-circle color-red"></i>
+                                                                            <i class="fas fa-question-circle text-red"></i>
                                                                         </span>
                                                                     </div>
                                                                 </template>
                                                                 <template v-else>
-                                                                    <div class="s-price-wrapper color-black"
+                                                                    <div class="s-price-wrapper text-black"
                                                                          v-bind:style="{ 'visibility' : (variant.status_model ? '' : 'hidden') }">
-                                                                        <input class="s-price wa-small bold is-price" type="text"
+                                                                        <input class="s-price small bold is-price" type="text"
                                                                                v-bind:placeholder="variant.base_price">
                                                                         <span class="s-currency bold">{ { service.currency } }</span>
                                                                     </div>
@@ -378,7 +376,7 @@
 
                                                                 <div class="s-toggle-wrapper">
                                                                     <template v-if="variant.status_model && !!service.product_id">
-                                                                        <button class="wa-button wa-small wa-short bold transparent"
+                                                                        <button class="button light-gray nobutton text-blue"
                                                                                 v-bind:disabled="isOverwritten(service, variant)"
                                                                                 v-on:click.prevent="toggleVariant(service, variant)">
                                                                             <span class="s-name">[`SKUs & variants`]</span>
@@ -402,7 +400,7 @@
                                                                 {* BODY *}
                                                                 <div class="s-column-name wide">
                                                                     <div class="s-modification-name">
-                                                                        <label class="s-label flexbox space-6">
+                                                                        <label class="s-label flexbox middle space-8">
                                                                             <span class="wa-checkbox">
                                                                                 <input type="checkbox"
                                                                                        v-on:change="changeModificationStatus(service, variant, modification)"
@@ -418,9 +416,9 @@
                                                                 <div class="s-column-price nowrap">
 
                                                                     <template v-if="service.product_id">
-                                                                        <div class="s-price-wrapper color-black"
+                                                                        <div class="s-price-wrapper text-black"
                                                                              v-bind:style="{ 'visibility' : (modification.status_model ? '' : 'hidden') }">
-                                                                            <input class="s-price wa-small bold is-price" type="text"
+                                                                            <input class="s-price small bold is-price" type="text"
                                                                                    v-model="modification.price"
                                                                                    v-bind:placeholder="placeholder_modification(service, variant, modification)"
                                                                                    v-bind:class="{ 'wa-error-field' : !!errors['service['+service.id+'][variant]['+variant.id+'][sku]['+modification.sku_id+'][price]'] }"
@@ -428,19 +426,19 @@
                                                                             <span class="s-currency bold">{ { service.currency } }</span>
                                                                         </div>
 
-                                                                        <div class="wa-error-text"
+                                                                        <div class="state-error"
                                                                              v-show="modification.status_model"
                                                                              v-if="!!errors['service['+service.id+'][variant]['+variant.id+'][sku]['+modification.sku_id+'][price]']">
                                                                             {_w("Invalid value")|escape}
                                                                             <span data-tooltip-id="product-services-4">
-                                                                                <i class="fas fa-question-circle color-red"></i>
+                                                                                <i class="fas fa-question-circle text-red"></i>
                                                                             </span>
                                                                         </div>
                                                                     </template>
                                                                     <template v-else>
-                                                                        <div class="s-price-wrapper color-black"
+                                                                        <div class="s-price-wrapper text-black"
                                                                              v-bind:style="{ 'visibility' : (modification.status_model ? '' : 'hidden') }">
-                                                                            <input class="s-price wa-small bold is-price" type="text"
+                                                                            <input class="s-price small bold is-price" type="text"
                                                                                    v-model="modification.base_price"
                                                                                    v-bind:placeholder="placeholder_modification(service, variant, modification)">
                                                                             <span class="s-currency bold">{ { service.currency } }</span>
@@ -483,7 +481,7 @@
                 ]}
 
                 <div class="s-features-hidden-on-front-section">
-                    <div class="wa-message wa-small warn flexbox space-8">
+                    <div class="wa-message small warn flexbox space-8">
                         <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="message-text wide">
                             <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`]</span>

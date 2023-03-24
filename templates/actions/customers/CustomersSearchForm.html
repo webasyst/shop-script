@@ -77,7 +77,7 @@
                 </div>
                 <div class="value">
                     {select n="app.number_of_orders.op" o=['>=', '=', '<='] d=$hash.app.number_of_orders.op|default:'' with_empty=false}
-                    <input name="app.number_of_orders.val" value="{$hash.app.number_of_orders.val|default:''}" class="numerical short">
+                    <input type="number" name="app.number_of_orders.val" value="{$hash.app.number_of_orders.val|default:''}" class="numerical shorter custom-ml-4">
                 </div>
             </div>
 
@@ -87,11 +87,11 @@
                 </div>
                 <div class="value">
                     {if isset($hash.app.orders_total_sum)}
-                        [`from`] <input name="app.orders_total_sum.from" value="{if isset($hash.app.orders_total_sum.val)}{if is_array($hash.app.orders_total_sum.val)}{$hash.app.orders_total_sum.val[0]|default:''}{else if ($hash.app.orders_total_sum.op == '>=')}{$hash.app.orders_total_sum.val|default:''}{/if}{/if}" type="text" class="numerical short s-total-spent-from" placeholder="0">
-                        [`to`] <input name="app.orders_total_sum.to" value="{if isset($hash.app.orders_total_sum.val)}{if is_array($hash.app.orders_total_sum.val)}{$hash.app.orders_total_sum.val[1]|default:''}{else if ($hash.app.orders_total_sum.op == '<=')}{$hash.app.orders_total_sum.val|default:''}{/if}{/if}" type="text" class="numerical short s-total-spent-to" placeholder="&infin;">
+                        [`from`] <input name="app.orders_total_sum.from" id="total_sum_from" value="{if isset($hash.app.orders_total_sum.val)}{if is_array($hash.app.orders_total_sum.val)}{$hash.app.orders_total_sum.val[0]|default:''}{else if ($hash.app.orders_total_sum.op == '>=')}{$hash.app.orders_total_sum.val|default:''}{/if}{/if}" type="text" class="numerical short s-total-spent-from" placeholder="0">
+                        [`to`] <input name="app.orders_total_sum.to" id="total_sum_to" value="{if isset($hash.app.orders_total_sum.val)}{if is_array($hash.app.orders_total_sum.val)}{$hash.app.orders_total_sum.val[1]|default:''}{else if ($hash.app.orders_total_sum.op == '<=')}{$hash.app.orders_total_sum.val|default:''}{/if}{/if}" type="text" class="numerical short s-total-spent-to" placeholder="&infin;">
                     {else}
-                        [`from`] <input name="app.total_spent.from" value="{if isset($hash.app.total_spent.val)}{if is_array($hash.app.total_spent.val)}{$hash.app.total_spent.val[0]|default:''}{else if ($hash.app.total_spent.op == '>=')}{$hash.app.total_spent.val|default:''}{/if}{/if}" type="text" class="numerical short s-total-spent-from" placeholder="0">
-                        [`to`] <input name="app.total_spent.to" value="{if isset($hash.app.total_spent.val)}{if is_array($hash.app.total_spent.val)}{$hash.app.total_spent.val[1]|default:''}{else if ($hash.app.total_spent.op == '<=')}{$hash.app.total_spent.val|default:''}{/if}{/if}" type="text" class="numerical short s-total-spent-to" placeholder="&infin;">
+                        [`from`] <input name="app.total_spent.from" id="total_sum_from" value="{if isset($hash.app.total_spent.val)}{if is_array($hash.app.total_spent.val)}{$hash.app.total_spent.val[0]|default:''}{else if ($hash.app.total_spent.op == '>=')}{$hash.app.total_spent.val|default:''}{/if}{/if}" type="text" class="numerical short s-total-spent-from" placeholder="0">
+                        [`to`] <input name="app.total_spent.to" id="total_sum_to" value="{if isset($hash.app.total_spent.val)}{if is_array($hash.app.total_spent.val)}{$hash.app.total_spent.val[1]|default:''}{else if ($hash.app.total_spent.op == '<=')}{$hash.app.total_spent.val|default:''}{/if}{/if}" type="text" class="numerical short s-total-spent-to" placeholder="&infin;">
                     {/if}
                     {$primary_currency}
                 </div>
@@ -187,7 +187,7 @@
                     [`Purchase time frame`]
                 </div>
                 <div class="value">
-                    <div data-name="app.order_datetime" class="s-customer-period" data-op="{$hash.app.order_datetime.op|default:''}" data-val="{implode('--', $hash.app.order_datetime.val|default:[])}"></div>
+                    <div data-name="app.order_datetime" class="s-customer-period" data-op="{$hash.app.order_datetime.op|default:''}" data-val="{implode('--', (array)$hash.app.order_datetime.val|default:[])}"></div>
                 </div>
             </div>
 
@@ -244,23 +244,25 @@
 {/capture}
 
 {$container_id = $wa->param('container_id', 's-customers-search-form')}
-
+<div>
 {if !$wa->param('just_fields')}
-    <div class="block double-padded">
-        <h1>[`New search`]</h1>
-        <div class="s-order-customer-details">
-            <form class="s-customers-search-form" id="{$container_id}">
-                {$fields}
-                {$buttons}
-            </form>
-        </div>
+    <h1>
+        <a href="?action=customers" class="back"><i class="fas fa-arrow-circle-left"></i></a>
+        [`New search`]
+    </h1>
+    <div class="s-order-customer-details">
+        <form class="s-customers-search-form" id="{$container_id}">
+            {$fields}
+            <div class="custom-mt-16">{$buttons}</div>
+        </form>
     </div>
+
 {else}
     <div class="s-customers-search-form" id="{$container_id}">
         {$fields}
     </div>
 {/if}
-
+</div>
 <script>
     $(function() {
         (function(container) {
@@ -384,13 +386,28 @@
             });
 
             $('.s-clear-radio', container).click(function() {
-                $(this).hide().closest('.field').find(':radio').attr('checked', false);
+                $(this).hide().closest('.field').find(':radio').prop('checked', false);
                 return false;
             });
 
             $(container).find(':radio').change(function () {
                 $(this).closest('.field').find('.s-clear-radio').show();
             });
+
+            var total_sum_from = $('#total_sum_from');
+            var total_sum_to = $('#total_sum_to');
+            var swapSum = function() {
+                var val_from = parseFloat(total_sum_from.val());
+                var val_to = parseFloat(total_sum_to.val());
+
+                if (!isNaN(val_from) && !isNaN(val_to) && val_from > val_to) {
+                    total_sum_to.val(val_from);
+                    total_sum_from.val(val_to);
+                }
+            }
+
+            total_sum_from.on('change', swapSum);
+            total_sum_to.on('change', swapSum);
 
             // Certain form fields are disabled depending on what is selected elsewhere.
             // Namely, we disable all non-address fields when at least one of two things is selected
@@ -486,8 +503,8 @@
         })($('#{$container_id}'));
 
         function makeChoosePeriodControl(el) {
-            var start_input = $('<input class="datepicker non-wa-contact-field" style="width:111px;">');
-            var end_input = $('<input class="datepicker non-wa-contact-field" style="width:111px;">');
+            var start_input = $('<input type="text" class="datepicker non-wa-contact-field" style="max-width:107px;">');
+            var end_input = $('<input type="text" class="datepicker non-wa-contact-field" style="max-width:107px;">');
             var hidden_input = $('<input type="hidden" name="' + el.data('name') + '" class="non-wa-contact-field">');
 
             var init_val = el.data('val');
@@ -506,6 +523,21 @@
                     el.find('.datepicker:eq(1)').val(init_val[1]);
                 }
             }
+
+            function swapRange(rangeStart, rangeEnd) {
+                var startVal = rangeStart.val();
+                var endVal = rangeEnd.val();
+
+                if (Date.parse(startVal) > Date.parse(endVal)) {
+                    rangeStart.val(endVal);
+                    rangeEnd.val(startVal);
+
+                    return [endVal, startVal];
+                }
+
+                return [startVal, endVal];
+            }
+
             el.find('.datepicker')
                 .change(function() {
                     var range = [];
@@ -515,7 +547,9 @@
                     if (end_input.datepicker('getDate')) {
                         range[1] = end_input.val();
                     }
+
                     if (range[0] && range[1]) {
+                        range = swapRange(start_input, end_input);
                         hidden_input.data('op', '=').val(range.join('--'));
                     } else if (range[0]) {
                         hidden_input.data('op', '>=').val(range[0]);

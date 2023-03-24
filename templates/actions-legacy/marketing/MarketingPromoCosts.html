@@ -1,0 +1,86 @@
+{$_promo_id = waRequest::request("promo_id", null)}
+
+<div class="s-costs-block">
+    {if !empty($_promo_id)}
+        {foreach $additional_html.top as $_html}
+            {$_html}
+        {/foreach}
+
+        {if !empty($costs)}
+            <table class="zebra single-lined padded s-costs-table">
+                {foreach $costs as $_cost}
+                    <tr class="s-cost-wrapper" data-cost-id="{$_cost.id}">
+                        <td class="s-price-column">
+                            <div>
+                                <span class="s-price">{shop_currency_html($_cost.amount)}</span>
+                                <i class="shortener"></i>
+                            </div>
+                        </td>
+                        <td class="s-date-column">
+                            <div>
+                                {if !empty($_cost.start)}
+                                    <span class="s-date">{$_cost.start|wa_date}</span>
+                                    {if !empty($_cost.end) && $_cost.start !== $_cost.end}
+                                        <span class="s-divider">–</span>
+                                        <span class="s-date">{$_cost.end|wa_date}</span>
+                                    {/if}
+                                {/if}
+                                <i class="shortener"></i>
+                            </div>
+                        </td>
+                        {if !empty($_cost.note)}
+                            <td class="s-description-column">
+                                <div>
+                                    <span class="s-note">{$_cost.note|escape}</span>
+                                    <i class="shortener"></i>
+                                </div>
+                            </td>
+                        {/if}
+                        <td class="s-actions-column">
+                            <a href="{$marketing_url}costs/?cost_id={$_cost.id|escape}" class="s-edit-link" title="[`Edit`]"><i class="icon16 edit"></i></a>
+                        </td>
+                    </tr>
+                {/foreach}
+            </table>
+        {/if}
+
+        <div class="s-costs-actions">
+            <a class="js-disable-router js-add-cost" href="{$marketing_url}costs/?promo_id={$_promo_id|escape}">
+                <i class="icon16 add"></i> [`Add entry`]
+            </a>
+
+            <script>
+                ( function($) {
+                    $(".s-costs-block .js-add-cost").on("click", function(event) {
+                        event.preventDefault();
+                        var href = $(this).attr("href");
+
+                        var $start = $('[name="promo[start_date]"]');
+                        if ($start.length) {
+                            var start = $start.val();
+                            if (start) {
+                                href += "&start_date=" + start;
+                            }
+                        }
+
+                        var $finish = $('[name="promo[finish_date]"]');
+                        if ($finish.length) {
+                            var finish = $finish.val();
+                            if (finish) {
+                                href += "&finish_date=" + finish;
+                            }
+                        }
+
+                        $.shop.marketing.content.load(href);
+                    });
+                })(jQuery);
+            </script>
+        </div>
+
+        {foreach $additional_html.bottom as $_html}
+            {$_html}
+        {/foreach}
+    {else}
+        <p>[`Save a promo to add marketing costs for it.`]</p>
+    {/if}
+</div>

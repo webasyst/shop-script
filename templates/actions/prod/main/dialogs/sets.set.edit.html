@@ -4,7 +4,7 @@
 
 {capture assign="_component_dropdown_rules"}
 <div class="dropdown">
-    <button class="dropdown-toggle wa-button gray-field wa-small" type="button">{ { active_item.name } }</button>
+    <button class="dropdown-toggle button gray-field small" type="button">{ { active_item.name } }</button>
     <div class="dropdown-body">
         <template v-for="item in items">
             <div class="dropdown-item"
@@ -33,8 +33,8 @@
             </div>
             <div class="dialog-content">
 
-                <form class="wa-fields">
-                    <div class="wa-field">
+                <form class="fields">
+                    <div class="field">
                         <div class="name for-input">
                             <div class="s-name">[`Name`]</div>
                         </div>
@@ -44,18 +44,19 @@
                                     name="name"
                                     class="s-set-name-field bold full-width js-autofocus"
                                     v-model="set.name"
+                                    rows="1"
                                     v-bind:class="{ 'wa-error-field' : errors['set_name'] }"
                                     v-on:blur="onBlurName"
                                     v-on:input="onChangeName"
                                     v-bind:placeholder="'{_w("Set name")|escape}'"></component-flex-textarea>
                             </div>
-                            <div class="wa-error-text"
+                            <div class="state-error"
                                  v-if="errors['set_name']"
                                  v-html="errors['set_name'].text"></div>
                         </div>
                     </div>
 
-                    <div class="wa-field">
+                    <div class="field">
                         <div class="name">
                             <div class="s-name">[`Set ID`]</div>
                         </div>
@@ -63,11 +64,11 @@
                             {strip}
                             <div class="s-field-wrapper">
                                 <span class="s-label">&#123;$wa->shop->productSet("</span>
-                                <input class="wa-small" type="text" name="id" v-model="set.id" v-bind:class="{ 'wa-error-field' : errors['set_id'] }" v-on:blur="onBlurId">
+                                <input class="small" type="text" name="id" v-model="set.id" v-bind:class="{ 'wa-error-field' : errors['set_id'] }" v-on:blur="onBlurId">
                                 <span>")&#125;</span>
                             </div>
                             {/strip}
-                            <div class="wa-error-text" v-if="errors['set_id']" v-html="errors['set_id'].text"></div>
+                            <div class="state-error" v-if="errors['set_id']" v-html="errors['set_id'].text"></div>
 
                             <p>[`Set ID is used in the code for embedding product set into frontend design templates and pages.`]</p>
 
@@ -81,8 +82,18 @@
                         </div>
                     </div>
 
+                    <div class="wa-field">
+                        <div class="name">
+                            <div class="s-name">[`Products sort order`]</div>
+                        </div>
+                        <div class="value">
+                            <component-dropdown-set-edit-sorting v-model="set.sort_products" v-bind:disabled="set.type == '0'"></component-dropdown-set-edit-sorting>
+                            <input type="hidden" name="sort_products" v-model="set.sort_products">
+                        </div>
+                    </div>
+
                     {if empty($set.id)}
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name">
                                 <div class="s-name">[`Type`]</div>
                             </div>
@@ -112,7 +123,7 @@
                     {/if}
 
                     <template v-if="set.type === '1'">
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name">
                                 {if empty($set.id)}[`Product filtering`]{else}[`Dynamic set rule`]{/if}
                             </div>
@@ -121,7 +132,7 @@
                                 <input name="rule" type="hidden" v-model="set.rule">
                             </div>
                         </div>
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name">
                                 <div class="s-name">[`Select products by orders from date`]</div>
                             </div>
@@ -131,7 +142,7 @@
                                 <div class="hint">[`Products will be selected from orders paid on or after specified date.`]</div>
                             </div>
                         </div>
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name">
                                 <div class="s-name">[`Select products by orders until date`]</div>
                             </div>
@@ -141,12 +152,12 @@
                                 <div class="hint">[`Products will be selected from orders paid on or before specified date.`]</div>
                             </div>
                         </div>
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name">
                                 <div class="s-name">[`Max number of products`]</div>
                             </div>
                             <div class="value">
-                                <input class="wa-small size-short is-number" type="text" name="count" v-model="set.count">
+                                <input class="small size-short is-number" type="text" name="count" v-model="set.count">
                                 <div class="hint">[`Limit the maximum number of products in this set`]</div>
                             </div>
                         </div>
@@ -154,12 +165,13 @@
                 </form>
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button"
+                <button class="button" type="button"
+                        v-bind:class="status_change_class"
                         v-on:click.prevent="save"
                         v-bind:disabled="has_errors || states.locked">
                     <span class="s-name">{if !empty($set.id)}[`Save`]{else}[`Create`]{/if}</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

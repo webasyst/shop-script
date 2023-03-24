@@ -1,15 +1,3 @@
-{if !empty($embedded_version)}
-    {include 'templates/actions/backend/BackendOrders.html'}
-    <style>
-    #maincontent { margin-top: 0 !important }
-    .s-order-customer-details .back { display: none }
-    </style>
-{/if}
-
-{if !empty($embedded_version)}
-    <div id="s-content">
-{/if}
-
 {if !empty($money_on_hold_warning)}
     <div class="s-alert s-order-editor-money-on-hold-warning" id="s-order-editor-money-on-hold-warning">
         {if $money_on_hold_warning == 'total_fixed'}
@@ -18,56 +6,58 @@
                 "You may change the list of ordered items. However, the order total of %s must remain unchanged because the selected payment plugin does not support partial funds capturing.",
                 sprintf('<strong>%s</strong>', shop_currency_html($order.amount_on_hold, $order.currency, $order.currency))
             )}
-            <i class="icon16 exclamation"></i>
+            <i class="fas fa-exclamation-triangle"></i>
         {else}
             <h3>[`The editing of this order is limited because customer’s funds are authorized on a bank account.`]</h3>
             {sprintf_wp(
                 "You may change the list of ordered items. However, the order total after your changes may not exceed the captured amount of %s.",
                 sprintf('<strong>%s</strong>', shop_currency_html($order.amount_on_hold, $order.currency, $order.currency))
             )}
-            <i class="icon16 exclamation"></i>
+            <i class="fas fa-exclamation-triangle"></i>
         {/if}
     </div>
 {/if}
 
-<form id="order-edit-form" method="post" action="?module=order&action=save{if !empty($order.id)}&id={$order.id}{/if}">
-<div class="sidebar left400px s-order-customer-details">
-    <div class="block top-padded">
-        {if !$new_order_for_client && empty($order.id) && $wa->userRights('shop')}
-            <div class="float-right block half-padded small">
-                <a href="#" id="s-order-new-customer" class="inline-link"><b><i>[`New customer`]</i></b></a>
-            </div>
-        {/if}
-        <h2><a href="#" class="back">&larr; [`Back`]</a> <span>[`Customer`]</span></h2>
-        <em class="errormsg s-customer-errors" style="font-size: 1.1em;"></em>
-        {if empty($order.id) && !$new_order_for_client && $has_contacts_rights}
-            <input id="customer-autocomplete" type="search" class="s-order-email-field search large long" placeholder="[`Type name, email or phone number`]">
-        {/if}
+<form id="order-edit-form" class="flexbox width-100" method="post" action="?module=order&action=save{if !empty($order.id)}&id={$order.id}{/if}">
+<div class="sidebar flexbox width-adaptive-widest blank custom-pt-4">
+    <div class="sidebar-header box">
+        <div class="flexbox middle full-width">
+            <a href="#" class="back custom-mr-8 larger"><i class="fas fa-arrow-circle-left"></i></a>
+            {if !$new_order_for_client && empty($order.id) && $wa->userRights('shop')}
+                <a href="#" id="s-order-new-customer" class="button smaller rounded light-gray">[`New customer`]</a>
+            {/if}
+        </div>
     </div>
-    <div class="block">
-        <div class="fields form width200px" id="s-order-edit-customer">
-            <div class="field-group">
-                {if $form}
-                    {$form->html()}
-                {else}
-                    <div class="fields form width100px">
-                        <div class="field-group">
-                            <div class="field">
-                                <div class="name">[`Name`]</div>
-                                <div class="value"><span>{$order.contact.name|escape}</span></div>
-                            </div>
-                            <div class="field">
-                                <div class="name">[`Phone`]</div>
-                                <div class="value"><p><span>{$order.contact.phone}</span></p></div>
-                            </div>
-                            <div class="field">
-                                <div class="name">[`Email`]</div>
-                                <div class="value"><p><span>{$order.contact.email|escape}</span></p></div>
-                            </div>
+    <div class="sidebar-body box">
+
+        <em class="errormsg state-error-hint s-customer-errors" style="font-size: 1.1em;"></em>
+        {if empty($order.id) && !$new_order_for_client && $has_contacts_rights}
+            <input id="customer-autocomplete" type="search" class="search custom-mb-16 width-100" placeholder="[`Type name, email or phone number`]">
+        {/if}
+
+        <div class="fields vertical" id="s-order-edit-customer">
+
+            {if $form}
+                {$form->html()}
+            {else}
+                <div class="fields vertical">
+                    <div class="fields-group">
+                        <div class="field">
+                            <div class="name">[`Name`]</div>
+                            <div class="value"><span>{$order.contact.name|escape}</span></div>
+                        </div>
+                        <div class="field">
+                            <div class="name">[`Phone`]</div>
+                            <div class="value"><p><span>{$order.contact.phone}</span></p></div>
+                        </div>
+                        <div class="field">
+                            <div class="name">[`Email`]</div>
+                            <div class="value"><p><span>{$order.contact.email|escape}</span></p></div>
                         </div>
                     </div>
-                {/if}
-            </div>
+                </div>
+            {/if}
+
         </div>
         {if $form}
             <input type="hidden" value="{if !empty($order.id)}{$order.contact_id}{elseif $new_order_for_client}{$new_order_for_client|escape}{else}0{/if}" name="customer_id" id="s-customer-id" {if empty($order.id)}disabled="disabled"{/if}>
@@ -79,11 +69,18 @@
 
 {function name="service_item"}
     {$multi_variants = count($service.variants) > 1}
-    <li>
+    <li class="custom-my-8 nowrap">
         {if !empty($service.item)}
             {if !empty($service.fake)}
                 <label>
-                    <input type="checkbox" checked="checked" class="js-fake-service-selected" value="{$service_id}">
+                    <span class="wa-checkbox">
+                        <input type="checkbox" checked="checked" class="js-fake-service-selected" value="{$service_id}">
+                        <span>
+                            <span class="icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </span>
+                    </span>
                     <input type="text" name="name[edit][{$service.item.id}]" value="{$service.item.name|escape}" class="small">
                     <input type="hidden" name="service[edit][{$index}][item][{$service.item.id}]" value="{$service_id}">
                     {if $service.item.service_variant_id !== null}
@@ -92,55 +89,79 @@
                 </label>
             {else}
                 <label>
-                    <input type="checkbox" name="service[edit][{$index}][item][{$service.item.id}]" value="{$service_id}" checked="checked">
+                    <span class="wa-checkbox">
+                        <input type="checkbox" name="service[edit][{$index}][item][{$service.item.id}]" value="{$service_id}" checked="checked">
+                        <span>
+                            <span class="icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </span>
+                    </span>
                     {$service.name|escape}
                 </label>
                 {if !$multi_variants}
                     <input type="hidden" name="variant[edit][{$index}][{$service_id}]" value="{$service.variant_id}">
                 {else}
-                    <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant"
-                        {if $service.item.service_variant_id === null}disabled="disabled"{/if}>
-                        {foreach $service.variants as $variant_id => $variant}
-                            <option value="{$variant.id}"
-                                                   data-price="{$variant.price}"
-                                                   {if $service.currency == '%'}data-percent-price="{$variant.percent_price}"{/if}
-                                                   {if $service.item.service_variant_id == $variant_id}selected="selected"{/if}>
-                                {$variant.name|escape} ({$variant.price_str})
-                            </option>
-                        {/foreach}
-                    </select>
+                    <div class="wa-select">
+                        <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant"
+                                {if $service.item.service_variant_id === null}disabled="disabled"{/if}>
+                            {foreach $service.variants as $variant_id => $variant}
+                                <option value="{$variant.id}"
+                                        data-price="{$variant.price}"
+                                        {if $service.currency == '%'}data-percent-price="{$variant.percent_price}"{/if}
+                                        {if $service.item.service_variant_id == $variant_id}selected="selected"{/if}>
+                                    {$variant.name|escape} ({$variant.price_str})
+                                </option>
+                            {/foreach}
+                        </select>
+                    </div>
                {/if}
             {/if}
-            <input type="text" name="price[edit][item][{$index}][{$service.item.id}]" value="{$service.item.price}"
-                                        data-currency="{$service.currency}"
-                                        data-price="{$service.item.price}"
-                                        {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
-                                        class="short numerical s-orders-service-price">{$currency}
+            <span class="s-orders-service-price-wrapper">
+                <input type="text"
+                        name="price[edit][item][{$index}][{$service.item.id}]" value="{$service.item.price}"
+                        data-currency="{$service.currency}"
+                        data-price="{$service.item.price}"
+                        {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
+                        class="number shorter s-orders-service-price">{$currency}
+            </span>
         {else}
             <label>
-                <input type="checkbox" name="service[edit][{$index}][new][{$service_id}]" value="{$service_id}">
+                <span class="wa-checkbox">
+                    <input type="checkbox" name="service[edit][{$index}][new][{$service_id}]" value="{$service_id}">
+                    <span>
+                        <span class="icon">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    </span>
+                </span>
                 {$service.name|escape}
             </label>
             {if !$multi_variants}
                 <strong>{$service.variants[$service.variant_id].price_html}</strong>
                 <input type="hidden" name="variant[edit][{$index}][{$service_id}]" value="{$service.variant_id}">
             {else}
-                <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant">
-                    {foreach $service.variants as $variant_id => $variant}
-                        <option value="{$variant.id}"
-                                             data-price="{$variant.price}"
-                                             {if $service.currency == '%'}data-percent-price="{$variant.percent_price}"{/if}
-                                             {if $service.variant_id == $variant_id}selected="selected"{/if}>
-                            {$variant.name|escape} ({$variant.price_str})
-                        </option>
-                    {/foreach}
-                </select>
+                <div class="wa-select">
+                    <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant">
+                        {foreach $service.variants as $variant_id => $variant}
+                            <option value="{$variant.id}"
+                                    data-price="{$variant.price}"
+                                    {if $service.currency == '%'}data-percent-price="{$variant.percent_price}"{/if}
+                                    {if $service.variant_id == $variant_id}selected="selected"{/if}>
+                                {$variant.name|escape} ({$variant.price_str})
+                            </option>
+                        {/foreach}
+                    </select>
+                </div>
             {/if}
-            <input type="text" name="price[edit][new][{$index}][{$service_id}]" value="{$service.price}"
-                                        data-currency="{$service.currency}"
-                                        data-price="{$service.price}"
-                                        {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
-                                        class="short numerical s-orders-service-price">{$currency}
+            <span class="s-orders-service-price-wrapper">
+                <input type="text"
+                    name="price[edit][new][{$index}][{$service_id}]" value="{$service.price}"
+                    data-currency="{$service.currency}"
+                    data-price="{$service.price}"
+                    {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
+                    class="number shorter s-orders-service-price">{$currency}
+            </span>
         {/if}
         <br/>
         <span class="hint js-item-total-discount" data-discount-id="{$index}_{$service_id}">
@@ -152,19 +173,21 @@
 {/function}
 
 {function name='sku_stocks_select' sku=[] item=[] stocks=[]}
-    <select name="stock[edit][{$item.id}]" class="s-orders-sku-stock-select">
-        {if empty($sku.stock[$item.stock_id])}
-            <option value="0"></option>
-        {/if}
-        {foreach $stocks as $stock_id => $stock}
-            <option value="{$stock_id}"
-                data-icon="{$sku.icons[$stock_id]}"
-                {if $stock_id == $item.stock_id}selected="selected"{/if}>
+    <div class="wa-select small custom-mt-4">
+        <select name="stock[edit][{$item.id}]" class="s-orders-sku-stock-select">
+            {if empty($sku.stock[$item.stock_id])}
+                <option value="0"></option>
+            {/if}
+            {foreach $stocks as $stock_id => $stock}
+                <option value="{$stock_id}"
+                        data-icon="{$sku.icons[$stock_id]}"
+                        {if $stock_id == $item.stock_id}selected="selected"{/if}>
                     @{$stock.name|escape} ({$sku.count_htmls[$stock_id]})
-            </option>
-        {/foreach}
-    </select>
-    <em class="errormsg s-error-item-stock_id"></em>
+                </option>
+            {/foreach}
+        </select>
+    </div>
+    <em class="errormsg state-error-hint s-error-item-stock_id"></em>
 {/function}
 
 {function name="product_item"}
@@ -181,16 +204,17 @@
     <tr data-product-id="{$product.id}" data-index="{$index}" data-item-id="{$product.item.id}" class="s-order-item">
         <td class="min-width valign-top">
             {if $product.url_crop_small}
-                <img src="{$product.url_crop_small}">
+                <img src="{$product.url_crop_small}" class="s-ordered-product-image" />
             {else}
-                <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">
+                <img src="{$wa_app_static_url}img/image-dummy.svg" class="s-ordered-product-image not-found" />
             {/if}
         </td>
         <td>
-            <strong class="large">
+            <strong>
                 {if empty($product.fake)}{$product.name|escape}{else}{$product.item.name|escape}{/if}
             </strong>
-            <span class="gray">
+            <span class="s-order-product-sku-info">
+            <span class="gray custom-mx-4">
                 {if empty($product.fake)}{$product.price_html}{/if}
             </span>
 
@@ -214,17 +238,19 @@
             {if empty($product.fake) && $product.item.type == 'product'
             && $product.current_product_name|escape != $product.item.name|escape}
                 <div class="s-product-previous-name">
-                    <i class=" icon16 exclamation"></i>
+                    <i class="fas fa-exclamation-triangle text-yellow"></i>
                     <span class="gray">
                 [`Old name`]: {$product.item.name|escape}
             </span>
                 </div>
             {/if}
+            </span>
             <p>
                 {if count($product.skus) > 1}
-                    <ul class="menu-v compact small s-orders-skus">
+                    <ul class="unstyled separated small s-orders-skus">
                         {foreach $product.skus as $sku_id => $sku}
-                            <li><label>
+                        <li>
+                            <label class="flexbox middle space-4 wrap">
                                 <input type="radio" name="sku[edit][{$product.item.id}]" value="{$sku_id}"
                                     {if $product.item.sku_id == $sku_id}checked="checked"{/if}>
                                 {$sku.name|escape}
@@ -242,7 +268,8 @@
                                         {sku_stocks_select sku=$sku item=$product.item stocks=$stocks}
                                     {/if}
                                 </div>
-                            </label></li>
+                            </label>
+                        </li>
                         {/foreach}
                     </ul>
                 {else}
@@ -259,7 +286,7 @@
                         <p><input type="text" name="name[edit][{$product.item.id}]" value="{$product.item.name|escape}" class="small"></p>
                     {elseif !empty($sku.fake)}
                         <p class="small red">
-                            <i class="icon10 exclamation"></i> <span>{sprintf(_w('SKU %s no longer exists for this product'), $sku['name'])}</span>
+                            <i class="fas fa-exclamation-triangle smaller"></i> <span>{sprintf(_w('SKU %s no longer exists for this product'), $sku['name'])}</span>
                         </p>
                         <input type="hidden" name="name[edit][{$product.item.id}]" value="{$product.item.name|escape}" class="small">
                     {/if}
@@ -269,7 +296,7 @@
             </p>
 
             {if !empty($product.services)}
-                <ul class="menu-v compact small s-orders-services"><p>
+                <ul class="menu small s-orders-services"><p>
                     {foreach $product.services as $service_id => $service}
                         {call service_item}
                     {/foreach}
@@ -299,11 +326,11 @@
 
                 <div class="s-section-body">
                     <div class="s-field-wrapper">
-                        <span style="padding-top: 2px;" class="gray">&times;</span>
+                        <span class="gray">&times;</span>
                         <input type="text"
                                name="quantity[edit][{$product.item.id}]"
                                value="{$product.item.quantity|default:1|floatval}"
-                               class="s-orders-quantity short numerical js-quantity-field">
+                               class="s-orders-quantity shortest small bold js-quantity-field">
                         {if !empty($_stock_unit)}
                             <span class="s-unit">{$_stock_unit["name_short"]}</span>
                         {/if}
@@ -341,32 +368,39 @@
                 </script>
             </div>
         </td>
-        <td class="valign-top s-orders-product-price nowrap align-right">
-            <input type="text" name="price[edit][{$product.item.id}]" value="{$product.item.price}" class="short numerical js-order-edit-item-price">
-            <span style="padding-top: 2px;">{$currency}</span><br/>
+        <td class="valign-top s-orders-product-price align-right">
+            <input type="text" name="price[edit][{$product.item.id}]" value="{$product.item.price}" class="shorter small number js-order-edit-item-price">
+            <span style="padding-top: 2px;" class="small">{$currency}</span><br/>
             <span class="hint js-item-total-discount" data-discount-id="{$index}">
                 {if !empty($product.item.total_discount)}
                 {shop_currency_html(-$product.item.total_discount,$currency,$currency)|string_format:"[`Total discount for this order item: %s.`]"}{/if}
             </span>
         </td>
-        <td class="valign-top min-width"><a href="#" class="s-order-item-delete" title="[`Remove from the order`]"><i class="icon16 delete"></i></a></td>
+        <td class="valign-top min-width"><a href="#" class="s-order-item-delete" title="[`Remove from the order`]"><i class="fas fa-trash-alt text-red"></i></a></td>
 
         <input type="hidden" name="item[edit][{$index}]" value="{$product.item.id}">
         <input type="hidden" name="product[edit][{$product.item.id}]" value="{$product.id}">
     </tr>
 {/function}
 
-<div class="content left400px bordered-left">
-    <div class="block double-padded">
+<div class="content content-mobile-friendly not-blank bordered-left box contentbox">
+    <div class="flexbox middle space-16 custom-mb-24">
+        <h2 class="wide custom-mb-0">{if empty($order.id)}[`Add products`]{else}{shopHelper::encodeOrderId({$order.id})}{/if}</h2>
 
-        <div class="float-right" style="margin-left: 10px;">
-            {$_default_customer_source = ''}
-            {if empty($order.id) && !empty($order_editor_config['source'])}
-                {$_default_customer_source = $order_editor_config['source']}
-            {/if}
-            <input id="customer-source" type="text" placeholder="[`Customer source`]" name="customer_source" value="{ifset($order, 'params', 'referer_host', $_default_customer_source)|escape}">
-        </div>
-        <div class="block not-padded float-right" style="margin-left: 10px;">
+        {if empty($order.id)}
+            <div class="nowrap">
+                <i class="fas fa-dollar-sign custom-mr-4"></i>
+                <div class="wa-select small">
+                    <select id="order-currency">
+                        {foreach $wa->shop->currencies() as $c}
+                            <option value="{$c.code}" {if $c.is_primary}selected{/if}>{$c.code}</option>
+                        {/foreach}
+                    </select>
+                </div>
+            </div>
+        {/if}
+
+        <div class="wa-select small">
             <select id="order-storefront" name="storefront">
                 <option value="">[`Manual order`]</option>
                 {foreach $storefronts as $storefront}
@@ -379,55 +413,57 @@
                 {/foreach}
             </select>
         </div>
-        {if empty($order.id)}
-            <div class="float-right">
-                <i class="icon16 dollar"></i>
-                <select id="order-currency">
-                    {foreach $wa->shop->currencies() as $c}
-                    <option value="{$c.code}" {if $c.is_primary}selected{/if}>{$c.code}</option>
-                    {/foreach}
-                </select>
-            </div>
-        {/if}
 
-        <h2>{if empty($order.id)}[`Add products`]{else}{shopHelper::encodeOrderId({$order.id})}{/if}</h2>
-        <em class="errormsg s-order-errors" style="padding: 5px 0 10px;"></em>
-        <div class="s-order-comment-edit" {if empty($order.id)}style="display:none;"{/if} id="s-order-comment-edit">
-            [`Comment to the order`]:
-            <textarea name="comment">{if !empty($order.comment)}{$order.comment|escape}{/if}</textarea>
+        <div>
+            {$_default_customer_source = ''}
+            {if empty($order.id) && !empty($order_editor_config['source'])}
+                {$_default_customer_source = $order_editor_config['source']}
+            {/if}
+            <input id="customer-source" class="small" type="text" placeholder="[`Customer source`]" name="customer_source" value="{ifset($order, 'params', 'referer_host', $_default_customer_source)|escape}">
         </div>
-        <table id="order-items" class="zebra s-order-items-edit">
+    </div>
+
+        <em class="errormsg state-error-hint s-order-errors"></em>
+        <div class="s-order-comment-edit" {if empty($order.id)}style="display:none;"{/if} id="s-order-comment-edit">
+            <textarea name="comment" placeholder="[`Comment to the order`]">{if !empty($order.comment)}{$order.comment|escape}{/if}</textarea>
+        </div>
+        <div class="table-scrollable-x s-order-items-edit-wrapper">
+        <table id="order-items" class="borderless s-order-items-edit s-order-items-table">
             <tbody>
                 {if !empty($order.id)}
                     {foreach $order.items as $product}
                         {call product_item index = $product@index}
                     {/foreach}
                 {/if}
-            </tbody>
-            <tfoot>
                 <!-- add product -->
-                <tr class="white" id="s-orders-add-row">
-                    <td class="min-width align-center"><i class="icon16 add"></i></td>
-                    <td colspan="4" style="width: 100%;">
-                        <input id="orders-add-autocomplete" type="search" class="search bold large long" placeholder="[`Type product or SKU name`]">
-                        <p class="hint"><i class="icon10 info"></i>[`If you have not found a certain product, enter a more detailed search query to see more exact results.`]</p>
+                <tr class="white s-block" id="s-orders-add-row">
+                    <td class="min-width align-center"></td>
+                    <td colspan="4" class="nowrap width-100">
+                        <i class="fas fa-plus-circle text-green custom-mr-8"></i><input id="orders-add-autocomplete" type="search" class="search long" placeholder="[`Type product or SKU name`]">
                     </td>
                 </tr>
+            </tbody>
+            <tfoot>
                 <!-- subtotal -->
-                <tr class="white large">
+                <tr>
                     <td class="min-width"></td>
                     <td class="align-right" colspan="2">
                         [`Subtotal`]
                     </td>
                     <td class="align-right nowrap">
-                        <span id="subtotal">{$order.subtotal|default:null}</span>
-                        <span class="currency">{$currency}</span>
+                        {if empty($order.id)}
+                            <span class="s-order-item">
+                                <input type="text" class="number shorter small js-order-edit-item-price" name="price[edit][0]" id="productless-subtotal">
+                            </span>
+                        {/if}
+                        <span id="subtotal" class="semibold {if empty($order.id)}hidden{/if}">{$order.subtotal|default:null}</span>
+                        <span class="currency semibold">{$currency}</span>
                     </td>
                     <td></td>
                 </tr>
 
                 <!-- shipping -->
-                <tr class="white">
+                <tr>
                     <td class="min-width"></td>
                     <td class="align-right" colspan="2">
                         <div class="s-order-aux-box">
@@ -440,26 +476,27 @@
 
                             {$_json_encode_options = 0}
                             {if defined('JSON_UNESCAPED_UNICODE')}{$_json_encode_options = constant('JSON_UNESCAPED_UNICODE')}{/if}
-
-                            <select id="shipping_methods" name="shipping_id" style="max-width: 250px;">
-                                <option value=""></option>
-                                {foreach $shipping_methods as $m_id => $m}
-                                    <option {if $_shipping_id === $m_id}
-                                                selected
-                                                {if isset($order.params) && isset($order['params']['shipping_params_desired_delivery.interval'])}
-                                                    data-desired-delivery-selected-interval="{$order['params']['shipping_params_desired_delivery.interval']}"
-                                                {/if}
+                            <div class="wa-select">
+                                <select id="shipping_methods" name="shipping_id" style="max-width: 250px;">
+                                    <option value=""></option>
+                                    {foreach $shipping_methods as $m_id => $m}
+                                        <option {if $_shipping_id === $m_id}
+                                            selected
+                                            {if isset($order.params) && isset($order['params']['shipping_params_desired_delivery.interval'])}
+                                                data-desired-delivery-selected-interval="{$order['params']['shipping_params_desired_delivery.interval']}"
                                             {/if}
-                                            data-test="2"
-                                            {if !empty($m.custom_data)}{foreach $m.custom_data as $_custom_field => $_custom_value}
-                                            data-{$_custom_field|escape}='{$_custom_value|json_encode:$_json_encode_options|escape}'
-                                            {/foreach}{/if}
-                                            data-rate="{$m.rate}" value="{$m_id}"{if !empty($m.external)} data-external="1"{/if}
-                                            {if !empty($m.comment)} data-comment="{$m.comment|escape}"{/if}
-                                            {if !empty($m.error)} data-error="{$m.error|escape}"{/if}
-                                            {if !empty($m.est_delivery)} data-est_delivery="{$m.est_delivery|escape}"{/if}>{$m.name|truncate:80|escape}</option>
-                                {/foreach}
-                            </select>
+                                        {/if}
+                                                data-test="2"
+                                                {if !empty($m.custom_data)}{foreach $m.custom_data as $_custom_field => $_custom_value}
+                                                    data-{$_custom_field|escape}='{$_custom_value|json_encode:$_json_encode_options|escape}'
+                                                {/foreach}{/if}
+                                                data-rate="{$m.rate}" value="{$m_id}"{if !empty($m.external)} data-external="1"{/if}
+                                                {if !empty($m.comment)} data-comment="{$m.comment|escape}"{/if}
+                                                {if !empty($m.error)} data-error="{$m.error|escape}"{/if}
+                                                {if !empty($m.est_delivery)} data-est_delivery="{$m.est_delivery|escape}"{/if}>{$m.name|truncate:80|escape}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
                             <div id="shipping-info">
                             </div>
                             <div id="shipping-custom">
@@ -476,24 +513,26 @@
                         </div>
                     </td>
                     <td class="align-right valign-top nowrap">
-                        <input type="text" name="shipping" class="numerical short" id="shipping-rate" {if !empty($order.id)}value="{(float)$order.shipping}"{/if}>
+                        <input type="text" name="shipping" class="number shorter" id="shipping-rate" {if !empty($order.id)}value="{(float)$order.shipping}"{/if}>
                         <span class="currency">{$currency}</span>
                     </td>
                     <td colspan="2"></td>
                 </tr>
 
                 <!-- payment -->
-                <tr class="white">
+                <tr>
                     <td class="min-width"></td>
                     <td class="align-right nowrap" colspan="2">
                         <div class="s-order-aux-box">
                         [`Payment`]
-                        <select id="payment_methods" name="payment_id" style="max-width: 250px;">
-                            <option value=""></option>
-                            {foreach $payment_methods as $m}
-                            <option {if !empty($order.params.payment_id) && $order.params.payment_id == $m.id}selected="true"{/if} value="{$m.id}">{$m.name|truncate:80}</option>
-                            {/foreach}
-                        </select>
+                        <div class="wa-select">
+                            <select id="payment_methods" name="payment_id" style="max-width: 250px;">
+                                <option value=""></option>
+                                {foreach $payment_methods as $m}
+                                    <option {if !empty($order.params.payment_id) && $order.params.payment_id == $m.id}selected="true"{/if} value="{$m.id}">{$m.name|truncate:80|escape}</option>
+                                {/foreach}
+                            </select>
+                        </div>
                         <div id="payment-info">
                             {foreach $payment_methods as $m}
                                 {if !empty($m.custom_html)}<div id="payment-custom-{$m.id}" class="fields form" {if empty($order.params.payment_id) || $m.id != $order.params.payment_id}style="display:none"{/if}>{$m.custom_html}</div>{/if}
@@ -503,10 +542,10 @@
                     </td>
                     <td></td>
                 </tr>
-                <tr class="white">
+                <tr>
                     <td class="min-width"></td>
                     <td class="align-right" colspan="2">
-                        <i class="icon16 info" style="display:none;" id="discount-tooltip-icon"></i>
+                        <i class="fas fa-info-circle text-gray" style="display:none;" id="discount-tooltip-icon"></i>
                         [`Discount`]
 
                         <span class="gray js-no-coupon-text" {if !empty($order.coupon)}style="display: none"{/if}>[`No coupon`]</span>
@@ -515,38 +554,38 @@
                         {if empty($order.coupon)}
                             {$hidden_first = 'style="display: none"'}
                             <a href="{if isset($order.coupon.id)}{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/{/if}" data-href="{$wa_app_url}marketing/coupons/" class="s-order-edit-coupon {if !isset($order.coupon.id)}disabled-link{/if}" target="_blank">
-                                <i class="icon16 ss coupon js-coupon-icon" {$hidden_first}></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
+                                <i class="fas fa-tags js-coupon-icon" {$hidden_first}></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
                             </a>
                         {else}
                             {$hidden_first = ''}
                             {if $order.coupon.right}
                             <a href="{if isset($order.coupon.id)}{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/{/if}" data-href="{$wa_app_url}marketing/coupons/" class="s-order-edit-coupon {if !isset($order.coupon.id)}disabled-link{/if}" target="_blank">
-                                <i class="icon16 ss coupon js-coupon-icon"></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
+                                <i class="fas fa-tags js-coupon-icon"></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
                             </a>
                             {else}
-                            <i class="icon16 ss coupon js-coupon-icon"></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
+                            <i class="fas fa-tags js-coupon-icon"></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
                             {/if}
                         {/if}
                         <input class="wa-input" type="text" id="coupon-code" name="coupon_code" value="" placeholder="[`Coupon code`]" style="display: none">
-                        <span class="coupon-controls">
-                            <i class="icon16 edit js-edit-coupon"></i>
-                            <i class="icon16 close js-close-coupon" style="display: none"></i>
-                            <i class="icon16 delete js-delete-coupon" {$hidden_first}></i>
-                        </span>
+                        <a href="javascript:void(0);" class="coupon-controls">
+                            <span class="js-edit-coupon"><i class="fas fa-pencil-alt"></i></span>
+                            <span class="js-close-coupon" style="display: none""><i class="fas fa-times text-gray"></i></span>
+                            <span class="js-delete-coupon" {$hidden_first}><i class="fas fa-trash-alt text-red"></i></span>
+                        </a>
                         <input type="hidden" id="coupon_id" name="coupon_id" value="{if isset($order.coupon.id)}{$order.coupon.id}{/if}">
-                        <div class="errormsg" id="js-coupon-invalid-msg" style="display: none">[`Invalid coupon code`]</div>
+                        <div class="errormsg state-error-hint" id="js-coupon-invalid-msg" style="display: none">[`Invalid coupon code`]</div>
                     </td>
                     <td class="align-right nowrap">
-                        &minus; <input type="text" class="numerical short" id="discount" name="discount" {if !empty($order.id)}value="{$order.discount}"{/if}{if !empty($order.items_total_discount)} style="display:none;" {/if}>
+                        &minus; <input type="text" class="number shorter" id="discount" name="discount" {if !empty($order.id)}value="{$order.discount}"{/if}{if !empty($order.items_total_discount)} style="display:none;" {/if}>
                         {if !empty($order.items_total_discount)}<span class="js-order-discount">{$order.discount|wa_currency:$currency:'%'}</span>
 
                         {/if}
                         <span class="currency">{$currency}</span>
                         {if !empty($order.items_total_discount)}
-                            <a href="#" class="inline inline-link" id="edit-discount" title="[`Edit discount`]"><i class="icon16 edit"></i></a>
+                            <a href="#" class="inline" id="edit-discount" title="[`Edit discount`]"><i class="fas fa-pencil-alt"></i></a>
                         {/if}
                     </td>
-                    <td>
+                    <td class="custom-pl-0">
                         {capture name=hold_discount}
                             <br/><strong>[`Total discount breakdown`]</strong><br/>
 - [`Discount applicable to individual items:`] {shop_currency_html((float)$order.items_total_discount|default:0,$currency,$currency)|escape:ENT_QUOTES}<br/>
@@ -566,12 +605,12 @@
                              data-discount="calculate"
                              style="display: none"
                            {/if}
-                        ><i class="icon16 update"></i></a>
+                        ><i class="fas fa-sync-alt"></i></a>
                     </td>
                 </tr>
 
                 <!-- tax -->
-                <tr class="white medium">
+                <tr class="medium">
                     <td class="min-width"></td>
                     <td class="align-right medium" colspan="2">[`Tax`]</td>
                     <td class="align-right medium nowrap">
@@ -582,43 +621,36 @@
                 </tr>
 
                 <!-- total -->
-                <tr class="white large">
+                <tr>
                     <td class="min-width"></td>
-                    <td class="align-right large" colspan="2">[`Total`]</td>
-                    <td class="align-right large bold nowrap">
-                        <span id="total">{$order.total|default:''}</span>
-                        <span class="currency">{$currency}</span>
+                    <td class="align-right" colspan="2"><span class="large">[`Total`]</span></td>
+                    <td class="align-right nowrap">
+                        <span id="total" class="larger bold">{$order.total|default:''}</span>
+                        <span class="currency larger bold">{$currency}</span>
                     </td>
                     <td></td>
                 </tr>
                 {if !empty($order.id)}
-                    <tr class="white">
-                        <td colspan="4" class="align-right">
-                            <br>
+                    <tr>
+                        <td colspan="4" class="align-right custom-py-8">
                             <label>[`Don’t notify customer on this order editing`]
                             <input type="checkbox" name="notifications" value="silent" title="[`Don’t notify customer on this order editing`]"></label>
-                            <br><br>
                         </td>
                     </tr>
                 {/if}
-                <tr class="white large">
-                    <td class="save align-right" colspan="5">
-                        <i class="icon16 loading"></i>
+                <tr>
+                    <td class="save align-right" colspan="4">
+                        <i class="fas fa-spin fa-spinner loading" style="display: none"></i>
                         <input type="submit" class="button green large" value="[`Save order`]">
-
                     </td>
+                    <td></td>
                 </tr>
             </tfoot>
         </table>
-        <div class="clear-both"></div>
-    </div>
+        </div>
 </div>
 {$wa->csrf()}
 </form>
-
-{if !empty($embedded_version)}
-    </div>{* #s-content *}
-{/if}
 
 <!-- plugin hook: 'backend_order_edit' -->
 {* @event backend_order_edit.%plugin_id% *}
@@ -647,10 +679,10 @@
         ignore_stock_count: {if $ignore_stock_count}true{else}false{/if},
         title: title,
         float_delimeter: {if strpos((string)3.14, ",") !== false}","{else}"."{/if},
-        embedded_version: {if !empty($embedded_version)}1{else}0{/if},
         price_edit: true,
         locales: {
-            wrong_cost: {_w('The cost cannot be below 0.')|json_encode}
+            wrong_cost: {_w('The cost cannot be below 0.')|json_encode},
+            noproduct_item_name: '{$noproduct_item_name|escape}'
         }
     });
 

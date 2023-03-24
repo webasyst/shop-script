@@ -45,13 +45,13 @@
             <h5>[`Cropping`]</h5>
             <p>
                 <span class="s-label">[`Resolution (w×h)`]:</span>
-                <span class="bold color-black">{ { selection_size } } px</span>
+                <span class="bold text-black">{ { selection_size } } px</span>
             </p>
             <div class="s-actions-wrapper inlinebox top space-16">
-                <button class="wa-button green" type="button"
+                <button class="button green" type="button"
                         v-bind:disabled="!photo_edited"
                         v-on:click.prevent="save">[`Apply`]</button>
-                <button class="wa-button gray" type="button"
+                <button class="button gray" type="button"
                         v-on:click.prevent="cancel">[`Cancel`]</button>
             </div>
             <p>
@@ -93,7 +93,7 @@
                                     </div>
 
                                     <div class="s-slider-actions left">
-                                        <button class="wa-button transparent-gray" type="button"
+                                        <button class="button gray outlined" type="button"
                                             v-bind:disabled="is_prev_disabled"
                                             v-on:click.prevent="prevPhoto">
                                             <span class="s-icon"><i class="fas fa-chevron-circle-left"></i></span>
@@ -101,7 +101,7 @@
                                     </div>
 
                                     <div class="s-slider-actions right">
-                                        <button class="wa-button transparent-gray" type="button"
+                                        <button class="button gray outlined" type="button"
                                             v-bind:disabled="is_next_disabled"
                                             v-on:click.prevent="nextPhoto">
                                             <span class="s-icon"><i class="fas fa-chevron-circle-right"></i></span>
@@ -111,7 +111,7 @@
 
                                 <div class="s-photos-list-wrapper js-photos-list-wrapper">
                                     <div class="s-slider-actions">
-                                        <button class="wa-button transparent js-prev-move" type="button">
+                                        <button class="button outlined js-prev-move" type="button">
                                             <i class="fas fa-chevron-left"></i>
                                         </button>
                                     </div>
@@ -127,7 +127,7 @@
                                     </div>
 
                                     <div class="s-slider-actions">
-                                        <button class="wa-button transparent js-next-move" type="button">
+                                        <button class="button outlined js-next-move" type="button">
                                             <i class="fas fa-chevron-right"></i>
                                         </button>
                                     </div>
@@ -141,7 +141,7 @@
                                 <h5>[`Editing`]</h5>
                                 <div class="wa-list space-4">
                                     <div class="list-item">
-                                        <button class="wa-button wa-small wa-short transparent"
+                                        <button class="button small short outlined"
                                             v-bind:disabled="!photo_is_ready"
                                             v-on:click.prevent="rotateImage(-90)">
                                             <span class="s-icon"><i class="fas fa-undo"></i></span>
@@ -149,7 +149,7 @@
                                         </button>
                                     </div>
                                     <div class="list-item">
-                                        <button class="wa-button wa-small wa-short transparent"
+                                        <button class="button small short outlined"
                                             v-bind:disabled="!photo_is_ready"
                                             v-on:click.prevent="rotateImage(90)">
                                             <span class="s-icon"><i class="fas fa-redo"></i></span>
@@ -157,14 +157,14 @@
                                         </button>
                                     </div>
                                     <div class="list-item">
-                                        <button class="wa-button wa-small wa-short transparent"
+                                        <button class="button small short outlined"
                                             v-on:click.prevent="cropUse">
                                             <span class="s-icon"><i class="fas fa-crop"></i></span>
                                             <span class="s-name">[`Crop`]</span>
                                         </button>
                                     </div>
                                     <div class="list-item">
-                                        <button class="wa-button wa-small wa-short transparent-gray"
+                                        <button class="button small wa-short gray outlined"
                                             v-bind:disabled="(photo.url === photo.url_backup)"
                                             v-on:click.prevent="restoreImage">
                                             <span class="s-icon"><i class="fas fa-history"></i></span>
@@ -172,7 +172,7 @@
                                         </button>
                                     </div>
                                     <div class="list-item">
-                                        <button class="wa-button wa-small wa-short transparent-red"
+                                        <button class="button small wa-short red outlined"
                                             v-on:click.prevent="deletePhoto">
                                             <span class="s-icon"><i class="fas fa-trash-alt"></i></span>
                                             <span class="s-name">[`Delete image`]</span>
@@ -184,8 +184,8 @@
                             <div class="s-description-section">
                                 <h5>
                                     <span class="s-title">[`Description`]</span>
-                                    <span class="color-gray-light">([`TITLE & Alt`])</span>
-                                    <span class="icon baseline size-12" data-tooltip-id="product-media-dialog-1"><i class="fas fa-question-circle color-gray-light"></i></span>
+                                    <span class="text-light-gray">([`TITLE & Alt`])</span>
+                                    <span class="icon baseline size-12" data-tooltip-id="product-media-dialog-1"><i class="fas fa-question-circle text-light-gray"></i></span>
                                 </h5>
 
                                 <div class="s-textarea-wrapper">
@@ -206,23 +206,23 @@
                                     </a>
                                 </p>
                                 <p>
-                                    <span class="s-label color-gray">[`Resolution`]:</span>
-                                    <span class="color-black bold" v-text="photo.width + 'x' + photo.height"></span>
+                                    <span class="s-label text-gray">[`Resolution`]:</span>
+                                    <span class="text-black bold" v-text="photo.width + 'x' + photo.height"></span>
                                 </p>
                                 <p>
-                                    <span class="s-label color-gray">[`Size`]:</span>
-                                    <span class="color-black bold" v-text="photo.size"></span>
+                                    <span class="s-label text-gray">[`Size`]:</span>
+                                    <span class="text-black bold" v-text="photo.size"></span>
                                 </p>
                             </div>
 
                             <div class="s-actions-wrapper inlinebox top space-16">
-                                <button class="wa-button blue" type="button"
+                                <button class="button green" type="button"
                                         v-bind:disabled="!is_changed || is_locked"
                                         v-on:click.prevent="save">
                                     <span class="s-icon" v-if="is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                                     <span class="s-name">[`Save`]</span>
                                 </button>
-                                <button class="wa-button gray js-dialog-close" type="button">[`Cancel`]</button>
+                                <button class="button gray js-dialog-close" type="button">[`Cancel`]</button>
                             </div>
 
                         </div>

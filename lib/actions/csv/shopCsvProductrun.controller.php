@@ -678,7 +678,7 @@ SQL;
                                                   '%d new SKU to be added',
                                                   '%d new SKUs to be added',
                     ),
-                    'icon'               => 'yes',
+                    'icon'               => 'yes fas fa-check-circle text-green',
 
                 ),
                 'found'     => array(
@@ -697,7 +697,7 @@ SQL;
                                                   '%d SKU to be updated',
                                                   '%d SKUs to be updated',
                     ),
-                    'icon'               => 'yes',
+                    'icon'               => 'yes fas fa-check-circle text-green',
                 ),
                 'collision' => array(
                     self::STAGE_CATEGORY => array /*_w*/
@@ -715,7 +715,7 @@ SQL;
                                                   'Duplicate SKU entries on %d line',
                                                   'Duplicate SKU entries on %d lines',
                     ),
-                    'icon'               => 'exclamation',
+                    'icon'               => 'exclamation fas fa-exclamation-triangle text-yellow',
                 ),
                 'new'       => array(
                     self::STAGE_CATEGORY => array /*_w*/
@@ -738,7 +738,7 @@ SQL;
                                                   'Linked %d product image',
                                                   'Linked %d product images',
                     ),
-                    'icon'               => 'yes',
+                    'icon'               => 'yes fas fa-check-circle text-green',
 
                 ),
                 'update'    => array(
@@ -767,7 +767,7 @@ SQL;
                                                            'Updated %d product image description',
                                                            'Updated %d product image descriptions',
                     ),
-                    'icon'                        => 'yes',
+                    'icon'                        => 'yes fas fa-check-circle text-green',
                 ),
                 'skip'      => array(
                     self::STAGE_CATEGORY => array /*_w*/
@@ -790,7 +790,7 @@ SQL;
                                                   'Ambiguous identification conditions for %d product image',
                                                   'Ambiguous identification conditions for %d product images',
                     ),
-                    'icon'               => 'no-bw',
+                    'icon'               => 'no-bw fas fa-times-circle',
                 ),
                 'rights'    => array(
                     self::STAGE_PRODUCT => array /*_w*/
@@ -798,7 +798,7 @@ SQL;
                                                  '%d product record was not updated due to insufficient access rights for you as Webasyst user',
                                                  '%d product records were not updated due to insufficient access rights for you as Webasyst user',
                     ),
-                    'icon'              => 'no-bw',
+                    'icon'              => 'no-bw fas fa-times-circle',
                 ),
                 'currency'  => array(
                     self::STAGE_PRODUCT => array /*_w*/
@@ -806,7 +806,7 @@ SQL;
                                                  '%d product has unknown currency',
                                                  '%d products have unknown currency',
                     ),
-                    'icon'              => 'no-bw',
+                    'icon'              => 'no-bw fas fa-times-circle',
                 ),
                 'error'     => array(
                     self::STAGE_CATEGORY => array /*_w*/
@@ -829,7 +829,7 @@ SQL;
                                                   '%d SKU imported with errors',
                                                   '%d SKUs imported with errors',
                     ),
-                    'icon'               => 'no',
+                    'icon'               => 'no fas fa-times-circle text-red',
                 ),
                 'validate'  => array(
                     self::STAGE_CATEGORY => array /*_w*/
@@ -852,7 +852,7 @@ SQL;
                                                   '%d SKU not imported due to pricing plan restriction',
                                                   '%d SKUs not imported due to pricing plan restriction',
                     ),
-                    'icon'               => 'no-bw',
+                    'icon'               => 'no-bw fas fa-times-circle',
                 ),
                 0           => array(
                     self::STAGE_CATEGORY => array /*_w*/
@@ -875,7 +875,7 @@ SQL;
                                                   '%d product image',
                                                   '%d product images',
                     ),
-                    'icon'               => 'yes',
+                    'icon'               => 'yes fas fa-check-circle text-green',
                 ),
             );
         }
@@ -1819,7 +1819,7 @@ SQL;
 
                         try {
                             if (!empty($data['images'])) {
-                                $images = array_filter($data['images']);
+                                $images = array_filter((array)$data['images']);
                                 if (count($images) === 1) {
                                     $file = reset($images);
                                     $name = $this->getImageName($file);
@@ -1855,7 +1855,7 @@ SQL;
                             if (!empty($data['images'])) {
                                 $this->data['map'][self::STAGE_IMAGE] = $data['images'];
                                 $this->data['map'][self::STAGE_IMAGE_DESCRIPTION] = ifempty($data['images_descriptions'], array());
-                                $this->data['count'][self::STAGE_IMAGE] += count($data['images']);
+                                $this->data['count'][self::STAGE_IMAGE] += count((array)$data['images']);
                             }
 
                             $this->checkMainSku($product);
@@ -2295,9 +2295,9 @@ SQL;
                 }
             }
         }
-        $class = 's-csv-importexport-stats';
+        $class = 's-csv-importexport-stats alert';
         if (!$this->emulate()) {
-            $class .= ' done';
+            $class .= ' done success';
         }
         $report = '<div class="'.$class.'">';
         if ($this->data['direction'] == 'import') {

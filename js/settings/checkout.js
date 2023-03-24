@@ -13,19 +13,18 @@ $.extend($.settings = $.settings || {}, {
 
         // Init checkout recommendations alert
         var $alert_link = $('.js-checkout-recommendations-link'),
-            $link_arrow = $alert_link.find('.js-arrow'),
             $alert = $('.js-checkout-recommendations'),
             storage_key = 'shop/checkout_alert_hidden';
 
         function showAlert() {
             $alert.show();
-            $link_arrow.removeClass('darr').addClass('uarr');
+            $alert_link.find('.js-arrow').toggleClass('hidden');
             $.storage.del(storage_key);
         }
 
         function hideAlert() {
             $alert.hide();
-            $link_arrow.removeClass('uarr').addClass('darr');
+            $alert_link.find('.js-arrow').toggleClass('hidden');
             $.storage.set(storage_key, 1);
         }
 
@@ -46,42 +45,55 @@ $.extend($.settings = $.settings || {}, {
         $('#s-settings-menu').find('a[href="?action=settings#/checkout/"]').parent().addClass('selected');
 
         // checkout steps
-        $("#checkout-steps td div.float-right").on('click', 'a.link-options', function() {
+        $("#checkout-steps td").on('click', 'a.link-options', function(e) {
+            e.preventDefault();
             var td = $(this).closest('td');
             var step_id = $(this).closest('tr').data('step-id');
             var form = td.find('form');
             if (form.is(':hidden')) {
                 $.post('?module=settings&action=checkoutOptions', {step_id: step_id}, function (html) {
                     $(html).insertAfter(form.find('div.field.system:first'));
-                    form.show(200);
+                    form.show();
+
+                    var markAsChanged = function() {
+                        form.find(':submit')
+                            .removeClass("green")
+                            .addClass("yellow");
+                    };
+
+                    form.off('input', markAsChanged);
+                    form.on('input', markAsChanged);
                 });
             } else {
-                form.hide(200, function() {
-                    form.find('div.field:not(.system)').remove();
-                });
+                form.hide();
+                form.find('div.field:not(.system)').remove();
             }
             return false;
         });
 
-        $("#checkout-steps td div.float-right").on('click', 'a.link-enable', function() {
+        $("#checkout-steps td").on('click', 'a.link-enable', function(e) {
+            e.preventDefault();
             var tr = $(this).closest('tr');
             var step_id = tr.data('step-id');
             $.post("?module=settingsCheckoutSave&action=toggle", {status: 1, step_id: step_id}, function () {
-               tr.find('div.links').html('<a href="#" class="link-options inline-link inline"><i class="icon16 settings"></i><b><i>' + $_('Configure') + '</i></b></a>');
-               tr.find('h3').removeClass('gray');
+               tr.find('.js-links').html($.settings.checkoutOptions.templates.settings_button);
+               tr.find('h4').removeClass('gray');
+               tr.find('.js-checkout-steps-handle').removeClass('s-disable-grip');
                tr.removeClass('disabled');
             }, "json");
             return false;
         });
 
-        $("#checkout-steps td div.float-right").on('click', 'a.link-disable', function() {
+        $("#checkout-steps td").on('click', 'a.link-disable', function(e) {
+            e.preventDefault();
             var tr = $(this).closest('tr');
             var step_id = tr.data('step-id');
             $.post("?module=settingsCheckoutSave&action=toggle", {status: 0, step_id: step_id}, function () {
                 tr.find('a.link-options').click();
-                tr.find('div.links').html($_('Disabled') +
-                    ' <a href="#" class="link-enable inline-link"><b><i>' + $_('Turn on') + '</i></b></a>');
-                tr.find('h3').addClass('gray');
+                tr.find('.js-links').html($_('Disabled') +
+                    ' <a href="#" class="link-enable inline-link">' + $_('Turn on') + '</a>');
+                tr.find('h4').addClass('gray');
+                tr.find('.js-checkout-steps-handle').addClass('s-disable-grip');
                 tr.addClass('disabled');
             }, "json");
             return false;
@@ -96,8 +108,8 @@ $.extend($.settings = $.settings || {}, {
                         tr.find('a.link-options').click();
                         tr.find("h3.name").text(response.data.name);
                         form.find(':submit').removeClass('yellow').addClass('green');
-                        form.closest('td').find('.links').after(
-                            $('<div class="float-right" style="margin-right:20px;"><i class="icon16 yes"></i> '+$.settings.checkoutOptions.loc.saved+'</div>').animate({
+                        form.closest('td').find('.js-links').before(
+                            $('<div style="margin-right:10px;"><i class="fas fa-check-circle text-green"></i> '+$.settings.checkoutOptions.loc.saved+'</div>').animate({
                                 opacity: 0
                             }, 1000, function() {
                                 $(this).remove();
@@ -109,33 +121,21 @@ $.extend($.settings = $.settings || {}, {
             return false;
         });
 
-        $("#checkout-steps").sortable({
-            distance: 5,
-            helper: function(e, tr) {
-                var $originals = tr.children();
-                var $helper = tr.clone();
-                $helper.children().each(function(index){
-                    // Set helper cell sizes to match the original sizes
-                    $(this).width($originals.eq(index).width())
-                });
-                return $helper;
-            },
-            handle: '.checkout-steps-handle',
-            items: 'tr',
-            cancel: '.disabled',
-            opacity: 0.75,
-            tolerance: 'pointer',
-            stop: function (event, ui) {
-                var tr = $(ui.item);
-                var id = tr.data('step-id');
-                var prev = tr.prev('tr');
-                if (prev.length) {
-                    prev = prev.data('step-id');
+        $("#checkout-steps > tbody").sortable({
+            animate: 150,
+            handle: '.js-checkout-steps-handle',
+            onEnd(event) {
+                const tr = event.item;
+                const id = tr.dataset?.stepId;
+                let prev = tr.previousElementSibling;
+                if (prev) {
+                    prev = prev.dataset?.stepId;
                 } else {
                     prev = '';
                 }
+
                 $.post("?module=settingsCheckoutSave&action=move" , {step_id: id, prev_id: prev}, function () {
-                }, "json");
+                }, "json")
             }
         });
     },
@@ -150,12 +150,10 @@ $.extend($.settings = $.settings || {}, {
             if (old_dialog.length) {
                 old_dialog.parent().remove();
             }
-            $('<div></div>').appendTo('body').load(url, function() {
-                $('#s-field-values').waDialog({
-                    disableButtonsOnSubmit: true,
-
-                    onLoad: function() {
-                        var d = $(this);
+            $.get(url, function(html) {
+                $.waDialog({
+                    html,
+                    onOpen: function(d, waDialog) {
                         var form = d.find('form');
 
                         // Link to add new value
@@ -223,43 +221,41 @@ $.extend($.settings = $.settings || {}, {
                         } else {
                             d.find('select.otherwise-options').val('input');
                         }
-                    },
 
-                    onSubmit: function(d) {
-                        var self = $(this);
-                        var data = self.serializeArray();
+                        d.find(':submit').on('click', function() {
+                            var data = form.serializeArray();
 
-                        // Validation
-                        var validation_passed = true;
-                        self.find('.errormsg').remove();
-                        self.find('.error').removeClass('error');
-                        self.find('[name^="parent_value["]:not(:disabled)').each(function() {
-                            if (!this.value) {
-                                validation_passed = false;
-                                $(this).addClass('error').after($('<em class="errormsg"></em>').text($.settings.checkoutOptions.loc.field_is_required));
+                            // Validation
+                            var validation_passed = true;
+                            form.find('.state-error-hint').remove();
+                            form.find('.state-error').removeClass('state-error');
+                            form.find('[name^="parent_value["]:not(:disabled)').each(function() {
+                                if (!this.value) {
+                                    validation_passed = false;
+                                    $(this).addClass('state-error').after($('<em class="state-error-hint"></em>').text($.settings.checkoutOptions.loc.field_is_required));
+                                }
+                            });
+                            if (!validation_passed) {
+                                $('#s-field-values').closest('.dialog').find('.dialog-buttons :submit').attr('disabled', false);
+                                return false;
                             }
+
+                            // Copy to main form the data that is to be saved to ContactField config
+                            if (d.find('select.otherwise-options').val() == 'input') {
+                                input_hide_unmatched.val('');
+                            } else {
+                                input_hide_unmatched.val('1').closest('td').find('input:checkbox[name$="[required]"]').attr('checked', false);
+                            }
+
+                            // Save data to DB via a separate controller
+                            $.shop.jsonPost(form.attr('action'), data, function(r) {
+                                waDialog.close();
+                                var wrapper = input_hide_unmatched.closest('.field-advanced-settings');
+                                wrapper.find('.show-when-modified').show();
+                                wrapper.find('.hide-when-modified').hide();
+                            });
+
                         });
-                        if (!validation_passed) {
-                            $('#s-field-values').closest('.dialog').find('.dialog-buttons :submit').attr('disabled', false);
-                            return false;
-                        }
-
-                        // Copy to main form the data that is to be saved to ContactField config
-                        if (d.find('select.otherwise-options').val() == 'input') {
-                            input_hide_unmatched.val('');
-                        } else {
-                            input_hide_unmatched.val('1').closest('td').find('input:checkbox[name$="[required]"]').attr('checked', false);
-                        }
-
-                        // Save data to DB via a separate controller
-                        $.shop.jsonPost(self.attr('action'), data, function(r) {
-                            d.trigger('close');
-                            var wrapper = input_hide_unmatched.closest('.field-advanced-settings');
-                            wrapper.find('.show-when-modified').show();
-                            wrapper.find('.hide-when-modified').hide();
-                        });
-
-                        return false;
                     }
                 });
             });

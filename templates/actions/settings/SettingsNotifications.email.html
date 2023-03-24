@@ -1,10 +1,12 @@
 <div class="field">
     <div class="name">[`Send from`]</div>
-    <div class="value no-shift">
-        <select class="notification-from" name="params[from]">
-            <option value="" {if empty($params.from)}selected{/if}>{$default_email_from}</option>
-            <option value="other" {if !empty($params.from)}selected{/if}>[`Other email...`]</option>
-        </select>
+    <div class="value">
+        <div class="wa-select notification-from small">
+            <select name="params[from]">
+                <option value="" {if empty($params.from)}selected{/if}>{$default_email_from}</option>
+                <option value="other" {if !empty($params.from)}selected{/if}>[`Other email...`]</option>
+            </select>
+        </div>
         {if !empty($params.from)}
             <input type="text" name="from" value="{$params.from}">
         {/if}
@@ -12,14 +14,16 @@
 </div>
 <div class="field">
     <div class="name">[`Send to`]</div>
-    <div class="value no-shift">
-        <select class="notification-to" name="params[to]">
-            {if empty($params.to)}<option selected value="unknown"></option>{/if}
-            {if !empty($params.to) && $params.to == 'unknown'}<option selected value="unknown"></option>{/if}
-            <option {if !empty($params.to) && $params.to == 'customer'}selected{/if} value="customer">[`Customer`]</option>
-            <option {if !empty($params.to) && $params.to == 'admin'}selected{/if} value="admin">[`Store admin`]</option>
-            <option {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin' && $params.to != 'unknown'}selected{/if} value="">[`Other...`]</option>
-        </select>
+    <div class="value">
+        <div class="wa-select notification-to small">
+            <select name="params[to]">
+                {if empty($params.to)}<option selected value="unknown"></option>{/if}
+                {if !empty($params.to) && $params.to == 'unknown'}<option selected value="unknown"></option>{/if}
+                <option {if !empty($params.to) && $params.to == 'customer'}selected{/if} value="customer">[`Customer`]</option>
+                <option {if !empty($params.to) && $params.to == 'admin'}selected{/if} value="admin">[`Store admin`]</option>
+                <option {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin' && $params.to != 'unknown'}selected{/if} value="">[`Other...`]</option>
+            </select>
+        </div>
         {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin' && $params.to != 'unknown'}
             <input type="text" name="params[to]" value="{$params.to}" placeholder="[`Enter email address`]">
         {/if}
@@ -28,10 +32,10 @@
 <div class="field">
     <div class="name">[`Email subject`]</div>
     <div class="value">
-        <input name="params[subject]" type="text" value="{if !empty($params.subject)}{$params.subject}{/if}" class="bold long subject">
+        <input name="params[subject]" type="text" value="{if !empty($params.subject)}{$params.subject}{/if}" class="bold long small subject">
     </div>
 </div>
-<div class="field">
+<div class="field vertical">
     <div class="name">[`Email body`]<br><span class="hint">HTML + Smarty</span></div>
     <div class="value no-shift">
         <textarea id="n-email-body" class="body" name="params[body]">{if !empty($params.body)}{$params.body}{/if}</textarea>

@@ -5,19 +5,19 @@
     <input type="hidden" name="action_id" value="{$action_id}">
     <textarea name="text" placeholder="[`Optional comments`]"></textarea>
 
+    <div class="custom-my-16">
     {if !empty($plugins_html)}
         {foreach $plugins_html as $plugin_id => $html}
             <!-- {$plugin_id} -->
             {$html}
         {/foreach}
     {/if}
-    <br><br>
+    </div>
 
     {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
     <footer class="js-form-footer-actions">
-        <input class="js-submit-button" type="submit" value="[`Save`]">
-        [`or`]
-        <a class="cancel inline-link js-cancel-button" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+        <input class="button green js-submit-button" type="submit" value="[`Save`]">
+        <a class="cancel button light-gray js-cancel-button" href="javascript:void(0);">[`Cancel`]</a>
     </footer>
 </form>
 

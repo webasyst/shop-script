@@ -1,0 +1,162 @@
+{if !empty($error)}
+    <h1 class="js-bread-crumbs"><a href="#/payment/" class="back">&larr; [`Payment`]</a>&nbsp;[`Error`]</h1>
+    <span class="errormsg">{$error|escape}</span>
+{else}
+<form>
+    <!-- GENERAL PAYMENT OPTION PARAMS -->
+    <div class="field-group">
+
+        <div class="block half-padded float-right">
+            <ul class="menu-h with-icons">
+            {if isset($plugin.status) && !empty($plugin.id)}
+                <li><a href="#/payment/plugin/delete/{$plugin.id}/" class="js-action js-confirm" data-confirm-text="[`This will permanently delete this payment option. Are you sure?`]" style="position: relative; z-index: 99;"><i class="icon16 delete"></i>[`Delete this payment option`]</a></li>
+            {/if}
+            </ul>
+        </div>
+
+        <h1 class="js-bread-crumbs">
+            <a href="#/payment/" class="back">&larr; [`Payment`]</a>&nbsp;{$plugin.name|escape}
+            <span class="hint float-right s-payment-plugin-id">id:{$plugin.plugin|escape}</span>
+        </h1>
+
+        <div class="field">
+            <div class="name">
+            <label for="s-payment-plugin-status">[`Enabled`]</label>
+            </div>
+            <div class="value">
+                <input name="payment[id]" type="hidden" value="{$plugin_id|escape}">
+                <input name="payment[plugin]" type="hidden" value="{$plugin.plugin|escape}">
+                <input name="payment[status]" type="checkbox"{if !empty($plugin.status)} checked="checked"{/if} id="s-payment-plugin-status" value="1">
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">
+                <label for="s-payment-plugin-name">[`Payment option name`]</label>
+            </div>
+            <div class="value">
+                <input name="payment[name]" type="text" value="{$plugin.name|escape}" class="bold" id="s-payment-plugin-name">
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">
+                <label for="s-payment-plugin-logo">[`Logo URL`]</label>
+            </div>
+            <div class="value">
+                <input name="payment[logo]" type="text" class="long" value="{$plugin.logo|default:''|escape}" id="s-payment-plugin-logo">
+                {if !empty($plugin.logo)}<img src="{$plugin.logo}"  class="s-payment-shipping-logo float-right">{/if}
+                <p class="hint">{sprintf('[`A collection of payment option icons is available for free: <a href="%s" target="_blank">%s</a> <i class="icon10 new-window"></i>`]','[`https://www.shop-script.com/help/729/payment-shipping-icons/`]','[`https://www.shop-script.com/help/729/payment-shipping-icons/`]')}</p>
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">
+                [`Description`]
+            </div>
+            <div class="value">
+                <textarea name="payment[description]">{$plugin.description|escape}</textarea>
+                <p class="hint">[`HTML. Payment option description is shown to customer during the checkout.`]</p>
+            </div>
+        </div>
+        {*
+        <div class="field">
+            <div class="name">
+                [`Delivery info`]
+            </div>
+            <div class="value">
+                <textarea name="payment[email_description]">{$plugin.email_description|default:''|escape}</textarea>
+                <p class="hint">[`Optional text to be sent to customer with the order notification email. Plain text, no HTML allowed.`]</p>
+            </div>
+        </div>
+        *}
+    </div>
+
+    <!-- CONDITIONS OF APPLICABILITY OF PAYMENT METHODS -->
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Offer payment to customer types`]</div>
+            <div class="value">
+                <label><input type="radio"
+                              class="js-settings-payment-customer-type"
+                              name="payment[options][customer_type]"
+                              value="" {if empty($plugin.options.customer_type)} checked{/if}> [`All`]</label>
+            </div>
+            <div class="value">
+                <label><input type="radio"
+                              class="js-settings-payment-customer-type"
+                              name="payment[options][customer_type]"
+                              value="person" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'person'))} checked{/if}> [`Persons`]</label>
+            </div>
+            <div class="value">
+                <label><input type="radio"
+                              class="js-settings-payment-customer-type"
+                              name="payment[options][customer_type]"
+                              value="company" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'company'))} checked{/if}> [`Companies`]</label>
+            </div>
+            <div class="value hint">{sprintf('[`In  “%s” mode payment is offered only to selected customer types.<br>In “%s” mode this setting is ignored and payment is always offered to all customer types.`]', '[`In-cart checkout`]', '[`Multi-step checkout`]')}</div>
+        </div>
+
+
+
+        <div class="field"{if !empty($plugin.info.type) && ($plugin.info.type neq waPayment::TYPE_MANUAL)} style="display: none;{/if}">
+            <div class="name">[`Supported payment types`]</div>
+            <div class="value">
+                {foreach $payment_types as $payment_type=>$type_name}
+                    <label><input {if !empty($plugin.options.payment_type[$payment_type])} checked {/if}
+                            class="js-payment-type-variant" data-payment-type="{$payment_type}" name="payment[options][payment_type][{$payment_type}]"
+                            type="checkbox" value="{$payment_type}"> {$type_name|escape}</label>
+                    {if !$type_name@last}<br>{/if}
+                {/foreach}
+            </div>
+            <div class="value">
+                <p class="hint">[`In the “In-cart checkout” mode, selected payment types can be used to filter available payment options, if a list of required payment types has been provided by a shipping plugin. These payment types are also passed on to shipping plugins for additional shipping rates calculation.`]
+                    <br>[`In the “Multi-step checkout” mode, this setting is not used.`]</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">[`Offer this payment method with selected shipping types`]</div>
+            <div class="value">
+                {foreach $shipping_types as $shipping_type=>$type_name}
+                    <label><input type="checkbox" name="payment[options][shipping_type][{$shipping_type}]" value="{$shipping_type}" {if !empty($plugin.options.shipping_type[$shipping_type])} checked="checked"{/if}> {$type_name|escape}</label>
+                    {if !$type_name@last}<br>{/if}
+                {/foreach}
+            </div>
+            <div class="value hint">{sprintf('[`In  “%s” mode payment is offered only with selected shipping types.<br>In “%s” mode this setting is ignored and payment is always offered with all shipping types.`]', '[`In-cart checkout`]', '[`Multi-step checkout`]')}</div>
+        </div>
+        <div class="field">
+            <div class="name">[`Offer this payment method with the selected shipping methods`]</div>
+            <div class="value">
+                {foreach $shipping as $p}
+                    <label><input type="checkbox"
+                                  name="payment[shipping][{$p.id}]"
+                                  data-customer-type="{$p.options.customer_type|default:''|escape}"
+                                  data-shipping-type="{$p.info.type|default:''|escape}"
+                                  value="1"
+                                {if $p.available} checked="checked"{/if}
+                        > {$p.name|escape}</label>
+                    <span class="hint" style="display: none">[`This payment method may be unavailable during checkout due to limitations by shipping type or customer type.`]</span>
+                    {if !$p@last}<br>{/if}
+                    {foreachelse}
+                    <span class="hint">[`No shipping options are defined.`]</span>
+                {/foreach}
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM PAYMENT MODULE PARAMS -->
+    <div class="field-group">
+        {$settings_html}
+    </div>
+
+    <div class="field-group">
+        {$guide_html}
+    </div>
+
+    <div class="field-group js-footer-block">
+        <div class="field">
+            <div class="value submit">
+                <input type="submit" class="button green" value="[`Save`]"> [`or`] <a href="#/payment/" class="inline-link">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+</form>
+{/if}

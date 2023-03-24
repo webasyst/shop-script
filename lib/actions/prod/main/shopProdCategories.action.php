@@ -10,8 +10,6 @@ class shopProdCategoriesAction extends waViewAction
         $categories = $this->getCategories();
         $storefronts = $this->getStorefronts();
 
-        shopHelper::setChapter('new_chapter');
-
         /**
          * @event backend_prod_categories
          * @since 9.4.1
@@ -44,7 +42,7 @@ class shopProdCategoriesAction extends waViewAction
         }
 
         $category_model = new shopCategoryModel();
-        $categories = $category_model->getFullTree("id, name, parent_id, depth, count, type, status, sort_products, filter",  false);
+        $categories = $category_model->getFullTree("id, name, parent_id, depth, count, type, status, sort_products, filter, include_sub_categories",  false);
         $categories = shopProdCategoriesAction::formatCategories($categories);
         $categories_tree = $category_model->buildNestedTree($categories);
 

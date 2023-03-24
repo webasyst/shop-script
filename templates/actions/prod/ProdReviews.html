@@ -18,7 +18,7 @@
 
 {capture assign="_component_dropdown"}
     <div class="dropdown">
-        <button class="dropdown-toggle wa-button" type="button"
+        <button class="dropdown-toggle button" type="button"
                 v-bind:class="button_class">{ { active_item.name } }</button>
         <div class="dropdown-body"
              v-bind:class="body_class"
@@ -56,7 +56,7 @@
          v-bind:class="{ 'is-locked' : states.is_delete, 'is-new' : review.is_new }">
 
         <div class="tablebox space-16">
-            <div class="s-column-status-switch"
+            <div class="s-column-status-switch custom-pt-4"
                  v-bind:style="{ 'visibility' : (review.status === '{$review_states["deleted"]}' ? 'hidden' : '') }">
                 <component-switch
                     v-bind:key="states.reload_key"
@@ -68,27 +68,27 @@
                 {* STATUS *}
                 <div class="s-status-wrapper tablebox middle space-24">
                     <div class="s-column-status">
-                        <span class="color-red bold"
+                        <span class="text-red bold"
                               v-if="review.status === '{$review_states["deleted"]}'">[`Deleted`]</span>
-                        <span class="color-green-dark bold"
+                        <span class="text-green bold"
                               v-if="review.status === '{$review_states["published"]}'">[`Published`]</span>
-                        <span class="color-orange bold"
+                        <span class="text-orange bold"
                               v-if="review.status === '{$review_states["moderation"]}'">[`Under moderation`]</span>
                     </div>
                     <div class="s-column-actions align-right">
-                        <button class="wa-button wa-small wa-short transparent-red"
+                        <button class="button small light-gray"
                                 v-if="!states.is_deleted"
                                 v-on:click.prevent="reviewDelete">
-                            <span class="s-icon" v-if="!states.is_wait" v-bind:key="1"><i class="fas fa-trash-alt"></i></span>
+                            <span class="s-icon text-red" v-if="!states.is_wait" v-bind:key="1"><i class="fas fa-trash-alt"></i></span>
                             <span class="s-icon" v-if="states.is_wait" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
                             <span class="s-name">[`Delete`]</span>
                         </button>
-                        <button class="wa-button wa-small wa-short transparent"
+                        <button class="button small light-gray"
                                 v-if="states.is_deleted"
                                 v-on:click.prevent="reviewRestore">
-                            <span class="s-icon icon size-16 color-green-dark" v-if="!states.is_wait" v-bind:key="1"><svg><use xlink:href='{$_sprite_url}#trash-alt-slash'></use></svg></span>
-                            <span class="s-icon color-green-dark" v-if="states.is_wait" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
-                            <span class="s-name color-green-dark">[`Restore`]</span>
+                            <span class="s-icon icon size-16 text-gray" v-if="!states.is_wait" v-bind:key="1"><svg><use xlink:href='{$_sprite_url}#trash-alt-slash'></use></svg></span>
+                            <span class="s-icon" v-if="states.is_wait" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
+                            <span class="s-name">[`Restore`]</span>
                         </button>
                     </div>
                 </div>
@@ -121,7 +121,7 @@
                                 </template>
                             </template>
                         </div>
-                        <div class="s-review-date">{ { review.humandatetime } }</div>
+                        <div class="s-review-date small">{ { review.humandatetime } }</div>
                         {/strip}
                     </div>
                 </div>
@@ -138,7 +138,7 @@
                                 <span class="icon baseline top s-star color-yellow" v-bind:key="n"><i class="fas fa-star-half-alt"></i></span>
                             </template>
                             <template v-else>
-                                <span class="icon baseline top s-star color-gray-light" v-bind:key="n"><i class="fas fa-star"></i></span>
+                                <span class="icon baseline top s-star text-light-gray" v-bind:key="n"><i class="fas fa-star"></i></span>
                             </template>
                         </template>
                     </div>
@@ -163,7 +163,7 @@
 
                                 <div class="s-image-action"
                                      v-on:click.prevent="imageDelete(image)">
-                                    <span class="icon size-12" v-if="!image.states.is_delete" v-bind:key="1"><i class="fas fa-trash-alt"></i></span>
+                                    <span class="icon size-12" v-if="!image.states.is_delete" v-bind:key="1"><i class="fas fa-trash-alt text-red"></i></span>
                                     <span class="icon size-12" v-if="image.states.is_delete" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
                                 </div>
                             </div>
@@ -172,7 +172,7 @@
                 </div>
 
                 <div class="s-review-actions">
-                    <button class="wa-button wa-small wa-short bold transparent"
+                    <button class="button small wa-short bold outlined"
                             v-on:click.prevent="formToggle(true)">
                         <span class="s-name">[`Reply`]</span>
                     </button>
@@ -183,20 +183,20 @@
                     <div class="s-form-description">
                         <component-flex-textarea
                             v-model="review.form.description"
-                            v-bind:class="'wa-small wide'"></component-flex-textarea>
+                            v-bind:class="'small wide'"></component-flex-textarea>
                     </div>
 
                     <div class="s-form-actions flexbox middle space-8">
-                        <button class="wa-small wa-button blue js-submit-button" type="button"
+                        <button class="button js-submit-button smaller" type="button"
                                 v-bind:disabled="review.form.is_locked"
                                 v-on:click.prevent="formAdd">
                             <span class="s-icon" v-if="review.form.is_locked" v-bind:key="1"><i class="fas fa-spinner fa-spin"></i></span>
                             <span class="s-name">[`Reply`]</span>
                         </button>
-                        <button class="wa-small wa-button top gray js-cancel" type="button"
+                        <button class="button js-cancel light-gray small" type="button"
                                 v-bind:disabled="review.form.is_locked"
                                 v-on:click.prevent="formToggle(false)">
-                            <span class="s-icon"><i class="fas fa-times"></i></span>
+                            <span class="s-icon">[`Cancel`]</span>
                         </button>
                     </div>
                 </div>
@@ -232,7 +232,7 @@
 {/strip}
 
 <div id="js-product-reviews-section-wrapper">
-    <div class="article s-product-reviews-section js-product-reviews-section" style="visibility: hidden;">
+    <div class="article wider s-product-reviews-section js-product-reviews-section" style="visibility: hidden;">
 
         {* HEADER *}
 
@@ -256,7 +256,7 @@
                             <component-dropdown
                                 v-bind:items="filters['images_count']"
                                 v-bind:active_item_id="active_filters['images_count']"
-                                v-bind:button_class="'wa-small transparent bold'"
+                                v-bind:button_class="'small white rounded'"
                                 v-on:change="onChangeFilter('images_count', $event)"></component-dropdown>
                         </div>
 
@@ -266,7 +266,7 @@
                             <component-dropdown
                                 v-bind:items="filters['status']"
                                 v-bind:active_item_id="active_filters['status']"
-                                v-bind:button_class="'wa-small transparent bold'"
+                                v-bind:button_class="'small white rounded'"
                                 v-on:change="onChangeFilter('status', $event)"></component-dropdown>
                         </div>
 
@@ -276,7 +276,7 @@
                             <component-dropdown
                                 v-bind:items="filters['sort']"
                                 v-bind:active_item_id="active_filters['sort_order']"
-                                v-bind:button_class="'wa-small transparent bold'"
+                                v-bind:button_class="'small white rounded'"
                                 v-on:change_item="onChangeFilter('sort_order', $event)"></component-dropdown>
                         </div>
                     </div>
@@ -309,7 +309,7 @@
                             v-bind:body_class="'top right'"
                             v-bind:items="filters['limit']"
                             v-bind:active_item_id="active_filters['limit']"
-                            v-bind:button_class="'wa-small gray-field'"
+                            v-bind:button_class="'small light-gray'"
                             v-on:change="onChangeFilter('limit', $event)"></component-dropdown>
                     </div>
                 {/if}

@@ -7,6 +7,7 @@
  */
 class shopCategoryEditAction extends waViewAction
 {
+    // TODO Нужен шаблон для ВА2
     protected $template = 'wa-apps/shop/templates/actions/category/ProductsCategory.html';
 
     public function execute()
@@ -257,9 +258,9 @@ class shopCategoryEditAction extends waViewAction
      */
     protected function formatConditions(&$settings)
     {
-        if (isset($settings['conditions']['type'])) {
+        if (isset($settings['conditions']['type_id'])) {
             $type_model = new shopTypeModel();
-            $settings['conditions']['type']['options'] = $type_model->select('`id`, `name`')->where('id IN (' . implode(',', array_map('intval', $settings['conditions']['type']['values'])) . ')')->fetchAll();
+            $settings['conditions']['type_id']['options'] = $type_model->select('`id`, `name`')->where('id IN (' . implode(',', array_map('intval', $settings['conditions']['type_id']['values'])) . ')')->fetchAll();
         }
         if (isset($settings['conditions']['feature']) && is_array($settings['conditions']['feature'])) {
             foreach ($settings['conditions']['feature'] as $code => &$condition) {

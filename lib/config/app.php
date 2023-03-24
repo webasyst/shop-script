@@ -1,15 +1,9 @@
 <?php
 
 return array(
-    "ui" => "1.3",
-    'name'             => /*_w*/('Store'),
+    'name'             => /*_w*/('Shop-Script'),
     'description'      => /*_w*/('Shop-Script is a robust shopping cart software that allows you to quickly establish your own online store and sell online.'),
-    'icon'             => array(
-        16 => 'img/shop16.png',
-        24 => 'img/shop24.png',
-        48 => 'img/shop48.png',
-        96 => 'img/shop96.png',
-    ),
+    'icon'             => 'img/shop.svg',
     'sash_color'       => '#27bf52',
     'rights'           => true,
     'frontend'         => true,
@@ -19,8 +13,8 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '9.4.3',
-    'critical'         => '9.0.0',
+    'version'          => '10.0.0', // developer preview alpha
+    'critical'         => '10.0.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,
     'payment_plugins'  => array(
@@ -45,4 +39,5 @@ return array(
         'checkout_version'       => 2,
         'checkout_storefront_id' => class_exists('shopCheckoutConfig') ? ['shopCheckoutConfig', 'generateStorefrontId'] : md5(uniqid()),
     ),
+    'ui'               => '1.3,2.0'
 );

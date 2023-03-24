@@ -1,73 +1,82 @@
 {* PAGE *}
-<div class="s-coupons-page block double-padded" id="js-coupons-page">
-    {* HEADER *}
-    <header class="s-page-header">
-        <h1 class="s-title">[`Discount coupons`]</h1>
-    </header>
+<div class="s-coupons-page content flexbox" id="js-coupons-page">
 
-    {* BODY *}
-    <div class="s-page-body">
-        <div class="s-table-box space-20">
-            <div class="sidebar left200px">
+    <div class="sidebar bordered-right width-23rem blank">
 
-                <ul class="menu-v with-icons s-coupon-list">
-                    <li class="bottom-padded">
-                        <a href="{$marketing_url}coupons/create/" class="bold"><i class="icon16 add"></i>[`New coupon`]</a>
-                    </li>
+        <ul class="menu large">
+            <li class="bottom-padded">
+                <a href="{$marketing_url}coupons/create/"><i class="fas fa-plus-circle text-green"></i> <span>[`New coupon`]</span></a>
+            </li>
+        </ul>
 
-                    {if $pages_count > 1 || strlen($coupon_name)}
-                    <li class="s-coupon-search">
-                        <i class="s-icon icon16 ss search-bw"></i>
-                        <input class="s-coupon-field" id="coupon-name" type="search" name="coupon_name" value="{$coupon_name}" placeholder="[`Coupons search`]" autocomplete="off">
-                    </li>
-                    {/if}
+        {if $pages_count > 1 || strlen($coupon_name)}
+        <div class="box">
+            <form class="s-coupon-search state-with-inner-icon left width-100">
+                <input class="s-coupon-field small full-width custom-mr-0" id="coupon-name" type="search" name="coupon_name" value="{$coupon_name}" placeholder="[`Coupons search`]" autocomplete="off">
+                <button class="icon js-coupon-name-submit" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
+        {/if}
 
-                    {foreach $coupons as $_coupon}
-                        {$_is_active = false}
-                        {if !empty($coupon) && $coupon.id === $_coupon.id}
-                            {$_is_active = true}
-                        {/if}
 
-                        {$_classes = []}
-                        {if !$_coupon.enabled}
-                            {$_classes[] = "s-expired"}
-                        {/if}
-                        {if !empty($_is_active)}
-                            {$_classes[] = "selected"}
-                        {/if}
-
-                        <li class="{$_classes|join:" "}">
-                            <span class="count">{$_coupon.hint}</span>
-                            {$params = []}
-                            {if $page_number > 1}
-                                {$params['page'] = $page_number}
-                            {/if}
-                            {if strlen($coupon_name)}
-                                {$params['coupon_name'] = $coupon_name}
-                            {/if}
-                            {$page_params = ''}
-                            {if $params}
-                                {$page_params = "?{http_build_query($params)}"}
-                            {/if}
-                            <a href="{$marketing_url}coupons/{$_coupon.id}/{$page_params}" class="gray" data-coupon-id="{$_coupon.id}">
-                                <i class="icon16 ss coupon"></i>{$_coupon.code}
-                            </a>
-                        </li>
-                    {/foreach}
-                </ul>
-
-                {if $pages_count > 1}
-                    <div class="block pagination s-coupon-list-pagination">
-                        {wa_pagination page=$page_number coupon_name=$coupon_name total=$pages_count attrs=['class' => "menu-h"] url="`$wa_app_url`marketing/coupons/" nb=3}
-                    </div>
+        <ul class="menu">
+            {foreach $coupons as $_coupon}
+                {$_is_active = false}
+                {if !empty($coupon) && $coupon.id === $_coupon.id}
+                    {$_is_active = true}
                 {/if}
 
-            </div>
+                {$_classes = []}
+                {if !$_coupon.enabled}
+                    {$_classes[] = "opacity-50"}
+                {/if}
+                {if !empty($_is_active)}
+                    {$_classes[] = "selected"}
+                {/if}
 
-            <div class="content">
-                {include file="./MarketingCouponsEditor.html" inline}
+                <li class="{$_classes|join:" "}">
+                    {$params = []}
+                    {if $page_number > 1}
+                        {$params['page'] = $page_number}
+                    {/if}
+                    {if strlen($coupon_name)}
+                        {$params['coupon_name'] = $coupon_name}
+                    {/if}
+                    {$page_params = ''}
+                    {if $params}
+                        {$page_params = "?{http_build_query($params)}"}
+                    {/if}
+                    <a href="{$marketing_url}coupons/{$_coupon.id}/{$page_params}" class="gray" data-coupon-id="{$_coupon.id}">
+                        <span class="count">{$_coupon.hint}</span>
+                        <i class="fas fa-tag"></i> <span>{$_coupon.code}</span>
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+
+        {if $pages_count > 1}
+            <div class="box pagination s-coupon-list-pagination">
+                {wa_pagination page=$page_number coupon_name=$coupon_name total=$pages_count attrs=['class' => "paging"] url="`$wa_app_url`marketing/coupons/" nb=3}
             </div>
+        {/if}
+
+    </div>
+
+    <div class="content">
+
+        <div class="article">
+        <div class="article-body">
+
+        {* HEADER *}
+        <header class="s-page-header custom-mb-32">
+            <h1 class="s-title">[`Discount coupons`]</h1>
+        </header>
+
+        {include file="./MarketingCouponsEditor.html" inline}
+
         </div>
+        </div>
+
     </div>
 
     <script>
@@ -103,6 +112,8 @@
                     }
                 });
             });
+
+            $(".wa-tooltip").waTooltip();
         })(jQuery);
     </script>
 </div>

@@ -7,7 +7,7 @@
         {/foreach}
 
         {if !empty($costs)}
-            <table class="zebra single-lined padded s-costs-table">
+            <table class="zebra single-lined s-costs-table blank">
                 {foreach $costs as $_cost}
                     <tr class="s-cost-wrapper" data-cost-id="{$_cost.id}">
                         <td class="s-price-column">
@@ -28,16 +28,16 @@
                                 <i class="shortener"></i>
                             </div>
                         </td>
-                        {if !empty($_cost.note)}
-                            <td class="s-description-column">
-                                <div>
-                                    <span class="s-note">{$_cost.note|escape}</span>
-                                    <i class="shortener"></i>
-                                </div>
-                            </td>
-                        {/if}
+                        <td class="s-description-column">
+                            {if !empty($_cost.note)}
+                            <div>
+                                <span class="s-note">{$_cost.note|escape}</span>
+                                <i class="shortener"></i>
+                            </div>
+                            {/if}
+                        </td>
                         <td class="s-actions-column">
-                            <a href="{$marketing_url}costs/?cost_id={$_cost.id|escape}" class="s-edit-link" title="[`Edit`]"><i class="icon16 edit"></i></a>
+                            <a href="{$marketing_url}costs/?cost_id={$_cost.id|escape}" class="s-edit-link" title="[`Edit`]"><i class="fas fa-pencil-alt edit"></i></a>
                         </td>
                     </tr>
                 {/foreach}
@@ -46,7 +46,7 @@
 
         <div class="s-costs-actions">
             <a class="js-disable-router js-add-cost" href="{$marketing_url}costs/?promo_id={$_promo_id|escape}">
-                <i class="icon16 add"></i> [`Add entry`]
+                <i class="fas fa-plus-circle text-green add"></i> [`Add entry`]
             </a>
 
             <script>

@@ -1,0 +1,536 @@
+<div class="block double-padded">
+
+    <h1>
+        <a href="?action=customers" class="back">&larr; <span></span></a> {* !!! *}
+        {$contact.name|escape}
+
+
+        <!-- plugin hook: 'backend_customer.name_suffix' -->
+        {* @event backend_customer.%plugin_id%.name_suffix *}
+        {if !empty($backend_customer)}{foreach $backend_customer as $_}{ifset($_.name_suffix)}{/foreach}{/if}
+    </h1>
+
+    <div class="sidebar right300px">
+
+        <div class="block double-padded" style="padding-top: 0;">
+            <ul class="menu-v with-icons">
+                <!-- plugin hook: 'backend_customer.action_link' -->
+                {* @event backend_customer.%plugin_id%.action_link *}
+                {if !empty($backend_customer)}{foreach $backend_customer as $_}{if (!empty($_.action_link))}<li>{$_.action_link}</li>{/if}{/foreach}{/if}
+                <li><a href="{$wa->shop->backendContactUrl($contact.id, 'edit')}"><i class="icon16 edit"></i>[`Edit contact`]</a></li>
+                {if $contact['is_user'] <= 0}
+                    {if empty($contact['password'])}
+                        <li><a href="javascript:void(0);" id="create-password-link"><i class="icon16 access"></i>[`Create a customer account and send the password`]</a></li>
+                    {else}
+                        <li><a href="javascript:void(0);" id="reset-password-link"><i class="icon16 access"></i>[`Reset password for customer account`]</a></li>
+                    {/if}
+                {/if}
+                <li><a href="{$wa->shop->backendContactUrl($contact.id, 'delete')}"><i class="icon16 delete"></i>[`Delete contact`]</a></li>
+            </ul>
+        </div>
+
+        <div class="s-customer-permanent-user-block block double-padded">
+
+            {if !empty($contact['password'])}
+                <i class="icon16 lock"></i>[`Permanent user account`]
+                {if $contact['last_login_datetime']}
+                    <br><br>
+                    <p class="hint">
+                        {sprintf('[`%s has personal account on your site.`]', $contact.name|escape)}<br>
+                        [`Last login`]: <strong>{$contact.last_login_datetime|wa_datetime:"humandatetime"}</strong>
+                    </p>
+                {/if}
+            {else}
+                <i class="icon16 no-bw"></i>[`No permanent user account`]
+                <br><br>
+                <p class="hint">{sprintf('[`%s did not sign up for personal account on your site yet.`]', $contact.name|escape)}</p>
+            {/if}
+
+            <div class="">
+                <form method="post" action="?module=customers&action=category&set=1&customer_id={$contact.id}" id="s-categories-form">
+                    <ul class="menu-v with-icons">
+                        {foreach $contact_categories as $c}
+                            <li>
+                                <label>
+                                    {$wa->shop->icon16($c.icon)}
+                                    <input type="checkbox" class="s-category-checkbox" name="category_id[]" value="{$c.id}" {if $c.checked|default:false}checked="checked" {/if}>
+                                    {$c.name|escape}
+                                </label>
+                            </li>
+                        {/foreach}
+                    </ul>
+                    <input type="submit" value="[`Save`]" style="display: none;" id="s-save-categories">
+                </form>
+            </div>
+        </div>
+
+        <div class="block double-padded">
+            <div class="fields s-customer-contact-summary">
+                {foreach $fields as $f}
+                    {if $contact->get($f->getId()) && $f->getId() != 'company_contact_id'}
+                        <div class="field">
+                            <div class="name">{$f->getName()|escape}</div>
+                            {if $f instanceof waContactAddressField}
+                                <div class="value">
+                                    {$_shipping_map_is_rendered = false}
+                                    {$_billing_map_is_rendered = false}
+                                    {foreach $contact->get($f->getId(), 'js') as $a}
+                                        <div class="s-customer-map-wrapper">
+                                            <div class="s-map-name">{$a.value}</div>
+                                            {if empty($_shipping_map_is_rendered)}
+                                                {if !empty($a.ext) && $a.ext === 'shipping' && $shipping_map}
+                                                    {$_shipping_map_is_rendered = true}
+                                                    <div class="s-map-image">{$shipping_map}</div>
+                                                {/if}
+                                            {/if}
+                                            {if empty($_billing_map_is_rendered)}
+                                                {if !empty($a.ext) && $a.ext === 'billing' && $billing_map}
+                                                    {$_billing_map_is_rendered = true}
+                                                    <div class="s-map-image">{$billing_map}</div>
+                                                {/if}
+                                            {/if}
+                                        </div>
+                                    {/foreach}
+                                </div>
+                            {else}
+                                <div class="value">
+                                    {if $f->getId() == 'company'}
+                                        <a href="{$wa->shop->backendContactUrl($contact['company_contact_id'])}" target="_blank">
+                                            {$contact->get($f->getId(), 'html')}
+                                        </a>
+                                    {else}
+                                        {$contact->get($f->getId(), 'html')}
+                                    {/if}
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
+                {/foreach}
+            </div>
+        </div>
+
+    </div>
+
+    <div class="content right300px">
+
+        <div class="block not-padded right-padded s-customer-profile">
+
+            <div class="profile image96px">
+                <div class="image">
+                    <img src="{$contact.photo}" class="userpic">
+                </div>
+                <div class="details">
+                    {include file="./include.top_fields.html"
+                        top=$top
+                        similar_contacts=$similar_contacts
+                        need_other_values=true
+                    inline}
+                    <p></p>
+                </div>
+            </div>
+
+            <!-- plugin hook: 'backend_customer.header' -->
+            {* @event backend_customer.%plugin_id%.header *}
+            {if !empty($backend_customer)}{foreach $backend_customer as $_}{ifset($_.header)}{/foreach}{/if}
+
+            <h2>
+                {if $total_paid_num > 0}
+                    {$total_paid_str}
+                    {if $days_ago < 1}
+                        <span class="hint">[`Last paid order: today`]</span>
+                    {else}
+                        <span class="hint">{_w('Last paid order: %d day ago', 'Last paid order: %d days ago', $days_ago)}</span>
+                    {/if}
+                {else}
+                    [`No paid orders yet`]
+                {/if}
+            </h2>
+
+            <!-- ORDER LIST HTML BLOCK -->
+            {$orders_html|default:''}
+
+            <br><br>
+
+            {capture assign="review_list"}
+                {foreach $reviews as $id => $review}
+                    <li data-id="{$review.id}">{include file="./../product/include.review.html" inline reply_allowed=false}</li>
+                {/foreach}
+            {/capture}
+
+            <h2>[`Product reviews`]</h2>
+            {if $reviews}
+                <div class="s-reviews">
+                    <ul class="menu-v with-icons">
+                        {$review_list}
+                    </ul>
+                </div>
+            {else}
+                <p class="gray">{sprintf('[`%s did not post any product reviews yet.`]', $contact.name|escape)}</p>
+            {/if}
+
+            <br><br>
+
+            <h2>[`Affiliate program`]</h2>
+
+            {if !count($affiliate_history)}
+                <p class="gray">
+                    {sprintf('[`%s has no affiliate history yet.`]', $contact.name|escape)}
+                </p>
+            {/if}
+
+            <ul class="tabs">
+                <li class="s-aff-bonus-total"><strong class="large bold">{if $customer.affiliate_bonus>=0}+{/if}{$customer.affiliate_bonus|wa_format_number:false}</strong></li>
+                <li class="no-tab"><a href="javascript:void(0)" id="add-credit" class="inline-link"><i class="icon16 ss chart-up"></i><b><i>[`Add credit`]</i></b></a></li>
+                <li class="no-tab"><a href="javascript:void(0)" id="add-payment" class="inline-link"><i class="icon16 ss chart-down"></i><b><i>[`Add payout`]</i></b></a></li>
+            </ul>
+
+            <div id="affiliate-wrapper" class="tab-content s-aff-bonus-form" style="display:none;">
+                <div class="fields form">
+                    <div class="field">
+                        <div class="name header-name"></div>
+                        <div class="value">
+                            <input type="text" class="numerical" placeholder="0" step="any"> [`points`]
+                            <span class="hidden hint">≈ {sprintf($def_cur_tmpl, '<span class="amount-hint"></span>')}</span>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Comment`]</div>
+                        <div class="value">
+                            <textarea></textarea>
+                            <p class="hint">[`Comment is <strong>public</strong>. Your customer will see it in his account in the storefront.`]</p>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="value">
+                            <input type="submit" class="button green" value="[`Submit`]">
+                        </div>
+                    </div>
+                </div>
+                <div class="clear-left"></div>
+            </div>
+
+            {if count($affiliate_history)}
+                <table class="zebra">
+                    <tr class="white">
+                        <th></th>
+                        <th></th>
+                        <th class="align-right">[`Credit`]</th>
+                        <th class="align-right">[`Debit`]</th>
+                        <th class="align-right">[`Balance`]</th>
+                    </tr>
+                    {foreach $affiliate_history as $h}
+                        <tr>
+                            <td class="gray">{$h.create_datetime|wa_date:'humandatetime'}</td>
+                            <td>
+                                {if $h.order_id}
+                                    <a href="?action=orders#/orders/id={$h.order_id}/" class="inline">[`Order`] {$wa->shop->orderId($h.order_id)}</a>
+                                {/if}
+                                {if $h.comment}
+                                    {$h.comment|escape}
+                                {/if}
+                            </td>
+                            <td class="align-right">
+                                {if $h.amount > 0}
+                                    {$h.amount|wa_format_number:false}
+                                {/if}
+                            </td>
+                            <td class="align-right">
+                                {if $h.amount < 0}
+                                    {abs($h.amount)|wa_format_number:false}
+                                {/if}
+                            </td>
+                            <td class="align-right">{$h.balance|wa_format_number:false}</td>
+                        </tr>
+                    {/foreach}
+                </table>
+            {else}
+<!--
+                <p class="gray">
+                    [`This customer has no affiliate history yet.`]
+                </p>
+-->
+            {/if}
+
+            <br><br>
+
+            <!-- plugin hook: 'backend_customer.info_section' -->
+            {* @event backend_customer.%plugin_id%.info_section *}
+            {if !empty($backend_customer)}{foreach $backend_customer as $_}{ifset($_.info_section)}{/foreach}{/if}
+
+        </div>
+
+    </div>
+
+
+</div>
+<script>(function() { "use strict";
+
+    // Link back to last list view
+    var backlink = $('#s-content h1 a.back');
+    if ($.customers.lastView && $.customers.lastView.title) {
+        backlink.attr('href', $.customers.lastView.hash).children('span').text($.customers.lastView.title);
+    } else {
+        backlink.hide();
+    }
+
+    // save category form
+    (function() {
+        var button = $('#s-save-categories');
+        $('#s-content .s-category-checkbox').change(function() {
+            button.show();
+        });
+        $('#s-categories-form').submit(function() {
+            $.post($(this).attr('action'), $(this).serialize(), function(r) {
+                button.hide();
+                if (r.status === 'ok' && r.data && !$.isEmptyObject(r.data.counts)) {
+                    $('#customer-categories').trigger('update_counters', [r.data.counts]);
+                }
+            }, 'json');
+            return false;
+        });
+    })();
+
+    ( function($) {
+        var sources = [{
+            id: "wa-dialog-css",
+            type: "css",
+            uri: "{$wa_url}wa-content/js/dialog/dialog.css?v={$wa->version(true)}"
+        }, {
+            id: "wa-dialog-js",
+            type: "js",
+            uri: "{$wa_url}wa-content/js/dialog/dialog.js?v={$wa->version(true)}"
+        }];
+
+        $.shop.loadSources(sources).then(init);
+
+        function init() {
+            var is_locked = false;
+
+            var contact_id = "{$contact->getId()}";
+
+            $('#s-content').on('click', '#reset-password-link, #create-password-link', function(event) {
+                event.preventDefault();
+
+                if (is_locked) { return false; }
+                is_locked = true;
+
+                var $icon = $(this).find('i'),
+                    $loading = $("<i />", { class: "icon16 loading" }).insertAfter( $icon.hide() );
+
+                var href = "?module=customers&action=prepareResetPassword",
+                    data = { contact_id: contact_id };
+
+                $.post(href, data, "json")
+                    .always( function() {
+                        $loading.remove();
+                        $icon.show();
+                        is_locked = false;
+                    })
+                    .done( function(html) {
+                        $.waDialog({
+                            html: html
+                        });
+                    });
+            });
+        }
+    })(jQuery);
+
+    // Controller for affiliate editor
+    (function() {
+        var wrapper = $('#affiliate-wrapper');
+        var header = wrapper.find('.header-name');
+        var form_state = null;
+        var input = wrapper.find('input:not(:submit)');
+        var textarea = wrapper.find('textarea');
+        var submit = wrapper.find(':submit');
+        var point_rate = {$point_rate};
+        var add_credit_link = $('#add-credit');
+        var add_payment_link = $('#add-payment');
+        var amount_hint = wrapper.find('.amount-hint');
+
+        document.title = '{$contact.name|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+
+        // Changing the field makes hint with amount in default currency appear
+        var h;
+        input.keyup(h = function() {
+            var amount = Math.round(((parseFloat(input.val().replace(',', '.'), 10)||0)*point_rate)*100)/100;
+            if (amount) {
+                amount_hint.text(amount).parent().show();
+            } else {
+                amount_hint.parent().hide();
+            }
+        }).change(h);
+
+        // "Add credit" link toggles the form
+        add_credit_link.click(function() {
+            if (form_state == 'credit') {
+                wrapper.hide();
+                form_state = null;
+                add_credit_link.find('b').removeClass('bold');
+                return;
+            }
+            add_credit_link.find('b').addClass('bold');
+            add_payment_link.find('b').removeClass('bold');
+            form_state = 'credit';
+            header.text("[`Credit amount`]");
+            textarea.attr('placeholder', '[`Bonus credit`]');
+            submit.removeClass('blue').addClass('green');
+            wrapper.show();
+        });
+
+        // "Add payment" link toggles the form
+        add_payment_link.click(function() {
+            if (form_state == 'payment') {
+                wrapper.hide();
+                form_state = null;
+                add_payment_link.find('b').removeClass('bold');
+                return;
+            }
+            add_credit_link.find('b').removeClass('bold');
+            add_payment_link.find('b').addClass('bold');
+            form_state = 'payment';
+            header.text("[`Payment amount`]");
+            textarea.attr('placeholder', '[`Bonus pay out`]');
+            submit.removeClass('green').addClass('blue');
+            wrapper.show();
+        });
+
+        // Button to save the transaction record
+        submit.click(function() {
+
+            input.removeClass('error');
+            var amount = parseFloat(input.val().replace(',', '.'), 10);
+            if (!amount || amount <= 0) {
+                input.addClass('error');
+                return false;
+            }
+
+            $(this).after('<i class="icon16 loading"></i>');
+            $.post('?module=customers&action=affiliate', {
+                contact_id: '{$contact->getId()}',
+                amount: form_state == 'payment' ? -amount : amount,
+                comment: textarea.val()
+            }, function() {
+                $.customers.redispatch();
+            }, 'json');
+            return false;
+        });
+    })();
+
+
+    // Controller for reviews
+    (function() {
+        var container = $('#s-content');
+        var status_deleted   = '{shopProductReviewsModel::STATUS_DELETED}';
+        var status_published = '{shopProductReviewsModel::STATUS_PUBLISHED}';
+
+        container.find('.s-reviews').on('click', '.s-review-reply, .s-review-delete, .s-review-restore, .js-review-publish',
+            function() {
+                var self = $(this),
+                    li = self.parents('li:first'),
+                    parent_id = parseInt(li.attr('data-id'), 10) || 0;
+                if (self.hasClass('s-review-delete')) {
+                    deleteReview(parent_id/*, options.afterDelete*/);
+                } else if (self.hasClass('s-review-restore')) {
+                    restoreReview(parent_id/*, options.afterRestore*/);
+                } else if (self.hasClass('js-review-publish')) {
+                    publishReview(parent_id);
+                }
+                return false;
+            }
+        );
+
+        var publishReview = function(review_id) {
+            $.post('?module=reviews&action=changeStatus',
+                { review_id: review_id, status: status_published },
+                function(r) {
+                    if (r.status == 'ok') {
+                        var review_li = container.find('li[data-id='+review_id+']');
+                        var review_div = review_li.find('div:first');
+                        review_div
+                                .addClass('is-published')
+                                .removeClass('is-unpublished')
+                                .removeClass('s-deleted');
+                        review_div.find('.s-review-delete').show();
+                        review_div.find('.js-review-publish').remove();
+
+                        if (typeof success === 'function') {
+                            success();
+                        }
+                    }
+                },
+            'json');
+        };
+
+        var deleteReview = function(review_id, success) {
+            //var sidebar_counter = this.sidebar_counter;
+            $.post('?module=reviews&action=changeStatus',
+                { review_id: review_id, status: status_deleted },
+                function(r) {
+                    if (r.status == 'ok') {
+                        var review_li  = container.find('li[data-id='+review_id+']');
+                        var review_div = review_li.find('div:first');
+                        review_div.addClass('s-deleted');
+                        review_div.find('.s-review-delete').hide();
+                        review_div.find('.s-review-restore').show();
+                        /*
+                        if (sidebar_counter.length) {
+                            sidebar_counter.text(parseInt(sidebar_counter.text(), 10) - 1);
+                        }
+                        */
+                        if (typeof success === 'function') {
+                            success(r);
+                        }
+                    }
+                },
+            'json');
+        };
+
+        var restoreReview = function(review_id, success) {
+            //var sidebar_counter = this.sidebar_counter;
+            $.post('?module=reviews&action=changeStatus',
+                { review_id: review_id, status: status_published },
+                function(r) {
+                    if (r.status == 'ok') {
+                        var review_li  = container.find('li[data-id='+review_id+']');
+                        var review_div = review_li.find('div:first');
+                        review_div.removeClass('s-deleted');
+                        review_div.find('.s-review-delete').show();
+                        review_div.find('.s-review-restore').hide();
+                        /*
+                        if (sidebar_counter.length) {
+                            sidebar_counter.text(parseInt(sidebar_counter.text(), 10) + 1);
+                        }
+                        */
+                        if (typeof success === 'function') {
+                            success();
+                        }
+                    }
+                },
+            'json');
+        };
+
+    })();
+
+    // controller for order list
+    (function() {
+        var view = $.storage.get('shop/orders/view') || '{$orders_default_view}';
+        var container = $('#s-order-list');
+        container.find('a.s-order-link').each(function() {
+            var link = $(this);
+            var href = '?action=orders#/orders/state_id=%state_id%&id=%id%/';
+            if (view == 'table') {
+                href = '?action=orders#/order/%id%/state_id=%state_id%/';
+            }
+            link.attr('href',
+                href.replace(
+                    '%id%', link.attr('data-order-id')
+                ).replace(
+                    '%state_id%', link.attr('data-state-id')
+                )
+            );
+        });
+    })();
+
+})();</script>
+

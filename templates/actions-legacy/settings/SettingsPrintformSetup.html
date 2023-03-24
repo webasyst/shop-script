@@ -1,0 +1,117 @@
+{if !empty($saved)}
+    <div class="block double-padded s-message-success bordered-bottom">
+        <i class="icon16 yes"></i>[`Settings updated`]
+    </div>
+{elseif (!empty($error))}
+    <div class="block double-padded bordered-bottomr">
+        <i class="icon16 no"></i>{$error|escape}
+    </div>
+{/if}
+<div class="block double-padded">
+
+    <div class="block half-padded float-right">
+        <a href="#" style="position: relative; z-index: 99; {if !$is_template_changed}display:none;{/if}"
+                 class="s-plugin-template-reset no-underline"
+           ><i class="icon16 delete"></i>[`Revert to original`]</a>
+        <div class="plugins-settings-template-reset-confirm" style="display:none;">[`This will drop all customizations made to the print form template, and revert it to the original version. Are you sure?`]</div>
+    </div>
+
+    <h1>{$plugin_info.name|default:$plugin_id|string_format:'%s'}</h1>
+
+</div>
+{if isset($plugin_id)}
+    <ul class="tabs s-settings-tabs">
+        <li {if $wa->get('tab') !== 'template'}class="selected"{/if} style="margin-left: 10px;"><a href="#/printform/{$plugin_id}/">[`Settings`]</a></li>
+        <li {if $wa->get('tab') === 'template'}class="selected"{/if}><a href="#/printform/{$plugin_id}/template/">[`Template`]</a></li>
+        <li class="no-tab"><a href="?plugin={$plugin_id}&module=printform&action=display" target="_printform">[`Preview`] <i class="icon10 new-window"></i></a></li>
+    </ul>
+    <div class="tab-content">
+        <div class="block double-padded s-plugin-settings" {if $wa->get('tab') === 'template'}style="display:none;"{/if}>
+            {if !empty($settings_controls)}
+                <div class="fields form">
+                    <form action="?module=settings&action=printformSetup&id={$plugin_id}" method="post" id="plugins-settings-form" enctype="multipart/form-data" target="plugins-settings-iframe">
+                        <input type="hidden" name="id" value="{$plugin_id}">
+                        {$wa->csrf()}
+                        {foreach $settings_controls as $name => $control}
+                        <div class="field">
+                            {$control}
+                        </div>
+                        {/foreach}
+
+                        <div class="field">
+                            <div class="value submit">
+                                <input type="submit" class="button green" value="[`Save`]">
+                                <span class="loading-wrapper" style="display:none">
+                                    <i style="vertical-align:middle" class="icon16 loading"></i>
+                                </span>
+                                {if !empty($saved)}
+                                    <span class="plugins-settings-form-status">
+                                        <i style="vertical-align:middle" class="icon16 yes"></i>[`Saved`]
+                                    </span>
+                                    <script>
+                                        ( function($) {
+                                            setTimeout( function() {
+                                                $("#plugins-settings-form .plugins-settings-form-status").remove();
+                                            }, 2000);
+                                        })(jQuery);
+                                    </script>
+                                {/if}
+                            </div>
+                        </div>
+
+                    </form>
+                    <iframe style="display:none" name="plugins-settings-iframe" id="plugins-settings-iframe"></iframe>
+                </div>
+            {else}
+                <div class="block double-padded align-center gray">
+                    <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin “%s” is installed and working.`]'}</strong>
+                    <br>
+                    <br>
+                    [`No configuration options are available for this plugin.`]
+                </div>
+            {/if}
+        </div>
+        <div class="block s-plugin-template" {if $wa->get('tab') !== 'template'}style="display:none;"{/if}>
+
+            <!-- editor -->
+            <textarea name="template" id="plugins-settings-printform-template">{$template}</textarea>
+            <div class="ace">
+                <div id="plugins-settings-printform-template-container"></div>
+            </div>
+
+            <!-- save button bar -->
+            <div class="s-settings-editor-bottom-fixed-panel">
+                <div class="block">
+                    <input type="button" class="button green s-plugin-template-save" value="[`Save`]" id="s-plugin-template-save">
+                    <em class="hint">Ctrl + S</em>
+                    <span class="s-plugins-settings-form-status-process" style="display: none;">
+                        <i style="vertical-align:middle" class="icon16 loading"></i>
+                    </span>
+                    <span class="s-plugins-settings-form-status-saved" style="display: none;">
+                        <i style="vertical-align:middle" class="icon16 yes"></i>[`Saved`]
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        if(typeof($) !=='undefined') {
+            $(function () {
+                wa_url = '{$wa_url}';
+                waEditorAceInit({
+                    'id': 'plugins-settings-printform-template',
+                    'ace_editor_container': 'plugins-settings-printform-template-container',
+                    'save_button': 's-plugin-template-save'
+                });
+                wa_editor.clearSelection();
+            });
+        }
+        </script>
+
+{elseif ($plugins_count > 0)}
+    [`Unknown plugin`]
+{/if}
+
+    <div class="clear-left"></div>

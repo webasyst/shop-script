@@ -1,0 +1,90 @@
+<style>
+.icon16.ss { background-image: url({$wa_app_static_url}img/ss-icon16.png); }
+.icon16.ss.new { background-position:0 -32px; }
+.icon16.ss.confirmed,
+.icon16.ss.processing { background-position:-16px -32px; }
+.icon16.ss.paid { background-position:-32px -32px; }
+.icon16.ss.sent { background-position:-48px -32px; }
+.icon16.ss.completed { background-position:-64px -32px; }
+.icon16.ss.refunded { background-position:-80px -32px; }
+.icon16.ss.trash { background-position:-96px -32px; }
+.icon16.ss.flag-white { background-position:0 -16px; }
+.icon16.ss.flag-blue { background-position:-16px -16px; }
+.icon16.ss.flag-yellow { background-position:-32px -16px; }
+.icon16.ss.flag-green { background-position:-48px -16px; }
+.icon16.ss.flag-red { background-position:-64px -16px; }
+.icon16.ss.flag-purple { background-position:-80px -16px; }
+.icon16.ss.flag-black { background-position:-96px -16px; }
+.icon16.ss.flag-checkers { background-position:-112px -16px; }
+@media
+(-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+    i.icon16.ss { background-image: url({$wa_app_static_url}img/ss-icon16@2x.png?1503); background-size: 500px 180px; }
+}
+</style>
+
+<div class="block double-padded">
+
+    <table class="zebra double-padded" id="s-order-list">
+        {foreach $orders as $o}
+            <tr>
+                <td class="nowrap">
+                    <a href="{$wa_app_url}?action=orders#/orders/state_id={$o.state_id}&id={$o.id}&view=split/"
+                                      style="{$o.style|escape}"
+                                      data-order-id="{$o.id}"
+                                      data-state-id="{$o.state_id}"
+                                      class="s-order-link"
+                                >
+                        <i class="{$o.icon}"></i>{$wa->shop->orderId($o.id)}
+                    </a>
+                </td>
+                <td>{$o.create_datetime|wa_date:'humandate'}</td>
+                <td>
+                    {if isset($o.items)}
+                        {foreach $o.items as $i}
+                            {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
+                        {/foreach}
+                    {/if}
+                </td>
+                <td>
+                    {* !!! TODO: shipping icon *}
+                    {if $o.shipping_name}
+                        {$o.shipping_name}
+                    {else}
+                        <span class="hint">[`Shipping option not specified`]</span>
+                    {/if}
+                </td>
+                <td>
+                    {* !!! TODO: payment icon *}
+                    {if $o.payment_name}
+                        {$o.payment_name}
+                    {else}
+                        <span class="hint">[`Payment option not specified`]</span>
+                    {/if}
+                </td>
+                <td class="bold nowrap align-right">{$o.total_formatted}</td>
+            </tr>
+        {foreachelse}
+            {sprintf('[`%s did not place orders yet.`]', {$contact.name|escape})}
+        {/foreach}
+    </table>
+
+    <a href="{$wa_app_url}?action=orders#/orders/new/customer_id={$contact.id}" target="_top">
+        <i class="icon16 add" style="margin: 0 4px 0 0; position: relative; top: 2px; vertical-align: baseline;"></i>
+        [`Add order`]
+    </a>
+
+</div>
+
+<script>
+    $(function() {
+        var view = (localStorage && localStorage.getItem('shop/orders/view')) || '{$orders_default_view}';
+        if (view.match(/table/)) {
+            $('#s-order-list .s-order-link').each(function() {
+                var el = $(this);
+                el.attr('href', '{$wa_app_url}?action=orders#/order/' + el.data('orderId') + '/state_id=' + el.data('stateId') + '/');
+            });
+        }
+    });
+</script>
+

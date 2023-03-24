@@ -1,22 +1,37 @@
 <?php
 
-class shopOrdersAction extends shopOrderListAction
-{
-    public function execute()
-    {
+class shopOrdersAction extends shopOrderListAction {
+    public function execute() {
         /** @var shopConfig $config */
         $config = $this->getConfig();
 
         $default_view = $config->getOption('orders_default_view');
         $view = waRequest::get('view', $default_view, waRequest::TYPE_STRING_TRIM);
 
-        $orders = $this->getOrders(0, $this->getCount());
+        $orders = [];
 
-        $forbidden = array_fill_keys(array('edit', 'message', 'comment', 'editshippingdetails', 'editcode'), true);
+        $forbidden = array_fill_keys(['edit', 'message', 'comment', 'editshippingdetails', 'editcode'], true);
 
         $workflow = new shopWorkflow();
 
-        $actions = array();
+        $count = $this->getCount();
+        $available_states = $workflow->getAvailableStates();
+        if ($view == 'kanban' && (!isset($this->filter_params['state_id']) || is_array($this->filter_params['state_id']))) {
+            if (!empty($this->filter_params['state_id'])) {
+                $available_states = array_intersect_key($available_states, array_flip($this->filter_params['state_id']));
+            }
+            foreach ($available_states as $state_id => $state) {
+                $temp_where = "o.state_id = '$state_id'";
+                $this->collection->addWhere($temp_where);
+                $orders += $this->getOrders(0, $count);
+                $this->collection->deleteTempWhere($temp_where);
+            }
+        } else {
+            $orders = $this->getOrders(0, $count);
+        }
+        $this->formatOrders($orders);
+
+        $actions = [];
 
         // get user rights
         $user = wa()->getUser();
@@ -29,24 +44,26 @@ class shopOrdersAction extends shopOrderListAction
                 $rights = true;
             }
         }
-        $state_names = array();
+        $state_names = [];
         if (!empty($rights)) {
             foreach ($workflow->getAvailableActions() as $action_id => $action) {
                 if (!isset($forbidden[$action_id])
                     && empty($action['internal'])
                     && (($rights === true) || !empty($rights[$action_id]))
                 ) {
-                    $actions[$action_id] = array(
+                    $actions[$action_id] = [
                         'name'                 => ifset($action['name'], ''),
                         'style'                => ifset($action['options']['style']),
-                        'available_for_states' => array()       // for what states action is available
-                    );
+                        'available_for_states' => [],       // for what states action is available
+                    ];
                 }
             }
 
 
-            foreach ($workflow->getAvailableStates() as $state_id => $state) {
-                $state_names[$state_id] = waLocale::fromArray($state['name']);
+            foreach ($available_states as $state_id => $state) {
+                $state_names[$state_id]['name'] = waLocale::fromArray($state['name']);
+                $state_names[$state_id]['options'] = $state['options'];
+
                 if (isset($state['available_actions']) && is_array($state['available_actions'])) {
                     foreach ($state['available_actions'] as $action_id) {
                         if (isset($actions[$action_id])) {
@@ -58,35 +75,35 @@ class shopOrdersAction extends shopOrderListAction
             }
         }
 
-        $counters = array(
-            'state_counters' => array(
+        $counters = [
+            'state_counters' => [
                 'new' => $this->model->getStateCounters('new'),
-            ),
-        );
+            ],
+        ];
 
         $filter_params = $this->getFilterParams();
         if (isset($filter_params['state_id'])) {
-            $filter_params['state_id'] = (array) $filter_params['state_id'];
+            $filter_params['state_id'] = (array)$filter_params['state_id'];
             sort($filter_params['state_id']);
-            if ($filter_params['state_id'] == array('new', 'paid', 'processing')) {
+            if ($filter_params['state_id'] == ['new', 'paid', 'processing']) {
                 $total = 0;
                 foreach ($filter_params['state_id'] as $st) {
-                    $total += (int) $this->model->getStateCounters($st);
+                    $total += (int)$this->model->getStateCounters($st);
                 }
-                $counters['common_counters'] = array(
-                    'pending' => $total
-                );
+                $counters['common_counters'] = [
+                    'pending' => $total,
+                ];
             } else {
                 foreach ($filter_params['state_id'] as $st) {
-                    $counters['state_counters'][$st] = (int) $this->model->getStateCounters($st);
+                    $counters['state_counters'][$st] = (int)$this->model->getStateCounters($st);
                 }
             }
-        } elseif (isset($filter_params['storefront'])) {
+        } else if (isset($filter_params['storefront'])) {
             $counters['storefront_counters'][$filter_params['storefront']] = count($orders);
         } else {
-            $counters['common_counters'] = array(
-                'all' => $this->model->countAll()
-            );
+            $counters['common_counters'] = [
+                'all' => $this->model->countAll(),
+            ];
         }
 
         // for define which actions available for whole order list
@@ -97,27 +114,41 @@ class shopOrdersAction extends shopOrderListAction
             $all_order_state_ids = $this->getDistinctOrderFieldValues('state_id');
         }
 
-        $this->assign(array(
-            'orders'      => array_values($orders),
-            'total_count' => $this->getTotalCount(),
-            'count'       => count($orders),
-            'order'       => $this->getOrder($orders),
-            'currency'    => $config->getCurrency(),
-            'state_names' => $state_names,
-            'plugin_hash' => waRequest::get('hash', '', waRequest::TYPE_STRING_TRIM),
-            'params'      => $this->getFilterParams(),
-            'params_str'  => $this->getFilterParams(true),
-            'view'        => $view,
-            'timeout'     => $config->getOption('orders_update_list'),
-            'actions'     => $actions,
-            'counters'    => $counters,
-            'sort'        => $this->getSort(),
+        $state_counters = null;
+        if ($view === 'kanban') {
+            $state_counters = (new shopOrderModel())->getStateCounters();
+        }
+
+        $this->assign([
+            'orders'              => array_values($orders),
+            'total_count'         => $this->getTotalCount(),
+            'count'               => count($orders),
+            'order'               => $this->getOrder($orders),
+            'currency'            => $config->getCurrency(),
+            'state_names'         => $state_names,
+            'plugin_hash'         => waRequest::get('hash', '', waRequest::TYPE_STRING_TRIM),
+            'params'              => $this->getFilterParams(),
+            'params_str'          => $this->getFilterParams(true),
+            'view'                => $view,
+            'timeout'             => $config->getOption('orders_update_list'),
+            'actions'             => $actions,
+            'counters'            => $counters,
+            'sort'                => $this->getSort(),
             'all_order_state_ids' => $all_order_state_ids,
-        ));
+            'state_counters'      => $state_counters,
+        ]);
     }
 
-    public function getOrder($orders)
-    {
+    public function getOrders($offset, $limit) {
+        return $this->collection->getOrders("*,products,contact,params,courier,order_icon", $offset, $limit);
+    }
+
+    protected function formatOrders(&$orders) {
+        self::extendContacts($orders);
+        shopHelper::workupOrders($orders);
+    }
+
+    public function getOrder($orders) {
         $order_id = waRequest::get('id', null, waRequest::TYPE_INT);
         if ($order_id) {
             if (isset($orders[$order_id])) {
@@ -129,7 +160,7 @@ class shopOrdersAction extends shopOrderListAction
                 }
                 return $item;
             }
-        } elseif (!empty($orders)) {
+        } else if (!empty($orders)) {
             reset($orders);
             return current($orders);
         }

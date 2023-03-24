@@ -1,0 +1,22 @@
+<div class="sidebar right15px">
+    <div class="block s-nolevel2-sidebar"></div>
+</div>
+<div class="sidebar left15px">
+    <div class="block s-nolevel2-sidebar"></div>
+</div>
+
+<div class="content right15px left15px s-nolevel2-box" id="s-storefronts-content" {if $wa->userRights('design')}data-design="1"{/if} {if $wa->userRights('pages')}data-pages="1"{/if}>
+    <div class="block double-padded s-settings-form">
+        [`Loading...`]
+        <i class="icon16 loading"></i>
+    </div>
+
+    <div class="clear"></div>
+    <!-- settings placeholder -->
+</div>
+
+<div class="clear"></div>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/storefronts.js?v{$wa->version()}"></script>
+<script type="text/javascript">
+    $.storefronts.init();
+</script>

@@ -7,7 +7,11 @@ class shopProductsMassUpdateController extends waJsonController
         shopProductStocksLogModel::setContext(shopProductStocksLogModel::TYPE_PRODUCT);
         $products = $this->getProducts();
         shopProductMassUpdate::update($this->getSkus(), $products['products']);
-        $this->logAction('products_edit', count($products['products_id']) . '$' . implode(',', $products['products_id']));
+        $count_all_updated_products = count($products['products_id']);
+        for ($offset = 0; $offset < $count_all_updated_products; $offset += 5000) {
+            $part_updated_products = array_slice($products['products_id'], $offset, 5000);
+            $this->logAction('products_edit', count($part_updated_products) . '$' . implode(',', $part_updated_products));
+        }
         shopProductStocksLogModel::clearContext();
     }
 

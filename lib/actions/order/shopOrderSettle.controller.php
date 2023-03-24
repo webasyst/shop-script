@@ -37,6 +37,7 @@ class shopOrderSettleController extends waJsonController
                 ) {
                     $fields = array_merge($fields, array(
                         'paid_date',
+                        'paid_datetime',
                         'paid_year',
                         'paid_quarter',
                         'paid_month',

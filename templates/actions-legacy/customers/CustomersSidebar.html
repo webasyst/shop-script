@@ -1,0 +1,149 @@
+    <div class="block">
+        <ul class="menu-v with-icons">
+            <li class="bottom-padded">
+                <a href="#/add/" class="bold"><i class="icon16 add"></i>[`New customer`]</a>
+            </li>
+            <li>
+                <span class="count">{$all_customers_count}</span>
+                <a href="#/all/">
+                    <i class="icon16 ss shop"></i>[`All customers`]
+                </a>
+            </li>
+            <!-- plugin hook: 'backend_customers.sidebar_top_li' -->
+            {* @event backend_customers.%plugin_id%.sidebar_top_li *}
+            {if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+        </ul>
+
+        <ul class="menu-v with-icons" id="s-customer-filters">
+            {foreach $filters as $filter}
+                {if empty($filter.contact_id) || $filter.contact_id == $wa->user('id')}
+                    <li class="s-customer-filter" data-id="{$filter.id}"><a href="#/filter/{$filter.id}/"><i class="icon16 {$filter.icon|default:'funnel'}"></i><span class="s-name">{$filter.name|escape}</span></a></li>
+                {/if}
+            {/foreach}
+            <li>
+                <a href="#/searchform/" class="small"><i class="icon10 add"></i>[`New search`]</a>
+            </li>
+        </ul>
+
+    </div>
+
+    <!-- plugin hook: 'backend_customers.sidebar_section' -->
+    {* @event backend_customers.%plugin_id%.sidebar_section *}
+    {if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
+
+    <div class="block drop-target">
+        <h5 class="heading" style="cursor:default">
+            <span class="count"><a href="#/editcategory/" title="[`New category`]"><i class="icon16 add"></i></a></span>
+            [`Categories`]
+        </h5>
+        <ul class="menu-v with-icons collapsible" id="customer-categories">
+            {foreach $categories as $c}
+                <li data-category-id="{$c.id}">
+                    <span class="count">{$c.cnt}</span>
+                    <a href="#/category/{$c.id}">
+                        {$wa->shop->icon16($c.icon)}{$c.name|escape}
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+    </div>
+
+
+<script>$(function() { "use strict";
+
+    $('.link-to-contacts a').attr('href', "{$contacts_url}");
+
+    $('#customer-categories').bind('update_counters', function(e, counters) {
+        if (!$.isEmptyObject(counters)) {
+            var items = $('#customer-categories li').find('.count').text(0).end();
+            $.each(counters, function(id, count) {
+                items.filter('[data-category-id=' +  id + ']').find('.count').text(count || 0);
+            });
+        }
+    });
+
+    //$('#customer-categories li[data-category-id='+category_id+'] .count').text(r.data.count);
+
+    // Categories in sidebar accept drag-and-droppable customers
+    $('#customer-categories li').droppable({
+        accept: 'tr.s-customer',
+        tolerance: 'pointer',
+        over: function() {
+            $(this).addClass('drag-newparent');
+        },
+        out: function() {
+            $(this).removeClass('drag-newparent');
+        },
+        activate: function() {
+            $(this).parents('.block').addClass('drag-active');
+        },
+        deactivate: function() {
+            $(this).removeClass('drag-newparent').parents('.block').removeClass('drag-active');
+        },
+        drop: function(e, ui) {
+            var li = $(this);
+            var customer_id = ui.draggable.data('customerId');
+            var category_id = li.data('categoryId');
+            if (!customer_id || !category_id) {
+                return;
+            }
+            $.post('?module=customers&action=category', { customer_id: customer_id, category_id: category_id }, function(r) {
+                li.children('a').append(
+                    $('<span><i class="icon10 yes" style="margin-left:10px"></i>'+'</span>').animate({ 'opacity': 0 }, 1000, function() {
+                        $(this).remove();
+                    })
+                );
+                if (r.data && !$.isEmptyObject(r.data.counts)) {
+                    $('#customer-categories').trigger('update_counters', [r.data.counts]);
+                }
+            }, 'json');
+        }
+    });
+
+    // Init List of filters
+    (function(ul) {
+        var getOrder = function() {
+            return $.storage.get('shop/customers_filters_order') || [];
+        };
+        var setOrder = function(order) {
+            $.storage.set('shop/customers_filters_order', order || []);
+        };
+
+        $.each(getOrder().reverse(), function(i, id) {
+            ul.prepend(ul.find('li[data-id="' + id + '"]'));
+        });
+
+        ul.sortable({
+            axis: 'y',
+            items: 'li.s-customer-filter',
+            distance: 5,
+            tolerance: 'pointer',
+            update: function(e, ui) {
+                setOrder(ul.find('li').map(function() {
+                    return $(this).data('id');
+                }).toArray());
+            }
+        }).bind('add', function(e, filter) {
+            var html = '<li class="s-customer-filter" data-id="' + filter.id + '">' +
+                    '<a href="#/filter/' + filter.id + '/">' +
+                        '<i class="icon16 ' + filter.icon + '"></i>' +
+                            '<span class="s-name">' + $.wa.encodeHTML(filter.name) + '</span>' +
+                    '</a>' +
+                '</li>';
+            var last = ul.find('li.s-customer-filter:last');
+            if (last.length) {
+                last.after(html);
+            } else {
+                ul.prepend(html);
+            }
+        }).bind('update', function(e, filter) {
+             ul.find('li[data-id="' + filter.id + '"]').find('.s-name').text(filter.name)
+        }).bind('exists', function(e, filter_id) {
+            return ul.find('li[data-id="' + filter_id + '"]').length;
+        }).bind('delete', function(e, filter_id) {
+            ul.find('li[data-id="' + filter_id + '"]').remove();
+        });
+    })($('#s-customer-filters'));
+
+});</script>
+

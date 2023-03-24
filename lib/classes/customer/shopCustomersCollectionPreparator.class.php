@@ -521,9 +521,10 @@ class shopCustomersCollectionPreparator
 
     protected function searchPrepareOrderDatetime($op, $val = '', $auto_title = true)
     {
+        $last_time = ' 23:59:59';
         if (is_array($val)) {
             $period[0] = $this->getModel()->escape($val[0]);
-            $period[1] = $this->getModel()->escape($val[1]);
+            $period[1] = $this->getModel()->escape($val[1] . $last_time);
             $this->addWhere("{$this->getFilteringOrderTableAlias()}.create_datetime >= '{$period[0]}' AND {$this->getFilteringOrderTableAlias()}.create_datetime <= '{$period[1]}'");
             if ($auto_title) {
                 $this->addTitle(_w('Order time frame') . '=' . $val[0] . '–' . $val[1]);
@@ -540,6 +541,9 @@ class shopCustomersCollectionPreparator
                 } else {
                     return;
                 }
+            }
+            if ($op == '<=') {
+                $date .= $last_time;
             }
             $expr = $this->getExpression($op, $date);
             $this->addWhere("{$this->getFilteringOrderTableAlias()}.create_datetime {$expr}");
@@ -628,9 +632,10 @@ class shopCustomersCollectionPreparator
             $title = array(_w('First order'));
             $order_table_alias = $this->getFilteringOrderTableAlias();
         }
+        $last_time = ' 23:59:59';
         if (is_array($val)) {
             $period[0] = $this->getModel()->escape($val[0]);
-            $period[1] = $this->getModel()->escape($val[1]);
+            $period[1] = $this->getModel()->escape($val[1] . $last_time);
             $this->addHaving("{$arg_func}({$order_table_alias}.create_datetime) >= '{$period[0]}' AND {$arg_func}({$order_table_alias}.create_datetime) <= '{$period[1]}'");
             if ($auto_title) {
                 $this->addTitle($title[0] . '=' . $val[0] . '–' . $val[1]);
@@ -647,6 +652,9 @@ class shopCustomersCollectionPreparator
                 } else {
                     return;
                 }
+            }
+            if ($op == '<=') {
+                $date .= $last_time;
             }
             $expr = $this->getExpression($op, $date);
             $this->addHaving("{$arg_func}({$order_table_alias}.create_datetime) {$expr}");

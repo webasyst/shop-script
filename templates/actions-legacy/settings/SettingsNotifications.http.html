@@ -1,0 +1,24 @@
+<div class="field">
+    <div class="name">[`Request URL`]</div>
+    <div class="value no-shift">
+        <input type="text" class="long" name="params[to]" value="{$params.to|default:''}"><br><span class="hint">[`Enter the URL to which order notifications will be sent.`]</span>
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`GET parameters`]</div>
+    <div class="value no-shift">
+        <textarea id="n-http-get" class="body" name="params[get]" placeholder="parameter=value">{if !empty($params.get)}{$params.get}{/if}</textarea>
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`POST parameters`]</div>
+    <div class="value no-shift">
+        <textarea id="n-http-post" class="body" name="params[post]" placeholder="parameter=value">{if !empty($params.post)}{$params.post}{/if}</textarea>
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`Data sending format`]</div>
+    <div class="value no-shift">
+        {html_options name='params[format]' options=['raw'=>'HTTP-query','json'=>'JSON'] selected=$params.format|default:'json'}
+    </div>
+</div>

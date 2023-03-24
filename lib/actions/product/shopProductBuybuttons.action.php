@@ -28,6 +28,8 @@ class shopProductBuybuttonsAction extends waViewAction
 
     public function getStorefronts($product)
     {
+        $categories = null;
+        $category_routes = [];
         $storefronts = array();
         foreach (wa()->getRouting()->getByApp('shop') as $domain => $domain_routes) {
 
@@ -42,7 +44,31 @@ class shopProductBuybuttonsAction extends waViewAction
 
             foreach ($domain_routes as $route) {
                 $controller_url = wa()->getRouteUrl("shop/frontend/buybuttons", array(), true, $domain, $route['url']);
-                $product_url = wa()->getRouteUrl("shop/frontend/product", array('product_url' => $product['url']), true, $domain, $route['url']);
+
+                $params = ['product_url' => $product['url']];
+                if (!empty($route['url_type']) && $route['url_type'] == 2) {
+                    if ($categories === null) {
+                        $category_model = new shopCategoryModel();
+                        $categories = $category_model->getFullTree('id, name, depth, url, full_url, parent_id', true);
+                        if ($product->categories) {
+                            $category_routes_model = new shopCategoryRoutesModel();
+                            $category_routes = $category_routes_model->getRoutes(array_keys($product->categories));
+                        }
+                    }
+                    $category_exists = $product['category_id'] && isset($categories[$product['category_id']]);
+                    if ($category_exists) {
+                        if (empty($category_routes[$product['category_id']])) {
+                            $category_available = true;
+                        } else {
+                            $category_available = in_array($domain.'/'.$route['url'], $category_routes[$product['category_id']]);
+                        }
+                        if ($category_available) {
+                            $params['category_url'] = $categories[$product['category_id']]['full_url'];
+                        }
+                    }
+                }
+                $product_url = wa()->getRouteUrl("shop/frontend/product", $params, true, $domain, $route['url']);
+
                 $root_url = rtrim($domain.'/'.$route['url'], '/*').'/';
                 $static_url = '/wa-apps/shop/';
                 if ($cdn) {

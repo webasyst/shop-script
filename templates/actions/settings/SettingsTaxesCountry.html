@@ -8,39 +8,64 @@
 <tr class="s-country {$c.css_class}" rel="{$c.iso3}"> {* class=one_rate|regions_simple|regions_advanced *}
     <td class="min-width">
         {if substr($c.iso3, 0, 1) !== '%'}
-            <i class="icon16 country" style="background:url({$wa_url}wa-content/img/country/{$c.iso3}.gif) no-repeat;"></i>
+            <span class="icon"><i style="background:url({$wa_url}wa-content/img/country/{$c.iso3}.gif) no-repeat;"></i></span>
         {/if}
     </td>
+
     <td class="bold">{$c.name|escape}</td>
+
     <td>
-        <div class="global-country-rate">
+        <div class="global-country-rate custom-mb-12">
             <span class="small">[`Global rate`]:</span>
-            <input type="text" name="countries[{$c.iso3}]" value="{$c.global_rate}" class="numerical" placeholder="0">%
-            <a href="javascript:void(0)" class="inline-link hint back-to-simple-mode-link"><i class="icon10 settings"></i><b><i>[`Simple mode`]</i></b></a>
+            <input type="number" class="small shortest numerical" min="0" name="countries[{$c.iso3}]" value="{$c.global_rate}" placeholder="0">%
+
+            <div class="custom-mt-4">
+                <button type="button" class="button small light-gray nowrap back-to-simple-mode-link rounded">
+                    <i class="fas fa-cog text-blue"></i>
+                    [`Simple mode`]
+                </button>
+            </div>
         </div>
         {if $c.regions}
-            <a href="javascript:void(0)" class="inline-link hint setup-by-regions-link"><b><i>[`Setup by regions`]</i></b></a>
-            <a href="javascript:void(0)" class="inline-link hint advanced-settings-link"><i class="icon10 settings"></i><b><i>[`Advanced settings`]</i></b></a>
+        <div class="custom-mt-4">
+            <button type="button" class="button small light-gray nowrap setup-by-regions-link rounded">
+                <i class="fas fa-cog text-blue"></i>
+                [`Setup by regions`]
+            </button>
+
+            <button type="button" class="button small light-gray nowrap advanced-settings-link rounded">
+                <i class="fas fa-cog text-blue"></i>
+                [`Advanced settings`]
+            </button>
+        </div>
         {/if}
+
         <em class="small commit-delete-message">[`Click “Save” button below to commit the delete.`]</em>
     </td>
-    <td class="min-width"><a href="javascript:void(0)"><i class="icon16 delete"></i></a></td>
+    <td class="min-width"><a href="#" class="delete"><i class="fas fa-trash-alt text-red"></i></a></td>
 </tr>
 
 {foreach $c.regions as $r}
     <tr class="small s-region {$r.css_class}" rel="{$c.iso3}-region"> {* class="hidden|regions_simple|regions_advanced" *}
         <td class="min-width"></td>
-        <td>{$r.name} <span class="hint">{$r.code}</span></td>
+
+        <td>{$r.name} <span class="gray">{$r.code}</span></td>
+
         <td>
-            <input type="text" class="short s-tax-name" name="country_regions[{$c.iso3}][{$r.code}][name]" value="{$r.tax_name|escape}" placeholder="[`Tax name`]">
-            <input type="text" class="short numerical" name="country_regions[{$c.iso3}][{$r.code}][tax_value]" value="{ifset($r.params.tax_value, $r.tax_value)|escape}" placeholder="0">%
-            <select name="country_regions[{$c.iso3}][{$r.code}][tax_value_modifier]">
-                <option value="+"{if ifset($r.params.tax_value_modifier) == '+'} selected{/if}>[`+ added to global country rate`]</option>
-                <option value="*"{if ifset($r.params.tax_value_modifier) == '*'} selected{/if}>[`* compound on top of global rate`]</option>
-                <option value=""{if ifset($r.params.tax_value_modifier) === ''} selected{/if}>[`replaces global country rate`]</option>
-            </select>
+            <input type="text" class="small short s-tax-name" name="country_regions[{$c.iso3}][{$r.code}][name]" value="{$r.tax_name|escape}" placeholder="[`Tax name`]">
+
+            <input type="number" class="small shortest numerical" min="0" name="country_regions[{$c.iso3}][{$r.code}][tax_value]" value="{ifset($r.params.tax_value, $r.tax_value)|escape}" placeholder="0">%
+
+            <div class="custom-mt-4">
+                <div class="wa-select small">
+                    <select name="country_regions[{$c.iso3}][{$r.code}][tax_value_modifier]">
+                        <option value="+"{if ifset($r.params.tax_value_modifier) == '+'} selected{/if}>[`+ added to global country rate`]</option>
+                        <option value="*"{if ifset($r.params.tax_value_modifier) == '*'} selected{/if}>[`* compound on top of global rate`]</option>
+                        <option value=""{if ifset($r.params.tax_value_modifier) === ''} selected{/if}>[`replaces global country rate`]</option>
+                    </select>
+                </div>
+            </div>
         </td>
         <td class="min-width"></td>
     </tr>
 {/foreach}
-

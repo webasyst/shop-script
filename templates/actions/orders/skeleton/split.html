@@ -1,0 +1,35 @@
+{include './orders_list.inc.html' inline}
+
+<div class="skeleton">
+    <div class="flexbox not-blank">
+        {if empty($no_sidebar)}
+        <div class="sidebar width-adaptive-widest height-auto custom-mr-0 box bordered-right wide-mobile">
+
+            {if empty($only_orders)}
+            <div class="flexbox full-width">
+                <span class="skeleton-line" style="width: 37%; height: 30px;"></span>
+                <span class="skeleton-custom-circle" style="width: 34px;height: 34px;"></span>
+            </div>
+
+            <div class="flexbox full-width">
+                <span class="skeleton-custom-box" style="width: 49%; height: 69px;"></span>
+                <span class="skeleton-custom-box" style="width: 49%; height: 69px;"></span>
+            </div>
+
+            <div class="flexbox">
+                <span class="skeleton-line" style="width: 25%; height: 25px;"></span>
+                <span class="skeleton-line custom-ml-16" style="width: 35%; height: 18px;"></span>
+            </div>
+
+            <span class="skeleton-line"></span>
+            {/if}
+
+            {split_orders count=5}
+            <div class="flexbox custom-mt-32">
+                <span class="custom-m-auto custom-mb-32 skeleton-line" style="width: 30%; height: 7px"></span>
+            </div>
+        </div>
+        {/if}
+        {include './split_body.html' inline}
+    </div>
+</div>

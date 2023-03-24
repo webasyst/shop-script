@@ -1,0 +1,51 @@
+<!-- reviews begin -->
+
+{function review_comments}
+    {$depth=-1}
+    {foreach $comments as $comment}
+      {if $comment.depth < $depth}
+      
+        {$loop=($depth-$comment.depth)}
+        {section name="end-comment" loop=$loop}
+            </li>
+          </ul>
+        {/section}
+        
+        {$depth=$comment.depth}
+      {/if}
+      
+      {if $comment.depth == $depth}
+        </li>
+        <li data-id="{$comment.id}" data-parent-id="{$comment.parent_id}">
+      {/if}
+      
+      {if $comment.depth > $depth}
+        <ul class="menu-v with-icons">
+          <li data-id={$comment.id} data-parent-id="{$comment.parent_id}">
+          {$depth=$comment.depth}
+      {/if}
+        {include file="./include.review.html" inline reply_allowed=$reply_allowed single_view=true review=$comment}
+        <!-- sub comment placeholder -->
+    {/foreach}
+    
+    {section name="end-comment" loop=$depth}
+          </li>
+        </ul>
+    {/section}
+{/function}
+
+{if empty($no_wrapped)}
+<ul class="menu-v with-icons">
+{/if}
+{foreach $reviews as $review}
+    <li data-id={$review.id} data-parent-id="0">
+        {include file="./include.review.html" reply_allowed=$reply_allowed inline single_view=true}
+        {if !empty($review.comments)}
+            {review_comments comments=$review.comments}
+        {/if}
+    </li>
+{/foreach}
+{if empty($no_wrapped)}
+</ul>
+{/if}
+<!-- reviews end -->

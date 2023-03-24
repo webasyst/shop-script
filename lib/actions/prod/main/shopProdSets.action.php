@@ -5,8 +5,6 @@ class shopProdSetsAction extends waViewAction
     {
         $set_model = new shopSetModel();
 
-        shopHelper::setChapter('new_chapter');
-
         $data = $set_model->getSetsWithGroups();
 
         /**

@@ -212,8 +212,6 @@
             });
 
             that.updatePageURL();
-
-            console.log( that );
         };
 
         Page.prototype.initVue = function() {
@@ -1096,13 +1094,7 @@
 
                                     $.waDialog({
                                         html: that.templates["dialog-presentation-delete-confirm"],
-                                        onOpen: function($dialog, dialog) {
-                                            $dialog.on("click", ".js-delete-button", function(event) {
-                                                event.preventDefault();
-                                                is_success = true;
-                                                dialog.close();
-                                            });
-                                        },
+                                        onOpen: initDialog,
                                         onClose: function() {
                                             if (is_success) {
                                                 deferred.resolve();
@@ -1111,6 +1103,28 @@
                                             }
                                         }
                                     });
+
+                                    function initDialog($dialog, dialog) {
+                                        var $vue_section = $dialog.find(".js-vue-section");
+
+                                        new Vue({
+                                            el: $vue_section[0],
+                                            data: {
+                                                presentation: presentation,
+                                            },
+                                            delimiters: ['{ { ', ' } }'],
+                                            computed: {},
+                                            methods: {
+                                                deletePresentation: function() {
+                                                    is_success = true;
+                                                    dialog.close();
+                                                }
+                                            },
+                                            created: function () {
+                                                $vue_section.css("visibility", "");
+                                            }
+                                        });
+                                    }
 
                                     return deferred.promise();
                                 }
@@ -1512,7 +1526,15 @@
                                                 }
                                                 return false;
                                             },
-                                            focus: function() { return false; }
+                                            focus: function(e, ui) {
+                                                if (ui.item) {
+                                                    // Запоминаем последний выбранный (с клавиатуры) товар, чтобы открыть его, если
+                                                    // пользователь нажмёт Enter. По какой-то причине autocomplete не вызывает select,
+                                                    // когда выбираешь товар стрелочками и нажимаешь Enter, поэтому нужен такой изврат.
+                                                    self._last_focused_ui_item = ui.item;
+                                                }
+                                                return false;
+                                            }
                                         }).data("ui-autocomplete")._renderItem = function(ul, item) {
                                             var html = "";
 
@@ -1546,14 +1568,29 @@
                                     var $wrapper = $(self.$el),
                                         $input = $wrapper.find('.js-autocomplete');
 
-                                    self.initAutocomplete($input);
-
                                     $input.on("keydown", function(event) {
                                         var key = event.keyCode,
                                             is_enter = ( key === 13 );
 
-                                        if (is_enter) { self.onEnter(); }
+                                        if (is_enter) {
+                                            // Если юзер выбрал стрелочками товар, то открыть его.
+                                            // Если не выбрал, то открыть список товаров с фильтрацией по строке поиска.
+                                            if (self._last_focused_ui_item) {
+                                                self.goToProduct(self._last_focused_ui_item);
+                                                $input.trigger("blur");
+                                            } else {
+                                                self.onEnter();
+                                            }
+                                        } else {
+                                            self._last_focused_ui_item = null;
+                                        }
                                     });
+
+                                    // Инициализация автокомплита должна быть после $input.on("keydown")
+                                    // чтобы наш обработчик выполнялся ДО логики автокомплита.
+                                    // Сначала мы должны сбросить self._last_focused_ui_item и только потом
+                                    // автокомплит focus() выставит его в новое значение.
+                                    self.initAutocomplete($input);
                                 }
                             },
                             "component-table-filters-categories-sets-types": {
@@ -2457,13 +2494,7 @@
 
                                             $.waDialog({
                                                 html: that.templates["dialog-filter-delete-confirm"],
-                                                onOpen: function($dialog, dialog) {
-                                                    $dialog.on("click", ".js-delete-button", function(event) {
-                                                        event.preventDefault();
-                                                        is_success = true;
-                                                        dialog.close();
-                                                    });
-                                                },
+                                                onOpen: initDialog,
                                                 onClose: function() {
                                                     if (is_success) {
                                                         deferred.resolve();
@@ -2472,6 +2503,28 @@
                                                     }
                                                 }
                                             });
+
+                                            function initDialog($dialog, dialog) {
+                                                var $vue_section = $dialog.find(".js-vue-section");
+
+                                                new Vue({
+                                                    el: $vue_section[0],
+                                                    data: {
+                                                        filter: filter,
+                                                    },
+                                                    delimiters: ['{ { ', ' } }'],
+                                                    computed: {},
+                                                    methods: {
+                                                        deleteFilter: function() {
+                                                            is_success = true;
+                                                            dialog.close();
+                                                        }
+                                                    },
+                                                    created: function () {
+                                                        $vue_section.css("visibility", "");
+                                                    }
+                                                });
+                                            }
 
                                             return deferred.promise();
                                         }
@@ -6412,85 +6465,6 @@
                             });
                         });
                     },
-                    showCallbackDialog: function(event) {
-                        var self = this,
-                            $button = $(event.currentTarget);
-
-                        $.waDialog({
-                            html: that.templates["callback_dialog"],
-                            onOpen: initDialog,
-                            options: {
-                                onSuccess: function() {
-                                    $button.removeClass("animation-pulse");
-                                }
-                            }
-                        });
-
-                        function initDialog($dialog, dialog) {
-                            var is_locked = false;
-
-                            var loading = "<span class=\"icon top\" style='margin-right: .5rem;'><i class=\"fas fa-spinner fa-spin\"></i></span>";
-
-                            var $textarea = $dialog.find("textarea:first");
-
-                            $textarea.on("focus", function() {
-                                var $textarea = $(this);
-
-                                var placeholder = $textarea.data("placeholder");
-                                if (!placeholder) {
-                                    placeholder = $textarea.attr("placeholder");
-                                    $textarea.data("placeholder", placeholder);
-                                }
-
-                                $textarea.attr("placeholder", "");
-                            });
-
-                            $textarea.on("blur", function() {
-                                var $textarea = $(this);
-
-                                var placeholder = $textarea.data("placeholder");
-                                if (placeholder) {
-                                    $textarea.attr("placeholder", placeholder);
-                                }
-                            });
-
-                            $dialog.on("click", ".js-success-button", function() {
-                                var $submit_button = $(this);
-
-                                var value = $.trim($textarea.val());
-                                if (!value.length) { return false; }
-
-                                if (!is_locked) {
-                                    is_locked = true;
-                                    var $loading = $(loading).prependTo( $submit_button.attr("disabled", true) );
-
-                                    addCallback()
-                                        .always( function() {
-                                            is_locked = false;
-                                            $submit_button.attr("disabled", false);
-                                            $loading.remove();
-                                        })
-                                        .done( function() {
-                                            $dialog.find(".dialog-header, .dialog-footer").remove();
-                                            $dialog.find(".dialog-body").html( that.templates["callback_dialog_success"] );
-                                            setTimeout( function() {
-                                                if ($.contains(document, $dialog[0])) {
-                                                    dialog.options.onSuccess();
-                                                    dialog.close();
-                                                }
-                                            }, 3000);
-                                        });
-                                }
-                            });
-
-                            function addCallback() {
-                                var href = that.urls["callback_submit"],
-                                    data = $dialog.find(":input").serializeArray();
-
-                                return $.post(href, data, "json");
-                            }
-                        }
-                    },
                     onScrollProductsSection: function(event) {
                         var scroll_top = $(event.target).scrollTop();
                         if (scroll_top > 0) {
@@ -6503,12 +6477,26 @@
                         var self = this;
 
                         var $wrapper = $(self.$el),
-                            $table_section = $wrapper.find(".s-products-table-section, .s-products-thumbs-section");
+                            $table_section = $wrapper.find(".s-products-table-section, .s-products-thumbs-section"),
+                            page = that.paging.page > 1 ? that.paging.page : 1,
+                            last_page_scrolled = Number(sessionStorage.getItem("shop_products_table_scroll_page"));
+
+                        sessionStorage.setItem("shop_products_table_scroll_page", page);
 
                         if ($table_section.length) {
                             scroll_top = (typeof scroll_top === "number" ? scroll_top : sessionStorage.getItem("shop_products_table_scroll_top"));
-                            if (scroll_top > 0 ? scroll_top : 0);
-                            $table_section.scrollTop(scroll_top);
+                            if (last_page_scrolled === page) {
+                                var scroll_to_product_id = Number(sessionStorage.getItem("shop_products_table_scroll_product_id"));
+                                if (scroll_to_product_id > 0) {
+                                    sessionStorage.removeItem("shop_products_table_scroll_product_id");
+                                    var $product_section = $table_section.find('div[data-product-id="' + scroll_to_product_id + '"]');
+                                    if ($product_section.length) {
+                                        $table_section.scrollTop($product_section.offset().top - $table_section.offset().top - 40);
+                                    }
+                                } else {
+                                    $table_section.scrollTop(scroll_top);
+                                }
+                            }
                         }
                     }
                 },
@@ -7812,7 +7800,8 @@ console.log(products_selection, action.id);
                             action.states.is_locked = false;
                         })
                         .done( function(response) {
-                            $.wa_shop_products.router.reload();
+                            action.states.is_locked = false;
+                            duplicateProductsDialog(response.data.html);
                         });
                     break;
 
@@ -9598,6 +9587,52 @@ console.log(products_selection, action.id);
                         mounted: function() {
                             var self = this,
                                 $wrapper = $(self.$el);
+
+                            self.$nextTick( function() {
+                                dialog.resize();
+                                vue_ready.resolve(dialog);
+                            });
+                        }
+                    });
+                }
+            }
+
+            function duplicateProductsDialog(html) {
+                var ready = $.Deferred(),
+                    vue_ready = $.Deferred();
+
+                return $.waDialog({
+                    html: html,
+                    options: {
+                        ready: ready.promise(),
+                        vue_ready: vue_ready.promise(),
+                        initDialog: initDialog
+                    },
+                    onOpen: function($dialog, dialog) {
+                        ready.resolve($dialog, dialog);
+                    }
+                });
+
+                function initDialog($dialog, dialog) {
+                    var $section = $dialog.find(".js-vue-section");
+
+                    var vue_model = new Vue({
+                        el: $section[0],
+                        delimiters: ['{ { ', ' } }'],
+                        methods: {
+                            close: function() {
+                                const self = this;
+
+                                $.wa_shop_products.router.reload().done( function() {
+                                    dialog.close();
+                                });
+                            }
+                        },
+                        created: function () {
+                            $section.css("visibility", "");
+                        },
+                        mounted: function() {
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();

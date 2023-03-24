@@ -2,21 +2,6 @@
 
 {$_templates = []}
 
-{capture assign="_callback_dialog"}{include file="../actions/prod/dialogs/callback.html" inline}{/capture}
-{$_templates["callback_dialog"] = $_callback_dialog}
-
-{capture assign="_callback_dialog_success"}
-    <div class="align-center" style="padding: 2rem 0;">
-        <h3>[`Thank you!`]</h3>
-        <p>
-            {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
-            <i class='icon' style="font-size: 16rem;"><svg><use xlink:href='{$_sprite_url}#wave'></use></svg></i>
-        </p>
-        <p>[`This window will automatically close in 3 seconds.`]</p>
-    </div>
-{/capture}
-{$_templates["callback_dialog_success"] = $_callback_dialog_success}
-
 {/strip}
 
 <div class="s-product-page" id="js-product-page">
@@ -26,123 +11,72 @@
         })(jQuery);
     </script>
 
-    <header class="s-page-header bordered-bottom">
-        <div class="flexbox middle space-8">
-            {if !empty($product.id) && !empty($product_list_data)}
-                {$_tooltips = []}
-                <div class="s-actions flexbox middle space-8 nowrap">
-                    {if !empty($product_list_data["prev"])}
-                        <a class="wa-button wa-small gray-field" href="{$product_list_data["prev"]["url"]|escape}" data-tooltip-id="prev_product_name" data-router-disable="true">
-                            <span class="s-icon icon"><i class="fas fa-chevron-left"></i></span>
-                        </a>
-                        {$_tooltips["prev_product_name"] = [
-                            "id" => "prev_product_name",
-                            "html" => sprintf(_w("Previous product “%s”"), $product_list_data["prev"]["name"]),
-                            "position" => "top-left"
-                        ]}
-                    {/if}
-
-                    <span class="s-text">{sprintf(_w("Product %d of %d"), $product_list_data["position"], $product_list_data["count"])}</span>
-
-                    {if !empty($product_list_data["next"])}
-                        <a class="wa-button wa-small gray-field" href="{$product_list_data["next"]["url"]|escape}" data-tooltip-id="next_product_name" data-router-disable="true">
-                            <span class="s-icon icon"><i class="fas fa-chevron-right"></i></span>
-                        </a>
-                        {$_tooltips["next_product_name"] = [
-                            "id" => "next_product_name",
-                            "html" => sprintf(_w("Next product “%s”"), $product_list_data["next"]["name"]),
-                            "position" => "top"
-                        ]}
-                    {/if}
-
-                    <script>
-                        ( function($) {
-                            var tooltips = {$_tooltips|json_encode};
-                            $.each(tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
-                        })(jQuery);
-                    </script>
-                </div>
-            {/if}
-            <div class="s-title-wrapper wide">
-                <h3 class="s-title js-product-name">{$product.name|default:_w('New product')|escape}</h3>
-            </div>
-            <div class="s-details nowrap">
-                <button class="s-button wa-button rounded pink js-show-callback-dialog animation-pulse" type="button" title="{_w("How do you like the new products section?")|escape}">
-                    <span>
-                        <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
-                        <span class="s-name">[`How do you like the new products section?`]</span>
-                    </span>
-                </button>
-
-                <a class="s-button wa-button pink rounded outlined" id="js-return-link" href="{$wa_app_url|escape}?action=products#/product/{$product.id|default:"new"|escape}/" title="{_w("Return to the old products section version.")|escape}">
-                    <span>
-                        <span class="s-icon"><i class="fas fa-toggle-on"></i></span>
-                        <span class="s-name">[`Return to old products section`]</span>
-                        <span class="s-icon"><i class="fas fa-question-circle"></i></span>
-                    </span>
-                </a>
-
-                <span class="s-ident gray">id: {$product.id|default:_w('Product ID')}</span>
-            </div>
-
-            <!-- plugin hook: 'backend_prod.header' -->
-            {* @event backend_prod.%plugin_id%.header *}
-            {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{ifset($_.header)}{/foreach}{/if}
-
-        </div>
-    </header>
-
     {* APP BODY *}
     <div class="s-page-body flexbox">
         {* PRODUCTS MENU *}
         <div class="s-page-menu bordered-right">{$products_menu}</div>
-        {* SIDEBAR *}
-        <div class="s-page-sidebar sidebar js-page-sidebar">{$sidebar}</div>
-        {* CONTENT *}
-        <div class="s-page-content content bordered-left js-page-content">{$content}</div>
+        <div class="wide">
+            <header class="s-page-header bordered-bottom">
+                <div class="flexbox middle space-8">
+                    {if !empty($product.id) && !empty($product_list_data)}
+                        {$_tooltips = []}
+                        <div class="s-actions flexbox middle space-8 nowrap js-nearest-products">
+                            {if !empty($product_list_data["prev"])}
+                                <a class="wa-button wa-small gray-field" href="{$product_list_data['prev']['pre_url']|escape}" data-nearest-product-id="{$product_list_data['prev']['url']|escape}" data-tooltip-id="prev_product_name" data-router-disable="true">
+                                    <span class="s-icon icon"><i class="fas fa-chevron-left"></i></span>
+                                </a>
+                                {$_tooltips["prev_product_name"] = [
+                                "id" => "prev_product_name",
+                                "html" => sprintf(_w("Previous product “%s”"), $product_list_data["prev"]["name"]),
+                                "position" => "top-left"
+                                ]}
+                            {/if}
+
+                            <span class="s-text">{sprintf(_w("Product %d of %d"), $product_list_data["position"], $product_list_data["count"])}</span>
+
+                            {if !empty($product_list_data["next"])}
+                                <a class="wa-button wa-small gray-field" href="{$product_list_data['next']['pre_url']|escape}" data-nearest-product-id="{$product_list_data['next']['url']|escape}" data-tooltip-id="next_product_name" data-router-disable="true">
+                                    <span class="s-icon icon"><i class="fas fa-chevron-right"></i></span>
+                                </a>
+                                {$_tooltips["next_product_name"] = [
+                                "id" => "next_product_name",
+                                "html" => sprintf(_w("Next product “%s”"), $product_list_data["next"]["name"]),
+                                "position" => "top"
+                                ]}
+                            {/if}
+
+                            <script>
+                                ( function($) {
+                                    var tooltips = {$_tooltips|json_encode};
+                                    $.each(tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
+                                })(jQuery);
+                            </script>
+                        </div>
+                    {/if}
+                    <div class="s-title-wrapper wide">
+                        <h3 class="s-title js-product-name">{$product.name|default:_w('New product')|escape}</h3>
+                    </div>
+                    <div class="s-details">
+                        <span class="s-ident gray">id: {$product.id|default:_w('Product ID')}</span>
+                    </div>
+
+                    <!-- plugin hook: 'backend_prod.header' -->
+                    {* @event backend_prod.%plugin_id%.header *}
+                    {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{ifset($_.header)}{/foreach}{/if}
+
+                </div>
+            </header>
+            <div class="flexbox">
+                {* SIDEBAR *}
+                <div class="s-page-sidebar sidebar js-page-sidebar">{$sidebar}</div>
+                {* CONTENT *}
+                <div class="s-page-content content bordered-left js-page-content">{$content}</div>
+            </div>
+        </div>
     </div>
 
     <script>
         ( function($) {
-
-            function initReturnButton() {
-                var $button = $("#js-return-link"),
-                    href = "{$wa_app_url|escape}?action=products&force-old=1#/product/{$product.id|default:"new"|escape}/";
-
-                $(document).on("wa_product_section_change", function(event, section_id) {
-                    var new_href = null;
-
-                    switch (section_id) {
-                        case "product-general":
-                        case "product-prices":
-                            new_href = href + "edit/";
-                            break;
-                        case "product-seo":
-                            new_href = href + "edit/descriptions/";
-                            break;
-                        case "product-media":
-                            new_href = href + "edit/images/";
-                            break;
-                        case "product-sku":
-                            new_href = href + "edit/features/";
-                            break;
-                        case "product-services":
-                            new_href = href + "edit/services/";
-                            break;
-                        case "product-related":
-                            new_href = href + "edit/related/";
-                            break;
-                        case "product-pages":
-                            new_href = href + "edit/pages/";
-                            break;
-                    }
-                    if (new_href) {
-                        $button.attr("href", new_href + 'force-old/');
-                    }
-                });
-            }
-            initReturnButton();
-
             var sources = [{
                 id: "wa-shop-products-main-sidebar-js",
                 type: "js",
@@ -160,13 +94,13 @@
             $.wa.loadSources(sources).done( function() {
                 $.wa_shop_products.init.initProductPage({
                     $wrapper: $("#js-product-page"),
+                    context: {$context|json_encode},
                     product_uri: "{$wa_app_url|escape}products/{$product.id|escape}/",
                     product_id: "{$product.id|escape}",
                     templates: {$_templates|json_encode},
                     urls: {
                         "product_delete": "{$wa_app_url}?module=products&action=deleteList",
-                        "product_delete_dialog": "{$wa_app_url}?module=prod&action=productDeleteDialog",
-                        "callback_submit": "{$wa_app_url}?module=prod&action=feedback"
+                        "product_delete_dialog": "{$wa_app_url}?module=prod&action=productDeleteDialog"
                     }
                 });
             });

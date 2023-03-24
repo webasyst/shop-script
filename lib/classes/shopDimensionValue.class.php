@@ -13,6 +13,7 @@
  * @property-read string $html
  * @property-read string $compare
  */
+#[\AllowDynamicProperties]
 class shopDimensionValue implements ArrayAccess
 {
     private $value;
@@ -68,22 +69,44 @@ class shopDimensionValue implements ArrayAccess
         return isset($this->units[$unit]) ? $this->units[$unit]['title'] : $unit;
     }
 
-
+    /**
+     * https://www.php.net/manual/ru/migration81.incompatible.php#migration81.incompatible.core.type-compatibility-internal
+     *
+     * @param $offset
+     * @return array|string
+     */
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->__get($offset);
     }
 
+    /**
+     * @param $offset
+     * @param $value
+     * @return void
+     */
+    #[ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         return $this->__set($offset, $value);
     }
 
+    /**
+     * @param $offset
+     * @return void
+     */
+    #[ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
 
     }
 
+    /**
+     * @param $offset
+     * @return bool
+     */
+    #[ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return in_array($offset, array(

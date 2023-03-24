@@ -1,0 +1,53 @@
+{* SOURCES *}
+{wa_js}
+    {$wa_url}wa-content/js/jquery-wa/wa.dialog.js
+{/wa_js}
+
+{* Custom router *}
+<script src="{$wa_app_static_url}js-legacy/backend/marketing/content_router.js?v={$wa->version()}"></script>
+
+{* Marketing *}
+<link href="{$wa_app_static_url}css-legacy/backend/marketing.css?v={$wa->version()}" rel="stylesheet">
+<script src="{$wa_app_static_url}js-legacy/backend/marketing/marketing.js?v={$wa->version()}"></script>
+
+{* PAGE *}
+<div class="s-marketing-page">
+    {* This code is moved to the beginning specifically *}
+    <script>
+        ( function($) { "use strict";
+            window.wa_app = {$wa->app()|json_encode}; {* need for editor2.js *}
+            window.wa_url = {$wa_url|json_encode}; {* need for waEditorAceInit *}
+            $.shop.marketing.title_pattern = "%s — {$wa->accountName(false)|escape:javascript}";
+            {if !empty($currency_info)}
+                $.shop.marketing.price_format = {$currency_info|json_encode};
+            {/if}
+        })(jQuery);
+    </script>
+
+    <div class="s-marketing-layout">
+        {* SIDEBAR *}
+        <aside class="s-marketing-sidebar-wrapper sidebar" role="navigation">
+            {$marketing_sidebar}
+        </aside>
+
+        {* CONTENT *}
+        <main class="s-marketing-content-wrapper content" role="main">
+            <div class="s-marketing-content" id="js-marketing-content">{$content}</div>
+
+            <script>
+                (function($) { "use strict";
+
+                    var loading = "<div class=\"block double-padded\" style=\"min-height: 60vh;\">{_w("Loading...")|escape} <i class=\"icon16 loading\"></i></div>";
+
+                    $.shop.marketing.content = new ContentRouter({
+                        $content: $("#js-marketing-content"),
+                        app_url: {"`$wa_app_url`marketing"|json_encode},
+                        onBeforeLoad: function(router) {
+                            router.setContent(loading);
+                        }
+                    });
+                })(jQuery);
+            </script>
+        </main>
+    </div>
+</div>

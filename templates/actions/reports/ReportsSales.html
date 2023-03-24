@@ -1,39 +1,40 @@
-{include "./sales_sidebar.html" inline}
+{include "./sales_sidebar.html" has_stacked_chart=true inline}
 
-<div class="content left200px">
-    <div class="block double-padded">
-
-        <div class="block half-padded float-right">
-            <ul class="menu-h">
-                {if $abtests}<li class="highlighted">
-                    <i class="icon16 split"></i><span class="highlighted">[`A/B tests results available`]</span>
-                    <select id="s-sales-abtest-selector">
-                        <option value="">[`Select test`]</option>
-                        {foreach $abtests as $id => $name}
-                            <option value="{$id}"{if ifset($request_options.abtest) == $id} selected{/if}>{$name|escape}</option>
-                        {/foreach}
-                    </select>
-                </li>{/if}
-                <li><a href="?module=reports&action=exportsales&{http_build_query($request_options)}"><i class="icon16 ss excel"></i>[`Download chart data in CSV`]</a></li>
-            </ul>
-        </div>
-
-        <h1>
-            {if $filter}
-                <a href="javascript:void(0)" class="back s-reset-filter" id="s-reset-filter">&larr; <span class="s-back-title"></span></a>
-                <span class="s-header-title">{$filter_title|default:''|escape}</span>
-            {else}
-                <span class="s-header-title">
+<div class="content">
+        <div class="flexbox middle full-width custom-mb-12">
+            <h1 class="custom-mb-0">
+                {if $filter}
+                    <a href="javascript:void(0)" class="back s-reset-filter" id="s-reset-filter">&larr; <span class="s-back-title"></span></a>
+                    <span class="s-header-title">{$filter_title|default:''|escape}</span>
+                {else}
+                    <span class="s-header-title">
                     {if !empty($request_options.type) && !empty($menu_types[$request_options.type])}
                         {$menu_types[$request_options.type].header_name|escape}
                     {else}
                         [`Sales report`]
                     {/if}
                 </span>
-            {/if}
+                {/if}
 
-            <span class="hint" id="period-description">[`Custom range`]</span>
-        </h1>
+                <span class="hint" id="period-description">[`Custom range`]</span>
+            </h1>
+
+                {if $abtests}
+                    <div class="flexbox middle space-16">
+                        <i class="fas fa-columns"></i>
+                        <span class="highlighted">[`A/B tests results available`]</span>
+                        <div class="wa-select">
+                            <select id="s-sales-abtest-selector">
+                                <option value="">[`Select test`]</option>
+                                {foreach $abtests as $id => $name}
+                                    <option value="{$id}"{if ifset($request_options.abtest) == $id} selected{/if}>{$name|escape}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                {/if}
+                <a href="?module=reports&action=exportsales&{http_build_query($request_options)}" class="button"><i class="fas fa-file-csv"></i> [`Download chart data in CSV`]</a>
+        </div>
 
         {if $details_graph_data}
             <div class="extended-sales-graph-wrapper">
@@ -90,9 +91,19 @@
                 <tr class="white s-header-row">
                     <th>&nbsp;</th>
                     <th class="align-right"><a href="javascript:void(0)" data-col="order_count" title="[`Only paid orders are counted`]">[`Orders`]</a></th>
-                    <th class="align-right"><a href="javascript:void(0)" data-col="sales" title="[`Overall amount of all paid orders`]">[`Sales volume`]</a></th>
+                    <th><a href="javascript:void(0)" data-col="sales" title="[`Overall amount of all paid orders`]">
+                        <div class="flexbox middle space-4">
+                            <span class="icon size-12 custom-ml-auto"><i class="fas fa-circle" style="color: #80DFAF;"></i> </span>
+                            <span>[`Sales volume`]</span>
+                        </div>
+                    </a></th>
                     <th class="align-right"><a href="javascript:void(0)" data-col="average_order" title="[`Average paid order amount`]">[`Average order`]</a></th>
-                    <th class="align-right"><a href="javascript:void(0)" data-col="profit" class="inline" title="[`Profit = Order amount &minus; Shipping &minus; Tax &minus; Product purchase price`]">[`Profit`]</a></th>
+                    <th><a href="javascript:void(0)" data-col="profit" class="inline" title="[`Profit = Order amount &minus; Shipping &minus; Tax &minus; Product purchase price`]">
+                        <div class="flexbox middle space-4">
+                            <span class="icon size-12 custom-ml-auto"><i class="fas fa-circle" style="color: #00BF60;"></i> </span>
+                            <span>[`Profit`]</span>
+                        </div>
+                    </a></th>
 
                     {if $roi_enabled}
                         <th class="align-right"><a href="javascript:void(0)" data-col="cost" title="[`Marketing costs`]">[`Cost`]</a></th>
@@ -161,16 +172,15 @@
         {$order_items_list_html = $order_items_list_html|default:''}
 
         <div id="s-details-item-list-container" {if !$order_list_html && !$order_items_list_html}style="display: none;"{/if}>
-            <ul class="menu-h s-details-item-list-tabs">
+            <ul class="tabs s-details-item-list-tabs" id="js-details-item-list-tabs">
                 <li class="s-details-item selected" data-tab="orders">
-                    <a href="javascript:void(0)" class="s-details-item-link inline-link" data-tab="orders"><b><i>[`Orders`]</i></b></a>
+                    <a href="javascript:void(0)" class="s-details-item-link bold" data-tab="orders">[`Orders`]</a>
                 </li>
                 <li class="s-details-item" data-tab="order-items">
-                    <a href="javascript:void(0)" class="s-details-item-link inline-link" data-tab="order-items"><b><i>[`Ordered products`]</i></b></a>
+                    <a href="javascript:void(0)" class="s-details-item-link bold" data-tab="order-items">[`Ordered products`]</a>
                 </li>
             </ul>
-
-            <div class="block not-padded">
+            <div class="box" id="js-details-item-list-content">
                 <div class="s-details-items-list-tab-content" data-tab="orders">
                     {$order_list_html}
                 </div>
@@ -186,22 +196,6 @@
         <p id="load-more-rows">
             <a href="javascript:void" class="inline-link"><b>[`Load more...`]</b></a>
         </p>
-
-        <div class="clear-both"></div>
-    </div>
-</div>
-
-<div class="hidden">
-    <ul class="menu-h">
-        <li>
-            <select id="s-sales-report-storefront-selector" class="storefront-selector">
-                <option value="">[`All channels`]</option>
-                {foreach $sales_channels as $id => $name}
-                    <option value="{$id|escape}"{if ifset($request_options.sales_channel) == $id} selected{/if}>{$name|escape}</option>
-                {/foreach}
-            </select>
-        </li>
-    </ul>
 </div>
 
 <script>
@@ -266,11 +260,12 @@
     })(jQuery);
 </script>
 
-<script type="text/javascript">(function() { "use strict";
+<script>(function() {
     document.title = "[`Sales`] — {$wa->accountName(false)|escape:javascript}";
     $.wa.locale = $.extend($.wa.locale, {
         'Sales': "[`Sales`]",
-        'Profit': "[`Profit`]"
+        'Profit': "[`Profit`]",
+        'Custom range': "[`Custom range`]"
     });
 
     var current_sort = {json_encode(trim($request_options.sort, '!'))}; // sales, profit, etc.
@@ -285,34 +280,9 @@
     // drilldown, backlink text
     $('#reportscontent .s-back-title').text($('#grouping-type-selector .selected').text());
 
-    // Human-readable period description in page header
-    (function() {
-        var $timeframe_selected_li = $('#mainmenu .s-reports-timeframe .selected');
-        if ($timeframe_selected_li.length && $timeframe_selected_li.data('timeframe') != 'custom') {
-            $('#period-description').html($timeframe_selected_li.find('a').html());
-        }
-    })();
-
-    // Storefront selector logic
-    (function() { "use strict";
-
-        var $storefront_selector = $('#s-sales-report-storefront-selector').removeAttr('id');
-
-        // Move selector into the top menu wrapper
-        $('#s-reports-custom-controls').empty().append($storefront_selector.closest('ul'));
-
-        // Reload page when user changes something in the selector
-        $storefront_selector.change(function() {
-            $.post(action_url, $.extend({ }, request_params, { sales_channel: $storefront_selector.val() }), function(r) {
-                $('#reportscontent').html(r);
-            });
-        });
-
-    })();
-
     // Reload page when user changes value in A/B test selector
-    $('#s-sales-abtest-selector').change(function() {
-        $(this).parent().append('<i class="icon16 loading"></i>');
+    $('#s-sales-abtest-selector').on('change', function() {
+        $(this).parent().append('<i class="fas fa-spinner fa-spin text-gray"></i>');
         $.post(action_url, $.extend({ }, request_params, { abtest: $(this).val() }), function(r) {
             $('#reportscontent').html(r);
         });
@@ -345,27 +315,24 @@
             }
 
             request_params['sort'] = (current_order == 'desc' ?'!':'')+current_sort;
-            $a.append('<i class="icon16 loading"></i>');
+            $a.append('<i class="fas fa-spinner wa-animation-spin loading"></i>');
             var rnd_protect = $.reports.rnd_protect = Math.random();
             $.post(action_url, $.extend({ }, request_params/*, { table_only: 1 }*/), function(r) {
                 if (rnd_protect != $.reports.rnd_protect) {
                     return; // too late, user clicked something else
                 }
-                /*$a.children('.loading').remove();
-                $table.children('tbody').html(r);
-                highlightSortingColumn();
-                $load_more_link.show();*/
+
                 $('#reportscontent').html(r);
             });
         });
 
         // Link to load more rows
-        $load_more_link.click(function() {
+        $load_more_link.on('click', function() {
             if ($load_more_link.children('.loading').length) {
                 return;
             }
 
-            $load_more_link.append('<i class="icon16 loading"></i>');
+            $load_more_link.append('<i class="fas fa-spinner wa-animation-spin loading"></i>');
             var rnd_protect = $.reports.rnd_protect = Math.random();
             var current_count = $('#sales-report-table>tbody>tr').length;
             $.post(action_url, $.extend({ }, request_params, { table_only: 1, start: current_count }), function(r) {
@@ -391,8 +358,8 @@
             $tds.filter(':not(.column-'+current_sort+')').removeClass('bold');
 
             var $thead = $table.children('thead');
-            $thead.find('i.sorting-indicator').remove();
-            $thead.find('a[data-col="'+current_sort+'"]').append('<i class="icon16 '+(current_order == 'desc' ? 'darr' : 'uarr')+' sorting-indicator"></i>')
+            $thead.find('.sorting-indicator').remove();
+            $thead.find('a[data-col="'+current_sort+'"]').append('<span class="sorting-indicator"><i class="fas fa-caret-'+(current_order == 'desc' ? 'down' : 'up')+'"></i></span>')
                 .closest('th').addClass('bold').siblings().removeClass('bold');
         }
     })();
@@ -442,7 +409,7 @@
             $('#s-sales-details').attr('disabled', true);
         });
 
-        $('#s-reset-filter').click(function () {
+        $('#s-reset-filter').on('click', function () {
             var hash = applyNameFilterToHash(null);
             if (hash !== $.reports.hash) {
                 if (hash) {
@@ -457,7 +424,7 @@
     })();
 
     // details logic
-    $('#s-sales-details').click(function () {
+    $('#s-sales-details').on('click', function () {
         var $this = $(this);
         var params = getParamsFromHash();
         var map = $.reports.parseParams(params);
@@ -480,7 +447,7 @@
 
     // details tab blocks
     (function (container) {
-        container.find('.s-details-item-link').click(function () {
+        container.find('.s-details-item-link').on('click', function () {
             var $link = $(this);
             var tab = $link.data('tab');
             var $tabs = $('.s-details-item');
@@ -491,5 +458,14 @@
         });
     })($('#s-details-item-list-container'));
 
+    $('#js-details-item-list-tabs').on('click', 'li', function() {
+        var $li = $(this);
+        var prev_tab = $li.prev().data('tab');
+        var current_tab = $li.data('tab');
+        var $container = $('#js-details-item-list-content');
+
+        $('[data-tab="'+prev_tab+'"]', $container).children().lazyLoad('stop');
+        $('[data-tab="'+current_tab+'"]', $container).children().lazyLoad('reload');
+    });
 
 })();</script>

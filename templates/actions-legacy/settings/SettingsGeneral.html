@@ -1,0 +1,458 @@
+<div class="blank block double-padded s-settings-form">
+    <h1>[`General settings`]</h1>
+    <form id="s-settings-general-form" action="?module=settings&action=general">
+        <div class="fields form">
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Store name`]</div>
+                    <div class="value">
+                        <input type="text" class="large bold" name="name" value="{$name|escape}">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Phone number`]</div>
+                    <div class="value">
+                        <input type="text" name="phone" value="{$phone|escape}" placeholder="[`+1 212-555-1312`]"><br />
+                        <span class="hint">[`Phone number is published in the storefront and included in email notification`]</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Primary email`]</div>
+                    <div class="value">
+                        <input type="text" name="email" value="{$email|escape}"><br />
+                        <span class="hint">[`Email notifications are sent from this address. It is also the administrator’s email address to which order notifications are sent.`]</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Country`]</div>
+                    <div class="value">
+                        <select name="country">
+                            {if empty($country)}
+                                <option value=""></option>
+                            {/if}
+                            {foreach $countries as $c}
+                                <option value="{$c.iso3letter|escape}"{if $country == $c.iso3letter} selected{/if}>{$c.name|escape}</option>
+                            {/foreach}
+                        </select><br />
+                        <span class="hint">[`Your online store base country.`]</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Storefront settings`]</div>
+                    {foreach $routes as $_d => $_d_routes}
+                        {foreach $_d_routes as $_r_id => $_r}
+                            <div class="value no-shift s-settings-storefront-list">
+                                <a href="?action=storefronts#/design/theme={ifset($_r.theme, 'default')}&domain={urlencode($_d)}&route={$_r_id}&action=settings">
+                                    {$domains[$_d]|default:$_d|escape}/{$_r.url}
+                                    <i class="icon10 settings"></i>
+                                </a>
+                            </div>
+                        {/foreach}
+                    {/foreach}
+                </div>
+            </div>
+
+            <h5 class="heading">[`Orders & Customers`]</h5>
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Shopping cart contents`]</div>
+                    <div class="value no-shift"">
+                        <label><input type="checkbox" name="merge_carts" value="1" {if !empty($merge_carts)}checked="checked"{/if}>
+                            [`Sync shopping cart items on all devices for authorized customers.`]</label>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Order ID format`]</div>
+                    <div class="value">
+                        <input type="text" name="order_format" value="{$order_format}">
+                        <p class="hint">[`<strong>&#123;$order.id&#125;</strong> will be replaced with the actual order ID. Do not delete &#123;$order.id&#125; from this string.`]</p>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Default no-product orders item name`]</div>
+                    <div class="value">
+                        <input type="text" name="order_noproduct_item_name" value="{$order_noproduct_item_name}" placeholder="[`Payment for the ordered service`]">
+                        <p class="hint">[`<strong>&#123;$order.id_str&#125;</strong> будет заменен на полный строковый идентификатор заказа.`]</p>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Sort order items`]</div>
+                    {foreach $sort_order_items_variants as $sort_variant => $variant_data}
+                        <div class="value no-shift">
+                            <label>
+                                <input type="radio" name="sort_order_items" value="{$sort_variant}" {if $sort_variant == $sort_order_items}checked{/if}> {$variant_data.name|default:''}
+                            </label>
+                        </div>
+                    {/foreach}
+                </div>
+                <div class="field">
+                    <div class="name">[`Gravatar`]</div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="checkbox" name="use_gravatar" value="1" {if $use_gravatar}checked="checked"{/if}>
+                            [`Display Gravatar userpics`]
+                            <p class="hint">[`Gravatar.com (Globally Recognized Avatars) is a web service that returns userpic (profile photo, avatar) by email address. In case userpic is not uploaded in the Contacts app for a particular customer, his Gravatar userpic will be displayed.`]</p>
+                        </label>
+                    </div>
+                    <div class="value no-shift">
+                        <label>
+                        [`In case there were no Gravatar userpic uploaded`]:
+                            <select name="gravatar_default">
+                                <option value="custom" {if $gravatar_default == 'custom'}selected="selected"{/if}>[`Use default userpic`]</option>
+                                <option value="mm" {if $gravatar_default == 'mm'}selected="selected"{/if}>[`(mystery-man) a simple, cartoon-style silhouetted outline of a person (does not vary by email hash)`]</option>
+                                <option value="identicon" {if $gravatar_default == 'identicon'}selected="selected"{/if}>[`a geometric pattern based on an email hash`]</option>
+                                <option value="monsterid" {if $gravatar_default == 'monsterid'}selected="selected"{/if}>[`a generated “monster” with different colors, faces, etc.`]</option>
+                                <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected"{/if}>[`generated faces with differing features and backgrounds`]</option>
+                                <option value="retro" {if $gravatar_default == 'retro'}selected="selected"{/if}>[`awesome generated, 8-bit arcade-style pixelated faces`]</option>
+                            </select>
+                            <img id="s-settings-general-gravatar" class="userpic" src="{shopHelper::getGravatar($wa->user('email', 'default'), 50, $gravatar_default)}" style="display: block; width: 50px; margin-top: 10px;">
+                        </label>
+                    </div>
+                </div>
+
+                {* Validation required fields *}
+                <div class="field">
+                    <div class="name">[`Required fields validation`]</div>
+                    <div class="value s-ibutton-checkbox no-shift">
+                        <ul class="menu-h">
+                            <li><span {if empty($disable_backend_customer_form_validation)} class="gray"{/if} id="s-toggle-backend-validation-disabled-label">[`Disabled`]</span></li>
+                            <li>
+                                <input type="checkbox" id="s-toggle-backend-validation-status" name="disable_backend_customer_form_validation" value="1"{if empty($disable_backend_customer_form_validation)} checked{/if}>
+                            </li>
+                            <li><span id="s-toggle-backend-validation-enabled-label" {if !empty($disable_backend_customer_form_validation)} class="gray"{/if}>[`Enabled`]</span></li>
+                        </ul>
+                    </div>
+                    <div class="value description"{if empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
+                        <!-- enabled -->
+                        <p class="small">[`When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend.`]</p>
+                    </div>
+                    <div class="value description"{if !empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
+                        <!-- disabled -->
+                        <p class="small">[`When a new order is created by an administrator on behalf of a customer, contact fields’ values will be validated according to <a href="?action=settings#/checkout/">checkout settings for a selected storefront</a>. All fields marked as required must be completed. For “Manual order” mode, the settings saved in section “<a href="?action=settings#/orderEditor/">Order editor</a>” will be used.`]</p>
+                    </div>
+                </div>
+
+                {* Anti-spam *}
+                <div class="field">
+                    <div class="name">[`Checkout anti-spam filter`]</div>
+                    <div class="value s-ibutton-checkbox no-shift">
+                        <ul class="menu-h">
+                            <li><span {if !empty($checkout_antispam)} class="gray"{/if} id="s-toggle-checkout-antispam-disabled-label">[`Disabled`]</span></li>
+                            <li>
+                                <input type="checkbox" id="s-toggle-checkout-antispam-status" name="antispam[enabled]" value="1"{if !empty($checkout_antispam)} checked{/if}>
+                            </li>
+                            <li><span id="s-toggle-checkout-antispam-enabled-label" {if !!empty($checkout_antispam)} class="gray"{/if}>[`Enabled`]</span></li>
+                        </ul>
+                    </div>
+                    <div class="value description antispam-enabled"{if empty($checkout_antispam)} style="display:none"{/if}>
+                        <!-- enabled -->
+                        <p class="small">[`Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots.`]</p>
+
+                        <div class="fields form width100px">
+                            <div class="field">
+                                <div class="name">[`Alerts on rejected checkout attempts`]</div>
+                                <div class="value">
+                                    <input name="antispam[email]" type="email" placeholder="your@email.here" value="{$checkout_antispam_email|escape}" class="long">
+                                </div>
+                                <div class="value">
+                                    <span class="hint">[`Enable alerts on spammy checkout attempts to make sure none of real orders were rejected by the anti-spam filter.`]</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name">[`Captcha`]</div>
+                                <div class="value no-shift">
+                                    <label><input name="antispam[captcha]" value="1" type="checkbox"{if $checkout_antispam_captcha} checked{/if}> [`Enable captcha for checkout (not required)`]</label>
+                                </div>
+                                <div class="value">
+                                    <span class="hint">[`Optional. Enable checkout captcha when seamless anti-spam protection is not enough.`]</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="clear-both"></div>
+                    </div>
+                    <div class="value description antispam-disabled"{if !empty($checkout_antispam)} style="display:none"{/if}>
+                        <!-- disabled -->
+                        <p class="hint">[`If your store is under spammers attack and you receive lots of fraudulent orders placed by robots, protect the checkout routine with seamless anti-spam filtering. This will automatically filter all spam and save genuine orders only.`]</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Reviews`]</div>
+                    <div id="setting-require-auth" class="value no-shift">
+                        <label>
+                            <input type="checkbox" name="require_authorization" {if $require_authorization == '1'}checked="checked"{/if} value="1">
+                            [`Only authorized users can post reviews`]
+                            <br>
+                            <p class="hint">
+                                [`If enabled, user needs to sign in to post a review.`]<br>
+                                <strong>{sprintf('[`Make sure sign up and login forms are enabled in your <a href="%s">Site app settings</a>.`]',$wa_backend_url|cat:'site/#/settings/')}</strong>
+                            </p>
+                        </label>
+                    </div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="checkbox" name="allow_image_upload" {if $allow_image_upload == '1'}checked="checked"{/if} value="1">
+                            [`Allow customers to attach images to their reviews`]
+                            <br>
+                        </label>
+                    </div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="checkbox" name="moderation_reviews" {if $moderation_reviews == '1'}checked="checked"{/if} value="1">
+                            [`Publish reviews only after moderation`]
+                            <br>
+                            <p class="hint">
+                                [`Recommended with enabled option “Allow customers to attach images to their reviews”.`]<br>
+                            </p>
+                        </label>
+                    </div>
+                    <div id="setting-require-captcha">
+                        <div class="value no-shift">
+                            <label>
+                                <input type="checkbox" name="require_captcha" {if $require_captcha == '1'}checked="checked"{/if} value="1">
+                                [`Protect product review form with CAPTCHA`]
+                            </label>
+                        </div>
+
+                        <div id="service-agreement-settings-wrapper">
+                            <div class="value no-shift">
+                                <span class="hint">[`Personal data processing`]</span>
+                            </div>
+                            <div class="value">
+                                <label>
+                                    <input type="radio" name="review_service_agreement" value=""{if empty($review_service_agreement)} checked{/if}>
+                                    [`Do not require consent to personal data protection policy`]
+                                </label>
+                            </div>
+                            <div class="value">
+                                {$link_tag = sprintf('<a href="%s" target="_blank">', _w('---INSERT A LINK HERE!---'))}
+                                <label data-default-text="{sprintf_wp('By submitting this form I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                                    <input type="radio" name="review_service_agreement" value="notice"{if ifset($review_service_agreement) == 'notice'} checked{/if}>
+                                    [`Show only notice and link to policy`]
+                                </label>
+                            </div>
+                            <div class="value">
+                                <label data-default-text="{sprintf_wp('I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                                    <input type="radio" name="review_service_agreement" value="checkbox"{if ifset($review_service_agreement) == 'checkbox'} checked{/if}>
+                                    [`Show mandatory checkbox, notice, and link`]
+                                </label>
+                            </div>
+                            <div class="hidden value text-editor">
+                                <input type="checkbox" style="vertical-align:top;margin:0px 2px 90px 2px;float:left;" checked disabled>
+                                <textarea name="review_service_agreement_hint">{ifset($review_service_agreement_hint)|escape}</textarea>
+                                <br>
+                                <span class="hint"><a href="javascript:void(0)" class="inline-link generalte-example-link"><b><i>[`Restore original text`]</i></b></a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">
+                        [`Product lists`]
+                    </div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="checkbox" name="lazy_loading" {if !empty($lazy_loading)}checked{/if} value="1">
+                            [`Use lazy loading`]
+                        </label>
+                        <p class="hint">[`Products will be loaded automatically when you scroll the page in “Products” section in backend. If you need pagination, disable this setting.`]</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`System settings`]</div>
+                    <div class="value">
+                        {if !empty($wa_settings)}
+                            <ul class="menu-v">
+                                <li><a href="{$wa_backend_url}webasyst/settings/captcha/">[`Captcha`]</a></li>
+                                <li><a href="{$wa_backend_url}webasyst/settings/maps/">[`Maps`]</a></li>
+                                <li><a href="{$wa_backend_url}webasyst/settings/sms/">[`SMS`]</a></li>
+                                <li><a href="{$wa_backend_url}webasyst/settings/push/">[`Web push notifications`]</a></li>
+                            </ul>
+                        {else}
+                            [`To be able to change system settings, you need access to Settings app.`]
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Shop-Script version`]</div>
+                    <div class="value no-shift">
+                        {$wa->version()}
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="field">
+                    <div class="value submit">
+                        <input type="submit" class="button green" value="[`Save`]">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="clear"></div>
+</div>
+<script type="text/javascript">
+
+    $('.s-captcha input:radio').change(function () {
+        if ($(this).is(":checked")) {
+            $('.s-captcha label > div').hide().find('input').attr('disabled');
+            $(this).parent().children('div').show().find('input').removeAttr('disabled');
+            $(this).parent().find('div input:first').focus();
+        }
+    });
+    $('.s-captcha input:radio:checked').change();
+
+    $(':input[name="map"]').change(function(){
+        var scope = $(this).parents('div.field');
+        scope.find('div.js-map-adapter-settings').hide();
+        if(this.checked) {
+            scope.find('div.js-map-adapter-settings[data-adapter-id="' + this.value + '"]').show();
+        }
+    });
+    $(':input[name="map"]:checked').change();
+
+
+    $('#setting-require-auth input').change(function () {
+       if ($(this).is(':checked')) {
+           $('#setting-require-captcha').slideUp(200);
+       } else {
+           $('#setting-require-captcha').slideDown(200);
+       }
+    }).change();
+
+    $('input[name="workhours_type"]').change(function () {
+       if ($(this).val() == '1') {
+           $('#workhours-div').show();
+       } else {
+           $('#workhours-div').hide();
+       }
+    });
+
+    var form = $('#s-settings-general-form');
+    document.title = '{"[`General settings`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+    form.submit(function() {
+        var self = $(this);
+        form.find(':submit').after('<span class="s-msg-after-button"><i class="icon16 loading"></i></span>');
+        $.post(self.attr('action'), self.serialize(), function(r) {
+            $('#s-settings-content').html(r);
+        });
+        return false;
+    });
+
+    {if $wa->post('name')}
+        form.find(':submit').after(
+            $('<span class="s-msg-after-button"><i class="icon16 yes"></i></span>').animate({ opacity: 0 }, 1500, function() {
+                $(this).remove();
+            })
+        );
+    {/if}
+
+
+    form.find('[name="gravatar_default"]').change(function () {
+        var gravatar_default = $(this).val();
+        $.get('?module=settings&action=generalGetGravatar', {
+            'email': '{$wa->user('email', 'default')}',
+            'default': gravatar_default
+            },
+            function(r) {
+                $('#s-settings-general-gravatar').attr('src', r.data);
+            }, 'json'
+        );
+    });
+
+    $('#s-toggle-backend-validation-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
+        var self = $(this);
+        self.closest('.value').siblings('.value.description').toggle();
+        if (this.checked) {
+            $('#s-toggle-backend-validation-disabled-label').addClass('gray');
+            $('#s-toggle-backend-validation-enabled-label').removeClass('gray');
+        } else {
+            $('#s-toggle-backend-validation-disabled-label').removeClass('gray');
+            $('#s-toggle-backend-validation-enabled-label').addClass('gray');
+        }
+    });
+
+    $('#s-toggle-checkout-antispam-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
+        if (this.checked) {
+            $('#s-toggle-checkout-antispam-disabled-label').addClass('gray');
+            $('#s-toggle-checkout-antispam-enabled-label').removeClass('gray');
+            $('.antispam-enabled').show();
+            $('.antispam-disabled').hide();
+        } else {
+            $('#s-toggle-checkout-antispam-disabled-label').removeClass('gray');
+            $('#s-toggle-checkout-antispam-enabled-label').addClass('gray');
+            $('.antispam-enabled').hide();
+            $('.antispam-disabled').show();
+        }
+    });
+
+    $('#s-toggle-web-push-active').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change('change', function() {
+        if (this.checked) {
+            $('#s-toggle-web-push-disabled-label').addClass('gray');
+            $('#s-toggle-web-push-enabled-label').removeClass('gray');
+            $('#s-web-push-disabled-block').hide();
+            $('#s-web-push-enabled-block').show();
+        } else {
+            $('#s-toggle-web-push-disabled-label').removeClass('gray');
+            $('#s-toggle-web-push-enabled-label').addClass('gray');
+            $('#s-web-push-enabled-block').hide();
+            $('#s-web-push-disabled-block').show();
+        }
+    });
+
+    //
+    // Service agreement settings wrapper
+    //
+    (function() {
+        var $wrapper = $('#service-agreement-settings-wrapper');
+        var $checkbox = $wrapper.find(':checkbox');
+        var $textarea = $wrapper.find('textarea');
+        var previous_default_text = null;
+
+        $wrapper.on('change', ':radio', function() {
+            if (!$textarea.val() || previous_default_text == $textarea.val()) {
+                setDefaultText();
+            }
+
+            switch(this.value) {
+                case 'notice':
+                    $checkbox.hide().closest('.value').show();
+                    break;
+                case 'checkbox':
+                    $checkbox.show().closest('.value').show();
+                    break;
+                default:
+                    $checkbox.closest('.value').hide();
+                    break;
+            }
+        }).find(':radio:checked').change();
+
+        $wrapper.on('mousedown', '.generalte-example-link', function(e) {
+            setDefaultText();
+            $textarea.focus();
+            return false;
+        });
+
+        function setDefaultText() {
+            previous_default_text = $wrapper.find(':radio:checked').closest('label').data('default-text') || '';
+            $textarea.val(previous_default_text);
+        }
+    }());
+
+</script>

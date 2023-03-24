@@ -27,8 +27,6 @@
             that.vue_model = that.initVue();
             that.init();
 
-            console.log( that );
-
             function formatData(data) {
                 if (data.products && data.products.length) {
                     $.each(data.products, function(i, product) {

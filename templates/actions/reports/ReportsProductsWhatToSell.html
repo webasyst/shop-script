@@ -1,31 +1,27 @@
+{include "./sales_sidebar.html" inline}
 <div class="content">
-    <div class="block double-padded ">
-        <div class="block half-padded float-right">
-            <ul class="menu-h">
-                <li>
-                    <select id="only-sold-selector">
-                        <option value="">[`All products sorted by margin`]</option>
-                        <option value="1"{if $only_sold} selected{/if}>[`Purchased at least once during the selected report period`]</option>
-                    </select>
-                </li>
-                <li>
-                    <select id="limit-selector">
-                        {foreach [100, 250, 500] as $l}
-                            <option value="{$l|escape}"{if $l == $limit} selected{/if}>{sprintf('[`Up to %d products`]', $l|escape)}</option>
-                        {/foreach}
-                    </select>
-                </li>
-            </ul>
-        </div>
-        <h1>
-            [`What to sell`]
-        </h1>
 
+        <div class="flexbox middle full-width">
+            <h1>[`What to sell`]</h1>
+            <div class="wa-select custom-ml-auto">
+                <select id="only-sold-selector">
+                    <option value="">[`All products sorted by margin`]</option>
+                    <option value="1"{if $only_sold} selected{/if}>[`Purchased at least once during the selected report period`]</option>
+                </select>
+            </div>
+            <div class="wa-select custom-ml-4">
+                <select id="limit-selector">
+                    {foreach [100, 250, 500] as $l}
+                        <option value="{$l|escape}"{if $l == $limit} selected{/if}>{sprintf('[`Up to %d products`]', $l|escape)}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
         <table id="s-reports-what-to-sell-table" class="zebra">
             <thead>
                 <tr class="s-marked-row">
                     <td colspan="5" style="padding-left: 0 !important; padding-top: 0 !important;">
-                        <ul class="menu-h s-product-reports">
+                        <ul class="chips s-product-reports">
                             <li><a href="#/products/bestsellers/">[`Best sellers`]</a></li>
                             <li><a href="#/products/assets/">[`Assets`]</a></li>
                             <li class="selected"><a href="#/products/whattosell/">[`What to sell`]</a></li>
@@ -33,6 +29,7 @@
                     </td>
                     <td class="marked-column" colspan="4" style="text-align: center; vertical-align: middle;">
                         <span class="s-prediction">*</span>[`Forecast period`]:
+                        <div class="wa-select">
                         <select id="future-period-selector">
                             <option value="1">[`1 month`]</option>
                             <option value="3">[`3 months`]</option>
@@ -40,13 +37,14 @@
                             <option value="12">[`1 year`]</option>
                             <option value="24">[`2 years`]</option>
                         </select>
+                        </div>
                     </td>
                     <td></td>
                 </tr>
                 <tr class="s-marked-row white s-header-row">
                     <th></th>
                     <th></th>
-                    <th class="align-right nowrap"><a href="javascript:void(0)" title="[`Profit per selling one item of a product`]">[`Profit per item`] <i class="icon16 darr"></i></a></th>
+                    <th class="align-right nowrap"><a href="javascript:void(0)" title="[`Profit per selling one item of a product`]">[`Profit per item`] <i class="fas fa-caret-down"></i></a></th>
                     <th></th>
                     <th class="align-right nowrap"><a href="javascript:void(0)" title="[`Average number of items sold per month`]">[`Sold per month`]</a></th>
                     <th class="marked-column align-right s-wider-cell nowrap">
@@ -81,7 +79,7 @@
                     <td class="marked-column align-right s-profit-cell s-wider-cell nowrap">
                         <span class="total-income">{sprintf($cur_tmpl, '<span class="value"></span>')}</span>
                     </td>
-                    <td style="position: relative;"><div style="position: absolute; left:0;right:0;top:-2px;bottom:-5px;background:#fff;"><!-- hoax element for hiding <tr> shadow --></div></td>
+                    <td style="position: relative;"><div style="position: absolute; left:0;right:0;top:-2px;bottom:-5px;background: var(--background-color-blank);"><!-- hoax element for hiding <tr> shadow --></div></td>
                 </tr>
 
                 <tr class="hidden template">
@@ -101,9 +99,7 @@
                 {* Populated via JS *}
             </tbody>
         </table>
-        <div class="clear-both"></div>
     </div>
-</div>
 
 <script>
 (function() { "use strict";
@@ -126,22 +122,22 @@
     // Reload page when user changes number of products on page
     var $limit_selector = $('#limit-selector');
     $limit_selector.change(function() {
-        $limit_selector.after('<i class="icon16 loading"></i>');
+        $limit_selector.parent().after('<i class="fas fa-spinner fa-spin"></i>');
         var limit = $limit_selector.val();
         $.storage.set('shop/reports/whattosell/limit', limit); // used in reports.js
         $.post(action_url, $.extend({}, request_options, { limit: limit }), function(r) {
-            $('#reportscontent').html(r);
+            $.reports.replaceContent(r);
         });
     });
 
     // Reload page when user changes filtering selector
     var $only_sold_selector = $('#only-sold-selector');
     $only_sold_selector.change(function() {
-        $only_sold_selector.after('<i class="icon16 loading"></i>');
+        $only_sold_selector.parent().after('<i class="fas fa-spinner fa-spin"></i>');
         var val = $only_sold_selector.val();
         $.storage.set('shop/reports/whattosell/only_sold', val); // used in reports.js
         $.post(action_url, $.extend({}, request_options, { only_sold: val }), function(r) {
-            $('#reportscontent').html(r);
+            $.reports.replaceContent(r);
         });
     });
 
@@ -201,11 +197,11 @@
 
     // Sort table when user clicks on a column header
     $thead.on('click', 'a', function() {
-        $thead.find('.darr,.uarr').remove();
+        $thead.find('.fa-caret-down,.fa-caret-up').remove();
         var $a = $(this);
         var $td = $a.closest('th,td');
         $.reports.sortTable($td);
-        $a.append('<i class="icon16 darr"></i>');
+        $a.append('<i class="fas fa-caret-down"></i>');
         $.storage.set('shop/reports/whattosell/sort_col', $td.index());
     });
 

@@ -1,0 +1,103 @@
+{strip}
+
+{if $type === "phone"}
+    {$_locales = [
+        "type" => _w("Phone"),
+        "header" => _w("Please confirm your phone number"),
+        "hint" => _w("sent to your phone")
+    ]}
+{elseif $type === "email"}
+    {$_locales = [
+        "type" => _w("Email"),
+        "header" => _w("Please confirm your email address"),
+        "hint" => _w("sent by email")
+    ]}
+{else}
+    {$_locales = [
+        "header" => _w("Error"),
+        "content" => _w("Unsupported contact data type")
+    ]}
+{/if}
+
+{$_locales["submit_button"] = _w("Done")}
+{if !empty($is_last_channel)}
+    {$_locales["submit_button"] = _w("Complete checkout")}
+{/if}
+
+<div class="wa-order-dialog wa-channel-confirmation-dialog" id="js-channel-confirmation-dialog">
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body with-full-height">
+        <header class="wa-dialog-header">
+            <div class="wa-header">{$_locales["header"]|escape}</div>
+            <span class="wa-close-wrapper js-close-dialog">
+                <i class="wa-icon delete size-10"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#delete"></use></svg></i>
+            </span>
+        </header>
+
+        <div class="wa-dialog-content">
+            {if !empty($type)}
+                <div class="wa-line js-value-line">
+                    <div class="wa-field-wrapper with-content">
+                        <label class="wa-label">{$_locales["type"]}</label>
+                        <input class="wa-input js-value-field" type="text" value="{$source}">
+                    </div>
+                </div>
+
+                <div class="wa-line js-code-line" style="display: none;">
+                    <div class="wa-field-wrapper with-content wa-code-field">
+                        <label class="wa-label">[`Confirmation code`] ({$_locales["hint"]})</label>
+                        <input class="wa-input js-code-field" type="text" value="">
+                        <div class="wa-content js-code-content">
+
+                            <span class="wa-timer-wrapper js-timer-wrapper">{sprintf_wp("You can request a new confirmation code in %s.", "<span class=\"wa-time\"></span>")}</span>
+                            <a class="js-resend-code" href="javascript:void(0);" style="display: none;">[`Re-send`]</a>
+
+                        </div>
+                    </div>
+                </div>
+            {else}
+                <div class="wa-line">{$_locales["content"]|escape}</div>
+            {/if}
+
+            <div class="wa-line js-errors-wrapper"></div>
+        </div>
+
+        <div class="wa-dialog-footer">
+            {if !empty($type)}
+                <div class="js-send-line">
+                    <button class="wa-button is-large js-send-code" type="button">[`Send code`]</button>
+                </div>
+
+                <div class="js-submit-line" style="display: none;">
+                    <button class="wa-button is-large js-submit-confirm" type="button">{$_locales["submit_button"]|escape}</button>
+                </div>
+            {else}
+                <button class="js-close-dialog" type="button">[`Close`]</button>
+            {/if}
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-channel-confirmation-dialog"),
+                scope = $dialog.data("scope");
+
+            scope.initChannelConfirm({
+                $wrapper: $dialog,
+                type: {$type|json_encode},
+                recode_timeout: {$recode_timeout|json_encode},
+                urls: {
+                    "code": {$wa->getUrl('shop/frontendOrderConfirmation/sendConfirmationCode')|json_encode},
+                    "submit": {$wa->getUrl('shop/frontendOrderConfirmation/validateConfirmationCode')|json_encode}
+                },
+                locales: {
+                    code_empty: {_w("Enter a confirmation code to complete checkout.")|json_encode},
+                    invalid: {_w("Incorrect value")|json_encode},
+                    required: {_w("Required field")|json_encode}
+                }
+            });
+        })(jQuery);
+    </script>
+</div>
+
+{/strip}

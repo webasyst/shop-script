@@ -1,0 +1,491 @@
+{strip}
+
+{$_config = $config.shipping}
+{$_system_address_field_names = $config->getSystemAddressFieldNames()}
+
+{$_errors = []}
+{if !empty($error_step_id) && $error_step_id === "region"}{$_errors = $errors}{/if}
+
+{$_countries = []}
+{if !empty($region.countries)}{$_countries = $region.countries}{/if}
+
+{$_active_location = null}
+{$_active_county = null}
+{$_active_region = null}
+
+{if isset($region.selected_values.location_id)}
+    {foreach $region.locations as $_location}
+        {if $_location.id == $region.selected_values.location_id}
+            {$_active_location = $_location}
+        {/if}
+    {/foreach}
+
+    {if empty($_active_location)}
+        {$_active_location = reset($region.locations)}
+    {/if}
+{/if}
+
+{$_is_default_mode = true}
+{$_is_minimal_mode = false}
+{if $config.shipping.mode == shopCheckoutConfig::SHIPPING_MODE_TYPE_MINIMUM}
+    {$_is_default_mode = false}
+    {$_is_minimal_mode = true}
+{/if}
+
+{$_is_country_required = true}
+{$_is_region_required = true}
+{$_is_city_required = true}
+{$_is_zip_required = true}
+
+{function name="_echo_size_class" _size=""}
+    {$_size_class = "size-medium"}
+
+    {if !empty($_size)}
+        {if $_size == shopCheckoutConfig::FIELD_WIDTH_MINI}
+            {$_size_class = "size-mini"}
+        {elseif $_size == shopCheckoutConfig::FIELD_WIDTH_SMALL}
+            {$_size_class = "size-small"}
+        {elseif $_size == shopCheckoutConfig::FIELD_WIDTH_MEDIUM}
+            {$_size_class = "size-medium"}
+        {elseif $_size == shopCheckoutConfig::FIELD_WIDTH_LARGE}
+            {$_size_class = "size-large"}
+        {/if}
+    {/if}
+
+    {$_size_class}
+{/function}
+
+{function name="_render_label" _label="" _required=false}
+    {if !empty($_required)}
+        <span class="wa-tooltip is-inline top" data-title="[`Required field`]">
+            {$_label|default:""|escape}
+            <span class="wa-required"></span>
+        </span>
+    {else}
+        {$_label|default:""|escape}
+    {/if}
+{/function}
+
+{capture assign="_zip_field"}
+    {if !empty($region.ask_zip)}
+        <div class="wa-field-wrapper wa-zip-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MINI}">
+            <label class="wa-label">{_render_label _label=$_system_address_field_names.zip _required=!empty($_is_zip_required)}</label>
+            <input class="wa-input js-zip-field" autocomplete="false" name="region[zip]" type="text" value="{$region.selected_values.zip|default:""|escape}" {if !empty($_is_zip_required)}required{/if}>
+        </div>
+    {/if}
+{/capture}
+
+{$_hide_region = !empty($_hide_region) || !empty($region.disabled)}
+
+<section class="wa-step-section wa-step-region-section" id="wa-step-region-section" style="{if !empty($_hide_region)}display: none;{/if}">
+    {* HEADER *}
+    <header class="wa-section-header">
+        <h3 class="wa-header">{$_config.block_name}</h3>
+    </header>
+
+    {* BODY *}
+
+    {$_nothing_to_change = false}
+    {if $_is_minimal_mode && isset($region.locations) && count($region.locations) === 1}
+        {if !empty($_active_location.country_id) &&
+            !(empty($_active_location.region_id) && empty($_active_location.region) ) &&
+            !(empty($_active_location.city_id) && empty($_active_location.city) ) && empty($region.ask_zip)}
+
+            {$_nothing_to_change = true}
+        {/if}
+    {/if}
+
+    <div class="wa-section-body">
+        <form autocomplete="off">
+            {if empty($region.disabled)}
+                <div class="wa-line wa-required-text" {if !empty($_nothing_to_change)}style="display: none;"{/if}>
+                    <span class="wa-required"></span>[`To view shipping cost and estimated shipping time, please complete fields with an asterisk`]
+                </div>
+
+                {if $_is_default_mode}
+                    <div class="wa-line wa-fields-group line">
+                        {* LOCATIONS *}
+                        <input name="region[location_id]" type="hidden" value="{$_active_location.id|default:""|escape}">
+
+                        {* COUNTRY *}
+                        <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+
+                            <label class="wa-label">{_render_label _label=$_system_address_field_names.country _required=!empty($_is_country_required)}</label>
+
+                            {if empty($_active_location.country_locked)}
+                                <select class="wa-select js-country-field" name="region[country]" {if !empty($_is_country_required)}required{/if}>
+                                    <option value="" disabled {if empty($region.selected_values.country_id)}selected{/if}>[`Select a country`]</option>
+
+                                    {$_is_active_set = false}
+                                    {foreach $_countries as $_country}
+                                        {$_is_active = false}
+                                        {if empty($_is_active_set) && $region.selected_values.country_id == $_country.id}
+                                            {$_is_active = true}
+                                            {$_is_active_set = true}
+                                            {$_active_county = $_country}
+                                        {/if}
+
+                                        {if empty($_country.id)}
+                                            <option value="" disabled></option>
+                                        {else}
+                                            <option value="{$_country.id|escape}" {if !empty($_is_active)}selected{/if}>{$_country.name|escape}</option>
+                                        {/if}
+                                    {/foreach}
+                                </select>
+                            {else}
+                                {$_active_country_id = $_active_location.country_id}
+                                {if !empty($region.selected_values.country_id)}
+                                    {$_active_country_id = $region.selected_values.country_id}
+                                    {foreach $_countries as $_country}
+                                        {if $region.selected_values.country_id == $_country.id}
+                                            {$_active_county = $_country}
+                                            {break}
+                                        {/if}
+                                    {/foreach}
+                                {/if}
+
+                                <input class="wa-input" type="text" value="{$_active_county.name|escape}" disabled>
+                                <input name="region[country]" type="hidden" value="{$_active_country_id|default:""|escape}">
+                            {/if}
+                        </div>
+
+                        {* REGION *}
+                        <div class="wa-field-wrapper wa-region-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+
+                            <label class="wa-label">{_render_label _label=$_system_address_field_names.region _required=!empty($_is_region_required)}</label>
+                            {if empty($_active_location.region_locked)}
+                                {if !empty($_active_county.has_regions)}
+                                    {$_active_region_id = $_active_location.region_id}
+                                    {if !empty($region.selected_values.region_id)}
+                                        {$_active_region_id = $region.selected_values.region_id}
+                                    {/if}
+
+                                    <select class="wa-select js-region-field js-region-field-id" name="region[region]" {if !empty($_is_region_required)}required{/if}>
+                                        <option value="" disabled {if empty($_active_region_id)}selected{/if}>[`Select a region`]</option>
+
+                                        {$_is_active_set = false}
+                                        {foreach $_active_county.regions as $_region}
+                                            {$_is_active = false}
+
+                                            {if empty($_is_active_set) && $_active_region_id == $_region.id}
+                                                {$_is_active = true}
+                                                {$_is_active_set = true}
+                                                {$_active_region = $_region}
+                                            {/if}
+
+                                            {if empty($_region.id)}
+                                                <option value="" disabled></option>
+                                            {else}
+                                                <option value="{$_region.id|escape}" {if !empty($_is_active)}selected{/if}>{$_region.name|escape}</option>
+                                            {/if}
+                                        {/foreach}
+                                    </select>
+                                {else}
+                                    {$_region_value = $_active_location.region}
+                                    {if !empty($region.selected_values.region)}
+                                        {$_region_value = $region.selected_values.region}
+                                    {/if}
+
+                                    <input class="wa-input js-region-field js-region-field-value" autocomplete="false" name="region[region]" type="text" value="{$_region_value|default:""|escape}" {if !empty($_is_region_required)}required{/if}>
+                                {/if}
+
+                            {else}
+                                {$_active_region_id = $_active_location.region_id}
+                                {if !empty($region.selected_values.region_id)}
+                                    {$_active_region_id = $region.selected_values.region_id}
+                                {/if}
+
+                                {$_region_value = $_active_location.region}
+                                {if !empty($region.selected_values.region)}
+                                    {$_region_value = $region.selected_values.region}
+                                {/if}
+
+                                {if !empty($_active_region_id)}
+                                    {foreach $_active_county.regions as $_region}
+                                        {if $_active_region_id == $_region.id}
+                                            {$_active_region = $_region}
+                                        {/if}
+                                    {/foreach}
+
+                                    <input class="wa-input" type="text" value="{$_active_region.name|escape}" disabled>
+                                    <input class="js-region-field-id" name="region[region]" type="hidden" value="{$_active_region_id|default:""|escape}">
+
+                                {else}
+
+                                    <input class="wa-input" type="text" value="{$_region_value|escape}" disabled>
+                                    <input class="js-region-field-value" name="region[region]" type="hidden" value="{$_region_value|default:""|escape}">
+                                {/if}
+                            {/if}
+                        </div>
+
+                        {* CITY *}
+                        <div class="wa-field-wrapper wa-city-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+                            <label class="wa-label">{_render_label _label=$_system_address_field_names.city _required=!empty($_is_city_required)}</label>
+
+                            {if empty($_active_location.city_locked)}
+                                {if !empty($_active_region.has_cities)}
+                                    {$_active_city_id = $_active_location.city_id}
+                                    {if !empty($region.selected_values.city_id)}
+                                        {$_active_city_id = $region.selected_values.city_id}
+                                    {/if}
+
+                                    <select class="wa-select js-city-field" name="region[city_id]" {if !empty($_is_city_required)}required{/if}>
+                                        <option value="" disabled {if empty($_active_city_id)}selected{/if}>[`Select a locality`]</option>
+
+                                        {$_is_active_set = false}
+                                        {foreach $_active_region.cities as $_city}
+                                            {$_is_active = false}
+                                            {if empty($_is_active_set) && $_active_city_id == $_city.id}
+                                                {$_is_active = true}
+                                                {$_is_active_set = true}
+                                            {/if}
+
+                                            {if empty($_city.id)}
+                                                <option value="" disabled></option>
+                                            {else}
+                                                <option value="{$_city.id|escape}" {if !empty($_is_active)}selected{/if}>{$_city.name|escape}</option>
+                                            {/if}
+                                        {/foreach}
+                                    </select>
+                                {else}
+                                    {$_city_value = ifset($_active_location, 'city', null)}
+                                    {if !empty($region.selected_values.city)}
+                                        {$_city_value = $region.selected_values.city}
+                                    {/if}
+
+                                    <input class="wa-input js-city-field js-city-autocomplete" autocomplete="false" name="region[city]" type="text" value="{$_city_value|default:""|escape}" {if !empty($_is_city_required)}required{/if}>
+                                {/if}
+                            {else}
+                                {$_active_city_id = $_active_location.city_id}
+                                {if !empty($region.selected_values.city_id)}
+                                    {$_active_city_id = $region.selected_values.city_id}
+                                {/if}
+
+                                {$_city_value = $_active_location.city}
+                                {if !empty($region.selected_values.city)}
+                                    {$_city_value = $region.selected_values.city}
+                                {/if}
+
+                                {if !empty($_active_city_id)}
+                                    {$_active_city = null}
+                                    {if !empty($_active_region)}
+                                        {foreach $_active_region.cities as $_city}
+                                            {if $_active_city_id == $_city.id}
+                                                {$_active_city = $_city}
+                                                {break}
+                                            {/if}
+                                        {/foreach}
+                                    {/if}
+
+                                    <input class="wa-input" type="text" value="{$_active_city.name|default:""|escape}" disabled>
+                                    <input name="region[city_id]" type="hidden" value="{$_active_city_id|default:""|escape}">
+                                {else}
+
+                                    <input class="wa-input" type="text" value="{$_city_value|default:""|escape}" disabled>
+                                    <input name="region[city]" type="hidden" value="{$_city_value|default:""|escape}">
+                                {/if}
+                            {/if}
+                        </div>
+
+                        {* ZIP *}
+                        {$_zip_field}
+                    </div>
+
+                {elseif $_is_minimal_mode}
+                    {$_region_value = $_active_location.region_id}
+                    {if !empty($_active_location.region)}{$_region_value = $_active_location.region}{/if}
+
+                    {$_city_value = $_active_location.city_id}
+                    {if !empty($_active_location.city)}{$_city_value = $_active_location.city}{/if}
+
+                    <div class="wa-line wa-fields-group line" {if !empty($_nothing_to_change)}style="display: none;"{/if}>
+                        {* LOCATIONS *}
+                        {if count($region.locations) > 1}
+                            <div class="wa-field-wrapper wa-location-wrapper size-medium">
+                                <label class="wa-label">{_render_label _label="[`Shipping area`]" _required=true}</label>
+
+                                <select class="wa-select js-location-field" name="region[location_id]" required>
+                                    {foreach $region.locations as $_location}
+                                        {$_is_active = false}
+
+                                        {if $_active_location.id == $_location.id}{$_is_active = true}{/if}
+
+                                        <option value="{$_location.id|escape}" {if !empty($_is_active)}selected{/if}>{$_location.name|default:"[`No name`]"|escape}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
+                        {else}
+
+                            <input name="region[location_id]" type="hidden" value="{$_active_location.id|default:""|escape}">
+                        {/if}
+
+                        {* COUNTRY *}
+                        {$_active_country_id = $_active_location.country_id}
+                        {if !empty($_active_country_id)}
+                            <input class="js-country-field" name="region[country]" type="hidden" value="{$_active_country_id|default:""|escape}">
+
+                            {foreach $_countries as $_country}
+                                {if $region.selected_values.country_id == $_country.id}
+                                    {$_active_county = $_country}
+                                    {break}
+                                {/if}
+                            {/foreach}
+
+                        {else}
+
+                            <div class="wa-field-wrapper wa-country-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+                                <label class="wa-label">{_render_label _label=$_system_address_field_names.country _required=!empty($_is_country_required)}</label>
+
+                                <select class="wa-select js-country-field" name="region[country]" {if !empty($_is_country_required)}required{/if}>
+                                    <option value="" disabled {if empty($region.selected_values.country_id)}selected{/if}>[`Select a country`]</option>
+
+                                    {$_is_active_set = false}
+                                    {foreach $_countries as $_country}
+                                        {$_is_active = false}
+                                        {if !empty($_is_active_set) && $region.selected_values.country_id == $_country.id}
+                                            {$_is_active = true}
+                                            {$_is_active_set = true}
+                                            {$_active_county = $_country}
+                                        {/if}
+
+                                        {if empty($_country.id)}
+                                            <option value="" disabled></option>
+                                        {else}
+                                            <option value="{$_country.id|escape}" {if !empty($_is_active)}selected{/if}>{$_country.name|escape}</option>
+                                        {/if}
+                                    {/foreach}
+                                </select>
+                            </div>
+                        {/if}
+
+                        {* REGION *}
+                        {$_active_region_id = $_active_location.region_id}
+                        {$_active_region_value = $_active_location.region}
+                        {if !empty($_active_region_id)}
+                            <input class="js-region-field js-region-field-id" name="region[region]" type="hidden" value="{$_active_region_id|default:""|escape}">
+
+                        {elseif !empty($_active_region_value)}
+                            <input class="js-region-field js-region-field-value" name="region[region]" type="hidden" value="{$_active_region_value|default:""|escape}">
+
+                        {else}
+                            <div class="wa-field-wrapper wa-region-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+                                <label class="wa-label">{_render_label _label=$_system_address_field_names.region _required=!empty($_is_region_required)}</label>
+
+                                {if !empty($_active_county.has_regions)}
+                                    {$_active_region_id = null}
+                                    {if !empty($region.selected_values.region_id)}
+                                        {$_active_region_id = $region.selected_values.region_id}
+                                    {/if}
+
+                                    <select class="wa-select js-region-field js-region-field-id" name="region[region]" {if !empty($_is_region_required)}required{/if}>
+                                        <option value="" disabled {if empty($_active_region_id)}selected{/if}>[`Select a region`]</option>
+
+                                        {$_is_active_set = false}
+                                        {foreach $_active_county.regions as $_region}
+                                            {$_is_active = false}
+
+                                            {if empty($_is_active_set) && $_active_region_id == $_region.id}
+                                                {$_is_active = true}
+                                                {$_is_active_set = true}
+                                                {$_active_region = $_region}
+                                            {/if}
+
+                                            {if empty($_region.id)}
+                                                <option value="" disabled></option>
+                                            {else}
+                                                <option value="{$_region.id|escape}" {if !empty($_is_active)}selected{/if}>{$_region.name|escape}</option>
+                                            {/if}
+                                        {/foreach}
+                                    </select>
+                                {else}
+                                    {$_region_value = null}
+                                    {if !empty($region.selected_values.region)}
+                                        {$_region_value = $region.selected_values.region}
+                                    {/if}
+
+                                    <input class="wa-input js-region-field js-region-field-value" autocomplete="false" name="region[region]" type="text" value="{$_region_value|default:""|escape}" {if !empty($_is_region_required)}required{/if}>
+                                {/if}
+                            </div>
+
+                        {/if}
+
+                        {* CITY *}
+                        {$_active_city_id = $_active_location.city_id}
+                        {$_active_city_value = $_active_location.city}
+                        {if !empty($_active_city_id)}
+                            <input class="js-city-field" name="region[city_id]" type="hidden" value="{$_active_city_id|default:""|escape}">
+
+                        {elseif !empty($_active_city_value)}
+                            <input class="js-city-field" name="region[city]" type="hidden" value="{$_active_city_value|default:""|escape}">
+
+                        {else}
+                            <div class="wa-field-wrapper wa-city-wrapper {_echo_size_class _size=shopCheckoutConfig::FIELD_WIDTH_MEDIUM}">
+                                <label class="wa-label">{_render_label _label=$_system_address_field_names.city _required=!empty($_is_city_required)}</label>
+
+                                {if !empty($_active_region.has_cities)}
+                                    {$_active_city_id = null}
+                                    {if isset($region.selected_values.city_id)}
+                                        {$_active_city_id = $region.selected_values.city_id}
+                                    {/if}
+
+                                    <select class="wa-select js-city-field" name="region[city_id]" {if !empty($_is_city_required)}required{/if}>
+                                        <option value="" disabled {if empty($_active_city_id)}selected{/if}>[`Select a locality`]</option>
+
+                                        {$_is_active_set = false}
+                                        {foreach $_active_region.cities as $_city}
+                                            {$_is_active = false}
+                                            {if empty($_is_active_set) && $_active_city_id == $_city.id}
+                                                {$_is_active = true}
+                                                {$_is_active_set = false}
+                                            {/if}
+
+                                            {if empty($_city.id)}
+                                                <option value="" disabled></option>
+                                            {else}
+                                                <option value="{$_city.id|escape}" {if !empty($_is_active)}selected{/if}>{$_city.name|escape}</option>
+                                            {/if}
+                                        {/foreach}
+                                    </select>
+                                {else}
+                                    {$_city_value = null}
+                                    {if isset($region.selected_values.city)}
+                                        {$_city_value = $region.selected_values.city}
+                                    {/if}
+
+                                    <input class="wa-input js-city-field js-city-autocomplete" autocomplete="false" name="region[city]" type="text" value="{$_city_value|default:""|escape}" {if !empty($_is_city_required)}required{/if}>
+                                {/if}
+                            </div>
+                        {/if}
+
+                        {* ZIP *}
+                        {$_zip_field}
+                    </div>
+                {/if}
+
+                {* @event checkout_render_region *}
+                {foreach $event_hook.region as $_}
+                    <div class="wa-plugin-hook">{$_}</div>
+                {/foreach}
+            {/if}
+        </form>
+    </div>
+
+    <script>
+        ( function($) {
+            var $section = $("#wa-step-region-section"),
+                $wrapper = $("#wa-order-form-wrapper");
+
+            var ready_promise = $wrapper.data("ready").promise();
+            ready_promise.then( function(controller) {
+                controller.initRegion({
+                    $wrapper: $section,
+                    disabled: {if !empty($region.disabled)}true{else}false{/if},
+                    auto_use_timeout: {if !empty($_config.auto_use_timeout) && ($_config.auto_use_timeout > 0)}{$_config.auto_use_timeout * 1000}{else}0{/if},
+                    errors: {$_errors|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</section>
+
+{/strip}

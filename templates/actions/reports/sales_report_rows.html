@@ -17,19 +17,21 @@
             {/if}
     >
         <td class="column-name">{strip}
-            {if !empty($details_graph_data)}
+            <div class="flexbox middle space-8">
+                {if !empty($details_graph_data)}
                 <span class="s-chart-color" data-color-id="{$chart_num}"></span>
-            {/if}
-            {if !empty($row.icon_class)}
-                <i class="icon16 {$row.icon_class}"></i>
-            {/if}
-            {if !isset($filter.name)}
-                <a href="javascript:void(0)" class="s-reports-drilldown-link" data-name="{$row.orig_name|escape}" style="display: inline-block;">
+                {/if}
+                {if !empty($row.icon_class)}
+                    <i class="icon16 {$row.icon_class}"></i>
+                {/if}
+                {if !isset($filter.name)}
+                    <a href="javascript:void(0)" class="s-reports-drilldown-link" data-name="{$row.orig_name|escape}" style="display: inline-block;">
+                        {$row.name|escape}
+                    </a>
+                {else}
                     {$row.name|escape}
-                </a>
-            {else}
-                {$row.name|escape}
-            {/if}
+                {/if}
+            </div>
         {/strip}</td>
         <td class="align-right column-order_count">
             {$row.order_count}
@@ -61,7 +63,7 @@
         {if $roi_enabled}
             <td class="align-right column-cost">
                 <div class="edit-icon-wrapper">
-                    <a href="?action=reports#/sales/costs/"><i class="icon16 edit"></i></a>
+                    <a href="{$wa_app_url}marketing/costs/"><i class="icon16 edit"></i></a>
                 </div>
                 {if $row.cost}{wa_currency($row.cost, $def_cur, '%2{h}')}{else}<span class="gray">&mdash;</span>{/if}
             </td>
@@ -77,4 +79,3 @@
 
     </tr>
 {/foreach}
-

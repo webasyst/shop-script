@@ -5,33 +5,55 @@
     {$customers_rights = $wa->userRights('customers')}
     {$_has_hidden_fields = false}
 
-    <div class="s-customer-fields-section" id="js-customer-fields-section">
-        <ul class="menu-v with-icons compact s-customer-top-field-list">
+    <div class="s-customer-fields-section small" id="js-customer-fields-section">
+        <ul class="unstyled s-customer-top-field-list">
             {foreach $top as $top_field}
-                <li class="s-customer-top-field-default-value-item">
+                <li class="s-customer-top-field-default-value-item flexbox middle space-8">
                     {if $top_field.id !== 'im'}
-                        <i class="icon16 {$top_field.id}{if $top_field.default_value.is_confirmed}-confirmed ss{/if}" {if $top_field.default_value.is_confirmed}title="[`Confirmed`]"{/if}></i>
+                        <i class="fas fa-{if $top_field.default_value.is_confirmed}check-circle text-green{else}{if $top_field.id == 'email'}envelope{else}{$top_field.id}{/if}{/if} text-gray" {if $top_field.default_value.is_confirmed}title="[`Confirmed`]"{/if}></i>
                     {/if}
 
-                    {$top_field.default_value.formatted}
-
+                    {if $top_field.id == 'phone'}
+                        {$_formatted_phone_value = $top_field.default_value.value|regex_replace:'/^(8|(\+)?7)/':'+7'}
+                        <span>{$top_field.default_value.formatted}</span>
+                        <div class="dropdown js-messengers">
+                            <span class="dropdown-toggle badge button-light-gray rounded">[`Message`]</span>
+                            <div class="dropdown-body">
+                                <ul class="menu">
+                                    <li>
+                                        <a href="https://wa.me/{if $wa->locale() == 'ru_RU'}{$_formatted_phone_value}{else}{$top_field.default_value.value}{/if}" target="_blank"><i class="fab fa-whatsapp" style="color: #25D366;"></i><span>WhatsApp</span></a>
+                                    </li>
+                                    <li>
+                                        <a href="https://t.me/{if $wa->locale() == 'ru_RU'}{$_formatted_phone_value}{else}{$top_field.default_value.value}{/if}" target="_blank"><i class="fab fa-telegram" style="color: #2AABEE;"></i><span>Telegram</span></a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <script>
+                                ( function($) {
+                                    $(".js-messengers").waDropdown();
+                                })(jQuery);
+                            </script>
+                        </div>
+                    {else}
+                        <span>{$top_field.default_value.formatted}</span>
+                    {/if}
                     {if $top_field.id == 'email' && !empty($similar_contacts.email.count)}
                         <span class="similar hint">
                             <span class="similar-hull">
-                                {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer found with the same email address', '%d more customers found with the same email address', $similar_contacts.email.count)}{if $customers_rights}</a>{/if}
+                                {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="fas fa-exclamation-triangle small custom-mr-4"></i>{_w('%d more customer found with the same email address', '%d more customers found with the same email address', $similar_contacts.email.count)}{if $customers_rights}</a>{/if}
                             </span>
                             <span class="similar-short" title="[`Number of customers with the same email address`]">
-                                {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{$similar_contacts.email.count}{if $customers_rights}</a>{/if}
+                                {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="fas fa-exclamation-triangle small custom-mr-4"></i>{$similar_contacts.email.count}{if $customers_rights}</a>{/if}
                             </span>
                          </span>
 
                     {elseif $top_field.id == 'phone' && !empty($similar_contacts.phone.count)}
                         <span class="similar hint">
                             <span class="similar-hull">
-                                {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer found with the same phone number', '%d more customers found with the same phone number', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if}
+                                {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="fas fa-exclamation-triangle small custom-mr-4"></i>{_w('%d more customer found with the same phone number', '%d more customers found with the same phone number', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if}
                             </span>
                             <span class="similar-short" title="[`Number of customers with the same phone number`]">
-                                {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{$similar_contacts.phone.count}{if $customers_rights}</a>{/if}
+                                {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="fas fa-exclamation-triangle small custom-mr-4"></i>{$similar_contacts.phone.count}{if $customers_rights}</a>{/if}
                             </span>
                         </span>
                     {/if}
@@ -43,10 +65,9 @@
                     {foreach $top_field.other_values as $value}
                         {if empty($_has_hidden_fields)}{$_has_hidden_fields = true}{/if}
 
-                        <li class="s-customer-top-field-other-value-item" style="display: none;">
-
+                        <li class="s-customer-top-field-other-value-item flexbox middle space-4" style="display: none;">
                             {if $top_field.id !== 'im'}
-                                <i class="icon16 {$top_field.id}{if $value.is_confirmed}-confirmed ss{/if}" {if $value.is_confirmed}title="[`Confirmed`]"{/if} />
+                                <i class="fas fa-{if $top_field.id == 'email'}envelope{else}{$top_field.id}{/if}{if $value.is_confirmed} text-green{/if}" {if $value.is_confirmed}title="[`Confirmed`]"{/if}></i>
                             {/if}
 
                             {$value.formatted}
@@ -58,13 +79,13 @@
 
         {if !empty($_has_hidden_fields)}
             <div class="s-fields-toggle">
-                <a class="inline-link js-toggle-button" href="javascript:void(0);">
+                <a class="js-toggle-button" href="javascript:void(0);">
                     <i class="svg-icon size-10 arrow-toggle" style="padding: 0 7px 0 5px;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 5">
                             <polyline style="fill:none; stroke: currentColor; stroke-linecap:round; stroke-linejoin:round;" points="0.5 0.5 4.5 4.5 8.5 0.5"/>
                         </svg>
                     </i>
-                    <b><i>[`More contact information`]</i></b>
+                    [`More contact information`]
                 </a>
 
                 <script>

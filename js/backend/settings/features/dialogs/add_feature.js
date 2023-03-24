@@ -36,24 +36,24 @@
             // visibility field
             var $visibility_field = that.$wrapper.find(".js-visibility-field");
             $visibility_field.on("change", function() {
-                var $icon = $visibility_field.closest(".s-checkbox-wrapper").find(".s-icon"),
+                var $icon = $visibility_field.closest(".s-checkbox-wrapper").find(".js-icon"),
                     is_enabled = $(this).is(":checked");
 
                 $icon
-                    .removeClass(!is_enabled ? "visibility-on" : "ss visibility")
-                    .addClass(is_enabled ? "visibility-on" : "ss visibility");
+                    .removeClass(!is_enabled ? "fa-eye" : "fa-eye-slash text-light-gray")
+                    .addClass(is_enabled ? "fa-eye" : "fa-eye-slash text-light-gray");
             });
 
             // available field
             var $available_field = that.$wrapper.find(".js-available-field");
             var skus_message_is_displayed = false;
             $available_field.on("change", function() {
-                var $icon = $available_field.closest(".s-checkbox-wrapper").find(".s-icon"),
+                var $icon = $available_field.closest(".s-checkbox-wrapper").find(".js-icon"),
                     is_enabled = $(this).is(":checked");
 
                 $icon
-                    .removeClass(!is_enabled ? "hierarchical" : "hierarchical-off")
-                    .addClass(is_enabled ? "hierarchical" : "hierarchical-off");
+                    .removeClass(!is_enabled ? "text-gray" : "text-light-gray")
+                    .addClass(is_enabled ? "text-gray" : "text-light-gray");
 
                 if (that.show_skus_warning && !skus_message_is_displayed) {
                     $(this).closest('.s-field-section').append(that.templates["skus_warning_message"]);
@@ -360,7 +360,7 @@
                 if (that.active_kind.id === "color") {
                     var $color_widget = $(that.templates["color_widget"]);
                     $color_widget.appendTo($fields);
-                    initColorPicker($color_widget);
+                    setTimeout(() => initColorPicker($color_widget))
 
                     // OR UNIT SELECT
                 } else if (that.active_kind.dimensions) {
@@ -384,229 +384,218 @@
                             selected: !!(that.feature.default_unit && that.feature.default_unit === dimension.id)
                         }).text(dimension.title);
 
-                        $select.append($option);
+                        $select.append($option)
                     });
 
-                    return $select;
+                    return $('<div class="wa-select smaller">').append($select);
                 }
             }
-
             function initColorPicker($wrapper) {
-                if ($wrapper.data("farbtastic")) {
-                    return false;
+              const el = $wrapper.find('.js-color-picker')[0];
+              const $colorPicker = $(el);
+              const $codeColor = $colorPicker.next('.js-field-code');
+
+              let initColor = $codeColor.val() || '#ffffff';
+              if (initColor) {
+                $colorPicker.css('color', initColor);
+                $colorPicker.attr('data-color', initColor);
+              }
+
+              const getColorPicker = (pickr) => {
+                if (pickr.hasOwnProperty('toHEXA')) {
+                  return pickr.toHEXA().toString(0);
                 }
 
-                var $document = $(document),
-                    $icon = $wrapper.find(".s-icon"),
-                    $input = $wrapper.find(".s-field"),
-                    $colorpicker_w = $wrapper.find(".js-color-picker"),
-                    is_opened = false;
+                return pickr.target.value;
+              }
 
-                var event_name = "color-picker-opened";
+              function setColor(color, notSave = false) {
+                $colorPicker.css('color', color);
+                $colorPicker.attr('data-color', color);
+                if (!notSave) {
+                  $codeColor.val(color);
+                }
+              }
 
-                var farbtastic = $.farbtastic($colorpicker_w, setColor);
-                farbtastic.widgetCoords = function (event) {
-                    var offset = $(farbtastic.wheel).offset();
-                    return {
-                        x: (event.pageX - offset.left) - farbtastic.width / 2,
-                        y: (event.pageY - offset.top) - farbtastic.width / 2
-                    };
-                };
+              $colorPicker.on('click', (event) => {
+                event.preventDefault();
 
-                $icon.on("click", function (event) {
-                    event.preventDefault();
-                    if (!is_opened) {
-                        $document.trigger(event_name, [$wrapper]);
+                const defaultColor = $colorPicker.attr('data-color');
+
+                const colorPicker = Pickr.create({
+                  el,
+                  theme: 'classic',
+                  swatches: [
+                    '#ed2509',
+                    '#22d13d',
+                    '#1a9afe',
+                    '#f3c200',
+                    '#ff6c00',
+                    '#7256ee',
+                    '#996e4d',
+                    '#ff7a99',
+                    '#fff',
+                    '#000',
+                    '#89a',
+                    'rgba(0, 20, 65, 0.2)',
+                    '#568',
+
+                  ],
+                  appClass: 'wa-pcr-app small',
+                  lockOpacity: false,
+                  position: 'bottom-middle',
+                  useAsButton: true,
+                  default: defaultColor,
+                  components: {
+                    palette: true,
+                    hue: true,
+                    interaction: {
+                      input: true,
+                      save: true
                     }
-                    $colorpicker_w.fadeToggle(200);
-                    is_opened = !is_opened;
+                  },
+                  i18n: {
+                    'btn:save': 'OK',
+                  }
+                }).on('change', (pickr) => {
+                  const color_hex = getColorPicker(pickr);
+                  setColor(color_hex, true)
+
+                }).on('save', (color, pickr) => {
+                  $codeColor.val(getColorPicker(color).toLowerCase());
+                  pickr.hide();
+
+                }).on('hide', (pickr) => {
+                  let color_hex = $codeColor.val();
+                  if (!color_hex) {
+                    color_hex = initColor;
+                  }
+                  setColor(color_hex)
+                  pickr.setColor(color_hex);
+                  $codeColor.trigger('change');
+
+                  pickr.destroyAndRemove();
                 });
 
-                $document.on(event_name, openWatcher);
+                colorPicker.show();
+              });
 
-                function openWatcher() {
-                    var is_exist = $.contains(document, $wrapper[0]);
-                    if (is_exist) {
-                        if (is_opened) {
-                            $icon.trigger("click");
-                        }
-                    } else {
-                        $document.off(event_name, openWatcher);
-                    }
-                }
+              initTransliterate($wrapper.closest(".s-feature-value-wrapper"));
 
-                var color = $input.val();
-                if (color) { setColor(color); }
+              /**
+               * @param {Object} $wrapper
+               * */
+              function initTransliterate($wrapper) {
+                  var that = this;
 
-                $input.on('change keyup', function () {
-                    $icon.css('background', $input.val());
-                    farbtastic.setColor($input.val());
-                });
+                  var $name_field = $wrapper.find('.js-field-value'),
+                      $code_field = $wrapper.find('.js-field-code');
 
-                function setColor(color) {
-                    $icon.css('background', color);
-                    farbtastic.setColor(color);
-                    $input.val(color).trigger("color_set");
-                }
+                  var keyup_timer = 0,
+                      time = 500,
+                      xhr = null,
+                      timer = 0;
 
-                $wrapper.data("farbtastic", farbtastic);
+                  var active_class = "transliterate-enabled";
 
-                //
+                  $name_field.on("keydown", function() {
+                      clearTimeout(timer);
+                      timer = setTimeout( function () {
+                          onNameChange();
+                      }, 500);
 
-                var $body = $("body"),
-                    $dialog_w = that.dialog.$wrapper;
+                      $name_field.removeClass(active_class);
+                  });
 
-                $body.on("keyup", escapeWatcher);
+                  $code_field.on("change", function() {
+                      clearTimeout(timer);
+                      timer = setTimeout( function () {
+                          onColorChange();
+                      }, 500);
 
-                function escapeWatcher(event) {
-                    var is_exist = $.contains($body[0], $wrapper[0]);
-                    if (is_exist) {
+                      $code_field.removeClass(active_class);
+                  });
 
-                        var escape_code = 27;
-                        if (event.keyCode === escape_code) {
-                            if (is_opened) {
-                                event.stopPropagation();
-                                $document.trigger(event_name);
-                            }
-                        }
+                  function onNameChange() {
+                      var color_is_empty = !$code_field.val().length;
+                      if (color_is_empty || $code_field.hasClass(active_class)) {
+                          var name = $name_field.val();
+                          if (name) {
+                              getColorData(name, null).then( function(data) {
+                                  color_is_empty = !$code_field.val().length;
+                                  if (color_is_empty || $code_field.hasClass(active_class)) {
+                                      if (data.color) {
+                                          setColor(data.color);
+                                          $code_field.addClass(active_class);
+                                      }
+                                  }
+                              });
+                          }
+                      }
+                  }
 
-                    } else {
-                        $body.off("keyup", escapeWatcher);
-                    }
-                }
+                  function onColorChange() {
+                      var name_is_empty = !$name_field.val().length;
+                      if (name_is_empty || $name_field.hasClass(active_class)) {
+                          var color = $code_field.val();
+                          if (color) {
+                              getColorData(null, color).then( function(data) {
+                                  var name_is_empty = !$name_field.val().length;
+                                  if (name_is_empty || $name_field.hasClass(active_class)) {
+                                      if (data.name) {
+                                          $name_field.val(data.name).addClass(active_class);
+                                      }
+                                  }
+                              });
+                          }
+                      }
+                  }
 
-                $dialog_w.on("click", clickWatcher);
+                  /**
+                   * @param {String?} name
+                   * @param {String?} color
+                   * */
+                  function getColorData(name, color) {
+                      var href = "?module=settingsTypefeat&action=featuresHelper",
+                          data = {};
 
-                function clickWatcher(event) {
-                    var is_exist = $.contains($dialog_w[0], $wrapper[0]);
-                    if (is_exist) {
-                        var is_wrapper = $.contains($wrapper[0], event.target);
-                        if (!is_wrapper) {
-                            if (is_opened) {
-                                $icon.trigger("click");
-                            }
-                        }
-                    } else {
-                        $dialog_w.off("click", clickWatcher);
-                    }
-                }
+                      if (color) { data.code = color2magic(color); }
+                      if (name) { data.name = name; }
 
-                initTransliterate($wrapper.closest(".s-feature-value-wrapper"));
+                      var deferred = $.Deferred();
 
-                /**
-                 * @param {Object} $wrapper
-                 * */
-                function initTransliterate($wrapper) {
-                    var that = this;
+                      if (xhr) { xhr.abort(); }
 
-                    var $name_field = $wrapper.find(".js-field-value"),
-                        $code_field = $input;
+                      xhr = $.get(href, data, "json")
+                          .always( function() {
+                              xhr = null;
+                          })
+                          .done( function(response) {
+                              if (response.status === "ok") {
+                                  deferred.resolve({
+                                      name: response.data.name,
+                                      color: magic2color(response.data.code)
+                                  });
+                              } else {
+                                  deferred.reject();
+                              }
+                          })
+                          .fail( function() {
+                              deferred.reject();
+                          });
 
-                    var keyup_timer = 0,
-                        time = 500,
-                        xhr = null,
-                        timer = 0;
+                      return deferred.promise();
 
-                    var active_class = "transliterate-enabled";
+                      function color2magic(color) {
+                          return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
+                      }
 
-                    $name_field.on("keydown", function() {
-                        clearTimeout(timer);
-                        timer = setTimeout( function () {
-                            onNameChange();
-                        }, 500);
+                      function magic2color(magic) {
+                          return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
+                      }
 
-                        $name_field.removeClass(active_class);
-                    });
-
-                    $code_field.on("keydown color_set", function() {
-                        clearTimeout(timer);
-                        timer = setTimeout( function () {
-                            onColorChange();
-                        }, 500);
-
-                        $code_field.removeClass(active_class);
-                    });
-
-                    function onNameChange() {
-                        var color_is_empty = !$code_field.val().length;
-                        if (color_is_empty || $code_field.hasClass(active_class)) {
-                            var name = $name_field.val();
-                            if (name) {
-                                getColorData(name, null).then( function(data) {
-                                    color_is_empty = !$code_field.val().length;
-                                    if (color_is_empty || $code_field.hasClass(active_class)) {
-                                        if (data.color) {
-                                            setColor(data.color);
-                                            $code_field.addClass(active_class);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-
-                    function onColorChange() {
-                        var name_is_empty = !$name_field.val().length;
-                        if (name_is_empty || $name_field.hasClass(active_class)) {
-                            var color = $code_field.val();
-                            if (color) {
-                                getColorData(null, color).then( function(data) {
-                                    var name_is_empty = !$name_field.val().length;
-                                    if (name_is_empty || $name_field.hasClass(active_class)) {
-                                        if (data.name) {
-                                            $name_field.val(data.name).addClass(active_class);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-
-                    /**
-                     * @param {String?} name
-                     * @param {String?} color
-                     * */
-                    function getColorData(name, color) {
-                        var href = "?module=settingsTypefeat&action=featuresHelper",
-                            data = {};
-
-                        if (color) { data.code = color2magic(color); }
-                        if (name) { data.name = name; }
-
-                        var deferred = $.Deferred();
-
-                        if (xhr) { xhr.abort(); }
-
-                        xhr = $.get(href, data, "json")
-                            .always( function() {
-                                xhr = null;
-                            })
-                            .done( function(response) {
-                                if (response.status === "ok") {
-                                    deferred.resolve({
-                                        name: response.data.name,
-                                        color: magic2color(response.data.code)
-                                    });
-                                } else {
-                                    deferred.reject();
-                                }
-                            })
-                            .fail( function() {
-                                deferred.reject();
-                            });
-
-                        return deferred.promise();
-
-                        function color2magic(color) {
-                            return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
-                        }
-
-                        function magic2color(magic) {
-                            return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
-                        }
-
-                    }
-                }
+                  }
+              }
             }
 
             function initSortable() {

@@ -8,7 +8,7 @@
      - "_render_filter_uri" — function for render links href
 *}
 
-<li class="with-menu">
+<li class="dropdown js-dropdown-menu">
     {$_photos_filter = [
         "all" => [
             "id" => "all",
@@ -35,21 +35,19 @@
 
     <span class="s-label">[`Photos`]:</span>
 
-    <a href="javascript:void(0);" class="inline-link">
-        <b><i>{$_active_photo_filter.name|escape}</i></b>
-        <i class="icon16 darr"></i>
-    </a>
+    <button class="dropdown-toggle button light-gray" type="button">{$_active_photo_filter.name|escape}</button>
+    <div class="dropdown-body">
+        <ul class="menu">
+            {foreach $_photos_filter as $_filter}
+                {$_is_active = false}
+                {if $_filter.id === $_active_photo_filter_id}
+                    {$_is_active = true}
+                {/if}
 
-    <ul class="menu-v without-icons right">
-        {foreach $_photos_filter as $_filter}
-            {$_is_active = false}
-            {if $_filter.id === $_active_photo_filter_id}
-                {$_is_active = true}
-            {/if}
-
-            <li class="{if !empty($_is_active)}selected{/if}">
-                <a href="{$_filter.uri|escape}">{$_filter.name|escape}</a>
-            </li>
-        {/foreach}
-    </ul>
+                <li class="{if !empty($_is_active)}selected{/if}">
+                    <a href="{$_filter.uri|escape}">{$_filter.name|escape}</a>
+                </li>
+            {/foreach}
+        </ul>
+    </div>
 </li>

@@ -1,28 +1,35 @@
 ( function ($) {
     $.storage = new $.store();
     $.reports = {
+        $content: $("#reportscontent"),
         init: function (options) {
-            var that = this;
+            const that = this;
+
             if (typeof($.History) != "undefined") {
                 $.History.bind(function () {
                     that.dispatch();
                 });
             }
+
             $.wa.errorHandler = function (xhr) {
                 if ((xhr.status === 403) || (xhr.status === 404) ) {
-                    $("#s-content").html('<div class="content left200px"><div class="block double-padded">' + xhr.responseText + '</div></div>');
+                    $("#s-content").html('<div class="content"><div class="box">' + xhr.responseText + '</div></div>');
                     return false;
                 }
                 return true;
             };
-            var hash = window.location.hash;
+
+            const hash = window.location.hash;
             if (hash === '#/' || !hash) {
                 this.dispatch();
             } else {
                 $.wa.setHash(hash);
             }
+
             document.documentElement.setAttribute('lang', options.lang);
-            $.reports.initTimeframeSelector();
+
+            that.loading = options.loading;
+
             $.reports.initPaidOrdersNotice();
         },
 
@@ -38,14 +45,61 @@
             }
         },
 
+        initTypeSourceSelector: function() {
+            // Loading indicator when user clicks on a link in sidebar
+            $('.js-reports-source-dropdown').waDropdown({
+                items: '.menu > li > a',
+                ready(dropdown) {
+                    const default_type = 'sources';
+                    const hash = window.location.hash || `#/sales/type=${default_type}`;
+
+                    let match = hash.match(new RegExp('type=(\\w+)'));
+                    let type = default_type;
+                    if (match && match[1]) {
+                        type = match[1];
+                    }
+
+                    const activeItem = dropdown.$menu.find(`li[data-type-id="${type}"]`).addClass('selected');
+
+                    dropdown.setTitle(activeItem.text());
+                },
+                change(_, element) {
+                    const item = $(element).closest('li');
+                    item.addClass('selected').siblings().removeClass('selected');
+                    const href = $(element).attr('href');
+
+                    if (href !== window.location.hash) {
+                        window.location.hash = href;
+                    }
+                }
+            });
+
+            $('.js-reports-channel-dropdown').waDropdown({
+                items: '.menu > li > a',
+                ready($dropdown) {
+                    const el = $dropdown.$menu.find('li.selected');
+                    $dropdown.setTitle(el.children().text());
+                },
+                change($dropdown, element) {
+                    const item = $(element).closest('li');
+                    item.addClass('selected').siblings().removeClass('selected');
+                    $.reports.dispatch();
+                }
+            });
+        },
+
         // Timeframe selector logic
         initTimeframeSelector: function() {
-            var wrapper = $('#mainmenu .s-reports-timeframe');
-            var visible_option = wrapper.children('.s-reports-timeframe-dropdown').children('a');
-            var custom_wrapper = wrapper.children('.s-custom-timeframe').hide();
+            const wrapper = $('.js-reports-timeframe');
+            const $dropdown = wrapper.find('.js-reports-timeframe-dropdown');
+            const custom_wrapper = $('.js-custom-timeframe').hide();
+
+            const setPeriodDescription = function (title) {
+                $('#period-description').html(title);
+            }
 
             // Helper to get timeframe data from <li> element
-            var getTimeframeData = function(li) {
+            const getTimeframeData = function(li) {
                 return {
                     timeframe: (li && li.data('timeframe')) || 30,
                     groupby: (li && li.data('groupby')) || 'days'
@@ -53,17 +107,15 @@
             };
 
             // Helper to set active timeframe <li>
-            var setActiveTimeframe = function(li) {
-                visible_option.find('b i').text(li.text());
-                li.addClass('selected').siblings('.selected').removeClass('selected');
-                var tf = getTimeframeData(li);
-                if (tf.timeframe != 'custom') {
+            const setActiveTimeframe = function(li) {
+                const tf = getTimeframeData(li);
+                if (tf.timeframe !== 'custom') {
                     $.storage.set('shop/reports/timeframe', tf);
                 }
             }
 
             // Helper to set up custom period selector
-            var initCustomSelector = function() {
+            let initCustomSelector = function() {
 
                 var inputs = custom_wrapper.find('input');
                 var from = inputs.filter('[name="from"]');
@@ -84,8 +136,8 @@
                             from: Math.floor(from_date.getTime() / 1000),
                             to: Math.floor(to_date.getTime() / 1000)
                         });
-                        $('#reportscontent').html('<div class="double-padded block"><i class="icon16 loading"></i></div>');
-                        $.reports.dispatch();
+
+                        $.reports.dispatchWithSpinner();
                     };
 
                     // Datepickers
@@ -101,11 +153,12 @@
                 // Code to run each time 'Custom' is selected
                 initCustomSelector = function() {
                     // Set datepicker values depending on previously selected options
-                    var tf = $.reports.getTimeframe();
-                    if (tf.timeframe == 'custom') {
+                    const tf = $.reports.getTimeframe();
+
+                    if (tf.timeframe === 'custom') {
                         from.datepicker('setDate', tf.from ? new Date(tf.from*1000) : null);
                         to.datepicker('setDate', tf.to ? new Date(tf.to*1000) : null);
-                    } else if (tf.timeframe == 'all') {
+                    } else if (tf.timeframe === 'all') {
                         from.datepicker('setDate', null);
                         to.datepicker('setDate', null);
                     } else {
@@ -117,48 +170,57 @@
                 initCustomSelector();
             };
 
-            // Change selection when user clicks on dropdown list item
-            wrapper.children('.s-reports-timeframe-dropdown').on('click', 'ul li:not(.selected)', function() {
-                var li = $(this);
-                var tf = getTimeframeData(li);
-                if (tf.timeframe == 'custom') {
-                    custom_wrapper.show();
-                    initCustomSelector();
-                    setActiveTimeframe(li);
-                } else {
-                    custom_wrapper.hide();
-                    setActiveTimeframe(li);
-                    $('#reportscontent').html('<div class="double-padded block"><i class="icon16 loading"></i></div>');
-                    $.reports.dispatch();
-                }
-            });
+            $dropdown.waDropdown({
+                items: '.menu > li > a',
+                ready($dropdown) {
+                    const { $menu } = $dropdown;
 
-            // Initial selection in dropdown menu
-            var timeframe = $.storage.get('shop/reports/timeframe') || getTimeframeData(wrapper.find('ul li[data-default-choice]:first'));
-            if (timeframe.timeframe == 'custom') {
-                // Delay initialization to allow datepicker locale to set up properly.
-                // Kinda paranoid, but otherwise localization sometimes fail in FF.
-                $(function() {
-                    setTimeout(function() {
+                    // Initial selection in dropdown menu
+                    const data = $.storage.get('shop/reports/timeframe') || getTimeframeData(wrapper.find('ul li[data-default-choice]:first'));
+                    const li = $menu.find(`li[data-timeframe="${data.timeframe}"]`).addClass('selected');
+                    const title = li.children().text();
+                    $dropdown.setTitle(title);
+
+                    // Human-readable period description in page header
+                    if (data.timeframe === 'custom') {
+                        setTimeout(function() {
+                            custom_wrapper.show();
+                            initCustomSelector();
+                            setActiveTimeframe(wrapper.find('ul li[data-timeframe="custom"]'));
+                        }, 100);
+                    } else {
+                        setPeriodDescription(title);
+
+                        const tf = getTimeframeData(li);
+                        if (tf.timeframe == data.timeframe && tf.groupby == data.groupby) {
+                            setActiveTimeframe(li);
+                        }
+                    }
+                },
+                change(dropdown, active) {
+                    const item = $(active).closest('li');
+                    item.addClass('selected').siblings().removeClass('selected');
+
+                    const tf = getTimeframeData(item);
+
+                    if (tf.timeframe === 'custom') {
+                        setPeriodDescription($.wa.locale['Custom range']);
                         custom_wrapper.show();
                         initCustomSelector();
-                        setActiveTimeframe(wrapper.find('ul li[data-timeframe="custom"]'));
-                    }, 100);
-                });
-            } else {
-                wrapper.find('ul li').each(function() {
-                    var li = $(this);
-                    var tf = getTimeframeData(li);
-                    if (tf.timeframe == timeframe.timeframe && tf.groupby == timeframe.groupby) {
-                        setActiveTimeframe(li);
-                        timeframe = null;
-                        return false;
+                        setActiveTimeframe(item);
+                    } else {
+                        custom_wrapper.hide();
+                        setActiveTimeframe(item);
+
+                        $.reports.dispatchWithSpinner();
                     }
-                });
-                if (timeframe) {
-                    setActiveTimeframe(wrapper.find('ul li:first'));
                 }
-            }
+            });
+        },
+
+        dispatchWithSpinner: function(hash) {
+            this.with_spinner = true;
+            this.dispatch(hash);
         },
 
         dispatch: function (hash) {
@@ -223,8 +285,9 @@
             if (!action) {
                 action = 'sales';
             }
-            var hash = '#/' + action + '/';
-            var $li = $('ul.s-reports a[href="' + hash + '"]').parent('li').addClass('selected');
+
+            const hash = '#/' + action + '/';
+            const $li = $('ul.s-reports a[href="' + hash + '"]').closest('li').addClass('selected');
             $li.length && $li.siblings().removeClass('selected');
         },
 
@@ -270,13 +333,25 @@
             return $.map(params_ar, function (item) { return item.key + '=' + item.value; }).join('&');
         },
 
+        preContent: function() {
+            this.with_spinner && this.$content.html(this.loading);
+        },
+
+        initHeaderControlls: function() {
+            this.with_spinner = false;
+            $.reports.initTypeSourceSelector();
+            $.reports.initTimeframeSelector();
+        },
+
         salesAction: function (params) {
-            var action_url = '?module=reports&action=sales'+this.getTimeframeParams();
+            const that = this;
 
-            var params_map = $.reports.parseParams(params);
+            const action_url = '?module=reports&action=sales'+this.getTimeframeParams();
 
-            var redirect = function () {
-                var hash = 'sales/' + $.reports.unparseParams(params_map);
+            const params_map = $.reports.parseParams(params);
+
+            const redirect = function() {
+                const hash = 'sales/' + $.reports.unparseParams(params_map);
                 $.wa.setHash(hash);
             };
 
@@ -285,45 +360,43 @@
                 redirect();
                 return;
             }
+
             if (params_map['details'] && params_map['filter[name]']) {
                 delete params_map['details'];
                 redirect();
             }
 
-            var $storefront_selector = $('#s-reports-custom-controls .storefront-selector');
-            if ($storefront_selector.val()) {
-                params_map['sales_channel'] = $storefront_selector.val();
-            }
+            this.setSalesChannel(params_map);
 
-            var rnd_protect = $.reports.rnd_protect = Math.random();
+            const rnd_protect = $.reports.rnd_protect = Math.random();
+
+            this.preContent();
+
             $.post(action_url, $.reports.unparseParams(params_map), function(r) {
                 if (rnd_protect != $.reports.rnd_protect) {
                     return; // too late, user clicked something else
                 }
-                $('#reportscontent').html(r);
+
+                that.replaceContent(r);
             });
         },
 
-        salesCostsAction: function() {
-            this.setActiveTop('sales');
-            $("#reportscontent").load('?module=reportsmarketingcosts'+this.getTimeframeParams());
-        },
         salesAbtestingAction: function(id) {
             this.setActiveTop('sales');
-            $("#reportscontent").load('?module=reports&action=abtesting'+(id ? '&id='+id : '')+this.getTimeframeParams());
+            this.load('?module=reports&action=abtesting'+(id ? '&id='+id : '')+this.getTimeframeParams());
         },
 
         customersAction: function() {
-            $("#reportscontent").load('?module=reports&action=customers'+this.getTimeframeParams());
+            this.load('?module=reports&action=customers'+this.getTimeframeParams());
         },
 
         cohortsAction: function() {
-            $("#reportscontent").load('?module=reports&action=cohorts'+this.getTimeframeParams());
+            this.load('?module=reports&action=cohorts'+this.getTimeframeParams());
         },
 
         summaryAction: function() {
             this.setActiveTop('summary');
-            $("#reportscontent").load('?module=reportsproducts&action=default&show_sales=1'+this.getTimeframeParams());
+            this.load('?module=reportsproducts&action=default&show_sales=1'+this.getTimeframeParams());
         },
 
         productsAction: function() {
@@ -331,22 +404,44 @@
         },
         productsBestsellersAction: function(params) {
             this.setActiveTop('products');
-            $("#reportscontent").load('?module=reportsproducts&action=default'+this.getTimeframeParams()+(params ? '&'+params : ''));
+            this.load('?module=reportsproducts&action=default'+this.getTimeframeParams()+(params ? '&'+params : ''));
         },
         productsAssetsAction: function() {
             this.setActiveTop('products');
-            var limit = $.storage.get('shop/reports/assets/limit');
-            $("#reportscontent").load('?module=reportsproducts&action=assets'+this.getTimeframeParams()+(limit ? '&limit='+limit : ''));
+            const limit = $.storage.get('shop/reports/assets/limit');
+            this.load('?module=reportsproducts&action=assets'+this.getTimeframeParams()+(limit ? '&limit='+limit : ''));
         },
         productsWhattosellAction: function() {
             this.setActiveTop('products');
-            var limit = $.storage.get('shop/reports/whattosell/limit');
-            var only_sold = $.storage.get('shop/reports/whattosell/only_sold');
-            $("#reportscontent").load('?module=reportsproducts&action=whattosell'+this.getTimeframeParams()+(limit ? '&limit='+limit : '')+(only_sold ? '&only_sold=1' : ''));
+            const limit = $.storage.get('shop/reports/whattosell/limit');
+            const only_sold = $.storage.get('shop/reports/whattosell/only_sold');
+            this.load('?module=reportsproducts&action=whattosell'+this.getTimeframeParams()+(limit ? '&limit='+limit : '')+(only_sold ? '&only_sold=1' : ''));
         },
 
         checkoutflowAction: function() {
-            $("#reportscontent").load('?module=reports&action=checkoutflow'+this.getTimeframeParams());
+            this.load('?module=reports&action=checkoutflow'+this.getTimeframeParams());
+        },
+
+        load: function(path) {
+            const that = this;
+
+            that.preContent();
+            that.$content.load(path, function() {
+                $(document).trigger('wa_loaded');
+                that.initHeaderControlls();
+            });
+        },
+
+        replaceContent: function(html) {
+            this.$content.html(html);
+            this.initHeaderControlls();
+        },
+
+        setSalesChannel: function(obj) {
+            const sales_channel = $('.js-reports-channel-dropdown li.selected').data('value');
+            if (obj && sales_channel) {
+                obj.sales_channel = sales_channel;
+            }
         },
 
         // Helper
@@ -356,13 +451,11 @@
                 groupby: 'days'
             };
 
-            var $storefront_selector = $('#s-reports-custom-controls .storefront-selector');
-            if ($storefront_selector.length && $storefront_selector.val()) {
-                result.sales_channel = $storefront_selector.val();
-            }
+            this.setSalesChannel(result);
 
             return result;
         },
+
         // Helper
         getTimeframeParams: function() {
             return '&' + $.param(this.getTimeframe());
@@ -426,101 +519,6 @@
             $tbody.append($.map(trs, function(o) {
                 return o.tr;
             }));
-        },
-
-        // show/hide list items in #mainmenu
-        initMenuToggle: function(options) {
-            // DOM
-            var $window = $(window),
-                $wrapper = options["$wrapper"],
-                $items = $wrapper.find("> li:not(.js-toggle-menu)"),
-                $toggle = $wrapper.find(".js-toggle-menu");
-
-            // CONST
-            var templates = options["templates"];
-
-            // VARS
-            var is_open = false;
-
-            // ready
-            watch();
-
-            // resize event
-            var resize_timer = 0;
-            $window.on("resize", resizeWatcher);
-            function resizeWatcher() {
-                var is_exist = $.contains(document, $wrapper[0]);
-                if (is_exist) {
-                    clearTimeout(resize_timer);
-                    resize_timer = setTimeout( function() {
-                        watch();
-                    }, 40);
-
-                } else {
-                    $window.off("resize", resizeWatcher);
-                }
-            }
-
-            $toggle.on("click", function (event) {
-                event.preventDefault();
-                var active_class = "is-active";
-
-                is_open = !is_open;
-
-                if (is_open) {
-                    $toggle.find("a").html(templates["active"])
-                    $items.show();
-
-                } else {
-                    $toggle.find("a").html(templates["inactive"]);
-                    watch();
-                }
-            });
-
-            var observer = new MutationObserver( function(mutations) {
-                var changed_inside_wrapper = !!($.contains($wrapper[0], mutations[0].target) || ($wrapper[0] === mutations[0].target));
-                if (!changed_inside_wrapper) {
-                    watch();
-                }
-            });
-
-            observer.observe($wrapper.closest("#mainmenu")[0], {
-                childList: true,
-                attributes: true,
-                subtree: true
-            });
-
-            //
-
-            function watch() {
-                if (is_open) { return false; }
-
-                $wrapper.css("visibility", "hidden");
-                $items.show();
-                $toggle.show();
-
-                var first_offset = $items.first().offset();
-
-                if (isToggleVisible()) {
-                    $toggle.hide();
-                } else {
-                    for (var i = $items.length - 1; i > 0; i--) {
-                        var $item = $($items[i]);
-
-                        $item.hide();
-
-                        if (isToggleVisible()) {
-                            break;
-                        }
-                    }
-                }
-
-                $wrapper.css("visibility", "");
-
-                function isToggleVisible() {
-                    return ( Math.abs($toggle.offset().top - first_offset.top) < 10 );
-                }
-            }
         }
 
     }

@@ -101,7 +101,11 @@ class shopSitemapConfig extends waSitemapConfig
                     $offset = ($n - 1) * $this->url_file_limit - $count_adding;
                 }
                 $count_adding += $offset;
-                $limit = min($this->url_file_limit, $n * $this->url_file_limit - $count_adding);
+                if ($n * $this->url_file_limit < $count_adding) {
+                    $limit = $this->url_file_limit;
+                } else {
+                    $limit = $n * $this->url_file_limit - $count_adding;
+                }
             }
 
             // SQL for products info
@@ -319,7 +323,7 @@ class shopSitemapConfig extends waSitemapConfig
          * @param array $route
          * @return array $urls
          */
-        $plugin_urls = wa()->event(array($this->app_id, 'sitemap'), $route);
+        $plugin_urls = wa()->event(array('shop', 'sitemap'), $route);
         if ($plugin_urls) {
             foreach ($plugin_urls as $urls) {
                 if (!is_array($urls)) {

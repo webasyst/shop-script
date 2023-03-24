@@ -26,8 +26,6 @@
             // INIT
             that.vue_model = that.initVue();
             that.init();
-
-            console.log( that );
         };
 
         Section.prototype.init = function() {

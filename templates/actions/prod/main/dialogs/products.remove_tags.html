@@ -29,9 +29,9 @@
 
                     <div class="s-search-section">
                         <div class="s-field-wrapper">
-                            <input class="s-field js-autofocus wa-small" type="text" v-model="search_string" placeholder="{_w("Enter a value")|escape}">
+                            <input class="s-field js-autofocus small" type="text" v-model="search_string" placeholder="{_w("Enter a value")|escape}">
                             <div class="s-loading-wrapper" v-if="states.is_loading">
-                                <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
+                                <span class="icon top text-light-gray"><i class="fas fa-spinner fa-spin"></i></span>
                             </div>
                         </div>
                     </div>
@@ -49,11 +49,11 @@
 
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked" v-if="tags.length">
+                <button class="button" type="button" v-on:click="save" v-bind:disabled="states.is_locked" v-if="tags.length">
                     <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name">[`Remove`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

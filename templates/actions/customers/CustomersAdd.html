@@ -1,21 +1,22 @@
+<div>
+<h1>
+    <a href="?action=customers" class="back"><i class="fas fa-arrow-circle-left"></i></a>
+    [`New customer`]
+</h1>
 
-<div class="block double-padded">
-    <h1>[`New customer`]</h1>
+<form id="new-customer-form" class="s-order-customer-details" action="?module=customers&action=add">
+    <div class="fields form">
+        <div class="fields-group s-customers-add-block">
+            {$form->html()}
+        </div>
 
-    <form id="new-customer-form" class="s-order-customer-details" action="?module=customers&action=add">
-        <div class="fields form">
-            <div class="field-group s-customers-add-block">
-                {$form->html()}
-            </div>
-
-            <div class="field">
-                <div class="value">
-                    <input id="new-customer-add" type="submit" class="button green" value="[`Add`]">
-                </div>
+        <div class="field">
+            <div class="value">
+                <input id="new-customer-add" type="submit" class="button" value="[`Add`]">
             </div>
         </div>
-    </form>
-
+    </div>
+</form>
 </div>
 
 <script>$(function() { "use strict";
@@ -44,4 +45,3 @@
     {/if}
 
 });</script>
-

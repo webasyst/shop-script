@@ -53,12 +53,14 @@ class shopProductRelatedSaveController extends waJsonController
         $related_model = new shopProductRelatedModel();
         $type = waRequest::post('type');
         $related_product_id = array_map('intval', (array) waRequest::post('product_id'));
+        $max_sort = $related_model->select('MAX(sort) AS `max_sort`')->where('`product_id` = ? AND `type` = ?', (int)$this->product_id, $related_model->escape($type))->fetchField('max_sort');
         foreach ($related_product_id as $product_id) {
             $related_model->replace(array(
-            'product_id' => $this->product_id,
-            'type' => $type,
-            'related_product_id' => $product_id
-        ));
+                'product_id' => $this->product_id,
+                'type' => $type,
+                'related_product_id' => $product_id,
+                'sort' => ++$max_sort,
+            ));
         }
 
     }

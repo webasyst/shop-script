@@ -1,323 +1,493 @@
-<script type="text/javascript" src="{$wa_app_static_url}js/live.dragndrop.js?v={$wa->version()}"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/settings/order_states.js?v={$wa->version()}"></script>
-<script type="text/javascript" src="{$wa_url}wa-content/js/farbtastic/farbtastic.js"></script>
-<link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
+<script src="{$wa_app_static_url}js/live.dragndrop.js?v={$wa->version()}"></script>
+<script src="{$wa_app_static_url}js/settings/order_states.js?v={$wa->version()}"></script>
+<script src="{$wa_url}wa-content/js/pickr/pickr.min.js"></script>
+<link rel="stylesheet" href="{$wa_url}wa-content/js/pickr/themes/classic.min.css">
+<link rel="stylesheet" href="{$wa_url}wa-apps/shop/css/backend/settings/order_states.css?v={$wa->version()}">
 
-{*
- * Sidebar
- *}
-<div class="sidebar left200px s-settings-order-states">
-    <div class="s-inner-sidebar">
-        <ul class="menu-v stack with-icons">
-            {foreach $states as $id => $s}
-                <li class="dr {if $id == $info.id}selected{/if}" id="state-{$id}">
+<div class="flexbox s-settings-order-states">
+    <div class="sidebar overflow-visible s-sidebar-section js-sidebar-section custom-mt-8" id="js-features-settings-sidebar">
+        <div class="s-section-header sidebar-header">
+            {* STATES *}
+            <ul class="menu ui-sortable" id="s-settings-order-states-list">
+                {foreach $states as $id => $s}
+                <li class="dr {if $id == $info.id}selected{/if} rounded" id="state-{$id}">
                     <a href="#/orderStates/{$id}/" style="{$s->getStyle()}">
-                        <i class="icon16 sort count"></i>
-                        <i class="{$s->getOption('icon')}"></i>
-                        <span style="display: inline-block; width: calc(100% - 28px);">{$s->getName()|escape}</span>
+                        {$state_icon = $s->getOption('icon')}
+                        <span class="icon">
+                            <i class="{$wa->shop->convertIcon($state_icon, true)}"></i>
+                        </span>
+                        <span>{$s->getName()|escape}</span>
+                        <span class="count js-sort-handle"><i class="fas fa-grip-vertical text-gray"></i></span>
                     </a>
                 </li>
-            {/foreach}
-            <li class="top-padded small {if $info.id == 'new_state'}selected{/if} s-add-state" id="state-new_state">
-                <a href="#/orderStates/new_state/">
-                    <i class="icon10 add"></i>[`New order state`]
+                {/foreach}
+            </ul>
+            <div class="flexbox vertical custom-ml-12">
+                <a href="#/orderStates/new_state/" class="small">
+                    <span class="icon"><i class="fas fa-plus-circle text-green"></i></span>
+                    <span>[`New order state`]</span>
                 </a>
-            </li>
-            <li class="top-padded small">
-                <a href="[`https://www.shop-script.com/help/28265/order-processing-in-shop-script/`]" target="_blank">
-                    <i class="icon10 info"></i>[`About order statuses and actions`]
+                <div class="box"></div>
+                <a href="[`https://www.shop-script.com/help/28265/order-processing-in-shop-script/`]"
+                    class="small text-gray custom-ml-auto" target="_blank">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="small">[`About order statuses and actions`]</span>
                 </a>
-            </li>
-        </ul>
-    </div>
-</div>
-
-<div class="content left200px s-settings-form blank bordered-left">
-    <div class="block double-padded">
-        {if !$info.original}
-            <div class="float-right">
-                <ul class="menu-h">
-                    <li><a href="?module=settings&action=orderStateDelete" id="s-delete-state"><i class="icon16 delete"></i>[`Delete order state`]</a></li>
-                </ul>
             </div>
-        {/if}
-        <h1>{$info.name|escape}</h1>
+        </div>
     </div>
-    <div class="s-workflow-action-buttons-preview">
-        <ul class="menu-h s-workflow-action-buttons s-order-actions" style="margin-top: 20px;">
-            {foreach $buttons as $id => $b}
-                <li>{$b}</li>
-            {/foreach}
-        </ul>
-    </div>
-    <div class="block double-padded">
-        <div class="fields form">
-            <form id="s-save-order-state" method="post" action="?module=settings&action=orderStateSave&id={$info.id}">
+    <div class="content custom-ml-8">
+        <div class="fields vertical">
+            <div class="fields-group">
+                <div class="flexbox">
+                    <div class="wide">
+                        <h1>{$info.name|escape}</h1>
+                    </div>
 
-                <div class="field-group">
+                    {if !$info.original}
+                    <div class="custom-ml-12">
+                        <button type="button" class="button small rounded light-gray js-delete-state"
+                            data-href="?module=settings&action=orderStateDelete">
+                            <i class="fas fa-trash-alt text-red"></i>
+                            [`Delete order state`]
+                        </button>
+                    </div>
+                    {/if}
+                </div>
+                <div class="actions">
+                    {foreach $buttons as $id => $b}
+                    <div class="action">{$b}</div>
+                    {/foreach}
+                </div>
+            </div>
+        </div>
+
+        <form method="post" action="?module=settings&action=orderStateSave&id={$info.id}" id="s-save-order-state">
+            <div class="fields vertical form">
+                <div class="fields-group">
                     <div class="field">
                         <div class="name">
                             [`Order state name`]
                         </div>
+
                         <div class="value">
-                            <input type="text" name="name" class="bold" value="{if $info.id != 'new_state'}{$info.name|escape}{else}{/if}">
+                            <input type="text" name="name" class="small bold"
+                                value="{if $info.id != 'new_state'}{$info.name|escape}{else}{/if}">
                         </div>
                     </div>
 
                     {if !$info.original}
-                        <div class="field">
-                            <div class="name">
-                                [`State ID`]
-                            </div>
-                            <div class="value">
-                                {if $info.id != 'new_state'}
-                                    <span class="hint">{$info.id|escape}</span>
-                                {else}
-                                    <input type="text" name="new_id" class="small" value="" id="c-state-id">
-                                {/if}
-                            </div>
+                    <div class="field">
+                        <div class="name">
+                            [`State ID`]
                         </div>
+
+                        <div class="value">
+                            {if $info.id != 'new_state'}
+                            <span class="hint">{$info.id|escape}</span>
+                            {else}
+                            <input type="text" name="new_id" class="small" value="" id="c-state-id">
+                            {/if}
+                        </div>
+                    </div>
                     {/if}
 
                     <div class="field">
                         <div class="name">
                             [`Appearance`]
                         </div>
-                        <div class="value">
-                            #<input type="text" name="style[color]" value="{if !empty($info.options.style.color)}{$info.options.style.color|substr:'1'|lower}{/if}" id="s-color" class="short">
-                            <span class="s-color-replacer" id="s-color-replacer">
-                            <i class="icon16 color" style="background: #{$info.options.style.color|substr:'1'|lower};"></i>
-                        </span>
-                            <div id="s-colorpicker" style="display:none;"></div>
-                            <br><br>
 
-                            <label><input type="checkbox" name="style[font-weight]" {if !empty($info.options.style['font-weight'])}checked="checked"{/if} value="bold"> <strong>[`Bold`]</strong></label>
-                            <label><input type="checkbox" name="style[font-style]"   {if !empty($info.options.style['font-style'])}checked="checked"{/if} value="italic"> <em>[`Italic`]</em></label>
+                        <div class="value">
+                            <div class="flexbox middle space-16">
+                                <button class="circle s-color-picker js-color-picker size-32 " {if !empty($info.options.style.color)} style="background-color: {$info.options.style.color|lower}"
+                                    data-color="{$info.options.style.color|lower}" {/if}><i class="fas fa-fill-drip"></i></button>
+
+                                <input type="hidden" name="style[color]"
+                                    value="{if !empty($info.options.style.color)}{$info.options.style.color|substr:'1'|lower}{/if}"
+                                    class="shortest js-color-value">
+                                <div>
+                                    <label>
+                                        <span class="wa-checkbox">
+                                            <input type="checkbox" name="style[font-weight]" {if
+                                                !empty($info.options.style['font-weight'])}checked="checked" {/if} value="bold">
+                                            <span>
+                                                <span class="icon">
+                                                    <i class="fas fa-check"></i>
+                                                </span>
+                                            </span>
+                                        </span>
+                                        <strong>[`Bold`]</strong>
+                                    </label>
+
+                                    <div>
+                                        <label>
+                                            <span class="wa-checkbox">
+                                                <input type="checkbox" name="style[font-style]" {if
+                                                    !empty($info.options.style['font-style'])}checked="checked" {/if}
+                                                    value="italic">
+                                                <span>
+                                                    <span class="icon">
+                                                        <i class="fas fa-check"></i>
+                                                    </span>
+                                                </span>
+                                            </span>
+                                            <em>[`Italic`]</em>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
                     <div class="field">
                         <div class="name">
                             [`Icon`]
                         </div>
+
                         <div class="value">
-                            <ul class="menu-h s-icons">
+                            <ul class="chips custom-my-0 s-icons">
                                 {$state_icon = ''}
                                 {if isset($info.options.icon)}
                                     {$state_icon = str_replace('icon16 ss ', '', $info.options.icon)}
                                 {/if}
                                 {foreach $icons as $icon}
-                                    <li data-icon="{$icon|escape}" {if $icon == $state_icon}class="selected"{/if}>
-                                        <a href="#"><i class="icon16 ss {$icon}"></i></a>
-                                    </li>
+                                <li class="custom-my-4 {if $icon == $state_icon}selected{/if}" data-icon="{$icon|escape}">
+                                    <a href="#" class="js-select-icon">
+                                        <i class="{$wa->shop->convertIcon("icon16 ss `$icon`", true)}"></i>
+                                    </a>
+                                </li>
                                 {/foreach}
                             </ul>
                         </div>
                     </div>
 
                     {if $info['payment_allowed']!==null}
-                        {$_hidden = $info['payment_allowed']}
+                    {$_hidden = $info['payment_allowed']}
 
-                        <div class="field s-payment-section">
-                            <div class="name">[`Payment option availability`]</div>
-                            <div class="value no-shift">
-                                <label>
-                                    <input class="js-checkbox" type="checkbox" name="payment_allowed" value="1" {if $info['payment_allowed']} checked="checked"{/if}>
-                                    [`customers can pay for orders in this state`]
-                                </label>
-                            </div>
-                            <div class="js-hidden value no-shift" style="{if $_hidden}display: none;{/if}">
-                                <textarea class="js-textarea" name="payment_not_allowed_text"  {if $_hidden}disabled{/if}>{$info['payment_not_allowed_text']}</textarea>
-                                <p class="hint">{sprintf('[`Show this message on checkout completion and in customers’ personal accounts if setting “<strong>%s</strong>” is disabled.`]', '[`customers can pay for orders in this state`]')}</p>
+                    <div class="field s-payment-section">
+                        <div class="name">[`Payment option availability`]</div>
+
+                        <div class="value">
+                            <label>
+                                <span class="wa-checkbox">
+                                    <input class="js-checkbox" type="checkbox" name="payment_allowed" value="1" {if
+                                        $info['payment_allowed']} checked="checked" {/if}>
+                                    <span>
+                                        <span class="icon">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    </span>
+                                </span>
+                                [`customers can pay for orders in this state`]
+                            </label>
+
+                            <div class="custom-mt-8 js-hidden" style="{if $_hidden}display: none;{/if}">
+                                <textarea class="small js-textarea" name="payment_not_allowed_text" {if
+                                    $_hidden}disabled{/if}>{$info['payment_not_allowed_text']}</textarea>
+
+                                <div class="hint custom-mt-4">{sprintf('[`Show this message on checkout completion and in customers’ personal accounts if setting “<strong>%s</strong>” is disabled.`]', '[`customers can pay for orders in this state`]')}</div>
                             </div>
                         </div>
+                    </div>
                     {/if}
+
                     <div class="field">
                         <div class="name">
                             [`Allowed actions`]
                         </div>
-                        <div class="s-order-allowed-actions">
+
+                        <div class="value s-order-allowed-actions">
                             {foreach $actions as $id => $a}
-                                {if empty($a.internal)}
-                                    <div class="value no-shift s-order-action{if !in_array($id, $info.actions)} unsortable{/if}"
-                                         data-id="{$id|escape}"
-                                         data-name="{$a.name|default:''|escape}"
-                                         data-description="{$a.options.description|default:''|escape}"
-                                         data-state="{$a.state|default:''|escape}"
-                                         data-link="{if !empty($a.options) && !empty($a.options.position)}1{/if}"
-                                         data-border_color="{if !empty($a.options) && !empty($a.options.border_color)}{$a.options.border_color}{else}dddddd{/if}"
-                                         data-extends="{if !empty($extend_classes[$a.classname])}{$a.extends|default:''|escape}{else}false{/if}"
-                                         data-icon="{if !empty($a.options) && !empty($a.options.icon)}{$a.options.icon}{/if}"
-                                         title="{$a.options.description|default:''|escape}"
-                                    >
-                                        <label>
-                                            <i class="icon16 sort"{if !in_array($id, $info.actions)} style="display: none;"{/if}></i>
-                                            <input type="checkbox" name="action[]" value="{$id|escape}" {if in_array($id, $info.actions)}checked="checked"{/if} {if $id == 'create'}disabled="disabled"{/if}>
-                                            {$a.name|default:''|escape} <span class="hint">{$id|upper}</span>
-                                        </label>
-                                        {if empty($a.original)}
-                                            <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
-                                        {elseif $id == 'message'}
-                                            <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}" id="s-edit-message-action"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
-                                        {/if}
-                                    </div>
-                                {/if}
-                            {/foreach}
-                        </div>
-                        <br>
+                            {if empty($a.internal)}
+                            <div class="s-order-action{if !in_array($id, $info.actions)} unsortable{/if}" data-id="{$id|escape}"
+                                data-name="{$a.name|default:''|escape}"
+                                data-description="{$a.options.description|default:''|escape}"
+                                data-state="{$a.state|default:''|escape}"
+                                data-link="{if !empty($a.options) && !empty($a.options.position)}1{/if}"
+                                data-border_color="{if !empty($a.options) && !empty($a.options.border_color)}{$a.options.border_color}{else}dddddd{/if}"
+                                data-extends="{if !empty($extend_classes[$a.classname])}{$a.extends|default:''|escape}{else}false{/if}"
+                                data-icon="{if !empty($a.options) && !empty($a.options.icon)}{$a.options.icon}{/if}"
+                                title="{$a.options.description|default:''|escape}">
+                                <label>
+                                    <i class="fas fa-grip-vertical text-gray js-sort" {if !in_array($id, $info.actions)}
+                                        style="display: none;" {/if}></i>
 
-                        {*
-                         * Form to create new or modify existing custom action.
-                         *}
-                        <div class="value no-shift s-new-action" style="display:none" title="">
-                            <div class="block double-padded s-new-action-details">
-                                <div class="float-right hidden s-delete-action">
-                                    <ul class="menu-h">
-                                        <li><a href="#"><i class="icon16 delete"></i>[`Delete order action`]</a></li>
-                                    </ul>
-                                </div>
-                                <input type="checkbox" name="new_action[0]" checked="checked" disabled="disabled">
-                                <input type="text" name="new_action_name[0]" value="" placeholder="[`Action name`]" disabled="disabled" class="bold">
-                                <input type="hidden" name="new_action_id[0]" value="" disabled="disabled" class="short">
-                                <div class="fields form width100px">
-                                    <div class="field">
-                                        <textarea name="new_action_description[0]" placeholder="[`Enter a hint, visible only in backend, to describe what your action does and when it should be executed.`]"></textarea>
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`Set order state`]</div>
-                                        <div class="value no-shift">
-                                            {if !empty($states)}
-                                                <select name="new_action_state[0]" disabled="disabled">
-                                                    <option value="">[`Don’t change order state`]</option>
-                                                    {foreach $states as $id => $s}
-                                                        <option value="{$id}">{$s->getName()|escape}</option>
-                                                    {/foreach}
-                                                </select>
-                                            {/if}
-                                        </div>
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`Appearance`]</div>
-                                        <div class="value no-shift">
-                                            <label>
-                                                <input type="radio" name="new_action_link[0]" checked="checked" value="" class="s-action-button"> [`Button`]
-                                            </label>
-                                            #<input type="text" name="new_action_border_color[0]" class="s-color short" value="ddd">
-                                            <span class="s-color-replacer">
-                                            <i class="icon16 color" style="background: #ddd;"></i>
+                                    <span class="wa-checkbox">
+                                        <input type="checkbox" name="action[]" value="{$id|escape}" {if in_array($id,
+                                            $info.actions)}checked="checked" {/if} {if $id=='create' }disabled="disabled" {/if}>
+                                        <span>
+                                            <span class="icon">
+                                                <i class="fas fa-check"></i>
+                                            </span>
                                         </span>
-                                            <div class="s-colorpicker" style="display:none;"></div>
-                                        </div>
-                                        <div class="value no-shift">
-                                            <label>
-                                                <input type="radio" name="new_action_link[0]" value="1" class="s-action-link"> [`Link`]
-                                                <input type="hidden" name="new_action_icon[0]" class="s-action-icon" value="">
-                                            </label>
-                                        </div>
-                                        <div class="value no-shift s-action-icons" style="display:none;">
-                                            <ul class="menu-h">
-                                                {foreach $action_icons as $icon}
-                                                    <li data-icon="{$icon|escape}">
-                                                        <a href="#"><i class="icon16 {$icon}"></i></a>
-                                                    </li>
-                                                {/foreach}
-                                            </ul>
-                                        </div>
-                                    </div>
+                                    </span>
+                                    {$a.name|default:''|escape}
+                                    <span class="hint">{$id|upper}</span>
+                                </label>
 
-                                    <div class="field">
-                                        <div class="name">[`Behavior`]</div>
-                                        <div class="value no-shift">
-                                            <label><input name="new_action_extends[0]" type="radio" value="" checked>&nbsp;[`default`]</label>
+                                {if empty($a.original)}
+                                <a href="#" class="s-edit-action" data-id="{$id}">
+                                    <i class="fas fa-edit"></i>
+                                    [`edit`]
+                                </a>
+                                {elseif $id == 'message'}
+                                <a href="#" class="s-edit-action" data-id="{$id}" id="s-edit-message-action">
+                                    <i class="fas fa-edit"></i>
+                                    [`edit`]
+                                </a>
+                                {/if}
+                            </div>
+                            {/if}
+                            {/foreach}
+
+                            {*
+                            * Form to create new or modify existing custom action.
+                            *}
+                            <div class="s-new-action" style="display: none;">
+                                <div class="s-new-action-details custom-py-12">
+                                    <div class="fields">
+                                        <div class="field">
+                                            <div>
+                                                <div class="flexbox space-12">
+                                                    <label>
+                                                        <span class="wa-checkbox custom-pt-8">
+                                                            <input type="checkbox" name="new_action[0]" checked="checked"
+                                                                disabled="disabled">
+                                                            <span>
+                                                                <span class="icon">
+                                                                    <i class="fas fa-check"></i>
+                                                                </span>
+                                                            </span>
+                                                        </span>
+                                                    </label>
+
+                                                    <div class="width-50">
+                                                        <input type="text" name="new_action_name[0]"
+                                                            class="small bold width-100" value="" placeholder="[`Action name`]"
+                                                            disabled="disabled">
+                                                        <input type="hidden" name="new_action_id[0]" value=""
+                                                            disabled="disabled">
+                                                    </div>
+
+                                                    <div class="hidden js-delete-action">
+                                                        <a href="javascript:void(0);">
+                                                            <i class="fas fa-trash-alt text-red"></i>
+                                                            [`Delete order action`]
+                                                        </a>
+                                                    </div>
+
+                                                </div>
+                                            </div>
                                         </div>
-                                        {foreach $extend_actions as $pattern_id => $pattern_info}
+
+                                        <div class="field">
+                                            <textarea name="new_action_description[0]" class="small width-60"
+                                                placeholder="[`Enter a hint, visible only in backend, to describe what your action does and when it should be executed.`]"></textarea>
+                                        </div>
+
+                                        <div class="field">
+                                            <div class="name">[`Set order state`]</div>
+
                                             <div class="value no-shift">
-                                                <label title="{$pattern_info.description|default:''|escape}"><input name="new_action_extends[0]" type="radio" value="{$pattern_id|escape}">&nbsp;{$pattern_info.name|default:$pattern_id|escape}</label>
-                                                <span class="hint">{$pattern_id|upper}</span>
-                                                {if !empty($pattern_info.options.description)}
-                                                    <span class="hint">{$pattern_info.options.description|escape}</span>
+                                                {if !empty($states)}
+                                                <div class="wa-select small">
+                                                    <select name="new_action_state[0]" disabled="disabled">
+                                                        <option value="">[`Don’t change order state`]</option>
+                                                        {foreach $states as $id => $s}
+                                                        <option value="{$id}">{$s->getName()|escape}</option>
+                                                        {/foreach}
+                                                    </select>
+                                                </div>
                                                 {/if}
                                             </div>
-                                        {/foreach}
-                                    </div>
-                                    <div class="field">
-                                        <div class="name">[`Notifications`]</div>
-                                        <div class="value no-shift s-new-action-hint">
-                                            [`Email and SMS notifications on order actions are configured in “<a href="?action=settings#/notifications/" class="nowrap">Settings → Notifications</a>” section.`]
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="clear-both"></div>
-                            </div>
-                        </div>
 
-                        {*
-                         * Form to edit settings of a built-in 'message' action.
-                         *}
-                        {if !empty($actions.message)}
-                            <div id="s-message-action-editor" class="value no-shift" style="display:none">
-                                <div class="block double-padded s-new-action-details">
-                                    <div class="fields form width100px">
                                         <div class="field">
-                                            <div class="name">[`Sender name`]</div>
-                                            <div class="value no-shift">
-                                                {$message_sender_name = ifset($actions.message.options.sender_name)|escape}
-                                                <label><input type="radio" name="action_options[message][sender_name]" value="general" {if !$message_sender_name || $message_sender_name == 'general'}checked{/if}> [`Store name`] <span class="gray">[`as specified in the “Settings → General settings” section`]</span> </label>
-                                                <br><br>
-                                                <label><input type="radio" name="action_options[message][sender_name]" value="route_params" {if $message_sender_name == 'route_params'}checked{/if}> [`Storefront name`] <span class="gray">[`as specified in the “Storefront → Settings” section for each storefront`]</span> </label>
-                                            </div>
-                                        </div>
-                                        <div class="field">
-                                            <div class="name">[`Template`]</div>
-                                            <div class="value no-shift">
-                                                <textarea name="action_options[message][template]" style="width:100%;">{ifset($actions.message.options.template)|escape}</textarea>
-                                            </div>
-                                            <div class="value no-shift">
-                                                <div class="float-right">
-                                                    <a href="javascript:void(0)" class="inline-link template-vars-link"><i class="icon16 script"></i><b><i>[`Cheat sheet`]</i></b><i class="icon10 darr-tiny"></i></a>
+                                            <div class="name">[`Appearance`]</div>
+
+                                            <div class="value">
+                                                <div class="flexbox middle space-16">
+                                                    <button class="circle s-color-picker js-color-picker size-32"
+                                                        style="background-color: #8899aa;" data-color="#8899aa" style="background-color: #8899aa;"><i
+                                                            class="fas fa-fill-drip"></i></button>
+                                                    <input type="hidden" name="new_action_border_color[0]"
+                                                        class="shortest js-color-value" value="8899aa">
+                                                    <div>
+                                                        <label>
+                                                            <span class="wa-radio">
+                                                                <input type="radio" name="new_action_link[0]" checked="checked"
+                                                                    value="" class="s-action-button">
+                                                                <span></span>
+                                                            </span>
+                                                            [`Button`]
+                                                        </label>
+
+                                                        <div>
+                                                            <label>
+                                                                <span class="wa-radio">
+                                                                    <input type="radio" name="new_action_link[0]" value="1"
+                                                                        class="s-action-link">
+                                                                    <span></span>
+                                                                </span>
+                                                                [`Link`]
+                                                                <input type="hidden" name="new_action_icon[0]"
+                                                                    class="s-action-icon" value="">
+                                                            </label>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="clear-both"></div>
+
+                                                <div class="custom-mt-8 s-action-icons" style="display: none;">
+                                                    <ul class="chips custom-my-0">
+                                                        {foreach $action_icons as $icon}
+                                                        <li class="custom-my-4" data-icon="{$icon|escape}">
+                                                            <a href="#"><i class="{$wa->shop->convertIcon("icon16 `$icon`", true)}"></i></a>
+                                                        </li>
+                                                        {/foreach}
+                                                    </ul>
+                                                </div>
                                             </div>
-                                            <div class="hidden template-vars-wrapper">
-                                                {include file="./SettingsOrderStatesActionTemplateHelp.html" inline}
+                                        </div>
+
+                                        <div class="field">
+                                            <div class="name">[`Behavior`]</div>
+
+                                            <div class="value">
+                                                <label>
+                                                    <span class="wa-radio">
+                                                        <input type="radio" name="new_action_extends[0]" value="" checked>
+                                                        <span></span>
+                                                    </span>
+                                                    [`default`]
+                                                </label>
+
+                                                {foreach $extend_actions as $pattern_id => $pattern_info}
+                                                <div>
+                                                    <label title="{$pattern_info.description|default:''|escape}">
+                                                        <span class="wa-radio">
+                                                            <input type="radio" name="new_action_extends[0]"
+                                                                value="{$pattern_id|escape}">
+                                                            <span></span>
+                                                        </span>
+                                                        {$pattern_info.name|default:$pattern_id|escape}
+                                                    </label>
+
+                                                    <span class="hint custom-ml-4">{$pattern_id|upper}</span>
+
+                                                    {if !empty($pattern_info.options.description)}
+                                                    <span
+                                                        class="hint custom-ml-4">{$pattern_info.options.description|escape}</span>
+                                                    {/if}
+                                                </div>
+                                                {/foreach}
+                                            </div>
+                                        </div>
+
+                                        <div class="field">
+                                            <div class="name">[`Notifications`]</div>
+
+                                            <div class="s-new-action-hint">
+                                                [`Email and SMS notifications on order actions are configured in “<a href="?action=settings#/notifications/" class="nowrap">Settings → Notifications</a>” section.`]
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="clear-both"></div>
                                 </div>
                             </div>
-                        {/if}
 
-                        <div class="value no-shift">
-                            <a href="#" class="inline-link" id="s-add-action">
-                                <i class="icon16 add"></i><b><i>[`Add custom action`]</i></b>
-                            </a>
+                            {*
+                            * Form to edit settings of a built-in 'message' action.
+                            *}
+                            {if !empty($actions.message)}
+                            <div id="s-message-action-editor" class="custom-mt-12" style="display: none;">
+                                <div class="fields">
+                                    <div class="field">
+                                        <div class="name">[`Sender name`]</div>
+
+                                        <div class="value">
+                                            {$message_sender_name = ifset($actions.message.options.sender_name)|escape}
+                                            <label>
+                                                <span class="wa-radio">
+                                                    <input type="radio" name="action_options[message][sender_name]"
+                                                        value="general" {if !$message_sender_name ||
+                                                        $message_sender_name=='general' }checked{/if}>
+                                                    <span></span>
+                                                </span>
+                                                [`Store name`]
+                                                <div class="gray small">[`as specified in the “Settings → General settings” section`]</div>
+                                            </label>
+
+                                            <div class="custom-mt-4">
+                                                <label>
+                                                    <span class="wa-radio">
+                                                        <input type="radio" name="action_options[message][sender_name]"
+                                                            value="route_params" {if $message_sender_name=='route_params'
+                                                            }checked{/if}>
+                                                        <span></span>
+                                                    </span>
+                                                    [`Storefront name`]
+                                                    <div class="gray small">[`as specified in the “Storefront → Settings” section for each storefront`]</div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="field">
+                                        <div class="name">[`Template`]</div>
+
+                                        <div class="value">
+                                            <textarea name="action_options[message][template]"
+                                                class="small width-100">{ifset($actions.message.options.template)|escape}</textarea>
+
+                                            <div class="custom-mt-4">
+                                                <a href="#" class="template-vars-link">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    [`Cheat sheet`]
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="template-vars-wrapper custom-mb-16" style="display: none;">
+                                        {include file="./SettingsOrderStatesActionTemplateHelp.html" inline}
+                                    </div>
+                                </div>
+                            </div>
+                            {/if}
+                        </div>
+                        <div class="custom-mt-12">
+                            <button type="button" class="button small rounded light-gray js-add-action">
+                                <i class="fas fa-plus-circle text-green"></i>
+                                [`Add custom action`]
+                            </button>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="field-group">
-                    <div class="field">
-                        <div class="value">
-                            <input type="submit" class="button green" value="[`Save`]"  id="s-settings-order-states-submit">
-                            <i class="icon16 loading" style="display:none;"></i>
-                            <i class="icon16 yes" style="display:none;"></i>
-                            <i class="icon16 no" style="display:none;"></i>
-                        </div>
-                    </div>
-                </div>
+            <div class="bottombar sticky s-settings-fixed-bottombar">
+                <button type="submit" class="button green js-settings-order-states-submit">
+                    [`Save`]
+                    <span class="loading" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="yes" style="display: none;"><i class="fas fa-check-circle"></i></span>
+                    <span class="no" style="display: none;"><i class="fas fa-ban"></i></span>
+                </button>
                 {$wa->csrf()}
-            </form>
-        </div>
+            </div>
+        </form>
+
     </div>
-    <div class="clear"></div>
 </div>
-<script type="text/javascript">
+<script>
     $.wa.locale = $.extend($.wa.locale || {}, {
-        "Order action will be deleted. Are you sure?": "[`Order action will be deleted. Are you sure?`]"
+        "Order action will be deleted. Are you sure?": "[`Order action will be deleted. Are you sure?`]",
+        "ok": "[`Ok`]"
     });
+
     document.title = "[`Order States`] — {$wa->accountName(false)|escape:javascript}";
+
     $.settings.orderStatesInit({
         id: "{$info.id}",
         edit_actions_map: {$edit_actions_map|json_encode}
     });
+
 </script>

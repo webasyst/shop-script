@@ -2903,6 +2903,13 @@
                     });
                 }
 
+                if (window.jstz) {
+                    result.push({
+                        name: "confirm[timezone]",
+                        value: window.jstz.determine().name()
+                    });
+                }
+
                 var errors = that.scope.validate(that.$wrapper, render_errors);
                 if (errors.length) {
                     result.errors = errors;
@@ -3585,8 +3592,8 @@
 
             var ready_promise = that.$wrapper.data("ready");
             ready_promise.resolve(that);
-            that.trigger("ready", that);
 
+            that.trigger("ready", that);
             that.$wrapper.on("region_change", onRegionChange);
             function onRegionChange() {
                 var data = that.getFormData({

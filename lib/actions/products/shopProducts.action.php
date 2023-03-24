@@ -64,8 +64,6 @@ class shopProductsAction extends shopProductListAction
             $order = null;
         }
 
-        shopHelper::setChapter('old_chapter');
-
         $this->assign(array(
             'lazy_loading'                    => $lazy_loading,
             'products'                        => self::formatProducts($products),

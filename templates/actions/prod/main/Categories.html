@@ -4,12 +4,12 @@
     [
         "name" => _w("Static"),
         "value" => "0",
-        "icon_html" => "<span class=\"icon size-14 shift-inherit color-gray-light\" v-bind:key=\"'fa-folder'\"><i class=\"fas fa-folder\"></i></span>"
+        "icon_html" => "<span class=\"icon size-14 shift-inherit text-light-gray\" v-bind:key=\"'fa-folder'\"><i class=\"fas fa-folder\"></i></span>"
     ],
     [
         "name" => _w("Dynamic"),
         "value" => "1",
-        "icon_html" => "<span class=\"icon size-18 shift-2 color-gray-light\" v-bind:key=\"'fa-folder'\"><svg><use xlink:href=\"{$_sprite_url}#folder-dynamic\"></use></svg></span>"
+        "icon_html" => "<span class=\"icon size-18 shift-2 text-light-gray\" v-bind:key=\"'fa-folder'\"><svg><use xlink:href=\"{$_sprite_url}#folder-dynamic\"></use></svg></span>"
     ]
 ]}
 
@@ -105,7 +105,7 @@
              v-bind:data-id="category.id"
              v-bind:key="category.id">
             <div class="s-column s-column-toggle">
-                <div class="s-toggle-wrapper color-gray-light"
+                <div class="s-toggle-wrapper text-light-gray"
                      draggable="true"
                      v-bind:class="{ 'cursor-move js-category-move-toggle' : !root_states.move_locked }">
                     <span class="s-icon icon size-14"
@@ -126,26 +126,26 @@
                         </div>
 
                         <div class="s-action s-expand-toggle" v-on:click.prevent="extendCategory" v-bind:style="{ 'visibility' : (category.categories.length ? '' : 'hidden' )}">
-                            <span class="s-icon icon size-18 color-gray-light"
+                            <span class="s-icon icon size-18 text-light-gray"
                                   v-bind:key="'fa-caret-right'"
                                   v-if="!category.states.expanded"><i class="fas fa-caret-right"></i></span>
-                            <span class="s-icon icon size-18 color-gray-light"
+                            <span class="s-icon icon size-18 text-light-gray"
                                   v-bind:key="'fa-caret-down'"
                                   v-if="category.states.expanded"><i class="fas fa-caret-down"></i></span>
                         </div>
                         <div class="s-action">
                             <template v-if="!states.status_locked">
-                                <span class="s-icon icon size-18 color-blue"
+                                <span class="s-icon icon size-18 text-blue"
                                       v-if="category.states.visible"
                                       v-bind:key="'fa-eye'"
                                       v-on:click.prevent="changeStatus"><i class="far fa-eye"></i></span>
-                                <span class="s-icon icon size-18 color-gray-light"
+                                <span class="s-icon icon size-18 text-light-gray"
                                       v-if="!category.states.visible"
                                       v-bind:key="'fa-eye-slash'"
                                       v-on:click.prevent="changeStatus"><i class="far fa-eye-slash"></i></span>
                             </template>
                             <template v-else>
-                                <span class="s-icon icon size-18 color-gray"
+                                <span class="s-icon icon size-18 text-gray"
                                       v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                             </template>
                         </div>
@@ -153,14 +153,14 @@
                     <div class="s-field-wrapper wide">
                         <div class="s-field-icon">
                             <template v-if="states.name_locked">
-                                <span class="s-icon icon size-14 color-gray" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                                <span class="s-icon icon size-14 text-gray" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                             </template>
                             <template v-else>
                                 <template v-if="category.type === '0'">
-                                    <span class="s-icon icon size-14 color-gray-light" v-bind:key="'fa-folder'"><i class="fas fa-folder"></i></span>
+                                    <span class="s-icon icon size-14 text-light-gray" v-bind:key="'fa-folder'"><i class="fas fa-folder"></i></span>
                                 </template>
                                 <template v-else>
-                                    <span class="s-icon icon size-18 color-gray-light" v-bind:key="'fa-folder'">
+                                    <span class="s-icon icon size-18 text-light-gray" v-bind:key="'fa-folder'">
                                         <svg><use xlink:href="{$_sprite_url}#folder-dynamic"></use></svg>
                                     </span>
                                 </template>
@@ -193,26 +193,30 @@
             <div class="s-column s-column-space width-auto"></div>
             <div class="s-column s-column-actions">
                 <div class="s-actions-list">
+                    {if $wa->userRights('setscategories')}
                     <div class="s-action animate" v-on:click.prevent="edit" data-tooltip-id="category_edit">
-                        <span class="s-icon icon size-14" v-if="!states.edit_locked" v-bind:key="'fa-pen'"><i class="fas fa-pen"></i></span>
+                        <span class="s-icon icon size-14 text-blue" v-if="!states.edit_locked" v-bind:key="'fa-pen'"><i class="fas fa-pen"></i></span>
                         <span class="s-icon icon size-14" v-else v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                     </div>
+                    {/if}
                     <div class="s-action animate" v-on:click.prevent="categoryView" v-if="!category_view_url" data-tooltip-id="category_link">
-                        <span class="s-icon icon size-14" v-if="!states.view_locked" v-bind:key="'fa-external-link-square-alt'"><i class="fas fa-external-link-square-alt"></i></span>
+                        <span class="s-icon icon size-14 text-blue" v-if="!states.view_locked" v-bind:key="'fa-external-link-square-alt'"><i class="fas fa-external-link-square-alt"></i></span>
                         <span class="s-icon icon size-14" v-else v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                     </div>
                     <a v-bind:href="category_view_url" target="_blank" class="s-action animate" v-if="category_view_url">
-                        <span class="s-icon icon size-14"><i class="fas fa-external-link-square-alt"></i></span>
+                        <span class="s-icon icon size-14 text-blue"><i class="fas fa-external-link-square-alt"></i></span>
                     </a>
                     {*
                     <div class="s-action animate" v-on:click.prevent="categoryClone">
-                        <span class="s-icon icon size-14"><i class="far fa-clone"></i></span>
+                        <span class="s-icon icon size-14 text-yellow"><i class="far fa-clone"></i></span>
                     </div>
                     *}
+                    {if $wa->userRights('setscategories')}
                     <div class="s-action animate" v-on:click.prevent="categoryDelete" data-tooltip-id="category_delete">
-                        <span class="s-icon icon size-14" v-if="!states.delete_locked" v-bind:key="'fa-trash-alt'"><i class="far fa-trash-alt"></i></span>
+                        <span class="s-icon icon size-14 text-red" v-if="!states.delete_locked" v-bind:key="'fa-trash-alt'"><i class="far fa-trash-alt"></i></span>
                         <span class="s-icon icon size-14" v-else v-bind:key="'fa-spinner'" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                     </div>
+                    {/if}
                 </div>
             </div>
         </div>
@@ -227,14 +231,14 @@
 {capture assign="_component_category_sorting"}
     <div class="vue-component-category-sorting">
         <div class="s-locked-message" v-show="states.sort_locked">
-            <span class="s-icon icon size-16"><i class="fas fa-spinner fa-spin"></i></span>
+            <span class="s-icon icon size-12"><i class="fas fa-spinner fa-spin"></i></span>
         </div>
         <div class="flexbox middle space-8" v-show="!states.sort_locked">
             <div class="dropdown js-dropdown">
-                <button class="dropdown-toggle wa-button wa-small s-square-field" type="button">{ { active_option.name } }</button>
+                <button class="dropdown-toggle button small s-square-field nowrap" type="button" v-bind:title="active_option.name">{ { active_option.name } }</button>
                 <div class="dropdown-body">
                     <template v-for="option in options">
-                        <div class="dropdown-item"
+                        <div class="dropdown-item" v-if="option.value !== '' || category.include_sub_categories === false"
                              v-on:click.prevent="change(option)"
                              v-bind:class="{ 'selected' : (option.value === active_option.value) }">
                             <span class="s-label" v-bind:data-value="option.value">{ { option.name } }</span>
@@ -243,7 +247,7 @@
                 </div>
             </div>
             <template v-if="category.sort_products === ''">
-                <span class="link" v-on:click.prevent="setup">[`configure`]</span>
+                <span class="icon text-blue size-12 cursor-pointer" v-on:click.prevent="setup" title="[`configure`]"><i class="fas fa-cog"></i></span>
             </template>
         </div>
     </div>
@@ -253,13 +257,13 @@
 {capture assign="_component_category_filters"}
     <div class="vue-component-category-filters">
         <div v-if="states.locked">
-            <span class="s-icon icon"><i class="fas fa-spinner fa-spin"></i></span>
+            <span class="s-icon icon size-12"><i class="fas fa-spinner fa-spin"></i></span>
         </div>
         <div class="flexbox middle space-8" v-else>
             <component-switch v-model="category.allow_filter" v-on:change="onChange" v-bind:key="keys.switch"></component-switch>
             <template v-if="category.allow_filter">
                 <span class="s-name">[`Category is available`]</span>
-                <span class="link" v-on:click.prevent="setup">[`configure`]</span>
+                <span class="icon text-blue size-12 cursor-pointer" v-on:click.prevent="setup" title="[`configure`]"><i class="fas fa-cog"></i></span>
             </template>
             <template v-else>
                 <span class="s-name">[`Category is unavailable`]</span>
@@ -272,7 +276,7 @@
 {capture assign="_component_dropdown_storefronts"}
     <div class="vue-component-dropdown-storefronts">
         <div class="dropdown" v-show="!states.locked">
-            <button class="dropdown-toggle wa-button wa-small s-square-field" type="button">{ { value.length ? '{_w("Selected storefronts")|escape} ('+value.length+')' : '{_w("All storefronts")|escape}' } }</button>
+            <button class="dropdown-toggle button small s-square-field nowrap" type="button">{ { value.length ? '{_w("Selected storefronts")|escape} ('+value.length+')' : '{_w("All storefronts")|escape}' } }</button>
             <div class="dropdown-body right">
                 <div class="s-options-section">
                     <div class="s-options-group">
@@ -308,7 +312,7 @@
                 </div>
 
                 <div class="dropdown-footer">
-                    <button class="wa-button wa-small gray-light" type="button" v-on:click.prevent="save">[`Apply`]</button>
+                    <button class="button small gray-light" type="button" v-on:click.prevent="save">[`Apply`]</button>
                 </div>
             </div>
         </div>
@@ -352,7 +356,7 @@
 {capture assign="_component_dropdown_categories_sorting"}
     <div class="vue-component-categories-sorting">
         <div class="dropdown js-dropdown">
-            <button class="dropdown-toggle wa-button wa-small transparent" type="button">[`Sort by`]</button>
+            <button class="dropdown-toggle button small outlined" type="button">[`Sort by`]</button>
             <div class="dropdown-body">
                 <div class="dropdown-item" v-on:click="change('name ASC')">
                     <span class="s-label">[`Order alphabetically in direct order <span class="nowrap">(A—Z)</span>`]</span>
@@ -408,7 +412,6 @@
 
 {* template will update components array *}
 {include file="./components/main.html" scope="parent" inline}
-{include file="./dialogs/callback.html" scope="parent" inline}
 
 <div class="s-categories-page" id="js-categories-page">
     <div class="s-page-wrapper" id="js-vue-section" style="visibility: hidden;">
@@ -417,11 +420,13 @@
                 <div class="flexbox full-width">
                     <div class="s-title-wrapper flexbox middle space-12">
                         <h1 class="s-title">[`Categories`]</h1>
-                        <button class="wa-button flexbox middle" type="button" v-on:click.prevent="categoryAdd" v-bind:disabled="states.create_locked">
+                        {if $wa->userRights('setscategories')}
+                        <button class="button flexbox middle" type="button" v-on:click.prevent="categoryAdd" v-bind:disabled="states.create_locked">
                             <span class="icon size-12" v-if="!states.create_locked" v-bind:key="'plus'"><svg><use xlink:href="{$_sprite_url}#plus"></use></svg></span>
                             <span class="icon size-12" v-else v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                             <span class="s-name">[`new category`]</span>
                         </button>
+                        {/if}
 
                         <div class="s-plugins-section-header-left">
                             <!-- plugin hook: 'backend_prod_categories.header_left' -->
@@ -431,19 +436,6 @@
                     </div>
 
                     <div class="flexbox middle space-20">
-                        <div class="s-support-section">
-                            <button class="s-button wa-button rounded pink animation-pulse" type="button" v-on:click.prevent="showCallbackDialog">
-                                <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
-                                <span class="s-name">[`How do you like the new products section?`]</span>
-                            </button>
-                        </div>
-
-                        <div class="s-plugins-section-header-right">
-                            <!-- plugin hook: 'backend_prod_categories.header_right' -->
-                            {* @event backend_prod_categories.%plugin_id%.header_right *}
-                            {if !empty($backend_prod_categories)}{foreach $backend_prod_categories as $_}{ifset($_, 'header_right', '')}{/foreach}{/if}
-                        </div>
-
                         <div class="s-categories-sorting-section flexbox middle space-12">
                             <div class="s-description">[`Warning: the sort order selected in this section corresponds to the category sorting in the storefront.`]</div>
                             <div class="s-dropdown-wrapper">
@@ -518,9 +510,7 @@
                         "category_filter_change" : "{$wa_app_url}?module=prod&action=categoryChangeFilter",
 
                         "category_view"          : "{$wa_app_url}?module=prod&action=categoryView",
-                        "category_get_urls"      : "{$wa_app_url}?module=prod&action=categoryGetUrls",
-
-                        "callback_submit"        : "{$wa_app_url}?module=prod&action=feedback"
+                        "category_get_urls"      : "{$wa_app_url}?module=prod&action=categoryGetUrls"
                     },
 
                     categories            : {$categories|json_encode},

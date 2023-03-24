@@ -1,0 +1,126 @@
+{$container_id = uniqid('s-reports-order-item-list-')}
+<div id="{$container_id}">
+    {if $orders}
+        <table class="light s-reports-order-item-list" style="margin-left: 0;">
+            {foreach $orders as $order}
+                {foreach $order.items as $item}
+                    {if $item.type === 'product'}
+                        <tr data-id="{$item.id}">
+                            <td class="min-width valign-top">
+                                {if !empty($item.product) && !empty($item.product.image_id)}
+                                    {$wa->shop->productImgHtml($item.product, '48x48')}
+                                {elseif !empty($item.image_id)}
+                                    {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48')}
+                                {else}
+                                    <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">
+                                {/if}
+                            </td>
+                            <td>
+                                <a href="?action=products#/product/{$item.product_id}/">{$item.name}</a>
+                            </td>
+                            <td>&times; {$item.quantity}</td>
+                            <td>{$order.create_datetime|wa_date:'humandatetime'}</td>
+                        </tr>
+                    {/if}
+                {/foreach}
+            {/foreach}
+        </table>
+
+        <div class="lazyloading-wrapper">
+            <div class="lazyloading-progress-string"></div><br>
+            <a href="javascript:void(0);" class="lazyloading-link" {if $already_loaded_count >= $total_count}style="display:none;"{/if}>
+                [`Show more`]
+            </a>
+            <span class="lazyloading-progress" style="display:none">
+                <i class="icon16 loading"></i> [`Loading`]
+                <span class="lazyloading-chunk"></span>
+            </span>
+        </div>
+
+        <script>
+            $(function () {
+                var container = $('#{$container_id}');
+                var table = $('.s-reports-order-item-list', container);
+
+                {if !$disabled_lazyload && $already_loaded_count < $total_count}
+
+                    (function () {
+                        var offset = {$already_loaded_count};
+                        var total_count = {$total_count};
+                        var url = '?module=reports&action=orderItemList';
+                        var data_params = {
+                            disabled_lazyload: 1,
+                            report_type: "{$report_type|default:''}",
+                            filter: {$filter|json_encode},
+                            sales_channel: "{$sales_channel}",
+                            timerange: {$timerange|json_encode}
+                        };
+
+                        if (offset < total_count) {
+                            container.lazyLoad({
+                                state: 'wake',
+                                load: function() {
+
+                                    container.lazyLoad('sleep');
+                                    if (container.is(':hidden')) {
+                                        container.lazyLoad('wake');
+                                        return;
+                                    }
+
+                                    $('.lazyloading-link', container).hide();
+                                    $('.lazyloading-progress', container).show();
+
+                                    data_params.offset = offset;
+                                    data_params.total_count = total_count;
+
+                                    $.get(url, data_params, function(data) {
+
+                                        var tmp = $('<div class="s-tmp-block" style="display: none;"></div>');
+                                        container.append(tmp);
+                                        tmp.append(data);
+
+                                        var list = tmp.find('table tbody tr');
+
+                                        if (list.length) {
+                                            offset += list.length;
+                                            table.append(list);
+                                            if (offset >= total_count) {
+                                                container.lazyLoad('stop');
+                                                $('.lazyloading-progress', container).hide();
+                                            } else {
+                                                container.lazyLoad('wake');
+                                                $('.lazyloading-link', container).show();
+                                            }
+                                        } else {
+                                            container.lazyLoad('stop');
+                                            $('.lazyloading-progress', container).hide();
+                                        }
+
+                                        $.each(['lazyloading-progress-string', 'lazyloading-chunk'], function (i, clz) {
+                                            var el = tmp.find('.' + clz);
+                                            container.find('.' + clz).not(el).replaceWith(el);
+                                        });
+
+                                        tmp.remove();
+                                        container.remove('s-tmp-block');
+
+                                    });
+                                }
+                            });
+                            container.off('click', '.lazyloading-link').on('click', '.lazyloading-link', function() {
+                                container.lazyLoad('force');
+                                return false;
+                            });
+                        }
+                    })();
+
+                {/if}
+
+
+            });
+        </script>
+
+    {else}
+        <p>[`No orders`]</p>
+    {/if}
+</div>

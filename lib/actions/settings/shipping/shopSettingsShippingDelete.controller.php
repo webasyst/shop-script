@@ -18,6 +18,8 @@ class shopSettingsShippingDeleteController extends waJsonController
 
                 $this->logAction('shipping_plugin_delete', $log_params);
 
+                shopSettingsShippingSaveController::disableShipping();
+
             } else {
                 throw new waException("Shipping plugin {$plugin_id} not found", 404);
             }

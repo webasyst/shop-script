@@ -88,28 +88,44 @@ class shopRangeValue implements ArrayAccess
     }
 
     /**
+     * https://www.php.net/manual/ru/migration81.incompatible.php#migration81.incompatible.core.type-compatibility-internal
+     *
      * @param mixed $offset
      * @return boolean true on success or false on failure.
      */
+    #[ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return in_array($offset, array('value', 'units', 'compare')) || isset($this->{$offset});
     }
 
-
+    /**
+     * @param $offset
+     * @return array|mixed|string|null
+     */
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->__get($offset);
 
     }
 
-
+    /**
+     * @param $offset
+     * @param $value
+     * @return void
+     */
+    #[ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
 
     }
 
-
+    /**
+     * @param $offset
+     * @return void
+     */
+    #[ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
 

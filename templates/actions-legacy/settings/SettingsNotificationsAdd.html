@@ -1,0 +1,227 @@
+<h1>[`Add custom notification`]</h1>
+
+<form id="notification-form" method="post" action="?module=settings&action=notificationsSave">
+<div class="fields form">
+
+    <!-- hook -->
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Event`]</div>
+            <div class="value no-shift">
+                <select id="n-events" name="data[event]">
+                    <option value="" selected></option>
+                    {foreach $events as $event_id => $event}
+                    <option value="{$event_id}">{$event.name|escape}</option>
+                    {/foreach}
+                </select>
+            </div>
+            <div class="value hint" id="n-description">
+                <!-- description placeholder -->
+            </div>
+        </div>
+    </div>
+
+    <div id="notifications-settings-content" style="display:none">
+    <!-- basic notification info -->
+    <div class="field-group">
+
+        <div class="field">
+            <div class="name">[`Notification name`]</div>
+            <div class="value">
+                <input id="n-name" name="data[name]" type="text" class="bold" value="">
+                <br>
+                <span class="hint">[`This name is for your convenience only. It will never be shown to customers.`]</span>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">[`Transport`]</div>
+            {foreach $transports as $t_id => $t}
+            <div class="value no-shift">
+                <label>
+                    <input class="transport" {if $t@first}checked{/if} type="radio" name="data[transport]" value="{$t_id}" {if $t_id == 'sms' && !$availability_sms_plugins}disabled{/if}>
+                    <i class="icon16 {$t.icon}"></i>{$t.name}
+                    {if $t_id == 'sms' && !$availability_sms_plugins}
+                        <p class="hint">[`Install an SMS plugin via Installer to be able to send SMS notifications.`]</p>
+                    {/if}
+                </label>
+            </div>
+            {/foreach}
+        </div>
+        <div class="field">
+            <div class="name">[`Enabled`]</div>
+            <div class="value no-shift">
+                <input type="checkbox" name="data[status]" value="1" checked>
+            </div>
+        </div>
+    </div>
+
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Order source`]</div>
+            <div class="value no-shift">
+                <ul class="s-fields-list menu-v">
+                    <li class="s-radio-wrapper is-active">
+                        <label class="s-radio-label">
+                            <input class="s-radio js-type-group-field" type="radio" name="data[all_sources]" value="1" checked>
+                            <span class="s-text bold">[`All storefronts`]</span>
+                        </label>
+                    </li>
+                    <li class="s-radio-wrapper">
+                        <label class="s-radio-label">
+                            <input class="s-radio js-type-group-field" type="radio" name="data[all_sources]" value="0">
+                            <span class="s-text">[`Selected only`]</span>
+                        </label>
+
+                        <ul class="s-checkbox-list menu-v" style="margin-left: 18px; display: none;">
+                            <li class="s-checkbox-wrapper">
+                                <label>
+                                    <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources_all]">
+                                    <span class="s-text bold">[`Select all`]</span>
+                                </label>
+                            </li>
+                            <li class="s-checkbox-wrapper">
+                                <label>
+                                    <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="backend">
+                                    <span class="s-text">[`Backend orders`]</span>
+                                </label>
+                            </li>
+                            {foreach $routes as $domain => $domain_routes}
+                                {foreach $domain_routes as $route}
+                                    {$url = $domain|cat:"/":$route.url}
+                                    <li class="s-checkbox-wrapper">
+                                        <label>
+                                            <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="{$url}">
+                                            <span class="s-text" style="line-break: anywhere;">{$url}</span>
+                                        </label>
+                                        {if isset($active_domains.$domain) && !empty($active_domains.$domain)}
+                                            <div class="s-sublist-title">[`Mirror sites:`]</div>
+                                            <ul class="s-sublist">
+                                                {foreach $active_domains.$domain as $mirror}
+                                                    {$mirror_url = $mirror|cat:"/":$route.url}
+                                                    <li class="s-checkbox-wrapper s-sublist-item">
+                                                        <label>
+                                                            <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="{$mirror_url}">
+                                                            <span class="s-text" style="line-break: anywhere;">{$mirror_url}</span>
+                                                        </label>
+                                                    </li>
+                                                {/foreach}
+                                            </ul>
+                                        {/if}
+                                    </li>
+                                {/foreach}
+                            {/foreach}
+                        </ul>
+                    </li>
+                </ul>
+                <p class="hint">[`Notification will be sent only for orders placed via the selected source.`]</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $("#n-events").change(function () {
+            $("#n-name").val($(this).children(':selected').html());
+        }).change();
+    </script>
+
+    {foreach $transports as $t_id => $t}
+    <div id="{$t_id}-content" {if !$t@first}style="display:none"{/if} class="field-group transport-content">
+        {include file="templates/actions-legacy/settings/SettingsNotifications.`$t_id`.html" inline}
+    </div>
+    {/foreach}
+
+
+    {include file="templates/actions-legacy/settings/SettingsNotificationsHelp.html" inline}
+    </div>
+
+</div>
+{$wa->csrf()}
+</form>
+<script type="text/javascript">
+    $(function () {
+        var notification_templates = [];
+        {foreach $templates as $event => $t}
+        notification_templates['{$event}'] = [{json_encode($t.subject)}, {json_encode($t.body)}, {json_encode($t.sms)}, {json_encode($t.description)}];
+        {/foreach}
+        $("#n-events").change(function () {
+            var e = $(this).val();
+            if (e) {
+                $("#notifications-settings-content").show();
+
+                var t = notification_templates[e] || notification_templates['order'];
+                $("#email-content .subject").val(t[0]);
+
+                $("#n-description").text(t[3] || '');
+
+                var email_body = $('#n-email-body');
+                email_body.val(t[1]).change();
+                email_body.data('wa_editor').getSession().setValue(email_body.val());
+
+                var sms_text = $("#n-sms-text");
+                sms_text.val(t[2]).change();
+                sms_text.data('wa_editor').getSession().setValue(sms_text.val());
+
+                $('#n-send-button').removeClass('yellow').addClass('green');
+
+                var transport = $("#notifications-settings-content input.transport").val();
+                $.settings.notififcationsSetEditor(transport);
+
+            } else {
+                $("#notifications-settings-content").hide();
+            }
+        });
+
+        var $wrapper = $("#notification-form"),
+            $checkbox_list = $wrapper.find('.s-checkbox-list');
+
+        $wrapper.on("change", ".js-type-group-field", function() {
+            // DOM
+            var $field = $(this).closest(".s-radio-wrapper"),
+                $list = $field.find('.s-checkbox-list');
+
+            // CONST
+            var active_class = "is-active";
+
+            if ($list.length) {
+                $checkbox_list.show();
+            } else {
+                $checkbox_list.hide();
+            }
+
+            $wrapper.find('.s-radio-wrapper').each( function(i, _field) {
+                var $_field = $(_field);
+                if (_field[0] === $field[0]) {
+                    $_field.addClass(active_class);
+                } else {
+                    $_field.removeClass(active_class);
+                }
+            });
+        });
+
+        $checkbox_list.on('change', '[name*="[selected_sources]"]', function () {
+            var $selected_sources_all = $checkbox_list.find('[name*="selected_sources_all"]'),
+                $selected_sources = $checkbox_list.find('[name*="[selected_sources]"]');
+
+            if ($checkbox_list.find('[name*="[selected_sources]"]:checked').length === $selected_sources.length) {
+                $selected_sources_all.prop('checked', true);
+            } else {
+                $selected_sources_all.prop('checked', false);
+            }
+        });
+
+        $checkbox_list.on('change', '[name*="selected_sources_all"]', function () {
+            var $selected_sources = $checkbox_list.find('[name*="[selected_sources]"]');
+            if ($(this).prop('checked')) {
+                $selected_sources.prop('checked', true);
+            } else {
+                $selected_sources.prop('checked', false);
+            }
+        });
+    });
+</script>
+<div class="clear-left"></div>
+
+{foreach $backend_notification_add as $plugin_id => $_}
+<div class="hidden notification-plugin-wrapper add {$plugin_id}">{$_}</div>
+{/foreach}

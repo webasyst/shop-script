@@ -53,7 +53,7 @@ class shopFrontendOrderCartProductdialogAction extends shopFrontendProductAction
         if (file_exists($theme_template_path)) {
             $this->setThemeTemplate('order.product.edit.html');
         } else {
-            $this->setTemplate('templates/actions/frontend/order/cart/dialog/product.edit.html');
+            $this->setTemplate('frontend/order/cart/dialog/product.edit.html', true);
         }
     }
 }

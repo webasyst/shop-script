@@ -9,7 +9,7 @@ class shopProdCategoryConditionEditDialogAction extends waViewAction
 
         $values = [];
         if ($type == 'product_param') {
-            if ($id == 'type') {
+            if ($id == 'type_id') {
                 $type_model = new shopTypeModel();
                 $values = $type_model->getAll();
             } elseif ($id == 'tag') {

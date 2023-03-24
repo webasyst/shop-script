@@ -16,10 +16,4 @@ class shopProdAction extends waViewAction
 
         $this->redirect($url);
     }
-
-    public static function setNewDesign()
-    {
-        waRequest::setParam('check_app_info', false);
-        waRequest::setParam('force_ui_version', '2.0');
-    }
 }

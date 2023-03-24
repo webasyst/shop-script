@@ -24,7 +24,7 @@ class shopProdSetSortDialogAction extends waViewAction
 
         $products = [];
         if ($render_products || $count < $fuse) {
-            $_products = $collection->getProducts('*', 0, $count);
+            $_products = $collection->getProducts('*,images', 0, $count);
             foreach($_products as $_product) {
                 $products[] = $this->formatProduct($_product);
             }

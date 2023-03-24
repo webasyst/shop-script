@@ -24,6 +24,9 @@ class shopBackendLayout extends waLayout
             $tutorial_progress = shopTutorialActions::getTutorialProgress();
         }
 
+        $contact_settings_model = new waContactSettingsModel();
+        $sidebar_menu_state = (int)$contact_settings_model->getOne(wa()->getUser()->getId(), 'shop', 'sidebar_menu_state');
+
         $order_model = new shopOrderModel();
         $this->view->assign(array(
             'page'              => $this->getPage(),
@@ -33,6 +36,7 @@ class shopBackendLayout extends waLayout
             'tutorial_progress' => $tutorial_progress,
             'tutorial_visible'  => $tutorial_visible,
             'embedded_version'  => $this->embedded_version,
+            'sidebar_menu_state'  => $sidebar_menu_state,
         ));
     }
 
@@ -58,7 +62,7 @@ class shopBackendLayout extends waLayout
         $module = waRequest::get('module', 'backend');
         $page = waRequest::get('action', ($module == 'backend') ? $default_page : 'default');
 
-        if (preg_match('~^(marketing)~ui', waRequest::param('module', null, waRequest::TYPE_STRING_TRIM))) {
+        if (preg_match('~^(marketing)~ui', waRequest::param('module', '', waRequest::TYPE_STRING_TRIM))) {
             $page = 'marketing';
         }
 

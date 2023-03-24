@@ -1,0 +1,55 @@
+{*
+     used at:
+     - main reviews page (reviews/Reviews.html)
+     - product reviews section (product/productReviews.html)
+
+     required:
+     - "$_active_filters" — array with active filters data
+     - "_render_filter_uri" — function for render links href
+*}
+
+<li class="with-menu">
+    {$_photos_filter = [
+        "all" => [
+            "id" => "all",
+            "name" => _w("all"),
+            "uri" => {_render_filter_uri _filters_data=["filters[images_count]" => "all"]}
+        ],
+        "0" => [
+            "id" => "0",
+            "name" => _w("without photos"),
+            "uri" => {_render_filter_uri _filters_data=["filters[images_count]" => "0"]}
+        ],
+        "1" => [
+            "id" => "1",
+            "name" => _w("with photos"),
+            "uri" => {_render_filter_uri _filters_data=["filters[images_count]" => "1"]}
+        ]
+    ]}
+
+    {$_active_photo_filter = $_photos_filter["all"]}
+    {$_active_photo_filter_id = $_active_filters["filters[images_count]"]}
+    {if isset($_active_photo_filter_id) && !empty($_photos_filter[$_active_photo_filter_id])}
+        {$_active_photo_filter = $_photos_filter[$_active_photo_filter_id]}
+    {/if}
+
+    <span class="s-label">[`Photos`]:</span>
+
+    <a href="javascript:void(0);" class="inline-link">
+        <b><i>{$_active_photo_filter.name|escape}</i></b>
+        <i class="icon16 darr"></i>
+    </a>
+
+    <ul class="menu-v without-icons right">
+        {foreach $_photos_filter as $_filter}
+            {$_is_active = false}
+            {if $_filter.id === $_active_photo_filter_id}
+                {$_is_active = true}
+            {/if}
+
+            <li class="{if !empty($_is_active)}selected{/if}">
+                <a href="{$_filter.uri|escape}">{$_filter.name|escape}</a>
+            </li>
+        {/foreach}
+    </ul>
+</li>

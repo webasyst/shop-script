@@ -23,7 +23,7 @@ class shopBackendOrdersAction extends waViewAction
 
         $cm = new shopCouponModel();
 
-        $all_count = $order_model->countAll();
+        $all_count = $order_model->countByField('all');
         $sales_channels = self::getSalesChannelsWithCounts($order_model);
 
         $unsettled_count = $order_model->countByField('unsettled', 1);
@@ -54,7 +54,9 @@ class shopBackendOrdersAction extends waViewAction
             'all_count'       => $all_count,
             'sales_channels'  => $sales_channels,
             'backend_orders'  => $backend_orders,
-            'unsettled_count' => $unsettled_count
+            'unsettled_count' => $unsettled_count,
+            'shipping' => $this->shipping(),
+            'payments' => $this->payment(),
         ));
     }
 
@@ -75,67 +77,37 @@ class shopBackendOrdersAction extends waViewAction
      */
     protected static function getSalesChannelsWithCounts($order_model)
     {
-        // Existing storefronts should be at the top,
-        // and should show even with zero counts
-        $result = array();
-        $idna = new waIdna();
-        foreach (shopHelper::getStorefronts() as $s) {
-            $s = rtrim($s, '/');
-            $result['storefront:'.$s] = array(
-                'url'        => '#/orders/storefront='.urlencode($s),
-                'name'       => $idna->decode($s),
-                'count'      => 0,
-                'storefront' => $s,
-            );
+        $channel_counts = [];
+        foreach($order_model->getSalesChannelCounters() as $id => $count) {
+            $id = shopSalesChannels::canonicId($id);
+            $channel_counts[$id] = $count;
         }
 
-        // Real storefront counts (including deleted storefronts) and sales channels
-        $backend_count = 0;
-        $channel_names = array();
-        foreach ($order_model->getSalesChannelCounters() as $channel_id => $cnt) {
-            @list($type, $s) = explode(':', $channel_id, 2);
-            if ($type == 'storefront') {
-                $s = rtrim($s, '/');
-                if (empty($result['storefront:'.$s])) {
-                    $result['storefront:'.$s] = array(
-                        'url'        => '#/orders/storefront='.urlencode($s),
-                        'name'       => $idna->decode($s),
-                        'count'      => 0,
-                        'storefront' => $s,
-                    );
-                }
-                $result['storefront:'.$s]['count'] += $cnt;
-            } elseif ($type == 'backend') {
-                $backend_count = $cnt;
+        $channels = shopSalesChannels::describeChannels(array_keys($channel_counts));
+
+        $result = [];
+        foreach($channels as $c) {
+            if (!empty($c['storefront']) && substr($c['id'], 0, 11) == 'storefront:') {
+                $url = '#/orders/storefront='.urlencode(substr($c['id'], 11));
             } else {
-                $channel_names[$channel_id] = $channel_id;
-                $result[$channel_id] = array(
-                    'url'        => '#/orders/sales_channel='.urlencode($channel_id),
-                    'name'       => $channel_id,
-                    'count'      => $cnt,
-                    'storefront' => '',
-                );
+                $url = '#/orders/sales_channel='.urlencode($c['id']);
             }
+            $result[$c['id']] = [
+                'url'        => $url,
+                'count'      => ifset($channel_counts, $c['id'], 0),
+            ] + $c;
         }
-
-        if ($channel_names) {
-            wa('shop')->event('backend_reports_channels', $channel_names);
-            $channel_names['buy_button:'] = _w('Buy button');
-            foreach ($channel_names as $channel_id => $name) {
-                if (!empty($result[$channel_id])) {
-                    $result[$channel_id]['name'] = $name;
-                }
-            }
-        }
-
-        // Backend is always the last line
-        $result['backend:'] = array(
-            'url'        => '#/orders/sales_channel=backend:',
-            'name'       => _w('Backend'),
-            'count'      => $backend_count,
-            'storefront' => 'NULL',
-        );
 
         return $result;
+    }
+
+    protected function shipping() {
+        $plugin_model = new shopPluginModel();
+        return $plugin_model->listPlugins('shipping');
+    }
+
+    protected function payment() {
+        $plugin_model = new shopPluginModel();
+        return $plugin_model->listPlugins('payment');
     }
 }

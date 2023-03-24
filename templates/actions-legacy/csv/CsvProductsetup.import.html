@@ -1,0 +1,291 @@
+<h1>[`CSV product import`]</h1>
+<p>
+    {sprintf('[`Import new products and update existing product information from a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`https://www.shop-script.com/help/45/import-products-from-csv-file/`]')}
+    <i class="icon10 new-window"></i>
+</p>
+
+
+<!-- FILE UPLOAD -->
+<div class="field-group">
+    <div class="field">
+        <div class="name">
+           [`Encoding`]
+        </div>
+        <div class="value">
+            <select name="encoding" class="js-ignore-change">
+            {foreach $encoding as $enc}<option{if $enc == $profile.config.encoding} selected="selected"{/if}>{$enc|escape}</option>{/foreach}
+            </select>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">
+           [`Separator`]
+        </div>
+        <div class="value">
+            <select name="delimiter" class="js-ignore-change">
+                <option value=";"{if $profile.config.delimiter eq ';'} selected="selected"{/if}>[`Semicolon`] (;)</option>
+                <option value=","{if $profile.config.delimiter eq ','} selected="selected"{/if}>[`Comma`] (,)</option>
+                <option value="tab"{if $profile.config.delimiter eq 'tab'} selected="selected"{/if}>[`Tab`]</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">
+            [`File`]
+        </div>
+        <div class="value no-shift">
+            <input type="file" name="" class="fileupload">
+            <div class="js-fileupload-progress" style="display:none;">
+                <i class="icon16 loading"></i><span><!-- upload progress handler --></span>
+            </div>
+            <span class="errormsg" style="display:none;"><br><br><i class="icon10 no"></i> <span></span></span>
+
+            <!-- {capture name="file-info-template-js"}{literal} -->
+            {% file=o.file; %}
+            <input type="hidden" name="file" value="{%=file.name%}">
+            <input type="hidden" name="delimiter" value="{%=file.delimiter%}">
+            <i class="icon16 yes"></i>
+            <strong{% if(file.name != file.original_name){ %} title="{%=file.name%}"{% } %}>{%=file.original_name%}</strong><br>
+            <span class="hint">{% if(file.size != file.original_size){ %}{%=file.original_size%} &rarr; {% } %}{%=file.size%}</span>
+            {% if(file.header && false){ %}
+            <p><br>[`Following columns were located in the uploaded file:`]</p>
+            <ul class="menu-h with-icons hint">
+                {% for (var column in file.header){if(file.header.hasOwnProperty(column)){ %}
+                <li title="{%=column%}">{%=file.header[column]%}</li>
+                {% }} %}
+            </ul>
+            {% } %}
+            <!-- {/literal}{/capture} -->
+
+        </div>
+        <div class="value no-shift hint">
+            [`Select a CSV file or a ZIP archive with a CSV file.<br>ZIP archives enable faster uploading of large CSV files without exceeding server limitations on the uploaded data size.`]
+        </div>
+    </div>
+</div>
+
+
+<!-- BASIC SETTINGS AND CSV PREVIEW -->
+<div class="field-group" style="display: none;">
+
+    <div class="field" id="s_import_csv_table"><!-- CSV TABLE MAP PLACEHOLDER --></div>
+    <div class="field">
+        <div class="name">
+            [`Product identification column`]
+        </div>
+        <div class="value no-shift">
+            <input type="hidden" name="emulate" value="1">
+            <select name="primary" class="bold">
+                <option value="name" {if $csv_primary_column == "name"}selected{/if}>[`Product name`]</option>
+                <option value="url" {if $csv_primary_column == "url"}selected{/if}>[`Public link`]</option>
+                <option value="id" {if $csv_primary_column == "id"}selected{/if}>[`Product ID`]</option>
+                {if (!empty($meta_fields['product']['id_1c']))}
+                <option value="id_1c" {if $csv_primary_column == "id_1c"}selected{/if}>Идентификатор товара «1С»</option>
+                {/if}
+                <option value="false" class="italic" {if $csv_primary_column == "false"}selected{/if}>[`SKU identification column`]</option>
+                <option value="null" class="italic" {if $csv_primary_column == "null"}selected{/if}>[`(skip products and categories, import only SKUs)`]</option>
+            </select>
+            &nbsp;
+            <span class="s-csv-primary-column-helper"></span>
+            <br>
+            <span class="hint">[`Select the product identification column (property) which uniquely identifies each product. Based on the identification column value in the CSV file uploaded, the import routine will either update existing product info, or create a new product.`]</span>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">
+            [`SKU identification column`]
+        </div>
+        <div class="value no-shift">
+            <select name="secondary" class="bold">
+                <option value="skus:-1:sku_feature" {if $csv_secondary_column == "skus:-1:sku_feature"}selected{/if}>[`By SKU code and features used for product variety selection`]</option>
+                <option value="skus:-1:sku" {if $csv_secondary_column == "skus:-1:sku"}selected{/if}>[`SKU code`]</option>
+                <option value="skus:-1:name" {if $csv_secondary_column == "skus:-1:name"}selected{/if}>[`SKU name`]</option>
+                <option value="skus:-1:id" {if $csv_secondary_column == "skus:-1:id"}selected{/if}>[`SKU ID`]</option>
+                {if (!empty($meta_fields['sku']['id_1c']))}
+                    <option value="skus:-1:id_1c" {if $csv_secondary_column == "skus:-1:id_1c"}selected{/if}>Идентификатор артикула «1С»</option>
+                {/if}
+            </select>
+            &nbsp;
+            <span class="s-csv-secondary-column-helper"></span>
+            <br>
+            <span class="hint">[`Similar to product, select the SKU identification column (property) which uniquely identifies each product SKU. Based on the identification column value in the CSV file uploaded, the import routine will either update existing SKU info, or create a new SKU for the product.`]</span>
+        </div>
+    </div>
+    <div class="field">
+        <div class="value">
+            <a href="#/csv_product/settings/advanced/" class="js-action inline-link"><b><i>[`Advanced settings`]</i></b> <i class="icon10 darr"></i></a>
+        </div>
+    </div>
+</div>
+
+
+<!-- ADVANCED SETTINGS -->
+<div class="field-group" style="display: none;">
+    <div class="field">
+        <div class="value no-shift">
+            <label><input type="checkbox" name="ignore_category" value="1" checked="checked"> [`Ignore category nesting when searching for matching products (recommended)`]</label>
+            <br>
+            <span class="hint">[`When importing a product and searching if it exists in the store already, product search will be performed only within the category as defined in a CSV file.`]</span>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">[`Product type`]</div>
+        <div class="value">
+            <select name="type_id">
+                {foreach $types as $type_id => $type}
+                <option value="{$type_id}">{$type.name|escape}</option>
+                {/foreach}
+            </select>
+            <br>
+            <span class="hint">[`If no particular product type column was specified in the uploaded CSV file, selected product type will be applied to all new products, created during the import.`]</span>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">[`Product descriptions`]</div>
+        <div class="value no-shift">
+            <label><input type="checkbox" name="nl2br_description" value="1"> [`Non-HTML product descriptions`]</label>
+            <p class="hint">[`If checked, a &lt;br&gt; tag will be automatically added after every line of the product description.`]</p>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">[`Product images import local path`]</div>
+
+        <div class="value">
+            <select  name="upload_app">
+            {foreach $app_path as $app_id=>$path}
+                <option value="{$app_id}"{if $upload_app == $app_id} selected="selected" {/if}>{$path|escape}</option>
+            {/foreach}
+            </select>
+            <input type="text" class="long" name="upload_path" value="{$upload_path|escape}" placeholder="path/to/folder/with/source/images/">
+            <br>
+            <span class="hint">[`If your CSV file contains links to product images to be imported, import routine will attempt to automatically attach them to imported products. A link to an image file can be either global (a full image URL) or local (image file name). For local image import, indicate path to the folder where all source images are stored, i.e. where you uploaded them into. If linked image was not found, no image will be attached to the product.`]</span>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">[`Unique product image URLs`]</div>
+        <div class="value">
+            <label><input type="radio" name="image_match" value="" checked="checked"> [`by file name`]</label>
+            <br>
+           	<span class="hint">{sprintf('https://%s/path/to/<strong>file.jpg</strong>', '[`domain.com`]')}</span>
+        </div>
+        <div class="value">
+            <label><input type="radio" name="image_match" value="path_md5"> [`by file path`]</label>
+            <br>
+           	<span class="hint">{sprintf('https://%s/<strong>path/to/file.jpg</strong>', '[`domain.com`]')}</span>
+        </div>
+        <div class="value">
+            <label><input type="radio" name="image_match" value="host_path_md5"> [`by file path and domain name`]</label>
+            <br>
+           	<span class="hint">{sprintf('https://<strong>%s/path/to/file.jpg</strong>', '[`domain.com`]')}</span>
+        </div>
+        <div class="value">
+            <p class="hint">[`Select how unique image URLs must be extracted from your CSV file.`]</p>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">[`Stock level for products with selectable features defined as <{ … }>`]</div>
+        <div class="value no-shift">
+            <label>
+                <input type="radio" name="virtual_sku_stock" value="distribute" checked="checked"/>
+                [`Equally distribute stock levels among all SKUs of this product`]
+                <br/>
+                <span class="hint">[`(e.g. if 24 is set as stock level for the entire product in CSV file, and there are 8 SKUs to be imported, every SKU will be set 3 as stock count; the overall product stock level will be set to 8 &times; 3 = 24)`]</span>
+            </label>
+        </div>
+        <div class="value">
+            <label>
+                <input type="radio" name="virtual_sku_stock" value="set"/>
+                [`Set provided stock count for all imported SKUs`]
+                <br/>
+                <span class="hint">[`(e.g. if 24 is set as stock level for the entire product in CSV file, and there are 8 SKUs, every SKU will be set 24 as stock count, and thus the overall product stock level will be set to 8 &times 24 = 192)`]</span>
+            </label>
+        </div>
+        <div class="value">
+            <label>
+                <input type="radio" name="virtual_sku_stock" value=""/>
+                [`Don’t import stock information for such SKUs`]
+            </label>
+        </div>
+    </div>
+
+</div>
+
+<div class="field-group" id="s-csvproduct-info" style="display: none;">
+    <!-- {capture name="file-header-template-js"}{literal} -->
+    {% file=o.file; %}
+    {% if(file.header){ %}
+    <div class="field">
+        <div class="name">[`Column assignment map`]</div>
+        <div class="value"><p class="js-csv-columns-counter bold"><!-- placeholder for column counters --></p></div>
+        <div class="value">
+            <ul class="menu-h hint s-csv-header" id="s_import_csv_header">
+                {% for (var column in file.header){if(file.header.hasOwnProperty(column)){ %}
+                <li data-value="null" data-column="{%=column%}" data-title="{%=$.importexport.csv_product_helper.id2name(column)%}" title="{%=$.importexport.csv_product_helper.id2name(column)%}"><i class="icon16 exclamation"></i>{%=file.header[column]%}</li>
+                {% }} %}
+            </ul>
+        </div>
+    </div>
+    {% } %}
+    <!-- {/literal}{/capture} -->
+    <div class="field">
+        <div class="value">
+            <ol class="s-csv-import-navigator">
+                <li data-mode="emulate">[`Upload and assign columns`]</li>
+                <li data-mode="import">[`Review settings`]</li>
+                <li data-mode="finish">[`Import`]</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<div class="field-group" id="s-csvproduct-report" style="display: none;">
+    <div class="field">
+        <div class="value"></div>
+    </div>
+</div>
+
+<div class="field-group" id="s-csvproduct-submit" style="display: none;">
+    <div class="field">
+        <div class="value submit">
+            <input data-emulate-class="" data-emulate-value="[`Review import settings`]" data-import-class="large green" data-import-value="[`Start import`]" type="submit" class="button green" value="[`Review import settings`]">
+        </div>
+
+        <div class="js-progressbar-container value" style="display:none;">
+            <div class="progressbar blue float-left" style="display: none; width: 70%;">
+                <div class="progressbar-outer">
+                    <div class="progressbar-inner" style="width: 0;"></div>
+                </div>
+            </div>
+            <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
+            <div class="clear"></div>
+                <span class="progressbar-description"></span>
+            <br clear="left" />
+            <br>
+            <span class="small" data-mode="import">
+                [`Please do not close your browser window and do not leave this page until the entire import process is finished.`]
+            </span>
+            <span class="small italic" data-mode="emulate">
+                [`Gathering information from the file...`]
+            </span>
+        </div>
+        <br>
+        <br>
+
+        <em class="errormsg"></em>
+    </div>
+</div>
+
+<div class="clear-left"></div>
+<script type="text/javascript">
+
+$.wa.locale = $.extend($.wa.locale, {
+    'Collision at rows #':'[`Collision at rows #`]'
+});
+</script>

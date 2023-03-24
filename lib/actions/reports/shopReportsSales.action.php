@@ -106,7 +106,7 @@ class shopReportsSalesAction extends waViewAction
 
         // For lazy-loading and sorting return just the table alone
         if (waRequest::request('table_only')) {
-            $this->setTemplate('templates/actions/reports/sales_report_rows.html');
+            $this->setTemplate('reports/sales_report_rows.html', true);
             $this->view->assign(array(
                 'more_rows_exist' => $more_rows_exist,
                 'abtest_variants' => $abtest_variants,
@@ -261,48 +261,11 @@ class shopReportsSalesAction extends waViewAction
 
     public static function getSalesChannels($with_storefronts = true)
     {
-        // Storefront channels
-        $result = array();
         $m = new waModel();
-        $sql = "SELECT DISTINCT value FROM shop_order_params WHERE name='sales_channel' ORDER BY value";
-        foreach (array_keys($m->query($sql)->fetchAll('value')) as $id) {
-            $name = $id;
-            @list($type, $data) = explode(':', $id, 2);
-            if ($with_storefronts) {
-                if ($type == 'storefront') {
-                    if (!self::$idna) {
-                        self::$idna = new waIdna();
-                    }
-                    $name = self::$idna->decode($data);
-                }
-                $result[$id] = $name;
-            }
-        }
-
-        /**
-         * @event backend_reports_channels
-         *
-         * Hook allows to set human-readable sales channel names for custom channels.
-         *
-         * Event $params is an array with keys being channel identifiers as specified
-         * in `sales_channel` order param.
-         *
-         * Plugins are expected to modify values in $params, setting human readable names
-         * to show in channel selector.
-         *
-         * @param array [string]string
-         * @return null
-         */
-        wa('shop')->event('backend_reports_channels', $result);
-
-        // Buy button and backend
-        unset($result['backend:'], $result['buy_button:']);
-        $result['buy_button:'] = _w('Buy button');
-        $result['backend:'] = _w('Backend');
-        if (!empty($result['other:'])) {
-            $result['other:'] = _w('Unknown channel');
-        }
-        return $result;
+        $sql = "SELECT DISTINCT value FROM shop_order_params WHERE name='sales_channel'";
+        $channel_ids = array_keys($m->query($sql)->fetchAll('value'));
+        $channels = shopSalesChannels::describeChannels($channel_ids);
+        return array_column($channels, 'name', 'id');
     }
 
     public static function getStorefronts()

@@ -21,7 +21,7 @@
     {capture assign="log_list"}
         {foreach $log as $row}
             <tr>
-                <td>{$row['icon']}</td>
+                <td class="min-width"><span class="icon text-gray">{$row['icon']}</span></td>
                 {product_row row=$row}
                 <td>
                     {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
@@ -41,7 +41,7 @@
     {capture assign="log_list"}
         {foreach $log as $row}
             <tr>
-                <td>{$row['icon']}</td>
+                <td  class="min-width"><span class="icon text-gray">{$row['icon']}</span></td>
                 {product_row row=$row}
                 {foreach $stocks as $stock}
                     <td class="s-stock-column" title="{$stock.name|escape}">
@@ -75,12 +75,11 @@
 {/if}
 
 {capture assign="lazy_loading_footer"}
-<div class="block half-padded">
-    <br>
-    <div class="lazyloading-progress-string">{_w('%d log item','%d log items', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
-    <span class="lazyloading-progress" style="display:none">
-        <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d log item', '%d log items', min($total_count - $offset - $count, $count))}...</span>
-    </span>
+<div class="box align-center">
+    <div class="lazyloading-progress-string">{_w('%d log item','%d log items', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
+    <div class="lazyloading-progress custom-mt-8" style="display:none">
+        <i class="fas fa-spinner fa-spin text-gray loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d log item', '%d log items', min($total_count - $offset - $count, $count))}...</span>
+    </div>
 </div>
 {/capture}
 
@@ -100,7 +99,7 @@
 
     {if $log}
         {if $stocks_count < 1}
-            <table class="zebra s-stocks-log single-lined">
+            <table class="zebra s-stocks-log single-lined blank">
                 <tr class="header white">
                     <th class="min-width"></th>
                     <th></th>
@@ -111,7 +110,7 @@
                 {$log_list}
             </table>
         {else}
-            <table class="zebra s-stocks-log single-lined">
+            <table class="zebra s-stocks-log single-lined blank">
                 <tr class="header white">
                     <th class="min-width"></th>
                     <th></th>

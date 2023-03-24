@@ -16,35 +16,40 @@
 {/strip}
 
 <div class="s-custom-price-rule-section js-custom-price-rule-section" id="js-custom-price-rule-section-{$_uniqid}">
-    <div class="s-section-description">
-        [`Use the form below to set up extra rules for ordinary and purchase prices which should apply while this promo is active.`]
-    </div>
-
-    <div class="s-products-autocomplete">
-        <span class="s-label">[`Add product`]:</span>
-        <i class="icon16 add"></i>
-        <div class="s-field-wrapper">
-            <input type="text" class="s-autocomplete js-autocomplete" value="" placeholder="{_w("type a product name")|escape}">
-            <div class="s-field-description hint">{sprintf("[`or add from “%s” section`]", "<a href=\"`$wa_app_url`?action=products\">[`Products`]</a>")}</div>
+    <div class="alert">
+        <div class="s-section-description">
+            [`Use the form below to set up extra rules for ordinary and purchase prices which should apply while this promo is active.`]
         </div>
     </div>
 
-    <div class="s-products-wrapper {if empty($products)}is-empty{/if}">
-        <table class="s-products-table">
+    <div class="s-products-autocomplete fields">
+        <div class="field">
+            <div class="name">[`Add product`]:</div>
+            <div class="value">
+                <i class="fas fa-plus-circle text-green"></i>
+                <input type="text" class="s-autocomplete js-autocomplete long" value="" placeholder="{_w("type a product name")|escape}">
+                <div class="s-field-description hint">{sprintf("[`or add from “%s” section`]", "<a href=\"`$wa_app_url`?action=products\">[`Products`]</a>")}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="s-products-wrapper s-block {if empty($products)}is-empty{/if}">
+        <table class="s-products-table zebra">
             <thead>
-                <tr>
-                    <td colspan="2"></td>
-                    <td colspan="3" style="white-space: normal;">
-                        <i class="icon16 exclamation"></i>
-                        <span>[`Promo prices are not a discount.`]</span>
-                        {shopHinter::hint('marketing_promo_stock_price_products')}
+                <tr class="transparent">
+                    <td colspan="5">
+                        <div class="flexbox middle space-8 custom-pb-16 bordered-bottom" style="justify-content: center;">
+                            <span class="icon"><i class="fas fa-exclamation-triangle text-yellow"></i></span>
+                            <span>[`Promo prices are not a discount.`]</span>
+                            {shopHinter::hint('marketing_promo_stock_price_products')}
+                        </div>
                     </td>
                 </tr>
-                <tr>
-                    <td colspan="2">[`Products`]</td>
-                    <td>[`Default prices`]</td>
-                    <td>[`Promo’s prices`]</td>
-                    <td></td>
+                <tr class="transparent uppercase">
+                    <th colspan="2">[`Products`]</th>
+                    <th>[`Default prices`]</th>
+                    <th>[`Promo’s prices`]</th>
+                    <th></th>
                 </tr>
             </thead>
 

@@ -1,0 +1,264 @@
+{if !empty($product_types) && !empty($type_id)}
+    <div class="s-alert">
+        <a href="#" class="s-alert-close">&times;</a>
+        [`Product custom features allows you to beautifully present all product details to your customers, to setup product search filters and upselling.`]
+    </div>
+
+    <div class="fields form">
+        {$product_features = $product.features}
+        {if true}
+            {* Make features readonly for selectable features *}
+            {$features_selectable = $product.features_selectable}
+        {else}
+            {* Or not make features readonly for selectable features *}
+            {$features_selectable = []}
+        {/if}
+
+        {$feature_type = 0}
+
+        <div class="field">
+            <div class="name">[`Product type`] {shopHinter::hint('product_type')}</div>
+            <div class="value no-shift">
+                <span class="js-type-icon">{shopHelper::getIcon($product.type.icon)}</span>
+                <strong>{$product.type.name|escape}</strong>&nbsp;
+                {if $type_id != $product.type_id}&nbsp;&rarr;&nbsp;{shopHelper::getIcon($product_types[$type_id]['icon'])}
+                    <strong>{$product_types[$type_id]['name']}</strong>{/if}
+                <a href="#/product/{$product.id}/edit/main/type/select/" class="inline-link js-action">
+                    <b><i>[`Change type`]</i></b>
+                </a>
+
+                <a href="{$wa_app_url}?action=settings#/typefeat/" target="_blank" style="display: inline-block; font-size: 12px; margin-left: 20px;">
+                    <i class="icon16 settings" style="display: inline-block; margin: 0 4px 0 0;"></i>[`Set up types &amp; features`]
+                </a>
+            </div>
+        </div>
+
+
+        {foreach $features as $code => $feature}
+            {include file="./include.feature.html"
+            namespace='product'
+            item_features=$product_features
+            inline_edit=1
+            inline}
+        {foreachelse}
+            [`Product features undefined`]
+        {/foreach}
+
+        {foreach $product_features as $code => $value}
+            {if empty($features[$code])}
+                <div class="field">
+                    <div class="name">{$code}</div>
+                    <div class="value">{$value}</div>
+                </div>
+            {/if}
+        {/foreach}
+
+
+        {* new feature templates namespace = product[features][{%=code}] *}
+        <!-- {capture name="feature-add-template-js"} -->
+        <div class="field" {literal}
+             data-type="{%=o.feature.type%}"
+             data-multiple="{%=o.feature.multiple%}"
+             data-selectable="{%=o.feature.selectable%}"
+             data-code="{%=o.feature.code%}"
+             data-default-unit="{%=o.feature.defaultUnit%}" {/literal}>
+
+            <div class="name">
+                {literal}
+                    <input type="text" name="product[features][{%=o.feature.input%}][name]" value="{%=o.feature.name%}"
+                           placeholder="[`Feature name`]">
+                    <input type="hidden" name="product[features][{%=o.feature.input%}][type]" value="{%=o.feature.type%}">
+                    <input type="hidden" name="product[features][{%=o.feature.input%}][types][]" value="{/literal}{$type_id}{literal}">
+                {/literal}
+            </div>
+
+            <div class="value no-shift">
+                {* value templates *}
+                {literal}
+                    {% o.feature.input = o.feature.input +'][value'; %}
+                    {% include (o.feature.value_template, {feature: o.feature}); %}
+                {/literal}
+                <!-- {capture name="feature-value-template-js"} -->
+                <input type="text" name="{literal}product[features][{%=o.feature.input%}]{/literal}" value=""
+                       placeholder="[`Feature value`]">
+                <!-- {/capture} values here -->
+
+                <!-- {capture name="feature-value-text-template-js"} -->
+                <textarea name="{literal}product[features][{%=o.feature.input%}]{/literal}"></textarea>
+                <!-- {/capture} values here -->
+
+                <!-- {capture name="feature-value-date-template-js"} -->
+                <label class="js-datepicker-wrapper">
+                    <input id="date" data-type="date" class="s-product-feature-date js-datepicker" type="text">
+                    <input name="{literal}product[features][{%=o.feature.input%}]{/literal}"
+                           data-type="date" class="s-product-feature-date js-datepicker-hidden" type="hidden">
+                    <i class="icon16 calendar js-focus-on-field"></i>
+                </label>
+                <!-- {/capture} values here -->
+
+                <!-- {capture name="feature-value-divider-template-js"} -->
+                <hr/>
+                <input type="hidden" name="{literal}product[features][{%=o.feature.input%}]{/literal}" value="-">
+                <!-- {/capture} values here -->
+
+                <!-- {capture name="feature-value-color-template-js"} -->
+                <input type="text" name="{literal}product[features][{%=o.feature.input%}]{/literal}[value]" value=""
+                       placeholder="[`color name`]">
+                <a href="#/product/{$product.id}/edit/features/value/color/" class="inline-link js-action" style="display: inline;">
+                    <i class="icon16 color" style="background: #FFFFFF;"></i>
+                </a>
+                #<input type="text" name="{literal}product[features][{%=o.feature.input%}]{/literal}[code]" value=""
+                        placeholder="FFFFFF" class="small">
+                <!-- {/capture} values here -->
+
+                <!-- {capture name="feature-value-boolean-template-js"} -->
+                <label>
+                    <input type="radio" name="{literal}product[features][{%=o.feature.input%}]{/literal}" value="1"
+                           checked="checked">
+                    [`Yes`]
+                </label>
+            </div>
+
+            <div class="value">
+                <label>
+                    <input type="radio" name="{literal}product[features][{%=o.feature.input%}]{/literal}" value="0">
+                    [`No`]
+                </label>
+            </div>
+
+            <div class="value">
+                <label>
+                    <input type="radio" name="{literal}product[features][{%=o.feature.input%}]{/literal}" value="">
+                    [`Not defined`]
+                </label>
+                <!-- {/capture} values here -->
+
+                {$dimension = shopDimension::getInstance()}
+                {$dimensions = $dimension->getList()}
+                {foreach $dimensions as $code=>$unit}
+                    <!-- {capture name="feature-value-dimension-`$code`-template-js"} -->
+                    <input type="text" name="{literal}product[features][{%=o.feature.input%}][value]{/literal}" value=""
+                           placeholder="{$unit.name}">
+                    {$units = shopDimension::getUnits($code)}
+                    {if $units}
+                        <select name="{literal}product[features][{%=o.feature.input%}][unit]{/literal}">
+                            {foreach $units as $unit}
+                                <option value="{$unit.value|escape}">{$unit.title|escape}</option>
+                            {/foreach}
+                        </select>
+                    {/if}
+                    <!-- {/capture} -->
+                {/foreach}
+
+                <!-- {capture name="feature-value-range-double-template-js"} -->
+                <input type="text" name="{literal}product[features][{%=o.feature.input%}][value][begin]{/literal}" value=""
+                       placeholder="[`Feature value`]" class="numerical short">
+                <span class="input">—</span>
+                <input type="text" name="{literal}product[features][{%=o.feature.input%}][value][end]{/literal}" value=""
+                       placeholder="[`Feature value`]" class="numerical short">
+                <!-- {/capture} -->
+
+                <!-- {capture name="feature-value-range-date-template-js"} -->
+                <label class="js-datepicker-wrapper">
+                    <input id="date-begin" class="s-product-feature-date js-datepicker" type="text">
+                    <input name="{literal}product[features][{%=o.feature.input%}][value][begin]{/literal}"
+                           class="s-product-feature-date js-datepicker-hidden" type="hidden">
+                    <i class="icon16 calendar js-focus-on-field"></i>
+                </label>
+                <span>—</span>
+                <label class="js-datepicker-wrapper">
+                    <input id="date-end" class="s-product-feature-date js-datepicker" type="text">
+                    <input name="{literal}product[features][{%=o.feature.input%}][value][end]{/literal}"
+                           class="s-product-feature-date js-datepicker-hidden" type="hidden">
+                    <i class="icon16 calendar js-focus-on-field"></i>
+                </label>
+                <!-- {/capture} -->
+
+                {foreach $dimensions as $code=>$unit}
+                    <!-- {capture name="feature-value-range-`$code`-template-js"} -->
+                    <input type="text" name="{literal}product[features][{%=o.feature.input%}][value][begin]{/literal}" value=""
+                           placeholder="{$unit.name}">
+                    <span class="input">—</span>
+                    <input type="text" name="{literal}product[features][{%=o.feature.input%}][value][end]{/literal}" value=""
+                           placeholder="{$unit.name}">
+                    {$units = shopDimension::getUnits($code)}
+                    {if $units}
+                        <select name="{literal}product[features][{%=o.feature.input%}][unit]{/literal}">
+                            {foreach $units as $unit}
+                                <option value="{$unit.value|escape}">{$unit.title|escape}</option>
+                            {/foreach}
+                        </select>
+                    {/if}
+                    <!-- {/capture} -->
+                {/foreach}
+
+                {include file="../../includes/featuresValuesTypes.html" base="/product/`$product.id`/edit/features/feature/type"
+                         class="js-action" link=true inline}
+            </div>
+        </div>
+        <!-- {/capture} -->
+
+        <div class="field">
+            <div class="value">
+                <br>
+                <a href="#/product/{$product.id}/edit/features/add/" class="inline-link js-action">
+                    <i class="icon16 add"></i><b><i>[`New feature`]</i></b>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="clear"></div>
+
+    <script src="{$wa_app_static_url}js-legacy/product/features.js?{$wa->version()}" type="text/javascript"></script>
+    <script src="{$wa_url}wa-content/js/farbtastic/farbtastic.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
+    <script type="text/javascript">
+        $.product = $.extend(true, $.product, {
+            features_values:{$changed_features|json_encode}
+        });
+        {literal}
+        $.product.init({
+            value_templates: {{/literal}
+                {$dimensions = $dimension->getList()}
+                {foreach $dimensions as $code => $var}'dimension.{$code|escape}': '-dimension-{$code|escape}',
+                {/foreach}
+                {foreach $dimensions as $code => $var}'range.{$code|escape}': '-range-{$code|escape}',
+                {/foreach}{literal}
+                'range.double': '-range-double',
+                'range.date': '-range-date',
+                boolean: '-boolean',
+                color: '-color',
+                divider:'-divider',
+                text: '-text',
+                date: '-date'
+            }
+        }, 'features');
+        {/literal}
+    </script>
+
+    {foreach $smarty.capture as $name => $template}
+        {if strpos($name,'template-js')}
+            <script type="text/x-jquery-tmpl" id="{$name}">
+                <!-- begin {$name} {$template|replace:'</':'<\\/'} end {$name} -->
+            </script>
+        {/if}
+    {/foreach}
+
+{else if empty($product_types)}
+    <div class="value">
+        <p>[`To edit product custom features, add at least one product type on the <em>Settings → Product types & features</em> screen.`]</p>
+    </div>
+{else}
+    <script src="{$wa_app_static_url}js-legacy/product/features.js?{$wa->version()}" type="text/javascript"></script>
+    <script src="{$wa_url}wa-content/js/farbtastic/farbtastic.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
+    <div class="fields form">
+        <div class="value">
+            <p class="hint">[`Assign this product to a particular product type to be able to edit product custom features.`]</p>
+            <a href="#/product/{$product.id}/edit/main/type/select/" class="inline-link js-action">
+                <b><i>[`Change type`]</i></b>
+            </a>
+        </div>
+        <script type="text/javascript">$.product.init({}, 'features');</script>
+    </div>
+{/if}

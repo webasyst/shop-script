@@ -40,7 +40,6 @@
     "error_category_name_empty" => _w("Enter the category name"),
     "error_category_name" => "{_w("Invalid value")} <span class=\"s-icon\" data-tooltip-id=\"error-category-name\"><i class=\"fas fa-question-circle\"></i></span>",
     "incorrect_url" => _w("Incorrect URL format."),
-    "modification_wysiwyg_message" => _ws('WYSIWYG editor may change your HTML code. It is necessary for correct text formatting. Smarty code may be broken and outdated HTML tags may be replaced with modern ones. Are you sure to switch to WYSIWYG editor?'),
     "show_visible_storefronts_forms" => [
         _w("Show %d storefront on which the category is available", "Show %d storefronts on which the category is available", 1, false),
         _w("Show %d storefront on which the category is available", "Show %d storefronts on which the category is available", 2, false),
@@ -73,13 +72,15 @@
     <li class="ui-menu-item-html">
         <div>
             %added%
-            <span class="s-icon icon size-12 shift-inherit color-gray-light"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
+            <span class="s-icon icon size-12 shift-inherit text-light-gray"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
             <span class="s-name">%name%</span>
             <span class="s-code hint">%code%</span>
         </div>
     </li>
 {/capture}
 {$_templates["component-category-filter-autocomplete-item-sku"] = $_template_category_filter_autocomplete_item_sku|strip}
+
+{include file="../../dialogs/modification_wysiwyg.confirm.html" inline}
 
 {capture assign="_dialog_load"}
     <div class="wa-dialog s-category-feature-edit-dialog" id="js-category-feature-edit-dialog">
@@ -127,9 +128,9 @@
     <div class="s-category-filter-section">
         <div class="s-search-section">
             <div class="s-field-wrapper">
-                <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Start typing a filter parameter name")|escape}">
+                <input class="js-autocomplete small width-90" type="text" placeholder="{_w("Start typing a filter parameter name")|escape}">
                 <div class="s-loading-wrapper" v-if="states.is_loading">
-                    <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
+                    <span class="icon top text-light-gray"><i class="fas fa-spinner fa-spin"></i></span>
                 </div>
             </div>
             <div class="s-description hint flexbox space-8">
@@ -162,7 +163,7 @@
         <div class="s-column-name wide">
             <template v-if="filter.code.length">
                 <span class="s-icon icon size-12 shift-inherit" v-if="filter.available_for_sku"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
-                <span class="s-icon icon size-12 shift-inherit color-gray-light" v-else><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
+                <span class="s-icon icon size-12 shift-inherit text-light-gray" v-else><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
             </template>
             <span class="s-name">{ { filter.name } }</span>
             <span class="s-code hint" v-if="filter.code">{ { filter.code } }</span>
@@ -178,8 +179,8 @@
 {$_components["component-category-filter-item"] = $_component_category_filter_item|strip}
 
 {capture assign="_component_category_storefronts_section"}
-    <div class="wa-fields">
-        <div class="wa-field">
+    <div class="fields">
+        <div class="field">
             <div class="name">
                 <span class="s-name">[`Category visibility in storefronts`]</span>
                 <span class="s-icon icon" data-tooltip-id="category-publication"><i class="fas fa-question-circle gray"></i></span>
@@ -210,7 +211,7 @@
                             <div class="s-option">
                                 <label class="flexbox middle space-8">
                                     <component-checkbox v-bind:label="false" v-bind:value="all_selected" v-on:change="selectAll"></component-checkbox>
-                                    <span class="s-label">[`all storefronts`]</span>
+                                    <span class="s-label">[`Select all`]</span>
                                 </label>
                             </div>
                             <template v-for="storefront in storefronts">
@@ -266,7 +267,7 @@
 
 {capture assign="_component_category_features_section"}
     <div class="vue-component-category-features-section">
-        <div class="wa-field s-field-wrapper" >
+        <div class="field s-field-wrapper" >
             <div class="name">
                 <span class="s-name">[`Products’ add-to-category parameters`]</span>
                 <span class="s-icon icon" data-tooltip-id="category-params"><i class="fas fa-question-circle gray"></i></span>
@@ -275,9 +276,9 @@
                 <div class="s-category-features-section">
                     <div class="s-search-section">
                         <div class="s-field-wrapper">
-                            <input class="s-field js-autocomplete wa-small" type="text" placeholder="{_w("Start typing a parameter name")|escape}">
+                            <input class="s-field js-autocomplete small" type="text" placeholder="{_w("Start typing a parameter name")|escape}">
                             <div class="s-loading-wrapper" v-if="states.is_loading">
-                                <span class="icon top color-gray-light"><i class="fas fa-spinner fa-spin"></i></span>
+                                <span class="icon top text-light-gray"><i class="fas fa-spinner fa-spin"></i></span>
                             </div>
                         </div>
                         <div class="s-description hint flexbox space-8">
@@ -290,7 +291,7 @@
                 </div>
             </div>
         </div>
-        <div class="wa-field s-field-wrapper" v-if="category.conditions.length">
+        <div class="field s-field-wrapper" v-if="category.conditions.length">
             <div class="value">
                 <div class="s-category-features-section">
                     <div class="s-features-list">
@@ -318,7 +319,7 @@
                 <div>
                     <template v-if="item.type === 'feature'">
                         <span class="s-icon icon size-12 shift-inherit" v-if="item.data.available_for_sku"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
-                        <span class="s-icon icon size-12 shift-inherit color-gray-light" v-else><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
+                        <span class="s-icon icon size-12 shift-inherit text-light-gray" v-else><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
                     </template>
                     <span class="s-name">{ { item.data.name } }</span>
                 </div>
@@ -380,9 +381,9 @@
             <div class="dialog-content">
 
                 <div class="s-category-form">
-                    <div class="wa-fields s-category-main-section">
+                    <div class="fields s-category-main-section">
                         {* NAME *}
-                        <div class="wa-field s-field-wrapper">
+                        <div class="field s-field-wrapper">
                             <div class="name for-input">
                                 <span class="s-name">[`Category name`]</span>
                                 <span class="s-icon icon" data-tooltip-id="category-name"><i class="fas fa-question-circle gray"></i></span>
@@ -392,19 +393,20 @@
                                     <component-textarea
                                         class="s-category-name-field bold full-width js-autofocus"
                                         placeholder="{_w("Category name")|escape}"
+                                        rows="1"
                                         v-model="category.name"
                                         v-bind:class="{ 'wa-error-field' : errors['category_name'] }"
                                         v-on:blur="onBlurName"
                                         v-on:input="onChangeName"></component-textarea>
                                 </div>
-                                <div class="wa-error-text"
+                                <div class="state-error"
                                      v-if="errors['category_name']"
                                      v-html="errors['category_name'].text"></div>
                             </div>
                         </div>
 
                         {* URL *}
-                        <div class="wa-field s-field-wrapper s-field-ulr-wrapper">
+                        <div class="field s-field-wrapper s-field-ulr-wrapper">
                             <div class="name shift-0">
                                 <div class="wa-label for-input">
                                     <div>
@@ -428,12 +430,12 @@
                                     <div class="s-actions flexbox space-12">
                                         <div class="s-action cursor-pointer"
                                              v-if="states.copy_locked">
-                                            <span class="s-icon icon color-gray" v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
+                                            <span class="s-icon icon text-gray" v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
                                         </div>
                                         <div class="s-action cursor-pointer"
                                              v-else
                                              v-on:click="onCopyUrl">
-                                            <span class="s-icon icon color-gray hover-blue" v-bind:key="'fa-copy'"><i class="fas fa-copy"></i></span>
+                                            <span class="s-icon icon text-gray hover-blue" v-bind:key="'fa-copy'"><i class="fas fa-copy"></i></span>
                                         </div>
 
                                         <div class="s-action"
@@ -441,10 +443,10 @@
                                              v-on:click="onSyncUrl">
 
                                             <template v-if="(states.url_sync_started || states.transliterate_xhr !== null)">
-                                                <span class="s-icon icon color-gray" v-bind:key="'spin'"><i class="fas fa-sync fa-spin"></i></span>
+                                                <span class="s-icon icon text-gray" v-bind:key="'spin'"><i class="fas fa-sync fa-spin"></i></span>
                                             </template>
                                             <template v-else>
-                                                <span class="s-icon icon" v-bind:class="{ 'color-gray hover-blue' : name_is_changed, 'color-gray-light' : !name_is_changed }" v-bind:key="'sync'"><i class="fas fa-sync"></i></span>
+                                                <span class="s-icon icon" v-bind:class="{ 'text-gray hover-blue' : name_is_changed, 'text-light-gray' : !name_is_changed }" v-bind:key="'sync'"><i class="fas fa-sync"></i></span>
                                             </template>
                                         </div>
                                     </div>
@@ -459,7 +461,7 @@
                         </div>
 
                         {* URL PARAMS *}
-                        <div class="wa-field s-field-wrapper s-field-ulr-params-wrapper">
+                        <div class="field s-field-wrapper s-field-ulr-params-wrapper">
                             <div class="name shift-0">
                                 <span class="s-name">[`Link URL for website menu`]</span>
                                 <span class="s-icon icon" data-tooltip-id="category-url-params"><i class="fas fa-question-circle gray"></i></span>
@@ -467,11 +469,11 @@
                             <div class="value">
 
                                 <div class="flexbox space-8">
-                                    <div class="column nowrap">
-                                        <span class="s-icon icon shift-0 size-16 color-gray"
+                                    <div class="column flexbox middle nowrap">
+                                        <span class="icon size-16 text-gray custom-mr-8"
                                               v-if="states.visible_menu_url"
                                               v-bind:key="'fa-eye'"><i class="fas fa-eye"></i></span>
-                                        <span class="s-icon icon shift-0 size-16 color-gray-light"
+                                        <span class="icon size-16 text-light-gray custom-mr-8"
                                               v-else
                                               v-bind:key="'fa-eye-slash'"><i class="fas fa-eye-slash"></i></span>
                                         <component-switch v-model="states.visible_menu_url"></component-switch>
@@ -498,7 +500,7 @@
                         </div>
 
                         {* TYPE *}
-                        <div class="wa-field s-field-wrapper">
+                        <div class="field s-field-wrapper">
                             <div class="name">
                                 <span class="s-name">[`Category type`]</span>
                             </div>
@@ -533,9 +535,9 @@
                         </div>
                         <div class="s-section-body">
 
-                            <div class="wa-fields">
+                            <div class="fields">
                                 {* Отображение товаров из подкатегорий *}
-                                <div class="wa-field">
+                                <div class="field">
                                     <div class="name shift-0">
                                         <span class="s-name">[`Displaying products from subcategories`]</span>
                                     </div>
@@ -561,7 +563,7 @@
                                 </div>
 
                                 {* Сортировка товаров при загрузке страницы категории *}
-                                <div class="wa-field">
+                                <div class="field">
                                     <div class="name shift-4">
                                         <span class="s-name">[`Default product sorting on the category page`]</span>
                                     </div>
@@ -582,7 +584,7 @@
                                 </div>
 
                                 {* Выбор варианта сортировки *}
-                                <div class="wa-field">
+                                <div class="field">
                                     <div class="name shift-0">
                                         <span class="s-name">[`Sorting option selection`]</span>
                                     </div>
@@ -608,7 +610,7 @@
                                 </div>
 
                                 {* Фильтрация товаров на витрине *}
-                                <div class="wa-field js-category-filter-section">
+                                <div class="field js-category-filter-section">
                                     <div class="name shift-0">
                                         <span class="s-name">[`Products filtering in the storefront`]</span>
                                     </div>
@@ -638,7 +640,7 @@
                                 </div>
 
                                 {* Описание категории *}
-                                <div class="wa-field">
+                                <div class="field">
                                     <div class="name shift-0">
                                         <span class="s-name">[`Category description`]</span>
                                     </div>
@@ -670,8 +672,8 @@
                         </div>
                         <div class="s-section-body">
 
-                            <div class="s-fields-wrapper wa-fields">
-                                <div class="wa-field">
+                            <div class="s-fields-wrapper fields">
+                                <div class="field">
                                     <div class="name shift-4">
                                         <div>[`Page title`]</div>
                                         <div class="hint">&lt;title&gt;</div>
@@ -680,7 +682,7 @@
                                         <div class="s-textarea-wrapper">
                                             <component-textarea
                                                 v-model="category.meta_title"
-                                                v-bind:class="'wa-small wide'"></component-textarea>
+                                                v-bind:class="'small wide'"></component-textarea>
                                         </div>
 
                                         <div class="s-textarea-details">
@@ -691,7 +693,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="wa-field">
+                                <div class="field">
                                     <div class="name shift-4">
                                         <div>[`Page description`]</div>
                                         <div class="hint">&lt;meta description&gt;</div>
@@ -700,7 +702,7 @@
                                         <div class="s-textarea-wrapper">
                                             <component-textarea
                                                 v-model="category.meta_description"
-                                                v-bind:class="'wa-small wide'"></component-textarea>
+                                                v-bind:class="'small wide'"></component-textarea>
                                         </div>
 
                                         <div class="s-textarea-details">
@@ -711,7 +713,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="wa-field">
+                                <div class="field">
                                     <div class="name shift-4">
                                         <div>[`Keywords`]</div>
                                         <div class="hint">&lt;meta keywords&gt; ([`optional`])</div>
@@ -720,7 +722,7 @@
                                         <div class="s-textarea-wrapper">
                                             <component-textarea
                                                 v-model="category.meta_keywords"
-                                                v-bind:class="'wa-small wide'"></component-textarea>
+                                                v-bind:class="'small wide'"></component-textarea>
                                         </div>
 
                                         <div class="s-textarea-details">
@@ -743,9 +745,9 @@
                         </div>
                         <div class="s-section-body">
 
-                            <div class="s-fields-wrapper wa-fields">
+                            <div class="s-fields-wrapper fields">
                                 {* Switch *}
-                                <div class="wa-field">
+                                <div class="field">
                                     <div class="name shift-0">
                                         <div>[`Use meta tags for search systems.`]</div>
                                     </div>
@@ -770,7 +772,7 @@
                                 </div>
                                 <template v-if="!category.og.enabled">
                                     {* Title *}
-                                    <div class="wa-field">
+                                    <div class="field">
                                         <div class="name shift-4">
                                             <div>[`Title`]</div>
                                             <div class="hint">og:title</div>
@@ -779,7 +781,7 @@
                                             <div class="s-textarea-wrapper">
                                                 <component-textarea
                                                     v-model="category.og.title"
-                                                    v-bind:class="'wa-small wide'"></component-textarea>
+                                                    v-bind:class="'small wide'"></component-textarea>
                                             </div>
 
                                             <div class="s-textarea-details">
@@ -791,7 +793,7 @@
                                         </div>
                                     </div>
                                     {* Description *}
-                                    <div class="wa-field">
+                                    <div class="field">
                                         <div class="name shift-4">
                                             <div>[`Description`]</div>
                                             <div class="hint">og:description</div>
@@ -800,7 +802,7 @@
                                             <div class="s-textarea-wrapper">
                                                 <component-textarea
                                                     v-model="category.og.description"
-                                                    v-bind:class="'wa-small wide'"></component-textarea>
+                                                    v-bind:class="'small wide'"></component-textarea>
                                             </div>
 
                                             <div class="s-textarea-details">
@@ -812,39 +814,39 @@
                                         </div>
                                     </div>
                                     {* Image *}
-                                    <div class="wa-field">
+                                    <div class="field">
                                         <div class="name shift-4">
                                             <div>[`Image`]</div>
                                             <div class="hint">og:image</div>
                                         </div>
                                         <div class="value">
                                             <div class="s-input-wrapper">
-                                                <input class="wa-small gray-field wide" v-model="category.og.image">
+                                                <input class="small gray-field wide" type="text" v-model="category.og.image">
                                             </div>
                                             <div class="hint">[`If no image URL is specified then a social media will automatically select one from those available on the page.`]</div>
                                         </div>
                                     </div>
                                     {* Video URL *}
-                                    <div class="wa-field">
+                                    <div class="field">
                                         <div class="name shift-4">
                                             <div>[`Video URL`]</div>
                                             <div class="hint">og:video</div>
                                         </div>
                                         <div class="value">
                                             <div class="s-input-wrapper">
-                                                <input class="wa-small gray-field wide" v-model="category.og.video">
+                                                <input class="small gray-field wide" type="text" v-model="category.og.video">
                                             </div>
                                         </div>
                                     </div>
                                     {* Page type *}
-                                    <div class="wa-field">
+                                    <div class="field">
                                         <div class="name shift-4">
                                             <div>[`Page type`]</div>
                                             <div class="hint">og:type</div>
                                         </div>
                                         <div class="value">
                                             <div class="s-input-wrapper">
-                                                <input class="wa-small gray-field wide" v-model="category.og.type">
+                                                <input class="small gray-field wide" type="text" v-model="category.og.type">
                                             </div>
                                         </div>
                                     </div>
@@ -861,7 +863,7 @@
                         </div>
                         <div class="s-section-body">
 
-                            <div class="wa-message wa-small white flexbox space-8">
+                            <div class="wa-message small white flexbox space-8">
                                 <div class="message-icon"><i class="fas fa-info-circle"></i></div>
                                 <div class="message-text wide">
                                     [`Optional set of custom <em>key=value</em> parameters which can be used in design theme templates as <em>&#123;$category.params.key&#125;</em>. Each key=value pair must be on a separate line.`]
@@ -871,19 +873,19 @@
                             <component-textarea
                                 v-model="category.params"
                                 v-on:change="resizeDialog"
-                                v-bind:class="'wa-small wide'"></component-textarea>
+                                v-bind:class="'small wide'"></component-textarea>
                         </div>
                     </div>
                 </div>
 
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button" v-on:click.prevent="save" v-bind:disabled="has_errors || states.locked">
+                <button class="button" type="button" v-bind:class="status_change_class" v-on:click.prevent="save" v-bind:disabled="has_errors || states.locked">
                     <span class="s-icon icon size-14" v-if="states.locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name" v-if="category.id">[`Save`]</span>
                     <span class="s-name" v-else>[`Create`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

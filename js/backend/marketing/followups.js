@@ -26,9 +26,8 @@
         FollowupsPage.prototype.init = function() {
             var that = this;
 
-            var $settings_content = $('#s-settings-content'),
-                $form = $('#s-followup-form'),
-                $submit_button = $form.find('.js-submit-button'),
+            var $form = $('#s-followup-form'),
+                $submit_button = that.$wrapper.find('.js-submit-button'),
                 $send_test_button = $('#send-test-button');
 
             var template_modified = false;
@@ -44,19 +43,29 @@
                     if (!is_delete_locked) {
                         is_delete_locked = true;
 
-                        if (confirm(that.locales["confirm_text"])) {
-                            var data = {
-                                id: that.followup_id
-                            };
+                        $.waDialog.confirm({
+                            title: that.locales["confirm_text"],
+                            success_button_title: $_('Delete'),
+                            success_button_class: 'danger',
+                            cancel_button_title: $_('Cancel'),
+                            cancel_button_class: 'light-gray',
+                            onSuccess: function() {
+                                var data = {
+                                    id: that.followup_id
+                                };
 
-                            $.post(that.urls["delete"], data, "json")
-                                .fail( function () {
-                                    is_delete_locked = false;
-                                })
-                                .done( function () {
-                                    $.shop.marketing.content.load( that.urls["dir_url"] );
-                                });
-                        }
+                                $.post(that.urls["delete"], data, "json")
+                                    .fail( function () {
+                                        is_delete_locked = false;
+                                    })
+                                    .done( function () {
+                                        $.shop.marketing.content.load( that.urls["dir_url"] );
+                                    });
+                            },
+                            onCancel: function() {
+                                is_delete_locked = false;
+                            }
+                        });
                     }
                 });
 
@@ -65,9 +74,10 @@
 
             // Dialog with info how to set up cron
             $('#cron-message-link').on("click", function() {
-                var $dialog_w = $(that.templates["cron_dialog"]);
+                const $dialog_w = $(that.templates["cron_dialog"]);
 
-                $dialog_w.waDialog({
+                $.waDialog({
+                    $wrapper: $dialog_w,
                     'height': '200px',
                     'width': '400px',
                     'buttons': $('<button class="button"></button>').text(that.locales["locale_3"]).on("click", function(event) {
@@ -105,12 +115,11 @@
 
                 window.wa_editor = prev_editor;
 
-                var $loading = $("<span class=\"s-msg-after-button\"><i class=\"icon16 loading\"></i></span>");
+                var $loading = $('<span class="s-msg-after-button"><i class="fas fa-spinner fa-spin"></i></span>');
 
                 // Submit
-                $submit_button
-                    .attr("disabled", true)
-                    .parent().append($loading);
+                $submit_button.removeClass('yellow').addClass('green');
+                $submit_button.attr("disabled", true).append($loading);
 
                 $.post($form.attr('action'), $form.serialize(), "json")
                     .fail( function() {
@@ -118,6 +127,11 @@
                         $loading.remove();
                     })
                     .done( function(response) {
+                        $loading
+                            .html('<i class="fas fa-check-circle"></i>')
+                            .animate({ opacity: 0 }, 1500, function() {
+                                $(this).remove();
+                            });
                         if (response.status === "ok") {
                             if (response.data.id) {
                                 var redirect_uri = that.urls["id_page"].replace("%id%", response.data.id);
@@ -132,75 +146,85 @@
 
             that.$wrapper.on("change", ".followup-from", function() {
                 if ($(this).val() === 'other') {
-                    $('<input type="text" name="from" value="">').insertAfter(this).focus();
+                    $('<input type="text" class="small" name="from" value="">').insertAfter($(this).parent()).focus();
                 } else {
-                    $(this).next('input').remove();
+                    $(this).parent().next('input').remove();
                 }
             });
 
             // Controller for sending tests
             function initDialog() {
-                var dialog = $('#send-test-dialog');
-
-                // Select row when user clicks on it
-                dialog.find('table').on('click', 'tr', function() {
-                    var tr = $(this).addClass('selected');
-                    tr.siblings('.selected').removeClass('selected');
-                    tr.find(':radio').attr('checked', true);
-                });
-
-                // Actual send: called when user clicks "send test" button in dialog
-                var sendTest = function() {
-                    dialog.find('.message').text(that.locales["locale_4"]).removeClass('errormsg');
-
-                    var to_field = dialog.find('input:text').removeClass('error');
-                    var to = to_field.val();
-                    if (!to) {
-                        to_field.addClass('error');
-                        return false;
-                    }
-
-                    var order_id = dialog.find('input:radio:checked').val();
-                    if (!order_id) {
-                        dialog.find('.message').addClass('errormsg');
-                        return false;
-                    }
-
-                    dialog.find('.s-msg-after-button').show();
-
-                    $.post('?module=marketingFollowupsTest', { order_id: order_id, followup_id: followup_id, to: to }, function(r) {
-                        dialog.find(':input').attr('disabled', false);
-                        dialog.find('.s-msg-after-button').hide();
-                        if (r.status !== 'ok' && r.errors) {
-                            dialog.find('.message').text(r.errors).addClass('errormsg');
-                        } else {
-                            dialog.find('.before-send').hide();
-                            dialog.find('.after-send').show();
-                        }
-                    }, 'json');
-                };
-
-                dialog.find(':submit').on("click", function(event) {
-                    event.preventDefault();
-                    sendTest();
-                });
-
                 // Show dialog when user clicks "Send test" button in main form
-                $send_test_button.on("click", function(event) {
-                    event.preventDefault();
+                $send_test_button.on("click", function(e) {
+                    e.preventDefault();
 
                     if (template_modified) {
-                        alert(that.locales["locale_1"]);
-
-                    } else {
-                        dialog.waDialog({
-                            onLoad: function() {
-                                dialog.find(':input').attr('disabled', false);
-                                dialog.find('.before-send').show();
-                                dialog.find('.after-send').hide();
-                            }
+                        $.waDialog.alert({
+                            title: that.locales["locale_1"],
+                            button_title: $_("Close"),
+                            button_class: 'light-gray',
                         });
+                        return;
                     }
+
+                    $.waDialog({
+                        html: $('#send-test-dialog').clone()[0],
+                        onOpen: function($dialog) {
+                            // Select row when user clicks on it
+                            $dialog.find('table').on('click', 'tr', function() {
+                                var tr = $(this).addClass('selected');
+                                tr.siblings('.selected').removeClass('selected');
+                                tr.find(':radio').prop('checked', true);
+                            });
+
+                            // Actual send: called when user clicks "send test" button in dialog
+                            var sendTest = function() {
+                                var message = $dialog.find('.message');
+                                message.text(that.locales["locale_4"]).removeClass('state-error').hide();
+
+                                var to_field = $dialog.find('input:text').removeClass('state-error');
+                                var to = to_field.val();
+                                if (!to) {
+                                    to_field.addClass('state-error');
+                                    to_field.focus();
+                                    $dialog.scrollTop(to_field.position().top);
+                                    return;
+                                }
+
+                                var order_id = $dialog.find('input:radio:checked').val();
+                                if (!order_id) {
+                                    message.addClass('state-error').show();
+                                    $dialog.scrollTop(message.position().top);
+                                    return;
+                                }
+
+                                var $inputs = $dialog.find(':input').attr('disabled', true);
+                                var $msg_after_button = $dialog.find('.s-msg-after-button').show();
+
+                                $.post('?module=marketingFollowupsTest', { order_id: order_id, followup_id: followup_id, to: to }, function(r) {
+                                    $inputs.attr('disabled', false);
+                                    $msg_after_button.hide();
+                                    $dialog.find('.before-send').hide();
+
+                                    var $after_send = $dialog.find('.after-send').show();
+                                    if (r.status !== 'ok' && r.errors) {
+                                        var $state_error = $after_send.find('.state-error').show();
+                                        $state_error.find('.error').text(r.errors);
+                                    } else {
+                                        $after_send.find('.state-success').show();
+                                    }
+                                }, 'json');
+                            };
+
+                            $dialog.find('.js-submit-button').on("click", function(event) {
+                                event.preventDefault();
+                                sendTest();
+                            });
+                            $dialog.find('.after-send').hide();
+                            $dialog.find('.before-send').show();
+                            $dialog.find(':input').attr('disabled', false);
+                        }
+                    });
                 });
             }
 
@@ -253,9 +277,9 @@
             function onChangeTransport(transport) {
                 setEditor(transport);
                 var fields = $form.find('.f-transport-fields');
-                fields.filter(':not([data-transport=' + transport + '])').hide().
+                fields.filter(':not([data-transport=' + transport + '])').addClass('hidden').
                 find(':input').attr('disabled', true);
-                fields.filter('[data-transport=' + transport + ']').show().
+                fields.filter('[data-transport=' + transport + ']').removeClass('hidden').
                 find(':input').attr('disabled', false);
             }
         };

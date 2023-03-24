@@ -369,7 +369,13 @@ class shopProductReviewsModel extends waNestedSetModel
                     }
                 }
 
-                $image_size = wa('shop')->getConfig()->getImageSize('crop_small');
+                if (wa()->whichUI() == '1.3') {
+                    $image_size = wa('shop')->getConfig()->getImageSize('crop_small');
+                    $prop_product_url_crop = 'product_url_crop_small';
+                } else {
+                    $image_size = wa('shop')->getConfig()->getImageSize('crop');
+                    $prop_product_url_crop = 'product_url_crop';
+                }
                 foreach ($data as &$item) {
                     if (isset($products[$item['product_id']])) {
                         $product = $products[$item['product_id']];
@@ -384,7 +390,7 @@ class shopProductReviewsModel extends waNestedSetModel
                             $item['product_url'] = wa()->getRouteUrl('shop/frontend/product', $route_params);
                         }
                         if ($product['image_id']) {
-                            $item['product_url_crop_small'] = shopImage::getUrl(
+                            $item[$prop_product_url_crop] = shopImage::getUrl(
                                 array(
                                     'id'         => $product['image_id'],
                                     'product_id' => $product['id'],
@@ -394,7 +400,7 @@ class shopProductReviewsModel extends waNestedSetModel
                                 $image_size
                             );
                         } else {
-                            $item['product_url_crop_small'] = null;
+                            $item[$prop_product_url_crop] = null;
                         }
                     }
                 }
@@ -507,9 +513,9 @@ class shopProductReviewsModel extends waNestedSetModel
             return;
         }
         $product_rate = $product_model->query(
-            "SELECT COUNT(spr.id) rating_count, COALESCE(AVG(spr.rate), 0) rating  
+            "SELECT COUNT(spr.id) rating_count, COALESCE(AVG(spr.rate), 0) rating
             FROM shop_product_reviews spr
-            WHERE spr.product_id = :product_id AND spr.rate IS NOT NULL AND spr.status IN (:statuses)",
+            WHERE spr.product_id = :product_id AND spr.rate IS NOT NULL AND spr.parent_id = 0 AND spr.status IN (:statuses)",
             [
                 'product_id' => $product_id,
                 'statuses'   => [
@@ -590,7 +596,9 @@ class shopProductReviewsModel extends waNestedSetModel
         if (!$id) {
             return false;
         }
-        $this->recalcProductRating($review['product_id']);
+        if (empty($parent_id)) {
+            $this->recalcProductRating($review['product_id']);
+        }
 
         return $id;
     }

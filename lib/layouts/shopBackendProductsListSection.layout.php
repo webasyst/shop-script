@@ -37,8 +37,11 @@ class shopBackendProductsListSectionLayout extends shopBackendProductsLayout
         $this->blocks = [
             'content' => $view->fetch($this->getTemplate()),
         ];
-
-        $this->template = wa()->getAppPath('templates/layouts/BackendProducts.html', 'shop');
+        if (wa()->whichUI() == '1.3') {
+            $this->template = wa()->getAppPath('templates/layouts-legacy/BackendProducts.html', 'shop');
+        } else {
+            $this->template = wa()->getAppPath('templates/layouts/BackendProducts.html', 'shop');
+        }
         parent::execute();
     }
 

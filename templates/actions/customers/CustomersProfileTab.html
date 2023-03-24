@@ -1,31 +1,5 @@
-<style>
-.icon16.ss { background-image: url({$wa_app_static_url}img/ss-icon16.png); }
-.icon16.ss.new { background-position:0 -32px; }
-.icon16.ss.confirmed,
-.icon16.ss.processing { background-position:-16px -32px; }
-.icon16.ss.paid { background-position:-32px -32px; }
-.icon16.ss.sent { background-position:-48px -32px; }
-.icon16.ss.completed { background-position:-64px -32px; }
-.icon16.ss.refunded { background-position:-80px -32px; }
-.icon16.ss.trash { background-position:-96px -32px; }
-.icon16.ss.flag-white { background-position:0 -16px; }
-.icon16.ss.flag-blue { background-position:-16px -16px; }
-.icon16.ss.flag-yellow { background-position:-32px -16px; }
-.icon16.ss.flag-green { background-position:-48px -16px; }
-.icon16.ss.flag-red { background-position:-64px -16px; }
-.icon16.ss.flag-purple { background-position:-80px -16px; }
-.icon16.ss.flag-black { background-position:-96px -16px; }
-.icon16.ss.flag-checkers { background-position:-112px -16px; }
-@media
-(-webkit-min-device-pixel-ratio: 2),
-(min-resolution: 192dpi) {
-    i.icon16.ss { background-image: url({$wa_app_static_url}img/ss-icon16@2x.png?1503); background-size: 500px 180px; }
-}
-</style>
-
-<div class="block double-padded">
-
-    <table class="zebra double-padded" id="s-order-list">
+<div class="box">
+    <table class="zebra" id="s-order-list">
         {foreach $orders as $o}
             <tr>
                 <td class="nowrap">
@@ -35,7 +9,8 @@
                                       data-state-id="{$o.state_id}"
                                       class="s-order-link"
                                 >
-                        <i class="{$o.icon}"></i>{$wa->shop->orderId($o.id)}
+                        <span class="icon"><i class="{$wa->shop->convertIcon($o.icon, true)}"></i></span>
+                        {$wa->shop->orderId($o.id)}
                     </a>
                 </td>
                 <td>{$o.create_datetime|wa_date:'humandate'}</td>
@@ -70,7 +45,7 @@
     </table>
 
     <a href="{$wa_app_url}?action=orders#/orders/new/customer_id={$contact.id}" target="_top">
-        <i class="icon16 add" style="margin: 0 4px 0 0; position: relative; top: 2px; vertical-align: baseline;"></i>
+        <i class="fas fa-plus-circle"></i>
         [`Add order`]
     </a>
 
@@ -87,4 +62,3 @@
         }
     });
 </script>
-

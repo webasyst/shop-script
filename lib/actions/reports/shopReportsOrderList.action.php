@@ -28,7 +28,18 @@ class shopReportsOrderListAction extends shopOrderListAction
         $now_loaded_count = count($orders);
         $already_loaded_count = $now_loaded_count + $offset;
 
+        $state_names = [];
+        $workflow = new shopWorkflow();
+
+        $available_states = $workflow->getAvailableStates();
+
+        foreach ($available_states as $state_id => $state) {
+            $state_names[$state_id]['name'] = waLocale::fromArray($state['name']);
+            $state_names[$state_id]['options'] = $state['options'];
+        }
+
         $this->view->assign(array(
+            'state_names' => $state_names,
             'orders' => array_values($orders),
             'disabled_lazyload' => $this->getRequest()->get('disabled_lazyload'),
             'offset' => $offset,
@@ -116,7 +127,8 @@ class shopReportsOrderListAction extends shopOrderListAction
             $hash .= $paid_date_hash ? $paid_date_hash : '&paid_date!=NULL';
             $sales_channel = $this->getSalesChannel();
             if ($sales_channel) {
-                $hash .= '&params.sales_channel=' . $sales_channel;
+                $sales_channel = rtrim($sales_channel, '/*');
+                $hash .= '&params.sales_channel=' . $sales_channel . "||$sales_channel/";
             }
         }
         if (!$str) {

@@ -156,27 +156,15 @@ class shopImportexportHelper
                 break;
             case 'set':
                 $set_id = waRequest::post('set_id', $tail, waRequest::TYPE_STRING_TRIM);
-                $hash = 'set/'.$set_id;
-                $model = new shopSetModel();
-                if ($set = $model->getById($set_id)) {
-                    $info['name'] .= ' - '.$set['name'];
-                }
+                self::processHash($info['type'], $set_id, $hash, $info);
                 break;
             case 'type':
                 $type_id = waRequest::post('type_id', $tail, waRequest::TYPE_INT);
-                $hash = 'type/'.$type_id;
-                $model = new shopTypeModel();
-                if ($type = $model->getById($type_id)) {
-                    $info['name'] .= ' - '.$type['name'];
-                }
+                self::processHash($info['type'], $type_id, $hash, $info);
                 break;
             case 'category':
                 $category_id = waRequest::post('category_ids', $tail, waRequest::TYPE_INT);
-                $model = new shopCategoryModel();
-                if ($category = $model->getById($category_id)) {
-                    $info['name'] .= ' - '.$category['name'];
-                }
-                $hash = 'category/'.$category_id;
+                self::processHash($info['type'], $category_id, $hash, $info);
                 break;
             case 'tag':
             case 'search':
@@ -188,7 +176,6 @@ class shopImportexportHelper
             case 'presentation':
                 // e.g. presentation/1,450,850 - where 450 and 850 product ids
                 // or presentation/1
-                $info['type'] = 'id';
                 $ids = array_unique(array_map('intval', explode(',', $tail)));
                 $product_raw_ids = [];
                 $presentation_raw_id = 0;
@@ -205,11 +192,20 @@ class shopImportexportHelper
                 $hash = '*';
                 if ($presentation_id > 0) {
                     $presentation = new shopPresentation($presentation_id, true);
-                    if ($presentation->getFilterId() > 0) {
-                        $options['exclude_products'] = $product_ids;
-                        $collection = new shopProductsCollection('filter/'.$presentation->getFilterId(), $options);
-                        $products = $collection->getProducts('id', 0, 10000);
-                        $hash = 'id/'.implode(',', array_keys($products));
+                    $filter = $presentation->getFilter();
+                    $filter_data = $filter->getFilter();
+                    if ($filter->getId()) {
+                        if (count($filter_data['rules']) == 1 && empty($product_ids)
+                            && in_array($filter_data['rules'][0]['rule_type'], ['sets', 'types', 'categories'])
+                        ) {
+                            self::processHash($filter_data['rules'][0]['rule_type'], $filter_data['rules'][0]['rule_params'], $hash, $info);
+                        } else {
+                            $info['type'] = 'id';
+                            $options['exclude_products'] = $product_ids;
+                            $collection = new shopProductsCollection('filter/'.$filter->getId(), $options);
+                            $products = $collection->getProducts('id', 0, 10000);
+                            $hash = 'id/'.implode(',', array_keys($products));
+                        }
                     }
                 }
                 break;
@@ -337,6 +333,36 @@ class shopImportexportHelper
             $info['data']['categories'] = $categories;
         }
         return $info;
+    }
+
+    protected static function processHash($hash_type, $id, &$hash, &$info)
+    {
+        $model = null;
+
+        switch ($hash_type) {
+            case 'sets':
+            case 'set':
+                $hash = 'set/'.$id;
+                $model = new shopSetModel();
+                break;
+            case 'types':
+            case 'type':
+                $hash = 'type/'.$id;
+                $model = new shopTypeModel();
+                break;
+            case 'categories':
+            case 'category':
+                $hash = 'category/'.$id;
+                $model = new shopCategoryModel();
+                break;
+        }
+
+        if ($model) {
+            $data = $model->getById($id);
+            if ($data) {
+                $info['name'] .= ' - ' . $data['name'];
+            }
+        }
     }
 
     public function save()

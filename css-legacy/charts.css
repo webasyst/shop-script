@@ -1,0 +1,400 @@
+.s-chart-color {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  vertical-align: top;
+  width: 10px;
+  height: 10px;
+  margin: 0 4px 0 0;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: #fff;
+  -webkit-transition: background 200ms linear;
+  -moz-transition: background 200ms linear;
+  -o-transition: background 200ms linear;
+  -ms-transition: background 200ms linear;
+  transition: background 200ms linear;
+}
+.extended-sales-graph-wrapper {
+  position: relative;
+  margin: 1em 0;
+  width: 100%;
+  padding: 0 0 33.088235294117645%;
+  height: 0;
+  overflow: hidden;
+}
+.extended-sales-graph-wrapper .extended-sales-divider {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-right: 1px dashed rgba(0,0,0,0.2);
+  width: 0;
+  overflow: hidden;
+}
+.extended-sales-graph-wrapper .extended-sales-divider.is-shown {
+  display: block;
+}
+.extended-sales-graph-wrapper .extended-sales-hint {
+  visibility: hidden;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 10px;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(0,0,0,0.1);
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  max-height: 80%;
+  overflow: hidden;
+}
+.extended-sales-graph-wrapper .extended-sales-hint.is-shown {
+  visibility: visible;
+}
+.extended-sales-graph-wrapper .extended-sales-hint .date {
+  margin: 0 0 10px;
+  font-size: 12px;
+}
+.extended-sales-graph-wrapper .extended-sales-hint .chart-value {
+  margin: 8px 0 0;
+  font-size: 11px;
+  max-width: 175px;
+  white-space: nowrap;
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+}
+.extended-sales-graph-wrapper .extended-sales-hint .chart-value .name {
+  color: #999;
+}
+.extended-sales-graph-wrapper .extended-sales-hint .chart-value .value {
+  color: #444;
+  margin: 0 4px 0 0;
+}
+.extended-sales-graph-wrapper .extended-sales-hint .chart-value .color {
+  display: inline-block;
+  vertical-align: top;
+  width: 8px;
+  height: 8px;
+  margin: 0 4px 0 0;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: #fff;
+  -webkit-transition: background 200ms linear;
+  -moz-transition: background 200ms linear;
+  -o-transition: background 200ms linear;
+  -ms-transition: background 200ms linear;
+  transition: background 200ms linear;
+}
+.extended-sales-graph-wrapper .extended-sales-graph {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+.extended-sales-graph-wrapper .extended-sales-graph .points .point {
+  fill: #fff;
+  stroke: rgba(0,0,0,0.33);
+  stroke-width: 1px;
+  shape-rendering: geometricPrecision;
+}
+.extended-sales-graph-wrapper .extended-sales-graph .background {
+  opacity: 0.4;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=40)";
+  filter: alpha(opacity=40);
+}
+.extended-sales-graph-wrapper .extended-sales-graph .background line {
+  stroke: #f0f0f0;
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+.extended-sales-graph-wrapper .extended-sales-graph .background line.first {
+  shape-rendering: auto;
+}
+.extended-sales-graph-wrapper .extended-sales-graph .background rect {
+  fill: #fdfeff;
+}
+.extended-sales-graph-wrapper .extended-sales-graph .axis path,
+.extended-sales-graph-wrapper .extended-sales-graph .axis line {
+  fill: none;
+  stroke: #aaa;
+  shape-rendering: crispEdges;
+}
+.extended-sales-graph-wrapper .extended-sales-graph .axis text {
+  fill: #aaa;
+  font-size: 0.8em;
+}
+.extended-sales-graph-wrapper .extended-sales-graph .axis .y .domain {
+  display: none;
+}
+.extended-sales-graph-wrapper .extended-sales-graph .axis .y line {
+  stroke: #999;
+}
+.extended-sales-graph-wrapper .extended-sales-graph .axis .y text {
+  fill: #999;
+}
+.extended-sales-graph-wrapper .extended-sales-graph .charts path,
+.extended-sales-graph-wrapper .extended-sales-graph .charts line {
+  fill: #f0f0f0;
+  stroke: #969696;
+  stroke-width: 0;
+  shape-rendering: geometricPrecision;
+}
+.sales-wrapper {
+  position: relative;
+  margin-bottom: 10px;
+}
+.sales-wrapper path {
+  fill: none;
+}
+.sales-wrapper .axis path,
+.sales-wrapper .axis line {
+  stroke: #aaa;
+  shape-rendering: crispEdges;
+}
+.sales-wrapper .axis text {
+  fill: #aaa;
+  font-size: 0.8em;
+}
+.sales-wrapper .axis.y .domain {
+  display: none;
+}
+.sales-wrapper .axis.y line {
+  stroke: #999;
+}
+.sales-wrapper .axis.y text {
+  fill: #999;
+}
+.sales-wrapper .graph .line {
+  stroke-width: 3px;
+  opacity: 1;
+  -ms-filter: none;
+  filter: none;
+}
+.sales-wrapper .graph .area {
+  stroke: none;
+  opacity: 0.3;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+  filter: alpha(opacity=30);
+}
+.sales-wrapper .graph.profit .area {
+  opacity: 0.5;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+  filter: alpha(opacity=50);
+}
+.sales-wrapper .point {
+  cursor: pointer;
+  opacity: 0.8;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+  filter: alpha(opacity=80);
+}
+.sales-wrapper .background {
+  opacity: 0.4;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=40)";
+  filter: alpha(opacity=40);
+}
+.sales-wrapper .background line {
+  stroke: #f0f0f0;
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+.sales-wrapper .background line.first {
+  shape-rendering: auto;
+}
+.sales-wrapper .background rect {
+  fill: #fdfeff;
+}
+.sales-wrapper .loss-points-wrapper .invisible,
+.sales-wrapper .loss-points-wrapper .positive {
+  display: none;
+}
+.cohort-wrapper {
+  margin: 24px 0;
+}
+.cohort-wrapper path {
+  fill: none;
+}
+.cohort-wrapper .layers .layer {
+  stroke-width: 1px;
+  stroke: rgba(255,255,255,0.2);
+  cursor: pointer;
+  -webkit-transition: all 500ms ease-in-out;
+  -moz-transition: all 500ms ease-in-out;
+  -o-transition: all 500ms ease-in-out;
+  -ms-transition: all 500ms ease-in-out;
+  transition: all 500ms ease-in-out;
+}
+.cohort-wrapper .layers .layer.active-layer {
+  fill: #ffec48 !important;
+}
+.cohort-wrapper .axis text {
+  fill: #999;
+}
+.cohort-wrapper .axis path,
+.cohort-wrapper .axis line {
+  display: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+.cohort-wrapper .axis .domain {
+  stroke-width: 1px;
+  stroke: #000;
+}
+.cohort-wrapper .background {
+  opacity: 0.4;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=40)";
+  filter: alpha(opacity=40);
+}
+.cohort-wrapper .background line {
+  stroke: rgba(49,139,189,0.11);
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+.cohort-wrapper .background line.first {
+  shape-rendering: auto;
+}
+.cohort-wrapper .background rect {
+  fill: #fcfeff;
+}
+.pie-wrapper path.slice {
+  stroke-width: 0;
+  stroke: #fff;
+}
+.pie-wrapper polyline {
+  opacity: 0.3;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+  filter: alpha(opacity=30);
+  stroke: #369;
+  stroke-width: 1px;
+  fill: none;
+}
+.pie-wrapper .percent {
+  fill: #fff;
+  font-family: "Helvetica Neue", "Trebuchet MS", Arial, sans-serif;
+  font-size: 0.8em;
+}
+.costs-wrapper .axis path,
+.costs-wrapper .axis line {
+  fill: none;
+  stroke: #999;
+  shape-rendering: crispEdges;
+}
+.costs-wrapper .axis text {
+  font-family: sans-serif;
+  font-size: 11px;
+  fill: #999;
+}
+.costs-wrapper .axis.x line {
+  display: none;
+}
+.costs-wrapper .axis.y .domain {
+  display: none;
+}
+.costs-wrapper .axis.y line {
+  stroke: #999;
+}
+.costs-wrapper .axis.y text {
+  fill: #999;
+}
+.costs-wrapper .dot {
+  stroke: #000;
+}
+.costs-wrapper .legend {
+  padding: 5px;
+  font: 10px sans-serif;
+  background: #ff0;
+  -webkit-box-shadow: 2px 2px 1px #888;
+  box-shadow: 2px 2px 1px #888;
+}
+.costs-wrapper .rgroups rect {
+  opacity: 0.66;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=66)";
+  filter: alpha(opacity=66);
+  -webkit-transition: all 300ms ease-in-out;
+  -moz-transition: all 300ms ease-in-out;
+  -o-transition: all 300ms ease-in-out;
+  -ms-transition: all 300ms ease-in-out;
+  transition: all 300ms ease-in-out;
+  cursor: pointer;
+  shape-rendering: crispEdges;
+}
+.costs-wrapper .rgroups rect.is-hovered {
+  opacity: 1;
+  -ms-filter: none;
+  filter: none;
+}
+.costs-wrapper .background {
+  opacity: 0.2;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+  filter: alpha(opacity=20);
+}
+.costs-wrapper .background line {
+  stroke: rgba(49,139,189,0.11);
+  shape-rendering: optimizeQuality;
+}
+.costs-wrapper .background line:first-child {
+  shape-rendering: auto;
+}
+.costs-wrapper .background rect {
+  fill: #fcfeff;
+}
+.hint-wrapper {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #444;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  font: normal 13px/1.5em "Arial", sans-serif;
+  color: #369;
+  z-index: 1;
+/*transition: opacity 100ms ease-in-out*/
+/*opacity: 0;*/
+}
+.hint-wrapper.is-shown {
+  display: block;
+/*opacity: 1;*/
+}
+.hint-wrapper.is-shown .line.date {
+  color: #999;
+}
+.hint-wrapper.is-shown .line.sales {
+  color: #a7e0a7;
+}
+.hint-wrapper.is-shown .line.negative {
+  color: #ae4410;
+}
+.hint-wrapper.is-shown .line.negative .volume {
+  font-weight: bold;
+}
+.hint-wrapper.is-shown .line.profit {
+  color: #10ae10;
+}
+.hint-wrapper.is-shown .line.profit .volume {
+  font-weight: bold;
+}
+.map-wrapper {
+  position: relative;
+  margin-left: 30px;
+}
+#s-report-cohorts-table tbody th,
+#s-report-cohorts-table tbody td {
+  border-color: #a1a1a1;
+}
+#s-report-cohorts-table tbody td.td-with-data {
+  cursor: pointer;
+}
+.empty-graph {
+  padding: 100px 0 150px;
+  color: #aaa;
+  font-size: 18px;
+  text-align: center;
+}

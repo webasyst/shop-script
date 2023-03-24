@@ -300,7 +300,7 @@ var ExtendedSalesGraph = ( function($, d3) {
                 return 0;
             }
 
-            var step_count = that.data[0].length,
+            var step_count = that.data[0]?.length,
                 width = that.area.inner_width,
                 step_width = width/( step_count - 1),
                 result;

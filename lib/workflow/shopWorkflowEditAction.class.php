@@ -281,10 +281,17 @@ class shopWorkflowEditAction extends shopWorkflowAction
             }
         }
 
+        $class_icon_edit = "icon16 edit";
+        $class_icon_loading = "icon16 loading";
+        if (wa()->whichUI() >= '2.0') {
+            $class_icon_edit = "icon text-gray fas fa-pen";
+            $class_icon_loading = "text-gray fas fa-spinner wa-animation-spin";
+        }
+
         return <<<HTML
-<a href="#" class="s-edit-order show-alert" {$attrs}>
-    <i class="icon16 edit"></i><span>{$this->getName()}</span>
-    <i class="icon16 loading" style="margin-left: 4px; display:none;"></i>
+<a href="#" class="s-edit-order show-alert actions-link" {$attrs}>
+    <i class="$class_icon_edit"></i><span>{$this->getName()}</span>
+    <i class="$class_icon_loading" style="margin-left: 4px; display:none;"></i>
 </a>
 HTML;
     }

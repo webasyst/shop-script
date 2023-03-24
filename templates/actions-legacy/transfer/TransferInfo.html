@@ -1,0 +1,181 @@
+{$dialog_id = 's-transfer-info-'|cat:$transfer.id}
+
+<div id="{$dialog_id}" class="dialog s-transfer-info width800px height400px">
+    <form>
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>
+                    <span>{sprintf('[`Transfer %s`]', $transfer.string_id)}</span>
+                </h1>
+
+                {if $printable_docs}
+                        <ul class="menu-v js-printable-docs">
+                            {foreach $printable_docs as $plugin_id => $printable_doc}
+                                <li>
+                                    <label>
+                                        <input type="checkbox" checked="true" value="{$printable_doc.url|escape}" data-name="{$plugin_id}" data-target="_printform_{$plugin_id}_{$transfer.id}">
+                                        {$printable_doc.name|escape}
+                                    </label>
+                                </li>
+                            {/foreach}
+                        </ul>
+                        <input type="button" value="[`Print`]" class="js-printable-docs">
+                    <hr>
+                {/if}
+
+                <div class="fields" style="width: 100%;">
+                    <div class="field">
+                        <div class="name">
+                            [`Source stock`]
+                        </div>
+                        <div class="value">
+                            {if !$transfer.stock_from.name}
+                                [`New arrival`]
+                            {else}
+                                {$transfer.stock_from.name|escape}
+                            {/if}
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Destination stock`]
+                        </div>
+                        <div class="value">
+                            {$transfer.stock_to.name|escape}
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Products`]
+                        </div>
+                        <div class="value">
+                            <table class="zebra">
+                                <tbody class="s-transfer-products-list">
+                                {foreach $transfer.skus as $sku}
+                                    <tr class="s-transfer-product-item" data-id="{$sku.id}">
+                                        <td class="min-width valign-top">
+                                            <img style="width: 48px;" src="{$sku.image_url}">
+                                        </td>
+                                        <td>
+                                            <a href="?action=products#/product/{$sku.product_id}/" class="s-product-name" target="_blank">{$sku.product_name|escape}</a>
+                                            <span class="s-sku-name hint">{$sku.name|escape}</span>
+                                        </td>
+                                        <td>
+                                            x
+                                            <span class="f-transfer-count">
+                                                {$sku.transfer.count}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {/foreach}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- plugin hook: 'backend_stocks.%plugin_id%.transfer_info' -->
+            {* @event backend_stocks.%plugin_id%.transfer_info *}
+            {foreach $backend_stocks_hook as $_}{$_.transfer_info|default:''}{/foreach}
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {if $transfer.status === shopTransferModel::STATUS_SENT}
+                    <input class="button green" name="receive" type="button" value="[`Transfer completed!`]">
+                    <input type="hidden" name="id" value="{$transfer.id}">
+                    [`or`] <a class="cancel" href="javascript:void(0);">[`close`]</a>
+
+                    <div class="float-right block">
+                        <a href="javascript:void(0)" class="f-rollback-transfer"><i class="icon16 cross"></i>[`Rollback this transfer`]</a>
+                    </div>
+
+                {else}
+                    <input class="cancel button grey" type="button" value="[`Close`]">
+                {/if}
+
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
+<script>
+    $(function () {
+
+        var dialog = $('#{$dialog_id}');
+        var list = $('.s-transfer-products-list', dialog);
+        var form = $('form', dialog);
+
+        var showValidateErrors = function (errors) {
+            $.each(errors, function(i, er) {
+                var el = er.name === 'id' ? list : form.find('[name="' + er.name + '"]');
+                var parent = el.parent();
+                el.addClass('error');
+                parent.append('<em class="errormsg">' + er.msg + '</em>');
+            });
+        };
+
+        var clearValidateErrors = function () {
+            form.find('.errormsg').remove()
+                    .end().find('.error').removeClass('error');
+        };
+
+        var submit = function (url) {
+            clearValidateErrors();
+            $.shop.jsonPost(
+                url,
+                form.serialize(),
+                function (r) {
+                    dialog.trigger('close');
+                    // interface
+                    dialog.trigger('afterSubmit', [r]);
+                },
+                function (r) {
+                    showValidateErrors(r.errors || []);
+                }
+            );
+        };
+
+        dialog.waDialog({
+            disableButtonsOnSubmit: true,
+            onLoad: function () {
+
+                $.shop.changeListener(form, ':input', clearValidateErrors);
+                form.on('change', ':input', clearValidateErrors);
+
+                form.find('[name=receive]').click(function () {
+                    submit('?module=transfer&action=receive');
+                    return false;
+                });
+
+                form.find('.f-rollback-transfer').click(function () {
+                    if (confirm('[`Products will be returned to the source stock. Are you sure?`]')) {
+                        submit('?module=transfer&action=cancel');
+                    }
+                    return false;
+                });
+
+                form.submit(function (e) {
+                    e.preventDefault();
+                });
+
+                $(':button.js-printable-docs', dialog).click(function () {
+                    $('.js-printable-docs :checkbox', dialog).each(function () {
+                        var $this = $(this);
+                        var checked = $this.is(':checked');
+                        if (checked) {
+                            window.open($this.val(), $(this).data('target').replace(/\./, '_'));
+                        }
+                    });
+                    return false;
+                });
+
+            }
+        });
+
+    });
+</script>

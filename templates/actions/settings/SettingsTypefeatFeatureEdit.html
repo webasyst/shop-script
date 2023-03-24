@@ -38,21 +38,23 @@
 
 {function name="_render_feature_value_item"}
     <div class="s-feature-value-wrapper">
-        <div class="wa-table-box inline">
+        <div class="wa-table-box flexbox middle">
             <div class="s-column">
                 <div class="s-actions">
-                    <span class="s-action js-feature-value-sort"><i class="s-icon icon16 sort"></i></span>
+                    <span class="s-action js-feature-value-sort">
+                        <i class="fas fa-grip-vertical text-light-gray"></i>
+                    </span>
                 </div>
             </div>
             <div class="s-column">
                 <div class="s-fields">
                     <input class="js-field-id" type="hidden" name="values[id][]" value="">
-                    <input class="s-field js-field-value" type="text" name="values[value][]" value="" placeholder="[`Value`]" required>
+                    <input class="s-field js-field-value smaller" type="text" name="values[value][]" value="" placeholder="[`Value`]" required>
                 </div>
             </div>
             <div class="s-column">
                 <div class="s-actions align-right">
-                    <span class="s-action js-feature-value-remove"><i class="s-icon icon10 delete"></i></span>
+                    <span class="s-action js-feature-value-remove smaller"><i class="fas fa-trash-alt text-red"></i></span>
                 </div>
             </div>
         </div>
@@ -65,9 +67,13 @@
 
 {capture assign="_color_widget"}
     <div class="s-color-picker-widget">
-        <i class="s-icon icon16 color"></i>
+        <!-- <button class="s-icon circle s-color-picker js-color-picker size-32"></button>
         <input class="s-field js-field-code" type="text" name="values[code][]" required>
-        <div class="s-place js-color-picker"></div>
+        <div class="s-place js-color-picker"></div> -->
+        <span class="s-color-picker js-color-picker cursor-pointer" data-color>
+            <i class="fas fa-circle"></i>
+        </span>
+        <input type="hidden" name="values[code][]" class="shortest js-field-code" required>
     </div>
 {/capture}
 
@@ -75,13 +81,13 @@
 
 {/strip}
 
-<div class="wa-dialog s-settings-feature-edit-dialog" id="js-settings-feature-edit-dialog">
-    <div class="wa-dialog-background"></div>
-    <div class="wa-dialog-body">
+<div class="dialog s-settings-feature-edit-dialog" id="js-settings-feature-edit-dialog">
+    <div class="dialog-background"></div>
+    <div class="wa-dialog-body dialog-body">
 
         <form action="" method="post">
             {* HEADER *}
-            <header class="wa-dialog-header">
+            <header class="dialog-header">
                 <h1 class="s-title">{$_title|escape}</h1>
                 {if !empty($product_id)}
                     <div class="wa-message wa-small info flexbox space-8">
@@ -91,17 +97,17 @@
                 {/if}
                 {if $_is_divider}
                     <div class="s-header-description">
-                        <p>[`Headings help organize a long list of features into smaller groups. Examples of headings: “Main&nbsp;features”, “Extra&nbsp;features“, “Manufacturer&nbsp;details”.`]</p>
+                        <p class="gray">[`Headings help organize a long list of features into smaller groups. Examples of headings: “Main&nbsp;features”, “Extra&nbsp;features“, “Manufacturer&nbsp;details”.`]</p>
                     </div>
                 {/if}
             </header>
 
             {* CONTENT *}
-            <div class="wa-dialog-content">
+            <div class="dialog-content">
                 <input type="hidden" name="id" value="{$feature.id|default:""|escape}">
 
                 <div class="s-fields-wrapper">
-                    <div class="wa-table-box fixed space-10">
+                    <div class="flexbox wa-table-box fixed space-10">
                         <div class="s-column">
                             <div class="s-field-section">
                                 <label class="s-label">[`Name`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`This feature’s name visible both in the storefront and in the store backend.`]</span></span></label>
@@ -122,21 +128,34 @@
                             <div class="s-field-section">
                                 <div class="s-checkbox-list">
                                     <label class="s-checkbox-wrapper">
-                                        <input type="hidden" name="feature[visible_in_frontend]" value="">
-                                        <input class="s-checkbox js-visibility-field" type="checkbox" name="feature[visible_in_frontend]" value="1" {if !empty($feature.visible_in_frontend)}checked{/if}>
-                                        <i class="s-icon icon16 {if !empty($feature.visible_in_frontend)}visibility-on{else}ss visibility{/if}"></i>
+                                        <span class="wa-checkbox">
+                                            <input class="js-visibility-field" type="checkbox" name="feature[visible_in_frontend]" value="1" {if !empty($feature.visible_in_frontend)}checked{/if}>
+                                            <span>
+                                                <span class="icon">
+                                                    <i class="fas fa-check"></i>
+                                                </span>
+                                            </span>
+                                        </span>
+                                        <span class="s-icon-text icon text-gray">
+                                            <i class="js-icon fas {if !empty($feature.visible_in_frontend)}fa-eye{else}fa-eye-slash text-light-gray{/if}"></i>
+                                        </span>
                                         <span class="s-text">[`Show on website`]</span>&nbsp;<span class="shop-tooltip"><i class="icon10 info"></i><span>[`Disable to make the feature visible only to the store administrator and not visible to visitors in the storefront.`]</span></span>
                                     </label>
                                     {if empty($_is_divider)}
                                         <label class="s-checkbox-wrapper">
-                                            {if $can_disable_sku}
-                                                <input type="hidden" name="feature[available_for_sku]" value="">
-                                                <input class="s-checkbox js-available-field" type="checkbox" name="feature[available_for_sku]" value="1" {if !empty($feature.available_for_sku)}checked{/if}>
-                                            {else}
-                                                <input type="hidden" name="feature[available_for_sku]" value="1">
-                                                <input class="s-checkbox" type="checkbox" checked disabled>
-                                            {/if}
-                                            <i class="s-icon icon16 {if !empty($feature.available_for_sku)}hierarchical{else}hierarchical-off{/if}"></i>
+                                            <span class="wa-checkbox">
+                                                {if $can_disable_sku}
+                                                <input class="js-available-field" type="checkbox" name="feature[available_for_sku]" value="1" {if !empty($feature.available_for_sku)}checked{/if}>
+                                                {else}
+                                                <input type="checkbox" checked disabled>
+                                                {/if}
+                                                <span>
+                                                    <span class="icon">
+                                                        <i class="fas fa-check"></i>
+                                                    </span>
+                                                </span>
+                                            </span>
+                                            <span class="s-icon-text icon js-icon"><i class="js-icon fas fa-sitemap {if !empty($feature.available_for_sku)}text-gray{else}text-light-gray{/if}"></i></span>
                                             <span class="s-text">[`Allow editing of feature values for product SKUs`]</span>&nbsp;
                                             {if !$can_disable_sku}
                                                 {if $feature.code == 'weight'}
@@ -160,25 +179,33 @@
                                     {if $selected_type}
                                         <div class="s-radio-wrapper is-active">
                                             <label class="s-radio-label">
-                                                <input class="s-radio js-type-group-field" type="radio" name="feature[all_types_is_checked]" value="{$selected_type.id}" checked>
+                                                <span class="wa-radio">
+                                                    <input class="js-type-group-field" type="radio" name="feature[all_types_is_checked]" value="{$selected_type.id}" checked>
+                                                    <span></span>
+                                                </span>
                                                 <span class="s-text">{sprintf_wp('Use for product type “<strong>%s</strong>”', $selected_type.name|escape)}</span>
                                             </label>
                                         </div>
                                     {/if}
                                     <div class="s-radio-wrapper {if !$selected_type && !empty($all_types_is_checked)}is-active{/if}">
                                         <label class="s-radio-label">
-                                            <input class="s-radio js-type-group-field" type="radio" name="feature[all_types_is_checked]" value="all" {if !$selected_type && !empty($all_types_is_checked)}checked{/if}>
+                                            <span class="wa-radio">
+                                                <input class="js-type-group-field" type="radio" name="feature[all_types_is_checked]" value="all" {if !$selected_type && !empty($all_types_is_checked)}checked{/if}>
+                                                <span></span>
+                                            </span>
                                             <span class="s-text{if !$selected_type} bold{/if}">[`Use for all product types`]</span>
                                         </label>
                                     </div>
                                     <div class="s-radio-wrapper {if !$selected_type && empty($all_types_is_checked)}is-active{/if}">
                                         <label class="s-radio-label">
-                                            <input class="s-radio js-type-group-field" type="radio" name="feature[all_types_is_checked]" value="0" {if !$selected_type && empty($all_types_is_checked)}checked{/if}>
+                                            <span class="wa-radio">
+                                                <input class="js-type-group-field" type="radio" name="feature[all_types_is_checked]" value="0" {if !$selected_type && empty($all_types_is_checked)}checked{/if}>
+                                                <span></span>
+                                            </span>
                                             <span class="s-text">[`Use only for selected types`]</span>
                                         </label>
-
                                         {strip}
-                                        <div class="s-checkbox-list">
+                                        <ul class="chips s-checkbox-list custom-ml-8">
                                             {$_all_is_checked = true}
                                             {foreach $types as $_type}
                                                 {if empty($_type.is_checked)}
@@ -186,20 +213,36 @@
                                                     {break}
                                                 {/if}
                                             {/foreach}
-
-                                            <label class="s-checkbox-wrapper s-all-checkbox-wrapper">
-                                                <input class="s-checkbox js-all-types-field" type="checkbox" {if !empty($_all_is_checked)}checked{/if}>
-                                                <span class="s-text">[`Select all`]</span>
-                                            </label>
-
-                                            {foreach $types as $_type}
-                                                <label class="s-checkbox-wrapper">
-                                                    <input class="s-checkbox js-type-field" type="checkbox" name="types[{$_type.id}]" value="{$_type.id}" {if !empty($_type.is_checked)}checked{/if}>
-                                                    {shopHelper::getIcon($_type.icon)}
-                                                    <span class="s-text">{$_type.name|escape}</span>
+                                            <li>
+                                                <label class="chip s-checkbox-wrapper s-all-checkbox-wrapper">
+                                                    <span class="wa-checkbox">
+                                                        <input class="js-all-types-field" type="checkbox" {if !empty($_all_is_checked)}checked{/if}>
+                                                        <span>
+                                                            <span class="icon">
+                                                                <i class="fas fa-check"></i>
+                                                            </span>
+                                                        </span>
+                                                    </span>
+                                                    <span class="s-text bold">[`Select all`]</span>
                                                 </label>
+                                                </li>
+                                            {foreach $types as $_type}
+                                                <li>
+                                                    <label class="chip s-checkbox-wrapper">
+                                                        <span class="wa-checkbox">
+                                                            <input class="js-type-field" type="checkbox" name="types[{$_type.id}]" value="{$_type.id}" {if !empty($_type.is_checked)}checked{/if}>
+                                                            <span>
+                                                                <span class="icon">
+                                                                    <i class="fas fa-check"></i>
+                                                                </span>
+                                                            </span>
+                                                        </span>
+                                                        <span class="s-icon-text icon text-light-gray">{$wa->shop->getIcon($_type.icon)}</span>
+                                                        <span class="s-text">{$_type.name|escape}</span>
+                                                    </label>
+                                                </li>
                                             {/foreach}
-                                        </div>
+                                        </ul>
                                         {/strip}
                                     </div>
                                 </div>
@@ -213,15 +256,17 @@
                                 {* VIEWS *}
                                 <div class="s-field-section js-field-kind-section">
                                     <label class="s-label">[`Type`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Select the kind of values which you need to be stored in this feature.`]</span></span></label>
-                                    <select class="s-select js-select" name="feature[kind]" {if $feature.builtin}disabled="disabled"{/if}>
-                                        {foreach $kinds as $_kind}
-                                            {$_is_active = false}
-                                            {if !empty($_active_kind) && $_active_kind.id === $_kind.id}
-                                                {$_is_active = true}
-                                            {/if}
-                                            <option value="{$_kind.id|escape}" {if !empty($_is_active)}selected{/if}>{$_kind.title|escape}</option>
-                                        {/foreach}
-                                    </select>
+                                    <div class="wa-select">
+                                        <select class="s-select js-select" name="feature[kind]" {if $feature.builtin}disabled="disabled"{/if}>
+                                            {foreach $kinds as $_kind}
+                                                {$_is_active = false}
+                                                {if !empty($_active_kind) && $_active_kind.id === $_kind.id}
+                                                    {$_is_active = true}
+                                                {/if}
+                                                <option value="{$_kind.id|escape}" {if !empty($_is_active)}selected{/if}>{$_kind.title|escape}</option>
+                                            {/foreach}
+                                        </select>
+                                    </div>
                                 </div>
 
                                 {* FORMATS *}
@@ -230,18 +275,20 @@
                                         [`Format`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Choose how you want to edit the values of this feature`]</span></span>
                                     </label>
                                     {if !empty($_active_kind)}
-                                        <select class="s-select js-select" name="feature[format]" {if $feature.builtin}disabled="disabled"{/if}>
-                                            {foreach $_active_kind.formats as $_format_id}
-                                                {if !empty($formats[$_format_id])}
-                                                    {$_format = $formats[$_format_id]}
-                                                    {$_is_active = false}
-                                                    {if !empty($_active_format) && $_active_format.id === $_format.id}
-                                                        {$_is_active = true}
+                                        <div class="wa-select">
+                                            <select class="s-select js-select" name="feature[format]" {if $feature.builtin}disabled="disabled"{/if}>
+                                                {foreach $_active_kind.formats as $_format_id}
+                                                    {if !empty($formats[$_format_id])}
+                                                        {$_format = $formats[$_format_id]}
+                                                        {$_is_active = false}
+                                                        {if !empty($_active_format) && $_active_format.id === $_format.id}
+                                                            {$_is_active = true}
+                                                        {/if}
+                                                        <option value="{$_format.id|escape}" {if !empty($_is_active)}selected{/if}>{$_format.title|escape}</option>
                                                     {/if}
-                                                    <option value="{$_format.id|escape}" {if !empty($_is_active)}selected{/if}>{$_format.title|escape}</option>
-                                                {/if}
-                                            {/foreach}
-                                        </select>
+                                                {/foreach}
+                                            </select>
+                                        </div>
                                     {/if}
                                 </div>
 
@@ -250,21 +297,23 @@
                                     <label class="s-label">
                                         [`Default measurement unit`] <span class="shop-tooltip right"><i class="icon10 info"></i><span>[`You will be able to select measurement units for feature values when completing them in products’ properties.`]</span></span>
                                     </label>
-                                    <select class="s-select js-select" name="feature[default_unit]">
-                                        {* JS GENERATION *}
-                                        {$active_dimensions = []}
-                                        {if isset($_active_kind.length_dimensions) && !empty($_active_format.is_multidimensional)}
-                                            {$active_dimensions = $_active_kind.length_dimensions}
-                                        {elseif isset($_active_kind.dimensions)}
-                                            {$active_dimensions = $_active_kind.dimensions}
-                                        {/if}
-                                        {if !empty($active_dimensions)}
-                                            {foreach $active_dimensions as $_dimension}
-                                                {$_is_active = (!empty($feature.default_unit) && $feature.default_unit === $_dimension.id)}
-                                                <option value="{$_dimension.id|escape}" {if !empty($_is_active)}selected{/if}>{$_dimension.title|escape}</option>
-                                            {/foreach}
-                                        {/if}
-                                    </select>
+                                    <div class="wa-select">
+                                        <select class="s-select js-select" name="feature[default_unit]">
+                                            {* JS GENERATION *}
+                                            {$active_dimensions = []}
+                                            {if isset($_active_kind.length_dimensions) && !empty($_active_format.is_multidimensional)}
+                                                {$active_dimensions = $_active_kind.length_dimensions}
+                                            {elseif isset($_active_kind.dimensions)}
+                                                {$active_dimensions = $_active_kind.dimensions}
+                                            {/if}
+                                            {if !empty($active_dimensions)}
+                                                {foreach $active_dimensions as $_dimension}
+                                                    {$_is_active = (!empty($feature.default_unit) && $feature.default_unit === $_dimension.id)}
+                                                    <option value="{$_dimension.id|escape}" {if !empty($_is_active)}selected{/if}>{$_dimension.title|escape}</option>
+                                                {/foreach}
+                                            {/if}
+                                        </select>
+                                    </div>
                                 </div>
 
                                 {* VALUES *}
@@ -272,7 +321,7 @@
                                     <label class="s-label">[`Value`]</label>
                                     <div class="s-feature-values-section js-feature-values-section">
                                         <div class="s-section-header">
-                                            <a class="inline-link js-feature-value-add" href="javascript:void(0);"><i class="icon16 add"></i><b><i>[`Add feature value`]</i></b></a>
+                                            <a class="inline-link js-feature-value-add" href="javascript:void(0);"><span class="icon custom-pr-4"><i class="fas fa-plus-circle text-green"></i></span>[`Add feature value`]</a>
                                         </div>
                                         <div class="s-section-body">
                                             <div class="s-feature-values-list">{* JS GENERATION *}</div>
@@ -286,18 +335,17 @@
             </div>
 
             {* FOOTER *}
-            <footer class="wa-dialog-footer">
+            <footer class="dialog-footer">
                 <div class="s-errors-place js-errors-place"></div>
 
                 <div class="wa-table-box middle">
                     <div class="s-column">
                         <button class="s-button button green js-submit-button" type="submit">{$_button_text|escape}</button>
-                        <span class="s-divider">[`or`]</span>
-                        <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+                        <a href="javascript:void(0);" class="js-close-dialog button light-gray">[`Cancel`]</a>
                     </div>
                     <div class="s-column align-right">
                         {*if !empty($feature.id)}
-                            <a href="javascript:void(0);" class="s-delete-link js-feature-delete"><i class="icon16 delete"></i> [`Delete`]</a>
+                            <a href="javascript:void(0);" class="s-delete-link js-feature-delete"><i class="fas fa-trash-alt"></i> [`Delete`]</a>
                         {/if*}
                     </div>
                 </div>
@@ -329,7 +377,8 @@
         </div>
     {/if}{/capture}
     {/strip}
-
+    <script src="{$wa_url}wa-content/js/pickr/pickr.min.js"></script>
+    <link rel="stylesheet" href="{$wa_url}wa-content/js/pickr/themes/classic.min.css">
     <script>
         ( function($) {
             var $wrapper = $("#js-settings-feature-edit-dialog").removeAttr("id"),

@@ -124,7 +124,7 @@ class shopCategoryHelper
                     'render_type' => 'range',
                 ],
             ],
-            'type' => [
+            'type_id' => [
                 'name' => _w('Product type'),
                 'data' => [
                     'type' => 'select',

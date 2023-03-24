@@ -65,28 +65,28 @@
 
 {/strip}
 
-<div class="s-settings-premium-page block blank double-padded" id="js-settings-premium-page" style="visibility: hidden;">
+<div class="s-settings-premium-page" id="js-settings-premium-page" style="visibility: hidden;">
     {* @event backend_settings_premium.top *}
     {if !empty($backend_settings_premium)}{foreach $backend_settings_premium as $_}{ifset($_.top)}{/foreach}{/if}
 
     <div class="s-page-header">
-        <h1>[`PREMIUM license functionality`]</h1>
+        <h1 class="align-center-mobile h2-mobile">[`PREMIUM license functionality`]</h1>
         <ul>
-            <li>
+            <li class="custom-mb-8-mobile">
                 <p>
-                    <span class="icon size-16"><svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
+                    <span class="icon size-16"><svg class="text-dark-gray"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
                     [`Extended product catalog management.`]
                 </p>
             </li>
-            <li>
+            <li class="custom-mb-8-mobile">
                 <p>
-                    <span class="icon size-16"><svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
+                    <span class="icon size-16"><svg class="text-dark-gray"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
                     [`New product showcase options for the storefront.`]
                 </p>
             </li>
-            <li>
+            <li class="custom-mb-8-mobile">
                 <p>
-                    <span class="icon size-16"><svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
+                    <span class="icon size-16"><svg class="text-dark-gray"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
                     [`Special add-to-cart settings for your products.`]
                 </p>
             </li>
@@ -94,41 +94,41 @@
     </div>
     <div class="s-page-body" id="js-information-block-place">
         {if empty($_is_premium)}
-            <div class="s-information-block">
-                <div class="s-image-wrapper">
+            <div class="s-information-block flexbox vertical-mobile s-block">
+                <div class="s-image-wrapper custom-m-auto-mobile">
                     <span class="icon"><svg><use xlink:href='{$_sprite_url}#rocket'></use></svg></span>
                 </div>
                 <div class="s-text-wrapper">
-                    <h2>[`How to start using PREMIUM`]</h2>
+                    <h2 class="align-center-mobile h3-mobile">[`How to start using PREMIUM`]</h2>
 
                     <p>[`To get all the extended Shop-Script functionality, you need to switch to the PREMIUM license.`] [`Your online store will continue working as usual, and you will be free to enable any of the extended functions at any time when it is most convenient to you.`]</p>
                     <p>
-                        <span class="icon"><svg class="color-green"><use xlink:href='{$_sprite_url}#hand-point-right'></use></svg></span>
+                        <span class="icon"><svg class="text-dark-gray"><use xlink:href='{$_sprite_url}#hand-point-right'></use></svg></span>
                         {sprintf(_w("<a href=\"%s\">Check up</a> how the installed plugins, apps, and design themes are compatible with PREMIUM’s extended features."), "{$wa_app_url}?action=settings#/compatibility/")}
                     </p>
                     <div class="btn-block">
                         {if !empty($_has_license)}
                             <div class="s-plan">{sprintf(_w("Your current license is %s."), _w("PRO"))}</div>
-                            <a href="{$_buy_premium_link_url|escape}" class="button blue">[`Switch to PREMIUM`]</a>
+                            <a href="{$_buy_premium_link_url|escape}" class="button blue width-100-mobile custom-mt-8-mobile">[`Switch to PREMIUM`]</a>
                         {else}
                             <div class="s-plan">
                                 [`No valid license detected.`]
                             </div>
-                            <a href="{$_buy_premium_link_url|escape}" class="button blue">[`Acquire license`]</a>
+                            <a href="{$_buy_premium_link_url|escape}" class="button blue width-100-mobile custom-mt-8-mobile">[`Acquire license`]</a>
                         {/if}
                     </div>
                 </div>
             </div>
         {/if}
 
-        <div class="s-features-list">
+        <div class="s-features-list custom-mt-24-mobile custom-mb-24-mobile">
             {foreach $_features as $_feature}
-                <div class="s-feature-wrapper">
-                    <div class="s-description-wrapper">
+                <div class="flexbox s-feature-wrapper vertical-mobile custom-mt-24-mobile">
+                    <div class="s-description-wrapper width-100-mobile custom-p-8-mobile">
                         <h3 class="s-title">{$_feature.title|escape}</h3>
                         <p class="s-description">{$_feature.description|escape}</p>
                     </div>
-                    <div class="s-image-wrapper">
+                    <div class="s-image-wrapper custom-mt-8-mobile align-center-mobile">
                         <img class="s-image" src="{$wa_app_static_url}img/backend/settings/premium/{$_lang}/{$_feature.image.name|escape}?v={$_version}" alt="{$_feature.title|escape}" {if !empty($_feature.image.width)}style="max-width: {$_feature.image.width}"{/if}>
                     </div>
                 </div>
@@ -136,17 +136,23 @@
         </div>
 
         {if !empty($_demo_urls)}
-            <div class="s-information-block">
-                <div class="s-image-wrapper">
+            <div class="s-information-block flexbox vertical-mobile s-block">
+                <div class="s-image-wrapper custom-m-auto-mobile">
                     <span class="icon"><svg><use xlink:href='{$_sprite_url}#cogs'></use></svg></span>
                 </div>
                 <div class="s-text-wrapper">
-                    <h2><i class="icon16 store"></i> [`Demo store`]</h2>
+                    <h2 class="h3-mobile"><span class="custom-mr-8 icon size-24 text-dark-gray desktop-and-tablet-only"><i class="fas fa-store"></i></span>[`Demo store`]</h2>
                     <p>[`Look how various products can be presented in the storefront and how you can manage the extended functionality available with the PREMIUM license.`]</p>
-                    <p>
-                        <a class="bold no-underline" href="{$_demo_urls.storefront|escape}" target="_blank">[`Demo storefront`] <i class="icon16 new-window"></i></a>
-                        <a class="bold no-underline" href="{$_demo_urls.backend|escape}" target="_blank">[`Demo backend`] <i class="icon16 new-window"></i></a>
-                    </p>
+                    <div class="flexbox space-12 vertical-mobile align-center-mobile">
+                        <a class="bold no-underline custom-mt-12-mobile" href="{$_demo_urls.storefront|escape}" target="_blank">
+                            <span>[`Demo storefront`]</span>
+                            <span class="icon size-12"><i class="fas fa-external-link-alt"></i></span>
+                        </a>
+                        <a class="bold no-underline custom-mt-12-mobile" href="{$_demo_urls.backend|escape}" target="_blank">
+                            <span>[`Demo backend`]</span>
+                            <span class="icon size-12"><i class="fas fa-external-link-alt"></i></span>
+                        </a>
+                    </div>
                 </div>
             </div>
         {/if}

@@ -21,43 +21,44 @@
                 <div class="s-feature-body" v-if="feature.expanded">
 
                     <template v-if="['select', 'checkbox'].indexOf(feature.render_type) >= 0">
-                        <div class="s-options-list">
+                        <ul class="js-options-list chips">
                             <template v-for="option in feature.source.options">
-                                <div class="s-option-wrapper" v-if="option.value">
-                                    <label class="s-label">
+                                <li v-if="option.value">
+                                    <label class="s-label chip">
                                         <span class="wa-checkbox">
                                             <input type="checkbox" v-model="option.active">
                                             <span><span class="icon"><i class="fas fa-check"></i></span></span>
                                         </span>
                                         <span class="s-name">{ { option.name } }</span>
                                     </label>
-                                </div>
+                                </li>
                             </template>
-
-                            <div class="s-option-wrapper"
-                                 v-if="feature.source.can_add_value"
-                                 v-on:click.prevent="addFeatureOption">
-                                <span class="s-add-button color-blue">
-                                    <span class="s-icon"><i class="fas fa-plus"></i></span>
-                                    &nbsp;
-                                    <span class="s-name">[`Add`]</span>
-                                </span>
+                            <div>
+                                <button class="button outlined"
+                                    v-if="feature.source.can_add_value"
+                                    v-on:click.prevent="addFeatureOption">
+                                    <span class="s-add-button">
+                                        <span class="s-icon"><i class="fas fa-plus text-green"></i></span>
+                                        &nbsp;
+                                        <span class="s-name">[`Add`]</span>
+                                    </span>
+                                </button>
                             </div>
-                        </div>
+                        </ul>
                     </template>
 
                     <template v-else-if="feature.render_type == 'textarea'">
                         <div class="s-textarea-wrapper wide">
                             <component-flex-textarea
                                 v-model="feature.source.value"
-                                v-bind:class="'wa-small full-width'"></component-flex-textarea>
+                                v-bind:class="'small full-width'"></component-flex-textarea>
                         </div>
                     </template>
 
                     <template v-else-if="feature.render_type == 'field'">
                         <template v-for="(option, index) in feature.source.options">
                             <div class="s-field-wrapper nowrap" v-bind:class="{ 'with-divider': (index + 1 < feature.source.options.length) }">
-                                <input class="wa-small size-short" type="text"
+                                <input class="small size-short" type="text"
                                        v-bind:class="{ 'is-number' : (feature.source.type === 'double' || (feature.source.units && feature.source.units.length)) }"
                                        v-model="option.value">
                                 <span class="s-divider" v-if="index + 1 < feature.source.options.length">×</span>
@@ -103,7 +104,7 @@
 {capture assign="_invalid_value"}
     {_w("Invalid value")|escape}
     <span class="wa-tooltip bottom" data-tooltip-id="price-error">
-        <i class="fas fa-question-circle color-red"></i>
+        <i class="fas fa-question-circle text-red"></i>
     </span>
 {/capture}
 
@@ -116,14 +117,16 @@
             </div>
             <div class="dialog-content">
 
-                <div class="wa-message wa-small notice flexbox space-8">
-                    <div class="message-icon">
-                        <i class="fas fa-info-circle"></i>
-                    </div>
-                    <div class="message-text wide">
-                        <p>[`Please select and arrange features and their values to be used for the variants generation.`]</p>
-                        <p>[`To create several SKUs, drag & drop a feature to “SKUs”, each of whose values will correspond to an individual SKU.`]</p>
-                        <p>[`It is not recommended to add too many SKU and variants (over 50) as it may slow down the products section.`]</p>
+                <div class="alert">
+                    <div class="small notice flexbox space-8">
+                        <div class="message-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="message-text wide">
+                            <p>[`Please select and arrange features and their values to be used for the variants generation.`]</p>
+                            <p>[`To create several SKUs, drag & drop a feature to “SKUs”, each of whose values will correspond to an individual SKU.`]</p>
+                            <p>[`It is not recommended to add too many SKU and variants (over 50) as it may slow down the products section.`]</p>
+                        </div>
                     </div>
                 </div>
 
@@ -136,7 +139,7 @@
                             </div>
 
                             <div class="dropdown s-features-dropdown js-features-dropdown">
-                                <button class="dropdown-toggle without-arrow wa-button wa-small transparent" type="button">
+                                <button class="dropdown-toggle without-arrow button small outlined" type="button">
                                     <span class="s-icon"><i class="fas fa-plus"></i></span>
                                     <span class="s-name">[`Add`]</span>
                                 </button>
@@ -145,7 +148,7 @@
                                         <div class="s-item"
                                              v-bind:class="{ 'is-disabled': feature.disabled }"
                                              v-for="feature in features">
-                                            <label class="s-label flexbox space-6">
+                                            <label class="flexbox middle s-label space-8">
                                                 <span class="wa-checkbox">
                                                     <input type="checkbox" v-model="feature.dropdown_active" v-bind:disabled="feature.disabled">
                                                     <span><span class="icon"><i class="fas fa-check"></i></span></span>
@@ -156,8 +159,8 @@
                                         </div>
                                     </div>
                                     <div class="s-actions">
-                                        <button class="wa-button blue js-apply-button" type="button">[`Apply`]</button>
-                                        <button class="wa-button gray js-close-button" type="button">[`Cancel`]</button>
+                                        <button class="button js-apply-button" type="button">[`Apply`]</button>
+                                        <button class="button gray js-close-button" type="button">[`Cancel`]</button>
                                     </div>
                                 </div>
                             </div>
@@ -208,14 +211,14 @@
 
                         <div class="s-column-body" v-bind:class="{ 'is-locked': !use_values }">
 
-                            <div class="wa-fields vertical s-prices-section">
-                                <div class="wa-field s-field-price">
+                            <div class="fields vertical s-prices-section">
+                                <div class="field s-field-price">
                                     <div class="name">[`Price`]</div>
                                     <div class="value">
 
                                         <div class="tablebox space-16">
                                             <div class="column">
-                                                <input class="wa-small full-width align-right" type="text"
+                                                <input class="small full-width align-right" type="text"
                                                        v-model="prices.price"
                                                        v-bind:class="{ 'wa-error-field' : !!errors['price'] }"
                                                        v-bind:disabled="!use_values"
@@ -225,17 +228,17 @@
                                                 <component-dropdown-currency v-bind:currency_code="currency" v-bind:currencies="currencies" v-on:change="currency = $event"></component-dropdown-currency>
                                             </div>
                                         </div>
-                                        <div class="wa-error-text" v-if="!!errors['price']">{$_invalid_value}</div>
+                                        <div class="state-error" v-if="!!errors['price']">{$_invalid_value}</div>
 
                                     </div>
                                 </div>
-                                <div class="wa-field s-field-purchase-price">
+                                <div class="field s-field-purchase-price">
                                     <div class="name">[`Purchase price`]</div>
                                     <div class="value">
 
                                         <div class="tablebox space-16">
                                             <div class="column">
-                                                <input class="wa-small full-width align-right" type="text"
+                                                <input class="small full-width align-right" type="text"
                                                        v-model="prices.purchase_price"
                                                        v-bind:class="{ 'wa-error-field' : !!errors['purchase_price'] }"
                                                        v-bind:disabled="!use_values"
@@ -245,17 +248,17 @@
                                                 <span class="s-currency">{ { currency } }</span>
                                             </div>
                                         </div>
-                                        <div class="wa-error-text" v-if="!!errors['purchase_price']">{$_invalid_value}</div>
+                                        <div class="state-error" v-if="!!errors['purchase_price']">{$_invalid_value}</div>
 
                                     </div>
                                 </div>
-                                <div class="wa-field s-field-compare-price">
+                                <div class="field s-field-compare-price">
                                     <div class="name">[`Compare at price`]</div>
                                     <div class="value">
 
                                         <div class="tablebox space-16">
                                             <div class="column">
-                                                <input class="wa-small full-width strike align-right" type="text"
+                                                <input class="small full-width strike align-right" type="text"
                                                        v-model="prices.compare_price"
                                                        v-bind:class="{ 'wa-error-field' : !!errors['compare_price'] }"
                                                        v-bind:disabled="!use_values"
@@ -265,7 +268,7 @@
                                                 <span class="s-currency">{ { currency } }</span>
                                             </div>
                                         </div>
-                                        <div class="wa-error-text" v-if="!!errors['compare_price']">{$_invalid_value}</div>
+                                        <div class="state-error" v-if="!!errors['compare_price']">{$_invalid_value}</div>
 
                                     </div>
                                 </div>
@@ -278,7 +281,7 @@
 
             </div>
             <div class="dialog-footer">
-                <div class="wa-message wa-small error flexbox space-8"
+                <div class="wa-message small error flexbox space-8"
                      v-if="getCount(false) * getCount(true) > 50">
                     <div class="message-icon">
                         <i class="fas fa-info-circle"></i>
@@ -298,12 +301,12 @@
                     <div class="s-smart-string nowrap" v-html="smart_string_html"></div>
                 </template>
 
-                <button class="js-submit-button wa-button blue" type="button"
+                <button class="js-submit-button button" type="button"
                     v-on:click.prevent="startGenerator"
                     v-bind:title="getCount(false) > 0 ? '{_w("Create")|escape}' : '{_w("Select at least 1 feature value to create product SKUs")|escape}'"
                     v-bind:disabled="!start_generation_enabled">[`Create`]</button>
 
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

@@ -47,8 +47,7 @@ class shopCart
             }
         } else {
 
-            // Merge guest cart into cart of authorized user biz logic. Merge one time (save in session 'merged' flag)
-            if ($need_merge_carts && $is_auth && !$this->getSessionData('merged')) {
+            if ($is_auth) {
 
                 // cart of authorized user is destination cart
                 $dst_cart_code = $this->model()->getLastCode($user->getId());
@@ -61,8 +60,8 @@ class shopCart
                     ));
                     $this->clearSessionData();
 
-                } else {
-
+                } elseif ($need_merge_carts && !$this->getSessionData('merged')) {
+                    // Merge guest cart into cart of authorized user biz logic. Merge one time (save in session 'merged' flag)
                     // if current cart code authorized user's cart code - just skip merging (means is all merged already)
                     if ($dst_cart_code !== $this->code) {
 
@@ -75,11 +74,27 @@ class shopCart
 
                         $this->code = $dst_cart_code;
                     }
+
+                    $this->setSessionData('merged', true);
                 }
+            } else {
+                $found_items = $this->model()->getByField('code', $this->code, 'id');
+                $items = array_filter($found_items, function ($i) {
+                    return $i['contact_id'] > 0;
+                });
+                if ($items) {
+                    $this->model()->updateByField('code', $this->code, [
+                        'contact_id' => null
+                    ]);
 
-                $this->setSessionData('merged', true);
+                    $new_code = self::generateCode();
+                    foreach ($items as $key => $item) {
+                        unset($items[$key]['id']);
+                        $items[$key]['code'] = $new_code;
+                    }
+                    $this->model()->multipleInsert(array_values($items));
+                }
             }
-
         }
 
         if ($this->code) {

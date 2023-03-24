@@ -1,0 +1,63 @@
+{*
+     used at:
+     - main reviews page (reviews/Reviews.html)
+     - product reviews section (product/productReviews.html)
+
+     required:
+     - "$_active_filters" — array with active filters data
+     - "_render_filter_uri" — function for render links href
+*}
+
+<li class="with-menu">
+    {$_sorts_filter = [
+        "rate" => [
+            "id" => "rate",
+            "name" => _w("rating")
+        ],
+        "datetime" => [
+            "id" => "datetime",
+            "name" => _w("date")
+        ]
+    ]}
+
+    {$_active_sort_filter = $_sorts_filter["datetime"]}
+    {$_active_sort_filter_id = $_active_filters["sort"]}
+    {if !empty($_active_sort_filter_id) && !empty($_sorts_filter[$_active_sort_filter_id])}
+        {$_active_sort_filter = $_sorts_filter[$_active_sort_filter_id]}
+    {/if}
+
+    <span class="s-label">[`Sort order`]:</span>
+
+    <a href="javascript:void(0);" class="inline-link">
+        <b><i>{$_active_sort_filter.name|escape}</i></b>
+        <i class="icon10 {if $_active_filters["order"] === "DESC"}darr-tiny{else}uarr-tiny{/if}"></i>
+    </a>
+
+    <ul class="menu-v without-icons right">
+        {foreach $_sorts_filter as $_filter}
+            {$_is_active = false}
+            {$_order = "DESC"}
+            {$_icon_class = "darr-tiny"}
+
+            {if $_filter.id === $_active_sort_filter_id}
+                {if $_active_filters["order"] === "DESC"}
+                    {$_order = "ASC"}
+                    {$_icon_class = "uarr-tiny"}
+                {/if}
+
+                {$_is_active = true}
+            {/if}
+
+            {$_uri = {_render_filter_uri _filters_data=["sort" => $_filter.id, "order" => $_order]}}
+
+            <li>
+                <a href="{$_uri|escape}">
+                    {$_filter.name|escape}
+                    {if !empty($_is_active)}
+                        <i class="icon10 {$_icon_class}"></i>
+                    {/if}
+                </a>
+            </li>
+        {/foreach}
+    </ul>
+</li>

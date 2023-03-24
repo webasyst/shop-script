@@ -1,0 +1,34 @@
+<div class="wa-dialog s-settings-type-delete-dialog">
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body">
+        <header class="wa-dialog-header">
+            <h1 class="s-title">{sprintf("[`Deletion of product type “%s”`]", $type.name|escape)}</h1>
+        </header>
+        <div class="wa-dialog-content">
+            {if $products_count > 0}
+                <p>{sprintf(
+                    _w(
+                        'This product type cannot be deleted because <a href="%s" target="_blank" class="nowrap">%d product</a> belongs to this type.',
+                        'This product type cannot be deleted because <a href="%s" target="_blank" class="nowrap">%d products</a> belong to this type.',
+                        $products_count,
+                        false
+                    ),
+                    "{$wa_app_url}?action=products#/products/type_id={$type.id}",
+                    $products_count
+                )}</p>
+                <p>[`To delete this product type, first either assign another type to all its products or delete them.`]</p>
+            {else}
+                <p>[`Are you sure you want to delete this product type?`]</p>
+            {/if}
+        </div>
+        <div class="wa-dialog-footer">
+            {if $products_count > 0}
+                <button class="s-button button gray js-close-dialog" type="submit">[`Close`]</button>
+            {else}
+                <button class="s-button button red js-submit-button" type="submit">[`Delete`]</button>
+                <span class="s-divider">[`or`]</span>
+                <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+            {/if}
+        </div>
+    </div>
+</div>

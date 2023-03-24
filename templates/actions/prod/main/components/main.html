@@ -12,7 +12,7 @@
 {capture assign="_component_dropdown"}
     <div class="dropdown">
         <template v-if="disabled">
-            <button class="dropdown-toggle wa-button wa-small" type="button" v-bind:class="button_class" disabled>
+            <button class="dropdown-toggle button small" type="button" v-bind:class="button_class" disabled>
                 <template v-if="active_option">
                     <span class="s-icon icon shift-inherit" v-if="active_option.icon" v-html="active_option.icon"></span>
                     <span class="s-icon" v-else-if="active_option.icon_html" v-html="active_option.icon_html"></span>
@@ -21,7 +21,7 @@
             </button>
         </template>
         <template v-else>
-            <button class="dropdown-toggle wa-button wa-small" type="button" v-bind:class="button_class">
+            <button class="dropdown-toggle button small" type="button" v-bind:class="button_class">
                 <template v-if="active_option">
                     <span class="s-icon icon shift-inherit" v-if="active_option.icon" v-html="active_option.icon"></span>
                     <span class="s-icon" v-else-if="active_option.icon_html" v-html="active_option.icon_html"></span>

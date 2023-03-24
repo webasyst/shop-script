@@ -166,7 +166,7 @@ var ReviewImagesSection = ( function($) {
         var that = this,
             file_size = file.size;
 
-        var image_type = /^image\/(png|jpe?g|gif|webp)$/,
+        var image_type = /^image\/(png|jpe?g|gif)$/,
             is_image = (file.type.match(image_type));
 
         if (!is_image) {
@@ -326,6 +326,7 @@ $(function() {
     };
 
     var form_wrapper = $('#product-review-form'),
+        closest_form_wrapper = form_wrapper.closest('.row'),
         form = form_wrapper.find('form'),
         content = $('#page-content .reviews'),
         $submit_button = form.find(".js-submit-button");
@@ -535,6 +536,8 @@ $(function() {
         clear(form, false);
         $('input[name=parent_id]', form).val(review_id);
         form_wrapper.show();
+        closest_form_wrapper.removeClass('write-review-closed');
+        content.find('.write-review').hide();
     };
 
     function addHotkeyHandler(item_selector, hotkey_name, handler) {

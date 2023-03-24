@@ -1,0 +1,47 @@
+<div class="dialog width600px height500px" id="s-sets">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=products&action=addToSets">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Sets`] <span class="gray" style="display:none;">(0)</span></h1>
+                <ul class="menu-v with-icons">
+                    <li class="bottom-padded">
+                        <label>
+                            <i class="icon16 ss set"></i><input type="checkbox" name="new_set" value="1">
+                            <span class="name">[`New set`]:</span>
+                        </label>
+                        <input name="new_set_name" value="" style="margin-top: -5px;">
+                    </li>
+                    {if !empty($sets)}
+                        {foreach $sets as $set}
+                        <li>
+                            <label>
+                                <i class="icon16 ss set"></i><input type="checkbox" name="set_id[]" value="{$set.id}">
+                                <span class="name">{$set.name|escape} <span class="hint">{$set.id}</span></span>
+                            </label>
+                        </li>
+                        {/foreach}
+                    {/if}
+                </ul>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <input type="submit" value="[`Save`]" class="button green">
+                <i class="icon16 loading"></i>
+                [`or`] <a class="cancel" href="#">[`cancel`]</a>
+            </div>
+        </div>
+        {$wa->csrf()}
+    </div>
+    </form>
+</div>
+<script type="text/javascript">
+    (function() {
+        var d = $('#s-sets');
+        d.find('input[name=new_set_name]').bind('keydown', function() {
+            d.find('input[name=new_set]').attr('checked', true);
+        });
+    })();
+</script>

@@ -68,7 +68,7 @@ class shopSettingsOrderStatesAction extends waViewAction
 
     public function getEditActionsMap()
     {
-        $edit_action = explode(',', $this->getRequest()->get('edit_action'));
+        $edit_action = explode(',', $this->getRequest()->get('edit_action', ''));
         return array_fill_keys($edit_action, true);
     }
 

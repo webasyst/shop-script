@@ -22,7 +22,11 @@ class shopMarketingPromoCustomPriceProductController extends waJsonController
             'options' => waRequest::post('options', [], waRequest::TYPE_ARRAY_TRIM),
             'product' => $product_data,
         ]);
-        $template = wa()->getAppPath('templates/actions/marketing/rules/custom_price.product.html', 'shop');
+        if(wa()->whichUI() === '1.3') {
+            $template = wa()->getAppPath('templates/actions-legacy/marketing/rules/custom_price.product.html', 'shop');
+        }else{
+            $template = wa()->getAppPath('templates/actions/marketing/rules/custom_price.product.html', 'shop');
+        }
         $html = $view->fetch($template);
 
         $this->response = [

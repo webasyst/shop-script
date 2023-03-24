@@ -8,7 +8,8 @@ class shopProductRelatedModel extends waModel
     {
         $sql = "SELECT pr.*, p.id, p.name, p.price, p.currency FROM ".$this->table." pr
                 JOIN shop_product p ON pr.related_product_id = p.id
-                WHERE pr.product_id = i:id";
+                WHERE pr.product_id = i:id
+                ORDER BY pr.sort";
         $data = $this->query($sql, array('id' => $product_id));
         $result = array();
         foreach ($data as $row) {

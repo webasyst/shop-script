@@ -99,17 +99,17 @@ class shopSettingsShippingSaveController extends waJsonController
         }
     }
 
-    public function disableShipping()
+    public static function disableShipping()
     {
         $plugin_model = new shopPluginModel();
         $all_plugins_disabled = empty($plugin_model->listPlugins($plugin_model::TYPE_SHIPPING));
         if ($all_plugins_disabled) {
-            $this->saveCheckout();
-            $this->saveCheckout2();
+            self::saveCheckout();
+            self::saveCheckout2();
         }
     }
 
-    protected function getCheckout($version = '')
+    protected static function getCheckout($version = '')
     {
         $path = wa()->getConfig()->getConfigPath("checkout$version.php", true, 'shop');
         $file = [];
@@ -128,27 +128,27 @@ class shopSettingsShippingSaveController extends waJsonController
         return $file;
     }
 
-    protected function saveCheckout()
+    protected static function saveCheckout()
     {
-        $checkout = $this->getCheckout();
+        $checkout = self::getCheckout();
         if (isset($checkout['shipping'])) {
             unset($checkout['shipping']);
         }
         $app_settings_model = new waAppSettingsModel();
         $app_settings_model->set('shop', 'checkout_flow_changed', time());
-        $this->saveFile($checkout);
+        self::saveFile($checkout);
     }
 
-    protected function saveCheckout2()
+    protected static function saveCheckout2()
     {
-        $checkout2 = $this->getCheckout(2);
+        $checkout2 = self::getCheckout(2);
         foreach ($checkout2 as &$params) {
             if (isset($params['shipping'])) {
                 $params['shipping']['used'] = false;
             }
         }
         unset($params);
-        $this->saveFile($checkout2, 2);
+        self::saveFile($checkout2, 2);
 
         $storefronts = wa()->getRouting()->getByApp('shop');
         foreach ($storefronts as $routes) {
@@ -166,8 +166,8 @@ class shopSettingsShippingSaveController extends waJsonController
         }
     }
 
-    protected function saveFile($data, $version = '')
+    protected static function saveFile($data, $version = '')
     {
-        waUtils::varExportToFile($data, $this->getConfig()->getConfigPath("checkout$version.php", true, 'shop'));
+        waUtils::varExportToFile($data, wa()->getConfig()->getConfigPath("checkout$version.php", true, 'shop'));
     }
 }

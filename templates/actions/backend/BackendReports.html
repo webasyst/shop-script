@@ -1,19 +1,35 @@
-<div id="reports-paid-orders-notice" class="s-alert" style="display:none;">
-    [`Only paid and completed orders are shown in reports. If you cannot see a particular order in reports, make sure to click <strong>Pay</strong> or <strong>Complete</strong> button on the order-viewing page. Clicking either of these buttons will add a big “PAID” stamp to an order and will make it counted in your sales reports.`]
-    <a href="javascript:void(0)" class="close s-alert-close">&times;</a>
+{capture assign="_spinner"}
+<div class="flexbox height-100">
+      <div class="spinner custom-p-32" style="align-self:center;margin-inline:auto;margin-top:-10%;"></div>
 </div>
+<!-- <div class="box">[`Loading...`] <i class="fas fa-spinner fa-spin text-gray"></i></div> -->
+{/capture}
+<div class="box contentbox custom-pb-0" id="reports-paid-orders-notice" style="display: none;">
+    <div class="alert small custom-mb-0">
+        <div class="flexbox">
+            <div class="wide">
+                [`Only paid and completed orders are shown in reports. If you cannot see a particular order in reports, make sure to click <strong>Pay</strong> or <strong>Complete</strong> button on the order-viewing page. Clicking either of these buttons will add a big “PAID” stamp to an order and will make it counted in your sales reports.`]
+            </div>
 
-<div id="reportscontent">
-    <div class="block double-padded ">
-        [`Loading...`] <i class="icon16 loading"></i>
+            <div class="custom-ml-4">
+                <a href="javascript:void(0);" class="close alert-close"><i class="fas fa-times"></i></a>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- 'backend_reports.menu_li' deprecated @ Webasyst 2; USE 'backend_extended_menu' instead -->
+
+<div id="reportscontent" class="box contentbox height-100">
+    {$_spinner}
+</div>
+
 <link rel="stylesheet" href="{$wa_app_static_url}css/charts.css?v={$wa->version()}">
+<link rel="stylesheet" href="{$wa_url}wa-content/css/jquery-ui/base/jquery.ui.all.css">
 <script src="{$wa_app_static_url}js/charts/d3.min.js?v{$wa->version()}"></script>
 <script src="{$wa_app_static_url}js/charts/topojson.min.js?v{$wa->version()}"></script>
 <script src="{$wa_app_static_url}js/charts/datamaps.world.min.js?v{$wa->version()}"></script>
 <script src="{$wa_app_static_url}js/tmpl.min.js?v={$wa->version()}"></script>
 <script src="{$wa_app_static_url}js/lazy.load.js?v={$wa->version()}"></script>
 <script src="{$wa_app_static_url}js/reports.js?v={$wa->version()}"></script>
-<script> $.reports.init({ lang: '{$lang}' }); </script>
+<script> $.reports.init({ lang: '{$lang}', loading: '{$_spinner|strip}' }); </script>

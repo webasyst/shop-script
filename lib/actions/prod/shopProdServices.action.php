@@ -34,7 +34,6 @@ class shopProdServicesAction extends waViewAction
         $product_types = self::formatProductTypes($product_types);
         $product_type = ifset($product_types, $product["type_id"], null);
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setChapter();
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,
@@ -78,7 +77,11 @@ class shopProdServicesAction extends waViewAction
         $result = [];
 
         foreach ($types as $type) {
-            $icon_html = (!empty($type["icon"]) ? shopHelper::getIcon($type["icon"]) : shopHelper::getIcon("box") );
+            if (wa()->whichUI() >= '2.0') {
+                $icon_html = wa()->getView()->getHelper()->shop->getIcon($type["icon"], "box");
+            } else {
+                $icon_html = (!empty($type["icon"]) ? shopHelper::getIcon($type["icon"]) : shopHelper::getIcon("box") );
+            }
 
             $result[$type["id"]] = [
                 "id"        => $type["id"],

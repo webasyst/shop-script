@@ -32,7 +32,6 @@ class shopProdRelatedAction extends waViewAction
         $cross_selling = self::getCrossSelling($product, $type);
         $upselling = self::getUpselling($product, $type);
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setChapter();
 
         $this->view->assign([
             'product'       => self::formatProduct($product),

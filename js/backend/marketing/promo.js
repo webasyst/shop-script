@@ -626,7 +626,7 @@
 
                 $banner.find('.js-colorpicker').each(function () {
                     var $colorpicker_wrapper = $(this).hide(),
-                        $icon = $colorpicker_wrapper.closest('.value').find('i.icon16.color'),
+                        $icon = $colorpicker_wrapper.closest('.value').find('.icon svg'),
                         $input = $colorpicker_wrapper.closest('.value').find(':input');
 
                     var farbtastic = $.farbtastic($colorpicker_wrapper, setColor);
@@ -642,12 +642,12 @@
                     setColor($input.val() || '#ffffff');
 
                     $input.on('change keyup', function() {
-                        $icon.css('background', $input.val());
+                        $icon.css('color', $input.val());
                         farbtastic.setColor($input.val());
                     });
 
                     function setColor(color) {
-                        $icon.css('background', color);
+                        $icon.css('color', color);
                         farbtastic.setColor(color);
                         $input.val(color);
                     }
@@ -655,6 +655,103 @@
 
                 $banner.data('colorpicker', 1);
             }
+
+            // :TODO need to include Pick
+            // function initColorPickersSun($banner) {
+
+            //   if ($banner.data('colorpicker')) {
+            //       return false;
+            //   }
+
+            //   $banner.find('.js-colorpicker').each(function () {
+            //       var $colorpicker_wrapper = $(this).hide(),
+            //           $icon = $colorpicker_wrapper.closest('.value').find('.icon svg'),
+            //           $input = $colorpicker_wrapper.closest('.value').find(':input');
+
+            //       // var farbtastic = $.farbtastic($colorpicker_wrapper, setColor);
+            //       // farbtastic.widgetCoords = function (event) {
+            //       //     var offset = $(farbtastic.wheel).offset();
+            //       //     return { x: (event.pageX - offset.left) - farbtastic.width / 2, y: (event.pageY - offset.top) - farbtastic.width / 2 };
+            //       // };
+
+            //       const colorPicker = Pickr.create({
+            //         el: $colorpicker_wrapper,
+            //         theme: 'classic',
+            //         swatches: [
+            //           '#ed2509',
+            //           '#22d13d',
+            //           '#1a9afe',
+            //           '#f3c200',
+            //           '#ff6c00',
+            //           '#7256ee',
+            //           '#996e4d',
+            //           '#ff7a99',
+            //           '#fff',
+            //           '#000',
+            //           '#89a',
+            //           'rgba(0, 20, 65, 0.2)',
+            //           '#568',
+
+            //         ],
+            //         appClass: 'wa-pcr-app small',
+            //         lockOpacity: false,
+            //         position: 'bottom-middle',
+            //         useAsButton: true,
+            //         default: defaultColor,
+            //         components: {
+            //           palette: true,
+            //           hue: true,
+            //           interaction: {
+            //             input: true,
+            //             save: true
+            //           }
+            //         },
+            //         i18n: {
+            //           'btn:save': 'OK',
+            //         }
+            //       })
+            //       // .on('change', (pickr) => {
+            //       //   const color_hex = getColorPicker(pickr);
+            //       //   setColor(color_hex, true)
+
+            //       // })
+            //       .on('save', (color, pickr) => {
+            //         $codeColor.val(getColorPicker(color).toLowerCase());
+            //         pickr.hide();
+
+            //       })
+            //       // .on('hide', (pickr) => {
+            //       //   let color_hex = $codeColor.val();
+            //       //   if (!color_hex) {
+            //       //     color_hex = initColor;
+            //       //   }
+            //       //   setColor(color_hex)
+            //       //   pickr.setColor(color_hex);
+            //       //   $codeColor.trigger('change');
+
+            //       //   pickr.destroyAndRemove();
+            //       // });
+
+            //       $icon.css('cursor', 'pointer').click(function() {
+            //           $colorpicker_wrapper.slideToggle();
+            //       });
+
+            //       setColor($input.val() || '#ffffff');
+
+            //       $input.on('change keyup', function() {
+            //           $icon.css('color', $input.val());
+            //           farbtastic.setColor($input.val());
+            //       });
+
+            //       function setColor(color) {
+            //           $icon.css('color', color);
+            //           farbtastic.setColor(color);
+            //           $input.val(color);
+            //       }
+            //   });
+
+            //   $banner.data('colorpicker', 1);
+            // }
 
             function ruleRemoveConfirm() {
                 var $section = that.scope.$wrapper.find(".js-rules-section");
@@ -665,12 +762,10 @@
                 }
 
                 var $confirm_template = $(that.templates["banner_confirm_dialog"]).clone();
-                $confirm_template.waDialog({
-                    onLoad: function () {
-                        var $dialog_wrapper = $(this);
-
-                        // Submit confirm
-                        $dialog_wrapper.on('click', '.js-submit', function () {
+                $.waDialog({
+                    html: $confirm_template[0],
+                    onOpen: function($dialog, dialog_instance) {
+                        $dialog.on('click', '.js-submit', function () {
                             var $rule = that.$banners_wrapper.closest(".s-rule-section"),
                                 rule_id = $rule.data('id');
 
@@ -684,12 +779,7 @@
                                 }]);
                             }
 
-                            $dialog_wrapper.trigger('close');
-                        });
-
-                        // Close
-                        $dialog_wrapper.on('click', '.js-cancel', function () {
-                            $dialog_wrapper.trigger('close');
+                            dialog_instance.close();
                         });
                     }
                 });
@@ -907,8 +997,8 @@
             };
 
             function renderError(error_text, $field, $error_wrapper) {
-                var $error = $("<div class=\"s-error-message errormsg\" />").text(error_text);
-                var error_class = "error";
+                var $error = $("<div class=\"s-error-message state-error-hint\" />").text(error_text);
+                var error_class = "state-error";
 
                 if ($field) {
                     if (!$field.hasClass(error_class)) {
@@ -973,6 +1063,10 @@
 
             // INIT
             that.init();
+
+            that.changeSubmit = function () {
+                that.$wrapper.trigger("change.submit");
+            }
         };
 
         Promo.prototype.init = function() {
@@ -980,16 +1074,19 @@
 
             that.initClone();
             that.initDelete();
-            that.initChartSection();
             that.initOptionsSection();
             that.initRulesSection();
             that.initTabs();
             that.initSubmit();
-            that.initFixedSubmitWrapper();
             that.initEditName();
             that.initClose();
+            $.skeletonLoader.onLoadedContent(function () {
+              that.initChartSection();
+            })
 
-            that.$wrapper.on("change", function() {
+
+
+            that.$wrapper.on("change change.submit", function() {
                 that.is_changed = true;
                 that.$submit_button.removeClass("green").addClass("yellow");
             });
@@ -1029,12 +1126,11 @@
 
                 is_locked = true;
 
-                $clone_confirm_template.waDialog({
-                    onLoad: function () {
-                        var $dialog_wrapper = $(this);
-
+                $.waDialog({
+                    html: $clone_confirm_template.clone()[0],
+                    onOpen: function($dialog, dialog_instance) {
                         // Submit confirm
-                        $dialog_wrapper.on('click', '.js-submit', function () {
+                        $dialog.on('click', '.js-submit', function () {
                             $icon.removeClass('split').removeClass('yes').removeClass('no').addClass('loading');
 
                             $.post(href, data, function (response) {
@@ -1042,21 +1138,17 @@
                                     $icon.removeClass('loading').addClass('yes');
                                     var href = that.urls["edit_promo"].replace("%id%", response.data.id);
                                     $.shop.marketing.content.load(href);
-                                    $.shop.marketing.sidebar.reload();
                                 } else {
                                     $icon.removeClass('loading').addClass('no');
                                 }
 
                                 is_locked = false;
-                                $dialog_wrapper.trigger('close');
+                                dialog_instance.close();
                             });
                         });
-
-                        // Close
-                        $dialog_wrapper.on('click', '.js-cancel', function () {
-                            is_locked = false;
-                            $dialog_wrapper.trigger('close');
-                        });
+                    },
+                    onClose: function() {
+                        is_locked = false;
                     }
                 });
             });
@@ -1081,13 +1173,11 @@
                 }
 
                 is_locked = true;
-
-                $delete_confirm_template.waDialog({
-                    onLoad: function () {
-                        var $dialog_wrapper = $(this);
-
+                $.waDialog({
+                    html: $delete_confirm_template[0],
+                    onOpen: function($dialog, dialog_instance) {
                         // Submit confirm
-                        $dialog_wrapper.on('click', '.js-submit', function () {
+                        $dialog.on('click', '.js-submit', function () {
                             $icon.removeClass('delete').removeClass('yes').removeClass('no').addClass('loading');
 
                             $.post(href, data, function (response) {
@@ -1095,21 +1185,17 @@
                                     $icon.removeClass('loading').addClass('yes');
                                     var href = that.urls["marketing_url"];
                                     $.shop.marketing.content.load(href);
-                                    $.shop.marketing.sidebar.reload();
                                 } else {
                                     $icon.removeClass('loading').addClass('no');
                                 }
 
                                 is_locked = false;
-                                $dialog_wrapper.trigger('close');
+                                dialog_instance.close();
                             });
                         });
-
-                        // Close
-                        $dialog_wrapper.on('click', '.js-cancel', function () {
-                            is_locked = false;
-                            $dialog_wrapper.trigger('close');
-                        });
+                    },
+                    onClose: function() {
+                        is_locked = false;
                     }
                 });
             });
@@ -1408,6 +1494,20 @@
                         $storefronts_section.find('.js-storefront-list').addClass('hidden');
                     }
                     $counter.text($(this).data('storefront-count'));
+                });
+
+                $("#js-storefront-switch").waSwitch({
+                    change: function(active, wa_switch) {
+                      const storefrontAllRadio = $('.js-storefront-all-field');
+                      const storefrontMassRadio = $('.js-storefront-mass-field');
+                      if (active) {
+                        storefrontMassRadio.trigger('click');
+                        $('.js-storefront-hint').hide();
+                      } else {
+                        storefrontAllRadio.trigger('click');
+                        $('.js-storefront-hint').show();
+                      }
+                     }
                 });
 
                 $storefronts_mass_toggle.on("change", function(event) {
@@ -1855,7 +1955,6 @@
                                         }
                                     });
 
-                                    $.shop.marketing.sidebar.reload();
                                 } else if (response.errors) {
                                     renderErrors(response.errors);
                                     that.$submit_button.attr("disabled", false);
@@ -1979,8 +2078,8 @@
                 return result;
 
                 function renderError(error, $error_wrapper) {
-                    var $error = $("<div class=\"s-error-message errormsg\" />").text(error.text);
-                    var error_class = "error";
+                    var $error = $("<div class=\"s-error-message state-error-hint\" />").text(error.text);
+                    var error_class = "state-error";
 
                     if (error.$field) {
                         var $field = error.$field;
@@ -2011,211 +2110,6 @@
             }
         };
 
-        Promo.prototype.initFixedSubmitWrapper = function() {
-            var that = this;
-
-            /**
-             * @class FixedBlock
-             * @description used for fixing form buttons
-             * */
-            var FixedBlock = ( function($) {
-
-                FixedBlock = function(options) {
-                    var that = this;
-
-                    // DOM
-                    that.$window = $(window);
-                    that.$wrapper = options["$section"];
-                    that.$wrapperW = options["$wrapper"];
-                    that.$form = that.$wrapper.parents('form');
-
-                    // VARS
-                    that.type = (options["type"] || "bottom");
-                    that.lift = (options["lift"] || 0);
-
-                    // DYNAMIC VARS
-                    that.offset = {};
-                    that.$clone = false;
-                    that.is_fixed = false;
-
-                    // INIT
-                    that.initClass();
-                };
-
-                FixedBlock.prototype.initClass = function() {
-                    var that = this,
-                        $window = that.$window,
-                        resize_timeout = 0;
-
-                    $window.on("resize", function() {
-                        clearTimeout(resize_timeout);
-                        resize_timeout = setTimeout( function() {
-                            that.resize();
-                        }, 100);
-                    });
-
-                    $window.on("scroll", watcher);
-
-                    that.$wrapper.on("resize", function() {
-                        that.resize();
-                    });
-
-                    that.$form.on("input", function () {
-                        that.resize();
-                    });
-
-                    that.init();
-
-                    function watcher() {
-                        var is_exist = $.contains($window[0].document, that.$wrapper[0]);
-                        if (is_exist) {
-                            that.onScroll($window.scrollTop());
-                        } else {
-                            $window.off("scroll", watcher);
-                        }
-                    }
-
-                    that.$wrapper.data("block", that);
-                };
-
-                FixedBlock.prototype.init = function() {
-                    var that = this;
-
-                    if (!that.$clone) {
-                        var $clone = $("<div />").css("margin", "0");
-                        that.$wrapper.after($clone);
-                        that.$clone = $clone;
-                    }
-
-                    that.$clone.hide();
-
-                    var offset = that.$wrapper.offset();
-
-                    that.offset = {
-                        left: offset.left,
-                        top: offset.top,
-                        width: that.$wrapper.outerWidth(),
-                        height: that.$wrapper.outerHeight()
-                    };
-                };
-
-                FixedBlock.prototype.resize = function() {
-                    var that = this;
-
-                    switch (that.type) {
-                        case "top":
-                            that.fix2top(false);
-                            break;
-                        case "bottom":
-                            that.fix2bottom(false);
-                            break;
-                    }
-
-                    var offset = that.$wrapper.offset();
-                    that.offset = {
-                        left: offset.left,
-                        top: offset.top,
-                        width: that.$wrapper.outerWidth(),
-                        height: that.$wrapper.outerHeight()
-                    };
-
-                    that.$window.trigger("scroll");
-                };
-
-                /**
-                 * @param {Number} scroll_top
-                 * */
-                FixedBlock.prototype.onScroll = function(scroll_top) {
-                    var that = this,
-                        window_w = that.$window.width(),
-                        window_h = that.$window.height();
-
-                    // update top for dynamic content
-                    that.offset.top = (that.$clone && that.$clone.is(":visible") ? that.$clone.offset().top : that.$wrapper.offset().top);
-
-                    switch (that.type) {
-                        case "top":
-                            var use_top_fix = (that.offset.top - that.lift < scroll_top);
-
-                            that.fix2top(use_top_fix);
-                            break;
-                        case "bottom":
-                            var use_bottom_fix = (that.offset.top && scroll_top + window_h < that.offset.top + that.offset.height);
-                            that.fix2bottom(use_bottom_fix);
-                            break;
-                    }
-
-                };
-
-                /**
-                 * @param {Boolean|Object} set
-                 * */
-                FixedBlock.prototype.fix2top = function(set) {
-                    var that = this,
-                        fixed_class = "is-top-fixed";
-
-                    if (set) {
-                        that.$wrapper
-                            .css({
-                                position: "fixed",
-                                top: that.lift,
-                                left: that.offset.left
-                            })
-                            .addClass(fixed_class);
-
-                        that.$clone.css({
-                            height: that.offset.height
-                        }).show();
-
-                    } else {
-                        that.$wrapper.removeClass(fixed_class).removeAttr("style");
-                        that.$clone.removeAttr("style").hide();
-                    }
-
-                    that.is_fixed = !!set;
-                };
-
-                /**
-                 * @param {Boolean|Object} set
-                 * */
-                FixedBlock.prototype.fix2bottom = function(set) {
-                    var that = this,
-                        fixed_class = "is-bottom-fixed";
-
-                    if (set) {
-                        that.$wrapper
-                            .css({
-                                position: "fixed",
-                                bottom: 0,
-                                left: that.offset.left,
-                                width: that.offset.width
-                            })
-                            .addClass(fixed_class);
-
-                        that.$clone.css({
-                            height: that.offset.height
-                        }).show();
-
-                    } else {
-                        that.$wrapper.removeClass(fixed_class).removeAttr("style");
-                        that.$clone.removeAttr("style").hide();
-                    }
-
-                    that.is_fixed = !!set;
-                };
-
-                return FixedBlock;
-
-            })(jQuery);
-
-            new FixedBlock({
-                $wrapper: that.$wrapper,
-                $section: that.$wrapper.find(".js-page-footer"),
-                type: "bottom"
-            });
-
-        };
-
         Promo.prototype.initCouponRulesSection = function(options) {
             var that = this;
 
@@ -2243,6 +2137,7 @@
                     select: function(event, ui) {
                         addCoupon(ui.item.data);
                         $field.val("");
+                        that.changeSubmit();
                         return false;
                     }
                 });
@@ -2313,7 +2208,7 @@
                 initAutocomplete($field);
             }
 
-            initIButtons();
+            initSwitches();
 
             $products_wrapper.on("click", ".js-delete-product", function(event) {
                 event.preventDefault();
@@ -2328,6 +2223,8 @@
                 productsToggle();
 
                 ruleRemoveConfirm();
+
+                that.changeSubmit();
             });
 
             $products_wrapper.on("change", ".js-sku-toggle-checkbox", function(event) {
@@ -2397,6 +2294,7 @@
                         if (product_id) {
                             if (!product_ids[product_id]) {
                                 addProduct(product_id);
+                                that.changeSubmit();
 
                             } else {
                                 var $product = $products_wrapper.find(".s-product-wrapper[data-id='" + product_id + "']");
@@ -2425,7 +2323,7 @@
                             $list.prepend(response.data.html);
                             product_ids = getProductIds();
                             productsToggle(true);
-                            initIButtons();
+                            initSwitches();
                         }
                     });
                 }
@@ -2489,12 +2387,11 @@
                 }
 
                 var $confirm_template = $($templates["custom_price_delete_dialog"]).clone();
-                $confirm_template.waDialog({
-                    onLoad: function () {
-                        var $dialog_wrapper = $(this);
-
+                $.waDialog({
+                    html: $confirm_template[0],
+                    onOpen: function($dialog, dialog_instance) {
                         // Submit confirm
-                        $dialog_wrapper.on('click', '.js-submit', function () {
+                        $dialog.on('click', '.js-submit', function () {
                             var $rule = $products_wrapper.parents(".s-rule-section"),
                                 rule_id = $rule.data('id');
 
@@ -2507,60 +2404,42 @@
 
                             $section.trigger("rule_count_watch");
                             that.$window.trigger('resize');
-                            $dialog_wrapper.trigger('close');
-                        });
-
-                        // Close
-                        $dialog_wrapper.on('click', '.js-cancel', function () {
-                            $dialog_wrapper.trigger('close');
+                            dialog_instance.close();
                         });
                     }
                 });
             }
 
             function skuRemoveConfirm() {
-                var deferred = $.Deferred();
+                var deferred = $.Deferred(),
+                    is_confirm = false;
 
                 var $confirm_template = $($templates["custom_price_confirm_dialog"]).clone();
-                $confirm_template.waDialog({
-                    onLoad: function () {
-                        var $dialog_wrapper = $(this);
-
+                $.waDialog({
+                    html: $confirm_template[0],
+                    onOpen: function($dialog, dialog_instance) {
                         // Submit confirm
-                        $dialog_wrapper.on('click', '.js-confirm-action', function () {
+                        $dialog.on('click', '.js-confirm-action', function () {
+                            is_confirm = true;
+                            dialog_instance.close();
+                        });
+                    },
+                    onClose: function() {
+                        if (is_confirm) {
                             deferred.resolve();
-                            $dialog_wrapper.trigger('close');
-                        });
-
-                        // Close
-                        $dialog_wrapper.on('click', '.js-cancel', function () {
+                        } else {
                             deferred.reject();
-                            $dialog_wrapper.trigger('close');
-                        });
+                        }
                     }
                 });
 
                 return deferred.promise();
             }
 
-            function initIButtons() {
-                var $iButtons = $wrapper.find(".js-ibutton");
-                if ($iButtons.length) {
-                    var init_class = "is-initialized";
+            function initSwitches() {
+                var $switches = $wrapper.find(".js-switch");
 
-                    $iButtons.each( function() {
-                        var $field = $(this),
-                            is_init = $field.hasClass(init_class);
-
-                        if (!is_init) {
-                            $field.addClass(init_class).iButton({
-                                labelOn : "",
-                                labelOff : "",
-                                classContainer: "c-ibutton ibutton-container mini"
-                            });
-                        }
-                    });
-                }
+                $switches.waSwitch();
             }
         };
 
@@ -2710,28 +2589,21 @@
                     is_confirm = false;
 
                 var $confirm_template = $(that.templates["unsaved_data_dialog"]).clone();
-                $confirm_template.waDialog({
-                    onLoad: function () {
-                        var $dialog_wrapper = $(this);
-
+                $.waDialog({
+                    html: $confirm_template[0],
+                    onOpen: function($dialog, dialog_instance) {
                         // Submit confirm
-                        $dialog_wrapper.on('click', '.js-submit', function () {
+                        $dialog.on('click', '.js-submit', function () {
                             is_confirm = true;
-                            $dialog_wrapper.trigger('close');
-                        });
-
-                        // Close
-                        $dialog_wrapper.on('click', '.js-cancel', function () {
-                            $dialog_wrapper.trigger('close');
+                            dialog_instance.close();
                         });
                     },
-                    onClose: function () {
+                    onClose: function() {
                         if (is_confirm) {
                             deferred.resolve();
                         } else {
                             deferred.reject();
                         }
-                        $(this).remove();
                     }
                 });
 

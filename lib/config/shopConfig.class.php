@@ -88,6 +88,8 @@ class shopConfig extends waAppConfig
             return wa()->getUser()->getRights('shop', 'customers');
         } elseif ($module == 'importexport' || $module == 'csv' || $module == 'images') {
             return wa()->getUser()->getRights('shop', 'importexport');
+        } elseif ($module == 'prod' && ($action == 'sets' || $action == 'categories')) {
+            return wa()->getUser()->getRights('shop', 'setscategories');
         }
         return true;
     }
@@ -285,13 +287,25 @@ class shopConfig extends waAppConfig
 
     public function getCurrencies($codes = null)
     {
-        $model = new shopCurrencyModel();
+        static $model = null;
+        if ($model === null) {
+            $model = new shopCurrencyModel();
+        }
         return $model->getCurrencies($codes);
     }
 
     public function getOrderFormat()
     {
         return wa()->getSetting('order_format', '#100{$order.id}', 'shop');
+    }
+
+    public function getOrderNoproductItemName()
+    {
+        $value = wa()->getSetting('order_noproduct_item_name', '', 'shop');
+        if ($value === '') {
+            $value = _w('Payment for the ordered service');
+        }
+        return $value;
     }
 
     public function setCurrency($currency)
@@ -311,6 +325,7 @@ class shopConfig extends waAppConfig
                          'phone'                         => '+1 (234) 555-1234',
                          'country'                       => '',
                          'order_format'                  => $this->getOrderFormat(),
+                         'order_noproduct_item_name'     => wa()->getSetting('order_noproduct_item_name', '', 'shop'),
                          'use_gravatar'                  => 1,
                          'map'                           => 'google',
                          'gravatar_default'              => 'custom',
@@ -780,7 +795,7 @@ class shopConfig extends waAppConfig
             if (in_array($l['action'], array('product_add', 'product_edit', 'product_duplicate'))) {
                 if (isset($products[$l['params']])) {
                     $p = $products[$l['params']];
-                    if (shopHelper::getCurrentChapter() === 'new_chapter') {
+                    if (wa()->whichUI() == '2.0') {
                         $url = $app_url.'products/'.$l['params'];
                         if (0 === wa()->getUser()->getRights('shop', 'type.'.$p['type_id'])) {
                             $url .='/prices/';
@@ -901,6 +916,7 @@ class shopConfig extends waAppConfig
     /**
      * @param string $method
      *  - 'feedback' - send feedback about something (for example about new shop editor)
+     * @deprecated
      * @return string
      */
     public function getWebasystApiUrl($method)
@@ -921,6 +937,11 @@ class shopConfig extends waAppConfig
         }
 
         return $url;
+    }
+
+    public function isAnyPremiumFeatureEnabled()
+    {
+        return shopLicensing::isAnyPremiumFeatureEnabled();
     }
 }
 

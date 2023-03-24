@@ -1,17 +1,26 @@
+<link href="{$wa_app_static_url}css/backend/customers.css?v{$wa->version()}" rel="stylesheet" />
 <script type="text/javascript" src="{$wa_app_static_url}js/customers/customers.js?{$wa->version()}"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/customers/orders.js?{$wa->version()}"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/lazy.load.js?{$wa->version()}"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/form/customer/backend.js?{$wa->version()}"></script>
 
-<div class="sidebar left200px s-inner-sidebar" id="s-sidebar">
-    {wa_action app="shop" module="customers" action="sidebar"}
+<div class="not-blank hidden" id="s-customers">
+<div class="article wider">
+<div class="article-body">
+    <div class="flexbox space-12 vertical-mobile">
+        <div class="sidebar mobile-friendly" id="s-sidebar">
+            {wa_action app="shop" module="customers" action="sidebar"}
+        </div>
+        <div class="custom-mt-4 wide" id="s-content" style="min-height:calc(100vh - 4rem)"></div>
+    </div>
+</div>
+</div>
 </div>
 
-<div class="content left200px blank" id="s-content">
-    <div class="block triple-padded"><i class="icon16 loading"></i>[`Loading...`]</div>
-</div>
+{include file="./../../layouts/skeleton/customers.html"}
+{include file="./../../layouts/skeleton/customers_info.html"}
+{include file="./../../layouts/skeleton/customers_add.html"}
 
 <script>$(function() { "use strict";
     $.customers.init();
 });</script>
-

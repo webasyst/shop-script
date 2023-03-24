@@ -1,210 +1,176 @@
-var ShopSettingsSchedule = ( function($) {
+ShopSettingsSchedule = (function ($) {
+    return class {
+        constructor($wrapper, options) {
+            // DOM
+            this.$document = $(document);
+            this.$form = $wrapper;
+            this.$submitButton = this.$form.find('.js-submit-button');
+            this.$submitOkIcon = this.$submitButton.find('.js-submit-ok')
+            this.$submitSpinner = this.$submitButton.find('.js-submit-spinner');
 
-    ShopSettingsSchedule = function(options) {
-        var that = this;
+            this.$week_wrapper = this.$form.find('.js-week-wrapper');
+            this.$day_add = this.$form.find('.js-add-day');
+            this.$day_remove = this.$form.find('.js-day-remove');
 
-        // DOM
-        that.$wrapper = options["$wrapper"];
-        that.$form = that.$wrapper.find('form');
-        that.$button = that.$form.find('.js-submit-button');
-        that.$loading = that.$form.find('.js-loading');
+            // VARS
+            this.options = options;
 
-        // VARS
-        that.extra_workday_template = options["extra_workday_template"];
-        that.extra_weekend_template = options["extra_weekend_template"];
-        that.date_format = options['date_format'];
+            // DYNAMIC VARS
+            this.is_locked = false;
 
-        // DYNAMIC VARS
-        that.extra_dates = [];
-        that.is_locked = false;
+            // INIT
+            this.bindEvents();
+        }
 
-        // INIT
-        that.initClass();
-    };
+        bindEvents() {
+            this.$week_wrapper.on('change', '.js-work', $.proxy(this.initWeek, this));
+            this.$form.on('change', '.js-datepicker', $.proxy(this.formatDate, this));
+            this.$submitButton.on('click', $.proxy(this.submitForm, this));
+            this.$form.on('change', $.proxy(this.detectFormChange, this));
+            this.$day_add.on('click', $.proxy(this.addExtraDay, this));
+            this.$form.on('click', '.js-day-remove', $.proxy(this.removeExtraDay, this));
+        }
 
-    ShopSettingsSchedule.prototype.initClass = function() {
-        var that = this;
+        initWeek(event) {
+            const $day_wrapper = $(event.target).closest('.js-day-wrapper');
 
-        //
-        that.initWeek();
-        //
-        that.initExtra('workday');
-        //
-        that.initExtra('weekend');
-        //
-        that.initSubmit();
-    };
-
-    ShopSettingsSchedule.prototype.initWeek = function() {
-        var that = this,
-            $week_wrapper = that.$wrapper.find('.js-week-wrapper');
-
-        $week_wrapper.on('change', '.js-work', function () {
-            var $work = $(this),
-                $day_wrapper = $work.parents('.js-day-wrapper');
-
-            if (this.checked) {
+            if (event.target.checked) {
                 $day_wrapper.addClass('worked');
                 $day_wrapper.find('.js-time').each(function () {
-                    $(this).prop('disabled', false).attr('placeholder', $(this).data('placeholder'));
+                    $(this).prop('disabled', false);
                 });
             } else {
-                $day_wrapper.removeClass('worked').find('.js-time').val('').prop('disabled', true).removeAttr('placeholder');
+                $day_wrapper.removeClass('worked').find('.js-time').val('').prop('disabled', true);
             }
-        });
-    };
+        }
 
-    ShopSettingsSchedule.prototype.initExtra = function(extra_type) {
-        var that = this,
-            wrapper_class = (extra_type === 'workday') ? '.js-extra-workdays-wrapper' : '.js-extra-weekends-wrapper',
-            $extra_wrapper = that.$wrapper.find(wrapper_class),
-            $days_list = $extra_wrapper.find('.js-days-list'),
-            $add_day = $extra_wrapper.find('.js-add-day');
+        addExtraDay(event) {
+            event.preventDefault();
 
-        initDatepickers();
+            const wrapper_class = (event.currentTarget.dataset.type === 'workday') ? '.js-extra-workdays-wrapper' : '.js-extra-weekends-wrapper';
+            const $extra_wrapper = this.$form.find(wrapper_class);
+            const $days_list = $extra_wrapper.find('.js-days-list');
 
-        // Add
-        $add_day.on('click', function () {
-            var template = (extra_type === 'workday') ? that.extra_workday_template : that.extra_weekend_template,
-                $template = $(template).clone();
+            const template = (event.currentTarget.dataset.type === 'workday') ? this.options.extra_workday_template : this.options.extra_weekend_template;
+            const $template = $(template).clone();
 
             $extra_wrapper.find('thead').show();
             $days_list.append($template);
-            initDatepickers();
-        });
+        }
 
-        // Remove
-        $extra_wrapper.on('click', '.js-remove', function () {
-            $(this).parents('tr').remove();
-            if (!$days_list.find('tr').length) {
-                $extra_wrapper.find('thead').hide();
+        removeExtraDay(event) {
+            const $parentTable = $(event.target).closest('table');
+
+            $(event.target).closest('tr').remove();
+
+            if (!$parentTable.find('tbody tr').length) {
+                $parentTable.find('thead').hide();
             }
-            initDatepickers();
-        });
-
-        that.$wrapper.on('change', '.js-datepicker', function () {
-            initDatepickers();
-        });
-
-        function initDatepickers() {
-            that.$wrapper.find('.js-datepicker').each(function () {
-                var $input = $(this);
-                $input.datepicker({
-                    dateFormat: that.date_format,
-                    beforeShowDay: function(date){
-                        var string = $.datepicker.formatDate(that.date_format, date);
-                        return [ that.extra_dates.indexOf(string) == -1 ]
-                    },
-                    create: parseDates()
-                });
-            });
-            $('#ui-datepicker-div').hide();
         }
 
-        function parseDates() {
-            that.extra_dates = [];
-            that.$wrapper.find('.js-datepicker').each(function () {
-                that.extra_dates.push($(this).val());
-            });
+        formatDate(event) {
+            const currentLoc = this.options.lang.replace('_', '-');
+            const dateValue = new Date(event.target.valueAsDate);
+            const localizedDate = dateValue.toLocaleDateString(currentLoc);
+            $(event.target).siblings('input').val(localizedDate);
         }
-    };
 
-    ShopSettingsSchedule.prototype.initSubmit = function() {
-        var that = this;
+        submitForm(event) {
+            event.preventDefault();
 
-        that.$form.on('submit', function (e) {
-            e.preventDefault();
-            if (that.is_locked) {
+            if (this.is_locked) {
                 return;
             }
-            that.is_locked = true;
-            that.$button.prop('disabled', true);
-            that.$loading.removeClass('yes').removeClass('no').addClass('loading').show();
-            that.$wrapper.find('.js-submit-error').remove();
-            that.$wrapper.find('.error').removeClass('error shake animated');
 
-            setNames();
+            this.is_locked = true;
 
-            var href = that.$form.attr('action'),
-                data = that.$form.serialize();
+            this.$submitButton.prop('disabled', true);
+            this.$submitSpinner.removeClass('hidden');
 
-            $.post(href, data, function (res) {
-                if (res.status === 'ok') {
-                    that.$button.removeClass('yellow').addClass('green');
-                    that.$loading.removeClass('loading').addClass('yes');
-                    setTimeout(function(){
-                        that.$loading.hide();
-                    },2000);
-                } else {
-                    if (res.errors) {
-                        $.each(res.errors, function (i, error) {
-                            if (error.field) {
-                                fieldError(error);
-                            }
-                        });
+            this.$form.find('.js-submit-error').remove();
+            this.$form.find('.state-error').removeClass('state-error wa-animation-swing');
+
+            this.setExtraWorkdayNames();
+            this.setExtraWeekendNames();
+
+            const data = this.$form.serialize();
+
+            $.post(this.options.api.save, data, (res) => {
+                this.is_locked = false;
+
+                this.$submitButton.prop('disabled', false);
+                this.$submitButton.removeClass('yellow').addClass('green');
+                this.$submitSpinner.addClass('hidden');
+
+                if (res.status !== 'ok') {
+                    if (!res.errors) {
+                        return;
                     }
-                    that.$loading.removeClass('loading').addClass('no');
-                    setTimeout(function(){
-                        that.$loading.hide();
-                    },2000);
+
+                    $.each(res.errors, (i, error) => {
+                        if (error.field) {
+                            return;
+                        }
+
+                        this.fieldError(error);
+                    });
+
+                    return;
                 }
-                that.is_locked = false;
-                that.$button.prop('disabled', false);
+
+                this.$submitOkIcon.removeClass('hidden');
+                setTimeout(() => {
+                    this.$submitOkIcon.addClass('hidden');
+                },2000);
             });
-
-            function fieldError(error) {
-                var $field = that.$form.find('*[name="data'+ error.field +'"]');
-
-                if (!$field.length) {
-                    $field = that.$form.find('*[data-block-name="'+ error.field +'"]');
-                    if (error.message) {
-                        $field.after('<div class="js-submit-error" style="color: red;">' + error.message + '</div>');
-                    }
-                }
-
-                if (error.interrelated_field) {
-                    var $interrelated_field = that.$form.find('input[name="data'+ error.interrelated_field +'"]');
-                    $interrelated_field.addClass('error shake animated');
-                }
-
-                $field.addClass('error shake animated');
-
-                console.log(error);
-            }
-        });
-
-        that.$form.on('input', function () {
-            that.$button.removeClass('green').addClass('yellow');
-        });
-
-        function setNames() {
-            setExtraWorkdayNames();
-            setExtraWeekendNames();
         }
 
-        function setExtraWorkdayNames() {
-            var $table = that.$wrapper.find('.js-extra-workdays-wrapper');
+        detectFormChange() {
+            this.$submitButton.removeClass('green').addClass('yellow');
+        }
+
+        setExtraWorkdayNames() {
+            const $table = this.$form.find('.js-extra-workdays-wrapper');
 
             $table.find('.js-day-wrapper').each(function (i, tr) {
-                var $tr = $(tr);
+                const $tr = $(tr);
+
                 $tr.find('input[data-name]').each(function () {
                     $(this).attr('name', 'data[extra_workdays]['+ i +']['+ $(this).data('name') +']');
                 })
             });
         }
 
-        function setExtraWeekendNames() {
-            var $table = that.$wrapper.find('.js-extra-weekends-wrapper');
+        setExtraWeekendNames() {
+            const $table = this.$form.find('.js-extra-weekends-wrapper');
 
             $table.find('.js-day-wrapper').each(function (i, tr) {
-                var $tr = $(tr);
+                const $tr = $(tr);
+
                 $tr.find('.js-extra-weekend').each(function () {
                     $(this).attr('name', 'data[extra_weekends]['+ i +']');
                 })
             });
         }
-    };
 
-    return ShopSettingsSchedule;
+        fieldError(error) {
+            let $field = this.$form.find(`*[name="data${error.field}"]`);
 
+            if (!$field.length) {
+                $field = this.$form.find(`*[data-block-name="${error.field}"]`);
+
+                if (error.message) {
+                    $field.after(`<div class="state-error js-submit-error">${error.message}</div>`);
+                }
+            }
+
+            if (error.interrelated_field) {
+                this.$form.find('input[name="data'+ error.interrelated_field +'"]').addClass('state-error wa-animation-swing');
+            }
+
+            $field.addClass('state-error wa-animation-swing');
+
+            console.trace(error);
+        }
+    }
 })(jQuery);

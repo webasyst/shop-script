@@ -1,0 +1,82 @@
+{function split_orders count=2 margin_height='1px'}
+    {for $i=1 to $count}
+    <span class="skeleton-line" style="width: 99%;height: 67px;padding: 11px;margin: {$margin_height} -10px;">
+        <span class="skeleton-custom-circle" style="width: 65px;height: 65px;"></span>
+    </span>
+    {/for}
+{/function}
+{function split_orders_actions count=2}
+    {for $i=1 to $count}
+    <span class="button custom-mr-16 custom-mt-8 rounded light-gray" style="width: 140px;height: 40px;"></span>
+    {/for}
+{/function}
+
+<div class="article wider desktop-and-tablet-only ">
+<style type="text/css">
+@media screen and (max-width: 1200px) {
+    .s-order-aux { display: none; }
+}
+</style>
+<div class="article-body custom-py-20">
+    <div class="content flexbox">
+        <div class="width-100">
+            <div class="flexbox">
+                <span class="skeleton-header custom-mb-8" style="width: 14%;"></span>
+                <span class="skeleton-line custom-ml-8" style="width: 14%;height: 30px;"></span>
+                <span class="skeleton-line custom-ml-8" style="width: 15%;height: 17px;"></span>
+            </div>
+            <div class="flexbox wrap">
+                {split_orders_actions count=5}
+            </div>
+            <span class="skeleton-custom-box custom-mt-32 custom-mb-12" style="height: 112px;margin-bottom: 1rem;"></span>
+
+            <div class="flexbox custom-mb-24 space-16">
+                <span class="skeleton-custom-box custom-mt-0" style="height: 160px;"></span>
+                <span class="skeleton-custom-box custom-mt-0" style="height: 160px;"></span>
+            </div>
+
+            <span class="skeleton-custom-box custom-mt-32" style="height: 250px; margin-bottom: 2rem;"></span>
+
+            <div class="flexbox">
+                <span class="custom-ml-auto custom-mr-32 skeleton-line" style="height: 15px; width: 80px; margin-bottom: 2rem;"></span>
+                <span class="skeleton-line custom-ml-32" style="height: 15px; width: 80px; margin-bottom: 2rem;"></span>
+            </div>
+            <div class="flexbox">
+                <span class="custom-ml-auto custom-mr-32 skeleton-line" style="height: 21px; width: 80px; margin-bottom: 2rem;"></span>
+                <span class="skeleton-line custom-ml-32" style="height: 21px; width: 80px; margin-bottom: 2rem;"></span>
+            </div>
+            <span class="skeleton-line" style="width: 40%;height: 15px;"></span>
+            <span class="skeleton-line" style="width: 25%;height: 10px;"></span>
+        </div>
+        <div class="sidebar s-order-aux right width-adaptive mobile-friendly">
+            <div class="box contentbox">
+                <span class="skeleton-line" style="height: 10px; width: 90%;"></span>
+                <div class="custom-mt-40" style="display: flex;flex-direction: column;justify-content: center;align-items: center;">
+                    <span class="skeleton-line" style="height: 5px; width: 90%;"></span>
+                    <span class="skeleton-line" style="height: 5px; width: 90%;"></span>
+                    <span class="skeleton-line" style="height: 5px; width: 90%;"></span>
+                    <span class="skeleton-line" style="height: 5px; width: 90%;"></span>
+                    <span class="skeleton-line" style="height: 5px; width: 90%;"></span>
+
+                    <span class="skeleton-line" style="height: 5px; width: 80%"></span>
+                    <span class="skeleton-line" style="height: 5px; width: 80%"></span>
+                    <span class="skeleton-line" style="height: 5px; width: 80%"></span>
+
+                    <span class="skeleton-line custom-mt-32 custom-mb-32" style="height: 2px; width: 90%;"></span>
+
+                    <span class="skeleton-list custom-m-0 custom-ml-40 custom-mt-16" style="height: 14px; width: 97%;"></span>
+                    <span class="skeleton-list custom-m-0 custom-ml-40 custom-mt-16" style="height: 14px; width: 97%;"></span>
+                    <span class="skeleton-list custom-m-0 custom-ml-40 custom-mt-16" style="height: 14px; width: 97%;"></span>
+
+                    <span class="button custom-mr-16 rounded light-gray custom-ml-12 custom-mt-16" style="width: 60px;height: 20px; align-self: flex-start;"></span>
+
+                    <span class="skeleton-line custom-mt-32 custom-mb-32" style="height: 2px; width: 90%;"></span>
+                    <span class="skeleton-line" style="height: 15px; width: 90%;"></span>
+                </div>
+                <span class="skeleton-line custom-ml-8" style="height: 5px; width: 50%"></span>
+                <span class="skeleton-line custom-ml-8" style="height: 5px; width: 50%"></span>
+            </div>
+        </div>
+    </div>
+</div>
+</div>

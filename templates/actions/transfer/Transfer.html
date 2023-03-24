@@ -22,19 +22,25 @@
         margin: -1px;
     }
 </style>
-<div id="s-transfer-product-dialog" class="dialog width800px height400px">
+<div id="s-transfer-product-dialog" class="dialog">
     <div class="dialog-background"></div>
-    <div class="dialog-window">
+    <div class="dialog-body" style="width: 900px;">
         <form method="post">
+            <div class="dialog-header">
+                <h1>[`New transfer`]</h1>
+            </div>
             <div class="dialog-content">
                 <div class="dialog-content-indent">
-                    <h1>[`New transfer`]</h1>
-
-                    <div class="s-alert" style="display: block;">
-                        <a class="s-alert-close" href="javascript:void(0);">&times;</a>
-                        [`Transfers is an easy way to move inventory from one stock to another. When you create new transfer, it automatically writes off selected products from the source stock. And once transfer has been completed, products are added to the destination stock.`]
+                    <div class="alert info">
+                        <div class="flexbox space-16 full-width">
+                            <div class="wide small">
+                                [`Transfers is an easy way to move inventory from one stock to another. When you create new transfer, it automatically writes off selected products from the source stock. And once transfer has been completed, products are added to the destination stock.`]
+                            </div>
+                            <div>
+                                <a href="javascript:void(0);" class="alert-close"><i class="fas fa-times"></i></a>
+                            </div>
+                        </div>
                     </div>
-
                     <div class="fields form" style="width: 100%;">
                       <div class="field-group">
                         <div class="field">
@@ -49,7 +55,7 @@
                             <div class="name">
                                 [`Source stock`]
                             </div>
-                            <div class="value no-shift">
+                            <div class="value ">
                                 <select name="from">
                                     <option value="">[`New arrival (no source stock)`]</option>
                                     {foreach $stocks as $stock}
@@ -62,7 +68,7 @@
                             <div class="name">
                                 [`Destination stock`]
                             </div>
-                            <div class="value no-shift">
+                            <div class="value ">
                                 <select name="to">
                                     <option value=""></option>
                                     {foreach $stocks as $stock}
@@ -72,38 +78,39 @@
                             </div>
                         </div>
                       </div>
-                      <div class="field-group">
-                        <div class="field">
-                            <div class="name">
-                                [`Products`]
-                            </div>
-                            <div class="value">
-                                <input type="search" class="s-transfer-products-add-autocomplete search long" placeholder="[`Enter a product name, an SKU name, or an SKU code`]">
-                                <p class="hint"><i class="icon10 info"></i>[`If you have not found a certain product, enter a more detailed search query to see more exact results.`]</p>
-                                <table class="zebra">
-                                    <tbody class="s-transfer-products-list"></tbody>
-                                    <tfoot>
-                                        <tr class="s-transfer-product-item s-tmpl" style="display: none;" data-id="">
-                                            <td class="min-width valign-top">
-                                                <img style="width: 48px;" src="">
-                                            </td>
-                                            <td>
-                                                <a href="" class="s-product-name" target="_blank"></a>
-                                                <span class="s-sku-name hint"></span>
-                                            </td>
-                                            <td>
-                                                x
-                                            <span class="f-transfer-count">
-                                                <input type="text" name="count[]" value="1" class="small short" disabled="disabled">
-                                            </span>
-                                                <input type="hidden" name="id[]" value="" disabled="disabled">
-                                            </td>
-                                            <td class="min-width">
-                                                <a class="s-delete-item"><i class="icon16 delete"></i></a>
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                        <div class="field-group">
+                            <div class="field">
+                                <div class="name">
+                                    [`Products`]
+                                </div>
+                                <div class="value">
+                                    <input type="search" class="s-transfer-products-add-autocomplete search long" placeholder="[`Enter a product name, an SKU name, or an SKU code`]">
+                                    <p class="hint"><i class="fas fa-info-circle text-dark-gray"></i> [`If you have not found a certain product, enter a more detailed search query to see more exact results.`]</p>
+                                    <table class="zebra">
+                                        <tbody class="s-transfer-products-list"></tbody>
+                                        <tfoot>
+                                            <tr class="s-transfer-product-item s-tmpl" style="display: none;" data-id="">
+                                                <td class="min-width valign-top">
+                                                    <img style="width: 48px;" src="">
+                                                </td>
+                                                <td>
+                                                    <a href="" class="s-product-name" target="_blank"></a>
+                                                    <span class="s-sku-name hint"></span>
+                                                </td>
+                                                <td class="nowrap">
+                                                    x
+                                                <span class="f-transfer-count">
+                                                    <input type="number" name="count[]" value="1" class="small shortest" disabled="disabled">
+                                                </span>
+                                                    <input type="hidden" name="id[]" value="" disabled="disabled">
+                                                </td>
+                                                <td class="min-width">
+                                                    <a class="s-delete-item"><i class="fas fa-trash-alt text-red"></i></a>
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -112,13 +119,9 @@
                     {* @event backend_stocks.%plugin_id%.transfer *}
                     {foreach $backend_stocks_hook as $_}{$_.transfer|default:''}{/foreach}
             </div>
-            <div class="dialog-buttons">
-                <div class="dialog-buttons-gradient">
-                    <input class="button green" name="send" type="button" value="[`Create transfer`]">
-                    [`or`]
-                    <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
-                    {* <input class="button yellow" name="send_and_receive" type="button" value="[`Transfer complete`]"> *}
-                </div>
+            <div class="dialog-footer">
+                <button class="button green" type="submit" name="send">[`Create transfer`]</button>
+                <button class="button light-gray js-dialog-close">[`Close`]</button>
             </div>
         </form>
     </div>
@@ -127,27 +130,27 @@
 <script>
     $(function () {
 
-        var dialog = $('#s-transfer-product-dialog'),
-            list = $('.s-transfer-products-list', dialog),
-            form = $('form', dialog),
+        var $dialog = $('#s-transfer-product-dialog'),
+            list = $('.s-transfer-products-list', $dialog),
+            form = $('form', $dialog),
             count = 0;
 
         var showValidateErrors = function (errors) {
             $.each(errors, function(i, er) {
                 var el = er.name === 'id' ? list : form.find('[name="' + er.name + '"]');
                 var parent = el.parent();
-                el.addClass('error');
-                parent.append('<em class="errormsg">' + er.msg + '</em>');
+                el.addClass('state-error');
+                parent.append('<div class="state-error-hint">' + er.msg + '</div>');
             });
         };
 
         var clearValidateErrors = function () {
-            form.find('.errormsg').remove()
-                    .end().find('.error').removeClass('error');
+            form.find('.state-error-hint').remove()
+                .end().find('.state-error').removeClass('state-error');
         };
 
         var renderItem = function (data) {
-            var item = $('.s-transfer-product-item.s-tmpl', dialog).clone();
+            var item = $('.s-transfer-product-item.s-tmpl', $dialog).clone();
             item.removeClass('s-tmpl');
             item.data('id', data.id);
             item.find('a').attr('href', '?action=products#/product/' + data.product_id + '/');
@@ -170,27 +173,28 @@
             list.append(renderItem({$sku|json_encode}));
         {/foreach}
 
-        var submit = function (url) {
-            clearValidateErrors();
-            $.shop.jsonPost(
-                url,
-                form.serialize(),
-                function (r) {
-                    dialog.trigger('close');
-                    // interface
-                    dialog.trigger('afterSubmit', [r]);
-                },
-                function (r) {
-                    showValidateErrors(r.errors || []);
-                }
-            );
-        };
+        $.waDialog({
+            html: $dialog[0],
+            onOpen: function ($dialog, dialog) {
 
-        dialog.waDialog({
-            esc: false,
-            onLoad: function () {
+                function submit(url) {
+                    clearValidateErrors();
+                    $.shop.jsonPost(
+                        url,
+                        form.serialize(),
+                        function (r) {
+                            // table
+                            $dialog.trigger('afterSubmit', [r]);
 
-                var search_input = $('.s-transfer-products-add-autocomplete', dialog);
+                            dialog.close();
+                        },
+                        function (r) {
+                            showValidateErrors(r.errors || []);
+                        }
+                    );
+                };
+
+                var search_input = $('.s-transfer-products-add-autocomplete', $dialog);
                 search_input.autocomplete({
                     source: function (request, response) {
                         $.getJSON(
@@ -241,30 +245,43 @@
                     return false;
                 });
 
-                var $alert_block = $('.s-alert:first', dialog);
+                var $alert_block = $('.alert:first', $dialog);
                 if ($.storage.get('shop/transfer_alert_hidden')) {
                     $alert_block.hide();
                 } else {
                     $alert_block.show();
-                    $('.s-alert-close', dialog).click(function() {
+                    $('.alert-close', $dialog).click(function() {
                         $alert_block.hide();
                         $.storage.set('shop/transfer_alert_hidden', 1);
                     });
                 }
 
                 (function (select) {
-                    var selected = select.find('option:selected').val();
+                    var last_selected = select.find('option:selected').val();
                     select.change(function () {
                         var len = form.find('.s-transfer-products-list').children().length
+                        var current_selected = $(this).val();
+
                         if (len > 0) {
                             var msg = $_(len, "You’ve added %d product to this transfer already. Are you sure you want to change the source stock?")
                             msg = msg.replace('%d', len);
-                            if (!confirm(msg)) {
-                                select.find('option[value="' + selected + '"]').attr('selected', true);
-                                return false;
-                            }
+
+                            $.waDialog.confirm({
+                                title: msg,
+                                success_button_title: 'OK',
+                                success_button_class: 'success',
+                                cancel_button_title: $_('Cancel'),
+                                cancel_button_class: 'light-gray',
+                                onSuccess: function() {
+                                    last_selected = current_selected;
+                                },
+                                onCancel: function() {
+                                    select.val(last_selected);
+                                }
+                            });
+                        } else {
+                            last_selected = current_selected;
                         }
-                        selected = $(this).val();
                     });
                 })(form.find('[name=from]'));
             }

@@ -78,7 +78,7 @@ class shopDemoDataImporter
             }
         }
 
-        if ($site_pages_table_data) {
+        if ($site_pages_table_data && wa()->appExists('site')) {
             $import_options = $import_routing_result;
             $import_options['current_domain_id'] = $this->getCurrentDomainId();
             $this->importSitePagesTableData($site_pages_table_data, $import_options);
@@ -845,10 +845,20 @@ class shopDemoDataImporter
         }
     }
 
-    public static function getSourceList()
+    /**
+     * @param string|null $locale
+     * @return array|mixed
+     * @throws waException
+     */
+    public static function getSourceList($locale = null)
     {
         if (self::$source_list === null) {
-            self::$source_list = self::obtainSourceList();
+            if (empty($locale) || !is_string($locale)) {
+                $locale = wa()->getLocale();
+            }
+            self::$source_list = array_filter(self::obtainSourceList(), function($value) use ($locale) {
+                return $value['locale'] == $locale;
+            });
         }
         return self::$source_list;
     }

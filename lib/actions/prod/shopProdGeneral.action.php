@@ -23,14 +23,14 @@ class shopProdGeneralAction extends waViewAction
             if (waRequest::isXMLHttpRequest() && !waRequest::request('section')) {
                 throw new waException(_w('Access denied'), 403);
             } else {
-                $presentation_id = waRequest::request('presentation', null, waRequest::TYPE_INT);
-                $presentation_param = '';
-                if ($presentation_id) {
-                    $presentation_param = "?presentation=$presentation_id";
-                }
+                $params = [
+                    'presentation' => waRequest::get('presentation', null, waRequest::TYPE_INT),
+                    'another_section_url' => rawurldecode(waRequest::get('another_section_url', '', waRequest::TYPE_STRING_TRIM)),
+                ];
+                $context = http_build_query($params);
                 $this->redirect(
                     '/'.wa()->getConfig()->getBackendUrl().'/shop/'
-                    .shopHelper::getBackendEditorUrl($product_id, 'prices').$presentation_param
+                    .shopHelper::getBackendEditorUrl($product_id, 'prices') . ($context ? '?' . $context : '')
                 );
             }
         }
@@ -70,7 +70,6 @@ class shopProdGeneralAction extends waViewAction
             $product->setData('skus', [-1 => $empty_sku]);
         }
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setChapter();
 
         $selected_selectable_feature_ids = [];
         if (!empty($product['id'])) {

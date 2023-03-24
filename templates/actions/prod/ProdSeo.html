@@ -5,8 +5,8 @@
 {$_components = []}
 
 {capture assign="_component_dropdown_variables"}
-    <div class="dropdown s-dropdown-variables">
-        <button class="dropdown-toggle wa-button transparent bold" type="button">{sprintf('{$} %s', _w("Insert variable"))}</button>
+    <div class="dropdown s-dropdown-variables custom-mt-4">
+        <button class="button dropdown-toggle smallest light-gray text-dark-gray rounded" type="button">{sprintf('{$} %s', _w("Insert variable"))}</button>
         <div class="dropdown-body left">
             <div class="dropdown-item" data-id="{'{$name}'}">
                 <span class="s-name"><span class="black">&#123;$name&#125;</span> — [`product name`]</span>
@@ -81,7 +81,7 @@
 {* PAGE *}
 <div id="js-product-seo-section-wrapper">
     {* VUE *}
-    <div class="article s-product-seo-section js-product-seo-section" style="visibility: hidden;">
+    <div class="article wider s-product-seo-section js-product-seo-section" style="visibility: hidden;">
         {* HEADER *}
         <!-- plugin hook: 'backend_prod_content.top' -->
         {* @event backend_prod_content.%plugin_id%.top *}
@@ -90,7 +90,7 @@
             {* GLOBAL ERRORS *}
             <div class="s-errors-place" id="js-errors-place" v-if="errors_global.length">
                 <template v-for="error in errors_global" v-bind:key="error.id">
-                    <div class="wa-message wa-small info flexbox space-8" v-bind:data-id="error.id">
+                    <div class="wa-message small info flexbox space-8" v-bind:data-id="error.id">
                         <div class="message-icon">
                             <i class="fas fa-info-circle"></i>
                         </div>
@@ -113,13 +113,16 @@
                     <h2 class="s-title">[`For search systems`]</h2>
                 </div>
                 <div class="s-section-body">
-                    <div class="wa-message wa-small white flexbox space-8">
-                        <div class="message-icon"><span class="s-icon"><i class="fas fa-info-circle"></i></span></div>
-                        <div class="message-text wide">[`In the TITLE and in the META tags’ values you can use variables &#123;$name&#125;, &#123;$summary&#125;, and &#123;$price&#125;, which are replaced by the product’s name, summary, and price displayed in the storefront.`]</div>
+                    <div class="alert small">
+                        <div class="flexbox space-8">
+                            <div class="message-icon"><span class="s-icon"><i class="fas fa-info-circle"></i></span></div>
+                            <div class="message-text wide">[`In the TITLE and in the META tags’ values you can use variables &#123;$name&#125;, &#123;$summary&#125;, and &#123;$price&#125;, which are replaced by the product’s name, summary, and price displayed in the storefront.`]</div>
+                        </div>
                     </div>
 
-                    <div class="s-fields-wrapper wa-fields">
-                        <div class="wa-field">
+
+                    <div class="s-fields-wrapper fields">
+                        <div class="field">
                             <div class="name">
 
                                 <span>[`How a link to the product will be displayed in search results`]</span>
@@ -133,7 +136,6 @@
 
                                     <div class="s-url">
                                         <span class="s-name">{ { product.root_front ? product.root_front.url : "" } }</span>
-                                        <span class="icon baseline size-10"><i class="fas fa-caret-down"></i></span>
                                     </div>
 
                                     <div class="s-description" v-if="product.meta_description || product.summary || product.description" v-html="search_preview_description"></div>
@@ -141,7 +143,7 @@
 
                             </div>
                         </div>
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name shift-4">
 
                                 <div>[`Page title`]</div>
@@ -154,7 +156,7 @@
                                     <component-flex-textarea
                                         v-model="product.meta_title"
                                         v-bind:placeholder="product.name"
-                                        v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                        v-bind:class="'small wide'"></component-flex-textarea>
                                 </div>
 
                                 <div class="s-textarea-details tablebox fixed middle space-16">
@@ -170,7 +172,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name shift-4">
 
                                 <div>[`Page description`]</div>
@@ -183,7 +185,7 @@
                                     <component-flex-textarea
                                         v-model="product.meta_description"
                                         v-bind:placeholder="product.summary"
-                                        v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                        v-bind:class="'small wide'"></component-flex-textarea>
                                 </div>
                                 <div class="s-textarea-details tablebox fixed middle space-16">
                                     <div class="s-column">
@@ -199,7 +201,7 @@
 
                             </div>
                         </div>
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name shift-4">
 
                                 <div>[`Keywords`]</div>
@@ -210,7 +212,7 @@
 
                                 <component-flex-textarea
                                     v-model="product.meta_keywords"
-                                    v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                    v-bind:class="'small wide'"></component-flex-textarea>
 
                             </div>
                         </div>
@@ -229,8 +231,8 @@
                         "<a href=\"https://ogp.me/\" target=\"_blank\">Open Graph</a>")}
                     </p>
 
-                    <div class="s-fields-wrapper wa-fields">
-                        <div class="wa-field">
+                    <div class="s-fields-wrapper fields">
+                        <div class="field">
                             <div class="name">
 
                                 <div>[`How a link to the product will be displayed in social media`]</div>
@@ -256,7 +258,7 @@
 
                             </div>
                         </div>
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name unshifted">
 
                                 <div>[`Settings`]</div>
@@ -265,16 +267,16 @@
                             <div class="value">
 
                                 <div class="s-switch-wrapper">
-                                    <label class="flexbox space-8 middle">
-                                        <component-switch v-model="social.is_auto" v-bind:class="'wa-small'"></component-switch>
+                                    <label class="flexbox space-8 middle small">
+                                        <component-switch v-model="social.is_auto" v-bind:class="'small'"></component-switch>
                                         <span class="s-label">[`Auto mode`]</span>
                                     </label>
                                 </div>
 
                                 <p class="hint">[`When auto mode is enabled, the product name and summary, or the displaying settings for search systems, if available, are used. In the same fashion the main image and video of a product, or those of its main variant, are used.`]</p>
 
-                                <div class="s-fields-wrapper wa-fields" v-if="!social.is_auto">
-                                    <div class="wa-field">
+                                <div class="s-fields-wrapper fields" v-if="!social.is_auto">
+                                    <div class="field">
                                         <div class="name shift-4">
                                             <div>[`Title`]</div>
                                             <div class="hint">og:title</div>
@@ -284,7 +286,7 @@
                                             <div class="s-textarea-wrapper">
                                                 <component-flex-textarea
                                                     v-model="social.title"
-                                                    v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                                    v-bind:class="'small wide'"></component-flex-textarea>
                                             </div>
 
                                             <div class="s-textarea-details tablebox fixed middle space-16">
@@ -300,7 +302,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="wa-field">
+                                    <div class="field">
                                         <div class="name shift-4">
 
                                             <div>[`Description`]</div>
@@ -313,7 +315,7 @@
                                                 <component-flex-textarea
                                                     v-model="social.description"
                                                     v-bind:placeholder="product.summary"
-                                                    v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                                    v-bind:class="'small wide'"></component-flex-textarea>
                                             </div>
                                             <div class="s-textarea-details tablebox fixed middle space-16">
                                                 <div class="s-column">
@@ -329,7 +331,7 @@
 
                                         </div>
                                     </div>
-                                    <div class="wa-field">
+                                    <div class="field">
                                         <div class="name shift-4">
 
                                             <div>[`Image`]</div>
@@ -353,13 +355,13 @@
                                                             <component-flex-textarea
                                                                 v-model="social.image_url"
                                                                 v-bind:placeholder="'https://your-site.ru/image-url'"
-                                                                v-bind:class="{ 'wa-small wide': true, 'wa-error-field': !!errors['social_image_url']}"
+                                                                v-bind:class="{ 'small wide': true, 'wa-error-field': !!errors['social_image_url']}"
                                                                 v-on:input="removeError('social_image_url')"
                                                                 v-on:ready="onUrlBlur($event, 'social_image_url')"
                                                                 v-on:blur="onUrlBlur($event, 'social_image_url')"></component-flex-textarea>
 
                                                             <template v-if="errors['social_image_url']">
-                                                                <div class="wa-error-text">{ { errors['social_image_url'].text } }</div>
+                                                                <div class="state-error">{ { errors['social_image_url'].text } }</div>
                                                             </template>
 
                                                         </template>
@@ -386,7 +388,7 @@
 
                                         </div>
                                     </div>
-                                    <div class="wa-field">
+                                    <div class="field">
                                         <div class="name shift-4">
 
                                             <div>[`Video URL`]</div>
@@ -397,18 +399,18 @@
                                             <component-flex-textarea
                                                 v-model="social.video_url"
                                                 v-bind:placeholder="'https://your-site.ru/video-url'"
-                                                v-bind:class="{ 'wa-small wide': true, 'wa-error-field': !!errors['social_video_url']}"
+                                                v-bind:class="{ 'small wide': true, 'wa-error-field': !!errors['social_video_url']}"
                                                 v-on:input="removeError('social_video_url')"
                                                 v-on:ready="onUrlBlur($event, 'social_video_url')"
                                                 v-on:blur="onUrlBlur($event, 'social_video_url')"></component-flex-textarea>
 
                                             <template v-if="errors['social_video_url']">
-                                                <div class="wa-error-text">{ { errors['social_video_url'].text } }</div>
+                                                <div class="state-error">{ { errors['social_video_url'].text } }</div>
                                             </template>
 
                                         </div>
                                     </div>
-                                    <div class="wa-field">
+                                    <div class="field">
                                         <div class="name unshifted">
 
                                             <div>[`Page type`]</div>
@@ -433,18 +435,18 @@
                 <div class="s-section-header">
                     <h2 class="s-title">[`Storefronts`]</h2>
                 </div>
-                <div class="s-section-body">
+                <div class="s-section-body text-dark-gray">
                     <p>[`You can set up multiple storefronts for your online store — for sales in various regions, for several business areas, for sales via social media and other platforms. Each storefront can display its own set of products. Here are shown the storefronts where this particular product is displayed.`]</p>
                     <p>[`The available storefronts and the products displayed in them can be managed by means of product types (in section “Settings → Product types & features”) and the storefront settings (in section “Storefront → Settings”). Add new storefronts in section “Structure” of the Site app.`]</p>
 
                     {if !empty($formatted_product.storefronts)}
-                        <div class="s-fields-wrapper wa-fields">
-                            <div class="wa-field">
-                                <div class="name unshifted">
+                        <div class="s-fields-wrapper fields">
+                            <div class="field">
+                                <div class="name">
                                     <span>{_w('The product is displayed in %d storefront.', 'The product is displayed in %d storefronts.', count($formatted_product.storefronts))}</span>
                                 </div>
-                                <div class="value shift-3">
-                                    <ul class="wa-list space-12 s-storefronts-list js-storefronts-list">
+                                <div class="value middle tablebox">
+                                    <ul class="wa-list s-storefronts-list js-storefronts-list">
                                         {foreach $formatted_product.storefronts as $_front}
                                             <li>
                                                 <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
@@ -455,7 +457,7 @@
                             </div>
                         </div>
                     {else}
-                        <div class="wa-message wa-small white flexbox space-8">
+                        <div class="wa-message small white flexbox space-8">
                             <div class="message-icon"><span class="s-icon"><i class="fas fa-info-circle"></i></span></div>
                             <div class="message-text wide">[`This product is not published in any storefront.`]</div>
                         </div>
@@ -477,7 +479,7 @@
                 ]}
 
                 <div class="s-features-hidden-on-front-section">
-                    <div class="wa-message wa-small warn flexbox space-8">
+                    <div class="wa-message small warn flexbox space-8">
                         <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="message-text wide">
                             <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`]</span>

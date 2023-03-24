@@ -1,0 +1,174 @@
+<script src="{$wa_app_static_url}js-legacy/photo.stream.slider.js?v={$wa->version()}" type="text/javascript"></script>
+<script src="{$wa_app_static_url}js-legacy/loupe.widget.js?v={$wa->version()}" type="text/javascript"></script>
+
+{if !empty($image)}
+    {$image.description = $image.description|default:''|escape}
+{/if}
+
+{$image_name = "Image_"|cat:{$product_id}:"_":{$image.id}:".":{$image.ext}}
+
+<div class="sidebar right200px rendered" id="s-product-image-toolbar">
+    <ul class="thumbs s-mini-stream s-photostream">
+        <li class="s-stream-nav rewind"><a href="javascript:void(0);"><i></i></a></li>
+        <li class="s-stream-nav ff"><a href="javascript:void(0);"><i></i></a></li>
+        <li class="s-stream-wrapper">
+            <ul {if $photostream}style="position: absolute; left: {$photostream.left}px; width: {$photostream.width}px;"{/if}>
+                {foreach $images as $k => $img}
+                    {if $img}
+                        <li class="{if $image.id == $img.id}selected{/if} {if $k == $offset-1 || $k == $offset || $k == $offset + 1}visible{/if}" data-image-id="{$img.id}">
+                            <a href="#/product/{$product_id}/edit/images/{$img.id}/"><img src="{$img.url_crop_small}{if $img.edit_datetime_ts}?{$img.edit_datetime_ts}{/if}" class="thumb" style="width: {(int)$sizes.crop_small}px; height: {(int)$sizes.crop_small}px;"></a>
+                        </li>
+                    {else}
+                        <li class="dummy {if $k == $offset-1 || $k == $offset || $k == $offset + 1}visible{/if}"><img src="{$wa_app_static_url}img/image-not-found.png" style="width: {(int)$sizes.crop_small}px; height: {(int)$sizes.crop_small}px;"></li>
+                    {/if}
+                {/foreach}
+            </ul>
+        </li>
+    </ul>
+    <div class="s-back-to-images">
+        <a href="#/product/{$product_id}/edit/images" class="gray underline">[`Back to image list`]</a>
+    </div>
+    <div class="block s-product-image-actions">
+        <h6 class="heading">[`Badge`]</h6>
+        <ul class="menu-v with-icons" id="photo-organize-menu">
+
+            <!-- plugin hook: 'backend_product_edit.image_toolbar_badge_li' -->
+            {* @event backend_product_edit.%plugin_id%.image_toolbar_badge_li *}
+            {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.image_toolbar_badge_li)}{/foreach}{/if}
+
+            {$badges = shopProductModel::badges()}
+            {foreach $badges as $bid => $b}
+                <li data-action='set-badge' {if $bid == $product.badge}class="selected"{/if} data-type="{$bid}">
+                    <a href="#"><i class="icon16 ss {$bid}"></i>{$b.name}</a>
+                </li>
+            {/foreach}
+            {$custom_setted = $product.badge !== null && !isset($badges[$product.badge])}
+            <li data-action='set-custom-badge' data-type="custom" {if $custom_setted}class="selected"{/if}>
+                <a href="#"><i class="icon16 ss div"></i>[`Custom`]</a><span class="small editable"></span>
+                <div id="s-product-set-custom-badge" {if !$custom_setted}style="display:none;"{/if}>
+                    <textarea name="code" id="s-product-set-custom-badge-code" style="min-height: 100px; margin: 10px 0 5px;">{strip}
+                        {if $custom_setted}
+                            {$product.badge}
+                        {else}
+                            <div class="badge" style="background-color: #a1fcff;"><span>[`YOUR TEXT`]</span></div>
+                        {/if}
+                    {/strip}</textarea>
+                    <input type="button" value="[`Set custom badge`]">
+                </div>
+            </li>
+            <li class="top-padded" data-action='delete-badge'><a href="#"><i class="icon16 no-bw"></i>[`Remove badge`]</a></li>
+        </ul>
+    </div>
+    <div class="block s-product-image-actions">
+        <h6 class="heading">[`Edit`]</h6>
+        <ul class="menu-v with-icons compact" id="edit-menu">
+
+            <!-- plugin hook: 'backend_product_edit.image_toolbar_edit_li' -->
+            {* @event backend_product_edit.%plugin_id%.image_toolbar_edit_li *}
+            {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.image_toolbar_edit_li)}{/foreach}{/if}
+
+            <li data-action='rotate-left'><a href="#"><i class="icon16 rotate-left"></i>[`Left`]</a></li>
+            <li data-action='rotate-right'><a href="#"><i class="icon16 rotate-right"></i>[`Right`]</a></li>
+            <li data-action="delete"><a href="#"><i class="icon16 delete"></i>[`Delete photo`]</a></li>
+        </ul>
+    </div>
+
+    <!-- plugin hook: 'backend_product_edit.image_toolbar_section' -->
+    {* @event backend_product_edit.%plugin_id%.image_toolbar_section *}
+    {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.image_toolbar_section)}{/foreach}{/if}
+
+    <div class="block s-image-original">
+    [`Full size`]:  <a href="?module=product&action=ImageDownload&id={$image.id}"><strong id="photo-name-original">{$image_name}</strong></a><br>
+    [`Dimensions`]: <strong>{$image.width}x{$image.height}</strong><br>
+    {if $image.size}[`Size`]: <strong>{$image.size}</strong><br>{/if}
+
+    {if $original_exists}
+        <br>
+        <ul class="menu-h original-info">
+            <li>[`Original image`]: </li>
+            <li><a href="?module=product&action=ImageDownload&id={$image.id}&original=1"><i class="icon10 lock-bw"></i> {$image_name}</a>
+                <br><a href="javascript:void(0);" id="s-restore-image-original" class="hint">[`Restore`]</a>
+            </li>
+        </ul>
+    {/if}
+
+    </div>
+</div>
+
+<div class="content right200px">
+    <div class="align-center">
+        <div class="s-image" id="s-product-one-image">
+            <div class="s-image-corner top left">
+                {if
+                    ($image.dimensions.width  && $image.dimensions.width  < $image.width) ||
+                    ($image.dimensions.height && $image.dimensions.height < $image.height)
+                }
+                <a href="#" id="s-product-image-loupe">
+                    <img class="maximize" src="{$wa_app_static_url}img/mode-maximize.png" alt="[`Full size`]">
+                    <img class="minimize" src="{$wa_app_static_url}img/mode-minimize.png" alt="[`Normal size`]" style="display:none;">
+                </a>
+                {/if}
+            </div>
+            <div class="s-image-corner top right">
+                {$wa->shop->badgeHtml($product.badge)}
+            </div>
+            {strip}
+                <a href="{if !$next}javascript:void(0);{else}#/product/{$product_id}/edit/images/{$next.id}/{/if}" class="next" title="[`Next →`]">
+                    <img id="s-product-image"
+                      src="{$image.url_big}{if $image.edit_datetime_ts}?{$image.edit_datetime_ts}{/if}"
+                      style="{if $image.dimensions.width}width: {$image.dimensions.width}px{/if}; {if $image.dimensions.height}height:{$image.dimensions.height}px{/if};"
+                  >
+                </a>
+            {/strip}
+        </div>
+    </div>
+    <br>
+    <div class="s-description">
+        <span class="editable" id="s-product-image-description">{$image.description}</span>
+        <a href="javascript:void(0);" class="hint inline-link" id="s-product-image-description-edit-link"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+    </div>
+</div>
+
+<div id="s-product-image-cover" class="dialog-background" style="display: none; ">
+    <i class="icon16 loading"></i>
+</div>
+
+{* dialogs section *}
+<div class="dialog width400px height200px" id="s-product-image-delete-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=product&action=ImageDelete&id={$image.id}">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Delete image`]</h1>
+                {'[`Image “%s” will be deleted without the ability to restore. Are you sure?`]'|sprintf:$image_name}
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Delete`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
+{$placeholder = '[`add description`]'}
+<script type="text/javascript">
+$.product_images.init({
+    product_id:   '{$product_id}',
+    image: {json_encode($image)},
+    placeholder: '{$placeholder}',
+    count: {$count},
+    enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if},
+    photostream: {json_encode($photostream)}
+});
+</script>
+
+<form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
+    <input type="file" name="files[]" multiple="" style="display: none;">
+    <input type="hidden" name="product_id" value="{$product_id}">
+    {$wa->csrf()}
+    {include './include.imageUpload.html' inline}
+</form>

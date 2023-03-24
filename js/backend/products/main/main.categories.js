@@ -78,8 +78,6 @@
             $.each(that.tooltips, function(i, tooltip) {
                 $.wa.new.Tooltip(tooltip);
             });
-
-            console.log( that );
         };
 
         Page.prototype.initVue = function() {
@@ -378,7 +376,7 @@
                         disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
                     };
                 },
-                template: '<div class="switch wa-small"></div>',
+                template: '<div class="switch small"></div>',
                 delimiters: ['{ { ', ' } }'],
                 mounted: function() {
                     var self = this;
@@ -396,12 +394,13 @@
             });
 
             Vue.component("component-textarea", {
-                props: ["value", "placeholder", "readonly", "cancel", "focus"],
+                props: ["value", "placeholder", "readonly", "cancel", "focus", "rows"],
                 data: function() {
                     var self = this;
                     self.focus = (typeof self.focus === "boolean" ? self.focus : false);
                     self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
                     self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
+                    self.rows = (typeof self.rows === "string" ? self.rows : "");
                     return {
                         offset: 0,
                         $textarea: null,
@@ -466,7 +465,9 @@
                     $textarea
                         .css("min-height", scroll_h + "px")
                         .css("overflow", "");
-
+                    if (self.rows === '1') {
+                        $textarea.css("white-space", "nowrap");
+                    }
                     self.$emit("ready", self.$el.value);
 
                     if (self.focus) { $textarea.trigger("focus"); }
@@ -1398,6 +1399,10 @@
                             return deferred.promise();
                         }
                     },
+                    /**
+                     *  @deprecated
+                      * @param event
+                     */
                     showCallbackDialog: function(event) {
                         var self = this,
                             $button = $(event.currentTarget);
@@ -1470,7 +1475,8 @@
                             });
 
                             function addCallback() {
-                                var href = that.urls["callback_submit"],
+                                // TODO change url
+                                var href = '', //that.urls["callback_submit"],
                                     data = $dialog.find(":input").serializeArray();
 
                                 return $.post(href, data, "json");
@@ -2127,9 +2133,11 @@
                     el: $section[0],
                     data: {
                         category: category,
+                        init_category: null,
                         category_data: category_data,
                         category_types: that.category_types,
                         storefronts: getStorefronts(that.storefronts),
+                        init_storefronts: null,
                         states: {
                             locked: false,
                             category_url_focus: false,
@@ -2143,6 +2151,7 @@
                             transliterate_xhr: null,
                             transliterate_timer: null
                         },
+                        init_states: null,
                         errors: {}
                     },
                     delimiters: ['{ { ', ' } }'],
@@ -2183,8 +2192,7 @@
                         "component-category-storefronts-section": {
                             props: ["root_states", "category", "category_data", "storefronts"],
                             data: function() {
-                                var self = this,
-                                    type = (category.storefronts.length ? "selection" : "all");
+                                var type = (category.storefronts.length ? "selection" : "all");
 
                                 return {
                                     type: type
@@ -2193,8 +2201,11 @@
                             template: that.components["component-category-storefronts-section"],
                             delimiters: ['{ { ', ' } }'],
                             watch: {
-                                "type": function() {
+                                "type": function(val) {
                                     var self = this;
+                                    if (val === 'all') {
+                                        self.setStorefrontsStates(false);
+                                    }
                                     self.$nextTick( function() { dialog.resize(); });
                                 }
                             },
@@ -2205,7 +2216,7 @@
                                 },
                                 selected_storefronts: function() {
                                     var self = this;
-                                    return self.storefronts.filter(storefront => storefront.states.active);
+                                    return self.storefronts.filter(storefront => storefront.states.enabled);
                                 },
                                 all_selected: function() {
                                     const self = this;
@@ -2217,9 +2228,12 @@
                                     const self = this;
 
                                     show = (typeof show === "boolean" ? show : !self.all_selected);
+                                    self.setStorefrontsStates(show);
 
-                                    $.each(self.storefronts, function(i, storefront) {
-                                        storefront.states.active = show;
+                                },
+                                setStorefrontsStates: function (enabled) {
+                                    $.each(this.storefronts, function(i, storefront) {
+                                        storefront.states.enabled = enabled;
                                     });
                                 }
                             }
@@ -2415,10 +2429,12 @@
 
                                     function onTypeChange(type_id) {
                                         if (!confirmed && active_type_id === "html" && type_id !== active_type_id) {
-                                            if (confirm(that.locales["modification_wysiwyg_message"])) {
+                                            $.showModificationWysiwygConfirm().done(function () {
                                                 changeType(type_id);
                                                 confirmed = true;
-                                            }
+                                            }).fail(function () {
+                                                $section.find('.js-editor-type-toggle [data-id="html"]').trigger('click');
+                                            });
                                         } else {
                                             changeType(type_id);
                                         }
@@ -3142,6 +3158,12 @@
                             if (!self.category.name.length) { result = true; }
 
                             return result;
+                        },
+                        status_change_class: function() {
+                            return this.init_category === JSON.stringify(this.category)
+                                && this.init_states === JSON.stringify(this.states)
+                                && this.init_storefronts === JSON.stringify(this.storefronts)
+                                ? 'green' : 'yellow';
                         }
                     },
                     watch: {
@@ -3417,6 +3439,9 @@
                     },
                     created: function () {
                         $section.css("visibility", "");
+                        this.init_category = JSON.stringify(this.category);
+                        this.init_states = JSON.stringify(this.states);
+                        this.init_storefronts = JSON.stringify(this.storefronts);
                     },
                     mounted: function () {
                         var self = this,
@@ -3707,38 +3732,7 @@
                     validate: function() {
                         const self = this;
 
-                        var validate_format = self.format; // number
-
-                        switch (self.item_data.type) {
-                            case "double":
-                            case "range.double":
-                            case "range.length":
-                            case "dimension.length":
-                            case "range.weight":
-                            case "dimension.weight":
-                            case "range.frequency":
-                            case "dimension.frequency":
-                            case "range.power":
-                            case "dimension.power":
-                            case "range.memory":
-                            case "dimension.memory":
-                            case "range.time":
-                            case "dimension.time":
-                            case "range.temperature":
-                            case "dimension.temperature":
-                            case "range.amperage":
-                            case "dimension.amperage":
-                            case "range.electric_charge":
-                            case "dimension.electric_charge":
-                            case "range.area":
-                            case "dimension.area":
-                            case "range.volume":
-                            case "dimension.volume":
-                                validate_format = "number-negative";
-                                break;
-                        }
-
-                        return validate_format;
+                        return self.item.is_negative ? "number-negative" : self.format;
                     },
                     errors: function() {
                         const self = this;

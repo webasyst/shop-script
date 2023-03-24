@@ -1,0 +1,170 @@
+{if empty($orders)}
+    <div class="block double-padded align-center blank">
+            <br><br><br><br>
+            <span class="gray large">[`There are no orders in this view.`]</span>
+            <div class="clear-left"></div>
+        </div>
+    </div>
+{else}
+
+<div class="{if $view != 'table'}sidebar left300px bordered-left{/if}" id="s-orders">
+    <div class="">
+        {if $view == 'split'}
+            <ul class="zebra s-orders" id="order-list">
+            </ul>
+            {capture name="template-order-list-split"}
+                {literal}
+                {% var orders = o.orders; %}
+                {% for (var i = 0, n = orders.length; i < n; i += 1) { %}
+                    {% var order = orders[i]; %}
+                    <li class="order s-order-status-pending{% if (order.unsettled==='1') { %} s-unsettled{% } %}" data-order-id="{%#order.id%}">
+                        <a href="#/orders/{/literal}{if $params_str}{$params_str}&{/if}{literal}id={%#order.id%}/">
+                            {% if (!$.isEmptyObject(order.contact)) { %}
+                                <div class="profile image50px">
+                                    <div class="image">
+                                        <img src="{%#order.contact.photo_50x50%}" class="userpic">
+                                    </div>
+                                    <div class="details nowrap">
+                                        {% include('template-order-list-split-details', { order: order }); %}
+                                    </div>
+                                </div>
+                            {% } %}
+                        </a>
+                    </li>
+                {% } %}
+                {/literal}
+            {/capture}
+            {capture name="template-order-list-split-details"}
+                {literal}{%#o.order.status%}
+                    <span class="float-right small" style="{%#o.order.style%}">{%#o.order.total_str%}</span>
+
+                    <i class="{%#o.order.icon%}"></i><span {% if (o.order.state_id == 'new') { %}class="highlighted"{% } %} style="{%#o.order.style%}">{%#o.order.id_str%}</span>
+
+                    <p>
+                        {% if (o.order.contact.name) { %}
+                            <span class="small black">{%#o.order.contact.name%}</span><br>
+                        {% } else { %}
+                            <span class="hint">[`(no name)`]</span><br>
+                        {% } %}
+                        <span class="hint">{%#o.order.create_datetime_str%}</span>
+                    </p>
+                {/literal}
+            {/capture}
+        {elseif $view == 'table'}
+
+            <div class="s-orders-selection-menu" style="display: none;" id="s-orders-selection-menu">
+                <div class="table-layout">
+                    <div class="column-item s-checkbox-column">
+                        <input type="checkbox" name="" class="s-order-list-select-all">
+                    </div>
+                    <div class="column-item">
+                        <ul class="menu-h with-icons dropdown">
+                            <li>
+                                <a class="inline-link nowrap" style="display:inline;">
+                                    <b><i><strong>[`With selected`]</strong></i></b>
+                                    <i class="icon10 darr"></i>
+                                    <i class="icon16 loading js-selection-menu-loading" style="display: none"></i>
+                                </a>
+                                <ul class="menu-v wf-actions">
+                                    {foreach $actions as $a_id => $a}
+
+                                        {$_available_for_states = $a.available_for_states|default:[]}
+                                        {$_available_for_states_str = $a.available_for_states|join:','}
+
+                                        <li class="s-disabled s-wf-action-item js-wf-action-item" data-action-id="{$a_id}" data-available-for-states="{$_available_for_states_str|escape}">
+                                            <a href="javascript:void(0);" data-action-id="{$a_id}">{$a['name']}</a>
+                                        </li>
+                                    {/foreach}
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <table class="zebra single-lined padded" id="order-list">
+                <tbody></tbody>
+            </table>
+
+            {capture name="template-order-list-table"}
+                {include file='./include.template_order_list_table.html' inline}
+            {/capture}
+        {/if}
+
+        <div class="lazyloading-wrapper">
+            <div class="lazyloading-progress-string">{_w('%d order','%d orders', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+             <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more orders`]</a>
+            <span class="lazyloading-progress" style="display:none">
+                <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d order', '%d orders', min($total_count - $count, $count))}...</span>
+            </span>
+        </div>
+        <div class="clear-left"></div>
+    </div>
+</div>
+<div class="content {if $view != 'table'}left300px{/if}" id="s-order" {if $view == 'table'}style="display:none;"{/if}></div>
+
+{capture name="template-order-list-printforms-menu-items"}
+    {literal}
+        {% var printform, printform_iterator = $.shop.iterator(o.printforms); %}
+        {% if (printform_iterator.len() > 0) { %}
+            <li class="s-printform-item-sep"></li>
+            {% while (printform = printform_iterator.next()) { %}
+                <li class="s-printform-item">
+                    <label>
+                        <input type="checkbox" checked="true" data-id="{%#printform_iterator.key()%}" value="{%#printform.url%}">
+                        <span {% if (!printform.all) { %}style="opacity: 0.5;"{% } %}>
+                            {%=printform.name%}
+                            {% if (printform.owner_name) { %}
+                                —
+                                {%=printform.owner_name%}
+                            {% } %}
+                        </span>
+                    </label>
+                </li>
+            {% } %}
+            <li class="s-printform-item-button">
+                <input type='button' class="small" value="[`Print`]">
+            </li>
+        {% } %}
+    {/literal}
+{/capture}
+
+{* js templates block*}
+
+{foreach ifempty($smarty.capture, []) as $template => $template_content}
+    {if $template_content && (strpos($template, 'template-')===0)}
+        <script id="{$template}" type="text/html">
+            {$template_content|replace:'</':'<\/'}
+        </script>
+        {capture name=$template}{/capture}
+    {/if}
+{/foreach}
+
+{/if}
+
+<script>
+( function($) {
+    $.order_list.init({
+        id: {if $view != 'table' && !empty($order.id)}{$order.id}{else}0{/if},
+        view: '{$view}',
+        plugin_hash: '{$plugin_hash}',
+        filter_params: {json_encode($params)},
+        filter_params_str: '{$params_str}',
+        orders: {json_encode($orders)},
+        total_count: {$total_count},
+        all_order_state_ids: {$all_order_state_ids|json_encode},
+        count: {$count},
+        lazy_loading: {
+            auto: true
+        },
+        update_process: {
+            timeout: {$timeout}
+        },
+        title_suffix: '{' — '|cat:{$wa->accountName(false)}|escape:'javascript'}',
+        state_names: {json_encode($state_names)},
+        counters: {json_encode($counters)},
+        $selectionMenu: $("#s-orders-selection-menu"),
+        sort: {$sort|json_encode}
+    });
+})(jQuery);
+</script>

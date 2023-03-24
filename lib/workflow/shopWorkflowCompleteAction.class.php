@@ -25,10 +25,11 @@ class shopWorkflowCompleteAction extends shopWorkflowAction
             shopAffiliate::applyBonus($order_id);
             $result = array(
                 'update' => array(
-                    'paid_year'    => date('Y', $time),
-                    'paid_quarter' => floor((date('n', $time) - 1) / 3) + 1,
-                    'paid_month'   => date('n', $time),
-                    'paid_date'    => date('Y-m-d', $time),
+                    'paid_year'     => date('Y', $time),
+                    'paid_quarter'  => floor((date('n', $time) - 1) / 3) + 1,
+                    'paid_month'    => date('n', $time),
+                    'paid_date'     => date('Y-m-d', $time),
+                    'paid_datetime' => date('Y-m-d H:i:s', $time),
                 )
             );
             if (!$this->order_model->where("contact_id = ? AND paid_date IS NOT NULL", $order['contact_id'])->limit(1)->fetch()) {

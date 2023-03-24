@@ -1,0 +1,152 @@
+{$_review_classes = []}
+
+{if $review.status == shopProductReviewsModel::STATUS_PUBLISHED}
+    {$_review_classes[] = "is-published"}
+
+{elseif $review.status == shopProductReviewsModel::STATUS_MODERATION}
+    {$_review_classes[] = "is-unpublished"}
+
+{elseif $review.status == shopProductReviewsModel::STATUS_DELETED}
+    {$_review_classes[] = "is-deleted"}
+{/if}
+
+<div class="s-review {$_review_classes|join:" "}" data-id="{$review.id|escape}">
+    <div class="profile image50px">
+        <div class="image">
+            <a href="{shopHelper::getBackendEditorUrl($review.product_id, 'reviews')}"
+                title="
+                    {if isset($product)}
+                        {$product.name|escape}
+                    {elseif (!empty($review.product_name))}
+                        {$review.product_name|escape}
+                    {/if}
+                ">
+                {if !empty($review.product_url_crop_small)}
+                    <img src="{$review.product_url_crop_small}">
+                {else}
+                    <img src="{$wa_app_static_url}img/image-dummy-small.png">
+                {/if}
+            </a>
+
+        </div>
+        <div class="details">
+            <div class="s-review-header">
+                <!-- rating -->
+                {if !$review.parent_id && !empty($review.rate) && $review.title}
+                    <h5>
+                        <span class="hint rate">
+                            {$rate = round($review.rate)}
+                            {$wa->shop->ratingHtml($rate, 10, true)}
+                        </span>
+                        {$review.title|escape|nl2br}
+                    </h5>
+                {/if}
+
+                <span class="hint">
+                    <!-- author -->
+                    {if $review.contact_id}
+                        {if !empty($review.author)}
+                            <a href="{$wa_backend_url}contacts/#/contact/{$review.contact_id}" class="bold">{$review.author.name|escape}</a>
+                        {/if}
+                    {elseif $review.site}
+                        <a href="{$review.site}" class="bold">{$review.author.name|escape}</a>
+                    {else}
+                        <strong>{$review.author.name|escape}</strong>
+                        {if $review.email}{$review.email|escape}{/if}
+                    {/if}
+
+                    {if !empty($review.product_name)}
+                        {sprintf('[`on <a href="%s">%s</a>`]', {shopHelper::getBackendEditorUrl($review.product_id, 'reviews')}, {$review.product_name|escape})}
+                    {/if}
+
+                    <!-- datetime -->
+                    {$review.datetime|wa_datetime:"humandatetime"}
+                </span>
+
+                <div class="s-actions">
+                    {$_moderate_enabled = $wa->setting('moderation_reviews', 0, 'shop')}
+                    {if !empty($_moderate_enabled)}
+                        {if $review.status === shopProductReviewsModel::STATUS_MODERATION}
+                            <a href="javascript:void(0);" class="small js-review-publish"><i class="icon10 yes" style="margin: 0 4px 0 0; vertical-align: -1px;"></i>[`publish`]</a>
+                        {/if}
+                    {/if}
+
+                    <a href="#" class="small s-review-delete"  {if $review.status == shopProductReviewsModel::STATUS_DELETED} style="display: none;"{/if} >[`delete`]</a>
+                    <a href="#" class="small s-review-restore" {if $review.status !== shopProductReviewsModel::STATUS_DELETED}style="display: none;"{/if} >[`restore`]</a>
+                </div>
+            </div>
+
+            <div class="s-review-body">
+                {if isset($review.product) && (!$review.product || (!(true || $review.editable) && ($review.product)))}
+                    <p class="s-review-text">[`Review for unknown product`]</p>
+                {else}
+                    <p class="s-review-text">
+                        <span{if !empty($review.is_new)} class="highlighted"{/if}>{$review.text|escape|nl2br}</span>
+                    </p>
+                    {if $review.parent_id && isset($review.parent_text)}
+                        <span class="hint">[`in reply to`] <strong>{if $review.parent_status == shopProductReviewsModel::STATUS_DELETED && !(true || $review.editable)}<strike>[`Review deleted`]</strike>{else}{$review.parent_text|escape}{/if}</strong></span>
+                        <br>
+                    {/if}
+                {/if}
+
+                {strip}
+                {if !empty($review.images)}
+                    <div class="s-images-list">
+                        {foreach $review.images as $_image}
+                            <div class="s-image-wrapper" data-image-id="{$_image.id|escape}">
+                                <a class="s-image-link js-show-image" href="{$_image.url_0|escape}" title="{$_image.description|escape}" target="_blank">
+                                    <img class="s-image" src="{$_image.url_2|escape}" alt="{$_image.description|escape}">
+                                </a>
+                                <span class="s-action js-delete-image" title="[`Delete`]">
+                                    <span class="s-icon delete">
+                                        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" xml:space="preserve">
+                                            <style type="text/css">.st0 { fill:none;stroke:rgba(0,0,0,0.5);stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10; } </style>
+                                            <line class="st0" x1="0.5" y1="0.5" x2="9.5" y2="9.5"/>
+                                            <line class="st0" x1="9.5" y1="0.5" x2="0.5" y2="9.5"/>
+                                        </svg>
+                                    </span>
+                                </span>
+                            </div>
+                        {/foreach}
+
+                        <script>
+                            ( function($) {
+                                var sources = [{
+                                    id: "wa-swipebox-css",
+                                    type: "css",
+                                    uri: "{$wa_app_static_url}js-legacy/swipebox/css/swipebox.css?v={$wa->version()}"
+                                }, {
+                                    id: "wa-swipebox-js",
+                                    type: "js",
+                                    uri: "{$wa_app_static_url}js-legacy/swipebox/js/jquery.swipebox.js?v={$wa->version()}"
+                                }];
+
+                                $.shop.loadSources(sources).then(init);
+
+                                function init() {
+                                    $.product_reviews.initReview({
+                                        $wrapper: $(".s-review[data-id=\"" + {$review.id|escape} + "\"]"),
+                                        locales: {
+                                            "confirm": {_w("Confirm image deletion")|json_encode}
+                                        },
+                                        urls: {
+                                            "delete": "{$wa_app_url}?module=reviews&action=removeImage"
+                                        }
+                                    });
+                                }
+                            })(jQuery);
+                        </script>
+                    </div>
+                {/if}
+                {/strip}
+            </div>
+
+            <div class="s-review-footer">
+                {if $reply_allowed}
+                    <a href="{if isset($reply_link)}{$reply_link}{else}#{/if}" class="s-review-reply small inline-link"><b><i>[`reply`]</i></b></a>
+                {/if}
+            </div>
+        </div>
+    </div>
+
+</div>

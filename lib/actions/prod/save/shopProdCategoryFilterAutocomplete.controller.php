@@ -61,6 +61,7 @@ class shopProdCategoryFilterAutocompleteController extends waController
             $result[] = [
                 'name' => $feature['name'],
                 'code' => $feature['code'],
+                'is_negative' => !$feature['selectable'] && ($feature['type'] == shopFeatureModel::TYPE_DOUBLE || mb_strpos($feature['type'], 'range.') === 0 || mb_strpos($feature['type'], 'dimension.') === 0),
                 'type' => 'feature',
                 'data' => $feature,
             ];

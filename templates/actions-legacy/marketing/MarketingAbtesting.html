@@ -1,0 +1,192 @@
+{* PAGE *}
+<div class="s-abtesting-page block double-padded" id="js-abtesting-page">
+    {* HEADER *}
+    <header class="s-page-header">
+        <h1 class="s-title">[`A/B tests`]</h1>
+    </header>
+
+    {* BODY *}
+    <div class="s-page-body">
+        <div class="s-table-box space-20">
+            {* SIDEBAR *}
+            <div class="sidebar s-page-sidebar left200px">
+                {strip}
+                <ul id="abtests-list" class="menu-v">
+                    <li class="bottom-padded{if !$test.id} selected{/if}">
+                        <a href="{$marketing_url}abtesting/create/"><i class="icon16 add"></i>[`New test`]</a>
+                    </li>
+                    {foreach $tests as $t}
+                        <li{if $t.id == $test.id} class="selected"{/if}>
+                            <a href="{$marketing_url}abtesting/{$t.id}/">
+                                <i class="icon16 split"></i>{$t.name|escape}
+                            </a>
+                        </li>
+                    {/foreach}
+                </ul>
+                {/strip}
+
+                <p class="hint align-center">
+                    [`A/B testing in Shop-Script is a great way to compare several versions of your site content and to find out which one impacts sales the most.`]
+                </p>
+
+                <p class="hint align-center">
+                    <a class="bold" href="[`https://www.shop-script.com/help/3142/shop-script-a-b-testing/`]" target="_blank">[`The complete guide to A/B testing with Shop-Script`]</a>
+                </p>
+            </div>
+
+            {* CONTENT *}
+            <div class="content s-page-content left200px">
+                <form action="{$wa_app_url}?module=reports&action=abtesting" id="s-reports-abtesting-form">
+                    <div class="s-abtest s-abtest-margin">
+                        <div class="block double-padded s-abtest-border">
+                            <input type="hidden" name="id" value="{$test.id|default:new}">
+                            {if $test.id}
+                                <ul class="menu-h float-right">
+                                    <li><a href="javascript:void(0)" id="delete-link"><i class="icon16 delete"></i>[`Delete`]</a></li>
+                                </ul>
+                                <h1>{$test.name|escape}</h1>
+
+                                {if $stats.orders_count > 0}
+                                    <p class="italic">
+                                        {_w('There is <strong>%d paid order</strong>', 'There are <strong>%d paid orders</strong>', $stats.orders_count)}
+                                        {sprintf("[`with traces of this A/B test for the total of <strong>%s</strong>.`]", shop_currency_html($stats.orders_total))}
+                                        {sprintf("[`First order created on <strong>%s</strong>, last one on <strong>%s</strong>.`]",
+                                        $stats.date_min|wa_date:humandate,
+                                        $stats.date_max|wa_date:humandate
+                                        )}
+                                        <a href="{$wa_app_url}?action=reports#/sales/#/sales/type=sources&abtest={$test.id}&from={strtotime($stats.date_min)}&to={strtotime($stats.date_max)}">[`View details`]</a>
+                                    </p>
+                                {/if}
+
+                            {else}
+                                <h1>[`New test`]</h1>
+                            {/if}
+
+                            <div class="fields form width100px" style="min-width:530px;">
+                                <div class="field-group">
+                                    <div class="field">
+                                        <div class="name">[`Name`]</div>
+                                        <div class="value">
+                                            <input type="text" class="large" name="test[name]" value="{$test.name|escape}" required>
+                                        </div>
+                                    </div>
+                                    {if $test.id}
+                                        <div class="field">
+                                            <div class="name">[`Test ID`]</div>
+                                            <div class="value no-shift">
+                                                <strong class="large">{$test.id}</strong>
+                                            </div>
+                                        </div>
+                                        <div class="field">
+                                            <div class="name">[`Created`]</div>
+                                            <div class="value no-shift gray">
+                                                {$test.create_datetime|wa_date:humandatetime}
+                                            </div>
+                                        </div>
+                                    {/if}
+                                </div>
+                                <div class="field-group" id="editable-variants">
+                                    {foreach $variants + $variants_create as $v}
+                                        <div class="field variant-option">
+                                            <div class="name">{sprintf("[`Version %s`]", $v.code|escape)}</div>
+                                            <div class="value">
+                                                {if empty($v.id)}
+                                                    <input type="text" name="new_variants[]" value="{$v.name|escape}" required>
+                                                {else}
+                                                    <input type="text" name="variants[{$v.id|escape}][name]" value="{$v.name|escape}">
+                                                    <input type="hidden" name="variants[{$v.id|escape}][code]" value="{$v.code|escape}">
+                                                {/if}
+                                                <a href="javascript:void(0)" class="remove-variant-link"><i class="icon10 close"></i></a>
+                                            </div>
+                                        </div>
+                                    {/foreach}
+                                    <div class="field">
+                                        <div class="value">
+                                            <a href="javascript:void(0)" id="add-variant-link" class="inline-link"><i class="icon16 add"></i>
+                                                <b><i>[`Add version`]</i></b>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="field variant-option hidden template">
+                                    <div class="name">[`New version`]</div>
+                                    <div class="value">
+                                        <input type="text" name="new_variants[]" value="">
+                                        <a href="javascript:void(0)" class="remove-variant-link"><i class="icon10 close"></i></a>
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <div class="value">
+                                        {if $test.id && empty($errors)}
+                                            <input type="submit" class="button green" value="[`Save`]" style="display:none;">
+                                            <button id="get-code-button" class="button green">[`Get code`]</button>
+                                        {else}
+                                            <input type="submit" class="button green" value="[`Save`]">
+                                        {/if}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="clear-both"></div>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="clear-both"></div>
+            </div>
+        </div>
+
+        {if $test.id && empty($errors)}
+            <div class="hidden">
+                <div id="smarty-code" class="width600px height500px" style="display:none;">
+                    <h1>[`A/B test Smarty code`]</h1>
+                    <p>[`Embed the following code to any template file or page, and add your custom content you want to split-test:`]</p>
+                    <div id="smarty-code-block" style="min-height:230px;">{$smarty_code|escape}</div>
+                    <br><br>
+                    <p><em>[`The results of A/B test will be available on the main sales reports page as soon as you get at least one paid orders after embedding this test code.`]</em></p>
+                </div>
+            </div>
+        {/if}
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+
+            $.shop.marketing.setTitle({_w("A/B tests")|json_encode});
+
+            var sources = [{
+                id: "wa-shop-marketing-abtesting-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/backend/marketing/abtesting.js?v={$wa->version()}"
+            }, {
+                id: "wa-content-ace-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/ace/ace.js?v={$wa->version(true)}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                $.shop.marketing.init.abTestingPage({
+                    $wrapper: $("#js-abtesting-page"),
+                    test_id: {if !empty($test.id)}{$test.id|json_encode}{else}null{/if},
+                    errors: {if !empty($errors)}{$errors|json_encode}{else}[]{/if},
+                    locales: {
+                        "delete_confirmation": {_w('This A/B test and its results will be deleted without the ability to restore. Delete?')|json_encode},
+                        "button_close_text": {_w('Close')|json_encode},
+                        "count_error": {_w('Please add at least 2 versions.')|json_encode}
+                    },
+                    urls: {
+                        "root": "{$marketing_url}abtesting/",
+                        "test": "{$marketing_url}abtesting/%id%/",
+                        "delete": "{$marketing_url}?module=marketingAbtestingDelete",
+                        "submit": "{$marketing_url}?module=marketingAbtestingSave",
+                        "ace_direction": "{$wa_url}wa-content/js/ace"
+                    }
+                });
+            });
+
+        })(jQuery);
+    </script>
+
+</div>

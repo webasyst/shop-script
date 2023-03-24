@@ -39,10 +39,9 @@ class shopPromoProductPrices
 
     protected function loadPromoPrices()
     {
+        $this->promo_prices = [];
+        $this->promo_skus   = [];
         if (empty($this->storefront)) {
-            $this->promo_prices = [];
-            $this->promo_skus   = [];
-
             return;
         }
 
@@ -55,6 +54,9 @@ class shopPromoProductPrices
         // trying to find promotions in which rewrites prices of products
         $prlm  = new shopPromoRulesModel();
         $rules = $prlm->getByActivePromos($enabled_promo_params);
+        if (!$rules) {
+            return;
+        }
 
         $product_ids = [];
         foreach ($rules as $rule) {

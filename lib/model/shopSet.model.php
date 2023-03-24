@@ -260,12 +260,8 @@ class shopSetModel extends waModel
                 'value' => ""
             ],
             [
-                'name' => _w("product name"),
+                'name' => _w("наименование товара"),
                 'value' => "name ASC"
-            ],
-            [
-                'name' => _w("sku name"),
-                'value' => "sku ASC"
             ],
             [
                 'name' => _w('price'),
@@ -290,14 +286,6 @@ class shopSetModel extends waModel
             [
                 'name' => _w("date added"),
                 'value' => "create_datetime ASC"
-            ],
-            [
-                'name' => _w("top selling"),
-                'value' => "total_sales ASC"
-            ],
-            [
-                'name' => _w("stock net worth"),
-                'value' => "stock_worth ASC"
             ]
         ];
 

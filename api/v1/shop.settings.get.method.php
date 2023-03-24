@@ -26,7 +26,13 @@ class shopSettingsGetMethod extends shopApiMethod
             'storefronts'           => shopHelper::getStorefronts(true),
             'ignore_stock_count'    => (int)wa('shop')->getSetting('ignore_stock_count'),
             'stock_counting_action' => $this->getCountingAction(),
-
+            // since 10.0.0
+            'server_timezone'       => date_default_timezone_get(),
+            'server_timezone_shift' => date('Z'), // seconds relative to UTC
+            'onboarding_passed'     => !wa('shop')->getSetting('welcome'),
+            'frac_enabled'          => (bool)shopFrac::isEnabled(),
+            'stock_units_enabled'   => (bool) shopUnits::baseUnitsEnabled(),
+            'base_units_enabled'    => (bool) shopUnits::stockUnitsEnabled(),
         );
     }
 

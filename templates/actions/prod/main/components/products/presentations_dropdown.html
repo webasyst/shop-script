@@ -27,7 +27,7 @@
 
 {capture assign="_component_dropdown_presentations"}
     <div class="dropdown s-presentations-dropdown">
-        <button class="dropdown-toggle wa-button wa-small no-indent transparent" type="button">[`Saved view`]</button>
+        <button class="dropdown-toggle button small no-indent outlined" type="button">[`Saved view`]</button>
         <div class="s-presentations-body-section dropdown-body right">
             <div class="s-section-header">
                 <h6>[`Saved views for the “Products” section`]</h6>
@@ -35,7 +35,7 @@
             </div>
             <div class="s-section-body">
                 <div class="s-create-section" v-if="!states.show_add_form">
-                    <button class="wa-button transparent wa-small no-indent" type="button"
+                    <button class="button outlined small no-indent" type="button"
                             v-on:click.prevent="toggleForm(true)">
                         <span class="s-icon icon size-12"><i class="fas fa-plus"></i></span>
                         <span class="s-name">[`saved view`]</span>
@@ -58,7 +58,7 @@
                                 <div class="s-action">
                                     <div class="s-toggle-wrapper"
                                          draggable="true"
-                                         v-bind:class="{ 'cursor-move js-presentation-move-toggle' : !presentation.states.move_locked, 'color-gray-light' : presentation.states.move_locked }">
+                                         v-bind:class="{ 'cursor-move js-presentation-move-toggle' : !presentation.states.move_locked, 'text-light-gray' : presentation.states.move_locked }">
                                         <span class="s-icon icon size-12"
                                               v-if="!presentation.states.move_locked"
                                               v-bind:key="'fa-bars'">
@@ -78,7 +78,7 @@
                                 <div class="s-action"
                                      data-tooltip-id="presentation-share">
                                     <a v-bind:href="'{$wa_app_url}products/?presentation='+presentation.id" target="_blank" v-on:click.prevent="onCopyUrl($event, presentation)">
-                                        <span class="s-icon icon size-14 color-gray" v-if="presentation.states.copy_locked" v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
+                                        <span class="s-icon icon size-14 text-gray" v-if="presentation.states.copy_locked" v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
                                         <span class="s-icon icon size-20" v-else><svg><use xlink:href="{$_sprite_url}#share"></use></svg></span>
                                     </a>
                                 </div>
@@ -127,12 +127,12 @@
 {capture assign="_component_presentation_add_form"}
     <div class="s-presentation-add-form flexbox middle space-12">
         <div class="s-field-wrapper wide">
-            <component-input class="wa-small full-width" placeholder="{_w("Enter a name")|escape}"
+            <component-input class="small full-width" placeholder="{_w("Enter a name")|escape}"
                 v-model="name"
                 v-bind:focus="true"></component-input>
         </div>
         <div class="s-actions-wrapper flexbox middle">
-            <button class="wa-button wa-small transparent" type="button"
+            <button class="button small outlined" type="button"
                     v-bind:disabled="states.locked"
                     v-on:click="create">
                 <span class="s-icon icon"
@@ -142,7 +142,7 @@
                       v-if="states.locked"
                       v-bind:key="'spinner'"><i class="fas fa-spinner fa-spin"></i></span>
             </button>
-            <button class="wa-button wa-small transparent" type="button"
+            <button class="button small outlined" type="button"
                     v-show="!states.locked"
                     v-on:click="cancel">
                 <span class="s-icon icon"><i class="fas fa-times"></i></span>
@@ -155,10 +155,10 @@
 {capture assign="_component_presentation_rename_form"}
     <div class="s-presentation-rename-form flexbox middle space-12">
         <div class="s-field-wrapper wide">
-            <input class="wa-small full-width" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}">
+            <input class="small full-width" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}">
         </div>
         <div class="s-actions-wrapper flexbox middle">
-            <button class="wa-button wa-small transparent" type="button"
+            <button class="button small outlined" type="button"
                     v-bind:disabled="states.locked"
                     v-on:click="create">
                 <span class="s-icon icon"
@@ -168,7 +168,7 @@
                       v-if="states.locked"
                       v-bind:key="'spinner'"><i class="fas fa-spinner fa-spin"></i></span>
             </button>
-            <button class="wa-button wa-small transparent" type="button"
+            <button class="button small outlined" type="button"
                     v-show="!states.locked"
                     v-on:click="cancel">
                 <span class="s-icon icon"><i class="fas fa-times"></i></span>

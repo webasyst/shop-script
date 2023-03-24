@@ -204,10 +204,11 @@ class shopWorkflowRefundAction extends shopWorkflowAction
                 if ($this->state_id) {
                     $this->waLog('order_refund', $order_id);
                     $this->order_model->updateById($order_id, array(
-                        'paid_date'    => null,
-                        'paid_year'    => null,
-                        'paid_month'   => null,
-                        'paid_quarter' => null,
+                        'paid_date'     => null,
+                        'paid_datetime' => null,
+                        'paid_year'     => null,
+                        'paid_month'    => null,
+                        'paid_quarter'  => null,
 
                         'auth_date' => null,
                     ));
@@ -340,6 +341,32 @@ class shopWorkflowRefundAction extends shopWorkflowAction
             $items = $order->items;
         }
 
+        $items_product_ids = [];
+        $items_service_ids = [];
+        foreach ($items as $item) {
+            // get product_id and service_id to clear from deleted items
+            if ($item['type'] == 'product') {
+                $items_product_ids[] = $item['product_id'];
+            } else {
+                $items_service_ids[] = $item['service_id'];
+            }
+        }
+        //get existing services/products
+        $product_ids = $this->getProducts($items_product_ids);
+        $service_ids = $this->getServices($items_service_ids);
+        foreach ($items as &$item) {
+            // check whether the item was deleted
+            if ($item['type'] == 'product' && empty($product_ids[$item['product_id']])) {
+                $item['deleted'] = 1;
+            } elseif ($item['type'] == 'service' &&
+                (empty($service_ids[$item['service_id']]) || empty($service_ids[$item['service_id']]['variants'][$item['service_variant_id']]))
+            ) {
+                // check service and service variants
+                $item['deleted'] = 1;
+            }
+        }
+        unset($item);
+
         if ($plugin) {
 
             $currency_id = $plugin->allowedCurrency();
@@ -365,6 +392,34 @@ class shopWorkflowRefundAction extends shopWorkflowAction
 
         return $items;
 
+    }
+
+    /**
+     * Get existing services
+     * @param array $service_ids
+     * @return array|null
+     */
+    protected function getServices($service_ids = [])
+    {
+        if (!$service_ids) {
+            return [];
+        }
+        $service_model = new shopServiceModel();
+        return $service_model->getByField('id', $service_ids, 'id');
+    }
+
+    /**
+     * Get existing products
+     * @param array $product_ids
+     * @return array|null
+     */
+    protected function getProducts($product_ids = [])
+    {
+        if (!$product_ids) {
+            return [];
+        }
+        $product_model = new shopProductModel();
+        return $product_model->getByField('id', $product_ids, 'id');
     }
 
     public function getButton()

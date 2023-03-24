@@ -5,7 +5,7 @@
 {/strip}{/function}
 
 {function sort_icon field=''}{strip}
-    {if $sort==$field}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+    {if $sort==$field}<i class="fas fa-caret-{if $order == 'asc'}up{else}down{/if}"></i>{/if}
 {/strip}{/function}
 
 {$sort_column = $manual && $sort == 'sort'}
@@ -17,7 +17,16 @@
                 <th class="min-width"></th>
             {/if}
             <th class="min-width">
-                <input type="checkbox" class="s-select-all" data-count={$total_count}>
+                <label>
+                    <span class="wa-checkbox">
+                        <input type="checkbox" class="s-select-all" data-count={$total_count}>
+                        <span>
+                            <span class="icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </span>
+                    </span>
+                </label>
             </th>
 
             <th>
@@ -53,11 +62,11 @@
         </tr>
     </table>
 
-    <div class="s-product-list-save-panel block bordered-top" style="display:none;">
-        <input type="button" class="button green" value="[`Save`]">
-        <span class="s-loading" style="display: none"><i class="icon16 loading" style="margin-top: 0.5em;"></i></span>
-        <span class="s-yes" style="display: none"><i class="icon16 yes" style="margin-top: 0.5em;"></i> [`Saved`]</span>
-        <span class="s-error errormsg" style="display: inline"></span>
+    <div class="js-product-list-save-panel bordered-top bottombar sticky box flexbox middle" style="display:none;margin-inline:-2em;padding-inline:2em;">
+        <input type="button" class="button" value="[`Save`]">
+        <span class="s-loading" style="display: none"><i class="fas fa-spinner fa-spin custom-ml-4"></i></span>
+        <span class="s-yes custom-ml-8" style="display: none"><i class="fas fa-check-circle text-green custom-mr-4"></i> [`Saved`]</span>
+        <span class="s-error errormsg custom-ml-8" style="display: inline"></span>
     </div>
 
 </div>
@@ -68,7 +77,7 @@
     {% var stocks = o.stocks; %}
     {% var stock_count = stocks.length > 0 ? stocks.length : 1; %}
     {% var sort_column = {/literal}{if $sort_column}true{else}false{/if}{literal}; %}
-    {% var current_editor = '{/literal}{shopHelper::getCurrentChapter()}{literal}'; %}
+    {% var current_editor = '{/literal}{$wa->whichUI()}{literal}'; %}
 
     {% var sku_prices_html = function(product, sku) { %}
         {% var product_currency_html = ''; %}
@@ -83,6 +92,7 @@
         <td class="short align-right s-product-sku-purchase-price">
             {% if (product.edit_rights) { %}
             <input class="short"
+                   type="text"
                    placeholder="0"
                    name="product[{%#product.id%}][sku][{%#sku.id%}][purchase_price]"
                    value="{%#sku.purchase_price_float%}"
@@ -94,6 +104,7 @@
         </td>
         <td class="short align-right s-product-sku-compare-price">
             <input class="short strike"
+                   type="text"
                    placeholder="0"
                    name="product[{%#product.id%}][sku][{%#sku.id%}][compare_price]"
                    value="{%#sku.compare_price_float%}"
@@ -102,6 +113,7 @@
         </td>
         <td class="short align-right s-product-sku-price">
             <input class="short"
+                   type="text"
                    placeholder="0"
                    name="product[{%#product.id%}][sku][{%#sku.id%}][price]"
                    value="{%#sku.price_float%}"
@@ -115,6 +127,7 @@
             <td class="short align-center nowrap" colspan="{%#stock_count%}">
                 {%#sku.count_icon_html%}
                 <input class="small instock"
+                       type="text"
                        oninput="this.value = $.shop.validate('number-negative', this.value)"
                        name="product[{%#product.id%}][sku][{%#sku.id%}][count]"
                        {% if (sku.count === null) { %}
@@ -133,6 +146,7 @@
                     {% var count = sku.stock[stock.id].count; %}
                     {%#sku.stock[stock.id].icon_html%}
                     <input class="short small instock"
+                           type="text"
                            oninput="this.value = $.shop.validate('number-negative', this.value)"
                            name="product[{%#product.id%}][sku][{%#sku.id%}][stock][{%#stock.id%}]"
                            {% if (count === null) { %}
@@ -166,15 +180,24 @@
         >
 
             {% if (sort_column) { %}
-                <td class="min-width drag-handle">{% if (!product.alien) { %}<i class="icon16 sort"></i>{% } %}</td>
+                <td class="min-width drag-handle">{% if (!product.alien) { %}<i class="fas fa-bars text-light-gray"></i>{% } %}</td>
             {% } %}
 
             <td class="min-width drag-handle">
-                <input type="checkbox" {% if (o.check_all) { %}checked{% } %}>
+                <label>
+                    <span class="wa-checkbox">
+                        <input type="checkbox" {% if (o.check_all) { %}checked{% } %}>
+                        <span>
+                            <span class="icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </span>
+                    </span>
+                </label>
             </td>
 
             <td class="drag-handle s-product-name">
-                <a href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', product.id).replace('edit/', '')%}{% if (current_editor === 'new_chapter' && !product.edit_rights) { %}prices/{% } %}"><div>{%#product.name%}<i class="shortener"></i></div></a>
+                <a href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', product.id).replace('edit/', '')%}{% if (current_editor === '2.0' && !product.edit_rights) { %}prices/{% } %}"><div>{%#product.name%}<i class="shortener"></i></div></a>
             </td>
 
             {% if (product.sku && (typeof(product.sku) =='object')) { %}
@@ -222,7 +245,7 @@
         var product_list_container = $('#s-product-list-skus-container'),
             $wrapper = product_list_container.closest(".block");
 
-        var save_panel = product_list_container.find('.s-product-list-save-panel');
+        var save_panel = product_list_container.find('.js-product-list-save-panel');
         save_panel.css({
             paddingLeft: $('#s-sidebar').width()
         });

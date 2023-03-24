@@ -16,6 +16,7 @@ class shopOrderSearchMethod extends shopApiMethod
 
         $offset = waRequest::get('offset', 0, 'int');
         $limit = waRequest::get('limit', 100, 'int');
+        $escape = !!waRequest::get('escape', true);
 
         $this->response['offset'] = $offset;
         $this->response['limit'] = $limit;
@@ -26,11 +27,12 @@ class shopOrderSearchMethod extends shopApiMethod
             $collection->orderBy($this->getSort());
 
             $this->response['count'] = $collection->count();
-            $orders = array_values($collection->getOrders(self::getCollectionFields(), $offset, $limit));
+            $orders = array_values($collection->getOrders(self::getCollectionFields(), $offset, $limit, $escape));
 
             if ($orders) {
+                $formatter = null;
                 foreach ($orders as &$o) {
-                    foreach (array('auth_code', 'auth_pin') as $k) {
+                    foreach (array('auth_code', 'auth_pin', 'entropy') as $k) {
                         if (!empty($o['params'][$k])) {
                             unset($o['params'][$k]);
                         }
@@ -42,6 +44,18 @@ class shopOrderSearchMethod extends shopApiMethod
                             $item['sort'] = $i++;
                         }
                         unset($item);
+                    }
+
+                    if (isset($o['contact']['phone']) && is_array($o['contact']['phone'])) {
+                        foreach($o['contact']['phone'] as &$row) {
+                            if (isset($row['value'])) {
+                                if (!isset($formatter)) {
+                                    $formatter = new waContactPhoneFormatter();
+                                }
+                                $row['formatted'] = $formatter->format($row['value']);
+                            }
+                        }
+                        unset($row);
                     }
                 }
                 unset($o);

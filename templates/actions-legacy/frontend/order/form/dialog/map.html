@@ -1,0 +1,199 @@
+{strip}
+
+{$_variants = []}
+{$_types_sort = ["pickup"]}
+
+{if !empty($shipping.types)}
+    {$_active_type = null}
+
+    {foreach $_types_sort as $_type_id}
+        {if empty($shipping.types[$_type_id])}{continue}{/if}
+        {$_type = $shipping.types[$_type_id]}
+
+        {$_is_active = false}
+        {if !empty($_type.is_selected)}
+            {$_is_active = true}
+            {$_active_type = $_type}
+        {/if}
+    {/foreach}
+
+    {if !empty($_active_type)}
+        {$_active_variant = null}
+        {if !empty($shipping.selected_type_id) && !empty($_active_type.variants[$shipping.selected_variant_id])}
+            {$_active_variant = $_active_type.variants[$shipping.selected_variant_id]}
+        {/if}
+
+        {foreach $_active_type.variants as $_variant}
+            {$_date = null}
+            {if !empty($_variant.date_locale)}
+                {$_date = $_variant.date_locale}
+            {else}
+                {if !empty($_variant.date_min)}
+                    {$_date = $_variant.date_min|wa_datetime:'shortdate'}
+                    {$_date = "[`from`] `$_date`"}
+                {elseif !empty($_variant.date_max)}
+                    {$_date = $_variant.date_max|wa_datetime:'shortdate'}
+                    {$_date = "[`to`] `$_date`"}
+                {/if}
+            {/if}
+
+            {$_price = null}
+            {if isset($_variant.rate_min) && $_variant.rate_min !== null}
+                {if $_variant.rate_min > 0}
+                    {$_price = shop_currency($_variant.rate_min, ['in_currency' => $_variant.currency, 'format' => 'h'])}
+                    {if !(isset($_variant.rate_max) && $_variant.rate_min === $_variant.rate_max)}
+                        {$_price = "[`from`] `$_price`"}
+                    {/if}
+                {else}
+                    {$_price = _w("Free")}
+                {/if}
+            {/if}
+
+            {if !empty($_variant.variant_id)}
+                {if $_active_type.id === "pickup"}
+                    {$__variant = [
+                        "name" => $_variant.name|escape,
+                        "type" => $_variant.type|escape,
+                        "service" => $_variant.service|default:""|escape,
+                        "variant_id" => $_variant.variant_id|escape,
+                        "formatted_date" => $_date,
+                        "formatted_price" => $_price
+                    ]}
+
+                    {if !empty($_variant.custom_data) && !empty($_variant.custom_data[$_variant.type])}
+                        {$_custom_data = $_variant.custom_data[$_variant.type]}
+                        {if !empty($_custom_data.description)}
+                            {$__variant["description"] = $_custom_data.description}
+                        {/if}
+                        {if !empty($_custom_data.storage.storage_days)}
+                            {$__variant["storage_days"] = _w('%d day', '%d days', $_custom_data.storage.storage_days)}
+                        {/if}
+                        {if !empty($_custom_data.lat)}
+                            {$__variant["lat"] = $_custom_data.lat}
+                        {/if}
+                        {if !empty($_custom_data.lng)}
+                            {$__variant["lng"] = $_custom_data.lng}
+                        {/if}
+                    {/if}
+
+                    {$_variants[] = $__variant}
+                {/if}
+            {/if}
+        {/foreach}
+    {/if}
+{/if}
+
+{$_filters = []}
+{foreach $_variants as $_variant}
+    {if isset($_variant.service) && !in_array($_variant.service, $_filters)}
+        {if !empty($_variant.service)}
+            {$_filters[$_variant.service] = [
+                "id" => $_variant.service,
+                "name" => $_variant.service
+            ]}
+        {/if}
+    {/if}
+{/foreach}
+
+<div class="wa-order-dialog wa-shipping-pickup-dialog" id="wa-shipping-pickup-dialog">
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body with-full-height">
+        <header class="wa-dialog-header">
+            <div>
+                <div class="wa-header">[`Pickup option selection`]</div>
+
+                <div class="wa-line wa-mobile-content">
+                    <div class="wa-toggle wa-mobile-view-toggle js-mobile-view-toggle">
+                        <span class="selected" data-id="list">[`List`]</span>
+                        <span class="" data-id="map">[`Map`]</span>
+                    </div>
+                </div>
+            </div>
+
+            <span class="wa-close-wrapper js-close-dialog">
+                <i class="wa-icon delete size-10"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#delete"></use></svg></i>
+            </span>
+        </header>
+        <div class="wa-dialog-content">
+
+            <div class="wa-content-section">
+                <div class="wa-map-section">
+                    <div class="wa-map-wrapper" id="wa-shipping-map"></div>
+                </div>
+
+                <div class="wa-sidebar-section">
+                    <div class="wa-variants-section">
+                        {if !empty($_filters)}
+                            <div class="wa-filters-wrapper">
+                                [`Shipping services`]:
+                                <div class="wa-filters-list">
+                                    {foreach $_filters as $_filter}
+                                        {if empty($_filter.id)}{continue}{/if}
+
+                                        <div class="wa-filter-wrapper js-set-filter" data-id="{$_filter.id|escape}">
+                                            <span class="wa-name">{$_filter.name|escape}</span>
+                                            <span class="wa-action"><i class="wa-icon delete"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#delete"></use></svg></i></span>
+                                        </div>
+                                    {/foreach}
+                                </div>
+                            </div>
+                        {/if}
+
+                        <div class="wa-variants-list">
+                            {foreach $_variants as $_variant}
+                                <div class="wa-variant-wrapper js-show-variant-details" data-id="{$_variant.variant_id|escape}" data-service-id="{$_variant.service|default:""|escape}" title="{$_variant.name}">
+                                    <div class="wa-name">{$_variant.name}</div>
+                                    <div class="wa-details">
+                                        {if !empty($_variant.formatted_price)}
+                                            <span class="wa-price">{$_variant.formatted_price}</span>
+                                        {/if}
+
+                                        {if !empty($_variant.formatted_date)}
+                                            <span class="wa-date">{$_variant.formatted_date}</span>
+                                        {/if}
+
+                                        {if !empty($_variant.service)}
+                                            <span class="wa-service">{$_variant.service|escape}</span>
+                                        {/if}
+                                    </div>
+                                </div>
+                            {/foreach}
+                        </div>
+                    </div>
+
+                    <div class="wa-variant-details-section">
+                        <div class="wa-section-header">
+                            <a class="js-show-variants-list" href="javascript:void(0);">
+                                <i class="wa-icon delete size-10"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#arrow-left"></use></svg></i> [`Back`]
+                            </a>
+                        </div>
+                        <div class="wa-section-body"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {capture assign="_map_details"}{include file="./map.details.html" inline}{/capture}
+
+    <script>
+        ( function($) {
+            var $dialog = $("#wa-shipping-pickup-dialog"),
+                scope = $dialog.data("scope");
+
+            scope.initPickupDialog({
+                $wrapper: $dialog,
+                variants: {$_variants|json_encode},
+                active_variant: {if !empty($_active_variant)}{$_active_variant.variant_id|json_encode}{else}null{/if},
+                templates: {
+                    map_details: {if !empty($_map_details)}{waUtils::jsonEncode($_map_details)}{else}null{/if}
+                }
+            });
+
+        })(jQuery);
+    </script>
+
+</div>
+
+{/strip}

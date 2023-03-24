@@ -247,6 +247,38 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
         $this->delete(false);
     }
 
+    public function __serialize()
+    {
+        return [
+            'file'         => $this->file,
+            'files'        => $this->files,
+            'delimiter'    => $this->delimiter,
+            'encoding'     => $this->encoding,
+            'data_mapping' => $this->data_mapping,
+            'key'          => $this->key,
+            'offset_map'   => $this->optimizeOffsetMap(),
+            'columns'      => $this->columns,
+            'count'        => $this->count,
+        ];
+    }
+
+    public function __unserialize($data)
+    {
+        $this->file = ifset($data['file']);
+        $this->files = ifset($data['files'], []);
+        $this->delimiter = ifempty($data['delimiter'], ';');
+        $this->encoding = ifempty($data['encoding'], 'utf-8');
+        $this->data_mapping = ifset($data['data_mapping']);
+        $this->offset_map = ifset($data['offset_map']);
+        $this->columns = ifset($data['columns'], []);
+        $this->count = ifset($data['count'], null);
+
+        $this->restore();
+        if ($key = ifset($data['key'])) {
+            $this->seek($key);
+        }
+    }
+
     public function serialize()
     {
         return serialize(
@@ -336,6 +368,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
     /**
      * @param int $position row number
      */
+    #[\ReturnTypeWillChange]
     public function seek($position)
     {
 
@@ -367,6 +400,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
         }
     }
 
+    #[\ReturnTypeWillChange]
     public function current($apply_mapping = true)
     {
         if ($this->current && ($this->mapped === null)) {
@@ -391,6 +425,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
         }
     }
 
+    #[\ReturnTypeWillChange]
     public function next()
     {
         $this->mapped = null;
@@ -442,6 +477,7 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
         return $this->valid();
     }
 
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->key;
@@ -455,11 +491,13 @@ class shopCsvReader implements SeekableIterator, Serializable, Countable
         return $this->offset_map[$this->key];
     }
 
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         return ($this->current !== false);
     }
 
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         rewind($this->fp);
@@ -1169,6 +1207,7 @@ HTML;
         return $params['value'];
     }
 
+    #[\ReturnTypeWillChange]
     public function count()
     {
         return $this->count;

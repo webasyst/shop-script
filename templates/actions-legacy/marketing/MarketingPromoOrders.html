@@ -1,0 +1,73 @@
+{$_is_first_part = false}
+{if $page === 1}
+    {$_is_first_part = true}
+{/if}
+
+{if !empty($orders)}
+    {if !empty($_is_first_part)}
+        {foreach $additional_html.top as $_html}
+            {$_html}
+        {/foreach}
+
+    <div class="s-orders-counter">
+        <span class="s-label">[`Total orders:`]</span>
+        <span class="bold">{_w('%d order', '%d orders', $orders_total_count)} (<span class="s-price">{shop_currency_html($orders_total_sum)}</span>),</span>
+        {_w('%d paid order', '%d paid orders', $orders_paid_count)} (<span class="s-price">{shop_currency_html($orders_paid_sum)}</span>).
+    </div>
+
+    <table class="zebra single-lined padded s-orders-table" data-pages="{$pages_count|default:1|escape}">
+    {/if}
+
+    {foreach $orders as $_order}
+        {$_order_link = "{$wa_app_url}?action=orders#/order/{$_order.id}/{if !empty($params_str)}{$params_str}/{/if}"}
+
+        <tr class="order{if ($_order.unsettled === "1")} s-unsettled{/if}" data-order-id="{$_order.id}">
+            <td style="{$_order.style}" class="nowrap">
+                <div>
+                    <a href="{$_order_link}">
+                        <i class="{$_order.icon}"></i><span {if ($_order.state_id == 'new')}class="highlighted"{/if}>{$_order.id_str|default:""}</span>
+                    </a>
+                </div>
+            </td>
+            <td style="{$_order.style}">
+                <div>
+                    <a href="{$_order_link}">{$_order.create_datetime_str|default:""}</a>
+                    <i class="shortener"></i>
+                </div>
+            </td>
+            <td style="{$_order.style}">
+                <div>
+                    <a href="{$_order_link}">{$_order.contact.name|default:""}</a>
+                    <i class="shortener"></i>
+                </div>
+            </td>
+            <td style="{$_order.style}" class="nowrap align-right">
+                <div>
+                    <a href="{$_order_link}">{$_order.total_str|default:""}</a>
+                </div>
+            </td>
+            <td style="{$_order.style}">
+                <div>
+                    <a href="{$_order_link}">{$_order.shipping_name|default:""}</a>
+                </div>
+            </td>
+            <td style="{$_order.style}">
+                <div>
+                    <a href="{$_order_link}"><span style="color:#888">{$_order.courier_name|default:""} {$_order.shipping_interval|default:""}</span></a>
+                </div>
+            </td>
+            <td style="{$_order.style}">
+                <div><a href="{$_order_link}">{$_order.payment_name|default:""}</a></div>
+            </td>
+        </tr>
+    {/foreach}
+
+    {if !empty($_is_first_part)}
+    </table>
+    {/if}
+
+{else}
+    {if !empty($_is_first_part)}
+        [`No orders.`]
+    {/if}
+{/if}

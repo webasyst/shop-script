@@ -1,0 +1,774 @@
+{$_name = ""}
+{if !empty($promo)}
+    {if !empty($promo.name) && trim($promo.name)}
+        {$_name = $promo.name}
+    {elseif !empty($promo.id)}
+        {$_name = _w("<no name>")}
+    {else}
+        {$_name = _w("New promo")}
+    {/if}
+{else}
+    {$_name = _w("Promo does not exist.")}
+{/if}
+
+{$_tabs = [
+    "rules" => [
+        "id"   => "rules",
+        "name" => _w("Tools")
+    ],
+    "orders" => [
+        "id"   => "orders",
+        "name" => _w("Orders")
+    ],
+    "costs"  => [
+        "id"   => "costs",
+        "name" => _w("Costs")
+    ]
+]}
+{$_active_tab_id = "rules"}
+{if array_key_exists(waRequest::request("tab"), $_tabs)}
+    {$_active_tab_id = waRequest::request("tab")}
+{/if}
+
+{$_pattern = '[0-9]{2}:[0-9]{2}'}
+
+{* PAGE *}
+<div class="s-promo-page with-footer{if empty($promo.id)} is-new{/if}" id="js-promo-page">
+    <script>
+        ( function($) {
+            $("#js-promo-page").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    {* INCORRECT *}
+    {if empty($promo)}
+        <div class="s-promo-not-found">
+            <p>[`Promo not found.`]</p>
+        </div>
+
+    {* CREATE OR EDIT *}
+    {else}
+        <form>
+            {* HEADER *}
+            <header class="s-page-header block double-padded">
+                <div class="s-table-box space-20">
+                    <div class="s-column s-title-column">
+                        <h1 class="s-title">
+                            <a href="{$marketing_url}" class="back nowrap">&larr;&nbsp;[`Back`]</a>
+                            <span class="editable js-name-editable">{$_name|escape}</span>
+                            <input class="s-title-field js-title-field" type="text" value="{$promo.name|default:''|escape}">
+                        </h1>
+                    </div>
+                    {if !empty($promo.id)}
+                        <div class="s-column">
+
+                            <div class="s-actions-wrapper">
+                                <span>
+                                    <a class="nowrap js-promo-clone" href="javascript:void(0);">
+                                        <i class="icon16 split"></i>[`Add a new promo based on this one`]
+                                    </a>
+
+                                    <a class="nowrap js-promo-delete" href="javascript:void(0);">
+                                        <i class="icon16 delete"></i>[`Delete promo`]
+                                    </a>
+                                </span>
+
+                                {*
+                                <a href="javascript:void(0);">
+                                    <i class="icon16 split"></i>Test link
+                                </a>
+                                *}
+                                {foreach $additional_html.action_link as $_html}
+                                    {$_html}
+                                {/foreach}
+
+                            </div>
+
+                        </div>
+                    {/if}
+                </div>
+            </header>
+
+            {* BODY *}
+            <div class="s-page-body block double-padded">
+
+                {if !empty($chart_data)}
+                    <div class="s-chart-section">
+                        <div class="s-chart-wrapper">
+                            <div class="s-chart js-chart"></div>
+                        </div>
+                        <div class="s-hint-wrapper js-hint-wrapper"></div>
+                    </div>
+
+                    <div class="s-indicators-section">
+                        <table class="s-indicators-table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>[`Sales`]</th>
+                                    <th>[`Orders`]</th>
+                                    <th>[`Average order`]</th>
+                                    <th>
+                                        [`ROI`]
+                                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Return On Investment for the selected period = Profit / Marketing costs`]</span></span>
+                                    </th>
+                                    <th>[`Profit`]</th>
+                                    <th>[`Expenses`]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="s-current-indicators">
+                                    <th>[`Promo`]</th>
+                                    <td>
+                                        <div class="s-indicator-block is-green">
+                                            <div class="s-background" style="width: {$promo_totals.sales_percent|round}%;"></div>
+                                            <span class="s-price">{shop_currency_html($promo_totals.sales)}</span>
+                                            <span class="s-percent">{$promo_totals.sales_percent|round}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="s-indicator-block">
+                                            <div class="s-background" style="width: {$promo_totals.order_count_percent|round}%;"></div>
+                                            <span class="s-orders">{$promo_totals.order_count|round}</span>
+                                            <span class="s-percent">{$promo_totals.order_count_percent|round}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="s-indicator-block">
+                                            {$_width = $promo_totals.avg_order_percent}
+                                            {if $_width > 100}{$_width = 100}{/if}
+
+                                            <div class="s-background" style="width: {$_width|round}%;"></div>
+                                            <span class="s-price">{shop_currency_html($promo_totals.avg_order)}</span>
+                                            <span class="s-percent">{$promo_totals.avg_order_percent|round}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="s-roi">{if !empty($promo_totals.roi)}{$promo_totals.roi}%{else}—{/if}</span>
+                                    </td>
+                                    <td>
+                                        <span class="s-price">{shop_currency_html($promo_totals.profit)}</span>
+                                    </td>
+                                    <td>
+                                        <span class="s-price">{shop_currency_html($promo_totals.expense)}</span>
+                                    </td>
+                                </tr>
+                                <tr class="s-total-indicators">
+                                    <th>
+                                        [`Total`]
+                                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Data of all paid orders received from storefronts enabled for this promo, including orders not matching the promo’s settings`]</span></span>
+                                    </th>
+                                    <td>
+                                        <div class="s-indicator-block is-blue">
+                                            <div class="s-background" style="width: 100%;"></div>
+                                            <span class="s-price">{shop_currency_html($overall_totals.sales)}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="s-indicator-block">
+                                            <div class="s-background" style="width: 100%%;"></div>
+                                            <span class="s-orders">{$overall_totals.order_count|round}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="s-indicator-block">
+                                            {$_width = 100}
+                                            {if $promo_totals.avg_order_percent > $_width}
+                                                {$_width = ($overall_totals.avg_order*100/$promo_totals.avg_order)}
+                                            {/if}
+
+                                            <div class="s-background" style="width: {$_width|round}%;"></div>
+                                            <span class="s-price">{shop_currency_html($overall_totals.avg_order)}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                {/if}
+
+                <div class="s-options-section">
+                    {* Name *}
+                    <div class="field">
+                        <div class="name">[`Name`]</div>
+                        <div class="value">
+                            <input type="text" name="promo[name]" value="{$promo.name|default:''|escape}">
+
+                            {if !empty($promo.id)}
+                                <div class="s-ident-wrapper">
+                                    <span class="s-label">[`ID`]:</span>
+                                    <span class="s-ident">{$promo.id|escape}</span>
+                                </div>
+                            {/if}
+
+                            <div class="s-field-hint hint">[`This name is not visible to website visitors.`]</div>
+                        </div>
+                    </div>
+
+                    {* Status *}
+                    <div class="field">
+                        <div class="name">[`Status`]</div>
+                        <div class="value">
+
+                            {strip}
+                            {$_is_active = $promo.enabled}
+
+                            {$_status_icon_class = "play"}
+                            {$_status_title = _w("Active action")}
+                            {if !empty($promo.start_datetime)}
+                                {$_start_time = $promo.start_datetime|strtotime}
+                                {$_now = waDateTime::format('timestamp')}
+                                {if $_start_time > $_now}
+                                    {$_status_icon_class = "alarm-clock"}
+                                    {$_status_title = "[`Scheduled`]"}
+                                {/if}
+                            {/if}
+
+                            <div class="s-status-section js-status-section {if empty($_is_active)}is-disabled{/if}">
+                                <input class="s-checkbox" type="checkbox" name="promo[enabled]" value="1" {if !empty($_is_active)}checked{/if}>
+                                <div class="s-visible">
+                                    <i class="icon16 {$_status_icon_class|escape}"></i>
+                                    <span class="s-title">{$_status_title|escape}</span>
+                                    <a class="inline-link js-stop-status" href="javascript:void(0);"><b><i>[`Stop`]</i></b></a>
+                                </div>
+                                <div class="s-hidden">
+                                    <i class="icon16 ss pause"></i>
+                                    <span class="s-title">[`Stopped`]</span>
+                                    <a class="inline-link js-restore-status" href="javascript:void(0);"><b><i>[`Resume`]</i></b></a>
+                                </div>
+                            </div>
+                            {/strip}
+
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Beginning`]</div>
+                        <div class="value">
+
+                            <div class="s-datetime-section">
+                                {$_date_view = ""}
+                                {$_date = ""}
+                                {$_time = ""}
+                                {if !empty($promo.start_datetime)}
+                                    {$_date_view = $promo.start_datetime|wa_date}
+                                    {$_date = $promo.start_datetime|wa_datetime:"Y-m-d"}
+                                    {$_time = $promo.start_datetime|wa_datetime:"H:i"}
+                                {/if}
+
+                                <label class="s-datepicker-wrapper">
+                                    <input class="s-datepicker js-datepicker js-start-date" type="text" value="{$_date_view}" data-alt="input[name='promo[start_date]']">
+                                    <input type="hidden" name="promo[start_date]" value="{$_date}">
+                                    <i class="icon16 calendar"></i>
+                                </label>
+
+                                <label class="s-time-wrapper">
+                                    <input class="s-time short" type="text" name="promo[start_time]" value="{$_time}" pattern="{$_pattern}" maxlength="5" placeholder="00:00">
+                                </label>
+
+                                <span class="s-timer-wrapper">
+                                    <span class="s-timer js-date-timer"
+                                        {if !empty($promo.start_datetime)}
+                                            data-date="{$promo.start_datetime|wa_datetime:"Y-m-d-H-i"}"
+                                        {/if}
+                                    ></span>
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`End`]</div>
+                        <div class="value">
+
+                            <div class="s-datetime-section">
+                                {$_date_view = ""}
+                                {$_date = ""}
+                                {$_time = ""}
+                                {if !empty($promo.finish_datetime)}
+                                    {$_date_view = $promo.finish_datetime|wa_date}
+                                    {$_date = $promo.finish_datetime|wa_datetime:"Y-m-d"}
+                                    {$_time = $promo.finish_datetime|wa_datetime:"H:i"}
+                                {/if}
+
+                                <label class="s-datepicker-wrapper">
+                                    <input class="s-datepicker js-datepicker js-finish-date" type="text" value="{$_date_view}" data-alt="input[name='promo[finish_date]']">
+                                    <input type="hidden" name="promo[finish_date]" value="{$_date}">
+                                    <i class="icon16 calendar"></i>
+                                </label>
+
+                                <label class="s-time-wrapper">
+                                    <input class="s-time short" type="text" name="promo[finish_time]" value="{$_time}" pattern="{$_pattern}" maxlength="5" placeholder="23:59">
+                                </label>
+
+                                <span class="s-timer-wrapper">
+                                    <span class="s-timer js-date-timer"
+                                        {if !empty($promo.finish_datetime)}
+                                            data-date="{$promo.finish_datetime|wa_datetime:"Y-m-d-H-i"}"
+                                        {/if}
+                                    ></span>
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">[`Storefronts`]</div>
+                        <div class="value">
+
+                            <div class="s-storefronts-section">
+
+                                <div class="s-visible">
+                                    <span class="s-title">[`Storefronts`] (<span class="js-counter">{$storefronts_count|escape}</span>)</span>
+                                    <a class="inline-link js-show-all" href="javascript:void(0);"><b><i>[`Options`]</i></b></a>
+                                </div>
+                                <div class="s-hidden">
+                                    <div class="s-radio-list">
+                                        {$all_storefronts_count = $storefronts|default:[]|count}
+                                        <div class="s-radio-wrapper">
+                                            <label class="s-radio-label">
+                                                <input class="s-radio js-storefront-group-field" type="radio" value="1"
+                                                       name="storefronts[{shopPromoRoutesModel::FLAG_ALL}]"
+                                                       data-storefront-count="{$all_storefronts_count}"
+                                                       {if empty($promo["id"]) || !empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}checked{/if}
+                                                >
+                                                <span class="s-text bold">[`Use in all storefronts`]</span>
+                                            </label>
+                                        </div>
+                                        <div class="s-radio-wrapper">
+                                            {$some_storefronts = false}
+                                            {if !empty($promo["id"]) && empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}
+                                                {$some_storefronts = true}
+                                            {/if}
+                                            <label class="s-radio-label">
+                                                <input class="s-radio js-storefront-group-field js-storefront-mass-field" type="radio" value="0"
+                                                       name="storefronts[{shopPromoRoutesModel::FLAG_ALL}]" {if $all_storefronts_count == 0}disabled{/if}
+                                                       {if $some_storefronts}checked{/if}
+                                                >
+                                                <span class="s-text">[`Use only in selected storefronts`]</span>
+                                            </label>
+
+                                            <ul class="menu-v js-storefront-list {if !$some_storefronts}hidden{/if}" style="margin-left: 18px">
+                                                <li>
+                                                    <label class="s-checkbox-wrapper s-all-checkbox-wrapper">
+                                                        <input class="s-checkbox js-storefront-mass-toggle" type="checkbox" {if $all_storefronts_checked}checked{/if}>
+                                                        <span class="s-text">[`Select all`]</span>
+                                                    </label>
+                                                </li>
+                                                {foreach $storefronts as $_id => $_storefront}
+                                                    {$_is_active = false}
+                                                    {if $some_storefronts && !empty($promo["routes"][$_storefront])}
+                                                        {$_is_active = true}
+                                                    {/if}
+                                                    <li>
+                                                        <label class="s-checkbox-wrapper">
+                                                            <input class="s-checkbox js-storefront-toggle" type="checkbox" name="storefronts[{$_storefront|escape}]" value="1" {if !empty($_is_active)}checked{/if}>
+                                                            <span class="s-text">{waIdna::dec($_storefront|escape)}</span>
+                                                        </label>
+                                                    </li>
+                                                {/foreach}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {foreach $additional_html.info_section as $_html}
+                        {$_html}
+                    {/foreach}
+
+                </div>
+
+                <div class="s-tabs-section">
+                    <div class="s-section-header">
+                        {strip}
+                        <ul class="tabs js-toggle-list">
+                            {foreach $_tabs as $_tab}
+                                <li class="js-toggle {if $_tab.id === $_active_tab_id}selected{/if}" data-id="{$_tab.id|escape}">
+                                    <a href="{$marketing_url}promo/{if !empty($promo.id)}{$promo.id|escape}{else}create{/if}/?tab={$_tab.id|urlencode}" class="js-disable-router">{$_tab.name|escape}</a>
+                                </li>
+                            {/foreach}
+                        </ul>
+                        {/strip}
+                    </div>
+
+                    <div class="s-section-body">
+                        <div class="s-content js-content" data-id="orders" style="{if $_active_tab_id === "orders"}display: block;{/if}">
+
+                            <div class="s-orders-section js-orders-section"></div>
+
+                        </div>
+                        <div class="s-content js-content" data-id="costs" style="{if $_active_tab_id === "costs"}display: block;{/if}">
+
+                            <div class="s-costs-section js-costs-section"></div>
+
+                        </div>
+                        <div class="s-content js-content" data-id="rules"  style="{if $_active_tab_id === "rules"}display: block;{/if}">
+                            <p>[`Add tools to run this promo campaign and to define when placed orders must be associated with this promo.`]</p>
+
+                            <div class="s-rules-section js-rules-section">
+
+                                <div class="s-rule-section">
+                                    <header class="s-section-header">
+
+                                        <div class="s-table-box middle">
+                                            <div class="s-column">
+                                                <ul class="menu-h dropdown">
+                                                    <li>
+                                                        <a href="javascript:void(0);" class="inline-link">
+                                                            <i class="icon16 add"></i><b><i>[`Add tool`]</i></b><i class="icon16 darr"></i>
+                                                        </a>
+                                                        <ul class="menu-v without-icons s-add-rules-list js-add-rules-list">
+                                                            {foreach $available_rule_types as $_rule}
+                                                                <li>
+                                                                    <a class="js-create-rule" href="javascript:void(0);" data-rule-type="{$_rule.type|escape}" data-max-count="{$_rule.max_count|default:""|escape}">
+                                                                        {$_rule.name|escape}
+                                                                    </a>
+                                                                </li>
+                                                            {/foreach}
+                                                            <li class="s-empty-message">
+                                                                <a class="s-message" href="javascript:void(0);">[`All available tools already added`]</a>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="s-column">
+                                                <div class="s-actions is-hidden">
+                                                    <a class="inline-link js-cancel-edit-rule" href="javascript:void(0);">
+                                                        <b><i>[`Cancel`]</i></b>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </header>
+                                    <div class="s-section-body js-section-body"></div>
+                                    <div class="s-section-footer js-section-footer"></div>
+                                </div>
+
+                                {strip}
+                                {function name="_render_rule" _rule=[]}
+                                    {if !empty($_rule)}
+                                        {$_rule_type_data = ifempty($available_rule_types, $_rule.rule_type, null)}
+                                    {else}
+                                        {$_rule = [
+                                            "id" => "",
+                                            "rule_type" => ""
+                                        ]}
+                                    {/if}
+
+                                    <div class="s-rule-section" data-id="{$_rule.id|escape}" data-type="{$_rule.rule_type|escape}">
+                                        <header class="s-section-header">
+                                            <div class="s-table-box middle">
+                                                <div class="s-column">
+                                                    <h5 class="s-title js-title">{if !empty($_rule_type_data)}<i class="icon16 {$_rule_type_data.css_class|escape}"></i>&nbsp;{$_rule_type_data.name|escape}{else}{$_rule.rule_type}{/if}</h5>
+                                                </div>
+                                                <div class="s-column">
+                                                    <div class="s-actions">
+
+                                                        <a class="inline-link s-visible-action js-edit-rule" href="javascript:void(0);">
+                                                            <i class="icon16 edit"></i><b><i>[`Edit`]</i></b>
+                                                        </a>
+
+                                                        <a class="inline-link s-hidden-action js-cancel-edit-rule" href="javascript:void(0);">
+                                                            <b><i>[`Cancel`]</i></b>
+                                                        </a>
+
+                                                        {if !empty($_rule.id)}
+                                                            <a class="inline-link js-delete-rule" href="javascript:void(0);">
+                                                                <i class="icon16 delete"></i><b><i>[`Delete`]</i></b>
+                                                            </a>
+                                                        {/if}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </header>
+
+                                        <div class="s-section-body js-section-body"></div>
+                                        <div class="s-section-footer js-section-footer"></div>
+                                    </div>
+                                {/function}
+                                {/strip}
+
+                                {capture assign="_new_rule_template"}
+                                    {_render_rule _rule=[]}
+                                {/capture}
+
+                                {foreach $promo.rules as $_rule}
+                                    {_render_rule _rule=$_rule}
+                                {/foreach}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {foreach $additional_html.bottom as $_html}
+                    {$_html}
+                {/foreach}
+
+                <div class="s-page-errors-wrapper js-page-errors-wrapper"></div>
+            </div>
+
+            {* FOOTER *}
+            <div class="s-page-footer js-page-footer blank">
+                <div class="s-footer-actions block double-padded js-footer-actions">
+                    <div class="fixed">
+                        <input class="button green s-submit-button js-submit-button" type="submit" name="" value="[s`Save`]">
+
+                        {foreach $additional_html.button as $_html}
+                            {$_html}
+                        {/foreach}
+                    </div>
+                </div>
+            </div>
+
+            {if !empty($promo.id)}
+                <input name="promo[id]" type="hidden" value="{$promo.id|escape}">
+            {/if}
+        </form>
+
+        {capture assign="_hint_template"}
+            <div class="s-hint-body">
+                <div class="s-line">
+                    <div class="s-label">[`Date`]:</div>
+                    <div class="s-value">%date%</div>
+                </div>
+                <div class="s-line" style="%value_style%">
+                    <div class="s-label">[`Sales`]:</div>
+                    <div class="s-value">%value%</div>
+                </div>
+            </div>
+        {/capture}
+
+        {strip}
+        {capture assign="_saving_html"}
+            <span class="s-message">[`Saving`]...</span>
+        {/capture}
+        {capture assign="_saved_html"}
+            <span class="s-message"><i class="icon16 yes"></i> [`Saved`]</span>
+        {/capture}
+        {capture assign="_prepare_html"}
+            <span class="s-message">[`Preparing`] ...</span>
+        {/capture}
+        {/strip}
+
+        {capture assign="_clone_confirm"}
+            <div class="dialog width400px height200px">
+                <div class="dialog-background"></div>
+                <div class="dialog-window">
+                    <div class="dialog-content">
+                        <div class="dialog-content-indent">
+                            <h2>[`Clone this promo?`]</h2>
+                            <p>[`All data of this promo will be copied to a new promo.`]</p>
+                            <p>[`A new promo will be disabled by default.`]</p>
+                        </div>
+                    </div>
+                    <div class="dialog-buttons">
+                        <div class="dialog-buttons-gradient">
+                            <a class="js-submit button blue" href="javascript:void(0);">[`Clone`]</a>
+                            [`or`]
+                            <a class="js-cancel" href="javascript:void(0);">[`cancel`]</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {/capture}
+
+        {capture assign="_delete_confirm"}
+            <div class="dialog width400px height200px">
+                <div class="dialog-background"></div>
+                <div class="dialog-window">
+                    <div class="dialog-content">
+                        <div class="dialog-content-indent">
+                            <h2>[`Delete promo?`]</h2>
+                            <p>[`All data of this promo will be deleted.`]</p>
+                            <p>[`You will not be able to undo this action.`]</p>
+                        </div>
+                    </div>
+                    <div class="dialog-buttons">
+                        <div class="dialog-buttons-gradient">
+                            <a class="js-submit button red" href="javascript:void(0);">[`Delete`]</a>
+                            [`or`]
+                            <a class="js-cancel" href="javascript:void(0);">[`cancel`]</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {/capture}
+
+        {capture assign="_unsaved_data_dialog"}
+            <div class="dialog width500px height150px">
+                <div class="dialog-background"></div>
+                <div class="dialog-window">
+                    <div class="dialog-content">
+                        <div class="dialog-content-indent">
+                            <h2>[`This page contains unsaved changes.`]</h2>
+                            <p>[`You are about to leave this page without saving your changes. Are you sure?`]</p>
+                        </div>
+                    </div>
+                    <div class="dialog-buttons">
+                        <div class="dialog-buttons-gradient">
+                            <a class="js-submit button red" href="javascript:void(0);">[`Yes`]</a>
+                            [`or`]
+                            <a class="js-cancel" href="javascript:void(0);">[`cancel`]</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {/capture}
+
+        <script>
+            ( function($) { "use strict";
+                var sources = [{
+                    id: "wa-content-color-picker-js",
+                    type: "js",
+                    uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.js?v={$wa->version(true)}"
+                },{
+                    id: "wa-content-color-picker-css",
+                    type: "css",
+                    uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.css?v={$wa->version(true)}"
+                },{
+                    id: "wa-content-ibutton-js",
+                    type: "js",
+                    uri: "{$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.js?v={$wa->version(true)}"
+                },{
+                    id: "wa-content-ibutton-css",
+                    type: "css",
+                    uri: "{$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.css?v={$wa->version(true)}"
+                },{
+                    id: "wa-content-tags-input-plugin-js",
+                    type: "js",
+                    uri: "{$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.min.js?v={$wa->version(true)}"
+                },{
+                    id: "wa-content-tags-input-plugin-css",
+                    type: "css",
+                    uri: "{$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.css?v={$wa->version(true)}"
+                },{
+                    id: "wa-content-d3-js",
+                    type: "js",
+                    uri: "{$wa_url}wa-content/js/d3/d3.min.js?v={$wa->version(true)}"
+                },{
+                    id: "wa-shop-marketing-promo-js",
+                    type: "js",
+                    uri: "{$wa_app_static_url}js-legacy/backend/marketing/promo.js?v={$wa->version()}"
+                }];
+
+                $(function() {
+                    $.shop.marketing.load(sources).then( function() {
+                        $.shop.marketing.init.promoPage({
+                            $wrapper: $("#js-promo-page"),
+                            promo_id: {if !empty($promo.id)}{$promo.id|json_encode}{else}null{/if},
+                            promo_options: {if !empty($options)}{$options|json_encode}{else}null{/if},
+                            rule_types: {$available_rule_types|default:[]|json_encode},
+                            active_tab: {$_active_tab_id|json_encode},
+                            chart_data: getChartData({$chart_data|json_encode}),
+                            current_date_string: {waDateTime::date('Y-m-d')|json_encode},
+                            templates: {
+                                "hint": {$_hint_template|strip|json_encode},
+                                "saving": {$_saving_html|json_encode},
+                                "saved": {$_saved_html|json_encode},
+                                "prepare": {$_prepare_html|json_encode},
+                                "clone_confirm": {$_clone_confirm|json_encode},
+                                "delete_confirm": {$_delete_confirm|json_encode},
+                                "new_rule_template": {$_new_rule_template|json_encode},
+                                "unsaved_data_dialog": {$_unsaved_data_dialog|json_encode}
+                            },
+                            locales: {
+                                "days": {_w("d")|json_encode},
+                                "hours": {_w("h")|json_encode},
+                                "minutes": {_w("min")|json_encode},
+                                "seconds": {_w("sec")|json_encode},
+                                "after": "<i class=\"icon16 yes\"></i> " + {_w("%s ago")|json_encode},
+                                "before": "<i class=\"icon16 alarm-clock\"></i> " + {_w("in %s")|json_encode},
+                                "rule_delete_confirm": {_w("Do you really want to delete this tool?")|json_encode},
+                                "server_error": {_w("Server error")|json_encode}
+                            },
+                            urls: {
+                                "backend_url": {$wa_backend_url|json_encode},
+                                "marketing_url": {$marketing_url|json_encode},
+                                "submit": "{$marketing_url}?module=marketingPromoSave",
+                                "orders": "{$marketing_url}?module=marketingPromoOrders",
+                                "costs": "{$marketing_url}?module=marketingPromoCosts",
+                                "edit_rule": "{$marketing_url}?module=marketingPromoRuleEditor",
+                                "edit_promo": "{$marketing_url}promo/%id%/",
+                                "clone_promo": "{$marketing_url}?module=marketingPromoClone",
+                                "delete_promo": "{$marketing_url}?module=marketingPromoDelete"
+                            }
+                        });
+                    });
+                });
+            })(jQuery);
+
+            function getChartData(charts_data_from_server) {
+                var charts = convertChartData(charts_data_from_server);
+                var data = [
+                        {
+                            id: "total_sales",
+                            name: {_w("Total sales")|json_encode},
+                            class: "s-total-sales-chart"
+                        },
+                        {
+                            id: "sales",
+                            name: {_w("Sales")|json_encode},
+                            class: "s-sales-chart",
+                            points: true
+                        }
+                    ];
+
+                var charts_array = {
+                };
+
+                $.each(charts, function(i, chart) {
+                    charts_array[chart.id] = chart;
+                });
+
+                $.each(data, function(i, chart_data) {
+                    var chart = charts_array[chart_data.id];
+                    charts[i] = $.extend(chart, chart_data);
+                });
+
+                return charts;
+
+                function convertChartData(charts_data_from_server) {
+                    if (!charts_data_from_server || !charts_data_from_server[0]) {
+                        return [];
+                    }
+
+                    var charts = Object.keys(charts_data_from_server[0]).filter(function(chart_id) {
+                        return chart_id !== "date";
+                    }).map( function(chart_id) {
+                        return {
+                            id: chart_id,
+                            data: []
+                        };
+                    });
+
+                    charts_data_from_server.forEach(function(row) {
+                        charts.forEach( function(chart) {
+                            chart.data.push({
+                                date: row.date,
+                                value: row[chart.id]
+                            });
+                        });
+                    });
+
+                    return charts;
+                }
+            }
+        </script>
+    {/if}
+
+    <script>
+        ( function($) {
+            $.shop.marketing.setTitle({$_name|json_encode});
+        })(jQuery);
+    </script>
+</div>

@@ -1,13 +1,13 @@
 {if count($types)}
-    <div class="s-collection-list" id="s-type-list"
+    <div class="s-collection-list custom-m-0" id="s-type-list"
          data-on-collapse-url="?module=products&amp;action=loadTypes&amp;hide=1"
          data-on-expand-url="?module=products&amp;action=loadTypes&amp;hide=0"
         >
-        <ul class="menu-v with-icons">
+        <ul class="menu">
             {foreach $types as $type}
                 <li data-type="type" id="type-{$type.id}">
-                    <span class="count">{$type.count}</span>
                     <a href="#/products/type_id={$type.id}/">
+                        <span class="count">{$type.count}</span>
                         {shopHelper::getIcon($type.icon, 'icon.box')}{$type.name|escape}
                     </a>
                 </li>

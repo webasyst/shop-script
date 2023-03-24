@@ -1,0 +1,166 @@
+{* Render checkout settings sidebar *}
+{$checkout_sidebar}
+{if $redirect_hash}
+    <script>location.hash='{$redirect_hash}';</script>
+{/if}
+<div class="s-settings-checkout-content content blank left200px">
+    <div class="block double-padded s-settings-form">
+        {if empty($old_storefronts)}
+            <div style="margin: 80px auto; text-align: center;">
+                {sprintf('[`No storefronts with multi-step checkout. Go to the storefronts <a href="%s">settings</a>.`]', '?action=storefronts#/design/action=settings')}
+            </div>
+        {else}
+        <h1>[`Multi-step checkout setup`]</h1>
+
+        <div>[`Common settings for all storefronts with multi-step checkout.`]</div>
+        <div style="margin: 1em 0 0; color: #888;">{sprintf('[`In <a href="%s" target="_blank">storefront settings <i class="icon16 new-window"></i></a> you can switch between <strong>multi-step checkout</strong> and <strong>in-cart checkout</strong>.`]', "`$wa_app_url`?action=storefronts#/design/action=settings")}</div>
+        <div style="margin: 3em 0 0;">[`Define the checkout step order and each step settings using the form below.`]</div>
+        <div style="margin: 1em 0 2em;">
+            <a href="javascript:void(0);" class="js-checkout-recommendations-link" style="text-decoration: none;">
+                <i class="icon16 info"></i>[`Checkout setup tips`]<i class="icon16 darr js-arrow"></i>
+            </a>
+        </div>
+        <div class="s-alert s-checkout-recommendations js-checkout-recommendations">
+            <a class="close s-alert-close" href="javascript:void(0);">×</a>
+            <p>
+                <strong>[`For online stores shipping to multiple countries and regions:`]</strong><br>
+                <em>[`1.&nbsp;Contact info &rarr; 2.&nbsp;Shipping &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation.`]</em>
+                <br /><br />
+                <strong>[`For one-city-centric stores offering mostly courier shipping:`]</strong><br>
+                <em>[`1.&nbsp;Shipping &rarr; 2.&nbsp;Contact info &rarr; 3.&nbsp;Payment &rarr; 4.&nbsp;Confirmation`]</em>
+                <br /><br />
+                <strong>[`For electronic-delivery-only stores:`]</strong><br>
+                <em>[`1.&nbsp;Contact info &rarr; 2.&nbsp;Payment &rarr; 3.&nbsp;Confirmation`]</em>
+                <br /><br />
+                [`Keep the checkout setup as simple as possible.`]
+            </p>
+            <p class="gray">
+                <i class="icon10 exclamation"></i>
+                <strong>[`Shipping & Contacts`].</strong>
+                [`Some shipping options require to know the destination address. If the shipping step is before the contact info step (i.e. customer hasn’t input the address yet), certain shipping options may not calculate shipping rates properly.`]
+            </p>
+            <p class="gray">
+                <i class="icon10 exclamation"></i>
+                <strong>[`Confirmation`].</strong>
+                [`Disabling the Confirmation step is bad if the order total can be changed during the checkout, e.g. if shipping, tax, or promotions can increase the order total. Make sure your customer seen the final order amount before the order is placed.`]
+            </p>
+        </div>
+        <table id="checkout-steps" class="s-big-table">
+        {foreach $steps as $step_id => $step}
+        <tr {if !$step.status}class="disabled"{/if} id="step-{$step_id}" data-step-id="{$step_id}">
+            <td class="min-width gray valign-top">{if $step.status}<h3 class="gray"><!--{$step@iteration}.--></h3>{/if}</td>
+            <td class="min-width valign-top"><i class="icon16 sort checkout-steps-handle"></i></td>
+            <td>
+                <div class="float-right links">
+                    {if $step_id == shopPluginModel::TYPE_SHIPPING && empty($shipping_plugins)}
+                        {sprintf('[`<a href="%s" target="_blank">Add a shipping method</a>`]', '?action=settings#/shipping/')}
+                        <i class="icon16 new-window"></i>
+                    {elseif $step_id == shopPluginModel::TYPE_PAYMENT && empty($payment_plugins)}
+                        {sprintf('[`<a href="%s" target="_blank">Add a payment method</a>`]', '?action=settings#/payment/')}
+                        <i class="icon16 new-window"></i>
+                    {elseif $step.status}
+                        <a href="#" class="link-options inline-link inline"><i class="icon16 settings"></i><b><i>[`Configure`]</i></b></a>
+                    {else}
+                        [`Disabled`]
+                        <a href="#" class="link-enable inline-link"><b><i>[`Turn on`]</i></b></a>
+                    {/if}
+                </div>
+                <h3 class="name{if !$step.status} gray{/if}">{$step.name}</h3>
+                <form id="checkout-step-{$step_id}-form" method="post" action="?module=settingsCheckoutSave" style="display: none;">
+                    <input type="hidden" name="step_id" value="{$step_id}">
+                    {if !empty($step.description)}
+                        <p style="margin-top: 10px;">{$step.description}</p>
+                    {/if}
+                    <div class="fields form width100px">
+                        <div class="field-group">
+                            <div class="field system">
+                                <div class="name">[`Checkout step name`]</div>
+                                <div class="value">
+                                    <input type="text" name="name" class="bold" value="{$step.name}">
+                                    <br />
+                                    <span class="hint">[`Will be displayed in the storefront in the checkout navigation`]</span>
+                                </div>
+                            </div>
+                            <div class="field system">
+                                <div class="value submit">
+                                    <br>
+                                    {if $step_id != 'contactinfo'}
+                                    <div class="float-right">
+                                        <ul class="menu-h with-icons">
+                                            <li><a href="#" class="link-disable"><i class="icon16 no"></i>[`Disable this step`]</a></li>
+                                        </ul>
+                                    </div>
+                                    {/if}
+                                    <input type="submit" class="button green submit" value="[`Save`]">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        {/foreach}
+        </table>
+
+        <div class="fields form">
+            <div class="field">
+                <div class="name">[`Guest checkout`]</div>
+                <div class="value no-shift">
+                    <label>
+                        <input class="guest-checkout" type="radio" name="guest_checkout" value="" {if !$guest_checkout}checked{/if}>
+                        [`Create a new customer profile for every guest order`]
+                    </label>
+                </div>
+                <div class="value no-shift">
+                    <label>
+                        <input class="guest-checkout" type="radio" name="guest_checkout" value="merge_email" {if $guest_checkout == 'merge_email'}checked{/if}>
+                        [`Add an order to existing customer profile with the same email address`]
+                    </label>
+                </div>
+                {if $auth_alert}
+                <div class="guest-checkout-alert value no-shift"{if $guest_checkout != 'merge_email'} style="display:none"{/if}>
+                    <p class="small">
+                        <span class="highlighted"><i class="icon10 exclamation"></i> {sprintf('[`Automated assignment of guest orders to existing customers will not work on the following websites: <strong>%s</strong>. Due to privacy considerations, automatic order assignment requires enabling “<strong>Confirm signup</strong>” option at <em>Site app → [select your domain] → Personal → Login and signup settings</em>. The “Confirm signup” option is available only if the option “<strong>A user enters a password during signup</strong>” is selected for the “Passwords type” setting.`]', implode(', ', $auth_alert))}</span>
+                    </p>
+                </div>
+                {/if}
+                <div class="value no-shift" style="display: none">
+                    <input id="guest-checkout-save" type="button" class="button green" value="[`Save`]">
+                </div>
+            </div>
+            <script type="text/javascript">
+                $('.guest-checkout').change(function () {
+                    if ($('.guest-checkout:checked').val() == 'merge_email') {
+                        $('.guest-checkout-alert').show();
+                    } else {
+                        $('.guest-checkout-alert').hide();
+                    }
+                    $('#guest-checkout-save').parent().show();
+                });
+                $('#guest-checkout-save').click(function () {
+                    $.post('?module=settingsCheckoutSave&action=guest', { value: $('.guest-checkout:checked').val()}, function () {
+                        $('#guest-checkout-save').parent().hide();
+                    });
+                    return false;
+                });
+            </script>
+            <div style="margin-top: 20px;">
+                {sprintf('[`Setup of required fields validation in backend, order spam filter, and web push notifications is available in “<a href="%s">General settings</a>” section.`]', '?action=settings#/general/')}
+            </div>
+        </div>
+        {/if}
+    </div>
+
+    <div class="clear-both"></div>
+</div>
+
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/settings/checkout.js?{$wa->version()}"></script> {* !!! move to layout? *}
+<script type="text/javascript">
+    document.title ='{"[`Checkout`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+    $.settings.checkoutInit({
+        loc: {
+            field_is_required: "[`This field is required.`]",
+            saved: "[`Saved`]"
+        }
+    });
+</script>

@@ -27,7 +27,16 @@ class shopOrderSaveMethod extends shopApiMethod
         $post = $this->validate($post);
 
         if ($post) {
+
+            $form = null;
+            if (!empty($post['customer'])) {
+                $form = new shopBackendCustomerForm();
+                $form->setContactType(ifset($post, 'customer', 'contact_type', null), true);
+                unset($post['customer']['contact_type']);
+            }
+
             $so = new shopOrder($post, array(
+                'customer_form' => $form,
                 'ignore_stock_validate'  => true,
                 'items_format' => 'tree',
             ));
@@ -43,12 +52,12 @@ class shopOrderSaveMethod extends shopApiMethod
 
     protected function validate($post)
     {
-        if (empty($post['items'])) {
+        if (empty($post['items']) && empty($post['id'])) {
             $this->errors[] = _w('Items not found');
         }
 
         //convert discount for shopOrder.
-        if ($post['discount'] == 'true') {
+        if (ifset($post, 'discount', null) === 'true') {
             $post['discount'] = 'calculate';
         }
 

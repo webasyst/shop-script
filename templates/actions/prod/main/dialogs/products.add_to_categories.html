@@ -37,10 +37,10 @@
             <div class="s-icon-column">
                 <label v-bind:for="'category['+category.id+'][checkbox]'">
                     <template v-if="category.type === '0'">
-                        <span class="s-icon icon size-14 shift-inherit color-gray-light" v-bind:key="'fa-folder'"><i class="fas fa-folder"></i></span>
+                        <span class="s-icon icon size-14 shift-inherit text-light-gray" v-bind:key="'fa-folder'"><i class="fas fa-folder"></i></span>
                     </template>
                     <template v-else>
-                        <span class="s-icon icon size-18 shift-inherit color-gray-light" v-bind:key="'fa-folder'">
+                        <span class="s-icon icon size-18 shift-inherit text-light-gray" v-bind:key="'fa-folder'">
                             <svg><use xlink:href="{$_sprite_url}#folder-dynamic"></use></svg>
                         </span>
                     </template>
@@ -52,7 +52,7 @@
             </div>
 
             <div class="s-actions" v-if="category.type === '0'">
-                <button class="s-action wa-button transparent-gray" title="{_w("Add new category")|escape}" v-on:click="toggleForm(true)">
+                <button class="s-action button gray outlined" title="{_w("Add new category")|escape}" v-on:click="toggleForm(true)">
                     <i class="fas fa-plus-circle"></i>
                 </button>
             </div>
@@ -70,16 +70,16 @@
 {capture assign="_add_category_form"}
     <form class="s-add-new-form">
         <div class="flexbox middle space-4">
-            <input class="wa-small js-autofocus" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}"
+            <input class="small js-autofocus" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}"
                    v-on:input="onInput"
                    v-bind:class="{ 'wa-error-field' : !!errors['name_required'] }">
 
-            <button class="wa-button wa-small blue" type="button" v-on:click="save">
+            <button class="button smaller blue" type="button" v-on:click="save">
                 <span class="icon s-icon" v-if="states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                 <span class="icon s-icon" v-else v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
             </button>
 
-            <button class="wa-button wa-small top gray" type="button" v-on:click="cancel">
+            <button class="button smaller top gray" type="button" v-on:click="cancel">
                 <span class="icon"><i class="fas fa-times"></i></span>
             </button>
         </div>
@@ -133,7 +133,7 @@
                                 v-on:cancel="onFormCancel"
                                 v-on:success="onFormSuccess"></component-category-form>
 
-                            <button class="wa-button transparent-gray no-indent" v-else v-on:click="toggleForm(true)">
+                            <button class="button gray outlined small no-indent" v-else v-on:click="toggleForm(true)">
                                 <span class="s-icon"><i class="fas fa-plus-circle"></i></span>
                                 <span class="s-name">{_w("Add new category")|escape}</span>
                             </button>
@@ -146,11 +146,11 @@
 
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
+                <button class="button" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
                     <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name">[`Add`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

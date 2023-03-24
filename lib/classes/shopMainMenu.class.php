@@ -13,32 +13,40 @@ class shopMainMenu
             "orders" => [
                 "id" => "orders",
                 "name" => _w("Orders"),
-                "icon" => '<i class="fas fa-inbox"></i>',
-                "url" => "{$wa_app_url}?action=orders#/orders/"
+                "icon" => '<i class="fas fa-shopping-cart"></i>',
+                "url" => "{$wa_app_url}?action=orders#/orders/",
+                "userRights" => ['orders'],
+                "placement" => "body",
             ],
             "customers" => [
                 "id" => "customers",
                 "name" => _w("Customers"),
                 "icon" => '<i class="fas fa-user-friends"></i>',
-                "url" => "{$wa_app_url}?action=customers"
+                "url" => "{$wa_app_url}?action=customers#/all/",
+                "userRights" => ['customers'],
+                "placement" => "body",
             ],
             "catalog" => [
                 "id" => "catalog",
-                "name" => _w("Catalog"),
-                "icon" => '<i class="fas fa-tags"></i>',
+                "name" => _w("Products"),
+                "icon" => '<i class="fas fa-archive"></i>',
+                "userRights" => ['products'],
+                "placement" => "body",
                 "url" => "",
                 "submenu" => [
                     [
-                        "name" => _w("Products"),
+                        "name" => _w("Catalog"),
                         "url" => "{$wa_app_url}products/"
                     ],
                     [
                         "name" => _w("Categories"),
-                        "url" => "{$wa_app_url}products/categories/"
+                        "url" => "{$wa_app_url}products/categories/",
+                        "userRights" => ['setscategories'],
                     ],
                     [
                         "name" => _w("Sets"),
-                        "url" => "{$wa_app_url}products/sets/"
+                        "url" => "{$wa_app_url}products/sets/",
+                        "userRights" => ['setscategories'],
                     ],
                     [
                         "name" => _w("Reviews"),
@@ -46,15 +54,12 @@ class shopMainMenu
                     ],
                     [
                         "name" => _w("Services"),
-                        "url" => "{$wa_app_url}?action=products#/services/"
+                        "url" => "{$wa_app_url}?action=products#/services/",
+                        "userRights" => ['services'],
                     ],
                     [
                         "name" => _w("Stock"),
                         "url" => "{$wa_app_url}?action=products#/stocks/"
-                    ],
-                    [
-                        "name" => _w("Product types & features"),
-                        "url" => "{$wa_app_url}?action=settings#/typefeat/"
                     ]
                 ]
             ],
@@ -63,6 +68,8 @@ class shopMainMenu
                 "name" => _w("Marketing"),
                 "icon" => '<i class="fas fa-bullhorn"></i>',
                 "url" => "{$wa_app_url}marketing/",
+                "userRights" => ['marketing'],
+                "placement" => "body",
                 "submenu" => [
                     [
                         "name" => _w("Promos on website"),
@@ -103,6 +110,8 @@ class shopMainMenu
                 "name" => _w("Reports"),
                 "icon" => '<i class="fas fa-chart-bar"></i>',
                 "url" => "{$wa_app_url}?action=reports",
+                "userRights" => ['reports'],
+                "placement" => "body",
                 "submenu" => [
                     [
                         "name" => _w("Sales"),
@@ -127,18 +136,12 @@ class shopMainMenu
                 "name" => _w("Storefront"),
                 "icon" => '<i class="fas fa-store"></i>',
                 "url" => "{$wa_app_url}?action=storefronts",
+                "userRights" => ['design', 'pages'],
+                "placement" => "body",
                 "submenu" => [
                     [
                         "name" => _w("Appearance"),
-                        "url" => "{$wa_app_url}?action=storefronts#"
-                    ],
-                    [
-                        "name" => _w("Templates"),
-                        "url" => "{$wa_app_url}?action=storefronts#/design/action=edit&theme=default"
-                    ],
-                    [
-                        "name" => _w("Settings"),
-                        "url" => "{$wa_app_url}?action=storefronts#/design/action=settings"
+                        "url" => "{$wa_app_url}?action=storefronts"
                     ],
                     [
                         "name" => _w("Pages"),
@@ -146,27 +149,43 @@ class shopMainMenu
                     ],
                     [
                         "name" => _w("Design themes"),
-                        "url" => "{$wa_app_url}?action=storefronts#/design/themes/"
+                        "url" => "{$wa_app_url}?action=themes"
                     ]
                 ]
-            ],
-            "import" => [
-                "id" => "import",
-                "name" => _w("Import")."/"._w("Export"),
-                "icon" => '<i class="fas fa-exchange-alt"></i>',
-                "url" => "{$wa_app_url}?action=importexport"
-            ],
-            "settings" => [
-                "id" => "settings",
-                "name" => _w("Settings"),
-                "icon" => '<i class="fas fa-cog"></i>',
-                "url" => "{$wa_app_url}?action=settings"
             ],
             "plugins" => [
                 "id" => "plugins",
                 "name" => _w("Plugins"),
                 "icon" => '<svg><use xlink:href="'.$wa_url.'wa-apps/shop/img/backend/products/product/icons.svg?v='.wa()->getVersion('shop').'#plugins"></use></svg>',
-                "url" => "{$wa_app_url}?action=plugins"
+                "url" => "{$wa_app_url}?action=plugins",
+                "userRights" => ['settings'],
+                "placement" => "body",
+                "submenu" => [
+                    [
+                        "name" => _w("Browse plugins"),
+                        "url" => "{$wa_app_url}?action=plugins"
+                    ],
+                    [
+                        "name" => _w("Installed"),
+                        "url" => "{$wa_app_url}?action=plugins#installed/"
+                    ]
+                ]
+            ],
+            "import" => [
+                "id" => "import",
+                "name" => _w("Import / Export"),
+                "icon" => '<i class="fas fa-exchange-alt"></i>',
+                "url" => "{$wa_app_url}?action=importexport",
+                "userRights" => ['importexport'],
+                "placement" => "footer",
+            ],
+            "settings" => [
+                "id" => "settings",
+                "name" => _w("Settings"),
+                "icon" => '<i class="fas fa-cog"></i>',
+                "url" => "{$wa_app_url}?action=settings",
+                "userRights" => ['settings'],
+                "placement" => "footer",
             ],
         ];
 

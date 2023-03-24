@@ -1,84 +1,104 @@
-<div class="field-group js-footer-block">
-    <div class="field">
-        <div class="value submit">
+<div class="bottombar sticky s-settings-fixed-bottombar js-footer-block">
+    <div class="flexbox space-8">
+        <div class="wide flexbox middle space-8">
+            <button type="submit" id="n-send-button" class="button green">[`Save`]</button>
+        </div>
 
+        <div class="flexbox middle space-8">
             {$wa->getCheatSheetButton(["app" => {$wa->app()}, 'key' => 'notifications'])}
 
-            <input type="submit" id="n-send-button" value="[`Save`]" class="button green">
             {if !empty($n)}
-                <input type="button" id="send-test-button" class="button" value="[`Send test`]">
+            <button type="button" id="send-test-button" class="button">[`Send test`]</button>
+
+            <button type="button" id="notification-delete" data-id="{$n.id}" class="button red" title="[`Delete notification`]">
+                <i class="fas fa-trash-alt"></i>
+            </button>
             {/if}
         </div>
     </div>
 </div>
 
 {if !empty($n)}
-    <div id="send-test-dialog" class="dialog s-send-test-dialog" style="display:none">
+    <div id="send-test-dialog" class="dialog s-send-test-dialog">
         <div class="dialog-background"></div>
-        <div class="dialog-window">
+
+        <div class="dialog-body" style="width:900px;">
+            <header class="dialog-header">
+                <h1>[`Send test notification`]</h1>
+            </header>
+
             <div class="dialog-content">
-                <div class="dialog-content-indent">
-                    <h1>[`Send test notification`]</h1>
-                    {if empty($test_orders)}
-                        <p>[`Notification testing requires at least one paid or complete order for sample data.`]</p>
-                    {else}
-                        <div class="fields form">
-                            <div class="field">
-                                <div class="name">[`Send to`]</div>
-                                <div class="value">
-                                    {if $n.transport == 'email'}
-                                        <input type="text" value="{$wa->user()->get('email', 'default')|escape}" class="bold">
-                                    {else if $n.transport == 'sms'}
-                                        <input type="text" value="{$wa->user()->get('phone', 'default')|escape}" class="bold">
-                                    {else if $n.transport == 'http'}
-                                        <input type="text" value="{$params.to|default:''}" class="long bold">
-                                    {/if}
-                                </div>
+                {if empty($test_orders)}
+                    <p>[`Notification testing requires at least one paid or complete order for sample data.`]</p>
+                {else}
+                    <div class="fields">
+                        <div class="field">
+                            <div class="name">[`Send to`]</div>
+                            <div class="value">
+                                {if $n.transport == 'email'}
+                                    <input type="text" value="{$wa->user()->get('email', 'default')|escape}" class="bold small">
+                                {else if $n.transport == 'sms'}
+                                    <input type="text" value="{$wa->user()->get('phone', 'default')|escape}" class="bold small">
+                                {else if $n.transport == 'http'}
+                                    <input type="text" value="{$params.to|default:''}" class="long bold small">
+                                {/if}
                             </div>
                         </div>
+                    </div>
 
-                        <p class="clear-left select-order-message">[`Select an order to fetch sample data from`]</p>
-                        <table class="zebra" style="cursor: pointer;">
-                        {foreach $test_orders as $o}
-                            <tr>
-                                <td>
-                                    <div class="s-checkbox-wrapper">
-                                        <input type="radio" name="order_selector" value="{$o.id|escape}">
-                                    </div>
-                                </td>
-                                <td class="nowrap">
-                                    <span style="{$o.style|escape}">
-                                        <i class="{$o.icon}"></i>{$o.id_str}
-                                    </span>
-                                </td>
-                                <td>{$o.create_datetime|wa_date:'humandate'}</td>
-                                <td>
-                                    {foreach $o.items as $i}
-                                        {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
-                                    {/foreach}
-                                </td>
-                                <td class="bold nowrap align-right">{$o.total_formatted}</td>
-                            </tr>
-                        {/foreach}
-                        </table>
-                    {/if}
-                </div>
+                    <p class="select-order-message">[`Select an order to fetch sample data from`]</p>
+                    <table class="small cursor-pointer">
+                    {foreach $test_orders as $o}
+                        <tr>
+                            <td>
+                                <div class="s-checkbox-wrapper">
+                                    <label>
+                                        <span class="wa-radio">
+                                            <input type="radio" name="order_selector" value="{$o.id|escape}">
+                                            <span></span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </td>
+
+                            <td class="nowrap">
+                                <span style="{$o.style|escape}">
+                                    <span class="icon">{$wa->shop->getIcon($o.icon)}</span>
+                                    <span>{$o.id_str}</span>
+                                </span>
+                            </td>
+
+                            <td>{$o.create_datetime|wa_date:'humandate'}</td>
+
+                            <td>
+                                {foreach $o.items as $i}
+                                    {$i.name|escape} <span class="gray">x {$i.quantity}</span><br>
+                                {/foreach}
+                            </td>
+
+                            <td class="bold nowrap align-right">{$o.total_formatted}</td>
+                        </tr>
+                    {/foreach}
+                    </table>
+                {/if}
             </div>
-            <div class="dialog-buttons">
-                <div class="dialog-buttons-gradient">
-                    {$wa->csrf()}
-                    <div class="before-send">
-                        <input class="button blue" type="submit" value="[`Send test`]" data-n-id={$n.id}>
-                        <span class="s-msg-after-button" style="display:none;"><i class="icon16 loading"></i></span>
-                        [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a><br>
-                    </div>
-                    <div class="after-send">
-                        <input class="button cancel" type="button" value="[`Close`]">
-                        <em class="bold successmsg"><i class="icon16 yes"></i>[`Test message sent!`]</em>
-                        <em class="errormsg"><i class="icon16 no"></i><!-- error placeholder--></em>
-                    </div>
+
+            <footer class="dialog-footer">
+                {$wa->csrf()}
+                <div class="before-send">
+                    <button type="submit" class="button blue" data-n-id={$n.id}>[`Send test`]</button>
+
+                    <span class="s-msg-after-button" style="display:none;"><i class="fas fa-spinner fa-spin"></i></span>
+                    <button class="button light-gray js-dialog-close">[`Cancel`]</button>
                 </div>
-            </div>
+
+                <div class="after-send flexbox middle">
+                    <button type="button" class="button light-gray js-dialog-close">[`Close`]</button>
+
+                    <span class="bold flexbox middle space-4 state-success"><div class="icon"><i class="fas fa-check-circle"></i></div><span>[`Test message sent!`]</span></span>
+                    <em class="flexbox middle space-4 state-error"><div class="icon"><i class="fas fa-ban"></i></div><span class="error"></span></em>
+                </div>
+            </footer>
         </div>
     </div>
 {/if}

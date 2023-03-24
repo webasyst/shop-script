@@ -31,8 +31,6 @@
             that.vue_model = that.initVue();
             that.init();
 
-            console.log( that );
-
             function formatReviews(reviews) {
                 $.each(reviews, function(i, review) {
                     that.formatReview(review);

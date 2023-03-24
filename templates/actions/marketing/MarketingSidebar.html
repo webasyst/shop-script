@@ -1,132 +1,88 @@
 {strip}
+<div id="js-marketing-sidebar">
+    <div class="flexbox wrap-mobile space-16">
 
-<div class="s-marketing-sidebar" id="js-marketing-sidebar">
-    <div class="s-sidebar-section">
-        <ul class="s-section-list menu-v with-icons">
-            <li>
-                <a href="{$wa_app_url}marketing/promo/create/">
-                    <i class="icon16 add"></i>
-                    <span class="s-name">[`New promo`]</span>
-                </a>
-            </li>
-        </ul>
-        <ul class="s-section-list menu-v with-icons">
-            <li>
-                <a href="{$wa_app_url}marketing/">
-                    <i class="icon16 ss promo"></i>
-                    <span class="s-name">[`All promos`]</span>
-                    <span class="s-counter js-counter">{$counts.total|escape}</span>
-                </a>
-            </li>
-            <li>
-                <a href="{$wa_app_url}marketing/?status=active">
-                    <i class="icon16 play"></i>
-                    <span class="s-name">[`Active promos`]</span>
-                    <span class="s-counter js-counter">{$counts.active|escape}</span>
-                </a>
-            </li>
-            <li>
-                <a href="{$wa_app_url}marketing/?status=planned">
-                    <i class="icon16 clock"></i>
-                    <span class="s-name">[`Scheduled promos`]</span>
-                    <span class="s-counter js-counter">{$counts.planned|escape}</span>
-                </a>
-            </li>
-            <li>
-                <a href="{$wa_app_url}marketing/?status=completed">
-                    <i class="icon16 ss flag-checkers"></i>
-                    <span class="s-name">[`Finished promos`]</span>
-                    <span class="s-counter js-counter">{$counts.finished|escape}</span>
-                </a>
-            </li>
-            {foreach $additional_items.promos_li as $li}{$li}{/foreach}
-        </ul>
-    </div>
+        {strip}
+        <div class="dropdown js-marketing-storefronts-dropdown custom-mr-24">
+            <button class="dropdown-toggle small light-gray">[`All storefronts`]</button>
 
-    <div class="s-sidebar-section">
-        <ul class="s-section-list menu-v with-icons">
-            <li>
-                <a href="{$wa_app_url}marketing/coupons/">
-                    <i class="icon16 ss coupon"></i>
-                    <span class="s-name">[`Coupons`]</span>
-                </a>
-            </li>
-            <li>
-                <a href="{$wa_app_url}marketing/costs/">
-                    <i class="icon16 dollar"></i>
-                    <span class="s-name">[`Marketing costs`]</span>
-                </a>
-            </li>
-            <li>
-                <a href="{$wa_app_url}marketing/abtesting/">
-                    <i class="icon16 split"></i>
-                    <span class="s-name">[`A/B tests`]</span>
-                </a>
-            </li>
-            {foreach $additional_items.tools_li as $li}{$li}{/foreach}
-        </ul>
-    </div>
+            <div class="dropdown-body">
+                <ul class="menu">
+                    {foreach $additional_html.action_link as $_html}
+                        {$_html}
+                    {/foreach}
 
-    {if $wa->userRights('setup_marketing')}
-        <div class="s-sidebar-section s-settings-section">
-            <h5 class="s-section-header heading">[`Settings`]</h5>
-            <ul class="s-section-list menu-v with-icons">
-                <li>
-                    <a href="{$wa_app_url}marketing/discounts/">
-                        <i class="icon16 ss discounts-bw"></i>
-                        <span class="s-name">[`Discounts`]</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{$wa_app_url}marketing/followups/">
-                        <i class="icon16 ss stopwatch-bw"></i>
-                        <span class="s-name">[`Follow-ups`]</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{$wa_app_url}marketing/recommendations/">
-                        <i class="icon16 ss star-bw"></i>
-                        <span class="s-name">[`Recommendations`]</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{$wa_app_url}marketing/affiliate/">
-                        <i class="icon16 ss affiliate-bw"></i>
-                        <span class="s-name">[`Affiliate program`]</span>
-                    </a>
-                </li>
-                {foreach $additional_items.settings_li as $li}{$li}{/foreach}
-            </ul>
+                    <li class="{if empty($active_storefront) && empty($unattached_active)}selected{/if}">
+                        <a href="{$marketing_url}{if $status}?status={$status}{/if}" title="[`All storefronts`]">[`All storefronts`]</a>
+                    </li>
+
+                    {if !empty($show_unatt_storefronts) || !empty($unattached_active)}
+                        <li class="{if !empty($unattached_active)}selected{/if}">
+                            <a href="{$marketing_url}?storefront=_unattached_{if $status}&status={$status}{/if}" title="[`No storefronts`]">[`No storefronts`]</a>
+                        </li>
+                    {/if}
+
+                    {foreach $storefronts as $_storefront}
+                        {$_is_active = false}
+                        {if !empty($active_storefront) && $active_storefront === $_storefront}
+                            {$_is_active = true}
+                        {/if}
+
+                        <li class="{if !empty($_is_active)}selected{/if}">
+                            <a href="{$marketing_url}?storefront={$_storefront|urlencode}{if $status}&status={$status}{/if}" title="{$_storefront|escape}">{waIdna::dec($_storefront)}</a>
+                        </li>
+                    {/foreach}
+                </ul>
+            </div>
         </div>
+        {/strip}
+
+        <div class="wide">
+            <div class="flexbox wrap space-24">
+                <ul class="chips small rounded transparent custom-pl-0 custom-my-0">
+                    <li>
+                        <a href="{$wa_app_url}marketing/">
+                            <span class="s-name">[`All promos`]</span>
+                            <span class="count custom-ml-4 js-counter">{$counts.total|escape}</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{$wa_app_url}marketing/?status=active">
+                            <span class="s-name">[`Active promos`]</span>
+                            <span class="count custom-ml-4 js-counter">{$counts.active|escape}</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{$wa_app_url}marketing/?status=planned">
+                            <span class="s-name">[`Scheduled promos`]</span>
+                            <span class="count custom-ml-4 js-counter">{$counts.planned|escape}</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{$wa_app_url}marketing/?status=completed">
+                            <span class="s-name">[`Finished promos`]</span>
+                            <span class="count custom-ml-4 js-counter">{$counts.finished|escape}</span>
+                        </a>
+                    </li>
+
+                    {foreach $additional_items.promos_li as $li}{$li}{/foreach}
+
+                    {foreach $additional_items.tools_li as $li}{$li}{/foreach}
+                </ul>
+
+            </div>
+        </div>
+
+    </div>
+
+    {if !empty($additional_items.custom_html)}
+    <div class="custom-my-12">
+        {foreach $additional_items.custom_html as $block}{$block}{/foreach}
+    </div>
     {/if}
-
-    {capture assign="_plugins_section"}
-        {if $wa->user()->isAdmin('shop') && $wa->user()->isAdmin('installer')}
-            <li>
-                <a href="{$wa_app_url}marketing/plugins/">
-                    <i class="icon16 plugins"></i>
-                    <span class="s-name">[`Plugins`]</span>
-                </a>
-            </li>
-        {/if}
-        {foreach $additional_items.bottom_li as $li}{$li}{/foreach}
-    {/capture}
-
-    {if !empty($_plugins_section)}
-        <div class="s-sidebar-section">
-            <ul class="s-section-list menu-v with-icons">
-                {$_plugins_section}
-            </ul>
-        </div>
-    {/if}
-
-    {foreach $additional_items.custom_html as $block}{$block}{/foreach}
-
-    <div class="s-sidebar-section">
-        <div class="align-center hint">
-            <a href="[`https://www.shop-script.com/help/33511/marketing/`]">[`Help`]</a>
-        </div>
-    </div>
 
     <script>
         ( function($) {

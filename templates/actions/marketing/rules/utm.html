@@ -15,11 +15,13 @@
 
 {/strip}
 
-<div class="s-utm-rule-section js-utm-rule-section" id="js-utm-rule-section-{$_uniqid}">
-    <div class="s-section-description">
-        [`UTM tags help you learn where a customer has come from.`]
-        {sprintf('<a href="%s" target="_blank">%s</a>', '[`https://www.shop-script.com/help/33511/marketing/`]#utm', '[`Read more about UTM tags`]')}  <i class="icon10 new-window" style="vertical-align: .3em;"></i>.
-        [`Press “Enter” upon entering each UTM tag to add it to the list.`]
+<div class="s-utm-rule-section js-utm-rule-section fields" id="js-utm-rule-section-{$_uniqid}">
+    <div class="alert">
+        <div class="s-section-description">
+            [`UTM tags help you learn where a customer has come from.`]
+            {sprintf('<a href="%s" target="_blank">%s</a>', '[`https://www.shop-script.com/help/33511/marketing/`]#utm', '[`Read more about UTM tags`]')}  <i class="fas fa-external-link-alt smaller"></i>.
+            [`Press “Enter” upon entering each UTM tag to add it to the list.`]
+        </div>
     </div>
 
     <input class="js-rule-type" type="hidden" name="{$_rule_name}[rule_type]" value="utm">

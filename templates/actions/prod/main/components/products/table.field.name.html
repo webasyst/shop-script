@@ -11,7 +11,7 @@
                     v-bind:cancel="true"
                     v-bind:key="states.edit_key"
                     v-bind:placeholder="'{_w("Product name")|escape}'"
-                    v-bind:class="'wa-small wide s-square-field'"
+                    v-bind:class="'small wide s-square-field'"
                     v-on:cancel="onCancel"
                     v-on:focus="onFocus"
                     v-on:change="onChange"></component-textarea>
@@ -20,7 +20,7 @@
                 <div class="s-product-name-wrapper">
                     <div class="s-flexbox flexbox">
                         <div class="s-name wide" v-bind:class="name_class">
-                            <span class="icon shift-up-1 size-10 color-gray" v-if="product.product_from_subcategory" data-tooltip-id="product_from_subcategories"><svg><use xlink:href='{$_sprite_url}#folder-tree'></use></svg></span>
+                            <span class="icon shift-up-1 size-10 text-gray" v-if="product.product_from_subcategory" data-tooltip-id="product_from_subcategories"><svg><use xlink:href='{$_sprite_url}#folder-tree'></use></svg></span>
                             <a v-bind:href="'{$wa_app_url}' + product_url">{ { column_data.value } }</a>
                         </div>
                         <div class="s-icon-wrapper">

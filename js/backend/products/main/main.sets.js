@@ -71,14 +71,33 @@
             $.each(that.tooltips, function(i, tooltip) {
                 $.wa.new.Tooltip(tooltip);
             });
-
-            console.log( that );
         };
 
         Page.prototype.initVue = function() {
             let that = this;
 
             let $vue_section = that.$wrapper.find("#js-vue-section");
+
+            Vue.component("component-checkbox", {
+                props: ["value", "label", "disabled", "field_id"],
+                data: function() {
+                    var self = this;
+                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
+                    return {
+                        tag: (self.label !== false ? "label" : "span"),
+                        id: (typeof self.field_id === "string" ? self.field_id : "")
+                    }
+                },
+                template: that.components["component-checkbox"],
+                delimiters: ['{ { ', ' } }'],
+                methods: {
+                    onChange: function(event) {
+                        var self = this;
+                        self.$emit("input", self.value);
+                        self.$emit("change", self.value);
+                    }
+                }
+            });
 
             Vue.component("component-radio", {
                 props: ["value", "name", "val", "label", "disabled"],
@@ -703,13 +722,7 @@
 
                                                 $.waDialog({
                                                     html: that.templates["set-delete-confirm"],
-                                                    onOpen: function($dialog, dialog) {
-                                                        $dialog.on("click", ".js-delete-button", function(event) {
-                                                            event.preventDefault();
-                                                            confirmed = true;
-                                                            dialog.close();
-                                                        });
-                                                    },
+                                                    onOpen: initDialog,
                                                     onClose: function(dialog) {
                                                         if (typeof confirmed === "boolean") {
                                                             if (confirmed) {
@@ -732,6 +745,28 @@
                                                         }
                                                     }
                                                 });
+
+                                                function initDialog($dialog, dialog) {
+                                                    var $vue_section = $dialog.find(".js-vue-section");
+
+                                                    new Vue({
+                                                        el: $vue_section[0],
+                                                        data: {
+                                                            set: self.item,
+                                                        },
+                                                        delimiters: ['{ { ', ' } }'],
+                                                        computed: {},
+                                                        methods: {
+                                                            deleteSet: function() {
+                                                                confirmed = true;
+                                                                dialog.close();
+                                                            }
+                                                        },
+                                                        created: function () {
+                                                            $vue_section.css("visibility", "");
+                                                        }
+                                                    });
+                                                }
 
                                                 return deferred.promise();
                                             }
@@ -805,6 +840,7 @@
                                         },
                                         onSuccess: function(set) {
                                             set = that.formatModelItem(set);
+                                            set.states.count_locked = false;
                                             that.model.unshift(set);
                                         }
                                     }
@@ -878,85 +914,6 @@
 
                             return deferred.promise();
                         }
-                    },
-                    showCallbackDialog: function(event) {
-                        var self = this,
-                            $button = $(event.currentTarget);
-
-                        $.waDialog({
-                            html: that.templates["callback_dialog"],
-                            onOpen: initDialog,
-                            options: {
-                                onSuccess: function() {
-                                    $button.removeClass("animation-pulse");
-                                }
-                            }
-                        });
-
-                        function initDialog($dialog, dialog) {
-                            var is_locked = false;
-
-                            var loading = "<span class=\"icon top\" style='margin-right: .5rem;'><i class=\"fas fa-spinner fa-spin\"></i></span>";
-
-                            var $textarea = $dialog.find("textarea:first");
-
-                            $textarea.on("focus", function() {
-                                var $textarea = $(this);
-
-                                var placeholder = $textarea.data("placeholder");
-                                if (!placeholder) {
-                                    placeholder = $textarea.attr("placeholder");
-                                    $textarea.data("placeholder", placeholder);
-                                }
-
-                                $textarea.attr("placeholder", "");
-                            });
-
-                            $textarea.on("blur", function() {
-                                var $textarea = $(this);
-
-                                var placeholder = $textarea.data("placeholder");
-                                if (placeholder) {
-                                    $textarea.attr("placeholder", placeholder);
-                                }
-                            });
-
-                            $dialog.on("click", ".js-success-button", function() {
-                                var $submit_button = $(this);
-
-                                var value = $.trim($textarea.val());
-                                if (!value.length) { return false; }
-
-                                if (!is_locked) {
-                                    is_locked = true;
-                                    var $loading = $(loading).prependTo( $submit_button.attr("disabled", true) );
-
-                                    addCallback()
-                                        .always( function() {
-                                            is_locked = false;
-                                            $submit_button.attr("disabled", false);
-                                            $loading.remove();
-                                        })
-                                        .done( function() {
-                                            $dialog.find(".dialog-header, .dialog-footer").remove();
-                                            $dialog.find(".dialog-body").html( that.templates["callback_dialog_success"] );
-                                            setTimeout( function() {
-                                                if ($.contains(document, $dialog[0])) {
-                                                    dialog.options.onSuccess();
-                                                    dialog.close();
-                                                }
-                                            }, 3000);
-                                        });
-                                }
-                            });
-
-                            function addCallback() {
-                                var href = that.urls["callback_submit"],
-                                    data = $dialog.find(":input").serializeArray();
-
-                                return $.post(href, data, "json");
-                            }
-                        }
                     }
                 },
                 delimiters: ['{ { ', ' } }'],
@@ -1016,6 +973,7 @@
                 delimiters: ['{ { ', ' } }'],
                 data: {
                     set: formatSet(set),
+                    init_set: null,
                     states: {
                         locked: false,
                         transliterate_xhr: null,
@@ -1124,11 +1082,12 @@
                         }
                     },
                     "component-flex-textarea": {
-                        props: ["value", "placeholder", "cancel", "focus"],
+                        props: ["value", "placeholder", "cancel", "focus", "rows"],
                         data: function() {
                             var self = this;
                             self.focus = (typeof self.focus === "boolean" ? self.focus : false);
                             self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
+                            self.rows = (typeof self.rows === "string" ? self.rows : "");
                             return {
                                 offset: 0,
                                 $textarea: null,
@@ -1178,6 +1137,9 @@
                                 $textarea
                                     .css("min-height", scroll_h + "px")
                                     .css("overflow", "");
+                                if (self.rows === '1') {
+                                    $textarea.css("white-space", "nowrap");
+                                }
                             }
                         },
                         mounted: function() {
@@ -1261,6 +1223,9 @@
                         if (!self.set.name.length) { result = true; }
 
                         return result;
+                    },
+                    status_change_class: function() {
+                        return this.init_set === JSON.stringify(this.set) ? 'green' : 'yellow';
                     }
                 },
                 watch: {
@@ -1415,6 +1380,7 @@
                 },
                 created: function () {
                     $vue_section.css("visibility", "");
+                    this.init_set = JSON.stringify(this.set);
                 },
                 mounted: function() {
                     var self = this;

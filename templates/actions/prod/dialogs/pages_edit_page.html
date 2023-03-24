@@ -6,9 +6,9 @@
                 <h2>{ { page.name ? page.name : {_w("New page")|json_encode} } }</h2>
             </div>
             <div class="dialog-content">
-                <div class="wa-fields">
+                <div class="fields">
                     {* NAME *}
-                    <div class="wa-field">
+                    <div class="field">
                         <div class="name size-small">
                             <span>[`Page title`]</span>
                         </div>
@@ -16,32 +16,32 @@
                             <component-flex-textarea
                                 v-model="page.name"
                                 v-on:input="onChangeName"
-                                v-bind:class="'wa-small wide bold color-black'"></component-flex-textarea>
+                                v-bind:class="'small wide bold'"></component-flex-textarea>
                         </div>
                     </div>
                     {* STATUS *}
-                    <div class="wa-field">
+                    <div class="field">
                         <div class="name size-small unshifted">
                             <span>[`Published on the website`]</span>
                         </div>
                         <div class="value">
                             <component-switch v-model="page.status"
                                               v-on:change="onChangeStatus"
-                                              v-bind:class="'wa-small'"></component-switch>
+                                              v-bind:class="'small'"></component-switch>
                         </div>
                     </div>
                     {* URL *}
-                    <div class="wa-field">
+                    <div class="field">
                         <div class="name size-small">
                             <span>[`Page URL`]</span>
                         </div>
                         <div class="value">
                             <div class="s-field-wrapper">
-                                <input class="full-width wa-small" type="text" v-model="page.url"
+                                <input class="full-width small" type="text" v-model="page.url"
                                        v-bind:class="{ 'wa-error-field' : !!errors['url_required'] }"
                                        v-on:input="onChangeUrl">
 
-                                <div class="wa-error-text" v-if="!!errors['url_required']">
+                                <div class="state-error" v-if="!!errors['url_required']">
                                     { { errors['url_required'].text.length ? errors['url_required'].text : "{_w("The URL is a required field.")|escape}" } }
                                 </div>
                             </div>
@@ -54,7 +54,7 @@
 
                 <div class="s-additional-options-wrapper">
                     <div class="s-additional-options-toggle">
-                        <button class="wa-button wa-small wa-short transparent"
+                        <button class="button small short outlined"
                                 v-on:click.prevent="toggleOptions">
                             <span class="s-text">{_w("Custom parameters")}</span>
                             <span class="s-icon icon baseline shift-1 size-12" v-show="page.expanded"><i class="fas fa-caret-down"></i></span>
@@ -62,9 +62,9 @@
                         </button>
                     </div>
 
-                    <div class="wa-fields" v-if="page.expanded">
+                    <div class="fields" v-if="page.expanded">
                         {* TITLE *}
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name size-small">
                                 <div>[`Page title`]</div>
                                 <div class="hint">&lt;title&gt;</div>
@@ -73,13 +73,13 @@
                                 <div class="s-field-wrapper">
                                     <component-flex-textarea
                                         v-model="page.title"
-                                        v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                        v-bind:class="'small wide'"></component-flex-textarea>
                                 </div>
                             </div>
                         </div>
 
                         {* DESCRIPTION *}
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name size-small">
                                 <div>[`Page description`]</div>
                                 <div class="hint">&lt;meta description&gt;</div>
@@ -88,13 +88,13 @@
                                 <div class="s-field-wrapper">
                                     <component-flex-textarea
                                         v-model="page.description"
-                                        v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                        v-bind:class="'small wide'"></component-flex-textarea>
                                 </div>
                             </div>
                         </div>
 
                         {* KEYWORDS *}
-                        <div class="wa-field">
+                        <div class="field">
                             <div class="name size-small">
                                 <div>[`Keywords`]</div>
                                 <div class="hint">&lt;meta keywords&gt; ([`optional`])</div>
@@ -103,13 +103,13 @@
                                 <div class="s-field-wrapper">
                                     <component-flex-textarea
                                         v-model="page.keywords"
-                                        v-bind:class="'wa-small wide'"></component-flex-textarea>
+                                        v-bind:class="'small wide'"></component-flex-textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="wa-error-text" v-if="!!errors['pages']">
+                <div class="state-error" v-if="!!errors['pages']">
                     { { errors['pages'].text } }
                 </div>
                 <section class="s-editor-section js-editor-section">
@@ -134,7 +134,7 @@
             <div class="dialog-footer">
                 <div class="tablebox middle space-16">
                     <div class="s-column">
-                        <button class="js-success-action wa-button" type="button"
+                        <button class="js-success-action button green" type="button"
                                 v-bind:class="{ 'yellow' : is_changed }"
                                 v-bind:disabled="is_locked"
                                 v-on:click.prevent="save">
@@ -142,7 +142,7 @@
                             <span class="s-name">[`Save`]</span>
                         </button>
 
-                        <button class="js-dialog-close wa-button gray-light" type="button">
+                        <button class="js-dialog-close button light-gray" type="button">
                             <span class="s-icon" v-show="states.close"><i class="fas fa-spinner fa-spin"></i></span>
                             <span class="s-name">[`Close`]</span>
                         </button>
@@ -155,7 +155,7 @@
                         {/if}
                     </div>
                     <div class="s-column align-right">
-                        <button class="wa-button transparent-red" type="button"
+                        <button class="button red outlined" type="button"
                                 v-if="page.id"
                                 v-bind:disabled="is_locked"
                                 v-on:click.prevent="origin_page === null ? deletePage(page) : deletePage(origin_page)">

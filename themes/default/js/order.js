@@ -36,6 +36,10 @@
                     alert("Error");
                 }
             });
+
+            that.$wrapper.on("click", "#wa-step-auth-section", function() {
+                that.$wrapper.find('.wa-step-section').addClass('not-blurred');
+            });
         };
 
         ShopOrderPage.prototype.initUI = function() {

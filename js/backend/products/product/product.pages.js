@@ -938,10 +938,12 @@
 
                     function onTypeChange(type_id) {
                         if (!confirmed && active_type_id === "html" && type_id !== active_type_id) {
-                            if (confirm(that.locales["modification_wysiwyg_message"])) {
+                            $.showModificationWysiwygConfirm().done(function () {
                                 changeType(type_id);
                                 confirmed = true;
-                            }
+                            }).fail(function () {
+                                $section.find('.js-editor-type-toggle [data-id="html"]').trigger('click');
+                            });
                         } else {
                             changeType(type_id);
                         }

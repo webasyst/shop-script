@@ -1,0 +1,190 @@
+{$container_id = uniqid('s-transfer-list-')}
+
+<div id="{$container_id}" class="s-transfer-list-container">
+
+    <!-- plugin hook: 'backend_stocks.%plugin_id%.transfer_list' -->
+    {* @event backend_stocks.%plugin_id%.transfer_list *}
+    {foreach $backend_stocks_hook as $_}{$_.transfer_list|default:''}{/foreach}
+
+
+{function revert_order order=""}{if $order === 'asc' || !$order}desc{else}asc{/if}{/function}
+
+{function name="field_link" field_id="" field_name=""}
+    {if !$disabled_sort}
+        <a class="s-transfer-list-sort" data-sort="{$field_id}" data-order="{if $field_id !== $sort}asc{else}{revert_order order=$order}{/if}" href="javascript:void(0);">{$field_name|escape}</a>
+    {else}
+        <span>{$field_name|escape}</span>
+    {/if}
+{/function}
+
+{capture assign="list"}
+    {if $transfers}
+        <table class="zebra single-lined" id="s-transfer-list">
+            <thead>
+                <tr class="header white">
+                    <th>{field_link field_id='string_id' field_name='[`Transfer ID`]'}</th>
+                    <th>{field_link field_id='status' field_name='[`Status`]'}</th>
+                    <th>{field_link field_id='stock_from.name' field_name='[`Source stock`]'}</th>
+                    <th></th>
+                    <th>{field_link field_id='stock_to.name' field_name='[`Destination stock`]'}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {foreach $transfers as $transfer}
+                    <tr data-id="{$transfer.id}" class='s-transfer-item'>
+                        <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}"><span class="s-link">{$transfer.string_id|escape}</span></a></td>
+                        <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">
+                            {if $transfer.status == 'sent'}
+                                <em class="s-transfer-status-sent"><i class="icon16 status-yellow-tiny"></i>[`On its way`]</em>
+                            {elseif $transfer.status == 'completed'}
+                                <span class="s-transfer-status-completed"><i class="icon16 yes"></i>[`Completed`]</span>
+                            {elseif $transfer.status == 'cancelled'}
+                                <span class="red"><i class="icon16 cross"></i>[`Canceled`]</span>
+                            {/if}
+                            </a></td>
+                        <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{if $transfer.stock_from.name}{$transfer.stock_from.name|escape}{else}<span class="gray" title="[`New arrival`]">&mdash;</span>{/if}</a></td>
+                        <td class="gray"><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">&rarr;</a></td>
+                        <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{$transfer.stock_to.name|escape}</a></td>
+                        <td class="gray"><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{$transfer.create_datetime|wa_date:'humandatetime'}</a></td>
+                    </tr>
+                {/foreach}
+            </tbody>
+        </table>
+    {else}
+        <p>[`There are no pending stock transfers.`]</p>
+    {/if}
+{/capture}
+
+{capture assign="lazyloading"}
+    {if !$disabled_lazyload}
+        <div class="lazyloading-wrapper">
+            <div class="lazyloading-progress-string">
+                {_w('%d transfer','%d transfers', $already_loaded_count)}&nbsp;{sprintf(_w('of %d'), $total_count)}
+            </div><br>
+            <a href="javascript:void(0);" class="lazyloading-link" {if $already_loaded_count >= $total_count}style="display:none;"{/if}>
+                [`Show more transfers`]
+            </a>
+            <span class="lazyloading-progress" style="display:none">
+                <i class="icon16 loading"></i> [`Loading`]
+                <span class="lazyloading-chunk">
+                    {$chunk = max(min($total_count - $already_loaded_count, $limit), 0)}
+                    {_w('%d transfer', '%d transfers', $chunk)}...
+                </span>
+            </span>
+        </div>
+    {/if}
+{/capture}
+
+{if $offset <= 0}
+
+    {$list}
+    {$lazyloading}
+
+    <script>
+        $(function () {
+
+            var container = $('#{$container_id}');
+
+            {if !$disabled_lazyload}
+
+                (function () {
+                    var offset = {$already_loaded_count};
+                    var total_count = {$total_count};
+                    var url = '?module=transfer&action=list{if $sort}&sort={$sort}{if $order === 'desc'}&order=desc{/if}{/if}';
+
+                    $(window).lazyLoad('stop'); // stop previous lazy-load implementation
+
+                    if (offset < total_count) {
+                        var self = this;
+                        $(window).lazyLoad({
+                            container: container,
+                            state: 'wake',
+                            load: function() {
+                                $(window).lazyLoad('sleep');
+                                $('.lazyloading-link', container).hide();
+                                $('.lazyloading-progress', container).show();
+                                $.get(url + '&offset=' + offset + '&total_count=' + total_count, function(data) {
+
+                                    var html = $('<div></div>').html(data);
+                                    var list = html.find('table tbody tr');
+
+                                    if (list.length) {
+                                        offset += list.length;
+                                        $('table', container).append(list);
+                                        if (offset >= total_count) {
+                                            $(window).lazyLoad('stop');
+                                            $('.lazyloading-progress', container).hide();
+                                        } else {
+                                            $(window).lazyLoad('wake');
+                                            $('.lazyloading-link', container).show();
+                                        }
+                                    } else {
+                                        $(window).lazyLoad('stop');
+                                        $('.lazyloading-progress', container).hide();
+                                    }
+
+                                    $('.lazyloading-progress-string', container).
+                                        replaceWith($('.lazyloading-progress-string', html));
+                                    $('.lazyloading-chunk', container).
+                                        replaceWith($('.lazyloading-chunk', html));
+
+                                    html.remove();
+
+                                });
+                            }
+                        });
+                        container.off('click', '.lazyloading-link').on('click', '.lazyloading-link', function() {
+                            $(window).lazyLoad('force');
+                            return false;
+                        });
+                    }
+                })();
+
+            {/if}
+
+            container.bind('info', function (e, transfer_id) {
+                var d = $('#s-transfer-info-' + transfer_id);
+                if (d.length) {
+                    d.parent().remove();
+                }
+                var p = $('<div></div>').appendTo('body');
+                p.load('?module=transferInfo&id=' + transfer_id, function() {
+                    var d = $(this).find('.dialog');
+                    d.on('afterSubmit', function(e, r) {
+                        if (r.status === 'ok') {
+                            var $list = $('.s-stocks-transfers');
+                            var tmp = $('<div>').html(r.data.html);
+                            var item = $('.s-transfer-item[data-id="' + r.data.transfer.id  + '"]', tmp).addClass('highlighted');
+                            $('.s-transfer-item[data-id="' + r.data.transfer.id  + '"]', $list).replaceWith(item);
+                        }
+                    });
+                });
+            });
+
+            container.on('click', '.s-transfer-list-sort', function () {
+                var el = $(this);
+                var container_id = container.attr('id');
+                container.wrap('<div id="'+container_id+'-wrapper"></div>');
+                var wrapper = $("#" + container_id + '-wrapper');
+                wrapper.load('?module=transfer&action=list&sort=' + el.data('sort') + '&order=' + el.data('order'), function () {
+                    container.remove();
+                    wrapper.children().first().unwrap();
+                    wrapper.remove();
+                });
+            });
+
+            // transfer info
+            container.on('click', '.s-transfer-info', function () {
+                var el = $(this);
+                var transfer_id = el.data('id');
+                container.trigger('info', [transfer_id]);
+            });
+        })
+    </script>
+{else}
+    {$list}
+    {$lazyloading}
+{/if}
+
+</div>

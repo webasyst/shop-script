@@ -1,3 +1,4 @@
+let initMainWaSidebar;
 ( function($) {
 
     var Sidebar = ( function($) {
@@ -12,7 +13,7 @@
             that.tooltips = options["tooltips"];
             that.locales = options["locales"];
             that.urls = options["urls"];
-            that.app_url = $.wa_shop_products.app_url;
+            that.app_url = options["app_url"] || $.wa_shop_products.app_url;
 
             // DYNAMIC VARS
             that.$active_menu_item = that.$wrapper.find("li.selected:first");
@@ -22,20 +23,20 @@
 
             // INIT
             that.init();
-
-            console.log( that );
         };
 
         Sidebar.prototype.init = function() {
             let that = this,
-                $document = $(document),
-                $catalog_toggle = that.$wrapper.find(".js-catalog-toggle");
+                $document = $(document);
 
             const active_class = "is-restricted";
+            const selected_class = "selected";
 
             that.setActive();
 
             that.initPin();
+
+            const $menu_toggle = that.$active_menu_item.parent('ul').parent('li').find('.js-group-toggle');
 
             // Скрываем меню у остальных
             that.$wrapper.find(".js-group-toggle").each( function() {
@@ -43,20 +44,26 @@
             });
 
             // Показываем меню у каталога
-            groupExpand($catalog_toggle);
+            if ($menu_toggle.length) {
+                groupExpand($menu_toggle);
+            }
 
             // Открывашки
             that.$wrapper.on("click", ".js-group-toggle", function(event) {
                 event.preventDefault();
                 groupExpand($(this));
+                // переход в первый пункт меню
+                //$(this).parent('li').find('a:first').get(0).click();
             });
 
             // Открывашки по наведению
-            that.$wrapper.on("mouseenter", function(event) {
-                if (!that.states.pinned) {
-                    groupExpand($catalog_toggle, true);
-                }
-            });
+            if ($menu_toggle.length) {
+                that.$wrapper.on("mouseenter", function (event) {
+                    if (!that.states.pinned) {
+                        groupExpand($menu_toggle, true);
+                    }
+                });
+            }
 
             // Подсказки
             $.each(that.tooltips, function(i, tooltip) {
@@ -68,11 +75,24 @@
             function loadWatcher(event) {
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
-                    that.setActive(location.pathname);
+                    that.setActive(location.pathname + location.search + location.hash);
                 } else {
                     $document.off("wa_loaded", loadWatcher);
                 }
             }
+
+            // V2 temporary solution for now
+            $(() => {
+                const $submenu = $menu_toggle.siblings();
+                $submenu.on('click touchstart', 'li', function() {
+                    const $li = $(this);
+
+                    $('li', $submenu).removeClass('selected');
+                    setTimeout(() => {
+                        $li.addClass('selected');
+                    }, 200);
+                });
+            });
 
             // Показываем готовый DOM
             that.$wrapper.css("visibility", "");
@@ -86,8 +106,10 @@
 
                 if (show) {
                     $group.removeClass(active_class);
+                    $group.addClass(selected_class);
                 } else {
                     $group.addClass(active_class);
+                    $group.removeClass(selected_class);
                 }
             }
         };
@@ -109,22 +131,127 @@
             that.$active_menu_item = $item.addClass(active_menu_class);
         };
 
+        Sidebar.prototype.specifyRuleCheck = function(href, relative_path) {
+            let result = href === relative_path;
+            const { hash, pathname, search } = location;
+
+            if (!hash) {
+                return result;
+            }
+
+            const hashTest = (pattern = '#') => new RegExp(pattern).test(hash);
+
+            switch (href) {
+                case pathname + '?action=reports':
+                    result = search === '?action=reports' && hashTest('#sales');
+                    break;
+                case pathname + '?action=storefronts':
+                    result = search === '?action=storefronts' && hashTest('#\\/design\\/theme');
+                    break;
+                case pathname + '?action=storefronts#/design/pages/':
+                    result = search === '?action=storefronts' && hashTest('\\/pages\\/');
+                    break;
+                case pathname + '?action=plugins#installed/':
+                    result = search === '?action=plugins' && hashTest();
+                    break;
+                case pathname + '?action=settings':
+                    result = search === '?action=settings' && hashTest();
+                    break;
+                case pathname + '?action=importexport':
+                    result = search === '?action=importexport' && hashTest();
+                    break;
+
+                default:
+                    break;
+            }
+
+            return result;
+        }
+
+        /**
+         * @param {String?} uri
+         * */
+        Sidebar.prototype.setSidebarLink = function(uri) {
+            var that = this,
+                max_check = 3,
+                count_check = 0;
+
+            var isSettedLink = function(uri) {
+                var $link = that.$wrapper.find('a[href="' + uri + '"]:first');
+                if ($link.length) {
+                    that.setItem($link.closest("li"));
+                    if (console && console.log) {
+                        console.log('setSidebarLink:uri', uri);
+                    }
+
+                    return true;
+                }
+
+                return false;
+            };
+
+            // one more try
+            if (!isSettedLink(uri)) {
+                if (console && console.log) {
+                    console.log('setSidebarLink:uri:more than one try');
+                }
+                var moreTry = function(uri) {
+                    if (count_check === max_check || uri.indexOf('#/') !== -1) {
+                        return;
+                    }
+
+                    var uri_array = uri.split('/').filter(str => !!str) || [];
+                    if (uri_array.length < 3) {
+                        return;
+                    }
+
+                    var new_uri;
+                    var shortenURI = () => {
+                        uri_array.pop();
+                        return '/' + uri_array.join('/') + '/';
+                    };
+
+                    if (count_check > 0) {
+                        new_uri = shortenURI();
+                    } else {
+                        var uri_without_query = uri.split('?')
+                            uri_length = uri_without_query.length;
+                        if (uri_length > 1) {
+                            new_uri = uri_without_query[0];
+                        } else if(uri_length) {
+                            new_uri = shortenURI();
+                        } else {
+                            count_check = max_check;
+                            return;
+                        }
+                    }
+
+                    count_check += 1;
+
+                    if (isSettedLink(new_uri)) {
+                        if (console && console.log) {
+                            console.log('isSettedLink:new_uri', {count_check});
+                        }
+                        count_check = max_check;
+                    } else {
+                        moreTry(new_uri);
+                    }
+                };
+                moreTry(uri);
+            }
+        }
+
         /**
          * @param {String?} uri
          * */
         Sidebar.prototype.setActive = function(uri) {
-            var that = this,
-                $link;
+            var that = this;
 
             if (uri) {
-                $link = that.$wrapper.find('a[href="' + uri + '"]:first');
-                if ($link.length) {
-                    that.setItem($link.closest("li"));
-                }
-
+                that.setSidebarLink(uri);
             } else {
                 var $links = that.$wrapper.find("a[href^='" + that.app_url + "']"),
-                    relative_path = location.pathname + location.search,
+                    relative_path = location.pathname + location.search + location.hash,
                     location_string = location.pathname,
                     max_length = 0,
                     link_index = 0;
@@ -134,7 +261,7 @@
                         href = $link.attr("href"),
                         href_length = href.length;
 
-                    var is_absolute_coincidence = (href === relative_path);
+                    var is_absolute_coincidence = that.specifyRuleCheck(href, relative_path);
                     if (is_absolute_coincidence) {
                         link_index = index;
                         return false;
@@ -199,6 +326,12 @@
                 $name.text(text);
 
                 if (send_request) { request(pin); }
+
+                $(document).trigger('wa_toggle_products_page_sidebar', pin);
+
+                $(function() {
+                    that.signSidebarPinned('.js-main-content', pin);
+                });
             }
 
             function request(pin) {
@@ -213,12 +346,32 @@
             }
         };
 
+        Sidebar.prototype.signSidebarPinned = function(class_container, is_pin) {
+            var container = $(class_container, document);
+            if (!container.length) {
+                return;
+            }
+
+            if (is_pin) {
+                container.addClass('sidebar-pinned');
+            } else {
+                container.removeClass('sidebar-pinned');
+            }
+        }
+
         return Sidebar;
 
     })($);
 
-    $.wa_shop_products.init.initProductsSidebar = function(options) {
-        return new Sidebar(options);
-    };
+    if ($.wa_shop_products) {
+        $.wa_shop_products.init.initProductsSidebar = function(options) {
+            return new Sidebar(options);
+        };
+    }else{
+        initMainWaSidebar = function(options) {
+            return new Sidebar(options);
+        };
+    }
+
 
 })(jQuery);

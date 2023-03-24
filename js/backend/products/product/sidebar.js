@@ -7,12 +7,15 @@
 
             // DOM
             that.$wrapper = options["$wrapper"];
+            that.$nearest_products_wrapper = options["$nearest_products_wrapper"];
 
             // CONST
             that.app_url = $.wa_shop_products.app_url;
+            that.context = (typeof options['context'] !== "undefined" ? options['context'] : {});
 
             // DYNAMIC VARS
-            that.$active_menu_item = that.$wrapper.find("li.selected:first");
+            that.$active_menu_item = that.$wrapper.find("li.selected:first"),
+            that.updated_links = false;
 
             // INIT
             that.init();
@@ -63,6 +66,35 @@
                 that.$active_menu_item.removeClass(active_menu_class);
             }
 
+            if (that.$nearest_products_wrapper.length && !$.isEmptyObject(that.context)) {
+                var $prev = that.$nearest_products_wrapper.find('a:first-of-type'),
+                    $next = that.$nearest_products_wrapper.find('a:last-of-type'),
+                    tab_id = $item.find('a').data('tab-id'),
+                    params = '';
+
+                if (that.context.presentation > 0) {
+                    var context = {
+                        presentation: that.context.presentation,
+                    };
+                    if (that.context.another_section_url.length) {
+                        context.another_section_url = that.context.another_section_url;
+                    }
+                    params ='?' + $.param(context);
+                }
+
+                $prev.attr('href', $prev.data('nearest-product-id') + tab_id + '/' + params);
+                $next.attr('href', $next.data('nearest-product-id') + tab_id + '/' + params);
+
+                if (!that.updated_links) {
+                    that.$wrapper.find("a[href^='" + that.app_url + "']").each(function () {
+                        var $link = $(this);
+
+                        $link.attr('href', $link.attr('href') + params);
+                    });
+                    that.updated_links = true;
+                }
+            }
+
             that.$active_menu_item = $item.addClass(active_menu_class);
         };
 
@@ -74,7 +106,7 @@
                 $link;
 
             if (uri) {
-                $link = that.$wrapper.find('a[href="' + uri + '"]:first');
+                $link = that.$wrapper.find('a[href^="' + uri + '"]:first');
                 if ($link.length) {
                     that.setItem($link.closest("li"));
                 }

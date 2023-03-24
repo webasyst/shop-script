@@ -385,6 +385,49 @@ class shopProdPresentationUpdateProductController extends waJsonController
                     }
                 }
             }
+
+            if ($field_id == 'currency') {
+                $currency_model = new shopCurrencyModel();
+                $primary_currency = wa('shop')->getConfig()->getCurrency();
+                $price = [];
+                $base_prices = [];
+                $product_price = $product_compare_price = $product_base_price = 0;
+                foreach ($changed_column_value['skus'] as &$sku) {
+                    $sku_price = $sku['price'];
+                    $price[] = $sku_price;
+                    $stock_base_ratio = isset($sku['stock_base_ratio']) ? $sku['stock_base_ratio'] : $product->stock_base_ratio;
+                    $base_price = 0;
+                    if ($stock_base_ratio > 0) {
+                        $base_price = $sku_price / $stock_base_ratio;
+                    }
+                    $base_price = min(99999999999.9999, max(0.0001, $base_price));
+                    $base_prices[] = $base_price;
+                    if ($product->sku_id == $sku['id']) {
+                        $product_price = $sku['price'];
+                        $product_compare_price = $sku['compare_price'];
+                        $product_base_price = $base_price;
+                    }
+
+                    $sku['primary_price'] = $currency_model->convert($sku['primary_price'], $changed_column_value['currency'], $primary_currency);
+                }
+                unset($sku);
+
+                if (!$price) {
+                    $price[] = 0;
+                }
+                if (!$base_prices) {
+                    $base_prices[] = 0;
+                }
+                $changed_column_value['min_price'] = $currency_model->convert(min($price), $changed_column_value['currency'], $primary_currency);
+                $changed_column_value['max_price'] = $currency_model->convert(max($price), $changed_column_value['currency'], $primary_currency);
+                $changed_column_value['base_price'] = $currency_model->convert($product_base_price, $changed_column_value['currency'], $primary_currency);
+                $changed_column_value['min_base_price'] = $currency_model->convert(min($base_prices), $changed_column_value['currency'], $primary_currency);
+                $changed_column_value['max_base_price'] = $currency_model->convert(max($base_prices), $changed_column_value['currency'], $primary_currency);
+                $changed_column_value['price'] = $currency_model->convert($product_price, $changed_column_value['currency'], $primary_currency);
+                if (isset($skus[$product['sku_id']]['compare_price'])) {
+                    $changed_column_value['compare_price'] = $currency_model->convert($product_compare_price, $changed_column_value['currency'], $primary_currency);
+                }
+            }
         }
 
         return $changed_column_value;

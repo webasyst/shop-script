@@ -19,22 +19,30 @@
 
         <div class="s-order-form-contact-type-selector-wrapper">
             <label>
-                <input type="radio" name="{$_input_name}" value="{shopCustomer::TYPE_PERSON}"
-                       {if !$contact_type_selector_info[shopCustomer::TYPE_PERSON].enabled}disabled="disabled"{/if}
-                       {if $contact_type_selector_info[shopCustomer::TYPE_PERSON].checked}checked="checked"{/if}> [`Person`]
+                <span class="wa-radio">
+                    <input type="radio" name="{$_input_name}" value="{shopCustomer::TYPE_PERSON}"
+                        {if !$contact_type_selector_info[shopCustomer::TYPE_PERSON].enabled}disabled="disabled"{/if}
+                        {if $contact_type_selector_info[shopCustomer::TYPE_PERSON].checked}checked="checked"{/if}>
+                    <span></span>
+                </span>
+                [`Person`]
             </label>
             <label>
-                <input type="radio" name="{$_input_name}" value="{shopCustomer::TYPE_COMPANY}"
-                       {if !$contact_type_selector_info[shopCustomer::TYPE_COMPANY].enabled}disabled="disabled"{/if}
-                       {if $contact_type_selector_info[shopCustomer::TYPE_COMPANY].checked}checked="checked"{/if}> [`Company`]
+                <span class="wa-radio">
+                    <input type="radio" name="{$_input_name}" value="{shopCustomer::TYPE_COMPANY}"
+                        {if !$contact_type_selector_info[shopCustomer::TYPE_COMPANY].enabled}disabled="disabled"{/if}
+                        {if $contact_type_selector_info[shopCustomer::TYPE_COMPANY].checked}checked="checked"{/if}>
+                    <span></span>
+                </span>
+                [`Company`]
             </label>
             <span>
-                <i class="icon16 loading" style="display: none;"></i>
+                <i class="icon16 fas fa-spin fa-spinner loading" style="display: none;"></i>
             </span>
         </div>
     {/if}
 
-    <div class="s-contact-form-wrapper" data-contact-type="{$contact_info.type}">
+    <div class="s-contact-form-wrapper custom-mt-12" data-contact-type="{$contact_info.type}">
         {$form}
     </div>
 
@@ -148,4 +156,3 @@
         })(jQuery);
     </script>
 </div>
-

@@ -29,6 +29,8 @@ class shopBackendLocAction extends waViewAction
             'On',
             'Off',
             'Close',
+            'Cancel',
+            'Delete',
             'Saved',
             'Empty result',
             'Please select at least one product',

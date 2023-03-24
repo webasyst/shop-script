@@ -54,6 +54,10 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
 
         $result['comment'] = ifset($data, 'input', 'confirm', 'comment', '');
         $result['terms'] = ifset($data, 'input', 'confirm', 'terms', '');
+        $timezone = ifset($data, 'input', 'confirm', 'timezone', null);
+        if ($timezone && in_array($timezone, DateTimeZone::listIdentifiers())) {
+            $data['order']['params'] += ['customer_timezone' => $timezone];
+        }
 
         if ($this->checkout_config['confirmation']['terms'] && !$result['terms']) {
             $errors[] = [

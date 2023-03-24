@@ -1,15 +1,15 @@
-<div class="wa-dialog s-settings-type-edit-confirm-dialog" id="js-settings-type-edit-confirm-dialog">
-    <div class="wa-dialog-background"></div>
-    <div class="wa-dialog-body">
+<div class="dialog s-settings-type-edit-confirm-dialog" id="js-settings-type-edit-confirm-dialog">
+    <div class="dialog-background"></div>
+    <div class="wa-dialog-body dialog-body">
         <form action="" method="post">
             <div class="js-vue-section">
                 {* HEADER *}
-                <header class="wa-dialog-header">
+                <header class="dialog-header">
                     <h1 class="s-title">{sprintf(_w("Confirm “%s” product type’s parameters update"), $type["name"])}</h1>
                 </header>
 
                 {* CONTENT *}
-                <div class="wa-dialog-content">
+                <div class="dialog-content">
                     <div class="s-content-section" v-if="confirm_values.enabled">
                         <div class="s-section-header">
                             <div class="s-title">[`Enabled parameters`]</div>
@@ -23,7 +23,7 @@
                                 {* stock_unit *}
                                 <div class="s-field-wrapper" v-if="confirm_values.enabled.stock_unit">
                                     <div class="name">[`Stock unit`]</div>
-                                    <div class="value">
+                                    <div class="value small">
                                         <select class="s-select" name="migrate[stock_unit_id]"
                                                 v-bind:class="{ 'wa-error-field' : errors['units_error'] }"
                                                 v-bind:disabled="!fractional.stock_unit.editable"
@@ -45,7 +45,7 @@
                                 {* base_unit *}
                                 <div class="s-field-wrapper" v-if="confirm_values.enabled.base_unit">
                                     <div class="name">[`Base unit`]</div>
-                                    <div class="value">
+                                    <div class="value small">
                                         <select class="s-select" name="migrate[base_unit_id]"
                                                 v-bind:class="{ 'wa-error-field' : errors['units_error'] }"
                                                 v-bind:disabled="!fractional.base_unit.editable"
@@ -72,7 +72,7 @@
                                         <div class="s-magic-string">
                                             <div class="s-magic-tail">{sprintf(_w("1 %s"), "{ { selected_stock_unit } }")}&nbsp;=</div>
                                             <span>
-                                                <input class="wa-input is-number js-input" name="migrate[stock_base_ratio]"
+                                                <input class="is-number js-input smaller" type="text" name="migrate[stock_base_ratio]"
                                                        v-bind:class="{ 'wa-error-field' : errors['stock_base_ratio_required'] }"
                                                        v-on:change="onChangeStockBaseRatio"
                                                        v-on:input="checkStockBaseRatio"
@@ -91,7 +91,7 @@
                                      v-bind:class="{ 'is-disabled' : !fractional.order_multiplicity_factor.editable }">
                                     <div class="name">[`Add-to-cart step`]</div>
                                     <div class="value">
-                                        <input class="wa-input is-number js-input" name="migrate[order_multiplicity_factor]"
+                                        <input class="is-number js-input smaller" type="text" name="migrate[order_multiplicity_factor]"
                                                v-bind:disabled="!fractional.order_multiplicity_factor.editable"
                                                v-bind:class="{ 'wa-error-field' : errors['order_multiplicity_factor_error'] }"
                                                v-on:change="onChangeCountDenominator"
@@ -109,7 +109,7 @@
                                      v-bind:class="{ 'is-disabled' : !fractional.order_count_min.editable }">
                                     <div class="name">[`Minimum orderable quantity`]</div>
                                     <div class="value">
-                                        <input class="wa-input is-number js-input" name="migrate[order_count_min]"
+                                        <input class="is-number js-input smaller" type="text" name="migrate[order_count_min]"
                                                v-bind:disabled="!fractional.order_count_min.editable"
                                                v-bind:class="{ 'wa-error-field' : errors['order_count_min_error'] }"
                                                v-on:change="onChangeOrderCountMin"
@@ -127,7 +127,7 @@
                                      v-bind:class="{ 'is-disabled' : !fractional.order_count_step.editable} ">
                                     <div class="name">[`Quantity adjustment with “+/-” buttons`]</div>
                                     <div class="value">
-                                        <input class="wa-input is-number js-input" name="migrate[order_count_step]"
+                                        <input class="is-number js-input smaller" type="text" name="migrate[order_count_step]"
                                                v-bind:disabled="!fractional.order_count_step.editable"
                                                v-bind:class="{ 'wa-error-field' : errors['order_count_step_error'] }"
                                                v-on:change="onChangeOrderCountStep"
@@ -155,7 +155,7 @@
                                 {* stock_unit *}
                                 <div class="s-field-wrapper" v-if="confirm_values.disabled.stock_unit">
                                     <div class="name">[`Stock unit`]</div>
-                                    <div class="value">
+                                    <div class="value small">
                                         <select class="s-select" v-model="fractional.stock_unit.default" disabled>
                                             <option value="">[`Not specified`]</option>
                                             {foreach $fractional["units"] as $_unit}
@@ -168,7 +168,7 @@
                                 {* base_unit *}
                                 <div class="s-field-wrapper" v-if="confirm_values.disabled.base_unit">
                                     <div class="name">[`Base unit`]</div>
-                                    <div class="value">
+                                    <div class="value small">
                                         <select class="s-select" v-model="fractional.base_unit.default" disabled>
                                             <option value="">[`Not specified`]</option>
                                             {foreach $fractional["units"] as $_unit}
@@ -182,7 +182,7 @@
                                 <div class="s-field-wrapper is-disabled" v-if="confirm_values.disabled.order_multiplicity_factor">
                                     <div class="name">[`Add-to-cart step`]</div>
                                     <div class="value">
-                                        <input class="wa-input is-number" v-model="fractional.order_multiplicity_factor.default" disabled>&nbsp;{ { selected_stock_unit } }
+                                        <input class="is-number smaller" type="text" v-model="fractional.order_multiplicity_factor.default" disabled>&nbsp;{ { selected_stock_unit } }
                                     </div>
                                 </div>
 
@@ -190,7 +190,7 @@
                                 <div class="s-field-wrapper is-disabled" v-if="confirm_values.disabled.order_count_min">
                                     <div class="name">[`Minimum orderable quantity`]</div>
                                     <div class="value">
-                                        <input class="wa-input is-number" v-model="fractional.order_multiplicity_factor.value" disabled>&nbsp;{ { selected_stock_unit } }
+                                        <input class="is-number smaller" type="text" v-model="fractional.order_multiplicity_factor.value" disabled>&nbsp;{ { selected_stock_unit } }
                                         <span>[`Equal to the add-to-cart step value.`]</span>
                                     </div>
                                 </div>
@@ -199,7 +199,7 @@
                                 <div class="s-field-wrapper is-disabled" v-if="confirm_values.disabled.order_count_step">
                                     <div class="name">[`Quantity adjustment with “+/-” buttons`]</div>
                                     <div class="value">
-                                        <input class="wa-input is-number" v-model="fractional.order_multiplicity_factor.value" disabled>&nbsp;{ { selected_stock_unit } }
+                                        <input class="is-number smaller" type="text" v-model="fractional.order_multiplicity_factor.value" disabled>&nbsp;{ { selected_stock_unit } }
                                         <span>[`Equal to the add-to-cart step value.`]</span>
                                     </div>
                                 </div>
@@ -209,7 +209,7 @@
                 </div>
 
                 {* FOOTER *}
-                <footer class="wa-dialog-footer">
+                <footer class="dialog-footer">
                     <button class="s-button button yellow js-submit-button" type="submit">[`Save`]</button>
                     <button class="s-button button gray js-close-button" type="button">[`Leave without saving`]</button>
                     <button class="s-button button blue js-cancel-button" type="button">[`Stay`]</button>

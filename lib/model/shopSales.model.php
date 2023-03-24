@@ -1291,7 +1291,8 @@ class shopSalesModel extends waModel
             $storefront_join .= "JOIN shop_order_params AS opst2
                                     ON opst2.order_id=o.id
                                         AND opst2.name='sales_channel' ";
-            $storefront_where .= "AND opst2.value='".$this->escape($options['sales_channel'])."' ";
+            $channel = rtrim($options['sales_channel'], '/*');
+            $storefront_where .= "AND opst2.value IN ('".$this->escape($channel)."', '".$this->escape($channel . '/')."') ";
         }
         return array($storefront_join, $storefront_where);
     }

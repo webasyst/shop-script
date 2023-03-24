@@ -2,56 +2,56 @@
     "sidebar_general" => [
         "id" => "sidebar_general",
         "html" => _w("Product name, publication status, type, tax, categories & sets, descriptions & tags.")|escape,
-        "start_time" => 2000
+        "start_time" => 500
     ],
     "sidebar_sku" => [
         "id" => "sidebar_sku",
         "html" => _w("Product prices, stock quantities, SKUs, variants, features, badges.")|escape,
-        "start_time" => 2000
+        "start_time" => 500
     ],
     "sidebar_media" => [
         "id" => "sidebar_media",
         "html" => _w("Product images, photos, and videos displayed in the storefront.")|escape,
-        "start_time" => 2000
+        "start_time" => 500
     ],
     "sidebar_seo" => [
         "id" => "sidebar_seo",
         "html" => _w("Tools allowing you to manage how a product is indexed by search engines and viewed by social media users.")|escape,
-        "start_time" => 2000
+        "start_time" => 500
     ],
     "sidebar_services" => [
         "id" => "sidebar_services",
         "html" => _w("Additional selectable product options, allowing you to increase the product cost.")|escape,
-        "start_time" => 2000
+        "start_time" => 500
     ],
     "sidebar_related" => [
         "id" => "sidebar_related",
         "html" => _w("Selection of other products, which should be offered to customers as a more valuable replacement or as a useful addition to this product.")|escape,
-        "start_time" => 2000
+        "start_time" => 500
     ],
     "sidebar_pages" => [
         "id" => "sidebar_pages",
         "html" => _w("Additional website pages with extra info about this product.")|escape,
-        "start_time" => 2000
+        "start_time" => 500
     ],
     "sidebar_prices" => [
         "id" => "sidebar_prices",
         "html" => _w("Report on current product prices, stock quantity, availability status, and on promo price changes.")|escape,
-        "start_time" => 2000
+        "start_time" => 500
     ],
     "sidebar_reviews" => [
         "id" => "sidebar_reviews",
         "html" => _w("The list of product reviews added by your customers.")|escape,
-        "start_time" => 2000
+        "start_time" => 500
     ]
 ]}
 
 {if !empty($can_edit)}
     <section class="s-sidebar-section">
         <div class="wa-heading">[`Editing`]</div>
-        <ul class="wa-menu-v">
+        <ul class="menu">
             <li>
-                <a href="{$wa_app_url}products/{$id|escape}/general/">
+                <a href="{$wa_app_url}products/{$id|escape}/general/" data-tab-id="general">
                     <span>[`Basic data`]</span>
                     <span class="count" data-tooltip-id="sidebar_general">
                         <span class="s-icon"><i class="fas fa-question-circle"></i></span>
@@ -59,7 +59,7 @@
                 </a>
             </li>
             <li>
-                <a href="{$wa_app_url}products/{$id|escape}/sku/">
+                <a href="{$wa_app_url}products/{$id|escape}/sku/" data-tab-id="sku">
                     <span>[`Prices & features`]</span>
                     <span class="count" data-tooltip-id="sidebar_sku">
                         <span class="s-icon"><i class="fas fa-question-circle"></i></span>
@@ -67,7 +67,7 @@
                 </a>
             </li>
             <li>
-                <a href="{$wa_app_url}products/{$id|escape}/media/">
+                <a href="{$wa_app_url}products/{$id|escape}/media/" data-tab-id="media">
                     <span>[`Images & videos`]</span>
                     <span class="count" data-tooltip-id="sidebar_media">
                         <span class="s-icon"><i class="fas fa-question-circle"></i></span>
@@ -75,7 +75,7 @@
                 </a>
             </li>
             <li>
-                <a href="{$wa_app_url}products/{$id|escape}/seo/">
+                <a href="{$wa_app_url}products/{$id|escape}/seo/" data-tab-id="seo">
                     <span>[`SEO`]</span>
                     <span class="count" data-tooltip-id="sidebar_seo">
                         <span class="s-icon"><i class="fas fa-question-circle"></i></span>
@@ -83,7 +83,7 @@
                 </a>
             </li>
             <li>
-                <a href="{$wa_app_url}products/{$id|escape}/services/">
+                <a href="{$wa_app_url}products/{$id|escape}/services/" data-tab-id="services">
                     <span>[`Services`]</span>
                     <span class="count" data-tooltip-id="sidebar_services">
                         <span class="s-icon"><i class="fas fa-question-circle"></i></span>
@@ -91,7 +91,7 @@
                 </a>
             </li>
             <li>
-                <a href="{$wa_app_url}products/{$id|escape}/related/">
+                <a href="{$wa_app_url}products/{$id|escape}/related/" data-tab-id="related">
                     <span>[`Related products`]</span>
                     <span class="count" data-tooltip-id="sidebar_related">
                         <span class="s-icon"><i class="fas fa-question-circle"></i></span>
@@ -99,7 +99,7 @@
                 </a>
             </li>
             <li>
-                <a href="{$wa_app_url}products/{$id|escape}/pages/">
+                <a href="{$wa_app_url}products/{$id|escape}/pages/" data-tab-id="pages">
                     <span>[`Subpages`]</span>
                     <span class="count" data-tooltip-id="sidebar_pages">
                         <span class="s-icon"><i class="fas fa-question-circle"></i></span>
@@ -117,10 +117,10 @@
 
 <section class="s-sidebar-section">
     <div class="wa-heading">[`Reports`]</div>
-    <ul class="wa-menu-v">
+    <ul class="menu">
         {if !empty($prices_available)}
             <li>
-                <a href="{$wa_app_url}products/{$id|escape}/prices/">
+                <a href="{$wa_app_url}products/{$id|escape}/prices/" data-tab-id="prices">
                     <span>[`Prices, quantity & availability`]</span>
                     <span class="count" data-tooltip-id="sidebar_prices">
                         <span class="s-icon"><i class="fas fa-question-circle"></i></span>
@@ -141,7 +141,7 @@
         </li>
         *}
         <li>
-            <a href="{$wa_app_url}products/{$id|escape}/reviews/">
+            <a href="{$wa_app_url}products/{$id|escape}/reviews/" data-tab-id="reviews">
                 <span>[`Reviews`]</span>
                 <span class="count" data-tooltip-id="sidebar_reviews">
                     <span class="s-icon"><i class="fas fa-question-circle"></i></span>
@@ -153,7 +153,7 @@
 {*
 <section class="s-sidebar-section">
     <div class="wa-heading">[`Change log`]</div>
-    <ul class="wa-menu-v">
+    <ul class="menu">
         <li class="disabled">
             <a class="flexbox" href="javascript:void(0);">
                 <div class="wa-tooltip custom top wide">

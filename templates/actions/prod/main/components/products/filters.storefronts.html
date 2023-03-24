@@ -1,6 +1,6 @@
 {capture assign="_component_table_filters_storefronts"}
 <div class="s-filter-storefronts-section s-pane-item dropbox">
-    <div class="s-dropbox-toggle js-dropbox-toggle" v-bind:class="{ 'color-blue' : has_value }">
+    <div class="s-dropbox-toggle js-dropbox-toggle" v-bind:class="{ 'text-blue' : has_value }">
         <span class="s-icon icon shift-0"><i class="fas fa-store"></i></span>
         <span class="s-name is-adaptive">[`Storefronts`]</span>
     </div>
@@ -38,10 +38,10 @@
                 </div>
             </div>
             <div class="s-section-footer" v-if="storefronts.length">
-                <button class="wa-button wa-small blue" type="button"
+                <button class="button small blue" type="button"
                         v-bind:disabled="!states.is_changed || !has_value"
                         v-on:click="save">[`Apply`]</button>
-                <button class="wa-button wa-small transparent" type="button"
+                <button class="button small outlined" type="button"
                         v-bind:disabled="!has_value"
                         v-on:click="reset">[`Reset filter`]</button>
             </div>

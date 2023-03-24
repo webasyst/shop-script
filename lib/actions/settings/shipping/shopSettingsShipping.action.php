@@ -90,14 +90,14 @@ class shopSettingsShippingAction extends waViewAction
                 ),
                 'states'      => array(
                     'valid'   => sprintf(
-                        '<i class="icon16 yes"></i>%s',
+                        '<i class="' . $this->iconsClassMap('icon16 yes') . '"></i>%s',
                         sprintf(
                             _w('Shipping plugins retrieve weight from the values of a product feature with code <tt>%s</tt>.'),
                             $weight_code
                         )
                     ),
                     'invalid' =>
-                        '<i class="icon16 exclamation"></i>'.
+                    '<i class="' . $this->iconsClassMap('icon16 exclamation') . '"></i>'.
                         sprintf(
                             _w('Most shipping rate calculation plugins require <strong>product weight</strong> information which is taken from a product feature with code <tt>%s</tt>.'),
                             $weight_code
@@ -121,11 +121,11 @@ class shopSettingsShippingAction extends waViewAction
                 ),
                 'states'      => array(
                     'valid'   => sprintf(
-                        '<i class="icon16 yes"></i>%s',
+                        '<i class="' . $this->iconsClassMap('icon16 yes') . '"></i>%s',
                         _w('Product dimensions are passed on to shipping plugins.')
                     ),
                     'invalid' => sprintf(
-                        '<i class="icon16 exclamation"></i>%s',
+                        '<i class="' . $this->iconsClassMap('icon16 exclamation') . '"></i>%s',
                         _w('Passing of product dimensions on to shipping plugins is not set up.')
                     ),
                 ),
@@ -160,9 +160,9 @@ class shopSettingsShippingAction extends waViewAction
                 'options' => array(),
 
                 'states' => array(
-                    'valid'   => '<i class="icon16 yes"></i>'.
+                    'valid'   => '<i class="' . $this->iconsClassMap('icon16 yes') . '"></i>'.
                         _w('Order dimensions calculation is set up.'),
-                    'invalid' => '<i class="icon16 exclamation"></i>'.
+                    'invalid' => '<i class="' . $this->iconsClassMap('icon16 exclamation') . '"></i>'.
                         _w('Order dimensions calculation is not set up.'),
                 ),
                 'state'  => 'invalid',
@@ -254,5 +254,19 @@ class shopSettingsShippingAction extends waViewAction
         }
 
         return $shipping_params;
+    }
+
+    private function iconsClassMap($class)
+    {
+        if (wa()->whichUI() >= '2.0') {
+            $map = [
+                'icon16 yes' => 'custom-mr-8 fas fa-check-circle text-green',
+                'icon16 exclamation' => 'custom-mr-8 fas fa-exclamation-triangle text-yellow'
+            ];
+
+            return $map[$class];
+        }
+
+        return $class;
     }
 }

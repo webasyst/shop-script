@@ -1,0 +1,75 @@
+{strip}
+
+    {* ДАННЫЕ *}
+
+    {$_page_title = _w("Themes")}
+
+{/strip}
+<div class="s-themes-list-page blank box contentbox" id="js-themes-list-page" style="visibility: hidden;">
+    {* @event backend_themes_list.top *}
+    {if !empty($backend_themes_list)}{foreach $backend_themes_list as $_}{ifset($_.top)}{/foreach}{/if}
+
+    {* BODY *}
+    <div class="s-page-body">
+        {* @event backend_themes_list.middle *}
+        {if !empty($backend_themes_list)}{foreach $backend_themes_list as $_}{ifset($_.middle)}{/foreach}{/if}
+
+        <div class="s-themes-list-wrapper">
+            <div class="s-frame-wrapper" id="js-themes-list"></div>
+            <script>( function($) {
+                    let themes_url = sessionStorage.getItem("shop/themes/list");
+                    themes_url = (themes_url ? themes_url : {$themes_list_url|json_encode});
+                    $("#js-themes-list").html('<i class="fas fa-spin fa-spinner"></i>').load(themes_url);
+                    sessionStorage.removeItem("shop/themes/list");
+                })(jQuery);</script>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+
+            const sources = [{
+                id: "wa-themes-list-css",
+                type: "css",
+                uri: "{$wa_app_static_url}css/backend/themes/themes.css?v={$wa->version()}"
+            }, {
+                id: "wa-themes-list-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/themes/themes.js?v={$wa->version()}"
+            }];
+
+            $.shop.loadSources(sources).then(init, function() {
+                alert("Page Loading Error");
+            });
+
+            function init() {
+                window.initShopThemesListPage({
+                    $wrapper: $("#js-themes-list-page")
+                });
+            }
+
+            setTitle({$_page_title|json_encode} + ' — ' + {$wa->accountName()|json_encode});
+
+            {*
+             * @description iFrame через внутреннюю магию подменяет title при загрузке плагинов.
+             * Код ниже отслеживает изменения document.title, если он поменялся, то возвращает прежнее значение.
+             *}
+            function setTitle(title) {
+                document.title = title;
+
+                const target = document.querySelector("title");
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (document.title !== title) { document.title = title; }
+                    });
+                });
+                const config = { childList: true };
+                observer.observe(target, config);
+            }
+
+        })(jQuery);
+    </script>
+
+    {* @event backend_themes_list.bottom *}
+    {if !empty($backend_themes_list)}{foreach $backend_themes_list as $_}{ifset($_.bottom)}{/foreach}{/if}
+</div>

@@ -1,12 +1,8 @@
 <div id="s-filter-settings" style="display: none">
 
     {if $filter_id}
-        <div class="float-right block half-padded">
-            <ul class="menu-h">
-                <li>
-                    <a href="javascript:void(0);" id="s-delete-filter"><i class="icon16 delete"></i>[`Delete filter`]</a>
-                </li>
-            </ul>
+        <div>
+            <a class="button rounded small light-gray" href="javascript:void(0);" id="s-delete-filter"><i class="fas fa-trash-alt text-red"></i> [`Delete filter`]</a>
         </div>
     {/if}
 
@@ -22,40 +18,47 @@
                     </div>
                 </div>
                 {$can_edit = $filter.mass_edit == 0 || $filter.mass_edit == $wa->user()->getId()}
-                <div class="field">
-                    <div class="name">
+                <div class="field custom-mb-24">
+                    <div class="name for-switch">
                         [`Visible to`]
                     </div>
-                    <div class="value no-shift s-ibutton-checkbox">
-                        <ul class="menu-h">
-                            <li><label for="s-filter-visibility"><span class="s-unselected">[`Only me`]</span></label></li>
-                            <li><input type="checkbox" id="s-filter-visibility" {if $filter.contact_id < 1}checked="checked"{/if} {if !$can_edit}disabled{/if}></li>
-                            <li><label for="s-filter-visibility"><span>[`Everybody`]</span></label></li>
-                        </ul>
-                    </div>
-                    <!-- PUBLIC FILTER details -->
-                    <div class="value no-shift">
-                        <p class="small">
-                            [`Limit visibility only to the selected user groups`]:
-                            <select name="filter[contact_id]" {if !$can_edit}disabled{/if}>
-                                <option value="0" {if $filter.contact_id == 0} selected="selected"{/if}>[`Everybody`]</option>
-                                {foreach $groups as $group_id => $group}
-                                    <option value="-{$group_id}" {if $filter.contact_id == -$group_id} selected="selected"{/if}>{$group|escape}</option>
-                                {/foreach}
-                            </select>
-                        </p>
+                    <div class="value">
+                        <div class="flexbox middle space-8">
+                            <label for="s-filter-visibility">[`Only me`]</label>
+                            <span class="switch small" id="s-filter-visibility-switch">
+                                <input type="checkbox" id="s-filter-visibility" {if $filter.contact_id < 1}checked="checked"{/if} {if !$can_edit}disabled{/if}>
+                            </span>
+                            <label for="s-filter-visibility">[`Everybody`]</label>
+                        </div>
+
+                        <!-- PUBLIC FILTER details -->
+                        <div class="fields">
+                            <div class="field">
+                                <p class="small">
+                                    [`Limit visibility only to the selected user groups`]:
+                                    <select name="filter[contact_id]" {if !$can_edit}disabled{/if}>
+                                        <option value="0" {if $filter.contact_id == 0} selected="selected"{/if}>[`Everybody`]</option>
+                                        {foreach $groups as $group_id => $group}
+                                            <option value="-{$group_id}" {if $filter.contact_id == -$group_id} selected="selected"{/if}>{$group|escape}</option>
+                                        {/foreach}
+                                    </select>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="field" id="dependent-field" {if $filter.contact_id > 0}style="display:none"{/if}>
-                    <div class="name">
+                    <div class="name for-switch">
                         [`Who can edit`]
                     </div>
-                    <div class="value no-shift s-ibutton-checkbox">
-                        <ul class="menu-h">
-                            <li><label for="s-filter-editable"><span class="s-unselected">[`Only me`]</span></label></li>
-                            <li><input type="checkbox" id="s-filter-editable" name="filter[mass_edit]" {if $filter.mass_edit == 0}checked="checked"{/if}  {if !$can_edit}disabled{/if}></li>
-                            <li><label for="s-filter-editable"><span>[`Other users`]</span></label></li>
-                        </ul>
+                    <div class="value">
+                        <div class="flexbox middle space-8">
+                            <label for="s-filter-editable">[`Only me`]</label>
+                            <span class="switch small" id="s-filter-editable-switch">
+                                <input type="checkbox" id="s-filter-editable" name="filter[mass_edit]" {if $filter.mass_edit == 0}checked="checked"{/if}  {if !$can_edit}disabled{/if}>
+                            </span>
+                            <label for="s-filter-editable">[`Other users`]</label>
+                        </div>
                     </div>
                 </div>
                 <div class="field">
@@ -63,9 +66,9 @@
                         [`Icon`]
                     </div>
                     <div class="value">
-                        <ul class="menu-h js-icon-templates s-filter-icon">
+                        <ul class="chips thumbs js-icon-templates s-filter-icon">
                             {foreach $icons as $icon}
-                                <li class="{if ($filter.icon == $icon)} selected{/if}" title="{$icon|escape}"><a href="#" data-icon="{$icon|escape}"><i class="icon16 {$icon|escape}"></i></a></li>
+                                <li class="{if ($filter.icon == $icon)} selected{/if}" title="{$icon|escape}"><a href="#" class="chip" data-icon="{$icon|escape}"><i class="{$wa->shop->convertIcon({$icon|escape})}"></i></a></li>
                             {/foreach}
                             <input type="hidden" name="filter[icon]" value="{$filter.icon|escape|default:''}">
                         </ul>
@@ -82,8 +85,7 @@
                 <div class="value">
                     <input type="hidden" name="filter[hash]" value="{$filter.hash|default:''}">
                     <input type="submit" class="button green submit" value="[`Save`]">
-                    [`or`] <a class="cancel" href="#">[`cancel`]</a>
-
+                    <button class="button light-gray">[`Cancel`]</button>
                 </div>
             </div>
 
@@ -99,60 +101,49 @@
 
         var init = function(container) {
 
-            (function(checkbox) {
-                var duration = 0,
-                    $filter_editable = $('#dependent-field'),
-                    wrapper = checkbox.closest('div.value'),
-                    related = wrapper.nextAll('div.value'),
-                    label_only_me = wrapper.find('li span').first(),
-                    label_everybody = wrapper.find('li span').last();
+            function initSwitch($switch, $filter_editable = false) {
+                var toggleType = function(active) {
+                    var duration = 0,
+                        wrapper = $switch.closest('div.value'),
+                        related = wrapper.find('div.fields'),
 
-                checkbox.change(function () {
-                    if (this.checked) {
+                        $labels = $switch.siblings(),
+                        $label_only_me = $labels.first(),
+                        $label_everybody = $labels.last(),
+
+                        class_unselect = 'text-gray';
+
+                    if (active) {
                         related.find(':input').prop('disabled', false);
                         related.slideDown(duration);
-                        $filter_editable.slideDown(duration);
-                        label_everybody.removeClass('s-unselected');
-                        label_only_me.addClass('s-unselected');
+                        if ($filter_editable) {
+                            $filter_editable.slideDown(duration);
+                        }
+                        $label_only_me.addClass(class_unselect);
+                        $label_everybody.removeClass(class_unselect);
                     } else {
                         related.find(':input').prop('disabled', true);
                         related.slideUp(duration);
-                        $filter_editable.slideUp(duration);
-                        label_everybody.addClass('s-unselected');
-                        label_only_me.removeClass('s-unselected');
+                        if ($filter_editable) {
+                            $filter_editable.slideUp(duration);
+                        }
+                        $label_only_me.removeClass(class_unselect);
+                        $label_everybody.addClass(class_unselect);
                     }
-                }).change().iButton({
-                    labelOn: '',
-                    labelOff: '',
-                    className: 'mini'
-                });
-            })($('#s-filter-visibility'));
+                };
 
-            (function(checkbox) {
-                var duration = 0,
-                    wrapper = checkbox.closest('div.value'),
-                    related = wrapper.next('div.value'),
-                    label_only_me = wrapper.find('li span').first(),
-                    label_everybody = wrapper.find('li span').last();
-
-                checkbox.change(function () {
-                    if (this.checked) {
-                        related.find(':input').prop('disabled', false);
-                        related.slideDown(duration);
-                        label_everybody.removeClass('s-unselected');
-                        label_only_me.addClass('s-unselected');
-                    } else {
-                        related.find(':input').prop('disabled', true);
-                        related.slideUp(duration);
-                        label_everybody.addClass('s-unselected');
-                        label_only_me.removeClass('s-unselected');
+                $switch.waSwitch({
+                    ready: function(wa_switch) {
+                        toggleType(wa_switch.is_active);
+                    },
+                    change: function(active) {
+                        toggleType(active);
                     }
-                }).change().iButton({
-                    labelOn: '',
-                    labelOff: '',
-                    className: 'mini'
                 });
-            })($('#s-filter-editable'));
+            };
+
+            initSwitch($('#s-filter-visibility-switch'), $('#dependent-field'));
+            initSwitch($('#s-filter-editable-switch'));
 
             (function(icons) {
                 icons.on('click', 'li a', function() {
@@ -185,6 +176,7 @@
                             }
                         }
                         container.trigger('afterSubmit', [r]);
+                        $.customers.reloadSidebar();
                     }, 'json');
                     return false;
                 });
@@ -193,16 +185,24 @@
             {if $filter_id}
                 (function(delete_filter_link) {
                     delete_filter_link.click(function() {
-                        if (confirm('[`Delete this customer search?`]')) {
-                            $.post('?module=customers&action=filterDelete', {
-                                id: '{$filter_id}'
-                            }, function(r) {
-                                if (r && r.status === 'ok') {
-                                    $('#s-customer-filters').trigger('delete', ['{$filter_id}']);
-                                    $.wa.setHash('#/all/');
-                                }
-                            }, 'json');
-                        }
+                        $.waDialog.confirm({
+                            title: '[`Delete this customer search?`]',
+                            success_button_title: $_('Delete'),
+                            success_button_class: 'danger',
+                            cancel_button_title: $_('Cancel'),
+                            cancel_button_class: 'light-gray',
+                            onSuccess: function() {
+                                $.post('?module=customers&action=filterDelete', {
+                                    id: '{$filter_id}'
+                                }, function(r) {
+                                    if (r && r.status === 'ok') {
+                                        $('#s-customer-filters').trigger('delete', ['{$filter_id}']);
+                                        $.customers.reloadSidebar();
+                                        $.wa.setHash('#/all/');
+                                    }
+                                }, 'json');
+                            }
+                        });
                         return false;
                     });
                 })($('#s-delete-filter'));
@@ -215,8 +215,6 @@
                 $(this).data('inited', 1);
             }
         });
-
-
 
     });
 </script>

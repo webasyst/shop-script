@@ -1,0 +1,142 @@
+{$stocks_count = count($stocks)}
+
+{function name="product_row" row=[]}
+    <td>
+        <div class="s-stock-productname-column">
+            {if !$product_id}
+                <a href="{shopHelper::getBackendEditorUrl($row['product_id'], '')}">
+                    {$row['product_name']|escape}
+                    <span class="hint">{$row['sku_name']|default:''|escape}</span>
+                </a>
+            {else}
+                {$row['sku_name']|default:''|escape}
+            {/if}
+            <i class="shortener"></i>
+        </div>
+    </td>
+{/function}
+
+{if $stocks_count < 1}
+
+    {capture assign="log_list"}
+        {foreach $log as $row}
+            <tr>
+                <td>{$row['icon']}</td>
+                {product_row row=$row}
+                <td>
+                    {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
+                    {shopHelper::getStockCountIcon($row['after_count'], $row['stock_id'])}
+                    <span class="hint" title="[`In stock`]">
+                        {if $row['after_count'] !== null}{$row['after_count']}{else}∞{/if}
+                    </span>
+                </td>
+                <td>
+                    <div>{$row['description']}<i class="shortener"></i></div>
+                </td>
+                <td class="gray align-right"><div>{$row['datetime']|wa_datetime:humandatetime}</div></td>
+            </tr>
+        {/foreach}
+    {/capture}
+{else}
+    {capture assign="log_list"}
+        {foreach $log as $row}
+            <tr>
+                <td>{$row['icon']}</td>
+                {product_row row=$row}
+                {foreach $stocks as $stock}
+                    <td class="s-stock-column" title="{$stock.name|escape}">
+                        {if $stock['id'] == $row['stock_id']}
+                            {shopHelper::getStockCountIcon($row['after_count'], $row['stock_id'])}
+                            {if $row['after_count'] !== null}{$row['after_count']}{else}∞{/if}
+                            <span class="hint">
+                                {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
+                            </span>
+                        {/if}
+                    </td>
+                {/foreach}
+                <td class="s-stock-column" title="[`All stocks`]">
+                    {if $row.sku_count_show}
+                        {shopHelper::getStockCountIcon($row['after_count'])}
+                        {if $row['after_count'] === null}∞{else}{$row['after_count']}{/if}
+                        {if $row['stock_name']}{$row['stock_name']|escape}{/if}
+                        <span class="hint">
+                            {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
+                        </span>
+                    {/if}
+                </td>
+                <td title="{strip_tags($row['description'])}">
+                    <div>{$row['description']}<i class="shortener"></i></div>
+                </td>
+                <td class="gray align-right"><div>{$row['datetime']|wa_datetime:humandatetime}</div></td>
+            </tr>
+        {/foreach}
+    {/capture}
+
+{/if}
+
+{capture assign="lazy_loading_footer"}
+<div class="block half-padded">
+    <br>
+    <div class="lazyloading-progress-string">{_w('%d log item','%d log items', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+    <span class="lazyloading-progress" style="display:none">
+        <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d log item', '%d log items', min($total_count - $offset - $count, $count))}...</span>
+    </span>
+</div>
+{/capture}
+
+{if !$lazy}
+
+    {function name="get_url_params" stock_id=null order=null}{strip}
+        {if $stock_id || ($stock_id === '0' || $stock_id === 0)}stock_id={$stock_id}&{/if}{if $order}order={$order}{/if}
+    {/strip}{/function}
+
+    {function name="get_url" stock_id=null order=null}{strip}
+        {if $product_id}
+            {get_url_params stock_id=$stock_id order=$reverse_order}
+        {else}
+            #/stockslog/{get_url_params stock_id=$stock_id order=$reverse_order}
+        {/if}
+    {/strip}{/function}
+
+    {if $log}
+        {if $stocks_count < 1}
+            <table class="zebra s-stocks-log single-lined">
+                <tr class="header white">
+                    <th class="min-width"></th>
+                    <th></th>
+                    <th class="s-stock-column">[`Quantity`]</th>
+                    <th>[`Description`]</th>
+                    <th></th>
+                </tr>
+                {$log_list}
+            </table>
+        {else}
+            <table class="zebra s-stocks-log single-lined">
+                <tr class="header white">
+                    <th class="min-width"></th>
+                    <th></th>
+                    {foreach $stocks as $stock}
+                        <th class="s-stock-column" title="{$stock.name|escape}"><div>{$stock.name|escape}<i class="shortener"></i></div></th>
+                    {/foreach}
+                    <th class="s-stock-column"></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                {$log_list}
+            </table>
+        {/if}
+
+        {$lazy_loading_footer}
+
+    {else}
+        {if isset($stocks[$stock_id])}
+            {sprintf('[`There are no stock update records on @%s yet.`]', $stocks[$stock_id]['name'])}
+        {else}
+            [`There are no stock update records yet.`]
+        {/if}
+    {/if}
+
+{else}
+    <table>{$log_list}</table>
+    {$lazy_loading_footer}
+{/if}

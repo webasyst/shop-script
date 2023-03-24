@@ -37,9 +37,16 @@ class shopProdDeleteProductsController extends waJsonController
             $not_allowed_ids = array_diff($product_ids, $delete_ids);
             $this->response['deleted'] = $delete_ids;
             $this->response['not_allowed'] = $not_allowed_ids;
-            $delete_log_action = count($delete_ids) > 1 ? 'products_delete' : 'product_delete';
             $delete_ids_with_name = $product_model->select('id, name')->where('id IN (?)', implode(',', $delete_ids))->fetchAll('id');
-            $this->logAction($delete_log_action, $delete_ids_with_name);
+            $count_all_products = count($delete_ids_with_name);
+            if ($count_all_products > 1) {
+                for ($offset = 0; $offset < $count_all_products; $offset += 200) {
+                    $part_products = array_slice($delete_ids_with_name, $offset, 200, true);
+                    $this->logAction('products_delete', $part_products);
+                }
+            } else {
+                $this->logAction('product_delete', $delete_ids_with_name);
+            }
             return $product_model->delete($delete_ids);
         }
         return false;

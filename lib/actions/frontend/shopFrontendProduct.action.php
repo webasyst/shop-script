@@ -740,7 +740,11 @@ class shopFrontendProductAction extends shopFrontendAction
 
                 if ($row['status'] && $row['price'] !== null) {
                     // update price for service variant, when it is specified for this product
-                    $services[$row['service_id']]['variants'][$row['service_variant_id']]['price'] = $row['price'];
+                    if (isset($services[$row['service_id']]) && $services[$row['service_id']]['currency'] !== '%') {
+                        $services[$row['service_id']]['variants'][$row['service_variant_id']]['price'] = shop_currency($row['price'], $services[$row['service_id']]['unconverted_currency'], null, false);
+                    } else {
+                        $services[$row['service_id']]['variants'][$row['service_variant_id']]['price'] = $row['price'];
+                    }
                     // !!! also set other keys related to price
                 }
                 if ($row['status'] == shopProductServicesModel::STATUS_DEFAULT) {
@@ -751,7 +755,11 @@ class shopFrontendProductAction extends shopFrontendAction
                 if (!$row['status']) {
                     $skus_services[$row['sku_id']][$row['service_id']][$row['service_variant_id']] = false;
                 } else {
-                    $skus_services[$row['sku_id']][$row['service_id']][$row['service_variant_id']] = $row['price'];
+                    if ($row['price'] !== null && isset($services[$row['service_id']]) && $services[$row['service_id']]['currency'] !== '%') {
+                        $skus_services[$row['sku_id']][$row['service_id']][$row['service_variant_id']] = shop_currency($row['price'], $services[$row['service_id']]['unconverted_currency'], null, false);
+                    } else {
+                        $skus_services[$row['sku_id']][$row['service_id']][$row['service_variant_id']] = $row['price'];
+                    }
                 }
             }
         }

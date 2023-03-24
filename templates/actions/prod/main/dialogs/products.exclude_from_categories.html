@@ -35,10 +35,10 @@
             <div class="s-icon-column">
                 <label v-bind:for="'category['+category.id+'][checkbox]'">
                     <template v-if="category.type === '0'">
-                        <span class="s-icon icon size-14 shift-inherit color-gray-light" v-bind:key="'fa-folder'"><i class="fas fa-folder"></i></span>
+                        <span class="s-icon icon size-14 shift-inherit text-light-gray" v-bind:key="'fa-folder'"><i class="fas fa-folder"></i></span>
                     </template>
                     <template v-else>
-                        <span class="s-icon icon size-18 shift-inherit color-gray-light" v-bind:key="'fa-folder'">
+                        <span class="s-icon icon size-18 shift-inherit text-light-gray" v-bind:key="'fa-folder'">
                             <svg><use xlink:href="{$_sprite_url}#folder-dynamic"></use></svg>
                         </span>
                     </template>
@@ -99,11 +99,11 @@
 
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
+                <button class="button" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
                     <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name">[`Remove from categories`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

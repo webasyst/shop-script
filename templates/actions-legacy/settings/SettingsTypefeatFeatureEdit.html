@@ -1,0 +1,362 @@
+{strip}
+
+{$_is_divider = false}
+{if !empty($feature.type) && $feature.type === "divider"}
+    {$_is_divider = true}
+{/if}
+
+{$_title = _w("New feature")}
+{$_button_text = _w("Save")}
+{if !empty($feature.id)}
+    {$_title = sprintf("[`Feature “%s”`]", $feature.name|default:"")}
+{/if}
+{if !empty($_is_divider)}
+    {if !empty($feature.name)}
+        {$_title = sprintf("[`Feature group heading “%s”`]", $feature.name|default:"")}
+    {else}
+        {$_title = _w("Feature group heading")}
+    {/if}
+{/if}
+
+{$_active_kind_id = null}
+{$_active_kind = null}
+{if !empty($feature.kind)}
+    {$_active_kind_id = $feature.kind}
+    {if !empty($_active_kind_id) && !empty($kinds[$_active_kind_id])}
+        {$_active_kind = $kinds[$_active_kind_id]}
+    {/if}
+{/if}
+
+{$_active_format_id = null}
+{$_active_format = null}
+{if !empty($_active_kind.formats) && !empty($feature.format)}
+    {$_active_format_id = $feature.format}
+    {if !empty($_active_format_id) && in_array($_active_format_id, $_active_kind.formats) && !empty($formats[$_active_format_id])}
+        {$_active_format = $formats[$_active_format_id]}
+    {/if}
+{/if}
+
+{function name="_render_feature_value_item"}
+    <div class="s-feature-value-wrapper">
+        <div class="wa-table-box inline">
+            <div class="s-column">
+                <div class="s-actions">
+                    <span class="s-action js-feature-value-sort"><i class="s-icon icon16 sort"></i></span>
+                </div>
+            </div>
+            <div class="s-column">
+                <div class="s-fields">
+                    <input class="js-field-id" type="hidden" name="values[id][]" value="">
+                    <input class="s-field js-field-value" type="text" name="values[value][]" value="" placeholder="[`Value`]" required>
+                </div>
+            </div>
+            <div class="s-column">
+                <div class="s-actions align-right">
+                    <span class="s-action js-feature-value-remove"><i class="s-icon icon10 delete"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+{/function}
+
+{capture assign="_unit_select"}
+    <select class="s-select js-field-unit" name="values[unit][]"></select>
+{/capture}
+
+{capture assign="_color_widget"}
+    <div class="s-color-picker-widget">
+        <i class="s-icon icon16 color"></i>
+        <input class="s-field js-field-code" type="text" name="values[code][]" required>
+        <div class="s-place js-color-picker"></div>
+    </div>
+{/capture}
+
+{capture assign="_feature_value_item"}{_render_feature_value_item}{/capture}
+
+{/strip}
+
+<div class="wa-dialog s-settings-feature-edit-dialog" id="js-settings-feature-edit-dialog">
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body">
+
+        <form action="" method="post">
+            {* HEADER *}
+            <header class="wa-dialog-header">
+                <h1 class="s-title">{$_title|escape}</h1>
+                {if !empty($product_id)}
+                    <div class="wa-message wa-small info flexbox space-8">
+                        <div class="message-icon"><i class="fas fa-info-circle"></i></div>
+                        <div class="message-text wide">[`The feature will be available for all products of this type.`]</div>
+                    </div>
+                {/if}
+                {if $_is_divider}
+                    <div class="s-header-description">
+                        <p>[`Headings help organize a long list of features into smaller groups. Examples of headings: “Main&nbsp;features”, “Extra&nbsp;features“, “Manufacturer&nbsp;details”.`]</p>
+                    </div>
+                {/if}
+            </header>
+
+            {* CONTENT *}
+            <div class="wa-dialog-content">
+                <input type="hidden" name="id" value="{$feature.id|default:""|escape}">
+
+                <div class="s-fields-wrapper">
+                    <div class="wa-table-box fixed space-10">
+                        <div class="s-column">
+                            <div class="s-field-section">
+                                <label class="s-label">[`Name`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`This feature’s name visible both in the storefront and in the store backend.`]</span></span></label>
+                                <input class="s-field js-name-field" type="text" name="feature[name]" value="{$feature.name|default:""|escape}" required>
+                            </div>
+
+                            <div class="s-field-section">
+                                <label class="s-label">[`Identifier`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`It is used to uniquely identify a feature within the system. For instance, you may use it to show some feature-related information in a design template.`]</span></span></label>
+                                {if $feature.builtin}
+                                    <input type="hidden" name="feature[code]" value="{$feature.code|default:""|escape}">
+                                    <input class="s-field js-code-field" type="text" value="{$feature.code|default:""|escape}" disabled>
+                                {else}
+                                    <input class="s-field js-code-field" type="text" name="feature[code]" value="{$feature.code|default:""|escape}" required>
+                                {/if}
+                            </div>
+
+                            {strip}
+                            <div class="s-field-section">
+                                <div class="s-checkbox-list">
+                                    <label class="s-checkbox-wrapper">
+                                        <input type="hidden" name="feature[visible_in_frontend]" value="">
+                                        <input class="s-checkbox js-visibility-field" type="checkbox" name="feature[visible_in_frontend]" value="1" {if !empty($feature.visible_in_frontend)}checked{/if}>
+                                        <i class="s-icon icon16 {if !empty($feature.visible_in_frontend)}visibility-on{else}ss visibility{/if}"></i>
+                                        <span class="s-text">[`Show on website`]</span>&nbsp;<span class="shop-tooltip"><i class="icon10 info"></i><span>[`Disable to make the feature visible only to the store administrator and not visible to visitors in the storefront.`]</span></span>
+                                    </label>
+                                    {if empty($_is_divider)}
+                                        <label class="s-checkbox-wrapper">
+                                            {if $can_disable_sku}
+                                                <input type="hidden" name="feature[available_for_sku]" value="">
+                                                <input class="s-checkbox js-available-field" type="checkbox" name="feature[available_for_sku]" value="1" {if !empty($feature.available_for_sku)}checked{/if}>
+                                            {else}
+                                                <input type="hidden" name="feature[available_for_sku]" value="1">
+                                                <input class="s-checkbox" type="checkbox" checked disabled>
+                                            {/if}
+                                            <i class="s-icon icon16 {if !empty($feature.available_for_sku)}hierarchical{else}hierarchical-off{/if}"></i>
+                                            <span class="s-text">[`Allow editing of feature values for product SKUs`]</span>&nbsp;
+                                            {if !$can_disable_sku}
+                                                {if $feature.code == 'weight'}
+                                                    <span class="shop-tooltip"><i class="icon10 info"></i><span>[`“Weight” is a special feature, which must always be available for editing in product SKUs’ properties.`]</span></span>
+                                                {elseif $feature.code === 'gtin'}
+                                                    <span class="shop-tooltip"><i class="icon10 info"></i><span>[`“GTIN (Global Trade Item Number)” is a special feature, which must always be available for editing in product SKUs’ properties.`]</span></span>
+                                                {else}
+                                                    <span class="shop-tooltip"><i class="icon10 info"></i><span>[`You cannot disable the editing of this feature’s values in product SKUs’ properties, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode.`]</span></span>
+                                                {/if}
+                                            {/if}
+                                        </label>
+                                    {/if}
+                                </div>
+                            </div>
+                            {/strip}
+
+                            <div class="s-field-section js-type-field-section">
+                                <label class="s-label">[`Product types`]</label>
+
+                                <div class="s-radio-list">
+                                    {if $selected_type}
+                                        <div class="s-radio-wrapper is-active">
+                                            <label class="s-radio-label">
+                                                <input class="s-radio js-type-group-field" type="radio" name="feature[all_types_is_checked]" value="{$selected_type.id}" checked>
+                                                <span class="s-text">{sprintf_wp('Use for product type “<strong>%s</strong>”', $selected_type.name|escape)}</span>
+                                            </label>
+                                        </div>
+                                    {/if}
+                                    <div class="s-radio-wrapper {if !$selected_type && !empty($all_types_is_checked)}is-active{/if}">
+                                        <label class="s-radio-label">
+                                            <input class="s-radio js-type-group-field" type="radio" name="feature[all_types_is_checked]" value="all" {if !$selected_type && !empty($all_types_is_checked)}checked{/if}>
+                                            <span class="s-text{if !$selected_type} bold{/if}">[`Use for all product types`]</span>
+                                        </label>
+                                    </div>
+                                    <div class="s-radio-wrapper {if !$selected_type && empty($all_types_is_checked)}is-active{/if}">
+                                        <label class="s-radio-label">
+                                            <input class="s-radio js-type-group-field" type="radio" name="feature[all_types_is_checked]" value="0" {if !$selected_type && empty($all_types_is_checked)}checked{/if}>
+                                            <span class="s-text">[`Use only for selected types`]</span>
+                                        </label>
+
+                                        {strip}
+                                        <div class="s-checkbox-list">
+                                            {$_all_is_checked = true}
+                                            {foreach $types as $_type}
+                                                {if empty($_type.is_checked)}
+                                                    {$_all_is_checked = false}
+                                                    {break}
+                                                {/if}
+                                            {/foreach}
+
+                                            <label class="s-checkbox-wrapper s-all-checkbox-wrapper">
+                                                <input class="s-checkbox js-all-types-field" type="checkbox" {if !empty($_all_is_checked)}checked{/if}>
+                                                <span class="s-text">[`Select all`]</span>
+                                            </label>
+
+                                            {foreach $types as $_type}
+                                                <label class="s-checkbox-wrapper">
+                                                    <input class="s-checkbox js-type-field" type="checkbox" name="types[{$_type.id}]" value="{$_type.id}" {if !empty($_type.is_checked)}checked{/if}>
+                                                    {shopHelper::getIcon($_type.icon)}
+                                                    <span class="s-text">{$_type.name|escape}</span>
+                                                </label>
+                                            {/foreach}
+                                        </div>
+                                        {/strip}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {if !empty($_is_divider)}
+                            <input type="hidden" name="feature[type]" value="divider">
+                        {else}
+                            <div class="s-column">
+                                {* VIEWS *}
+                                <div class="s-field-section js-field-kind-section">
+                                    <label class="s-label">[`Type`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Select the kind of values which you need to be stored in this feature.`]</span></span></label>
+                                    <select class="s-select js-select" name="feature[kind]" {if $feature.builtin}disabled="disabled"{/if}>
+                                        {foreach $kinds as $_kind}
+                                            {$_is_active = false}
+                                            {if !empty($_active_kind) && $_active_kind.id === $_kind.id}
+                                                {$_is_active = true}
+                                            {/if}
+                                            <option value="{$_kind.id|escape}" {if !empty($_is_active)}selected{/if}>{$_kind.title|escape}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+
+                                {* FORMATS *}
+                                <div class="s-field-section js-field-format-section" style="{if empty($_active_kind.formats)}display:none;{/if}">
+                                    <label class="s-label">
+                                        [`Format`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Choose how you want to edit the values of this feature`]</span></span>
+                                    </label>
+                                    {if !empty($_active_kind)}
+                                        <select class="s-select js-select" name="feature[format]" {if $feature.builtin}disabled="disabled"{/if}>
+                                            {foreach $_active_kind.formats as $_format_id}
+                                                {if !empty($formats[$_format_id])}
+                                                    {$_format = $formats[$_format_id]}
+                                                    {$_is_active = false}
+                                                    {if !empty($_active_format) && $_active_format.id === $_format.id}
+                                                        {$_is_active = true}
+                                                    {/if}
+                                                    <option value="{$_format.id|escape}" {if !empty($_is_active)}selected{/if}>{$_format.title|escape}</option>
+                                                {/if}
+                                            {/foreach}
+                                        </select>
+                                    {/if}
+                                </div>
+
+                                {* FORMAT DEFAULT VALUE *}
+                                <div class="s-field-section js-field-default-unit-section" style="{if empty($_active_kind.dimensions)}display:none;{/if}">
+                                    <label class="s-label">
+                                        [`Default measurement unit`] <span class="shop-tooltip right"><i class="icon10 info"></i><span>[`You will be able to select measurement units for feature values when completing them in products’ properties.`]</span></span>
+                                    </label>
+                                    <select class="s-select js-select" name="feature[default_unit]">
+                                        {* JS GENERATION *}
+                                        {$active_dimensions = []}
+                                        {if isset($_active_kind.length_dimensions) && !empty($_active_format.is_multidimensional)}
+                                            {$active_dimensions = $_active_kind.length_dimensions}
+                                        {elseif isset($_active_kind.dimensions)}
+                                            {$active_dimensions = $_active_kind.dimensions}
+                                        {/if}
+                                        {if !empty($active_dimensions)}
+                                            {foreach $active_dimensions as $_dimension}
+                                                {$_is_active = (!empty($feature.default_unit) && $feature.default_unit === $_dimension.id)}
+                                                <option value="{$_dimension.id|escape}" {if !empty($_is_active)}selected{/if}>{$_dimension.title|escape}</option>
+                                            {/foreach}
+                                        {/if}
+                                    </select>
+                                </div>
+
+                                {* VALUES *}
+                                <div class="s-field-section js-field-value-section">
+                                    <label class="s-label">[`Value`]</label>
+                                    <div class="s-feature-values-section js-feature-values-section">
+                                        <div class="s-section-header">
+                                            <a class="inline-link js-feature-value-add" href="javascript:void(0);"><i class="icon16 add"></i><b><i>[`Add feature value`]</i></b></a>
+                                        </div>
+                                        <div class="s-section-body">
+                                            <div class="s-feature-values-list">{* JS GENERATION *}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            {* FOOTER *}
+            <footer class="wa-dialog-footer">
+                <div class="s-errors-place js-errors-place"></div>
+
+                <div class="wa-table-box middle">
+                    <div class="s-column">
+                        <button class="s-button button green js-submit-button" type="submit">{$_button_text|escape}</button>
+                        <span class="s-divider">[`or`]</span>
+                        <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+                    </div>
+                    <div class="s-column align-right">
+                        {*if !empty($feature.id)}
+                            <a href="javascript:void(0);" class="s-delete-link js-feature-delete"><i class="icon16 delete"></i> [`Delete`]</a>
+                        {/if*}
+                    </div>
+                </div>
+            </footer>
+            {$wa->csrf()}
+        </form>
+
+    </div>
+
+    {strip}
+    {capture assign="_kind_warning_message"}
+        <div class="s-warning-message">
+            <i class="icon10 exclamation"></i>&nbsp;
+            <span class="s-text">[`When the feature type is changed, its values for all products are automatically converted to the new type.`]</span>
+            <span class="shop-tooltip right"><i class="icon10 info"></i><span style="width: 300px;">[`In cases when a feature value cannot be correctly converted to a new data type, such a value may be lost. For instance, when you change the feature type from text to numbers, then text values containing only numbers, such as “100” or “200”, will be converted to corresponding numbers 100 and 200, and all values which have no numerical representation, such as “yes”, “no”, “red”, etc., will be lost and converted to number 0. There will be no option to restore such lost values.`]</span></span>
+        </div>
+    {/capture}
+
+    {capture assign="_skus_warning_message"}{if $can_disable_sku && $sku_values_count > 0}
+        <div class="s-warning-message">
+            <i class="icon10 exclamation"></i>&nbsp;
+            <span class="s-text">{_w(
+                'If you disable the availability of this feature in product SKUs’ properties, this will delete all its values from %d SKU.',
+                'If you disable the availability of this feature in product SKUs’ properties, this will delete all its values from %d SKUs.',
+                $sku_values_count
+            )}</span>
+            &nbsp;
+            <span class="shop-tooltip right"><i class="icon10 info"></i><span style="width: 300px;">[`Deleted will be only feature values stored in <strong>SKUs’</strong> properties. Values stored in <strong>products’</strong> properties will not be affected.`]</span></span>
+        </div>
+    {/if}{/capture}
+    {/strip}
+
+    <script>
+        ( function($) {
+            var $wrapper = $("#js-settings-feature-edit-dialog").removeAttr("id"),
+                dialog = $wrapper.data("dialog");
+
+            dialog.options.initFeatureDialog({
+                $wrapper: $wrapper,
+                dialog: dialog,
+                kinds: {$kinds|json_encode},
+                formats: {$formats|json_encode},
+                feature: {if !empty($feature)}{$feature|json_encode}{else}null{/if},
+                feature_id: {if !empty($feature.id)}{$feature.id|json_encode}{else}null{/if},
+                active_kind_id: {if !empty($_active_kind)}{$_active_kind.id|json_encode}{else}null{/if},
+                active_format_id: {if !empty($_active_format)}{$_active_format.id|json_encode}{else}null{/if},
+                show_skus_warning: {if !empty($_skus_warning_message)}true{else}false{/if},
+                urls: {
+                    "transliterate": {$wa_app_url|json_encode} + "?module=backend&action=transliterate",
+                    "feature_save": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=featureSave"
+                },
+                templates: {
+                    "kind_warning_message": {$_kind_warning_message|json_encode},
+                    "skus_warning_message": {$_skus_warning_message|json_encode},
+                    "feature_value_item": {$_feature_value_item|json_encode},
+                    "unit_select": {$_unit_select|json_encode},
+                    "color_widget": {$_color_widget|json_encode}
+                }
+            });
+        })(jQuery);
+    </script>
+</div>

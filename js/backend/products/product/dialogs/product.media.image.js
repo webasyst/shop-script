@@ -24,8 +24,6 @@
 
         Dialog.prototype.init = function() {
             var that = this;
-
-            console.log( that );
         };
 
         Dialog.prototype.initVue = function() {

@@ -1,0 +1,262 @@
+{include file="./SettingsCheckout2Blocks.inc.html" inline}
+{$_title = "[`Checkout`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}
+{$_class = 's-settings-checkout-content'}
+{$_id = uniqid($_class)}
+{* Render checkout settings sidebar *}
+{$checkout_sidebar}
+
+{if $route && $checkout_config}
+<div class="{$_class} content blank left200px" id="{$_id}">
+    <div class="s-settings-form">
+        <form action="?module=SettingsCheckout2Save">
+            <div class="block double-padded">
+                <h1>
+                    {sprintf('[`<span class="s-checkout-2-label">In-cart checkout</span> setting for <i class="icon16 status-green"></i><span class="gray">%s/%s</span>`]', {$route.domain}, {$route.url|default:null|escape})}
+                </h1>
+
+                <div class="s-page-description" style="margin: 0 0 2em;">
+                    {$_storefront_settings_path = sprintf("?action=storefronts#/design/theme=%s&domain=%s&route=%s&action=settings", $route.theme|default:'default'|urlencode, waIdna::enc($route.domain)|urlencode, $route.route_id|urlencode)}
+                    <div>
+                        <a href="[`https://www.shop-script.com/help/29577/in-cart-checkout-settings/`]" target="_blank"><i class="icon16 info"></i>[`Setup instructions`]</a>
+                    </div>
+                    <div style="margin: 2em 0 0;">
+                        <span style="color: #888">{sprintf('[`In <a href="%s" target="_blank">storefront settings <i class="icon16 new-window"></i></a> you can switch between <strong>multi-step checkout</strong> and <strong>in-cart checkout</strong>.`]', $_storefront_settings_path)}</span>
+                    </div>
+                </div>
+
+                {* DESIGN SETTINGS *}
+                {design_block settings=$checkout_config.design}
+
+                {*<div><a href="#">[`Checkout page demo`]</a> <i class="icon16 new-window"></i></div>*}
+
+                <table class="s-big-table js-big-table" style="width: 100%; margin: 20px 0;">
+                    <tbody>
+                        {* CART SETTINGS *}
+                        <tr class="js-block-wrapper" data-block="cart">
+                            <td class="s-block-container">
+                                {* Show/hide settings *}
+                                <div class="float-right">
+                                    <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link">
+                                        <i class="icon16 settings"></i>
+                                        <b><i>[`Settings`]</i></b>
+                                    </a>
+                                </div>
+                                <h3 class="name">[`Cart`]</h3>
+                                <div class="js-block-content" style="display: none;">
+                                    {cart_block settings=$checkout_config.cart}
+                                </div>
+                            </td>
+                        </tr>
+
+                        {* RECOMMENDATIONS SETTINGS *}
+                        <tr class="js-block-wrapper" data-block="cart">
+                            <td class="s-block-container">
+                                {* Show/hide settings *}
+                                <div class="float-right">
+
+                                    <div class="s-toggle-wrapper js-block-toggle-wrapper">
+                                        <input type="hidden" name="data[recommendations][used]" value="0" />
+                                        <input id="recommendations_used" name="data[recommendations][used]" class="ibutton js-toggle" type="checkbox"{if $checkout_config.recommendations.used} checked="checked"{/if}>
+                                        <label for="recommendations_used">
+                                            <span class="s-toggle-status js-toggle-status{if !$checkout_config.recommendations.used} disabled{/if}">{if $checkout_config.recommendations.used}[`Enabled`]{else}[`Disabled`]{/if}</span>
+                                        </label>
+                                    </div>
+
+                                    <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link"{if !$checkout_config.recommendations.used} style="display: none;"{/if}>
+                                        <i class="icon16 settings"></i>
+                                        <b><i>[`Settings`]</i></b>
+                                    </a>
+                                </div>
+                                <h3 class="name">[`Recommendations`]</h3>
+                                <div class="js-block-content" style="display: none;">
+                                    {recommendations_block settings=$checkout_config.recommendations}
+                                </div>
+                            </td>
+                        </tr>
+
+                        {* ORDER SETTINGS *}
+                        <tr class="block-wrapper js-block-wrapper" data-block="order">
+                            <td class="s-block-container">
+                                {* Show/hide settings *}
+                                <div class="float-right">
+                                    <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link">
+                                        <i class="icon16 settings"></i>
+                                        <b><i>[`Settings`]</i></b>
+                                    </a>
+                                </div>
+                                <h3 class="name">[`General checkout settings`]</h3>
+                                <div class="js-block-content" style="display: none;">
+                                    {order_block settings=$checkout_config.order}
+                                </div>
+                            </td>
+                        </tr>
+
+                        {* CUSTOMER SETTINGS *}
+                        <tr class="js-block-wrapper" data-block="customer">
+                            <td class="s-block-container">
+                                {* Show/hide settings *}
+                                <div class="float-right">
+                                    <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link">
+                                        <i class="icon16 settings"></i>
+                                        <b><i>[`Settings`]</i></b>
+                                    </a>
+                                </div>
+                                <h3 class="name">[`Customer`]</h3>
+                                <div class="js-block-content" style="display: none;">
+                                    {customer_block settings=$checkout_config.customer}
+                                </div>
+                            </td>
+                        </tr>
+
+                        {* SHIPPING SETTINGS *}
+                        <tr class="js-block-wrapper" data-block="shipping">
+                            <td class="s-block-container">
+                                {* Show/hide settings *}
+                                <div class="float-right">
+                                    {if !empty($shipping_plugins)}
+                                        <div class="s-toggle-wrapper js-block-toggle-wrapper">
+                                            <input type="hidden" name="data[shipping][used]" value="0" />
+                                            <input id="shipping_used" name="data[shipping][used]" class="ibutton js-toggle" type="checkbox"{if $checkout_config.shipping.used} checked="checked"{/if}>
+                                            <label for="shipping_used">
+                                                <span class="s-toggle-status js-toggle-status{if !$checkout_config.shipping.used} disabled{/if}">{if $checkout_config.shipping.used}[`Enabled`]{else}[`Disabled`]{/if}</span>
+                                            </label>
+                                        </div>
+                                        <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link"{if !$checkout_config.shipping.used} style="display: none;"{/if}>
+                                            <i class="icon16 settings"></i>
+                                            <b><i>[`Settings`]</i></b>
+                                        </a>
+                                    {else}
+                                        <span style="margin-right: 12px; vertical-align: top; display: inline-block;">
+                                            {sprintf('[`<a href="%s" target="_blank">Add a shipping method</a>`]', '?action=settings#/shipping/')}
+                                            <i class="icon16 new-window"></i>
+                                        </span>
+                                        <div class="s-toggle-wrapper js-block-toggle-wrapper">
+                                            <label for="shipping_used">
+                                                <input id="shipping_used" class="ibutton js-toggle" type="checkbox" disabled>
+                                                <span class="s-toggle-status js-toggle-status disabled">[`Disabled`]</span>
+                                            </label>
+                                        </div>
+                                    {/if}
+                                </div>
+                                <h3 class="name">[`Shipping`]</h3>
+                                {if !empty($shipping_plugins)}
+                                    <div class="js-block-content" style="display: none;">
+                                        {shipping_block settings=$checkout_config.shipping}
+                                    </div>
+                                {/if}
+                            </td>
+                        </tr>
+
+                        {* PAYMENT SETTINGS *}
+                        <tr class="js-block-wrapper" data-block="payment">
+                            <td class="s-block-container">
+                                {* Show/hide settings *}
+                                <div class="float-right">
+                                    {if !empty($payment_plugins)}
+                                        <div class="s-toggle-wrapper js-block-toggle-wrapper">
+                                            <input type="hidden" name="data[payment][used]" value="0" />
+                                            <input id="payment_used" name="data[payment][used]" value="1" class="ibutton js-toggle" type="checkbox"{if $checkout_config.payment.used} checked="checked"{/if}>
+                                            <label for="payment_used">
+                                                <span class="s-toggle-status js-toggle-status{if !$checkout_config.payment.used} disabled{/if}">{if $checkout_config.payment.used}[`Enabled`]{else}[`Disabled`]{/if}</span>
+                                            </label>
+                                        </div>
+                                        <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link"{if !$checkout_config.payment.used} style="display: none;"{/if}>
+                                            <i class="icon16 settings"></i>
+                                            <b><i>[`Settings`]</i></b>
+                                        </a>
+                                    {else}
+                                        <span style="margin-right: 12px; vertical-align: top; display: inline-block;">
+                                            {sprintf('[`<a href="%s" target="_blank">Add a payment method</a>`]', '?action=settings#/payment/')}
+                                            <i class="icon16 new-window"></i>
+                                        </span>
+                                        <div class="s-toggle-wrapper js-block-toggle-wrapper">
+                                            <label for="payment_used">
+                                                <input id="payment_used" class="ibutton js-toggle" type="checkbox" disabled>
+                                                <span class="s-toggle-status js-toggle-status disabled">[`Disabled`]</span>
+                                            </label>
+                                        </div>
+                                    {/if}
+                                </div>
+                                <h3 class="name">[`Payment`]</h3>
+                                {if !empty($payment_plugins)}
+                                    <div class="js-block-content" style="display: none;">
+                                        {payment_block settings=$checkout_config.payment}
+                                    </div>
+                                {/if}
+                            </td>
+                        </tr>
+
+                        {* CONFIRMATION SETTINGS *}
+                        <tr class="js-block-wrapper" data-block="confirmation">
+                            <td class="s-block-container">
+                                {* Show/hide settings *}
+                                <div class="float-right">
+                                    <a href="javascript:void(0);" class="inline-link s-settings-link js-settings-link">
+                                        <i class="icon16 settings"></i>
+                                        <b><i>[`Settings`]</i></b>
+                                    </a>
+                                </div>
+                                <h3 class="name">[`Confirmation`]</h3>
+                                <div class="js-block-content" style="display: none;">
+                                    {confirmation_block settings=$checkout_config.confirmation}
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <input type="hidden" name="storefront_id" value="{$route.checkout_storefront_id|default:null|escape}" />
+
+            {* FIXED Buttons *}
+            <div class="s-form-buttons js-buttons-wrapper blank">
+                <div class="s-footer-actions block double-padded js-footer-actions">
+                    <div class="fixed">
+                        {* Save *}
+                        <input class="button green js-submit-button" type="submit" name="" value="[s`Save`]">
+                        <i class="icon16 loading s-loading" style="display: none;"></i>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="clear-both"></div>
+</div>
+
+<link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
+<script type="text/javascript" src="{$wa_url}wa-content/js/farbtastic/farbtastic.js"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-ui/jquery.ui.sortable.min.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/settings/checkout2.js?{$wa->version()}"></script>
+<script>
+    (function ($) {
+        $.wa.setTitle({$_title|json_encode});
+
+        new ShopSettingsCheckout2({
+            $wrapper: $("#{$_id}"),
+            domain: {$route.domain|default:null|json_encode},
+            route_id: {$route.route_id|default:null|json_encode},
+            storefront_id: {$route.checkout_storefront_id|default:null|json_encode},
+            shipping_location_template: {{renderShippingLocation _location=[]}|json_encode},
+            shipping_no_locations_template: {renderShippingNoLocations|json_encode},
+            schedule_extra_workday_template: {renderScheduleExtraWorkday|json_encode},
+            schedule_extra_weekend_template: {renderScheduleWeekend|json_encode},
+            demo_terms: {$demo_terms|json_encode},
+            date_format: {waDateTime::getFormatJs('date')|json_encode},
+            locale: {
+                enabled: {json_encode(_w('Enabled'))},
+                disabled: {json_encode(_w('Disabled'))}
+            }
+        });
+    })(jQuery);
+</script>
+{else}
+<div class="s-settings-checkout-empty-wrapper">
+    <div class="s-settings-checkout-not-found">[`Storefront not found.`]</div>
+    <div class="clear-both"></div>
+</div>
+<script>
+    (function ($) {
+        $('#s-settings-menu').find('a[href="?action=settings#/checkout/"]').parent().addClass('selected');
+    })(jQuery);
+</script>
+{/if}

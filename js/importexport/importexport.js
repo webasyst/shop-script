@@ -256,10 +256,10 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
 
             if (method.name) {
                 $.shop.trace('$.importexport.click', method);
-                if (!$el.hasClass('js-confirm') || confirm($el.data('confirm-text') || $el.attr('title') || 'Are you sure?')) {
-                    method.params.push($el);
-                    scope[method.name].apply(scope, method.params);
-                }
+
+                method.params.push($el);
+                scope[method.name].apply(scope, method.params);
+
             } else {
                 $.shop.error('Not found js handler for link', [method, args, $el, scope])
             }
@@ -299,43 +299,55 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
 
     profileDelete: function (plugin, $el) {
         var profile = this.path.profile;
-
-        var selector = ('' + plugin + ':' + profile ).replace(/([:#])/g, '\\\\$1');
-        $.shop.trace('profileDelete', [plugin, profile, selector]);
-        var $li = $('#s-importexport-profile').find('a[href^="#/' + selector + '/"]:first').parents('li:first');
-        var $delete = $el.find('i.icon16.delete');
-        $delete.removeClass('delete').addClass('loading');
         var self = this;
-        $.ajax({
-            url: '?module=importexport&action=delete',
-            type: 'POST',
-            dataType: 'json',
-            data: {plugin: plugin, profile: profile},
-            success: function (response) {
-                $.shop.trace('profileDelete', response.data);
-                if (response && (response.status == 'ok')) {
-                    $delete.removeClass('loading').addClass('delete');
-                    $el.parents('li:first').hide();
-                    $li.remove();
-                    $.shop.trace('profileDelete', [self.path, profile]);
-                    if (self.profiles.list[plugin][profile]) {
-                        self.profiles.list[plugin][profile] = null;
-                    }
-                    if (self.path.profile == profile) {
-                        var first = null;
-                        for (profile in self.profiles.list[plugin]) {
-                            if (self.profiles.list[plugin].hasOwnProperty(profile) && self.profiles.list[plugin][profile]) {
-                                first = profile;
-                                break;
-                            }
+
+        function remove() {
+            var selector = ('' + plugin + ':' + profile ).replace(/([:#])/g, '\\\\$1');
+            $.shop.trace('profileDelete', [plugin, profile, selector]);
+            var $li = $('#s-importexport-profile').find('a[href^="#/' + selector + '/"]:first').parents('li:first');
+
+            $.ajax({
+                url: '?module=importexport&action=delete',
+                type: 'POST',
+                dataType: 'json',
+                data: {plugin: plugin, profile: profile},
+                success: function (response) {
+                    $.shop.trace('profileDelete', response.data);
+                    if (response && (response.status == 'ok')) {
+                        $el.parents('li:first').hide();
+                        $li.remove();
+                        $.shop.trace('profileDelete', [self.path, profile]);
+                        if (self.profiles.list[plugin][profile]) {
+                            self.profiles.list[plugin][profile] = null;
                         }
-                        if (first) {
-                            window.location.hash = window.location.hash.replace(/:\d*\/$/, ':' + first + '/');
-                        } else {
-                            self.profileAdd(plugin);
+                        if (self.path.profile == profile) {
+                            var first = null;
+                            for (profile in self.profiles.list[plugin]) {
+                                if (self.profiles.list[plugin].hasOwnProperty(profile) && self.profiles.list[plugin][profile]) {
+                                    first = profile;
+                                    break;
+                                }
+                            }
+                            if (first) {
+                                window.location.hash = window.location.hash.replace(/:\d*\/$/, ':' + first + '/');
+                            } else {
+                                self.profileAdd(plugin);
+                            }
                         }
                     }
                 }
+            });
+        }
+
+        $.waDialog.confirm({
+            title: $el.data('confirm-text') || $el.attr('title') || 'Are you sure?',
+            success_button_title: $.wa.locale['Delete'],
+            success_button_class: 'danger js-dialog-delete',
+            cancel_button_title: $.wa.locale['Cancel'],
+            cancel_button_class: 'light-gray',
+            onSuccess($d) {
+                $d.$block.find('.js-dialog-delete').append('<i class="fas fa-spinner fa-spin custom-pl-4">');
+                remove();
             }
         });
     },
@@ -806,7 +818,10 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
                                 var label = $label.data('text') || $label.text();
 
 
-                                $label.text($label.data('text').replace(/%d/g, $input.filter(':checked').length));
+                                var data_text = $label.data('text');
+                                if (data_text) {
+                                    $label.text(data_text.replace(/%d/g, $input.filter(':checked').length));
+                                }
                             }
                         }
                         break;

@@ -29,8 +29,6 @@
             that.vue_model = that.initVue();
             that.init();
 
-            console.log( that );
-
             function formatProduct(product) {
                 $.each(product.skus, function(i, sku) {
                     sku.is_visible = true;

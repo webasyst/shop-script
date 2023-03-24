@@ -35,7 +35,7 @@ class shopProductSkusUpdateMethod extends shopApiMethod
             throw new waAPIException('invalid_param', 'Product not found', 404);
         }
 
-        if (!$this->getRights('type.all') || !$this->getRights('type.'.$product['type_id'])) {
+        if (!$this->getRights('type.all') && !$this->getRights('type.'.$product['type_id'])) {
             throw new waAPIException('access_denied', 500);
         }
         return true;

@@ -1,0 +1,119 @@
+{if !empty($error)}
+<h1 class="js-bread-crumbs"><a href="#/shipping/" class="back">&larr; [`Shipping`]</a>&nbsp;[`Error`]</h1>
+<span class="errormsg">{$error|escape}</span>
+{else}
+<form>
+    <!-- GENERAL SHIPPING OPTION PARAMS -->
+    <div class="field-group">
+
+        <div class="block half-padded float-right">
+            <ul class="menu-h with-icons">
+            {if isset($plugin.status) && !empty($plugin.id)}
+                <li><a href="#/shipping/plugin/delete/{$plugin.id}/" class="js-action js-confirm" data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]" style="position: relative; z-index: 99;"><i class="icon16 delete"></i>[`Delete this shipping option`]</a></li>
+            {/if}
+            </ul>
+        </div>
+
+        <h1 class="js-bread-crumbs">
+            <a href="#/shipping/" class="back">&larr; [`Shipping`]</a>&nbsp;{$plugin.name|escape}
+            <span class="hint float-right s-shipping-plugin-id">id:{$plugin.plugin|escape}</span>
+        </h1>
+
+        <div class="field">
+            <div class="name">
+                <label for="s-shipping-plugin-status">[`Enabled`]</label>
+            </div>
+            <div class="value">
+                <input name="shipping[id]" type="hidden" value="{$plugin_id|escape}">
+                <input name="shipping[plugin]" type="hidden" value="{$plugin.plugin|escape}">
+                <input name="shipping[status]" type="checkbox"{if !empty($plugin.status)} checked="checked"{/if} id="s-shipping-plugin-status" value="1">
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">
+                <label for="s-shipping-plugin-name">[`Shipping option name`]</label>
+            </div>
+            <div class="value">
+                <input name="shipping[name]" type="text" value="{$plugin.name|escape}" class="bold" id="s-shipping-plugin-name">
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">
+                <label for="s-shipping-plugin-logo">[`Logo URL`]</label>
+            </div>
+            <div class="value">
+                <input name="shipping[logo]" type="text" class="long" value="{$plugin.logo|default:''|escape}" id="s-shipping-plugin-logo">
+                <img src="{$plugin.logo|default:''|escape}" class="s-payment-shipping-logo float-right">
+                <p class="hint">{sprintf('[`A collection of shipping option icons is available for free: <a href="%1$s" target="_blank">%1$s</a> <i class="icon10 new-window"></i>`]','[`https://www.shop-script.com/help/729/payment-shipping-icons/`]')}</p>
+            </div>
+        </div>
+        {if !empty($taxes)}
+        <div class="field">
+            <div class="name"><label for="s-shipping-plugin-taxable">[`Taxable`]</label></div>
+            <div class="value">
+                <select name="shipping[options][tax_id]" id="s-shipping-plugin-taxable">
+                    <option value=""{if empty($plugin.options.tax_id)} selected{/if}>[`No`]</option>
+                    {foreach $taxes as $tax}
+                        <option value="{$tax.id|escape}"{if !empty($plugin.options.tax_id) && ($tax.id==$plugin.options.tax_id)} selected{/if}>{$tax.name|escape}</option>
+                    {/foreach}
+                </select>
+                <p class="hint">[`Select a tax rule to be applied to shipping rates calculated by this plugin.`]</p>
+            </div>
+        </div>
+        {/if}
+        <div class="field">
+            <div class="name"><label for="s-shipping-plugin-">[`Additional order picking time`]</label></div>
+            <div class="value">
+                <input type="number" name="shipping[options][assembly_time]" value="{if isset($plugin['options']['assembly_time'])}{max(0, intval($plugin['options']['assembly_time']))}{/if}" id="">
+                <p class="hint">[`Specify a period of time expressed in hours. It will be added to order ready time calculated by storefront business hours.`]</p>
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">
+                <label for="s-shipping-plugin-description">[`Description`]</label>
+            </div>
+            <div class="value">
+                <textarea name="shipping[description]" id="s-shipping-plugin-description">{$plugin.description|escape}</textarea>
+                <p class="hint">[`HTML. Shipping option description is shown to customer during the checkout.`]</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Offer shipping to customer types`]</div>
+            <div class="value">
+                <label><input type="radio" name="shipping[options][customer_type]" value="" {if empty($plugin.options.customer_type)} checked{/if}> [`All`]</label>
+            </div>
+            <div class="value">
+                <label><input type="radio" name="shipping[options][customer_type]" value="person" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'person'))} checked{/if}> [`Persons`]</label>
+            </div>
+            <div class="value">
+                <label><input type="radio" name="shipping[options][customer_type]" value="company" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'company'))} checked{/if}> [`Companies`]</label>
+            </div>
+            <div class="value hint">{sprintf('[`In  “%s” mode shipping is offered only to selected customer types.<br>In “%s” mode this setting is ignored and shipping is always offered to all customer types.`]', '[`In-cart checkout`]', '[`Multi-step checkout`]')}</div>
+        </div>
+    </div>
+
+    <!-- CUSTOM SHIPPING MODULE PARAMS -->
+    <div class="field-group">
+        {$settings_html}
+    </div>
+
+
+    {if !empty(guide_html)}
+    <div class="field-group">
+        {$guide_html}
+    </div>
+    {/if}
+
+    <div class="field-group js-footer-block">
+        <div class="field">
+            <div class="value submit">
+                <input type="submit" class="button green" value="[`Save`]"> [`or`] <a href="#/shipping/" class="inline-link">[`cancel`]</a>
+                <span id="settings-shipping-form-status" class="js-form-status" style="display:none"><!-- message placeholder --></span>
+            </div>
+        </div>
+    </div>
+</form>
+{/if}

@@ -1,0 +1,156 @@
+{strip}
+
+{$_config = $config.payment}
+{$_payments_count = 0}
+{$_payment_first = null}
+
+{$_errors = []}
+{if !empty($error_step_id) && $error_step_id === "payment"}{$_errors = $errors}{/if}
+
+{$_hide_payment = !empty($payment.disabled) || empty($payment.methods)}
+
+<section class="wa-step-section wa-step-payment-section" id="wa-step-payment-section" style="{if !empty($_hide_payment)}display: none;{/if}">
+    {if !empty($payment.methods)}
+        {$_active_method = null}
+        {if !empty($payment.selected_method_id) && !empty($payment.methods[$payment.selected_method_id])}
+            {$_active_method = $payment.methods[$payment.selected_method_id]}
+        {/if}
+
+        {* HEADER *}
+        <header class="wa-section-header">
+            <h3 class="wa-header">{$_config.block_name}</h3>
+        </header>
+
+        {* BODY *}
+        <div class="wa-section-body">
+            <form>
+                {if empty($payment.disabled)}
+                    <div class="wa-methods-list wide js-methods-list">
+                        {foreach $payment.methods as $_method}
+                            {if $_method@first}
+                                {$_payment_first = ["id" => $_method.id, "name" => $_method.name|default:"[`Unknown`]"]}
+                            {/if}
+                            {$_payments_count = $_payments_count + 1}
+
+                            {$_is_active = false}
+                            {if $_method.id == $payment.selected_method_id}{$_is_active = true}{/if}
+
+                            <div class="wa-method-wrapper {if $_is_active}is-active{/if}" data-id="{$_method.id|escape}">
+                                <div class="wa-method">
+                                    <div class="wa-checkbox-wrapper">
+                                        <input type="radio" class="wa-radio js-method-field" name="payment[id]" data-reload="true" value="{$_method.id|escape}" {if $_is_active}checked{/if}>
+                                    </div>
+
+                                    {if !empty($_method.logo)}
+                                        <div class="wa-image-wrapper">
+                                            <img src="{$_method.logo}" alt="">
+                                        </div>
+                                    {/if}
+
+                                    <div class="wa-method-body">
+                                        <div class="wa-payment-name">
+                                            <a href="javascript:void(0);">{$_method.name|default:"[`Unknown`]"|escape}</a>
+                                        </div>
+                                        {if !empty($_method.description)}
+                                            <div class="wa-description">{$_method.description}</div>
+                                        {/if}
+                                    </div>
+                                </div>
+                            </div>
+                        {/foreach}
+                    </div>
+
+                    {if !empty($_active_method)}
+                        <div class="wa-payment-fields-wrapper">
+                            {if !empty($_active_method.custom_fields_order)}
+                                {$_inline_fields = []}
+                                {$_custom_fields = []}
+
+                                {foreach $_active_method.custom_fields_order as $_field_id}
+                                    {if !empty($_active_method.custom_fields[$_field_id])}
+                                        {$_field = $_active_method.custom_fields[$_field_id]}
+                                    {else}
+                                        {continue}
+                                    {/if}
+
+                                    {if !empty($_field.html)}
+                                        {if !empty($_field.wa_css_class_added)}
+                                            {capture append="_inline_fields"}
+                                                <div class="wa-field-wrapper size-small">
+                                                    {if !empty($_field.label)}
+                                                        <div class="wa-label">{$_field.label|escape}</div>
+                                                    {/if}
+                                                    {$_field.html}
+                                                </div>
+                                            {/capture}
+                                        {else}
+                                            {capture append="_custom_fields"}
+                                                <div class="wa-line wa-plugin-field-wrapper">
+                                                    {if !empty($_field.label)}
+                                                        <div class="wa-label">
+                                                            {$_field.label|escape}
+                                                            {if !empty($_field.affects_rate)}<span class="wa-required"></span>{/if}
+                                                        </div>
+                                                    {/if}
+
+                                                    {$_field.html}
+
+                                                    {if !empty($_field.description)}
+                                                        <div class="wa-description">{$_field.description|escape}</div>
+                                                    {/if}
+                                                </div>
+                                            {/capture}
+                                        {/if}
+                                    {/if}
+                                {/foreach}
+
+                                <div class="wa-line wa-payment-plugins-section">
+                                    {if !empty($_inline_fields)}
+                                        <div class="wa-line wa-fields-group line">{$_inline_fields|join:""}</div>
+                                    {/if}
+                                    {if !empty($_custom_fields)}
+                                        {$_custom_fields|join:""}
+                                    {/if}
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
+
+                    {* @event checkout_render_payment *}
+                    {foreach $event_hook.payment as $_}
+                        <div class="wa-plugin-hook">{$_}</div>
+                    {/foreach}
+                {/if}
+            </form>
+        </div>
+    {else}
+        {* @event checkout_render_payment *}
+        {foreach $event_hook.payment as $_}
+            <div class="wa-plugin-hook">{$_}</div>
+        {/foreach}
+    {/if}
+
+    <script>
+        ( function($) {
+            var $step = $("#wa-step-payment-section"),
+                $wrapper = $("#wa-order-form-wrapper");
+
+            var ready_promise = $wrapper.data("ready").promise();
+            ready_promise.then( function(controller) {
+                controller.initPayment({
+                    $wrapper: $step,
+                    disabled: {if !empty($payment.disabled)}true{else}false{/if},
+                    errors: {$_errors|json_encode},
+                    locales: {
+                        "method_required": {_w("Please select a payment method")|json_encode}
+                    },
+
+                    payment_first: {$_payment_first|json_encode},
+                    payments_count: {$_payments_count|escape}
+                });
+            });
+        })(jQuery);
+    </script>
+</section>
+
+{/strip}

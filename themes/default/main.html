@@ -25,14 +25,18 @@
     {if !empty($breadcrumbs)}
         <nav class="breadcrumbs" itemprop="breadcrumb">
             {if !$wa->globals('isMyAccount')}
-                <a href="{$wa_app_url}">{$wa->shop->settings('name')}</a>  <span class="rarr">&rarr;</span>
+                <a href="{$wa_app_url}">{$wa->shop->settings('name')}</a>
+                <span class="chevron right"></span>
             {else}
                 {* within My Account we exclude first node from navigation because links are on the page already *}
                 {$breadcrumbs[0] = null}
             {/if}
             {foreach $breadcrumbs as $breadcrumb}
                 {if $breadcrumb}
-                    <a href="{$breadcrumb.url}">{$breadcrumb.name|escape}</a> <span class="rarr">&rarr;</span>
+                    <a href="{$breadcrumb.url}">{$breadcrumb.name|escape}</a>
+                    {if !$breadcrumb@last}
+                        <span class="chevron right"></span>
+                    {/if}
                 {/if}
             {/foreach}
         </nav>
@@ -40,12 +44,7 @@
 
     {$content}
 
-    <div class="clear-both"></div>
-
 </div>
-
-
-<div class="clear-both"></div>
 
 <div id="dialog" class="dialog">
     <div class="dialog-background"></div>
@@ -61,8 +60,10 @@
 
 {if $theme_settings.compare_products}
 <aside id="compare-leash">
-    {$in_comparison = $wa->shop->inComparison()}
-    <a {if !$in_comparison}style="display:none;"{/if} href="{$wa->getUrl('/frontend/compare', ['id' => implode(',', $in_comparison)])}">[`Compare selected products`] (<strong>{count($in_comparison)}</strong>)</a>
-    {if $in_comparison}<style>.appfooter { padding-bottom: 60px; } </style>{/if}
+    <div class="container">
+        {$in_comparison = $wa->shop->inComparison()}
+        <a {if !$in_comparison}style="display:none;"{/if} href="{$wa->getUrl('/frontend/compare', ['id' => implode(',', $in_comparison)])}">[`Compare selected products`] (<strong>{count($in_comparison)}</strong>)</a>
+        {*if $in_comparison}<style>.appfooter { padding-bottom: 60px; } </style>{/if*}
+    </div>
 </aside>
 {/if}

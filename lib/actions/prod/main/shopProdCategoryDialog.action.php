@@ -301,7 +301,7 @@ class shopProdCategoryDialogAction extends waViewAction
 
     protected static function parseTempCondition($name, &$temp_result, $temp, $is_unit)
     {
-        if ($name == 'tag' || $name == 'type' || $name == 'badge') {
+        if ($name == 'tag' || $name == 'type_id' || $name == 'badge') {
             $temp_result['type'] = 'select';
             $temp_result['values'] = str_replace('\&', '&', $temp[1]); //Remove escape ampersand
             $temp_result['values'] = explode('||', $temp_result['values']);

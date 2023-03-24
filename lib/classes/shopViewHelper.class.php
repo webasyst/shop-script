@@ -323,7 +323,7 @@ class shopViewHelper extends waAppViewHelper
             return null;
         }
         $result = $this->shopConfig()->getGeneralSettings((string)$name);
-        return $escape && !is_array($result) ? htmlspecialchars($result) : $result;
+        return $escape && !is_array($result) ? htmlspecialchars(ifempty($result, '')) : $result;
     }
 
     public function sortUrl($sort, $name, $active_sort = null)
@@ -1190,7 +1190,7 @@ SQL;
 
         if ($is_url || substr($url_or_class, 0, 7) == 'http://' || substr($url_or_class, 0, 8) == 'https://'
             || substr($url_or_class, 0, 2) == '//') {
-            return '<i class="icon16" style="background-image:url('.$url_or_class.')"></i>';
+            return '<i class="icon16 img" style="background-image:url('.$url_or_class.')"></i>';
         } else {
             return '<i class="icon16 '.$url_or_class.'"></i>';
         }
@@ -1525,5 +1525,181 @@ SQL;
         } else {
             return $this->numberFormat($float, $limit_precision, $decimal_separator, $thousands_separator);
         }
+    }
+
+    public function convertIcon($icon_class = '', $use_colored = false) {
+        $icon_map = [
+            "ss pt box" => "fas fa-box",
+            "box" => "fas fa-box",
+            "ss pt sports" => "fas fa-table-tennis",
+            "ss pt soccer" => "fas fa-futbol",
+            "ss pt cake" => "fas fa-birthday-cake",
+            "ss pt music" => "fas fa-music",
+            "ss pt car" => "fas fa-car",
+            "car" => "fas fa-car",
+            "ss pt diamond" => "fas fa-gem",
+            "ss pt audio" => "fas fa-headphones",
+            "ss pt globe" => "fas fa-globe",
+            "globe-small" => "fas fa-globe",
+            "ss pt mobile" => "fas fa-mobile-alt",
+            "mobile" => "fas fa-mobile-alt",
+            "ss pt gingerbread-man" => "fas fa-cookie",
+            "ss pt camera" => "fas fa-camera",
+            "ss pt rocket" => "fas fa-rocket",
+            "ss pt plane" => "fab fa-telegram-plane",
+            "ss pt shoe" => "fas fa-shoe-prints",
+            "ss pt gift" => "fas fa-gift",
+            "ss pt nuclear" => "fas fa-radiation",
+            "ss pt map" => "fas fa-map",
+            "ss pt tv" => "fas fa-tv",
+            "ss pt t-shirt" => "fas fa-tshirt",
+            "ss pt disc" => "fas fa-compact-disc",
+            "ss pt computer" => "fas fa-laptop",
+            "ss pt building" => "fas fa-university",
+            "ss pt toolbox" => "fas fa-toolbox",
+            "ss pt hamburger" => "fas fa-hamburger",
+            "ss pt cookie" => "fas fa-cookie-bite",
+            "cookie" => "fas fa-cookie-bite",
+            "ss pt door" => "fas fa-door-closed",
+            "ss pt clapperboard" => "fas fa-film",
+            "clapperboard" => "fas fa-film",
+            "ss pt traffic-cone" => "fas fa-exclamation-triangle",
+            "ss pt hammer" => "fas fa-hammer",
+            "ss pt guitar" => "fas fa-guitar",
+            "guitar" => "fas fa-guitar",
+            "ss pt disk" => "fas fa-save",
+            "disk" => "fas fa-save",
+            "ss pt cup" => "fas fa-coffee",
+            "cup" => "fas fa-coffee",
+            "ss pt auction-hammer" => "fas fa-gavel",
+            "ss pt drawer" => "fas fa-archive",
+            "ss pt traffic-light" => "fas fa-traffic-light",
+            "ss pt clock" => "fas fa-clock",
+            "ss pt chair" => "fas fa-chair",
+            "ss pt downloadable" => "fas fa-cloud-download-alt",
+            "ss pt sunglasses" => "fas fa-glasses",
+            "ss pt umbrella" => "fas fa-umbrella",
+            "ss pt controller" => "fas fa-gamepad",
+            "ss pt key" => "fas fa-key",
+            "ss pt sushi" => "fas fa-fish",
+            "ss pt cat" => "fas fa-cat",
+            "ss pt monkey" => "fas fa-paw",
+            "ss pt socket" => "fab fa-usb",
+            "ss pt spray" => "fas fa-spray-can",
+            "ss pt books" => "fas fa-book",
+            "books" => "fas fa-book",
+            "ss shop" => "fas fa-store",
+            "image" => "fas fa-image",
+            "icon16 ss new" => "fas fa-circle",
+            "icon16 ss processing" => "fas fa-check-circle",
+            "icon16 ss confirmed" => "fas fa-check-circle",
+            "icon16 ss paid" => "fas fa-file-invoice-dollar",
+            "icon16 ss sent" => "fas fa-paper-plane",
+            "icon16 ss completed" => "fas fa-check",
+            "icon16 ss refunded" => "fas fa-times",
+            "icon16 ss trash" => "fas fa-trash-alt",
+            "icon16 ss flag-white" => "fas fa-flag",
+            "icon16 ss flag-blue" => "fas fa-flag",
+            "icon16 ss flag-yellow" => "fas fa-flag",
+            "icon16 ss flag-green" => "fas fa-flag",
+            "icon16 ss flag-red" => "fas fa-flag",
+            "icon16 ss flag-purple" => "fas fa-flag",
+            "icon16 ss flag-black" => "fas fa-flag",
+            "icon16 ss flag-checkers" => "fas fa-flag-checkered",
+            "icon16 edit" => "fas fa-pen",
+            "icon16 ss parameter" => "fas fa-qrcode",
+            "icon16 clock" => "fas fa-clock",
+            "clock" => "fas fa-clock",
+            "icon16 email" => "fas fa-envelope",
+            "email" => "fas fa-envelope",
+            "icon16 add" => "fas fa-plus-circle",
+            "notebook" => "fas fa-file-alt",
+            "yes" => "fas fa-check text-green",
+            "no" => "fas fa-times text-red",
+            "yes-bw" => "fas fa-check text-gray",
+            "no-bw" => "fas fa-times text-gray",
+            "status-red" => "fas fa-circle text-red",
+            "status-gray" => "fas fa-circle text-gray",
+            "status-green" => "fas fa-circle text-green",
+            "status-yellow" => "fas fa-circle text-yellow",
+            "star" => "fas fa-star",
+            "contact" => "fas fa-address-card",
+            "store" => "fas fa-store",
+            "lock" => "fas fa-lock",
+            "lock-unlocked" => "fas fa-lock-open",
+            "broom" => "fas fa-broom",
+            "livejournal" => "fas fa-pencil-alt",
+            "lightning" => "fas fa-bolt",
+            "light-bulb" => "fas fa-lightbulb",
+            "pictures" => "fas fa-images",
+            "reports" => "fas fa-chart-area",
+            "marker" => "fas fa-map-marker-alt",
+            "lens" => "fas fa-camera",
+            "alarm-clock" => "fas fa-bell",
+            "animal-monkey" => "fas fa-paw",
+            "anchor" => "fas fa-anchor",
+            "bean" => "fas fa-seedling",
+            "burn" => "fas fa-radiation",
+            "bug" => "fas fa-bug",
+            "clock" => "fas fa-clock",
+            "home" => "fas fa-home",
+            "fruit" => "fab fa-apple",
+            "luggage" => "fas fa-suitcase",
+            "smiley" => "far fa-smile",
+            "sport-soccer" => "fas fa-futbol",
+            "target" => "fas fa-bullseye",
+            "medal" => "fas fa-medal",
+            "phone" => "fas fa-mobile-alt",
+            "funnel" => "fas fa-filter",
+            "comments" => "fas fa-comments",
+            "dollar" => "fas fa-dollar-sign",
+            "tags" => "fas fa-tags",
+            "ss coupon" => "fas fa-ticket-alt",
+        ];
+
+        if ($use_colored) {
+            $icons_color = [
+                "icon16 ss flag-white" => "text-white",
+                "icon16 ss flag-blue" => "text-blue",
+                "icon16 ss flag-yellow" => "text-yellow",
+                "icon16 ss flag-green" => "text-green",
+                "icon16 ss flag-red" => "text-red",
+                "icon16 ss flag-purple" => "text-purple",
+                "icon16 ss flag-black" => "text-black"
+            ];
+
+            if (isset($icons_color[$icon_class])) {
+                return $icon_map[$icon_class] . " " . $icons_color[$icon_class];
+            }
+        }
+
+        return isset($icon_map[$icon_class]) ? $icon_map[$icon_class] : $icon_class;
+    }
+
+    /**
+     * Returns HTML code of a Webasyst icon.
+     *
+     * @param string $icon Icon type
+     * @param string|null $default Default icon type to be used if $icon is empty.
+     * @param array $params Extra parameters:
+     *     'class' => class name tp be added to icon's HTML code
+     * @return string
+     */
+    public function getIcon($icon, $default = null, $params = array())
+    {
+        if (!$icon && $default) {
+            $icon = $default;
+        }
+        $class = isset($params['class']) ? ' '.htmlentities($params['class'], ENT_QUOTES, 'utf-8') : '';
+
+        if ($icon) {
+            if (preg_match('@[\\/]+@', $icon)) {
+                $icon = "<i class='icon {$class}' style='background-image: url({$icon})'></i>";
+            } else {
+                $icon = "<i class='{$this->convertIcon($icon)} {$class}'></i>";
+            }
+        }
+
+        return $icon;
     }
 }

@@ -84,22 +84,32 @@ class shopOrdersCollection
     protected function prepare($add = false, $auto_title = true)
     {
         // Filter orders allowed for the courier
-        if (!$this->prepared && !empty($this->options['courier_id'])) {
+        if (!$this->prepared) {
+            $is_courier = false;
             // orders assigned to courier...
-            $this->options['courier_id'] = (int) $this->options['courier_id'];
-            $this->addJoin(array(
-                'type'  => '',
-                'table' => 'shop_order_params',
-                'on' => "o.id = :table.order_id AND :table.name = 'courier_id'",
-                'where' => ":table.value = '".$this->options['courier_id']."'",
-            ));
-            // ...either not completed at all or completed in last 24 hours
-            $this->addJoin(array(
-                'type'  => 'LEFT',
-                'table' => 'shop_order_log',
-                'on' => "o.id = :table.order_id AND :table.action_id IN ('complete', 'delete')",
-                'where' => "(:table.id IS NULL OR datetime >= '".date('Y-m-d H:i:s', time() - 3600*24)."')",
-            ));
+            if (!empty($this->options['courier_id'])) {
+                $this->options['courier_id'] = (int) $this->options['courier_id'];
+                $this->addJoin(array(
+                    'type'  => '',
+                    'table' => 'shop_order_params',
+                    'on' => "o.id = :table.order_id AND :table.name = 'courier_id'",
+                    'where' => ":table.value = '".$this->options['courier_id']."'",
+                ));
+                $is_courier = true;
+            } elseif (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
+                $this->addWhere('o.courier_contact_id = ' . wa()->getUser()->getId());
+                $is_courier = true;
+            }
+
+            if ($is_courier) {
+                // ...either not completed at all or completed in last 24 hours
+                $this->addJoin(array(
+                    'type' => 'LEFT',
+                    'table' => 'shop_order_log',
+                    'on' => "o.id = :table.order_id AND :table.action_id IN ('complete', 'delete')",
+                    'where' => "(:table.id IS NULL OR datetime >= '" . date('Y-m-d H:i:s', time() - 3600 * 24) . "')",
+                ));
+            }
         }
 
         if (!$this->prepared || $add) {
@@ -241,6 +251,21 @@ class shopOrdersCollection
     public function addWhere($condition)
     {
         $this->where[] = $condition;
+        return $this;
+    }
+
+    /**
+     * @return self
+     */
+    public function deleteTempWhere($where)
+    {
+        if (!empty($this->where) && is_array($this->where)) {
+            foreach ($this->where as $key => $item) {
+                if ($item == $where) {
+                    unset($this->where[$key]);
+                }
+            }
+        }
         return $this;
     }
 
@@ -668,7 +693,14 @@ class shopOrdersCollection
                 $postprocess_fields[$f] = $f;
                 if ($f == 'subtotal' || $f == 'products') {
                     $postprocess_fields['items'] = 'items';
-                } elseif ($f == 'shipping_info' || $f == 'billing_info' || $f == 'courier') {
+                } elseif ($f == 'order_icon') {
+                    $postprocess_fields['params'] = 'params';
+                    $postprocess_fields['sales_channel'] = 'sales_channel';
+                    $postprocess_fields['contact'] = 'contact';
+                    if (empty($fields['*'])) {
+                        $fields['contact_id'] = 'contact_id';
+                    }
+                } elseif (in_array($f, ['shipping_info', 'billing_info', 'courier', 'sales_channel', 'payment_url', 'discount_coupon'])) {
                     $postprocess_fields['params'] = 'params';
                 }
                 if (empty($fields['*'])) {
@@ -785,10 +817,67 @@ class shopOrdersCollection
         }
 
         if (isset($postprocess_fields['params'])) {
+
+            if (isset($postprocess_fields['sales_channel'])) {
+                $default_values['sales_channel'] = shopSalesChannels::getDefaultChannel();
+                $sales_channels = [];
+            }
+
+            $coupon_ids = [];
             $default_values['params'] = array();
             $rows = self::getModel('params')->getByField('order_id', $ids, true);
             foreach ($rows as $row) {
                 $data[$row['order_id']]['params'][$row['name']] = $row['value'];
+                if (isset($postprocess_fields['sales_channel']) && $row['name'] == 'sales_channel' && !isset($sales_channels[$row['value']])) {
+                    $sales_channels[$row['value']] = [
+                        'id' => $row['value'],
+                    ];
+                }
+                if (isset($postprocess_fields['discount_coupon']) && $row['name'] == 'coupon_id' && $row['value']) {
+                    $coupon_ids[$row['value']] = $row['value'];
+                }
+            }
+
+            if (!empty($sales_channels)) {
+                $sales_channels = shopSalesChannels::describeChannels($sales_channels);
+                foreach ($data as &$o) {
+                    $channel_id = ifset($o, 'params', 'sales_channel', null);
+                    if ($channel_id) {
+                        $channel_id = shopSalesChannels::canonicId($channel_id);
+                    }
+                    if ($channel_id && $sales_channels[$channel_id]) {
+                        $o['sales_channel'] = $sales_channels[$channel_id];
+                    }
+                }
+                unset($o);
+            }
+
+            if ($coupon_ids) {
+                $coupon_model = new shopCouponModel();
+                $coupons = $coupon_model->getById($coupon_ids);
+                foreach ($data as &$o) {
+                    $coupon_id = ifset($o, 'params', 'coupon_id', null);
+                    $o['discount_coupon'] = ifset($coupons, $coupon_id, null);
+                }
+                unset($o);
+            }
+
+            if (isset($postprocess_fields['payment_url'])) {
+
+                $link_template = wa()->getRouting()->getUrl('shop/frontend/paymentLink', [
+                    'hash' => '%PAYMENTLINKHASH%',
+                ], true);
+
+                if ($link_template) {
+                    foreach ($data as &$o) {
+                        if (!isset($o['params']['entropy'])) {
+                            $o['params']['entropy'] = (new shopOrder())['entropy'];
+                            self::getModel('params')->setOne($o['id'], 'entropy', $o['params']['entropy']);
+                        }
+                        $o['payment_url'] = str_replace('%PAYMENTLINKHASH%', shopOrder::getPaymentLinkHashFromEntropy($o['id'], $o['params']['entropy']), $link_template);
+                    }
+                    unset($o);
+                }
             }
         }
 
@@ -811,7 +900,7 @@ class shopOrdersCollection
             $gravatar_default = wa('shop')->getConfig()->getGeneralSettings('gravatar_default');
 
             foreach ($contacts as &$c) {
-                $c['name'] = waContactNameField::formatName($c);
+                $c['name'] = (string) waContactNameField::formatName($c);
                 if (!isset($postprocess_fields['contact_full'])) {
                     unset($c['firstname'], $c['middlename'], $c['lastname']);
                 }
@@ -832,9 +921,22 @@ class shopOrdersCollection
                 } else {
                     $o['contact'] = array(
                         'id'    => $o['contact_id'],
-                        'name'  => 'deleted contact id='.$o['contact_id'],
+                        'name'  => empty($o['contact_id']) ? '' : 'deleted contact id='.$o['contact_id'],
                         'photo' => '',
                     );
+                }
+            }
+            unset($o);
+        }
+
+        if (isset($postprocess_fields['order_icon'])) {
+            $host_url = wa()->getConfig()->getHostUrl();
+            foreach ($data as &$o) {
+                if (!empty($o['contact']['photo'])) {
+                    $o['order_icon'] = $host_url.waContact::getPhotoUrl($o['contact']['id'], $o['contact']['photo']);
+                } else {
+                    $sales_channel = ifset($o, 'sales_channel', $default_values['sales_channel']);
+                    $o['order_icon'] = $sales_channel['icon_url'];
                 }
             }
             unset($o);

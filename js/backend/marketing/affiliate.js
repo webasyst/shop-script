@@ -21,7 +21,7 @@
         AffiliatePage.prototype.init = function() {
             var that = this;
 
-            var $sidebar_list = that.$wrapper.find("#affiliate-plugins"),
+            var $sidebar_list = that.$wrapper.find("#js-affiliate-plugins"),
                 $content_1 = that.$wrapper.find("#affiliate-settings"),
                 $content_2 = that.$wrapper.find("#affiliate-settings-plugin"),
                 $form = that.$wrapper.find('#s-settings-affiliate-form'),
@@ -49,7 +49,7 @@
                 var url = $this.data("url");
                 if (url) {
                     $content_1.hide();
-                    $content_2.html('<i class="icon16 loading"></i>').show().load(url);
+                    $content_2.html('<i class="fas fa-spinner wa-animation-spin loading"></i>').show().load(url);
                 } else {
                     $content_1.show();
                     $content_2.hide();
@@ -59,27 +59,32 @@
             $sidebar_list.find("li.active_class a").trigger("click");
 
             // Global on/off toggle for the whole form
-            var ibutton = $('#s-toggle-status').iButton( { labelOn : "", labelOff : "", className: 'mini' } ).change(function() {
-                var self = $(this);
-                var enabled = self.is(':checked');
-                if (enabled) {
-                    self.closest('.field-group').siblings().show(200);
-                } else {
-                    self.closest('.field-group').siblings().hide(200);
-                }
-                $.post(
-                    '?module=marketingAffiliateEnable',
-                    { enable: enabled ? '1' : '0' },
-                    function (r) {
-                        if (r.status === 'ok') {
-                            if (enabled) {
-                                $('.s-exclamation').hide();
-                            } else {
-                                $('.s-exclamation').show();
-                            }
+                $(".js-switch-affiliate").waSwitch({
+                    ready: function (wa_switch) {
+                        let $label = wa_switch.$wrapper.siblings('label');
+                        wa_switch.$label = $label;
+                        wa_switch.active_text = $label.data('active-text');
+                        wa_switch.inactive_text = $label.data('inactive-text');
+                    },
+                    change: function(active, wa_switch) {
+                        wa_switch.$label.text(active ? wa_switch.active_text : wa_switch.inactive_text);
+
+                        if (active) {
+                            wa_switch.$wrapper.closest('.fields-group').siblings().show(200);
+                        } else {
+                            wa_switch.$wrapper.closest('.fields-group').siblings().hide(200);
                         }
-                    });
-            });
+                        $.post('?module=marketingAffiliateEnable', { enable: active ? '1' : '0' }, function (r) {
+                            if (r.status === 'ok') {
+                                if (active) {
+                                    $('.s-exclamation').hide();
+                                } else {
+                                    $('.s-exclamation').show();
+                                }
+                            }
+                        });
+                    }
+                });
 
             // Submit via XHR
             $form.on("submit", function(event) {
@@ -88,13 +93,13 @@
                 if (is_locked) { return false; }
                 is_locked= true;
 
-                var $loading = $("<span class=\"s-msg-after-button\"><i class=\"icon16 loading\"></i></span>");
+                var $loading = $('<span class="s-msg-after-button custom-mr-4 text-green"><i class="fas fa-check-circle"></i></span><span>' + $_("Saved") + '</span>').animate({ opacity: 0 }, 1000);
 
                 $submit_button.attr("disabled", false).after($loading);
 
                 $.post($form.attr('action'), $form.serialize(), "json")
-                    .fail( function() {
-                        $loading.remove();
+                    .always( function() {
+                        is_locked = false;
                         $submit_button.attr("disabled", false);
                     })
                     .done( function() {
@@ -132,6 +137,29 @@
                 });
                 h();
             })();
+
+            formChanged($form);
+
+            function formChanged($form) {
+                const $submit = $form.find('[type="submit"]');
+                const submitChanged = () => {
+                    $submit.removeClass('green').addClass('yellow');
+                };
+
+                let is_changed = false;
+                $(':input:not(:submit)', $form).on('input', function() {
+                    if (is_changed) return true;
+
+                    submitChanged();
+
+                    is_changed = true;
+                });
+
+                $submit.on('click', function() {
+                    $submit.removeClass('yellow').addClass('green');
+                    is_changed = false;
+                });
+            }
         };
 
         return AffiliatePage;

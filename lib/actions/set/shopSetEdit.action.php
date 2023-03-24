@@ -19,7 +19,7 @@ class shopSetEditAction extends waViewAction
             throw new waException('Set not found', 404);
         }
 
-        $settings['json_params'] = json_decode($settings['json_params'], true);
+        $settings['json_params'] = json_decode((string)$settings['json_params'], true);
 
 
         /**

@@ -1,11 +1,14 @@
 <form id="s-review-add-form" method="post">
-    <i class="icon16 userpic20" style="background-image: url('{$current_author.photo_url_20}');"></i>{$current_author.name|escape}
+    <div class="flexbox middle space-4">
+        <img class="userpic userpic-20" src="{$current_author.photo_url_20}">
+        <span>{$current_author.name|escape}</span>
+    </div>
     <p>
         <textarea name="text"></textarea>
     </p>
-    <input type="button" class="save" value="[`Add comment`]">
+    <input type="button" class="save smallest" value="[`Add comment`]">
     <span class="s-review-add-form-status s-ajax-status" style="display: none;">
-      <i class="s-ajax-status-loading icon16 loading"><!--icon --></i>
+      <i class="s-ajax-status-loading fas fa-spinner wa-animation-spin loading"></i>
     </span>
     <em class="hint">Ctrl+Enter</em>
     <input type="hidden" name="parent_id" value="0">

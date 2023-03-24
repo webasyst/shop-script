@@ -11,30 +11,27 @@
 {/if}
 
 <div class="s-review {$_review_classes|join:" "}" data-id="{$review.id|escape}">
-    <div class="profile image50px">
-        <div class="image">
-            <a href="{shopHelper::getBackendEditorUrl($review.product_id, 'reviews')}"
-                title="
-                    {if isset($product)}
-                        {$product.name|escape}
-                    {elseif (!empty($review.product_name))}
-                        {$review.product_name|escape}
-                    {/if}
-                ">
-                {if !empty($review.product_url_crop_small)}
-                    <img src="{$review.product_url_crop_small}">
-                {else}
-                    <img src="{$wa_app_static_url}img/image-dummy-small.png">
+    <div class="flexbox space-12">
+        <a href="{shopHelper::getBackendEditorUrl($review.product_id, 'reviews')}"
+            title="
+                {if isset($product)}
+                    {$product.name|escape}
+                {elseif (!empty($review.product_name))}
+                    {$review.product_name|escape}
                 {/if}
-            </a>
-
-        </div>
-        <div class="details">
+            ">
+            {if !empty($review.product_url_crop)}
+                <img class="s-review-image" src="{$review.product_url_crop}">
+            {else}
+                <img class="s-review-image" src="{$wa_app_static_url}img/image-dummy-small.png">
+            {/if}
+        </a>
+        <div class="flexbox vertical">
             <div class="s-review-header">
                 <!-- rating -->
                 {if !$review.parent_id && !empty($review.rate) && $review.title}
-                    <h5>
-                        <span class="hint rate">
+                    <h5 class="custom-mb-0">
+                        <span class="custom-mr-4 hint rate">
                             {$rate = round($review.rate)}
                             {$wa->shop->ratingHtml($rate, 10, true)}
                         </span>
@@ -52,7 +49,7 @@
                         <a href="{$review.site}" class="bold">{$review.author.name|escape}</a>
                     {else}
                         <strong>{$review.author.name|escape}</strong>
-                        {if $review.email}{$review.email|escape}{/if}
+                        <span class="text-dark-gray">{if $review.email}{$review.email|escape}{/if}</span>
                     {/if}
 
                     {if !empty($review.product_name)}
@@ -71,8 +68,8 @@
                         {/if}
                     {/if}
 
-                    <a href="#" class="small s-review-delete"  {if $review.status == shopProductReviewsModel::STATUS_DELETED} style="display: none;"{/if} >[`delete`]</a>
-                    <a href="#" class="small s-review-restore" {if $review.status !== shopProductReviewsModel::STATUS_DELETED}style="display: none;"{/if} >[`restore`]</a>
+                    <a href="#" class="smaller s-review-delete"  {if $review.status == shopProductReviewsModel::STATUS_DELETED} style="display: none;"{/if} >[`delete`]</a>
+                    <a href="#" class="smaller s-review-restore" {if $review.status !== shopProductReviewsModel::STATUS_DELETED}style="display: none;"{/if} >[`restore`]</a>
                 </div>
             </div>
 
@@ -143,7 +140,7 @@
 
             <div class="s-review-footer">
                 {if $reply_allowed}
-                    <a href="{if isset($reply_link)}{$reply_link}{else}#{/if}" class="s-review-reply small inline-link"><b><i>[`reply`]</i></b></a>
+                    <a href="{if isset($reply_link)}{$reply_link}{else}#{/if}" class="s-review-reply small inline-link"><b>[`reply`]</b></a>
                 {/if}
             </div>
         </div>

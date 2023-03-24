@@ -4,7 +4,7 @@
         <div id="vue-photo-manager-section" style="visibility: hidden;">
             <div class="dialog-header">
                 <h2>[`Select an image`]</h2>
-                <div class="wa-message wa-small white flexbox space-8">
+                <div class="wa-message small white flexbox space-8">
                     <div class="message-icon"><i class="fas fa-info-circle"></i></div>
                     <div class="message-text wide">
                         [`You can adjust the sort order of images under the “Images & videos” tab.`]
@@ -14,7 +14,7 @@
             <div class="dialog-content">
 
                 <div class="s-photos-section js-photos-section">
-                    <div class="s-photos-form">
+                    <div class="box s-photos-form uploadbox">
                         <div class="s-drop-area box dragndrop"
                              data-tooltip-id="product-image-dialog-1"
                              v-on:dragover.prevent="onAreaOver($event)"
@@ -22,7 +22,7 @@
 
                             <div class="s-text" v-if="!errors.length">[`Upload or drag & drop images here`]</div>
                             <div class="s-text" v-if="errors.length">
-                                <div class="color-red" v-for="error in errors">{ { error.text } }</div>
+                                <div class="text-red" v-for="error in errors">{ { error.text } }</div>
                             </div>
                             <input class="s-field" type="file" v-on:change="onAreaChange($event)" title="" accept="image/*" multiple>
                         </div>
@@ -42,8 +42,8 @@
                                     <form class="s-description-form" v-if="photo.expanded">
                                         <textarea class="s-description-field" name="description" v-model="photo.description" placeholder="{_w("Add description...")|escape}"></textarea>
                                         <div class="s-buttons">
-                                            <button class="wa-button blue" v-on:click.prevent="changeDescription($event, photo)">[`Apply`]</button>
-                                            <button class="wa-button gray" v-on:click.prevent="revertDescription(photo)">
+                                            <button class="button blue" v-on:click.prevent="changeDescription($event, photo)">[`Apply`]</button>
+                                            <button class="button gray" v-on:click.prevent="revertDescription(photo)">
                                                 <span class="s-icon"><i class="fas fa-times"></i></span>
                                             </button>
                                         </div>
@@ -61,11 +61,11 @@
                 </div>
             </div>
             <div class="dialog-footer">
-                <button class="wa-button" type="button"
+                <button class="button" type="button"
                     v-bind:disabled="!active_photo"
                     v-on:click.prevent="useChanges">{ { photo_id ? {_w("Change")|json_encode} : {_w("Add")|json_encode} } }</button>
 
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

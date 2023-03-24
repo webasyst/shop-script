@@ -56,8 +56,12 @@ class shopFrontendOrderActions extends waJsonActions
                     'wrapper' => ifset($opts, 'wrapper', ''),
                 ],
             ]);
+        if(wa()->whichUI() === '1.3') {
+            $html = $view->fetch(wa()->getAppPath('templates/actions-legacy/frontend/FrontendOrderForm.html', 'shop'));
+        }else{
+            $html = $view->fetch(wa()->getAppPath('templates/actions/frontend/FrontendOrderForm.html', 'shop'));
+        }
 
-        $html = $view->fetch(wa()->getAppPath('templates/actions/frontend/FrontendOrderForm.html', 'shop'));
         $view->clearAllAssign();
         $view->assign($old_vars);
         if ($format == 'html') {
@@ -126,7 +130,7 @@ class shopFrontendOrderActions extends waJsonActions
                     'payment_id'  => ifset($data, 'payment', 'id', null),
                     'departure_datetime' => shopDepartureDateTimeFacade::getDeparture($config['schedule'])->getDepartureDateTime(),
                     // stock_id, virtualstock_id see below
-                ] + $this->getOrderParamsFromRequest(),
+                ] + $this->getOrderParamsFromOrder($data['order']) + $this->getOrderParamsFromRequest(),
 
             'comment'  => ifset($data, 'result', 'confirm', 'comment', ''),
             'shipping' => $data['order']['shipping'],
@@ -333,7 +337,12 @@ class shopFrontendOrderActions extends waJsonActions
                 'contact' => $data['contact'],
             ]);
 
-        echo $view->fetch(wa()->getAppPath('templates/actions/frontend/order/form/dialog/map.html', 'shop'));
+        if(wa()->whichUI() === '1.3') {
+            echo $view->fetch(wa()->getAppPath('templates/actions-legacy/frontend/order/form/dialog/map.html', 'shop'));
+        }else{
+            echo $view->fetch(wa()->getAppPath('templates/actions/frontend/order/form/dialog/map.html', 'shop'));
+        }
+
         exit;
     }
 
@@ -372,7 +381,11 @@ class shopFrontendOrderActions extends waJsonActions
         }
 
         // Template path
-        $template_path = wa()->getAppPath("templates/actions/frontend/order/form/dialog/{$type}.html", 'shop');
+        if(wa()->whichUI() === '1.3') {
+            $template_path = wa()->getAppPath("templates/actions-legacy/frontend/order/form/dialog/{$type}.html", 'shop');
+        }else{
+            $template_path = wa()->getAppPath("templates/actions/frontend/order/form/dialog/{$type}.html", 'shop');
+        }
 
 
         // Render itself
@@ -486,6 +499,17 @@ class shopFrontendOrderActions extends waJsonActions
         }
 
         return $params;
+    }
+
+    protected function getOrderParamsFromOrder($order)
+    {
+        $result = $order['params'];
+        foreach($result as $k => $v) {
+            if (substr($k, 0, 9) == 'shipping_' || substr($k, 0, 8) == 'payment_') {
+                unset($result[$k]);
+            }
+        }
+        return $result;
     }
 
     public function makeOrderFromCart($cart_items = null, $session_data = null)

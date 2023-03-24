@@ -1,0 +1,53 @@
+<div class="field">
+    <div class="name">[`Send from`]</div>
+    <div class="value no-shift">
+        <select class="notification-from" name="params[from]">
+            {$cnt = count($sms_from)}
+            <option value="" {if empty($params.from)}selected{/if}>[`Default (as configured in SMS gateway)`]</option>
+            {if $cnt >= 1 && !($cnt == 1 && isset($sms_from["*"]))}
+                {foreach $sms_from as $from => $value}
+                    <option value="{$from}" {if !empty($params.from) && $params.from == $from}selected{/if}>{$from}</option>
+                {/foreach}
+            {/if}
+            <option value="other" {if !empty($params.from) && !isset($sms_from[$params.from])}selected{/if}>[`Custom Sender ID...`]</option>
+        </select>
+        {if !empty($params.from) && !isset($sms_from[$params.from])}
+            <input type="text" name="from" value="{$params.from}">
+        {/if}
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`Send to`]</div>
+    <div class="value no-shift">
+        <select class="notification-to" name="params[to]">
+            <option {if !empty($params.to) && $params.to == 'customer'}selected{/if} value="customer">[`Customer`]</option>
+            <option {if !empty($params.to) && $params.to == 'admin'}selected{/if} value="admin">[`Store admin`]</option>
+            <option {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}selected{/if} value="">[`Other...`]</option>
+        </select>
+        {if !empty($params.to) && $params.to != 'customer' && $params.to != 'admin'}
+        <input type="text" name="to" value="{$params.to}" placeholder="[`Enter email address`]">
+        {/if}
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`Content`]<br><span class="hint">HTML + Smarty</span></div>
+    <div class="value no-shift">
+        <textarea id="n-sms-text" class="body" name="params[text]">{if !empty($params.text)}{$params.text}{/if}</textarea>
+        <div class="ace bordered">
+            <div id="n-sms-text-container"></div>
+        </div>
+        <span class="hint">[`Max 300 chars. SMS is sent only if customer phone number was entered during the checkout.`]</span>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        wa_url = '{$wa_url}';
+        waEditorAceInit({
+            'prefix': 'n-send-',
+            'id': 'n-sms-text',
+            'ace_editor_container': 'n-sms-text-container'
+        });
+        $('#n-sms-text').data('wa_editor', wa_editor);
+    });
+</script>

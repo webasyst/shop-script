@@ -30,7 +30,6 @@ class shopProdPricesAction extends waViewAction
 
         $promos = self::getPromos($product);
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setChapter();
 
         $this->view->assign([
             "url_template"  => $url_template,

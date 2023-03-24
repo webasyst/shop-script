@@ -57,28 +57,24 @@ class shopBackendWelcomeAction extends waViewAction
 
     private function setup()
     {
+        $setup_options = [];
+
         $country = waRequest::post('country');
-        if ($country) {
-            if (!empty($this->countries[$country])) {
-                $this->setupCountry($country);
-                $this->setupTaxes($country);
-                $this->setupCustomerFilters($country);
-            }
+        if ($country && !empty($this->countries[$country])) {
+            $setup_options['country'] = $country;
         }
 
         $currency = waRequest::post('currency');
         if ($currency) {
-            $this->setupCurrency($currency);
+            $setup_options['currency'] = $currency;
         }
 
-        $ok = $this->setupDemo();
-        if (!$ok) {
-            $this->setupTypes();
+        $demo_db = waRequest::post('demo_db', null, 'int');
+        if (wa_is_int($demo_db)) {
+            $setup_options['demo_db'] = $demo_db;
         }
 
-        $this->setupBasicSets();
-        $this->setupBasicNotifications();
-        $this->setupBasicPromos();
+        self::setupEverything($setup_options);
 
         $redirect = null;
         if ($plugin_id = waRequest::post('plugin')) {
@@ -91,17 +87,37 @@ class shopBackendWelcomeAction extends waViewAction
             }
         }
 
+        $this->redirectToProducts($redirect);
+    }
+
+    public static function setupEverything($options)
+    {
+        $country = ifset($options, 'country', 'rus');
+        $currency = ifset($options, 'currency', 'rus');
+        $demo_db = ifset($options, 'demo_db', 'rus');
+
+        self::setupCountry($country);
+        self::setupTaxes($country);
+        self::setupCustomerFilters($country);
+
+        self::setupCurrency($currency);
+
+        self::setupDemo($demo_db);
+        self::setupTypes();
+
+        self::setupBasicSets();
+        self::setupBasicNotifications();
+        self::setupBasicPromos();
+
         // Customer filters (other, i.e. not country depended)
         $customers_filter_model = new shopCustomersFilterModel();
         $customers_filter_model->addWelcomeRefererFacebookFilter();
         $customers_filter_model->addWelcomeRefererTwitterFilter();
         $customers_filter_model->addWelcomeLastOrderedMonthAgoFilter();
 
-        //Clear cache. Cloud has problem with cache
+        // Clear cache. Cloud has problem with cache
         $app_settings_model = new waAppSettingsModel();
         $app_settings_model->clearCache('shop');
-
-        $this->redirectToProducts($redirect);
     }
 
     private function overview()
@@ -149,13 +165,16 @@ class shopBackendWelcomeAction extends waViewAction
     public function redirectToProducts($redirect = null)
     {
         if (!$redirect) {
-            $redirect = '?module=tutorial#/products/';
+            $redirect = '?action=products';
+            if (wa()->whichUI() == '1.3') {
+                $redirect = '?module=tutorial#/products/';
+            }
         }
 
         $this->redirect($redirect);
     }
 
-    protected function setupBasicPromos()
+    protected static function setupBasicPromos()
     {
         $promo_model = new shopPromoModel();
         $promo_rules_model = new shopPromoRulesModel();
@@ -217,7 +236,7 @@ class shopBackendWelcomeAction extends waViewAction
         return true;
     }
 
-    protected function setupBasicNotifications()
+    protected static function setupBasicNotifications()
     {
         $notifications_model = new shopNotificationModel();
         if ($notifications_model->countAll() == 0) {
@@ -252,7 +271,7 @@ class shopBackendWelcomeAction extends waViewAction
         return true;
     }
 
-    protected function setupBasicSets()
+    protected static function setupBasicSets()
     {
         $set_model = new shopSetModel();
         $set_model->add(
@@ -277,9 +296,8 @@ class shopBackendWelcomeAction extends waViewAction
     /**
      * @return bool
      */
-    protected function setupDemo()
+    protected static function setupDemo($demo_db)
     {
-        $demo_db = waRequest::post('demo_db');
         if (!wa_is_int($demo_db)) {
             return false;
         }
@@ -295,13 +313,13 @@ class shopBackendWelcomeAction extends waViewAction
         return $result;
     }
 
-    protected function setupTypes()
+    protected static function setupTypes()
     {
         //$types = waRequest::post('types');
         $types = array();
 
-        if (!empty($this->types)) {
-            $type_model = new shopTypeModel();
+        $type_model = new shopTypeModel();
+        if ($type_model->countAll() <= 0) {
             $type_features_model = new shopTypeFeaturesModel();
 
             if (empty($types)) {
@@ -319,18 +337,15 @@ class shopBackendWelcomeAction extends waViewAction
         return true;
     }
 
-    protected function setupCountry($country)
+    protected static function setupCountry($country)
     {
-        if (!empty($this->countries[$country])) {
-            # Main country setting
-            $model = new waAppSettingsModel();
-            $model->set('shop', 'country', $country);
-        }
-
+        # Main country setting
+        $model = new waAppSettingsModel();
+        $model->set('shop', 'country', $country);
         return true;
     }
 
-    protected function setupCurrency($currency)
+    protected static function setupCurrency($currency)
     {
         $all_currencies = waCurrency::getAll(true);
 
@@ -346,9 +361,9 @@ class shopBackendWelcomeAction extends waViewAction
         return true;
     }
 
-    protected function setupTaxes($country)
+    protected static function setupTaxes($country)
     {
-        $path = $this->getConfig()->getConfigPath('data/welcome/', false);
+        $path = wa('shop')->getConfig()->getConfigPath('data/welcome/', false);
         $country_config_path = $path."country_{$country}.php";
 
         if (file_exists($country_config_path)) {
@@ -367,7 +382,7 @@ class shopBackendWelcomeAction extends waViewAction
         return true;
     }
 
-    protected function setupCustomerFilters($country)
+    protected static function setupCustomerFilters($country)
     {
         // Customer filters (country depended)
         $customers_filter_model = new shopCustomersFilterModel();

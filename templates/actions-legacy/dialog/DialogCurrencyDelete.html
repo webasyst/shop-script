@@ -1,0 +1,36 @@
+{$convert_text = "[`Prices of <strong>%d products</strong> are defined in the currency you are about to delete. Select the currency which all these prices will be converted into`]"}
+{$convert_text = $convert_text|replace:"%d":$product_count}
+<div class="dialog width400px height150px" id="s-settings-delete-currency">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=currencyDelete">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Delete currency`] 
+                    <span class="hint">{$currency.title} ({$currency.code})</span>
+                </h1>
+                {if $product_count > 0}
+                    <p>
+                        {$convert_text}:
+                        <select name="to">
+                            {foreach $currencies as $c}
+                                {if $c.code != $currency.code}
+                                    <option value="{$c.code}">{$c.code}</option>
+                                {/if}
+                            {/foreach}
+                        </select>
+                    </p>
+                {else}
+                    <p>[`You don’t have products priced in this currency. The currency can be safely deleted.`]</p>
+                {/if}
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Delete`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>

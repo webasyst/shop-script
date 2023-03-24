@@ -131,6 +131,7 @@ class shopProdSetSaveController extends waJsonController
                     }
                     break;
                 case 'name':
+                    $value = trim(preg_replace('#\s+#', ' ', $value));
                     if (mb_strlen($value) == 0 || mb_strlen($value) > 255) {
                         $this->errors[] = [
                             'id' => 'incorrect_length_name',

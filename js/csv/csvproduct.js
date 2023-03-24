@@ -83,9 +83,9 @@ if (typeof ($) != 'undefined') {
             var url = ('' + this.csv_product_form.attr('action')).replace(/\b(action=(.*))(run)\w*\b/, '$1upload');
 
             this.csv_product_upload = this.csv_product_form.find('.fileupload:first').parents('div.field');
-            this.csv_product_uploadgroup = this.csv_product_upload.parents('div.field-group');
+            this.csv_product_uploadgroup = this.csv_product_upload.parents('div.fields-group');
 
-            this.csv_product_uploadgroup.next('div.field-group').hide();
+            this.csv_product_uploadgroup.next('div.fields-group').hide();
             var self = this;
             this.csv_product_form.find('.fileupload:first').fileupload({
                 url: url,
@@ -150,7 +150,7 @@ if (typeof ($) != 'undefined') {
                     this.csv_product_options.columns_offset = file.columns_offset;
                 }
 
-                this.csv_product_uploadgroup.next('div.field-group').show();
+                this.csv_product_uploadgroup.next('div.fields-group').show();
                 this.csv_product_form.find('#s-csvproduct-submit, #s-csvproduct-submit :submit').show();
 
 
@@ -350,7 +350,7 @@ if (typeof ($) != 'undefined') {
 
         csv_productSettingsAdvanced: function ($el) {
             $el.parents('.field').slideUp();
-            $el.parents('.field-group').next('.field-group').slideDown(200);
+            $el.parents('.fields-group').next('.fields-group').slideDown(200);
         },
 
         /**
@@ -504,9 +504,9 @@ if (typeof ($) != 'undefined') {
                     });
 
                     var $select = $this.parent();
-                    $select.find('i.icon16.exclamation').remove();
+                    $select.parent().find('.exclamation').remove();
                     if (!exists) {
-                        $select.prepend('<i class="icon16 exclamation"></i>');
+                        $select.before('<i class="fas fa-exclamation-triangle exclamation text-yellow custom-pr-4"></i>');
                     }
                     break;
                 case 'Csvmap':
@@ -650,6 +650,8 @@ if (typeof ($) != 'undefined') {
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
                             $.shop.trace('report error', [textStatus, errorThrown, jqXHR.response]);
+                            // хак для скрытия прогрессбара
+                            self.csv_productMode('complete', true);
                         }
                     });
                 }
@@ -689,9 +691,7 @@ if (typeof ($) != 'undefined') {
             if (response && (typeof (response.progress) != 'undefined')) {
                 var $bar = this.form.find('.progressbar .progressbar-inner');
                 var progress = parseFloat(response.progress.replace(/,/, '.'));
-                $bar.animate({
-                    'width': progress + '%'
-                });
+                $bar.css({ 'width': progress + '%' });
 
                 var message = response.progress;
                 $bar.parents('.progressbar').attr('title', response.progress);
@@ -699,7 +699,7 @@ if (typeof ($) != 'undefined') {
 
             }
             if (response && (typeof (response.warning) != 'undefined')) {
-                $description.append('<i class="icon16 exclamation"></i><p>' + response.warning + '</p>');
+                $description.append('<i class="fas fa-exclamation-triangle text-yellow custom-pr-4"></i><p>' + response.warning + '</p>');
             }
         },
 
@@ -723,7 +723,7 @@ if (typeof ($) != 'undefined') {
                     $td = $('tr.js-row-' + collision.rows[n] + ' > td:nth-child(3)');
                     $td.data('collision', collision.rows);
                     $td.text('');
-                    $td.append('<i class="icon16 exclamation js-collision" title="' + title + '"></i>');
+                    $td.append('<i class="fas fa-exclamation-triangle text-yellow custom-pr-4 js-collision" title="' + title + '"></i>');
                     if (matches = collision.key.match(/^(c|p):u:(\d+)$/)) {
                         var href = '';
                         switch (matches[1]) {
@@ -734,7 +734,7 @@ if (typeof ($) != 'undefined') {
                                 href = '?action=products#/product/' + matches[2] + '/';
                                 break;
                         }
-                        $td.append('<a href="' + href + '" target="_blank"><i class="icon16 new-window" title="' + title + '"></i></a>');
+                        $td.append('<a href="' + href + '" target="_blank"><i class="fas fa-external-link-alt" title="' + title + '"></i></a>');
                     }
                 }
             }
@@ -885,6 +885,7 @@ if (typeof ($) != 'undefined') {
             var $submit = this.form.find(':submit');
             var $navigator = this.form.find('.s-csv-import-navigator');
             var $progressbar = this.form.find('.progressbar');
+            var $container = this.form.find('#s-csvproduct-submit');
             switch (stage) {
                 case 'run':
 
@@ -895,7 +896,6 @@ if (typeof ($) != 'undefined') {
                     $progressbar.find('.progressbar-inner').css('width', '0%');
                     $progressbar.show();
                     this.form.find('a[href="\#/csv_product/settings/advanced/"]').parents('.field').slideUp();
-                    var $container = this.form.find('#s-csvproduct-submit');
                     $container.find('span[data-mode="' + mode_name + '"]').show();
                     $container.find('span[data-mode="' + mode_name_ + '"]').hide();
                     if (mode_name == 'import') {
@@ -938,7 +938,7 @@ if (typeof ($) != 'undefined') {
                     $navigator.find('>li[data-mode="finish"]').removeClass('s-passed s-current');
                     if (mode_name == 'emulate') {
 
-                        if (!$el.parents('.field-group').next('.field-group').is(':visible')) {
+                        if (!$el.parents('.fields-group').next('.fields-group').is(':visible')) {
                             $el.parents('.field').slideDown();
                         }
                         $navigator.find('>li[data-mode="' + mode_name_ + '"]').removeClass('s-current');

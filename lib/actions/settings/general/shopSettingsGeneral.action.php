@@ -104,6 +104,7 @@ class shopSettingsGeneralAction extends waViewAction
             'phone'                         => waRequest::post('phone', '', waRequest::TYPE_STRING_TRIM),
             'country'                       => waRequest::post('country', '', waRequest::TYPE_STRING_TRIM),
             'order_format'                  => waRequest::post('order_format', '', waRequest::TYPE_STRING_TRIM),
+            'order_noproduct_item_name'     => waRequest::post('order_noproduct_item_name', '', waRequest::TYPE_STRING_TRIM),
             'use_gravatar'                  => waRequest::post('use_gravatar', '', waRequest::TYPE_INT),
             'gravatar_default'              => waRequest::post('gravatar_default', '', waRequest::TYPE_STRING_TRIM),
             'require_captcha'               => waRequest::post('require_captcha', 0, waRequest::TYPE_INT),

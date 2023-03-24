@@ -21,7 +21,8 @@
             that.states = {
                 move_locked: false,
                 force_locked: false,
-                reload_locked: false
+                reload_locked: false,
+                sort_locked: false
             };
 
             // INIT
@@ -178,7 +179,11 @@
                                     console.log("ERRORS:", errors);
                                 })
                                 .always( function() {
-                                    self.reload({ set_id: self.set.id, force: (self.render_products ? 1 : 0) });
+                                    self.states.sort_locked = false;
+                                    $.each(self.products, function(i, product) {
+                                        product.states.move_locked = false;
+                                    });
+                                    // self.reload({ set_id: self.set.id, force: (self.render_products ? 1 : 0) });
                                 });
                         }
 
@@ -297,8 +302,6 @@
             var that = this;
 
             that.initDragAndDrop(vue_model);
-
-            console.log( that );
         };
 
         Dialog.prototype.initDragAndDrop = function(vue_model) {

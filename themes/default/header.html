@@ -18,15 +18,6 @@
         {/if}
     {/foreach}
 
-    <!-- product search -->
-    <form method="get" action="{$wa->getUrl('shop/frontend/search')}" class="search">
-        <div class="search-wrapper">
-            <input id="search" type="search" name="query" {if !empty($query)}value="{$query}"{/if} placeholder="[s`Find products`]">
-            <button type="submit"></button>
-            {* <span class="search-sample">{sprintf('[`E.g. %s`]', '<a href="'|cat:$wa_app_url:"search/?query=productname":'">productname</a>')} *}
-        </div>
-    </form>
-
     <ul class="pages flyout-nav">
 
         {if $theme_settings.category_nav_mode != 'sidebar'}
@@ -36,7 +27,7 @@
                 {* DROPDOWN "Shop by Department" navigation *}
 
                 <li class="collapsible">
-                    <a href="{$wa_app_url}" class="bold">[`Shop by Department`]</a>
+                    <a href="{$wa_app_url}" class="chevron down">[`Shop by Department`]</a>
                     <div class="flyout">
                         <div class="container">
                             {if count($categories)}
@@ -57,7 +48,7 @@
                 {foreach $categories as $cat}
                     {if count($cat.childs)}
                         <li class="collapsible">
-                            <a href="{$cat.url}">{$cat.name}</a>
+                            <a href="{$cat.url}" class="chevron down">{$cat.name}</a>
                             <div class="flyout">
                                 <div class="container">
                                     {wa_print_tree tree=$cat.childs unfolded=true collapsible_class='collapsible' class="menu-v" elem ='<a href=":url" title=":name">:name</a>'}
@@ -78,7 +69,7 @@
                 {* TAGS *}
 
                 <li class="collapsible">
-                    <a href="javascript:void(0);">[`Tags`]</a>
+                    <a href="javascript:void(0);" class="chevron down">[`Tags`]</a>
                     <div class="flyout">
                         <div class="container">
                             <div class="tags block align-center">
@@ -97,7 +88,7 @@
 
                 {foreach $frontend_nav as $_key => $_}
                     <li class="collapsible">
-                        <a href="javascript:void(0);" onClick="return false">
+                        <a href="javascript:void(0);" onClick="return false" class="chevron down">
                             {if substr($_key, -7) == '-plugin'}{$wa->pluginName(substr($_key, 0, -7))}{else}[`More`]{/if}
                         </a>
                         <div class="flyout">
@@ -109,7 +100,7 @@
                 {/foreach}
                 {foreach $frontend_nav_aux as $_key => $_}
                     <li class="collapsible">
-                        <a href="javascript:void(0);" onClick="return false">
+                        <a href="javascript:void(0);" onClick="return false" class="chevron down">
                             {if substr($_key, -7) == '-plugin'}{$wa->pluginName(substr($_key, 0, -7))}{else}[`More`]{/if}
                         </a>
                         <div class="flyout">
@@ -134,5 +125,18 @@
 
 
     </ul>
+
+    <!-- product search -->
+    <form method="get" action="{$wa->getUrl('shop/frontend/search')}" class="search wa-flex-fill">
+        <div class="search-wrapper">
+            <input id="search" type="search" name="query" {if !empty($query)}value="{$query}"{/if} placeholder="[s`Find products`]">
+            <button type="submit">
+                <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" version="1.1" preserveAspectRatio="xMinYMin">
+                    <use xlink:href="#img-find"></use>
+                </svg>
+            </button>
+            {* <span class="search-sample">{sprintf('[`E.g. %s`]', '<a href="'|cat:$wa_app_url:"search/?query=productname":'">productname</a>')} *}
+        </div>
+    </form>
 
 {/if}

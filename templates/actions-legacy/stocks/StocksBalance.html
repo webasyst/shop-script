@@ -1,0 +1,169 @@
+{if !empty($product_stocks)}
+
+    <table class="zebra" id="s-product-stocks">
+        <thead>
+            <tr class="header white">
+                <th colspan=2>&nbsp;</th>
+                {foreach $stocks as $stock}
+                    <th>{strip}
+                        {$sort_key = 'stock_count_'|cat:$stock.id}
+                        <a href="#/stocks/stock_count_{$stock.id}_{if $sort == $sort_key && $order == 'asc'}desc{else}asc{/if}">
+                            {$stock.name|escape}
+                            {if $sort == $sort_key}
+                                <i class="icon16 {if $order == 'desc'}darr{else}uarr{/if}"></i>
+                            {/if}
+                        </a>
+                    {/strip}</th>
+                {/foreach}
+                <th>{strip}
+                    <a href="#/stocks/{if $sort === 'count' && $order == 'asc'}desc{else}asc{/if}/" class="s-sort-handler bold">
+                        [`All stocks`]
+                        {if $sort === 'count'}
+                            <i class="icon16 {if $order == 'desc'}darr{else}uarr{/if}"></i>
+                        {/if}
+                    </a>
+                {/strip}</th>
+            </tr>
+        </thead>
+    </table>
+
+    <div class="lazyloading-wrapper">
+        <div class="lazyloading-progress-string">{_w('%d product','%d products', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+        <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more products`]</a>
+        <span class="lazyloading-progress" style="display:none">
+            <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d product', '%d products', min($total_count - $count, $count))}...</span>
+        </span>
+    </div>
+
+{else}
+    <h5>[`How to view the stock balance of all products`]</h5>
+    <ol>
+        <li>{sprintf('[`Add at least one stock in your <a href="%s">store settings</a>.`]', '?action=settings#/stock')}<br><br></li>
+        <li>{sprintf('[`Save stock quantities for your <a href="%s">products</a>.`]', '?action=products#/products/')}</li>
+    </ol>
+{/if}
+
+{if !empty($product_stocks)}
+
+    {*
+      table of info
+      @see 'template-product-stocks-sku-list' template
+    *}
+    {literal}
+    <script type="text/html" id="template-product-stocks">
+        {% var data = o.product_stocks; %}
+        {% for (var i = 0, sz = data.length; i < sz; i += 1) { %}
+            {% var product = data[i], skus = product.skus, stocks = product.stocks; %}
+            {% var sku_count = skus.length; %}
+            <tr class="s-product" data-id="{%#product.id%}">
+                {% var hash = '{/literal}{shopHelper::getBackendEditorUrl('@s', 'prices')}{literal}'.replace('@s', product.id); %}
+                <td class="s-product min-width">
+                    <a href="{%#hash%}">
+                        {% if (product.url_crop_small) { %}
+                            <img src="{%#product.url_crop_small%}">
+                        {% } else { %}
+                            <img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy-small.png" class="not-found">
+                        {% } %}
+                    </a>
+                </td>
+
+                <td class="s-product">
+                    <a href="{%#hash%}">{%=product.name%}</a>
+                </td>
+
+                <!-- detailed by stocks -->
+                {% for (var k = 0, l = stocks.length; k < l; k += 1) { %}
+                    {% var stock_id = o.stocks[k].id; %}
+                    <td class="s-stock-cell" data-stock-id="{%#stock_id%}">
+                        {% stock_skus = stocks[k]; %}
+                        <ul class="menu-v">
+                            {% for (var j = 0, n = stock_skus.length; j < n; j += 1) { %}
+                                {% var sku_id = stock_skus[j].id; %}
+                                {% var link_stock = '{/literal}{shopHelper::getBackendEditorUrl('@s', 'prices', ['focus' => 'stock', 'sku' => '@r', 'stock' => '@q'])}{literal}'.replace('@s', product.id).replace('@r', sku_id).replace('@q', stock_id); %}
+                                {% if (stock_skus[j].num_of_stocks > 0) { %}
+                                    <li id="s-item-{%#sku_id%}-{%#stock_id%}" class="item {% if (stock_skus[j].count === null) { %}infinity{% } %}">{%#stock_skus[j].icon%}
+                                        {% if (sku_count > 1) { %}
+                                        <a href="{%#link_stock%}">{%=stock_skus[j].name%}</a>
+                                        {% } %}
+                                        {% if (stock_skus[j].count !== null) { %}{%#stock_skus[j].count%}{% } else { %}∞{% } %}
+                                    </li>
+                                {% } else { %}
+                                    <li class="gray">&mdash;</li>
+                                {% } %}
+                            {% } %}
+                        </ul>
+                    </td>
+                {% } %}
+
+                <td><ul class="menu-v">
+                    {% for (var k = 0, l = skus.length; k < l; k += 1) { %}
+                        <li>{%#skus[k].icon%}
+                            {% if (sku_count > 1) { %}
+                                <a href="{%#hash+'edit/focus=price&sku='+skus[k].id%}">{%=skus[k].name%}</a>
+                            {% } %}
+                            <strong>{% if (skus[k].count !== null) { %}{%#skus[k].count%}{% } else { %}∞{% } %}</strong>
+                        </li>
+                    {% } %}
+                </ul></td>
+
+            </tr>
+        {% } %}
+    </script>
+    {/literal}
+
+    {*
+      sku-list in one cell
+      @see 'template-product-stocks' template
+    *}
+    {literal}
+    <script type="text/html" id="template-product-stocks-sku-list">
+        {% var skus = o.skus; %}
+        {% var hash = "#/product/"+o.product.id+"/edit/"; %}
+        <ul class="menu-v">
+            {% for (var k = 0, sku_count = skus.length; k < sku_count; k += 1) { %}
+                {% var sku_id = skus[k].id; %}
+                {% if (skus[k].num_of_stocks > 0) { %}
+                    <li id="s-item-{%#sku_id%}-{%#o.stock.id%}" class="item {% if (skus[k].count === null) { %}infinity{% } %}">{%#skus[k].icon%}
+                        {% if (sku_count > 1) { %}
+                            <a href="{%#hash+'edit/focus=stock&sku='+sku_id+'&stock='+o.stock.id%}" class="small">{%=skus[k].name%}</a>
+                        {% } %}
+                        <strong>{% if (skus[k].count !== null) { %}{%#skus[k].count%}{% } else { %}∞{% } %}</strong>
+                    </li>
+                {% } else { %}
+                    <li>&mdash;</li>
+                {% } %}
+            {% } %}
+        </ul>
+    </script>
+    {/literal}
+
+    {$_sort = ""}
+    {if !empty($sort) && $sort !== "count"}
+        {$_sort = $sort}
+    {/if}
+
+    <script>
+        $.product_stocks.init({
+            product_stocks: {json_encode($product_stocks)},
+            stocks: {json_encode($stocks)},
+            order: '{$order}',
+            lazy_loading: {
+                auto: true,
+                count: {$count},
+                total_count: {$total_count},
+                sort: {$_sort|json_encode}
+            }
+        });
+    </script>
+
+{/if}
+
+<script>
+    {* HIGHLIGHT SIDEBAR LINK *}
+    ( function($) {
+        var $sidebar = $('#s-sidebar');
+        var active_class = "selected";
+        $sidebar.find('li.' + active_class).removeClass(active_class);
+        $sidebar.find('#s-product-stocks-info').addClass(active_class);
+    })(jQuery);
+</script>

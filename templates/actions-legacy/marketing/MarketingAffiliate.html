@@ -1,0 +1,157 @@
+{* PAGE *}
+<div class="s-affiliate-page block double-padded" id="js-affiliate-page">
+
+    {* BODY *}
+    <div class="s-page-body">
+        <div class="s-table-box space-20">
+            {if $plugins || !empty($installer)}
+                <div class="sidebar left200px s-page-sidebar s-settings-order-states">
+                    <div class="s-inner-sidebar" id="affiliate-plugins">
+
+                        <ul class="menu-v stack with-icons">
+                            <li class="selected">
+                                <a class="js-disable-router" href="{$marketing_url}affiliate/"><i class="icon16 medal"></i>[`Loyalty program`]</a>
+                            </li>
+                            {foreach $plugins as $p}
+                                <li>
+                                    <a class="js-disable-router" href="javascript:void(0);" data-url="{$p.url}">
+                                        <span class="count s-exclamation" {if $enabled}style="display: none;"{/if}><i class="icon16 exclamation" title="[`Disabled`]"></i></span>
+                                        <i class="icon16 {if !isset($p.img)} plugins{else}" style="background-image: url('{$wa_url}{$p.img}'); background-size: 16px 16px;{/if}"></i>{$p.name|escape}
+                                    </a>
+                                </li>
+                            {/foreach}
+                        </ul>
+
+                        {if !empty($installer)}
+                            <div class="align-center hint hr block double-padded">
+                                <p>
+                                    <a href="javascript:void(0);" data-url="{$wa_backend_url|cat:'installer/?module=plugins&action=view&slug=shop&filter[tag]=affiliate'}" class="bold">[`Browse plugins`]</a><br>
+                                    [`Install new plugins from the Webasyst Store using the Installer app`]
+                                </p>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+            {/if}
+
+            <div class="{if $plugins || !empty($installer)}content left200px{/if} s-settings-form">
+                {if $plugins || $installer}
+                    <div id="affiliate-settings-plugin"></div>
+                {/if}
+
+                <div id="affiliate-settings">
+                    <h1 style="margin: 0 0 0.75em;">[`Loyalty program`]</h1>
+                    <p>[`Loyalty program allows you to stimulate customers returning order activity by rewarding customers bonus points for each paid order. Depending on your business model, you may offer additional discounts in exchange to earned points, or pay out earned bonuses to your customers directly.`]</p>
+
+                    <form id="s-settings-affiliate-form" action="{$wa_app_url}?module=marketingAffiliateSave">
+                        <div class="fields form">
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name">[`Loyalty program`]</div>
+                                    <div class="value no-shift s-ibutton-checkbox">
+                                        <ul class="menu-h">
+                                            <li><span class="gray" id="s-toggle-disabled-label">[`Disabled`]</span></li>
+                                            <li>
+                                                <input type="checkbox" id="s-toggle-status" name="enabled" value="1"{if $enabled} checked{/if}>
+                                            </li>
+                                            <li><span id="s-toggle-enabled-label">[`Enabled`]</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field-group"{if !$enabled} style="display:none;"{/if}>
+                                <div class="field">
+                                    <div class="name">[`Credit rate`]</div>
+                                    <div class="value">
+                                        [`+1 point per`]
+                                        <input type="text" class="short numerical" name="conf[affiliate_credit_rate]" value="{ifset($conf.affiliate_credit_rate)|wa_format_number:false}" placeholder="0">{$def_cur_sym} [`worth of self placed orders`]
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">[`Bonus points rounding`]</div>
+                                    <div class="value no-shift">
+                                        <input type="hidden" name="conf[affiliate_rounding]" value="0">
+                                        <label>
+                                            <input type="checkbox" name="conf[affiliate_rounding]" {if !empty($conf.affiliate_rounding)}checked{/if}> [`Integer points`]
+                                        </label>
+                                        <p class="hint">{sprintf_wp('Accruals will be made only by integer bonus points—one point per whole amount specified in the “%s” field. For a remainder below that amount no points will be accrued.', _w('Credit rate'))}</p>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">[`Credited for`]</div>
+                                    <div class="value">
+                                        <ul class="menu-v compact" style="margin: 0;">
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="conf[affiliate_product_types]" value=""{if empty($conf.affiliate_product_types)} checked{/if}>
+                                                    [`All product types`]
+                                                </label>
+                                            </li>
+                                            <li>
+                                                <label>
+                                                    <input type="radio" name="conf[affiliate_product_types]" value="replaced-by-js"{if !empty($conf.affiliate_product_types)} checked{/if}>
+                                                    [`Selected only`]
+                                                </label>
+                                            </li>
+                                        </ul>
+                                        <ul class="menu-v compact js-hidden-list" style="margin-left: 15px;">
+                                            {foreach $product_types as $pt}
+                                                <li>
+                                                    <label>
+                                                        <input type="checkbox" value="{$pt.id}"{if !empty($conf.affiliate_product_types[$pt.id])} checked{/if}> <i class="icon16 {$pt.icon}"></i>{$pt.name|escape}
+                                                    </label>
+                                                </li>
+                                            {/foreach}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field-group"{if !$enabled} style="display:none;"{/if}>
+                                <div class="field">
+                                    <div class="name">[`Usage rate`]</div>
+                                    <div class="value">
+                                        [`1 point =`]
+                                        <input type="text" class="short numerical" name="conf[affiliate_usage_rate]" value="{ifset($conf.affiliate_usage_rate)|wa_format_number:false}" placeholder="0">{$def_cur_sym}
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">[`Usage % limit`]</div>
+                                    <div class="value">
+                                        <input type="text" class="short numerical" name="conf[affiliate_usage_percent]" value="{ifset($conf.affiliate_usage_percent)}" placeholder="100">%
+                                        <p class="hint">[`Limits the maximum % of order amount that can be paid with bonus (i.e. maximum discount a customer can get by applying the bonus).`]</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field-group"{if !$enabled} style="display:none;"{/if}>
+                                <div class="field">
+                                    <div class="value submit">
+                                        <input type="submit" class="button green js-submit-button" value="[`Save`]">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="clear"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+            $.shop.marketing.setTitle({_w("Loyalty program")|json_encode});
+
+            var sources = [{
+                id: "wa-shop-marketing-affiliate-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/backend/marketing/affiliate.js?v={$wa->version()}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                $.shop.marketing.init.affiliatePage({
+                    $wrapper: $("#js-affiliate-page")
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

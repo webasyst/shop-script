@@ -230,16 +230,28 @@ class shopCurrencyModel extends waModel
                 $this->convertPrices($old_code, 1, $new_code, $rate);
             }
 
-            $this->exec("UPDATE `{$this->table}` SET rate = rate/$rate");
-            $this->exec("UPDATE `shop_customer`  SET total_spent = total_spent/$rate");
-            $this->exec("UPDATE `shop_product` SET total_sales = total_sales/$rate");
-            $this->exec("UPDATE `shop_order` SET rate = rate/$rate");
+            $currency_number = $this->getAllowedMaxNumber($this, 'rate');
+            $this->exec("UPDATE `{$this->table}` SET rate = LEAST(rate/$rate, $currency_number)");
+
+            $customer_model = new shopCustomerModel();
+            $allowed_customer_number = $this->getAllowedMaxNumber($customer_model, 'total_spent');
+            $this->exec("UPDATE `shop_customer`  SET total_spent = LEAST(total_spent/$rate, $allowed_customer_number)");
+
+            $product_model = new shopProductModel();
+            $allowed_product_number = $this->getAllowedMaxNumber($product_model, 'total_sales');
+            $this->exec("UPDATE `shop_product` SET total_sales = LEAST(total_sales/$rate, $allowed_product_number)");
+
+            $order_model = new shopOrderModel();
+            $allowed_order_number = $this->getAllowedMaxNumber($order_model, 'rate');
+            $this->exec("UPDATE `shop_order` SET rate = LEAST(rate/$rate, $allowed_order_number)");
             try {
                 $this->exec("UPDATE `shop_order_params` SET value = value/$rate WHERE name='shipping_currency_rate'");
             } catch (waException $e) {
                 waLog::log('Error updating currencies. Perhaps there is a currency with a comma.');
             }
-            $this->exec("UPDATE `shop_expense` SET amount = amount/$rate");
+            $expense_model = new shopExpenseModel();
+            $allowed_expense_number = $this->getAllowedMaxNumber($expense_model, 'amount');
+            $this->exec("UPDATE `shop_expense` SET amount = LEAST(amount/$rate, $allowed_expense_number)");
             $this->exec("DELETE FROM `shop_sales`");
             $this->updateById($old_code, array('sort' => $currencies[$new_code]));
             $this->updateById($new_code, array('sort' => 0));
@@ -293,10 +305,12 @@ class shopCurrencyModel extends waModel
         $rate_to = $this->castValue('double', $rate_to);
         $cond = "p.currency = '".$this->escape($from)."'";
         $price_fields = array('price', 'purchase_price', 'compare_price');
+        $product_skus_model = new shopProductSkusModel();
         foreach ($price_fields as $p_name) {
+            $allowed_number = $this->getAllowedMaxNumber($product_skus_model, $p_name);
             $sql = "UPDATE `shop_product_skus` ps
                 JOIN `shop_product` p ON p.id = ps.product_id
-                SET ps.{$p_name} = (ps.{$p_name}*{$rate_from})/{$rate_to}
+                SET ps.{$p_name} = LEAST((ps.{$p_name}*{$rate_from})/{$rate_to}, $allowed_number)
                 WHERE {$cond}";
             $this->exec($sql);
         }
@@ -307,21 +321,27 @@ class shopCurrencyModel extends waModel
         $rate_from = $this->castValue('double', $rate_from);
         $rate_to = $this->castValue('double', $rate_to);
 
+        $service_variants_model = new shopServiceVariantsModel();
+        $allowed_service_variants_number = $this->getAllowedMaxNumber($service_variants_model, 'price');
         $cond = "s.currency = '".$this->escape($from)."'";
         $sql = "UPDATE `shop_service_variants` sv
                 JOIN `shop_service` s ON s.id = sv.service_id
-                SET sv.price = (sv.price*$rate_from)/$rate_to
+                SET sv.price = LEAST((sv.price*$rate_from)/$rate_to, $allowed_service_variants_number)
                 WHERE sv.price IS NOT NULL AND $cond";
         $this->exec($sql);
 
+        $product_services_model = new shopProductServicesModel();
+        $allowed_product_services_number = $this->getAllowedMaxNumber($product_services_model, 'price');
         $sql = "UPDATE `shop_product_services` ps
                 JOIN `shop_service` s ON s.id = ps.service_id
-                SET ps.price = (ps.price*$rate_from)/$rate_to
+                SET ps.price = LEAST((ps.price*$rate_from)/$rate_to, $allowed_product_services_number)
                 WHERE ps.price IS NOT NULL AND $cond";
         $this->exec($sql);
 
+        $service_model = new shopServiceModel();
+        $allowed_service_number = $this->getAllowedMaxNumber($service_model, 'price');
         $sql = "UPDATE `shop_service` s
-                SET s.price = (price*$rate_from)/$rate_to, s.currency = '".$this->escape($to)."'
+                SET s.price = LEAST((price*$rate_from)/$rate_to, $allowed_service_number), s.currency = '".$this->escape($to)."'
                 WHERE $cond";
         $this->exec($sql);
     }
@@ -420,6 +440,9 @@ class shopCurrencyModel extends waModel
     private function recalcProductPrimaryPrices($code = null)
     {
         $where = $code ? "WHERE p.currency = '".$this->escape($code)."'" : '';
+        $product_model = new shopProductModel();
+        $allowed_product_min_price_number = $this->getAllowedMaxNumber($product_model, 'min_price');
+        $allowed_product_max_price_number = $this->getAllowedMaxNumber($product_model, 'max_price');
         $sql = "UPDATE `shop_product` p JOIN
             (
                 SELECT p.id, MIN(ps.price) AS min_price, MAX(ps.price) AS max_price
@@ -428,29 +451,33 @@ class shopCurrencyModel extends waModel
                 GROUP BY p.id
             ) r ON p.id = r.id
             JOIN `shop_currency` c ON c.code = p.currency
-            SET p.min_price = r.min_price*c.rate, p.max_price = r.max_price*c.rate
+            SET p.min_price = LEAST(r.min_price*c.rate, $allowed_product_min_price_number), p.max_price = LEAST(r.max_price*c.rate, $allowed_product_max_price_number)
             $where
         ";
         $this->exec($sql);
 
+        $allowed_product_price_number = $this->getAllowedMaxNumber($product_model, 'price');
         $sql = "UPDATE `shop_product` p
             JOIN `shop_product_skus` ps ON ps.product_id = p.id AND ps.id = p.sku_id
             JOIN `shop_currency` c ON c.code = p.currency
-            SET p.price = ps.price*c.rate
+            SET p.price = LEAST(ps.price*c.rate, $allowed_product_price_number)
             $where";
         $this->exec($sql);
 
+        $allowed_product_compare_price_number = $this->getAllowedMaxNumber($product_model, 'compare_price');
         $sql = "UPDATE `shop_product` p
             JOIN `shop_product_skus` ps ON ps.product_id = p.id AND ps.id = p.sku_id
             JOIN `shop_currency` c ON c.code = p.currency
-            SET p.compare_price = ps.compare_price*c.rate
+            SET p.compare_price = LEAST(ps.compare_price*c.rate, $allowed_product_compare_price_number)
             $where";
         $this->exec($sql);
 
+        $product_skus_model = new shopProductSkusModel();
+        $allowed_product_skus_number = $this->getAllowedMaxNumber($product_skus_model, 'primary_price');
         $sql = "UPDATE `shop_product` p
                 JOIN `shop_product_skus` ps ON p.id = ps.product_id
                 JOIN `shop_currency` c ON c.code = p.currency
-                SET ps.primary_price = ps.price*c.rate
+                SET ps.primary_price = LEAST(ps.price*c.rate, $allowed_product_skus_number)
                 $where";
         $this->exec($sql);
     }
@@ -464,23 +491,29 @@ class shopCurrencyModel extends waModel
     {
         $where = $code ? "WHERE s.currency = '".$this->escape($code)."'" : '';
 
+        $service_variants_model = new shopServiceVariantsModel();
+        $allowed_service_variants_number = $this->getAllowedMaxNumber($service_variants_model, 'primary_price');
         $sql = "UPDATE `shop_service_variants` sv
                 JOIN `shop_service` s ON s.id = sv.service_id
                 JOIN `shop_currency` c ON c.code = s.currency
-                SET sv.primary_price = sv.price*c.rate
+                SET sv.primary_price = LEAST(sv.price*c.rate, $allowed_service_variants_number)
                 $where";
         $this->exec($sql);
 
+        $product_services_model = new shopProductServicesModel();
+        $allowed_product_services_number = $this->getAllowedMaxNumber($product_services_model, 'primary_price');
         $sql = "UPDATE `shop_product_services` ps
                 JOIN `shop_service` s ON s.id   = ps.service_id
                 JOIN `shop_currency` c ON c.code = s.currency
-                SET ps.primary_price = ps.price*c.rate
+                SET ps.primary_price = LEAST(ps.price*c.rate, $allowed_product_services_number)
                 $where";
         $this->exec($sql);
 
+        $service_model = new shopServiceModel();
+        $allowed_service_number = $this->getAllowedMaxNumber($service_model, 'price');
         $sql = "UPDATE `shop_service` s
                 JOIN `shop_service_variants` sv ON s.variant_id = sv.id
-                SET s.price = sv.primary_price
+                SET s.price = LEAST(sv.primary_price, $allowed_service_number)
                 $where";
         $this->exec($sql);
     }
@@ -520,5 +553,25 @@ class shopCurrencyModel extends waModel
             return pow(10, -$currency['precision']);
         }
         return $rounding;
+    }
+
+    /**
+     * @param $model
+     * @param string $column_name
+     * @return string
+     */
+    protected function getAllowedMaxNumber($model, $column_name)
+    {
+        $metadata = $model->getMetadata();
+        if (isset($metadata[$column_name])) {
+            $params = explode(',', $metadata[$column_name]['params']);
+            $allowed_number = str_repeat('9', $params[0]);
+            if (isset($params[1])) {
+                $allowed_number .= '.' . str_repeat('9', $params[1]);
+            }
+            return $allowed_number;
+        } else {
+            return '0';
+        }
     }
 }

@@ -236,7 +236,7 @@ class shopCategorySaveController extends waJsonController
                 }
             }
         }
-        $select_fields = ['type', 'tag', 'badge'];
+        $select_fields = ['type_id', 'tag', 'badge'];
         foreach ($select_fields as $field) {
             if (isset($raw_condition[$field])) {
                 $field_conditions = waRequest::post($field, [], waRequest::TYPE_ARRAY);

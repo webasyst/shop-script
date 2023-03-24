@@ -12,7 +12,8 @@
 
 <link href="{$wa_app_static_url}js/order/timepicker/jquery.timepicker.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
 
-{if 0 && empty($embedded_version)}
+{if 0}
+{* :TODO need to delete? *}
 <div class="s-alert s-orders-mobile-notice" id="s-orders-mobile-notice" data-alert="mobile-app">
     <div class="t-layout">
         <div class="t-column">
@@ -36,129 +37,304 @@
 </div>
 {/if}
 
-{if empty($embedded_version)}
-<div class="sidebar left200px s-inner-sidebar" id="s-sidebar">
-    <div class="block">
-        <ul class="menu-v with-icons">
-            <li class="bottom-padded">
-                <a href="#/orders/new/" class="bold"><i class="icon16 add"></i>[`New order`]</a>
-            </li>
-            <li id="s-pending-orders" class="list">
-                <span class="count">{if !empty($pending_count)}{$pending_count}{/if}</span>
-                <a href="#/orders/state_id=new|processing|auth|paid">
-                    <i class="icon16 ss orders-processing"></i>[`Processing`]
-                    <strong class="highlighted small">{if !empty($state_counters['new'])}+{$state_counters['new']}{/if}</strong>
-                </a>
-            </li>
+<div id="s-order-nav" class="flexbox wrap-mobile" style="display:none;">
 
-            <!-- plugin hook: 'backend_orders.sidebar_top_li' -->
-            {* @event backend_orders.%plugin_id%.sidebar_top_li *}
-            {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+    <div class="s-order-nav-block flexbox">
 
-            <li id="s-all-orders" class="list">
-                <span class="count">{if !empty($all_count)}{$all_count}{/if}</span>
-                <a href="#/orders/all/">
-                    <i class="icon16 ss orders-all"></i>[`All orders`]
-                </a>
-            </li>
-            {if !empty($unsettled_count)}
-                <li id="s-unsettled-orders" class="list" style="opacity: 0.6;">
-                    <span class="count">{if !empty($unsettled_count)}{$unsettled_count}{/if}</span>
-                    <a href="#/orders/unsettled=1">
-                        <i class="icon16 ss flag-purple"></i>[`Unsettled`]
-                        <strong class="highlighted small"></strong>
-                    </a>
+        <!-- VIEW -->
+        <div class="s-order-nav-view s-order-view-toggle hidden js-order-view wide">
+            <ul class="chips custom-my-0" id="s-orders-views">
+                <li data-view="split" class="rounded transparent custom-mx-0">
+                    <a href="#" title="[`List`]"><i class="fas fa-user-circle"></i></a>
                 </li>
-            {/if}
 
-        </ul>
-    </div>
-
-    <!-- plugin hook: 'backend_orders.sidebar_section' -->
-    {* @event backend_orders.%plugin_id%.sidebar_section *}
-    {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
-
-    <div class="block">
-        <h5 class="heading">[`Order states`]</h5>
-        <ul class="menu-v with-icons collapsible">
-
-            {foreach $states as $id => $state}
-                <li data-state-id="{$id}" class="list">
-                    <span class="count">{if isset($state_counters[$id])}{$state_counters[$id]}{else}0{/if}</span>
-                    <a href="#/orders/state_id={$id}/" style="{$state->getStyle()}">
-                        <i class="{$state->getOption('icon')}"></i>{$state->getName()|escape}
-                    </a>
+                <li data-view="table" class="rounded transparent custom-mx-0">
+                    <a href="#" title="[`Table`]"><i class="fas fa-list"></i></a>
                 </li>
-            {/foreach}
-        </ul>
-    </div>
 
-    {if !empty($couriers)}
-        <div class="block">
-            <h5 class="heading collapse-handler">
-                [`Couriers`]
-            </h5>
-            <ul class="menu-v collapsible with-icons">
-                {foreach $couriers as $courier}
-                    <li data-courier-id="{$courier.id|escape}" class="list">
-                        <span class="count">{$courier.count}</span>
-                        <a href="#/orders/search/params.courier_id={$courier.id}/">
-                            {if $courier.contact_id}
-                                <i class="icon16 userpic20" style="background-image: url({waContact::getPhotoUrl($courier.contact_id, $courier.photo, 40)})"></i>
-                            {else}
-                                <i class="icon16 ss courier"></i>
-                            {/if}
-                            {$courier.name|escape}
-                        </a>
-                    </li>
-                {/foreach}
+                <li data-view="kanban" class="rounded transparent custom-mx-0">
+                    <a href="#" title="[`Kanban`]"><i class="fas fa-table"></i></a>
+                </li>
+
+                <!-- plugin hook: 'backend_orders.viewmode_li' -->
+                {* @event backend_orders.%plugin_id%.viewmode_li *}
+                {foreach $backend_orders as $_}{ifset($_.viewmode_li)}{/foreach}
             </ul>
         </div>
-    {/if}
 
-    {if !empty($sales_channels)}
-        <div class="block">
-            <h5 class="heading collapse-handler">
-                [`Sales channels`]
-            </h5>
-            <ul class="menu-v collapsible s-storefronts-filter">
-                {foreach $sales_channels as $channel_id => $channel}
-                    <li data-storefront="{$channel.storefront|escape}" data-sales-channel="{$channel_id|escape}" class="list">
-                        <span class="count">{$channel.count}</span>
-                        <a href="{$channel.url|escape}">{$channel.name|escape}</a>
-                    </li>
-                {/foreach}
-            </ul>
+        <!-- ADD -->
+        <div class="s-order-nav-view custom-mt-4 custom-ml-8">
+            <a class="rounded button small nowrap s-order-nav-plus-button" href="#/orders/new/" title="[`New order`]">
+                <i class="fas fa-plus"></i>
+                <span class="s-order-nav-plus-button-label">[`New order`]</span>
+            </a>
         </div>
-    {/if}
 
-
-    <div class="block">
-        <ul class="menu-v with-icons">
-            <!-- plugin hook: 'backend_orders.sidebar_bottom_li' -->
-            {* @event backend_orders.%plugin_id%.sidebar_bottom_li *}
-            {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
-
-        </ul>
     </div>
 
-    <div class="align-center hr" style="padding: 20px 0;">
-        <p class="hint">{sprintf('[`To set up <em>discount coupons</em>, please open “%s” section.`]', "<a href='{$wa_app_url}marketing/'>[`Marketing`]</a>")}</p>
+    <!-- PRIMARY FILTERS -->
+    <div class="s-order-nav-block">
+
+        <!-- plugin hook: 'backend_orders.sidebar_section' -->
+        {* @event backend_orders.%plugin_id%.sidebar_section *}
+        {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
+
+        <div class="flexbox space-12 custom-mt-4">
+            <div class="dropdown wide js-orders-dropdown">
+                <button class="dropdown-toggle small light-gray full-width align-left text-black s-pseudo-brick">
+                    <span class="count">
+                        {if !empty($pending_count)}{$pending_count}{else}0{/if}
+                    </span>
+                    <span class="label semibold">
+                        [`Processing`]
+                    </span>
+                </button>
+
+                <div class="dropdown-body">
+                    <ul class="menu">
+                        <li>
+                            <a href="#/orders/state_id=new|processing|auth|paid" class="js-orders-link" id="s-pending-orders">
+                                <span class="count">
+                                    {if !empty($pending_count)}{$pending_count}{else}0{/if}
+                                </span>
+                                <span class="label semibold">
+                                    [`Processing`]
+                                    {if !empty($state_counters['new'])}<span class="highlighted smaller">+{$state_counters['new']}</span>{/if}
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#/orders/all/" class="js-orders-link" id="s-all-orders">
+                                <span class="count">{if !empty($all_count)}{$all_count}{else}0{/if}</span>
+                                <span class="label semibold">[`All statuses`]</span>
+                            </a>
+                        </li>
+
+                        <!-- plugin hook: 'backend_orders.sidebar_top_li' -->
+                        {* @event backend_orders.%plugin_id%.sidebar_top_li *}
+                        {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+
+                        {foreach $states as $id => $state}
+                            <li data-state-id="{$id}">
+                                <a href="#/orders/state_id={$id}/" class="js-orders-link" style="{$state->getStyle()}">
+                                    <span class="icon"><i class="{$wa->shop->convertIcon($state->getOption('icon'), true)}" style="{$state->getStyle()}"></i></span>
+                                    <span class="label">{$state->getName()|escape}</span>
+                                    <span class="count">{if isset($state_counters[$id])}{$state_counters[$id]}{else}0{/if}</span>
+                                </a>
+                            </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="dropdown wide js-orders-dropdown">
+                <button class="dropdown-toggle small light-gray full-width align-left text-black s-pseudo-brick">
+                    <span class="count"><i class="fas fa-shopping-cart"></i></span>
+                    <span class="label semibold">[`Sales channels`]</span>
+                </button>
+
+                <div class="dropdown-body right">
+                    <ul class="menu menus-storefronts-filter">
+
+                        <li>
+                            <a href="#/orders/all/" class="js-orders-link" id="s-all-orders">
+                                <span class="count">{if !empty($all_count)}{$all_count}{else}0{/if}</span>
+                                <span class="label semibold">[`All channels`]</span>
+                            </a>
+                        </li>
+
+                        {foreach $sales_channels as $channel_id => $channel}
+                            <li data-storefront="{$channel.storefront|escape}" data-sales-channel="{$channel_id|escape}" class="list">
+                                <a href="{$channel.url|escape}" class="js-orders-link">
+                                    <span class="icon"><i class="fas fa-shopping-cart"></i></span>
+                                    <span class="label">{$channel.name|escape}</span>
+                                    <span class="count">{$channel.count}</span>
+                                </a>
+                            </li>
+                        {/foreach}
+
+                        <li>
+                            <a href="#/orders/all/" class="js-orders-link" id="s-all-orders">
+                                <span class="icon"><i class="fas fa-plus"></i></span>
+                                <span class="label text-gray">[`Add channel`]</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECONDAY FILTERS -->
+    <div class="s-order-nav-block s-order-nav-block-chips">
+    <ul class="chips small custom-m-0">
+        {if !empty($couriers)}
+            <li class="dropdown js-orders-dropdown">
+                <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Couriers`]">[`Couriers`]</button>
+                <div class="dropdown-body">
+                    <ul class="menu">
+                        {foreach $couriers as $courier}
+                            <li>
+                                <a href="javascript:void(0)" data-param="params.courier_id={$courier.id|escape}" class="js-orders-link">
+                                    <span class="icon">
+                                        {if $courier.contact_id}
+                                            <i style="background-image: url({waContact::getPhotoUrl($courier.contact_id, $courier.photo, 40)});vertical-align: middle;"></i>
+                                        {else}
+                                            <i class="fas fa-walking"></i>
+                                        {/if}
+                                    </span>
+                                    <span>{$courier.name|escape}</span>
+                                    <span class="count">{$courier.count}</span>
+                                </a>
+                            </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </li>
+        {/if}
+
+        {if !empty($shipping)}
+            <li class="dropdown js-orders-dropdown">
+                <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Shipping`]">[`Shipping`]</button>
+                <div class="dropdown-body">
+                    <ul class="menu">
+                        {foreach $shipping as $s}
+                            <li>
+                                <a href="javascript:void(0)" data-param="params.shipping_id={$s.id|escape}" class="js-orders-link">
+                                    <span class="icon">
+                                        {if $s.logo}
+                                            <i style="background-image: url({$s.logo|escape});background-repeat:no-repeat;background-size:cover;"></i>
+                                        {elseif !empty($s.info.img)}
+                                            <i style="background-image: url({$s.info.img|escape});background-repeat:no-repeat;background-size:cover;"></i>
+                                        {else}
+                                            <i class="fas fa-truck"></i>
+                                        {/if}
+                                    </span>
+                                    <span>{$s.name|escape}</span>
+                                </a>
+                            </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </li>
+        {/if}
+
+        {if !empty($payments)}
+            <li class="dropdown js-orders-dropdown">
+                <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Payment`]">[`Payment`]</button>
+                <div class="dropdown-body right">
+                    <ul class="menu">
+                        {foreach $payments as $payment}
+                            <li>
+                                <a href="javascript:void(0)" data-param="params.payment_id={$payment.id|escape}" class="js-orders-link">
+                                    <span class="icon">
+                                        {if $payment.logo}
+                                            <i style="background-image: url({$payment.logo|escape});background-repeat:no-repeat;background-size:cover;"></i>
+                                        {elseif !empty($payment.info.img)}
+                                            <i style="background-image: url({$payment.info.img|escape});background-repeat:no-repeat;background-size:cover;"></i>
+                                        {else}
+                                            <i class="fas fa-credit-card"></i>
+                                        {/if}
+                                    </span>
+                                    <span>{$payment.name|escape}</span>
+                                </a>
+                            </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </li>
+        {/if}
+
+        <!-- plugin hook: 'backend_orders.sidebar_bottom_li' -->
+        {* @event backend_orders.%plugin_id%.sidebar_bottom_li *}
+        {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
+
+        <li class="transparent js-remove-filters-link hidden">
+            <a href="#/orders/state_id=new|processing|auth|paid" class="s-remove-filters-link gray">
+                <i class="fas fa-times-circle" title="[`Clear filters`]"></i>
+            </a>
+        </li>
+    </ul>
+    </div>
+
+    <div class="s-order-nav-block s-order-nav-block-aux space-12 wide flexbox">
+
+        <!-- SEARCH -->
+        <div class="s-sidebar-search-form js-sidebar-search-form custom-mt-4">
+            <div class="state-with-inner-icon left width-100">
+                <div class="icon">
+                    <i class="fas fa-search"></i>
+                </div>
+
+                <input type="search" id="s-orders-search" class="small transparent solid full-width" placeholder="[`Search orders`]">
+            </div>
+        </div>
+
+        <!-- SORT -->
+        <div class="s-order-nav-sort hidden js-orders-sort custom-mt-4">
+            <div class="flexbox space-8">
+                <div class="wide">
+                    <div class="dropdown hidden js-sort-dropdown">
+                        <a href="#" class="dropdown-toggle button small nobutton nowrap text-gray" data-sort="">[`Sort`]</a>
+
+                        <div class="dropdown-body right">
+                            <ul class="menu">
+                                <li class="s-sort" data-sort="create_datetime">
+                                    <a href="#" data-sort="create_datetime">
+                                        <span>[`Time created`]</span>
+                                        <i class="fas fa-sort-amount-up-alt count asc small hidden"></i>
+                                        <i class="fas fa-sort-amount-down count desc  hidden"></i>
+                                    </a>
+                                </li>
+
+                                <li class="s-sort" data-sort="updated">
+                                    <a href="#" data-sort="updated">
+                                        <span>[`Time updated`]</span>
+                                        <i class="fas fa-sort-amount-up count desc hidden"></i>
+                                        <i class="fas fa-sort-amount-down count asc hidden"></i>
+                                    </a>
+                                </li>
+
+                                <li class="s-sort" data-sort="paid_date">
+                                    <a href="#" data-sort="paid_date">
+                                        <span>[`Time paid`]</span>
+                                        <i class="fas fa-sort-amount-up count desc hidden"></i>
+                                        <i class="fas fa-sort-amount-down count asc hidden"></i>
+                                    </a>
+                                </li>
+
+                                <li class="s-sort" data-sort="shipping_datetime">
+                                    <a href="#" data-sort="shipping_datetime">
+                                        <span>[`Shipping time`]</span>
+                                        <i class="fas fa-sort-amount-up count desc hidden"></i>
+                                        <i class="fas fa-sort-amount-down count asc hidden"></i>
+                                    </a>
+                                </li>
+
+                                <li class="s-sort" data-sort="state_id">
+                                    <a href="#" data-sort="state_id">
+                                        <span>[`Order status`]</span>
+                                        <i class="fas fa-sort-amount-up count desc hidden"></i>
+                                        <i class="fas fa-sort-amount-down count asc hidden"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-{/if}
-
-{if empty($embedded_version)}
-<div class="content left200px blank" id="s-content" style="padding-left: 10px;">
-    <div class="block double-padded">
-        [`Loading`] <i class="icon16 loading"></i>
-    </div>
+<div class="flexbox" id="s-content">
+    {* order list & order primary data view *}
+    <div id="skeleton_orders" class="width-100"></div>
 </div>
-{/if}
+
 
 {capture name="template-order-product-img"}
 {literal}
-    {% if(o.url){ %}<img src="{%#o.url%}">{% } else { %}<img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;">{% } %}
+    {% if(o.url){ %}<img src="{%#o.url%}" class="s-ordered-product-image not-found" />{% } else { %}<img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy.svg" class="s-ordered-product-image not-found" />{% } %}
 {/literal}
 {/capture}
 
@@ -177,8 +353,9 @@
     <tr data-product-id="{%#product.id%}" data-index={%#index%} class="s-order-item">
         <td class="min-width valign-top">{% include('template-order-product-img', { url: product.url_crop_small }); %}</td>
         <td>
-            <strong class="large">{%=product.name%}</strong>
-            <span class="gray">{%#product.price_html%}</span>
+            <strong>{%=product.name%}</strong>
+            <span class="s-order-product-sku-info">
+            <span class="gray custom-mx-4">{%#product.price_html%}</span>
 
             {% if (sku_count == 1) { %}
                 {% if (product.compare_price && product.compare_price > 0) { %}
@@ -187,17 +364,17 @@
             {% } %}
 
             {% if (sku_count == 1) { %}
-            <span class="s-orders-stock-icon-aggregate">
+            <span class="s-orders-stock-icon-aggregate small nowrap">
                     {%#product.icon%}
                 </span>
             <span class="s-orders-stock-icon"></span>
             {% } else { %}
                 {%#product.icon%}
             {% } %}
-
+            </span>
             <p>
                 {% if (sku_count > 1) { %}
-                    <ul class="menu-v compact small s-orders-skus">
+                    <ul class="unstyled separated small s-orders-skus">
                         {% var sku_id, sku_id_iterator = $.shop.iterator(sku_ids); %}
                         {% while (sku_id = sku_id_iterator.next()) { %}
                             {% var sku = product.skus[sku_id]; %}
@@ -206,30 +383,30 @@
                                 {% chosen_sku_id = sku_id; %}
                             {% } %}
                             <li>
-                                <label>
+                                <label class="flexbox middle space-4 wrap">
 
                                     <input type="radio"
                                            name="sku[add][{%#index%}]"
                                            value="{%#sku_id%}"
                                            {% if (checked) { %} checked="checked" {% } %}>
 
-                                    {%=sku.name%}
+                                    <span class="semibold">{%=sku.name%}</span>
 
                                     {% if (sku.sku) { %}
                                         <span class="gray">{%=sku.sku%}</span>
                                     {% } %}
 
-                                    <strong>{%#sku.price_html%}</strong>
+                                    <strong class="nowrap">{%#sku.price_html%}</strong>
 
                                     {% if (sku.compare_price && sku.compare_price > 0) { %}
                                         <span class="hint compare-price">(<span style="text-decoration: line-through">{%=Number(Math.round((sku.compare_price)*100)/100)%}</span> {%#currency%})</span>
                                     {% } %}
 
-                                    <span class="s-orders-stock-icon-aggregate">
+                                    <span class="s-orders-stock-icon-aggregate small nowap">
                                         {%#sku.icon%}
                                     </span>
                                     <span class="s-orders-stock-icon" style="display:none;"></span>
-                                    <div class="s-orders-sku-stock-place">
+                                    <div class="s-orders-sku-stock-place custom-ml-8">
                                         {% if (checked) { %}
                                             {% include('template-order-stocks-add', { sku: sku, stocks: stocks, index: index }); %}
                                         {% } %}
@@ -245,7 +422,7 @@
                         <span class="hint">{%=sku.sku%}</span>
                     {% } %}
 
-                    <div class="s-orders-sku-stock-place">
+                    <div class="s-orders-sku-stock-place custom-ml-8">
                         {% include('template-order-stocks-add', { sku: product.skus[product.sku_id], stocks: stocks, index: index }); %}
                     </div>
                     <input type="hidden" name="sku[add][{%#index%}]" value="{%#product.sku_id%}">
@@ -266,10 +443,10 @@
             <div class="s-quantity-section" id="js-quantity-section">
                 <div class="s-section-body">
                     <div class="s-field-wrapper">
-                        <span style="padding-top: 2px;" class="gray">&times;</span>
+                        <span class="gray">&times;</span>
                         <input type="text"
                                name="quantity[add][{%#index%}][product]"
-                               class="s-orders-quantity short numerical js-quantity-field"
+                               class="s-orders-quantity shortest smaller bold js-quantity-field"
                                value="">
 
                         {% if (stock_unit) { %}
@@ -310,12 +487,12 @@
             <span>{%#product.skus[chosen_sku_id].price_html%}</span>
             <input type="hidden" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short">
             {% } else { %}
-            <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="short numerical js-order-edit-item-price">
-            <span style="padding-top: 2px;">{%#currency%}</span>
+            <input type="text" name="price[add][{%#index%}][product]" value="{%#''+product.skus[chosen_sku_id].price%}" class="shorter smaller number semibold js-order-edit-item-price">
+            <span class="small semibold">{%#currency%}</span>
             {% } %}
             <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}"></span>
         </td>
-        <td class="valign-top min-width"><a href="#" class="s-order-item-delete"><i class="icon16 delete"></i></a></td>
+        <td class="valign-top min-width"><a href="#" class="s-order-item-delete"><i class="fas fa-trash-alt text-red"></i></a></td>
     </tr>
 {/literal}
 {/capture}
@@ -325,15 +502,17 @@
     {% var stocks = o.stocks; %}
     {% var item_id = o.item_id; %}
     {% if (sku && !$.isEmptyObject(sku.stock)) { %}
-    <select name="stock[edit][{%#item_id%}]" class="s-orders-sku-stock-select">
-        {% for (var i = 0; i < stocks.length; i += 1) { %}
-        {% var stock_id = stocks[i].id; %}
-        <option value="{%#stock_id%}" data-icon="{%#''+sku.icons[stock_id]%}">
-            @{%=stocks[i].name%} ({%#sku.count_htmls[stock_id]%})
-        </option>
-        {% } %}
-    </select>
-    <em class="errormsg s-error-item-stock_id"></em>
+    <div class="wa-select small">
+        <select name="stock[edit][{%#item_id%}]" class="s-orders-sku-stock-select">
+            {% for (var i = 0; i < stocks.length; i += 1) { %}
+            {% var stock_id = stocks[i].id; %}
+            <option value="{%#stock_id%}" data-icon="{%#''+sku.icons[stock_id]%}">
+                @{%=stocks[i].name%} ({%#sku.count_htmls[stock_id]%})
+            </option>
+            {% } %}
+        </select>
+    </div>
+    <em class="errormsg state-error-hint s-error-item-stock_id"></em>
     {% } else { %}
     <input type="hidden" name="stock[edit][{%#item_id%}]" value="0">
     {% } %}
@@ -346,15 +525,17 @@
     {% var index = o.index; %}
 
     {% if (sku && !$.isEmptyObject(sku.stock)) { %}
-    <select name="stock[add][{%#index%}][product]" class="s-orders-sku-stock-select">
-        {% for (var i = 0; i < stocks.length; i += 1) { %}
-        {% var stock_id = stocks[i].id; %}
-        <option value="{%#stocks[i].id%}" data-icon="{%#''+sku.icons[stock_id]%}">
-            @{%= stocks[i].name%} ({%#sku.count_htmls[stock_id]%})
-        </option>
-        {% } %}
-    </select>
-    <em class="errormsg s-error-item-stock_id"></em>
+    <div class="wa-select small">
+        <select name="stock[add][{%#index%}][product]" class="s-orders-sku-stock-select">
+            {% for (var i = 0; i < stocks.length; i += 1) { %}
+            {% var stock_id = stocks[i].id; %}
+            <option value="{%#stocks[i].id%}" data-icon="{%#''+sku.icons[stock_id]%}">
+                @{%= stocks[i].name%} ({%#sku.count_htmls[stock_id]%})
+            </option>
+            {% } %}
+        </select>
+    </div>
+    <em class="errormsg state-error-hint s-error-item-stock_id"></em>
     {% } else { %}
     <input type="hidden" name="stock[add][{%#index%}][product]" value="0">
     {% } %}
@@ -363,7 +544,7 @@
 {/capture}
 {capture name="template-order-services-add"}
 {literal}
-    <ul class="menu-v compact small s-orders-services">
+    <ul class="unstyled separated small s-orders-services">
     {% var options = o.options || {}; %}
     {% var index = options.index || '0'; %}
     {% var currency = options.currency; %}
@@ -383,26 +564,30 @@
         {% } %}
     </label>
     {% if (multi_variants) { %}
-    <select name="variant[add][{%#index%}][{%#service_id%}]" class="s-orders-service-variant">
-    {% for (var variant_id in service.variants) { %}
-    {% var variant = service.variants[variant_id]; %}
-    <option value="{%#variant.id%}" data-price="{%#''+variant.price%}"
-    data-currency="{%#variant.currency%}"
-    data-price="{%#variant.price%}"
-    {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#variant.percent_price%}"{% } %}
-    {% if (variant.status == {/literal}{shopProductServicesModel::STATUS_DEFAULT}{literal}) { %}selected="selected"{% } %}>
-    {%=variant.name%} ({%#variant.price_str%})
-    </option>
-    {% } %}
-    </select>
+    <div class="wa-select smaller custom-mb-4">
+        <select name="variant[add][{%#index%}][{%#service_id%}]" class="s-orders-service-variant">
+        {% for (var variant_id in service.variants) { %}
+        {% var variant = service.variants[variant_id]; %}
+        <option value="{%#variant.id%}" data-price="{%#''+variant.price%}"
+        data-currency="{%#variant.currency%}"
+        data-price="{%#variant.price%}"
+        {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#variant.percent_price%}"{% } %}
+        {% if (variant.status == {/literal}{shopProductServicesModel::STATUS_DEFAULT}{literal}) { %}selected="selected"{% } %}>
+        {%=variant.name%} ({%#variant.price_str%})
+        </option>
+        {% } %}
+        </select>
+    </div>
     {% } else { %}
     <input type="hidden" name="variant[add][{%#index%}][{%#service_id%}]" value="{%#service.variant_id%}">
     {% } %}
-    <input type="text" name="price[add][{%#index%}][service][{%#service_id%}]" value="{%#''+service.price%}"
-           data-currency="{%#service.currency%}"
-           data-price="{%#service.price%}"
-           {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#service.percent_price%}"{% } %}
-           class="short s-orders-service-price" >{%#currency%}
+    <span class="nowrap">
+        <input type="text" name="price[add][{%#index%}][service][{%#service_id%}]" value="{%#''+service.price%}"
+            data-currency="{%#service.currency%}"
+            data-price="{%#service.price%}"
+            {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#service.percent_price%}"{% } %}
+            class="shorter smaller s-orders-service-price">{%#currency%}
+    </span>
     <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}_{%#service_id%}"></span>
     </li>
     {% } %}
@@ -412,7 +597,7 @@
 
 {capture name="template-order-services-edit"}
 {literal}
-    <ul class="menu-v compact small s-orders-services">
+    <ul class="unstyled separated small s-orders-services">
     {% var options = o.options || {}; %}
     {% var index = options.index || '0'; %}
     {% var currency = options.currency; %}
@@ -432,26 +617,30 @@
         {% } %}
     </label>
     {% if (multi_variants) { %}
-    <select name="variant[edit][{%#index%}][{%#service_id%}]" class="s-orders-service-variant">
-    {% for (var variant_id in service.variants) { %}
-    {% var variant = service.variants[variant_id]; %}
-    <option value="{%#variant.id%}" data-price="{%#''+variant.price%}"
-    data-currency="{%#variant.currency%}"
-    data-price="{%#variant.price%}"
-    {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#variant.percent_price%}"{% } %}
-    {% if (variant.status == {/literal}{shopProductServicesModel::STATUS_DEFAULT}{literal}) { %}selected="selected"{% } %}>
-    {%=variant.name%} ({%#variant.price_str%})
-    </option>
-    {% } %}
-    </select>
+    <div class="wa-select smallest custom-mb-4">
+        <select name="variant[edit][{%#index%}][{%#service_id%}]" class="s-orders-service-variant">
+        {% for (var variant_id in service.variants) { %}
+        {% var variant = service.variants[variant_id]; %}
+        <option value="{%#variant.id%}" data-price="{%#''+variant.price%}"
+        data-currency="{%#variant.currency%}"
+        data-price="{%#variant.price%}"
+        {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#variant.percent_price%}"{% } %}
+        {% if (variant.status == {/literal}{shopProductServicesModel::STATUS_DEFAULT}{literal}) { %}selected="selected"{% } %}>
+        {%=variant.name%} ({%#variant.price_str%})
+        </option>
+        {% } %}
+        </select>
+    </div>
     {% } else { %}
     <input type="hidden" name="variant[edit][{%#index%}][{%#service_id%}]" value="{%#service.variant_id%}">
     {% } %}
-    <input type="text" name="price[edit][new][{%#index%}][{%#service_id%}]" value="{%#''+service.price%}"
-           data-currency="{%#service.currency%}"
-           data-price="{%#service.price%}"
-           {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#service.percent_price%}"{% } %}
-           class="short s-orders-service-price" >{%#currency%}
+    <span class="nowrap">
+        <input type="text" name="price[edit][new][{%#index%}][{%#service_id%}]" value="{%#''+service.price%}"
+            data-currency="{%#service.currency%}"
+            data-price="{%#service.price%}"
+            {% if (service.currency === $.order_edit.getPercentSymbol()) { %}data-percent-price="{%#service.percent_price%}"{% } %}
+            class="shorter s-orders-service-price smaller">{%#currency%}
+    </span>
     <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}_{%#service_id%}"></span>
     </li>
     {% } %}
@@ -470,16 +659,68 @@
     {/if}
 {/foreach}
 
-{if empty($embedded_version)}
 <script>
+     function getNeedView(prop) {
+        var hashParams = { };
+        var e,
+            a = /\+/g,
+            r = /([^&;=]+)=?([^&;]*)/g,
+            d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+            q = window.location.hash.substring(1 + 0);
+
+        while (e = r.exec(q)) {
+            var prop = d(e[1]);
+            var val = d(e[2]);
+            if (val) {
+                var regex = new RegExp('\\w+', 'g');
+                var m = regex.exec(val);
+                if (m.length) {
+                    val = m[0];
+                }
+            }
+
+            if(['/orders/view', 'view'].includes(prop)) {
+                return val;
+            }
+
+            var regOrder= new RegExp('order/\\d+', 'g');
+            if (regOrder.test(prop)) {
+                return 'order';
+            }
+        }
+
+        return null;
+    }
+
+    var view = getNeedView() || $.storage.get('shop/orders/view');
+
+    // :TODO fix if/else for type orders on the backend
+    var skeleton_template;
+    switch (view) {
+        case 'table':
+            skeleton_template = '{{include '../orders/skeleton/table.html'}|strip}';
+            break;
+        case 'kanban':
+            skeleton_template = '{{include '../orders/skeleton/kanban.html' select='kanban'}|strip}';
+            break;
+        case 'order':
+            skeleton_template = '{{include '../orders/skeleton/split.html' no_sidebar=true inline}|strip}';
+            break;
+        default:
+            skeleton_template = '{{include '../orders/skeleton/split.html'}|strip}';
+            break;
+    }
+
+    $('#skeleton_orders').html(skeleton_template);
+
     $(function() {
         if ($.wa_push) {
             $.wa_push.init();
         }
 
         $.orders.init({
-            view: '{$default_view}'
+            view: '{$default_view}',
+            wa_app_static_url: '{$wa_app_static_url}'
         });
     });
 </script>
-{/if}

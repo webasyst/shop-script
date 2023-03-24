@@ -49,8 +49,6 @@
             that.vue_model = that.initVue();
             that.init();
 
-            console.log( that );
-
             function formatProduct(product) {
                 // product.normal_mode = false;
                 // product.normal_mode_switch = false;
@@ -1577,7 +1575,7 @@
                                 locked: (typeof self.locked === "boolean" ? self.locked : false)
                             }
                         },
-                        template: '<div class="switch wa-small" v-on:click.prevent="onClick"></div>',
+                        template: '<div class="switch small" v-on:click.prevent="onClick"><input v-bind:id="$attrs.input_id" type="checkbox"></div>',
                         delimiters: ['{ { ', ' } }'],
                         methods: {
                             onClick: function() {
@@ -5331,7 +5329,7 @@
                                 var self = this;
 
                                 var $button = $(event.currentTarget),
-                                    $list = $button.closest(".s-options-list");
+                                    $list = $button.closest(".js-options-list");
 
                                 $button.hide();
 

@@ -13,11 +13,16 @@ class shopWorkflowRestoreAction extends shopWorkflowAction
 
         if ($paid_date = ifset($params['paid_date'])) {
             $t = strtotime($paid_date);
+            $paid_datetime = null;
+            if (isset($params['paid_datetime'])) {
+                $paid_datetime = date('Y-m-d H:i:s', strtotime($params['paid_datetime']));
+            }
             $update += array(
-                'paid_year'    => date('Y', $t),
-                'paid_quarter' => floor((date('n', $t) - 1) / 3) + 1,
-                'paid_month'   => date('n', $t),
-                'paid_date'    => date('Y-m-d', $t),
+                'paid_year'     => date('Y', $t),
+                'paid_quarter'  => floor((date('n', $t) - 1) / 3) + 1,
+                'paid_month'    => date('n', $t),
+                'paid_date'     => date('Y-m-d', $t),
+                'paid_datetime' => $paid_datetime,
             );
         }
 

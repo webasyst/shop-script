@@ -19,7 +19,7 @@
 
 {capture assign="list"}
     {if $transfers}
-        <table class="zebra single-lined" id="s-transfer-list">
+        <table class="zebra single-lined blank" id="s-transfer-list">
             <thead>
                 <tr class="header white">
                     <th>{field_link field_id='string_id' field_name='[`Transfer ID`]'}</th>
@@ -32,15 +32,15 @@
             </thead>
             <tbody>
                 {foreach $transfers as $transfer}
-                    <tr data-id="{$transfer.id}" class='s-transfer-item'>
-                        <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}"><span class="s-link">{$transfer.string_id|escape}</span></a></td>
+                    <tr data-id="{$transfer.id}" class="s-transfer-item">
+                        <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}"><span class="link">{$transfer.string_id|escape}</span></a></td>
                         <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">
                             {if $transfer.status == 'sent'}
-                                <em class="s-transfer-status-sent"><i class="icon16 status-yellow-tiny"></i>[`On its way`]</em>
+                                <em class="s-transfer-status-sent"><i class="fas fa-truck"></i></i> [`On its way`]</em>
                             {elseif $transfer.status == 'completed'}
-                                <span class="s-transfer-status-completed"><i class="icon16 yes"></i>[`Completed`]</span>
+                                <span class="s-transfer-status-completed"><i class="fas fa-check text-green"></i> [`Completed`]</span>
                             {elseif $transfer.status == 'cancelled'}
-                                <span class="red"><i class="icon16 cross"></i>[`Canceled`]</span>
+                                <span class="text-red semibold"><i class="fas fa-times"></i> [`Canceled`]</span>
                             {/if}
                             </a></td>
                         <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{if $transfer.stock_from.name}{$transfer.stock_from.name|escape}{else}<span class="gray" title="[`New arrival`]">&mdash;</span>{/if}</a></td>
@@ -66,7 +66,7 @@
                 [`Show more transfers`]
             </a>
             <span class="lazyloading-progress" style="display:none">
-                <i class="icon16 loading"></i> [`Loading`]
+                <i class="fas fa-spinner fa-spin text-gray loading"></i> [`Loading`]
                 <span class="lazyloading-chunk">
                     {$chunk = max(min($total_count - $already_loaded_count, $limit), 0)}
                     {_w('%d transfer', '%d transfers', $chunk)}...

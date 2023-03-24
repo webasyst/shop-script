@@ -1,0 +1,323 @@
+{function sort_url field=''}{strip}
+    #/products/{if $collection_param}{$collection_param}&{/if}
+        view={$view}&sort={$field}&
+        order={if $order == 'asc' && $sort==$field}desc{else}asc{/if}
+{/strip}{/function}
+
+{function sort_icon field=''}{strip}
+    {if $sort==$field}<i class="icon10 {if $order == 'asc'}uarr{else}darr{/if}"></i>{/if}
+{/strip}{/function}
+
+{$sort_column = $manual && $sort == 'sort'}
+
+<div id="s-product-list-skus-container" class="s-product-list-table-container">
+    <table class="zebra single-lined" id="product-list">
+        <tr class="header">
+            {if $sort_column}
+                <th class="min-width"></th>
+            {/if}
+            <th class="min-width">
+                <input type="checkbox" class="s-select-all" data-count={$total_count}>
+            </th>
+
+            <th>
+                <div class="sort" title="[`Name`]">
+                    <a href="{sort_url field='name'}" class="inline-link selected">
+                        [`Name`]
+                    </a>{sort_icon field='name'}
+                </div>
+            </th>
+
+            <th>&nbsp;</th>
+            <th class="short align-right" title="[`Purchase price`]">
+                <div>[`Purchase price`]</div>
+            </th>
+
+            <th class="short align-right" title="[`Compare at price`]">
+                <div>[`Compare at price`]</div>
+            </th>
+
+            <th class="short align-right" title="[`Price`]">
+                <div>[`Price`]</div>
+            </th>
+            {foreach $stocks as $stock}
+                <th class="short align-right" title="{$stock.name|escape}">
+                    <div>{$stock.name|escape}</div>
+                </th>
+            {foreachelse}
+                <th class="short align-right" title="[`In stock`]">
+                    <div>[`In stock`]</div>
+                </th>
+            {/foreach}
+
+        </tr>
+    </table>
+
+    <div class="s-product-list-save-panel block bordered-top" style="display:none;">
+        <input type="button" class="button green" value="[`Save`]">
+        <span class="s-loading" style="display: none"><i class="icon16 loading" style="margin-top: 0.5em;"></i></span>
+        <span class="s-yes" style="display: none"><i class="icon16 yes" style="margin-top: 0.5em;"></i> [`Saved`]</span>
+        <span class="s-error errormsg" style="display: inline"></span>
+    </div>
+
+</div>
+
+<script id="template-product-list-skus" type="text/html">
+    {$link_edit = shopHelper::getBackendEditorUrl('@s')}
+    {literal}
+    {% var stocks = o.stocks; %}
+    {% var stock_count = stocks.length > 0 ? stocks.length : 1; %}
+    {% var sort_column = {/literal}{if $sort_column}true{else}false{/if}{literal}; %}
+    {% var current_editor = '{/literal}{$wa->whichUI()}{literal}'; %}
+
+    {% var sku_prices_html = function(product, sku) { %}
+        {% var product_currency_html = ''; %}
+        {% if (product.currency !== null) { %}
+            {% product_currency_html = product.currency; %}
+        {% } else { %}
+            {% product_currency_html = o.primary_currency; %}
+        {% } %}
+        <td class="align-right nowrap">
+            {%=product_currency_html%}{% if (product.stock_unit) { %}/{%#product.stock_unit.name_short%}{% } %}
+        </td>
+        <td class="short align-right s-product-sku-purchase-price">
+            {% if (product.edit_rights) { %}
+            <input class="short"
+                   placeholder="0"
+                   name="product[{%#product.id%}][sku][{%#sku.id%}][purchase_price]"
+                   value="{%#sku.purchase_price_float%}"
+                   {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
+            >
+            {% } else { %}
+             &nbsp;
+            {% } %}
+        </td>
+        <td class="short align-right s-product-sku-compare-price">
+            <input class="short strike"
+                   placeholder="0"
+                   name="product[{%#product.id%}][sku][{%#sku.id%}][compare_price]"
+                   value="{%#sku.compare_price_float%}"
+                   {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
+            >
+        </td>
+        <td class="short align-right s-product-sku-price">
+            <input class="short"
+                   placeholder="0"
+                   name="product[{%#product.id%}][sku][{%#sku.id%}][price]"
+                   value="{%#sku.price_float%}"
+                   {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
+            >
+        </td>
+    {% }; %}
+
+    {% var sku_stocks_html = function(product, sku) { %}
+        {% if (sku.stock === null) { %}
+            <td class="short align-center nowrap" colspan="{%#stock_count%}">
+                {%#sku.count_icon_html%}
+                <input class="small instock"
+                       oninput="this.value = $.shop.validate('number-negative', this.value)"
+                       name="product[{%#product.id%}][sku][{%#sku.id%}][count]"
+                       {% if (sku.count === null) { %}
+                            placeholder="∞" value=""
+                       {% } else { %}
+                            placeholder="{%#String(sku.count)%}" value="{%#String(sku.count)%}"
+                       {% } %}
+                       {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
+                >
+            </td>
+        {% } else { %}
+            {% var stock, stock_iterator = $.shop.iterator(stocks); %}
+            {% while (stock = stock_iterator.next()) { %}
+            <td class="short align-right nowrap">
+                {% if ($.isPlainObject(sku.stock)) { %}
+                    {% var count = sku.stock[stock.id].count; %}
+                    {%#sku.stock[stock.id].icon_html%}
+                    <input class="short small instock"
+                           oninput="this.value = $.shop.validate('number-negative', this.value)"
+                           name="product[{%#product.id%}][sku][{%#sku.id%}][stock][{%#stock.id%}]"
+                           {% if (count === null) { %}
+                                placeholder="∞" value=""
+                           {% } else { %}
+                                placeholder="{%#String(count)%}" value="{%#String(count)%}"
+                           {% } %}
+                           {% if (!product.edit_rights) { %}readonly="readonly"{% } %}
+                    >
+                {% } %}
+            </td>
+            {% } %}
+        {% } %}
+    {% }; %}
+
+    {% var product, product_iterator = $.shop.iterator(o.products); %}
+    {% while (product = product_iterator.next()) { %}
+        <tr class="product {% if (product_iterator.isLast()) { %}last{% } %}
+            {% if (product.status != '1') { %}gray{% } %}
+            {% if (o.check_all) { %}selected{% } %}
+            {% if (product.alien) { %}s-alien{% } %}"
+            data-product-id="{%#product.id%}"
+            data-edit-rights="{%#product.edit_rights%}"
+            data-sku-count="{%#product.sku_count%}"
+            data-min-price="{%#product.min_price%}"
+            data-max-price="{%#product.max_price%}"
+            data-currency="{%#product.currency%}"
+            {% if (product.alien) { %}title="([`This is a subcategory product`]) {%#product.name%}"{% } %}
+            {% if (product.status == '0' && !product.alien) { %}title="([`Hidden product`]) {%#product.name%}"{% } %}
+            {% if (product.status != '0' && !product.alien) { %}title="{%#product.name%}""{% } %}
+        >
+
+            {% if (sort_column) { %}
+                <td class="min-width drag-handle">{% if (!product.alien) { %}<i class="icon16 sort"></i>{% } %}</td>
+            {% } %}
+
+            <td class="min-width drag-handle">
+                <input type="checkbox" {% if (o.check_all) { %}checked{% } %}>
+            </td>
+
+            <td class="drag-handle s-product-name">
+                <a href="{%#'{/literal}{$link_edit}{literal}'.replace('@s', product.id).replace('edit/', '')%}{% if (current_editor === '2.0' && !product.edit_rights) { %}prices/{% } %}"><div>{%#product.name%}<i class="shortener"></i></div></a>
+            </td>
+
+            {% if (product.sku && (typeof(product.sku) =='object')) { %}
+                {% sku_prices_html(product, product.sku); %}
+            {% } else { %}
+                <td colspan="4">&nbsp;</td>
+            {% } %}
+            {% if (product.sku && (typeof(product.sku) =='object')) { %}
+                {% sku_stocks_html(product, product.sku); %}
+            {% } else { %}
+                <td colspan="{%#stock_count%}">&nbsp;</td>
+            {% } %}
+
+        </tr>
+
+        {% var sku, sku_iterator = $.shop.iterator(product.skus); %}
+        {% while (sku = sku_iterator.next()) { %}
+            <tr class="s-product-sku"
+                data-product-id="{%#product.id%}"
+                data-sku-id="{%#sku.id%}">
+
+                {% if (sort_column) { %}
+                    <td class="min-width"></td>
+                {% } %}
+
+                <td class="min-width"></td>
+
+                <td class="s-product-sku-name" title="{%=sku.sku%}">
+                    <div class="{% if (sku.available <= 0) { %}gray{% } %}">{%=sku.name%} <span class="hint">{%=sku.sku%}</span><i class="shortener"></i></div>
+                </td>
+
+                {% sku_prices_html(product, sku); %}
+                {% sku_stocks_html(product, sku); %}
+
+            </tr>
+        {% } %}
+    {% } %}
+    {/literal}
+</script>
+
+<script>
+
+    (function() { "use strict";
+
+        var product_list_container = $('#s-product-list-skus-container'),
+            $wrapper = product_list_container.closest(".block");
+
+        var save_panel = product_list_container.find('.s-product-list-save-panel');
+        save_panel.css({
+            paddingLeft: $('#s-sidebar').width()
+        });
+
+        // listen for appending, check rights and available save button
+        $('#product-list').unbind('append_product_list.product_list_skus')
+            .bind('append_product_list.product_list_skus', function (e, products) {
+                var product, product_iterator = $.shop.iterator(products);
+                while (product = product_iterator.next()) {
+                    if (product.edit_rights) {
+                        save_panel.show().find('[type=button]').attr('disabled', false);
+                        $wrapper.css({
+                            "padding-bottom": 20 + save_panel.outerHeight() + "px"
+                        });
+
+                        break;
+                    }
+                }
+            });
+
+        var save_button = save_panel.find(':button');
+        var changed = false;
+
+        var onAnyChange = function () {
+            var el = $(this);
+            save_button.removeClass('green').addClass('yellow');
+            el.addClass('s-changed-input');
+            if (el.hasClass('instock') && el.val() === '') {
+                el.attr('placeholder', '∞');
+            }
+            changed = true;
+        };
+
+        $.shop.changeListener(
+            product_list_container,
+            ':input:not(:button):not(.s-select-all):not([type=checkbox])',
+            onAnyChange
+        );
+
+        $.shop.confirmLeave({
+            keepListen: function () { return !product_list_container.is(':hidden'); },
+            confirmIf:  function () { return !product_list_container.is(':hidden') && changed; },
+            message: '[`Data you have entered will not be saved. Are you sure you want to leave this page?`]'
+        });
+
+        save_button.click(function (e) {
+            e.preventDefault();
+
+            var xhr = save_button.data('xhr');
+            if (xhr || !changed) {
+                return;
+            }
+
+            var onAlways = function () {
+                save_panel.find('.s-loading').hide();
+                save_panel.find('.s-yes').show();
+                save_button.removeClass('yellow').addClass('green');
+                setTimeout(function () {
+                    save_panel.find('.s-yes').fadeOut();
+                }, 200);
+                changed = false;
+                save_button.data('xhr', null);
+            };
+
+            var data = $('.s-changed-input', product_list_container).map(function () {
+                var el = $(this);
+                el.removeClass('s-changed-input');
+                return {
+                    name: el.attr('name'),
+                    value: el.val()
+                }
+            }).toArray();
+
+            if ($.isEmptyObject(data)) {
+                return;
+            }
+
+            save_panel.find('.s-loading').show();
+
+            xhr = $.shop.jsonPost(
+                '?module=products&action=massUpdate',
+                data,
+                function () {
+                    $.shop.trace('massUpdate - ok');
+                },
+                function () {
+                    $.shop.trace('massUpdate - fail');
+                }
+            ).always(function () {
+                onAlways();
+            });
+
+            save_button.data('xhr', xhr);
+
+        });
+
+    })();
+</script>

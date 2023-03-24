@@ -1,0 +1,88 @@
+{strip}
+
+{* ДАННЫЕ *}
+
+{$_page_title = _w("Online marketplaces")}
+
+{/strip}
+
+<div class="s-settings-marketplaces-page blank block double-padded" id="js-settings-marketplaces-page" style="visibility: hidden;">
+    {* @event backend_settings_premium.top *}
+    {if !empty($backend_settings_marketplaces)}{foreach $backend_settings_marketplaces as $_}{ifset($_.top)}{/foreach}{/if}
+
+    {* HEADER *}
+    <div class="s-page-header">
+        <h1 class="s-title">{$_page_title}</h1>
+        <ul>
+            <li>[`Below are listed plugins for connecting your online store to various online marketplaces.`]</li>
+            <li>[`Select and install the plugins for the online marketplaces you want to work with.`]</li>
+            <li>[`After the plugins have been installed, their additional settings will become available in various backend sections.`]</li>
+            <li>[`Please find the user manual to learn how to work with each of the plugins on its page in the Webasyst Store.`]</li>
+        </ul>
+    </div>
+
+    {* BODY *}
+    <div class="s-page-body js-vue-section">
+        {* @event backend_settings_marketplaces.middle *}
+        {if !empty($backend_settings_marketplaces)}{foreach $backend_settings_marketplaces as $_}{ifset($_.middle)}{/foreach}{/if}
+
+        <div class="s-marketplace-wrapper">
+            <h2 class="s-title">[`Online marketplaces plugins`]</h2>
+            <div class="s-frame-wrapper " id="js-marketplace-plugins"></div>
+            <script>( function($) {
+                var plugins_url = sessionStorage.getItem("shop/settings/marketplaces");
+                plugins_url = (plugins_url ? plugins_url : {$marketplace_plugins_url|json_encode});
+                $("#js-marketplace-plugins").html('<i class="icon16 loading"></i>').load(plugins_url);
+                sessionStorage.removeItem("shop/settings/marketplaces");
+            })(jQuery);</script>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+
+            var sources = [{
+                id: "wa-settings-marketplaces-css",
+                type: "css",
+                uri: "{$wa_app_static_url}css-legacy/backend/settings/marketplaces.css?v={$wa->version()}"
+            }, {
+                id: "wa-settings-marketplaces-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/backend/settings/marketplaces/marketplaces.js?v={$wa->version()}"
+            }];
+
+            $.shop.loadSources(sources).then(init, function() {
+                alert("Page Loading Error");
+            });
+
+            function init() {
+                window.initShopMarketplacesSettingsPage({
+                    $wrapper: $("#js-settings-marketplaces-page")
+                });
+            }
+
+            setTitle({$_page_title|json_encode} + ' — ' + {$wa->accountName()|json_encode});
+
+            {*
+             * @description iFrame через внутреннюю магию подменяет title при загрузке плагинов.
+             * Код ниже отслеживает изменения document.title, если он поменялся, то возвращает прежнее значение.
+             *}
+            function setTitle(title) {
+                document.title = title;
+
+                var target = document.querySelector("title");
+                var observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (document.title !== title) { document.title = title; }
+                    });
+                });
+                var config = { childList: true };
+                observer.observe(target, config);
+            }
+
+        })(jQuery);
+    </script>
+
+    {* @event backend_settings_marketplaces.bottom *}
+    {if !empty($backend_settings_marketplaces)}{foreach $backend_settings_marketplaces as $_}{ifset($_.bottom)}{/foreach}{/if}
+</div>

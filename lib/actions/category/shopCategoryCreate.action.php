@@ -2,6 +2,7 @@
 
 class shopCategoryCreateAction extends waViewAction
 {
+    // TODO Нужен шаблон для ВА2
     protected $template = 'wa-apps/shop/templates/actions/category/ProductsCategory.html';
 
     public function execute()

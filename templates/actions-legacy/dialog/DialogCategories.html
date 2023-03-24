@@ -1,0 +1,45 @@
+<div class="dialog width600px height500px" id="s-categories">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=products&action=addToCategories">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Categories`] <span class="gray" style="display:none;">(0)</span></h1>
+                
+                <ul class="menu-v with-icons">
+                
+                    <li class="bottom-padded">
+                        <label>
+                            <i class="icon16 folder"></i><input type="checkbox" name="new_category" value="1"> 
+                            <span class="name">[`New category`]:</span>
+                        </label>
+                        <input name="new_category_name" value="" style="margin-top: -5px;">
+                    </li>
+                    
+                    {if !empty($categories)}
+                        {include './include.categories.html' inline}
+                    {/if}
+
+                </ul>
+                
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <input type="submit" value="[`Save`]" class="button green">
+                <i class="icon16 loading"></i>
+                [`or`] <a class="cancel" href="#">[`cancel`]</a>
+            </div>
+        </div>
+        {$wa->csrf()}
+    </div>
+    </form>
+</div>
+<script type="text/javascript">
+    (function() {
+        var d = $('#s-categories');
+        d.find('input[name=new_category_name]').bind('keydown', function() {
+            d.find('input[name=new_category]').attr('checked', true);
+        });
+    })();
+</script>

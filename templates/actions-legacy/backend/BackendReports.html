@@ -1,0 +1,19 @@
+<div id="reports-paid-orders-notice" class="s-alert" style="display:none;">
+    [`Only paid and completed orders are shown in reports. If you cannot see a particular order in reports, make sure to click <strong>Pay</strong> or <strong>Complete</strong> button on the order-viewing page. Clicking either of these buttons will add a big “PAID” stamp to an order and will make it counted in your sales reports.`]
+    <a href="javascript:void(0)" class="close s-alert-close">&times;</a>
+</div>
+
+<div id="reportscontent">
+    <div class="block double-padded ">
+        [`Loading...`] <i class="icon16 loading"></i>
+    </div>
+</div>
+
+<link rel="stylesheet" href="{$wa_app_static_url}css-legacy/charts.css?v={$wa->version()}">
+<script src="{$wa_app_static_url}js-legacy/charts/d3.min.js?v{$wa->version()}"></script>
+<script src="{$wa_app_static_url}js-legacy/charts/topojson.min.js?v{$wa->version()}"></script>
+<script src="{$wa_app_static_url}js-legacy/charts/datamaps.world.min.js?v{$wa->version()}"></script>
+<script src="{$wa_app_static_url}js-legacy/tmpl.min.js?v={$wa->version()}"></script>
+<script src="{$wa_app_static_url}js-legacy/lazy.load.js?v={$wa->version()}"></script>
+<script src="{$wa_app_static_url}js-legacy/reports.js?v={$wa->version()}"></script>
+<script> $.reports.init({ lang: '{$lang}' }); </script>

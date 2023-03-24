@@ -48,69 +48,67 @@
                 new Tooltip(tooltip);
             });
 
-            var $iButtons = that.$wrapper.find(".js-ibutton");
-            if ($iButtons.length) {
-                $iButtons.each( function() {
+            var $switch = that.$wrapper.find(".js-switch");
+            if ($switch.length) {
+                $switch.each(function() {
                     initField($(this));
                 });
             }
 
             function initField($field) {
-                $field.iButton({
-                    labelOn: "",
-                    labelOff: "",
-                    classContainer: "ibutton-container mini"
-                });
+                $field.waSwitch({
+                    change: function(is_checked, $switch) {
+                        if ($switch.is_disabled) {
+                            return;
+                        }
 
-                $field.on("change", function(event, ignore) {
-                    if (ignore) { return false; }
-
-                    var $wrapper = $field.closest(".s-checkbox-wrapper"),
-                        $ibutton = $field.closest(".ibutton-container"),
+                        var $wrapper = $field.closest(".s-checkbox-wrapper"),
                         $label = $wrapper.find(".js-label"),
-                        $loading = $("<i class=\"icon16 loading\" />");
+                        $loading = $('<i class="fas fa-spinner fa-spin text-gray" />');
 
-                    var plugin_id = $field.closest(".s-item-row").data("plugin-id"),
-                        app_id = $field.closest(".s-item-row").data("app-id") || $field.closest(".s-app-row").data("app-id"),
-                        is_checked = $(this).is(":checked");
+                        var plugin_id = $field.closest(".s-item-row").data("plugin-id"),
+                            app_id = $field.closest(".s-item-row").data("app-id") || $field.closest(".s-app-row").data("app-id");
 
-                    var data = {
-                        app_id: app_id,
-                        plugin_id: plugin_id,
-                        enabled: (is_checked ? "1" : "0")
-                    };
+                        var data = {
+                            app_id: app_id,
+                            plugin_id: plugin_id,
+                            enabled: (is_checked ? "1" : "0")
+                        };
 
-                    $ibutton.after($loading);
+                        var oldText = $label.text();
+                        $label.html($loading);
 
-                    request(data)
-                        .always( function() {
-                            $loading.remove();
-                        })
-                        .fail( function(errors) {
-                            $field.attr("checked", !is_checked).trigger("change", true);
-                            // TODO: display errors
-                            alert(errors);
-                        })
-                        .done( function() {
-                            $label.text(is_checked ? that.locales["on"] : that.locales["off"]);
-                        });
+                        request(data)
+                            .fail( function(errors) {
+                                $switch.disable(true);
+                                $switch.set(!is_checked);
+                                $label.text(oldText);
+                                $switch.disable(false);
 
-                    function request(data) {
-                        var deferred = $.Deferred();
-
-                        $.post(that.urls["asset_status"], data, "json")
-                            .fail( function() {
-                                deferred.reject();
+                                // TODO: display errors
+                                alert(errors);
                             })
-                            .done( function(response) {
-                                if (response.status === "ok") {
-                                    deferred.resolve();
-                                } else {
-                                    deferred.reject(response.errors);
-                                }
+                            .done( function() {
+                                $label.text(is_checked ? that.locales["on"] : that.locales["off"]);
                             });
 
-                        return deferred.promise();
+                        function request(data) {
+                            var deferred = $.Deferred();
+
+                            $.post(that.urls["asset_status"], data, "json")
+                                .fail( function() {
+                                    deferred.reject();
+                                })
+                                .done( function(response) {
+                                    if (response.status === "ok") {
+                                        deferred.resolve();
+                                    } else {
+                                        deferred.reject(response.errors);
+                                    }
+                                });
+
+                            return deferred.promise();
+                        }
                     }
                 });
             }

@@ -55,6 +55,7 @@ class shopProdCategorySaveController extends waJsonController
         } else {
             $category_type = $category['type'];
         }
+        $category['name'] = trim(preg_replace('#\s+#', ' ', $category['name']));
         $parent = $this->model->getById($category['parent_id']);
         if ($parent && $parent['type'] == shopCategoryModel::TYPE_DYNAMIC && $category_type == shopCategoryModel::TYPE_STATIC) {
             throw new waException('You cannot create a static category in a dynamic category.');
@@ -169,7 +170,7 @@ class shopProdCategorySaveController extends waJsonController
         $conditions = [];
 
         $range_fields = ['create_datetime', 'edit_datetime', 'rating', 'price', 'compare_price', 'purchase_price', 'count'];
-        $select_fields = ['type', 'tag', 'badge'];
+        $select_fields = ['type_id', 'tag', 'badge'];
         foreach ($raw_condition as $key => $item) {
             if (in_array($key, $range_fields)) {
                 $sign = null;

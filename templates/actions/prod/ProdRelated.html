@@ -6,9 +6,9 @@
 
 {capture assign="_component_products_list"}
     <div class="vue-component-products-list">
-        <div class="s-add-product-form flexbox space-12">
-            <span class="s-title">[`Find and add a product`]</span>
-            <div class="wide">
+        <div class="field s-add-product-form">
+            <div class="name">[`Find and add a product`]</div>
+            <div class="value">
                 <component-add-product v-bind:class="'wide'" v-bind:placeholder="'{_w("Start typing product name or SKU")|escape}'" v-on:add_product="addProduct($event, products)"></component-add-product>
                 <div class="hint"><i class="fas fa-info-circle"></i>&nbsp;[`If you have not found a certain product, enter a more detailed search query to see more exact results.`]</div>
             </div>
@@ -32,11 +32,11 @@
                 </div>
                 <div class="s-price" v-html="product.price"></div>
                 <div class="s-actions">
-                    <button class="wa-button wa-small transparent-gray"
-                            v-on:click.prevent="removeProduct(product, products)">
+                    <button class="button small light-gray rounded"
+                            v-on:click.prevent="removeProduct(product, products)"
+                            title="[`Remove`]">
                         <span class="s-icon icon baseline shift-2 size-12"><i class="fas fa-times"></i></span>
-                        &nbsp;
-                        <span class="s-name">[`Remove`]</span>
+                        <span class="s-name"></span>
                     </button>
                 </div>
             </div>
@@ -50,7 +50,7 @@
 {* PAGE *}
 <div id="js-product-related-section-wrapper">
     {* VUE *}
-    <div class="article s-product-related-section js-product-related-section" style="visibility: hidden;">
+    <div class="article wider s-product-related-section js-product-related-section" style="visibility: hidden;">
         {* BODY *}
 
         <!-- plugin hook: 'backend_prod_content.top' -->
@@ -65,15 +65,15 @@
                 <div class="s-section-body">
                     <p>[`Recommend other products as complementary to the current product, if they were previously ordered with this product or if they are contained in selected categories. For instance, you may recommend cases, protective glasses, and earphones for smartphones.`]</p>
 
-                    <div class="wa-fields">
-                        <div class="wa-field">
+                    <div class="fields">
+                        <div class="field">
                             <div class="name unshifted size-small">
                                 <span>[`Use recommendations settings`]</span>
                             </div>
                             <div class="value">
                                 <div class="s-variants-list">
                                     <div class="s-variant-section" v-bind:class="{ 'is-active': cross_selling.view_type === 'auto' }">
-                                        <div class="s-section-header">
+                                        <div class="s-section-header small">
                                             <label>
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="auto" v-model="cross_selling.view_type" v-on:change="onTypeChange(cross_selling)"><span></span>
@@ -82,34 +82,36 @@
                                             </label>
                                         </div>
                                         <div class="s-section-body">
-                                            <div class="wa-message wa-small gray flexbox space-8">
-                                                <div class="message-icon">
-                                                    {if !empty($cross_selling.description)}
-                                                        <i class="fas fa-check color-green"></i>
-                                                    {else}
-                                                        <i class="fas fa-ban"></i>
-                                                    {/if}
-                                                </div>
-                                                <div class="message-body wide">
-                                                    {if !empty($cross_selling.description)}
-                                                        <p class="italic color-gray">{sprintf(_w( "Recommendations defined for product type “%s”:" ), $product["type"]["name"]|default:"")}</p>
-                                                        <p class="italic color-black-light">{$cross_selling.description}</p>
-                                                    {else}
-                                                        <p class="italic">{sprintf(_w( "Recommended complementary products for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
-                                                    {/if}
-                                                </div>
-                                                <div class="message-actions middle">
-                                                    <a class="wa-button wa-small gray" href="{$wa_app_url}marketing/recommendations/" target="_blank">
-                                                        <span class="s-icon"><i class="fas fa-cog"></i></span>
-                                                        <span class="s-name">[`Options`]</span>
-                                                        <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
-                                                    </a>
+                                            <div class="alert small">
+                                                <div class="flexbox space-8">
+                                                    <div class="message-icon">
+                                                        {if !empty($cross_selling.description)}
+                                                            <i class="fas fa-check text-green"></i>
+                                                        {else}
+                                                            <i class="fas fa-ban text-orange"></i>
+                                                        {/if}
+                                                    </div>
+                                                    <div class="message-body wide">
+                                                        {if !empty($cross_selling.description)}
+                                                            <div>{sprintf(_w( "Recommendations defined for product type “%s”:" ), $product["type"]["name"]|default:"")}</div>
+                                                            <div class="italic">{$cross_selling.description}</div>
+                                                        {else}
+                                                            <p class="italic">{sprintf(_w( "Recommended complementary products for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
+                                                        {/if}
+                                                    </div>
+                                                    <div class="message-actions middle">
+                                                        <a class="button nobutton rounded nowrap small" href="{$wa_app_url}marketing/recommendations/" target="_blank">
+                                                            <span class="s-icon"><i class="fas fa-cog"></i></span>
+                                                            <span class="s-name">[`Options`]</span>
+                                                            <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="s-variant-section is-manual" v-bind:class="{ 'is-active': cross_selling.view_type === 'manual' }">
-                                        <div class="s-section-header">
+                                        <div class="s-section-header small">
                                             <label>
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="manual" v-model="cross_selling.view_type" v-on:change="onTypeChange(cross_selling)"><span></span>
@@ -120,7 +122,7 @@
                                         <div class="s-section-body">
                                             <div class="s-options-list">
                                                 <div class="s-option-section" v-for="option in cross_selling.options" v-key="option.id" v-bind:class="{ 'is-active': cross_selling.value === option.value }">
-                                                    <div class="s-section-header">
+                                                    <div class="s-section-header small">
                                                         <label>
                                                             <span class="wa-radio">
                                                                 <input type="radio" name="cross_selling_option"
@@ -137,12 +139,12 @@
                                                     <div class="s-section-body">
                                                         <div class="s-option-description hint" v-if="option.description" v-html="option.description"></div>
                                                         <template v-if="option.value === '2'">
-                                                            <div class="s-products-header flexbox space-8 middle wrap">
+                                                            <div class="s-products-header flexbox small middle wrap">
                                                                 <div class="s-count-wrapper">
                                                                     <span class="s-label">[`Products selected`]:</span>
                                                                     <span class="s-count bold">{ { cross_selling.products.length } }</span>
                                                                 </div>
-                                                                <button class="wa-button wa-small transparent s-form-toggle-button"
+                                                                <button class="nobutton s-form-toggle-button small"
                                                                         v-on:click.prevent="cross_selling.show_form = !cross_selling.show_form">
                                                                     <span class="s-icon" style="font-size: 12px;"><i class="fas fa-pen"></i></span>
                                                                     <span class="s-name">[`Change`]</span>
@@ -152,24 +154,6 @@
                                                             </div>
                                                             <template v-if="cross_selling.show_form">
                                                                 <component-products-list v-bind:products="cross_selling.products"></component-products-list>
-
-                                                                {*
-                                                                <div class="s-products-list" v-if="cross_selling.products.length">
-                                                                    <div class="s-product-wrapper" v-for="product in cross_selling.products">
-                                                                        <div class="s-name">{ { product.name } }</div>
-                                                                        <div class="s-price" v-html="product.price"></div>
-                                                                        <div class="s-actions">
-                                                                            <button class="wa-button wa-small transparent-gray"
-                                                                                    v-on:click.prevent="removeProduct(product, cross_selling.products)">
-                                                                                <i class="fas fa-trash-alt"></i>
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="s-add-product-form">
-                                                                    <component-add-product v-bind:placeholder="'{_w("Start typing product name or SKU")|escape}'" v-on:add_product="addProduct($event, cross_selling.products)"></component-add-product>
-                                                                </div>
-                                                                *}
                                                             </template>
                                                         </template>
                                                     </div>
@@ -191,15 +175,15 @@
                 <div class="s-section-body">
                     <p>[`Recommend products with other prices and features, or products of absolutely different types, matching specified criteria. For instance, for a certain smartphone you may recommend other smartphones of different brands with similar functionality.`]</p>
 
-                    <div class="wa-fields">
-                        <div class="wa-field">
+                    <div class="fields">
+                        <div class="field">
                             <div class="name unshifted size-small">
                                 <span>[`Use recommendations settings`]</span>
                             </div>
                             <div class="value">
                                 <div class="s-variants-list">
                                     <div class="s-variant-section" v-bind:class="{ 'is-active': upselling.view_type === 'auto' }">
-                                        <div class="s-section-header">
+                                        <div class="s-section-header small">
                                             <label>
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="auto" v-model="upselling.view_type" v-on:change="onTypeChange(upselling)"><span></span>
@@ -208,34 +192,36 @@
                                             </label>
                                         </div>
                                         <div class="s-section-body">
-                                            <div class="wa-message wa-small gray flexbox space-8">
-                                                <div class="message-icon">
-                                                    {if !empty($upselling.description)}
-                                                        <i class="fas fa-check color-green"></i>
-                                                    {else}
-                                                        <i class="fas fa-ban"></i>
-                                                    {/if}
-                                                </div>
-                                                <div class="message-body wide">
-                                                    {if !empty($upselling.description)}
-                                                        <p class="italic color-gray">{sprintf(_w( "Recommendations defined for product type “%s”:" ), $product["type"]["name"]|default:"")}</p>
-                                                        <p class="italic color-black-light">{$upselling.description}</p>
-                                                    {else}
-                                                        <p class="italic">{sprintf(_w( "Upselling recommendations for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
-                                                    {/if}
-                                                </div>
-                                                <div class="message-actions middle">
-                                                    <a class="wa-button wa-small gray" href="{$wa_app_url}marketing/recommendations/" target="_blank">
-                                                        <span class="s-icon"><i class="fas fa-cog"></i></span>
-                                                        <span class="s-name">[`Options`]</span>
-                                                        <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
-                                                    </a>
+                                            <div class="alert small">
+                                                <div class="flexbox space-8">
+                                                    <div class="message-icon">
+                                                        {if !empty($upselling.description)}
+                                                            <i class="fas fa-check text-green"></i>
+                                                        {else}
+                                                            <i class="fas fa-ban text-orange"></i>
+                                                        {/if}
+                                                    </div>
+                                                    <div class="message-body wide">
+                                                        {if !empty($upselling.description)}
+                                                            <p class="italic text-gray">{sprintf(_w( "Recommendations defined for product type “%s”:" ), $product["type"]["name"]|default:"")}</p>
+                                                            <p class="italic text-black-light">{$upselling.description}</p>
+                                                        {else}
+                                                            <p class="italic">{sprintf(_w( "Upselling recommendations for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
+                                                        {/if}
+                                                    </div>
+                                                    <div class="message-actions middle">
+                                                        <a class="button nobutton rounded nowrap small" href="{$wa_app_url}marketing/recommendations/" target="_blank">
+                                                            <span class="s-icon"><i class="fas fa-cog"></i></span>
+                                                            <span class="s-name">[`Options`]</span>
+                                                            <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="s-variant-section is-manual" v-bind:class="{ 'is-active': upselling.view_type === 'manual' }">
-                                        <div class="s-section-header">
+                                        <div class="s-section-header small">
                                             <label>
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="manual" v-model="upselling.view_type" v-on:change="onTypeChange(upselling)"><span></span>
@@ -246,7 +232,7 @@
                                         <div class="s-section-body">
                                             <div class="s-options-list">
                                                 <div class="s-option-section" v-for="option in upselling.options" v-key="option.id" v-bind:class="{ 'is-active': upselling.value === option.value, 'is-disabled': !!option.disabled }">
-                                                    <div class="s-section-header" v-if="!option.disabled">
+                                                    <div class="s-section-header small" v-if="!option.disabled">
                                                         <label>
                                                             <span class="wa-radio">
                                                                 <input type="radio" name="upselling_option"
@@ -263,12 +249,12 @@
                                                     <div class="s-section-body">
                                                         <div class="s-option-description hint" v-if="option.description" v-html="option.description"></div>
                                                         <template v-if="option.value === '2'">
-                                                            <div class="s-products-header flexbox space-8 middle wrap">
+                                                            <div class="s-products-header flexbox small middle wrap">
                                                                 <div class="s-count-wrapper">
                                                                     <span class="s-label">[`Products selected`]:</span>
                                                                     <span class="s-count bold">{ { upselling.products.length } }</span>
                                                                 </div>
-                                                                <button class="wa-button wa-small transparent s-form-toggle-button"
+                                                                <button class="nobutton s-form-toggle-button small"
                                                                         v-on:click.prevent="upselling.show_form = !upselling.show_form">
                                                                     <span class="s-icon" style="font-size: 12px;"><i class="fas fa-pen"></i></span>
                                                                     <span class="s-name">[`Change`]</span>
@@ -306,7 +292,7 @@
                 ]}
 
                 <div class="s-features-hidden-on-front-section">
-                    <div class="wa-message wa-small warn flexbox space-8">
+                    <div class="wa-message small warn flexbox space-8">
                         <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="message-text wide">
                             <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`]</span>

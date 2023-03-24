@@ -1,0 +1,61 @@
+{if isset($plugin_id)}
+    {if !empty($settings_controls)}
+        {if !empty($plugin_info.printform)}
+            <div class="block double-padded align-center gray">
+                <p>
+                    <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin “%s” is installed and working.`]'}</strong>
+                    <br>
+                    <br>
+                    {sprintf('[`Customize this print form in <a href="%s">Settings &rarr; Print forms</a>`]', '?action=settings#/printform/'|cat:$plugin_id|cat:'/')}
+                </p>
+            </div>
+        {else}
+            <h1>{$plugin_info.name}</h1>
+            <div class="fields form">
+                <form action="?module=plugins&id={$plugin_id}&action=save" method="post" id="plugins-settings-form" enctype="multipart/form-data" target="plugins-settings-iframe">
+                    {$wa->csrf()}
+                    {foreach $settings_controls as $name => $control}
+                    <div class="field">
+                        {$control}
+                    </div>
+                    {/foreach}
+
+                    <div class="field">
+                        <div class="value submit">
+                            <input type="submit" class="button green" value="[`Save`]">
+                            <span id="plugins-settings-form-status" style="display:none"><!-- message placeholder --></span>
+                        </div>
+                    </div>
+
+                </form>
+                <iframe style="display:none" name="plugins-settings-iframe" id="plugins-settings-iframe"></iframe>
+            </div>
+        {/if}
+    {else}
+        <div class="block double-padded align-center gray">
+            <p>
+                <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin “%s” is installed and working.`]'}</strong>
+                <br>
+                <br>
+                {if !empty($plugin_info.importexport)}
+                    {sprintf('[`To use this plugin, proceed to <a href="%s">Import / Export &rarr; %s</a>.`]', '?action=importexport#/'|cat:$plugin_id|cat:'/', $plugin_info.name|default:$plugin_id)}
+                {else}
+                    [`No configuration options are available for this plugin.`]
+                {/if}
+            </p>
+
+        </div>
+    {/if}
+
+    {$_need_show_review_widget = $need_show_review_widget|default:false}
+    {if $_need_show_review_widget}
+        <div>
+            {$wa->installer->reviewWidget("plugin/`$app_id`/`$plugin_id`", ['is_inline' => true])}
+        </div>
+    {/if}
+
+{elseif ($plugins_count > 0)}
+    [`Unknown plugin`]
+{/if}
+
+<div class="clear-left"></div>

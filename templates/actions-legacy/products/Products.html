@@ -1,0 +1,548 @@
+{strip}
+
+    {$categories_rights = $wa->userRights('setscategories')}
+
+    {* id of a set or category *}
+    {if $collection_hash !== null}
+        {$id = ifset($collection_hash[1])}
+    {else}
+        {$id = null}
+    {/if}
+
+    {if $info && (
+        ($info.hash == 'set' && $info.type == shopSetModel::TYPE_STATIC) ||
+        ($info.hash == 'category' && $info.type == shopCategoryModel::TYPE_STATIC)
+      )
+    }
+        {$manual = true}
+    {else}
+        {$manual = false}
+    {/if}
+
+    {$default_sort = $sort}
+    {$default_order = $order}
+    {if !empty($info) && array_key_exists('sort_products', $info)}
+        {if empty($info.type)}
+            {$default_sort = explode(' ', ifempty($info.sort_products, 'sort asc'), 2)}
+        {else}
+            {$default_sort = explode(' ', ifempty($info.sort_products, 'create_datetime desc'), 2)}
+        {/if}
+        {$default_order = strtolower($default_sort[1])}
+        {$default_sort = $default_sort[0]}
+    {/if}
+
+{/strip}
+
+<div class="sidebar right200px" id="s-product-list-toolbar">
+    {if $wa->userRights('importexport')}
+    <div class="block">
+        <h6 class="heading">
+            <span class="count indicator" style="display:none"></span>
+            [`Export`]
+        </h6>
+        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu">
+            <li data-action="export" data-plugin="csv:product:export"><a href="#"><i class="icon16 ss excel"></i>[`CSV`]</a></li>
+
+            <!-- plugin hook: 'backend_products.toolbar_export_li' -->
+            {* @event backend_products.%plugin_id%.toolbar_export_li *}
+            {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_export_li)}{/foreach}{/if}
+
+        </ul>
+    </div>
+    {/if}
+
+    <div class="block">
+        <h6 class="heading">[`Badge`]</h6>
+        <ul class="menu-v with-icons">
+            {$badges = shopProductModel::badges()}
+            {foreach $badges as $bid => $b}
+                <li data-action='set-badge' data-type="{$bid}">
+                    <a href="#"><i class="icon16 ss {$bid}"></i>{$b.name}</a>
+                </li>
+            {/foreach}
+            <li data-action='set-custom-badge' data-type="custom">
+                <a href="#"><i class="icon16 ss div"></i>[`Custom`]</a><span class="small editable"></span>
+                <div class="textarea-wrapper" style="display:none;">
+                    <textarea style="min-height: 100px; margin: 10px 0 5px;">{strip}
+                        {htmlspecialchars('<div class="badge" style="background-color: #a1fcff;"><span>[`YOUR TEXT`]</span></div>')}
+                    {/strip}</textarea>
+                    <input type="button" value="[`Set custom badge`]">
+                </div>
+            </li>
+            <li data-action='delete-badge'><a href="#"><i class="icon16 no-bw"></i>[`Remove badge`]</a></li>
+        </ul>
+    </div>
+
+    <div class="block">
+        <h6 class="heading">
+            <span class="count indicator" style="display:none"></span>
+            [`Organize`]
+        </h6>
+        <ul class="menu-v with-icons compact p-no-photo-selected123 thumbs-view-menu" id="organize-menu">
+
+            <!-- plugin hook: 'backend_products.toolbar_organize_li' -->
+            {* @event backend_products.%plugin_id%.toolbar_organize_li *}
+            {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_organize_li)}{/foreach}{/if}
+
+            {*<li data-action="new-set"><a href="#"><i class="icon16 ss set"></i>[`Create new set`]</a></li>*}
+            <li data-action="duplicate">
+                <a href="#"><i class="icon16 split"></i>[`Duplicate`]</a>
+            </li>
+
+            {if $wa->userRights('setscategories')}
+                <li data-action="category">
+                    <a href="#"><i class="icon16 folder"></i>[`Add to category`]</a>
+                </li>
+            {/if}
+
+            {if $wa->userRights('setscategories')}
+                <li data-action="set">
+                    <a href="#"><i class="icon16 ss set"></i>[`Add to set`]</a>
+                </li>
+            {/if}
+
+            <li data-action="assign-tags">
+                <a href="#"><i class="icon16 tags"></i>[`Assign tags`]</a>
+            </li>
+
+            {if $info && $info.hash == 'set' && $info.type == shopSetModel::TYPE_STATIC && $info.count > 0}
+                {if $categories_rights}
+                    <li data-action="delete-from-set"><a href="#"><i class="icon10 no-bw"></i>[`Remove from set`]</a></li>
+                {/if}
+            {/if}
+
+            {if $info && $info.hash == 'category' && $info.type == shopCategoryModel::TYPE_STATIC && $info.count > 0}
+                {if $categories_rights}
+                    <li data-action="delete-from-category"><a href="#"><i class="icon10 no-bw"></i>[`Remove from category`]</a></li>
+                {/if}
+            {/if}
+
+            {if $products_rights}
+                <li data-action="visibility" class="top-padded">
+                    <a href="javascript:void(0)"><i class="icon16 ss visibility"></i>[`Manage visibility`]</a>
+                </li>
+                <li data-action="type">
+                    <a href="#"><i class="icon16 box"></i>[`Change product type`]</a>
+                </li>
+                <li data-action="delete"><a href="#"><i class="icon16 delete"></i>[`Delete products`]</a></li>
+            {/if}
+
+            {if $wa->userRights('marketing')}
+                <li class="top-padded" data-action="coupon">
+                    <a href="#"><i class="icon16 ss coupon"></i>[`Discount coupons`]</a>
+                </li>
+
+                <li data-action="promo">
+                    <a href="#"><i class="icon16 ss promo"></i>[`Add to promo`]</a>
+                </li>
+            {/if}
+        </ul>
+    </div>
+
+    <div class="block" id="hint-menu-block" style="display:none;">
+        <p class="p-sort-order-error-disclaimer create_datetime" style="display:none;">[`Products in this view are sorted <strong>by date added</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer name" style="display:none;">[`Products in this view are sorted <strong>by name</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer price" style="display:none;">[`Products in this view are sorted <strong>by price</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer count" style="display:none;">[`Products in this view are sorted <strong>by count in stocks</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer rating" style="display:none;">[`Products in this view are sorted <strong>by rating</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+        <p class="p-sort-order-error-disclaimer total_sales" style="display:none;">[`Products in this view are sorted <strong>by total sales value</strong>.`] [`Sort order cannot be changed to manual here.`]</p>
+    </div>
+
+    <!-- plugin hook: 'backend_products.toolbar_section' -->
+    {* @event backend_products.%plugin_id%.toolbar_section *}
+    {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.toolbar_section)}{/foreach}{/if}
+
+</div>
+
+<div class="content right200px">
+    <div class="block double-padded">
+        <h1>
+            <span {if $info.hash == 'category' || $info.hash == 'set'}class="editable"{/if} id="s-product-list-title">{if !empty($title)}{$title|escape}{else}[`Untitled`]{/if}</span>
+
+            <!-- plugin hook: 'backend_products.title_suffix' -->
+            {* @event backend_products.%plugin_id%.title_suffix *}
+            {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.title_suffix)}{/foreach}{/if}
+
+            {if $collection_hash && ($info.hash == 'category' || $info.hash == 'set') && $wa->userRights('setscategories')}
+                <span class="s-product-list-manage">
+                    <a href="#" id="s-product-list-settings" class="gray s-product-list-settings">
+                        <i class="icon16 settings"></i>{if $info.hash == 'category'}[`Category settings`]{else}[`Set settings`]{/if}
+                    </a>
+                    <a href="#" id="s-product-list-delete" class="gray">
+                        <i class="icon16 no-bw"></i>{if $info.hash == 'category'}[`Delete category`]{else}[`Delete set`]{/if}
+                    </a>
+                </span>
+            {/if}
+        </h1>
+
+
+            <ul class="menu-h s-product-nav">
+                <!-- sort order -->
+                {if !$is_dynamic_set}
+                <li class="s-inline-mixed-string float-right" id="s-sort-control">
+                    <ul class="menu-v dropdown">
+                        <li id="js-sort-dropdown">[`Order by`]:
+                            {strip}
+                                {$with_icon = true}
+                                <a href="javascript:void(0);" class="inline-link{if $default_sort != $sort || $default_order != $order} highlighted{/if}"><b><i>
+                                            {if $sort == 'name'}
+                                                [`product name`]
+                                            {elseif $sort == 'price'}
+                                                [`price`]
+                                            {elseif $sort == 'base_price'}
+                                                [`base price`]
+                                            {elseif $sort == 'sku'}
+                                                [`sku name`]
+                                            {elseif $sort == 'compare_price'}
+                                                [`compare at price`]
+                                            {elseif $sort == 'purchase_price'}
+                                                [`purchase price`]
+                                            {elseif $sort == 'count'}
+                                                [`in stock`]
+                                            {elseif $sort == 'rating'}
+                                                [`rating`]
+                                            {elseif $sort == 'create_datetime'}
+                                                [`date added`]
+                                            {elseif $sort == 'total_sales'}
+                                                [`top selling`]
+                                            {elseif $sort == 'stock_worth'}
+                                                [`stock net worth`]
+                                            {elseif $sort == 'sort'}
+                                                [`manual`]
+                                                {$with_icon = false}
+                                            {else}
+                                                {if !empty($additional_columns[$sort])}
+                                                    {$additional_columns[$sort].name|escape}
+                                                {else}
+                                                    [`custom`]
+                                                {/if}
+                                                {$with_icon = false}/
+                                            {/if}
+                                        </i></b></a>
+                                {if $with_icon}
+                                    <i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>
+                                {/if}
+                            {/strip}
+                            <ul class="menu-v with-icon">
+                                {strip}
+                                    {if $manual}
+                                        {if !isset($info['subcategories'])}
+                                            <li class="sort">
+                                                <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=sort"
+                                                   class="no-underline {if $sort == 'sort'}selected{/if}">
+                                                    [`manual`]
+                                                </a>
+                                            </li>
+                                        {/if}
+                                    {/if}
+                                    {if !isset($info['subcategories'])}
+                                        <li class="sort">
+                                            <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=name&order={if $order == 'asc' && $sort=='name'}desc{else}asc{/if}"
+                                               class="no-underline {if $sort=='name'}selected{/if}">[`product name`]</a>
+                                            {if $sort=='name'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                        </li>
+                                    {/if}
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=sku&order={if $order == 'desc' && $sort=='sku'}asc{else}desc{/if}"
+                                           class="no-underline {if $sort=='rating'}selected{/if}">[`sku name`]</a>
+                                        {if $sort === "sku"}
+                                            <i class="icon10 {if $order === "asc"}uarr-tiny{else}darr-tiny{/if}"></i>
+                                        {/if}
+                                    </li>
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=price&order={if $order == 'asc' && $sort=='price'}desc{else}asc{/if}"
+                                           class="no-underline {if $sort=='price'}selected{/if}">[`price`]
+                                        </a>{if $sort=='price'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                    </li>
+                                    {if shopUnits::baseUnitsEnabled() || $sort == 'base_price'}
+                                        <li class="sort">
+                                            <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=base_price&order={if $order == 'asc' && $sort=='base_price'}desc{else}asc{/if}"
+                                               class="no-underline {if $sort=='base_price'}selected{/if}">[`base price`]
+                                            </a>{if $sort=='base_price'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                        </li>
+                                    {/if}
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=compare_price&order={if $order == 'desc' && $sort=='compare_price'}asc{else}desc{/if}"
+                                           class="no-underline {if $sort=='rating'}selected{/if}">[`compare at price`]</a>
+                                        {if $sort === "compare_price"}
+                                            <i class="icon10 {if $order === "asc"}uarr-tiny{else}darr-tiny{/if}"></i>
+                                        {/if}
+                                    </li>
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=purchase_price&order={if $order == 'desc' && $sort=='purchase_price'}asc{else}desc{/if}"
+                                           class="no-underline {if $sort=='rating'}selected{/if}">[`purchase price`]</a>
+                                        {if $sort == "purchase_price"}
+                                            <i class="icon10 {if $order === "asc"}uarr-tiny{else}darr-tiny{/if}"></i>
+                                        {/if}
+                                    </li>
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=count&order={if $order == 'asc' && $sort=='count'}desc{else}asc{/if}"
+                                           class="no-underline {if $sort=='count'}selected{/if}">[`in stock`]
+                                        </a>{if $sort=='count'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                    </li>
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=rating&order={if $order == 'desc' && $sort=='rating'}asc{else}desc{/if}"
+                                           class="no-underline {if $sort=='rating'}selected{/if}">[`rating`]
+                                        </a>{if $sort=='rating'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                    </li>
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=create_datetime&order={if $order == 'desc' && $sort=='create_datetime'}asc{else}desc{/if}"
+                                           class="no-underline {if $sort=='create_datetime'}selected{/if}">[`date added`]
+                                        </a>{if $sort=='create_datetime'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                    </li>
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=total_sales&order={if $order == 'desc' && $sort=='total_sales'}asc{else}desc{/if}"
+                                           class="no-underline {if $sort=='total_sales'}selected{/if}">[`top selling`]
+                                        </a>{if $sort=='total_sales'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                    </li>
+                                    <li class="sort">
+                                        <a href="#/products/{if $collection_param}{$collection_param}&{/if}view={$view}&sort=stock_worth&order={if $order == 'desc' && $sort=='stock_worth'}asc{else}desc{/if}"
+                                           class="no-underline {if $sort=='stock_worth'}selected{/if}">[`stock net worth`]
+                                        </a>{if $sort=='stock_worth'}<i class="icon10 {if $order == 'asc'}uarr-tiny{else}darr-tiny{/if}"></i>{/if}
+                                    </li>
+                                {/strip}
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <script>
+                        (function ($) {
+
+                            // DOM
+                            var $wrapper = $("#js-sort-dropdown");
+
+                            // CONST
+                            var opened_class = "is-opened";
+
+                            // VARS
+                            var timer = 0;
+
+                            $wrapper
+                                .on("mouseenter", function () {
+                                    clearTimeout(timer);
+                                    $wrapper.addClass(opened_class);
+                                })
+                                .on("mouseleave", function () {
+                                    timer = setTimeout(function () {
+                                        var is_exist = $.contains(document, $wrapper[0]);
+                                        if (is_exist) {
+                                            $wrapper.removeClass(opened_class);
+                                        }
+                                    }, 1000);
+                                });
+
+                        })(jQuery);
+                    </script>
+                </li>
+                {/if}
+                <!-- view mode -->
+                <li class="list-view-mode list-view-mode-thumbs{if $view == 'thumbs'} selected{/if}">
+                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view=thumbs&sort={$sort}&order={$order}" title="[`Thumbs`]"><i
+                                class="icon16 view-thumbs"></i></a>
+                </li>
+                <li class="list-view-mode list-view-mode-table{if $view == 'table'} selected{/if}">
+                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view=table&sort={$sort}&order={$order}" title="[`Table`]"><i
+                                class="icon16 view-thumb-list"></i></a>
+                </li>
+                <li class="list-view-mode list-view-mode-skus{if $view == 'skus'} selected{/if}">
+                    <a href="#/products/{if $collection_param}{$collection_param}&{/if}view=skus&sort={$sort}&order={$order}" title="[`SKUs`]"><i
+                                class="icon16 ss view-skus"></i></a>
+                </li>
+
+                <!-- plugin hook: 'backend_products.viewmode_li' -->
+                {* @event backend_products.%plugin_id%.viewmode_li *}
+                {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.viewmode_li)}{/foreach}{/if}
+
+                <!-- frontend link -->
+                <li class="s-inline-mixed-string">
+                    {if !empty($info.frontend_urls)}
+                        [`Public link`]:
+                        {foreach $info.frontend_urls as $frontend_url}
+                            <a id="s-category-frontend-link" href="{$frontend_url}" target="_blank">{waIdna::dec($frontend_url)}</a>
+                            <br>
+                        {/foreach}
+                    {elseif $info.hash == 'set'}
+                        <span class="s-embed">
+                    <strong class="black">&#123;$products = $wa->shop->productSet("{$id}")&#125;</strong>
+                    <a href="#" id="s-embed-code">[`Get embed code`]</a>
+                </span>
+                    {/if}
+                </li>
+
+            </ul>
+
+
+        {if $default_sort != $sort || $default_order != $order}
+            <div id="custom-backend-order-notice" class="s-alert" style="display:none;" data-alert="list-sorting-notice-closed">
+                <a href="javascript:void(0)" class="close s-alert-close">&times;</a>
+                [`You have activated custom product sort order for this view. If you want to use this sort order as a new default global option for this category, please apply it in category settings.`]
+            </div>
+        {/if}
+
+        {$include_name = './product_list_'|cat:$view:'.html'}
+        {include file=$include_name}
+
+        {if !$total_count && empty($info.type)}
+            {if $info.hash == 'category'}
+            <div class="s-alert" data-alert="category-empty">
+                <a class="s-alert-close" href="#">&times;</a>
+                [`To add products into this category, find and select them in some product list view and either drag to this category in the left sidebar or click “Add to category” on the right.`]
+            </div>
+            {elseif $info.hash == 'set'}
+            <div class="s-alert" data-alert="set-empty">
+                <a class="s-alert-close" href="#">&times;</a>
+                [`To add products into this product set, find and select them in some product list view and either drag to this category in the left sidebar or click “Add to set” on the right.`]
+            </div>
+            {/if}
+        {/if}
+
+        {if $lazy_loading}
+        <div class="lazyloading-wrapper">
+            <div class="lazyloading-progress-string">{_w('%d product','%d products', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+             <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more products`]</a>
+            <span class="lazyloading-progress" style="display:none">
+                <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d product', '%d products', min($total_count - $count, $count))}...</span>
+            </span>
+        </div>
+        {else}
+            {if isset($pages_count) && $pages_count > 1}
+                <div class="block pagination s-product-list-paginations">
+                    {wa_pagination total=$pages_count attrs=['class' => "menu-h"] url="#" nb=3}
+                </div>
+            {/if}
+        {/if}
+    </div>
+
+
+    {*
+     * Dialog to confirm product deletion
+     *}
+    <div class="dialog width400px height250px" id="s-product-list-delete-dialog">
+        <div class="dialog-background"></div>
+        <form method="post" action="">
+            <div class="dialog-window">
+                <div class="dialog-content">
+                    <div class="dialog-content-indent">
+                        <h1>{if $info.hash == 'category'}[`Delete category`]{else}[`Delete set`]{/if}</h1>
+                        <ul class="menu-v">
+                            <li>
+                                <label>
+                                    <input type="radio" name="s-delete-products" value="0" checked>
+                                    [`Don’t delete products`]
+                                    {if $info.hash == 'category'}
+                                        <span class="hint">[`Products stored to this category will not be deleted`]</span>
+                                    {else}
+                                        <span class="hint">[`Products stored in this set will not be deleted`]</span>
+                                    {/if}
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="s-delete-products" value="1" {if $info.hash == 'category' && $info.type == shopCategoryModel::TYPE_DYNAMIC}disabled{/if}>
+                                    {if $info.hash == 'category'}
+                                        {assign var="del_products_text" value='[`Delete all products stored in this category (%d)`]'|sprintf:$total_count}
+                                    {else}
+                                        {assign var="del_products_text" value='[`Delete all products stored in this set (%d)`]'|sprintf:$total_count}
+                                    {/if}
+                                    {$del_products_text}{if $info.hash == 'category' && $info.type == shopCategoryModel::TYPE_DYNAMIC}<em class="hint"> [`Not available for smart categories.`]</em>{/if}
+                                </label>
+                            </li>
+                            {if $info.hash == 'category'}
+                                <li>
+                                    <hr>
+                                    <label>
+                                        <input type="checkbox" name="s-delete-sub" value="1" checked="checked">
+                                        <em>[`Delete all child categories`]</em>
+                                    </label>
+                                </li>
+                            {/if}
+
+                        </ul>
+                        {if $info.hash == 'set'}
+                            <p class="small black">
+                                <br />
+                                <i class="icon10 exclamation"></i> [`It is highly advisable to keep product sets with IDs <strong>promo</strong> and <strong>bestsellers</strong>, as these set IDs are used by most Shop-Script frontend design themes.`]</p>
+                        {/if}
+                    </div>
+                </div>
+                <div class="dialog-buttons">
+                    <div class="dialog-buttons-gradient">
+                        {$wa->csrf()}
+                        <input class="button red" type="submit" value="[`Delete`]">
+                        <i class="icon16 loading"></i>
+                        [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+    {*
+     * Error dialog for products duplicate
+     *}
+    <div class="dialog width400px height200px" id="s-product-list-duplicate-error-dialog">
+        <div class="dialog-background"></div>
+        <form method="post" action="">
+            <div class="dialog-window">
+                <div class="dialog-content">
+                    <div class="dialog-content-indent">
+                        <h1>[`Error`]</h1>
+                        <p class="js-content" style="margin-top: 20px;"></p>
+                    </div>
+                </div>
+                <div class="dialog-buttons">
+                    <div class="dialog-buttons-gradient">
+                        <a class="button red cancel" href="javascript:void(0);">[`Close`]</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {*
+     * Dialog with embedding code for sets
+     *}
+    {if $info.hash == 'set'}
+        {include '../dialog/DialogProductListEmbed.html' inline}
+    {/if}
+
+</div>
+{$title = $title|cat:" — ":{$wa->accountName(false)}}
+<script type="text/javascript">
+    document.title = '{$title|escape:'javascript'}';
+    $.wa.locale = $.extend($.wa.locale || {}, {
+        'Inline editing is available only for products with a single SKU': "[`Inline editing is available only for products with a single SKU`]",
+        'Insufficient access rights': "[`Insufficient access rights`]"
+    });
+
+    $.product_list.init({
+        marketing_url: {"`$wa_app_url`marketing/"|json_encode},
+        view: '{$view}',
+        collection_hash: {json_encode($collection_hash)},
+        collection_param: '{$collection_param}',
+        sort:  '{$sort}',
+        order: '{$order}',
+        products: {json_encode($products)},
+        total_count: {$total_count},
+        category_count: {if $info && $info['hash'] == 'category' && $info['type'] == shopCategoryModel::TYPE_STATIC && !$info['include_sub_categories']}{$info['count']}{else}null{/if},
+        edit: '{$wa->get("edit")}',
+        sortable: {if $manual && $sort == 'sort'}true{else}false{/if},
+        enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if},
+        text: {$text|default:''|json_encode},
+        primary_currency: {$primary_currency|json_encode},
+        {*
+        use_product_currency: {if $use_product_currency}true{else}false{/if},
+        currencies: {$currencies|json_encode},
+        *}
+        stocks: {$stocks|json_encode},
+        {if $lazy_loading}
+            lazy_loading: {
+                auto: true,
+                count: {$count}
+            }
+        {else}
+            page: {$page}
+        {/if}
+    });
+</script>

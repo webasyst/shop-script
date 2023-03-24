@@ -481,8 +481,6 @@
 
             // INIT
             that.init();
-
-            console.log( that );
         };
 
         Dialog.prototype.init = function() {
@@ -685,8 +683,6 @@
 
             // INIT
             that.init();
-
-            console.log( that );
         };
 
         Dialog.prototype.init = function() {
@@ -794,8 +790,6 @@
                 that.init(vue_model);
             });
 
-            console.log( that );
-
             function formatUnits(units) {
                 var result = [];
 
@@ -855,20 +849,14 @@
                                 delimiters: ['{ { ', ' } }'],
                                 mounted: function() {
                                     var self = this,
-                                        $wrapper = $(self.$el),
-                                        $field = $wrapper.find("input");
+                                        $wrapper = $(self.$el);
 
-                                    $field
-                                        .on("change", function() {
-                                            var active = $(this).is(":checked");
+                                    $wrapper.find('.switch').waSwitch({
+                                        change: function(active) {
                                             self.$emit("input", active);
                                             self.$emit("change", active);
-                                        })
-                                        .iButton({
-                                            classContainer: 'ibutton-container mini',
-                                            labelOff : "",
-                                            labelOn : ""
-                                        });
+                                        }
+                                    });
                                 }
                             }
                         },

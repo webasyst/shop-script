@@ -111,6 +111,11 @@
                     uri: "{$wa_app_static_url}js/frontend/order/form.js?v={$wa->version()}"
                 },
                 {
+                    id: "wa-order-jstz-js",
+                    type: "js",
+                    uri: "{$wa_url}wa-content/js/jstz/jstz.min.js?v={$wa->version(true)}"
+                },
+                {
                     id: "wa-order-form-css",
                     type: "css",
                     uri: "{$wa_app_static_url}css/frontend/order/form.css?v={$wa->version()}"
@@ -209,8 +214,8 @@
                                 .on("load", function() {
                                     deferred.resolve(source);
                                 }).on("error", function() {
-                                deferred.reject(source);
-                            });
+                                    deferred.reject(source);
+                                });
 
                             $script.attr("src", source.uri);
                         }

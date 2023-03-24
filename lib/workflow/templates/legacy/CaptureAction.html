@@ -1,0 +1,323 @@
+{* Note: this template is also used in CRM applications. *}
+{$_locales = [
+"auto_capture" => _w("Will be captured")
+]}
+
+<div class="s-order-capture-section" id="js-order-capture-section" style="display: none;">
+    <form id="wf-capture-form" action="?module=workflow&action=perform" method="post">
+
+        {* BODY *}
+        <div class="s-section-body">
+            {* begin shipping plugin form*}
+            {if !empty($shipping_controls)}
+                <div class="s-shipping-controls form">
+                    {foreach $shipping_controls as $control}
+                        {$control}
+                    {/foreach}
+                </div>
+            {/if}
+            {* end shipping plugin form *}
+
+            <div class="s-fields-wrapper">
+
+                <div class="field">
+                    <div class="name">[`Funds capture type`]</div>
+                    <div class="value">
+                        <label>
+                            <input class="js-mode-toggle" type="radio" name="capture_mode" value="full" checked>
+                            <span class="bold">[`full capture`]</span>
+                        </label>
+                        <label>
+                            <input class="js-mode-toggle" type="radio" name="capture_mode" value="partial" {if empty($partial_capture)}disabled{/if}>
+                            <span class="bold">[`partial capture`]</span>
+                        </label>
+                    </div>
+                </div>
+
+                {if !empty($stocks)}
+                    <div class="field">
+                        <div class="name">[`Return items, not selected for capture, to selected stocks`]</div>
+                        <div class="value">
+                            <select name="return_stock">
+                                <option value="" selected="selected">[`To items’ original stocks`]</option>
+                                {foreach $stocks as $stock}
+                                    <option value="{$stock.id}">{$stock.name|escape}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                {/if}
+
+                <div class="field">
+                    <div class="name">[`Comment`]</div>
+                    <div class="value">
+                        <textarea name="text" placeholder="[`Capture reason`]"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            {strip}
+
+                {capture assign="_warning_message"}
+                    <div class="s-message yellow"><i class="icon16 exclamation"></i>[`Money will be captured via the payment gateway.`]</div>
+                {/capture}
+                <div class="s-messages-place">
+                    {$_warning_message}
+                </div>
+            {/strip}
+
+            {if !empty($partial_capture)}
+                <table class="s-products-table zebra">
+                    <thead>
+                    <tr>
+                        <th class="s-checkbox-column">
+                            <input class="js-check-all" type="checkbox" id="js-check-all">
+                        </th>
+                        <th colspan="2">
+                            <label for="js-check-all">[`Items for partial capture`]</label>
+                        </th>
+                        <th class="s-amount-column align-right">[`Qty`]</th>
+                        <th class="s-price-column align-right">[`Capture amount`]</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {foreach $order_items as $item}
+                            {$_is_service = false}
+                            {if $item.type === "service"}
+                                {$_is_service = true}
+                            {/if}
+
+                            {$_is_disabled = empty($item.quantity)}
+                            {$_product_classes = []}
+                            {if $_is_service}
+                                {$_product_classes[] = "is-service"}
+                            {/if}
+                            {if $_is_disabled}
+                                {$_product_classes[] = "is-disabled"}
+                            {/if}
+                            <tr class="s-product-wrapper {$_product_classes|join:" "}"
+                                data-id="{$item.id}"
+                                data-parent-id="{$item.parent_id|default:""}"
+                                data-product-id="{$item.product_id|escape}"
+                                data-sku-id="{$item.sku_id|escape}"
+                                data-product-ident="{$item.parent_id|default:$item.id}"
+                                data-price="{$item.price_with_discount|floatval}"
+                                data-quantity="{$item.quantity|floatval}">
+
+                                <td class="s-checkbox-column min-width">
+                                    {if !$_is_service}
+                                        <input class="js-product-checkbox {if $_is_disabled}is-disabled{/if}" type="checkbox" name="capture_items[{$item.id}][capture]"
+                                               id="id-product-checkbox-{$item@iteration}" {if $_is_disabled}disabled{/if}>
+                                    {else}&nbsp;{/if}
+                                </td>
+
+                                <td class="s-image-column min-width valign-top">
+                                    {if $item.type != 'service'}
+                                        <label for="id-product-checkbox-{$item@iteration}">
+                                            {if !empty($item.image_id)}
+                                                {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '48x48')}
+                                            {else}
+                                                <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" alt="" style="width: 48px; height: 48px;">
+                                            {/if}
+                                        </label>
+                                    {/if}
+                                </td>
+
+                                <td class="s-name-column">
+                                    {if $_is_service}<span class="gray s-overhanging-plus">+</span>{/if}
+
+                                    {if !empty($item.deleted)}
+                                        {if $_is_service}
+                                            {$item.name|escape}
+                                        {else}
+                                            <label for="id-product-checkbox-{$item@iteration}">{$item.name|escape}</label>
+                                        {/if}
+                                        {if !empty($item.product_id) || !empty($item.sku_id)}
+                                            <span class="gray">{if $_is_service}[`deleted service`]{else}[`deleted product`]{/if}</span>
+                                        {/if}
+                                    {else}
+                                        {if $_is_service}
+                                            {$item.name|escape}
+                                        {else}
+                                            <label for="id-product-checkbox-{$item@iteration}">{$item.name|escape}</label>
+                                        {/if}
+                                    {/if}
+
+                                    {if empty($item.deleted) && $item.type == 'product' && isset($item.current_product_name) && $item.current_product_name|escape != $item.name|escape}
+                                        <div class="s-product-previous-name">
+                                            <i class="icon16 exclamation"></i>
+                                            <span class="gray">[`Current name`]: {$item.current_product_name|escape}</span>
+                                        </div>
+                                    {/if}
+                                    {if !empty($item.sku_code) && empty($item.deleted)}
+                                        <br>
+                                        <span class="hint">{$item.sku_code|escape}</span>
+                                    {/if}
+
+                                    {if !empty($item.stock)}
+                                        <br>
+                                        <span class="small">@{$item.stock.name|escape}</span>
+                                    {/if}
+                                    {if !empty($item.stock_icon)}
+                                        <br>
+                                        {$item.stock_icon}
+                                    {/if}
+                                </td>
+
+                                <td class="s-amount-column align-right nowrap">
+                                    <span class="gray">{wa_currency_html($item.price_with_discount, $currency_info.code)} &times;</span>
+
+                                    <span class="s-visible">
+                                        {if !$_is_service}
+                                            <input class="short js-quantity-field {if $_is_disabled}is-disabled{/if}" name="capture_items[{$item.id}][quantity]" type="number"
+                                                   value="{$item.quantity}" min="0" max="{$item.quantity}" {if $_is_disabled}disabled{/if}>
+                                            <span class="">[`of`] {$item.quantity|floatval}</span>
+                                        {else}
+                                            <span class="js-quantity-text">{$item.quantity}</span>
+                                        {/if}
+                                    </span>
+                                    <span class="s-hidden">
+                                        <span class="js-quantity-text">{$item.quantity}</span>
+                                    </span>
+                                </td>
+
+                                <td class="s-price-column align-right nowrap">
+                                    <span class="s-visible js-product-total-price">{wa_currency_html($item.price_with_discount * $item.quantity, $currency_info.code)}</span>
+                                </td>
+                            </tr>
+                        {/foreach}
+                        <tr>
+                            <td class="s-checkbox-column">
+                                <input name="capture_shipping_cost" type="hidden" value="0">
+                                <input name="capture_shipping_cost" type="checkbox" value="1" id="js-capture-shipping-cost">
+                            </td>
+                            <td colspan="3">
+                                <label for="js-capture-shipping-cost">[`Capture shipping cost`]</label>
+                            </td>
+                        </tr>
+                    </tbody>
+                    {if !empty($order.shipping)}
+                        <tfoot>
+                            <tr class="s-shipping-wrapper">
+                                <td class="align-right" colspan="4">
+
+                                    <span class="s-label">[`Shipping`]</span>
+                                    {if !empty($order.shipping_name)}
+                                        <span class="s-shipping-name">{$order.shipping_name}</span>
+                                    {/if}
+
+                                </td>
+                                <td class="s-price-column align-right nowrap">
+                                    <span class="s-shipping-total">{wa_currency_html($order.shipping, $currency_info.code)}</span>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    {/if}
+                </table>
+            {/if}
+
+            {if !empty($plugins_html)}
+                <div class="s-plugins-wrapper">
+                    {foreach $plugins_html as $plugin_id => $html}
+                        <!-- {$plugin_id} -->
+                        <div class="s-plugin-wrapper">{$html}</div>
+                    {/foreach}
+                </div>
+            {/if}
+        </div>
+
+        {* FOOTER *}
+        <div class="s-section-footer">
+            <div class="s-table-box middle">
+                <div class="s-column">
+
+                    {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
+                    <div class="s-actions js-form-footer-actions">
+                        <input class="button {$button_class} js-submit-button" type="submit" value="[`Complete the funds capture`]">
+                        [`or`]
+                        <a class="js-close-section inline-link" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+                    </div>
+
+                </div>
+                <div class="s-column align-right">
+                    {capture assign="_total_price_html"}
+                        {wa_currency_html($order['total'],$order['currency'])}
+                    {/capture}
+
+                    <div class="s-price-wrapper">
+                        <span class="s-label js-total-label">
+                            [`Will be captured`]
+                        </span>
+                        <span class="s-price js-total-price">{$_total_price_html}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" name="id" value="{$order_id}">
+        <input type="hidden" name="action_id" value="{$action_id}">
+    </form>
+
+    {$_uncorrected_capture_plugins_message = null}
+    {if !empty($uncorrected_capture_plugins)}
+        {capture assign="_uncorrected_capture_plugins_message"}
+            <div class="s-message red">
+                <i class="icon16 exclamation-red"></i>Проверьте, поддерживается ли это действие плагином, который используется в вашем магазине для фискализации чеков.
+                <br><br>
+                Если действие не поддерживается, выполните его также вручную в личном кабинете сервиса фискализации. Если вы не знаете, как это сделать, то не выполняйте это действие с заказом.
+                <br><br>
+                Список плагинов, которые нужно проверить:<br>
+                <ul>
+                    {foreach $uncorrected_capture_plugins as $name_plugin}
+                        <li>{$name_plugin|escape}</li>
+                    {/foreach}
+                </ul>
+            </div>
+        {/capture}
+    {/if}
+
+    <script>
+        (function ($) {
+            (function (init) {
+                "use strict";
+                if (window.OrderCaptureSection) {
+                    init();
+                } else {
+                    var js_url = "{$wa_app_static_url}js/backend/orders/capture.js?v={$wa->version()}";
+                    var css_url = "{$wa_app_static_url}css/backend/orders/capture.css?v={$wa->version()}";
+
+                    // load css
+                    var $link = $("<link />", {
+                        rel: "stylesheet"
+                    }).on("error", function () {
+                        console.log('error loading capture.css');
+                    }).appendTo("head");
+
+                    $link.attr("href", css_url);
+
+                    // load js
+                    $.ajax({
+                        dataType: "script",
+                        url: js_url,
+                        cache: true
+                    }).then(init, function () {
+                        console.log('error loading capture.js');
+                    });
+                }
+            }(function () {
+                new OrderCaptureSection({
+                    $wrapper: $("#js-order-capture-section").show(),
+                    currency_info: {$currency_info|json_encode},
+                    shipping_price: {if !empty($order.shipping)}{$order.shipping|floatval}{else}0{/if},
+                    total_price_html: {$_total_price_html|json_encode},
+                    templates: {
+                        warning_message: {$_warning_message|json_encode},
+                        uncorrected_capture_plugins_message: {if !empty($_uncorrected_capture_plugins_message)}{$_uncorrected_capture_plugins_message|json_encode}{else}null{/if}
+                    },
+                    locales: {$_locales|json_encode},
+                });
+            }));
+        })(jQuery);
+    </script>
+</div>

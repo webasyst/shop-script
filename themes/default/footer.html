@@ -1,8 +1,15 @@
 {* HINT: for the rest of footer links, please see index.html <!-- FOOTER --> section *}
 
+<div{if count($currencies) == 1} class="poweredby"{/if} role="complementary">
+    [`<a href="http://www.shop-script.com/">Ecommerce software</a> by Webasyst`]
+</div>
+<!-- plugin hook: 'frontend_footer' -->
+{* @event frontend_footer.%plugin_id% *}
+{foreach $frontend_footer as $_}{$_}{/foreach}
+
 {if count($currencies) > 1 || !empty($theme_settings.language_toggle)}
     <aside class="currency-toggle">
-            {if count($currencies) > 1}
+        {if count($currencies) > 1}
             <select id="currency">
                 {$currency = $wa->shop->currency()}
                 {foreach $currencies as $c_code => $c}
@@ -29,7 +36,7 @@
             </select>
             <script>
                 $("#language").change(function () {
-                    var url = location.href;
+                    let url = location.href;
                     if (url.indexOf('?') == -1) {
                         url += '?';
                     } else {
@@ -41,11 +48,3 @@
         {/if}
     </aside>
 {/if}
-
-<!-- plugin hook: 'frontend_footer' -->
-{* @event frontend_footer.%plugin_id% *}
-{foreach $frontend_footer as $_}{$_}{/foreach}
-
-<div{if count($currencies) == 1} class="poweredby"{/if} role="complementary">
-    [`<a href="http://www.shop-script.com/">Ecommerce software</a> by Webasyst`]
-</div>

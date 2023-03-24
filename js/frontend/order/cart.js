@@ -842,8 +842,6 @@
 
                     // INIT
                     that.init();
-
-                    console.log( that );
                 };
 
                 Quantity.prototype.init = function() {

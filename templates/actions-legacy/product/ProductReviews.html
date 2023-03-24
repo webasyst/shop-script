@@ -1,0 +1,191 @@
+{$_active_filters = [
+    "sort" => "datetime",
+    "order" => "DESC",
+    "product_id" => "",
+    "filters[images_count]" => "all",
+    "filters[status]" => "all"
+]}
+
+{if !empty($order)}
+    {$_active_filters["order"] = $order}
+{/if}
+
+{if !empty($sort)}
+    {$_active_filters["sort"] = $sort}
+{/if}
+
+{if !empty($product_id)}
+    {$_active_filters["product_id"] = $product_id}
+
+    {if !empty($current_product.name)}
+        {$_product_name = $current_product.name}
+    {/if}
+{/if}
+
+{if isset($filters["images_count"])}
+    {$_active_filters["filters[images_count]"] = $filters["images_count"]}
+{/if}
+
+{if !empty($filters["status"])}
+    {$_active_filters["filters[status]"] = $filters["status"]}
+{/if}
+
+{strip}
+{function name="_render_filter_uri" _filters_data=[]}
+    {$_merged_filters = array_merge($_active_filters, $_filters_data)}
+    {$_params = []}
+    {foreach $_merged_filters as $_name => $_value}
+        {if isset($_value) && mb_strlen($_value) > 0 && $_value !== "all"}
+            {$_params[] = "`$_name`=`$_value`"}
+        {/if}
+    {/foreach}
+
+    {$wa_app_url}?module=reviews&template=product&{$_params|join:"&"}
+{/function}
+{/strip}
+
+{if !$lazy}
+    <div class="s-product-reviews-section">
+        <header class="s-page-header">
+            <div class="align-right">
+                <ul class="s-filters-list menu-h dropdown" id="js-filters-list">
+                    {* photo filter *}
+                    {include file="../reviews/filters/photo.inc.html" inline}
+
+                    {* status filter*}
+                    {include file="../reviews/filters/status.inc.html" inline}
+
+                    {* sort filter *}
+                    {include file="../reviews/filters/sort.inc.html" inline}
+                </ul>
+
+                <script>
+                    ( function($) {
+                        var $wrapper = $("#js-filters-list");
+
+                        initRouter();
+
+                        initMenuShower();
+
+                        function initMenuShower() {
+                            var $active_li = null;
+
+                            $wrapper
+                                .on("mouseenter", "li.with-menu", function() {
+                                    var $li = $(this),
+                                        timer = $li.data("timer");
+
+                                    if (timer) { clearTimeout(timer); }
+                                    if ($active_li) {
+                                        toggle($active_li, false);
+                                    }
+
+                                    toggle($li, true);
+                                })
+                                .on("mouseleave", "li.with-menu", function() {
+                                    var $li = $(this);
+
+                                    var timer = setTimeout( function() {
+                                        var is_exist = $.contains(document, $wrapper[0]);
+                                        if (is_exist) {
+                                            toggle($li, false);
+                                        }
+                                        $li.data("timer", null);
+                                    }, 500);
+
+                                    $li.data("timer", timer);
+                                });
+
+                            function toggle($li, show) {
+                                var opened_class = "is-opened";
+
+                                if (show) {
+                                    $li.addClass(opened_class);
+                                    $active_li = $li;
+                                } else {
+                                    var timer = $li.data("timer");
+                                    if (timer) { clearTimeout(timer); }
+
+                                    $li.removeClass(opened_class);
+                                    $active_li = null;
+                                }
+                            }
+                        }
+
+                        function initRouter() {
+                            var container = $('#s-product-profile-tabs .s-tab-block[data-tab="reviews"]');
+
+                            $wrapper.on("click", "a", function(event) {
+                                event.preventDefault();
+
+                                var href = $(this).attr("href");
+
+                                $.get(href, function(html) {
+                                    container.html(html);
+                                });
+                            });
+                        }
+
+                    })(jQuery);
+                </script>
+            </div>
+        </header>
+
+        {if !empty($reviews)}
+            <div class="s-reviews">
+                {include './include.reviews.html' inline}
+                <div id="s-review-add" style="display:none;">
+                    {include './../product/include.addReview.html' inline}
+                </div>
+            </div>
+
+            <div class="lazyloading-wrapper">
+                <div class="lazyloading-progress-string">{_w('%d review','%d reviews', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+                <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more reviews`]</a>
+                <span class="lazyloading-progress" style="display:none">
+                    <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d review', '%d reviews', min($total_count - $count, $count))}...</span>
+                </span>
+            </div>
+
+            <script>
+                ( function($) {
+                    var container = $('#s-product-profile-tabs .s-tab-block[data-tab="reviews"]');
+
+                    $.product_reviews.init({
+                        product_id: {$product_id},
+                        container: container,
+                        statuses: {
+                            deleted:  '{shopProductReviewsModel::STATUS_DELETED}',
+                            published:'{shopProductReviewsModel::STATUS_PUBLISHED}'
+                        },
+                        lazy_loading: {
+                            auto: true,
+                            total_count: {$total_count},
+                            count: {$count},
+                            url: "{_render_filter_uri}",
+                            target: '#s-product-profile-tabs .s-tab-block[data-tab="reviews"] .s-reviews ul:first'
+                        }
+                    });
+
+                })(jQuery);
+            </script>
+
+        {else}
+            <p style="margin: 2em 0 0;">[`None of your customers posted a review of this product yet.`]</p>
+        {/if}
+    </div>
+{else}
+    <div class="s-reviews">
+        {include './include.reviews.html' inline no_wrapped=1}
+    </div>
+    <div class="lazyloading-progress-string">{_w('%d review','%d reviews', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+    <span class="lazyloading-progress" style="display:none">
+        <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d review', '%d reviews', min($total_count - $offset - $count, $count))}...</span>
+    </span>
+{/if}
+
+<script>
+    ( function($) {
+        $(document).trigger("update_reviews_counter", {$sidebar_counters|json_encode});
+    })(jQuery);
+</script>

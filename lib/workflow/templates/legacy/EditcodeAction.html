@@ -1,0 +1,117 @@
+<div class="wa-dialog s-order-marking-dialog" id="js-order-marking-dialog">
+    <script>
+        ( function($) {
+            $("#js-order-marking-dialog").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body">
+        <form>
+            <header class="wa-dialog-header">
+                <h2 class="s-title">[`Product codes`]</h2>
+            </header>
+            <div class="wa-dialog-content">
+                <div class="s-products-list">
+                    {foreach $order.items_product_codes as $_item}{if $_item.product_codes}
+                        <div class="s-product-wrapper" data-item-id="{$_item.id|escape}">
+                            <div class="s-table-box space-10 fixed">
+                                <div class="s-column s-column-image">
+                                    <a href="javascript:void(0);" target="_blank">
+                                        {if $_item.type != 'service'}
+                                            {if !empty($_item.image_id)}
+                                                {$wa->shop->productImgHtml(['id' => $_item.product_id, 'image_id' => $_item.image_id, 'image_filename' => $_item.image_filename, 'ext' => $_item.ext], '48x48')}
+                                            {else}
+                                                <img src="{$wa_app_static_url}img/image-dummy-small.png" class="not-found" style="width: 48px; height: 48px;" alt="">
+                                            {/if}
+                                        {/if}
+                                    </a>
+                                </div>
+                                <div class="s-column">
+                                    <div class="s-name-wrapper s-column-name">
+                                        <div class="s-name">{$_item.name|escape}</div>
+                                        <div class="s-code">{$_item.sku_code|escape}</div>
+                                    </div>
+
+                                    <div class="s-marking-section">
+                                        {for $i = 0 to $_item.expected_product_code_blocks_count-1}
+                                            <div class="s-marking-block">
+                                                {foreach $_item.product_codes as $_code}
+                                                    <div class="s-code-wrapper" data-code-id="{$_code.id|escape}">
+                                                        <div class="s-label-wrapper">
+                                                            <div class="s-image">
+                                                                {if !empty($_code.icon) && $_code.code_plugin_enabled}
+                                                                    <img src="{$wa_url}{$_code.icon}">
+                                                                {else}
+                                                                    <i class="icon16 ss parameter"></i>
+                                                                {/if}
+                                                            </div>
+                                                            <div class="s-label" title="{$_code.code|escape}">{$_code.name|escape}:</div>
+                                                        </div>
+
+                                                        <input class="s-field"
+                                                               type="text"
+                                                               name="code[{$_code.id}][{$_item.id}][]"
+                                                               value="{$_code.values[$i]|default:''|escape}"
+                                                               data-index="{$i}"  {* without this data-index working in JS in plugins is very hard :) *}
+                                                        >
+                                                    </div>
+                                                {/foreach}
+                                            </div>
+                                        {/for}
+                                    </div>
+                                </div>
+                                <div class="s-column s-column-price">
+                                    <div class="gray">
+                                        <span class="s-price">{wa_currency_html($_item.price, $order.currency)}</span> x <span class="s-amount black">{$_item.quantity|escape}</span>
+                                    </div>
+                                </div>
+                                <div class="s-column s-column-total">
+                                    <span class="s-price black">{wa_currency_html($_item.price * $_item.quantity, $order.currency)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {/if}{/foreach}
+                </div>
+
+                {if !empty($plugins_html)}
+                    {foreach $plugins_html as $plugin_id => $html}
+                        <!-- {$plugin_id} -->
+                        {$html}
+                    {/foreach}
+                {/if}
+            </div>
+
+            <script>(function($) { "use strict";
+                $.order.initMarkingDialog({
+                    user_has_rights: {json_encode(!empty($user_has_rights))},
+                    $wrapper: $("#js-order-marking-dialog"),
+                    locales: {
+                        "unsaved": {_w("This dialog contains unsaved data. Close the dialog and cancel all changes?")|json_encode}
+                    },
+                    urls: {
+                        submit: "{$wa_app_url}?module=workflow&action=perform"
+                    }
+                });
+            })(jQuery);</script>
+
+            <footer class="wa-dialog-footer">
+                <div class="js-errors-place"></div>
+                <div class="s-table-box space-20 middle">
+                    <div class="s-column">
+                        {if empty($user_has_rights)}
+                            <button class="js-close-dialog button grey">[`Close`]</button>
+                        {else}
+                            <button class="js-submit-button button green" type="submit">[`Save`]</button>
+                            [`or`]
+                            <a class="js-close-dialog" href="javascript:void(0);">[`cancel`]</a>
+                        {/if}
+                    </div>
+                </div>
+            </footer>
+
+            <input type="hidden" name="id" value="{$order.id|escape}">
+            <input type="hidden" name="action_id" value="editcode">
+        </form>
+    </div>
+</div>

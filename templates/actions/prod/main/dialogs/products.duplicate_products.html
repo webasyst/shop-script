@@ -1,0 +1,33 @@
+<div class="wa-dialog s-products-duplicate-products-dialog" id="js-products-duplicate-products-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="js-vue-section" style="visibility: hidden;">
+            <div class="dialog-header">
+                <h3>[`Скопированные товары сняты с публикации`]</h3>
+            </div>
+            <div class="dialog-content">
+                <div class="wa-message small warn flexbox space-8" style="margin-top: 1rem;">
+                    <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="message-text wide">
+                        <span class="s-text">[`Для созданных копированием товаров будет установлен статус публикации:`]</span>
+                        <div class="message-icon"><i class="fas fa-times text-red"></i><span class="s-text"> [`Unpublished`]</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="button blue" type="button" v-on:click="close">[`Close`]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $dialog = $("#js-products-duplicate-products-dialog").removeAttr("id"),
+                dialog = $dialog.data("dialog");
+
+            dialog.options.ready.done( function() {
+                dialog.options.initDialog($dialog, dialog);
+            });
+        })(jQuery);
+    </script>
+</div>

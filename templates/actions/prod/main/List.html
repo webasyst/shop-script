@@ -77,7 +77,7 @@
 
 {capture assign="_component_paging_dropdown"}
     <div class="dropdown s-paging-dropdown">
-        <button class="dropdown-toggle wa-button wa-small no-indent transparent" type="button">{ { active_option ? active_option.name : value } }</button>
+        <button class="dropdown-toggle button small no-indent outlined" type="button">{ { active_option ? active_option.name : value } }</button>
         <div class="dropdown-body">
             <template v-for="option in options">
                 <div class="dropdown-item"
@@ -197,7 +197,6 @@
 {include file="./components/products/mass_actions.html" scope="parent" inline}
 {include file="./components/products/presentations_dropdown.html" scope="parent" inline}
 {include file="./dialogs/errors.html" scope="parent" inline}
-{include file="./dialogs/callback.html" scope="parent" inline}
 {include file="./dialogs/list.column_manager.html" scope="parent" inline}
 
 <div class="s-products-list-page" id="js-products-list-page">
@@ -210,7 +209,7 @@
                             <h1 class="s-title">[`Products`]</h1>
                         </div>
                         <div class="s-new-product">
-                            <a class="wa-button blue" href="{$wa_app_url}products/new/general/">
+                            <a class="button" href="{$wa_app_url}products/new/general/">
                                 <span class="s-icon icon shift-0 size-12"><i class="fas fa-plus"></i></span>
                                 <span class="s-name">[`New product`]</span>
                             </a>
@@ -224,25 +223,6 @@
 
                     </div>
                     <div class="flexbox middle space-20">
-                        <div class="s-support-section">
-                            <button class="s-button wa-button rounded pink animation-pulse" type="button" v-on:click.prevent="showCallbackDialog">
-                                <span class="s-icon"><i class="fas fa-comment-dots"></i></span>
-                                <span class="s-name">[`How do you like the new products section?`]</span>
-                            </button>
-                            {if $active_presentation.view === 'table_extended'}
-                                {$_view = 'skus'}
-                            {else}
-                                {$_view = $active_presentation.view}
-                            {/if}
-                            <a class="s-button wa-button pink rounded outlined" href="{$wa_app_url|escape}?action=products#/products/view={$_view}" data-tooltip-id="return-to-old-products">
-                                <span>
-                                    <span class="s-icon"><i class="fas fa-toggle-on"></i></span>
-                                    <span class="s-name">[`Return to the old section`]</span>
-                                    <span class="s-icon"><i class="fas fa-question-circle"></i></span>
-                                </span>
-                            </a>
-                        </div>
-
                         <div class="s-plugins-section-header-right">
                             <!-- plugin hook: 'backend_prod_list.header_right' -->
                             {* @event backend_prod_list.%plugin_id%.header_right *}
@@ -307,8 +287,6 @@
                             {if !empty($backend_prod_list)}{foreach $backend_prod_list as $_}{ifset($_, 'footer_left', '')}{/foreach}{/if}
                         </div>
                     </div>
-
-
 
                     <div class="s-filters-wrapper">
                         <div class="s-plugins-section-footer-right">
@@ -400,8 +378,7 @@
                         "product_status"            : "{$wa_app_url}?module=prod&action=saveStatus",
                         "product_url_checker"       : "{$wa_app_url}?module=prod&action=checkUrlInUse",
                         "add_feature_value"         : "{$wa_app_url}?module=prod&action=addFeatureValue",
-                        "color_transliterate"       : "{$wa_app_url}?module=settingsTypefeat&action=featuresHelper",
-                        "callback_submit"           : "{$wa_app_url}?module=prod&action=feedback"
+                        "color_transliterate"       : "{$wa_app_url}?module=settingsTypefeat&action=featuresHelper"
                     },
 
                     paging: {

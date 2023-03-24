@@ -1,0 +1,167 @@
+<div class="sidebar right15px">
+    <div class="block s-nolevel2-sidebar"></div>
+</div>
+
+<div class="sidebar left200px">
+    <div class="block s-nolevel2-sidebar s-inner-sidebar">
+        <ul class="menu-v with-icons stack" id="s-settings-menu">
+            <li>
+                <a href="?action=settings#/general/">
+                    <i class="icon16 ss settings-bw"></i>[`General settings`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/schedule/">
+                    <i class="icon16 ss schedule-bw"></i>[`Working schedule`]
+                </a>
+            </li>
+            {if !empty($show_marketplaces)}
+                <li>
+                    <a href="?action=settings#/marketplaces/">
+                        <i class="icon16 ss marketplaces"></i>[`Online marketplaces`]
+                    </a>
+                </li>
+            {/if}
+
+            <!-- plugin hook: 'backend_settings.sidebar_top_li' -->
+            {* @event backend_settings.%plugin_id%.sidebar_top_li *}
+            {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+
+
+            <li class="top-padded">
+                <a href="?action=settings#/typefeat/">
+                    <i class="icon16 ss features-bw"></i>[`Product types & features`]
+                </a>
+            </li>
+            {if !empty($is_premium)}
+                <li>
+                    <a href="?action=settings#/unit/">
+                        <i class="icon16 ss units"></i>[`Product quantity units & add-to-cart parameters`]
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/compatibility/">
+                        <i class="icon16 ss compatibility"></i>[`PREMIUM license compatibility`]
+                    </a>
+                </li>
+            {/if}
+            <li>
+                <a href="?action=settings#/images/">
+                    <i class="icon16 ss camera-bw"></i>[`Images`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/stock/">
+                    <i class="icon16 ss cube-bw"></i>[`Stocks`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/search/">
+                    <i class="icon16 ss search-bw"></i>[`Product search`]
+                </a>
+            </li>
+            <!-- plugin hook: 'backend_settings.sidebar_middle_li' -->
+            {* @event backend_settings.%plugin_id%.sidebar_middle_li *}
+            {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_middle_li)}{/foreach}{/if}
+            <li>
+                <a href="?action=settings#/orderStates/">
+                    <i class="icon16 ss flag-bw"></i>[`Order states`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/orderEditor/">
+                    <i class="icon16 ss fields-bw"></i>[`Order editor`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/shipping/">
+                    <i class="icon16 ss shipping-bw"></i>[`Shipping`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/couriers/">
+                    <i class="icon16 ss couriers-bw"></i>[`Couriers`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/payment/">
+                    <i class="icon16 ss payment-bw"></i>[`Payment`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/checkout/">
+                    <i class="icon16 ss cart-bw"></i>[`Checkout`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/currencies/">
+                    <i class="icon16 ss currency-bw"></i>[`Currencies`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/taxes/">
+                    <i class="icon16 ss percent-bw"></i>[`Taxes`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/printform/">
+                    <i class="icon16 ss print-forms-bw"></i>[`Printable forms`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/notifications/">
+                    <i class="icon16 ss notification-bw"></i>[`Notifications`]
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/analytics/">
+                    <i class="icon16 ss dashboard-bw"></i>[`Analytics`]
+                </a>
+            </li>
+
+            <li>
+                <a href="?action=settings#/premium/">
+                    <i class="icon16 ss compatibility"></i>[`PREMIUM license functionality`]
+                </a>
+            </li>
+
+            {if $wa->user()->isAdmin()}
+                <li class="top-padded">
+                    <a href="?action=settings#/reset/">
+                        <i class="icon16 ss reset-bw"></i>[`Reset`]
+                    </a>
+                </li>
+            {/if}
+            <!-- plugin hook: 'backend_settings.sidebar_bottom_li' -->
+            {* @event backend_settings.%plugin_id%.sidebar_bottom_li *}
+            {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
+
+        </ul>
+
+        <div class="align-center hr" style="padding: 20px 0;">
+            <p class="hint">{sprintf('[`To set up <em>discounts</em>, <em>followups</em>, <em>recommendations</em>, and <em>affiliate programs</em>, please open “%s” section.`]', "<a href='{$wa_app_url}marketing/'>[`Marketing`]</a>")}</p>
+        </div>
+    </div>
+</div>
+
+<div class="content left200px right15px s-nolevel2-box" id="s-settings-content">
+    <div class="block double-padded s-settings-form">
+        [`Loading...`]
+        <i class="icon16 loading"></i>
+    </div>
+
+    <div class="clear"></div>
+    <!-- settings placeholder -->
+</div>
+
+<div class="clear"></div>
+{capture assign="_loading"}{_w('Loading...')} <i class="icon16 loading"></i>{/capture}
+<script src="{$wa_app_static_url}js-legacy/settings/settings.js?v={$wa->version()}"></script>
+<script>
+    $.settings.init({
+        debug: true,
+        loading: {$_loading|json_encode},
+        backend_url: {$wa_backend_url|json_encode},
+        shop_marketing_url: {"`$wa_app_url`marketing/"|json_encode}
+    });
+</script>

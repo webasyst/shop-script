@@ -1,0 +1,188 @@
+<div class="dialog width500px height400px s-drop-files-here-zone" id="s-image-uploader">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <div id="s-upload-step1">
+                    <div id="s-upload-imagelist">
+                        <ul class="zebra files"></ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <div id="s-upload-step1-buttons">
+                    <div class="block float-right" style="padding-top: 13px;">
+                        <a href="#" class="hint cancel">[`Stop upload`]</a>
+                    </div>
+                    <div class="block">
+                        <div class="progressbar blue small width300px float-left">
+                            <div class="progressbar-outer">
+                                <div class="progressbar-inner fileupload-progressbar" id="s-upload-progressbar"></div>
+                            </div>
+                        </div>
+                        <div class="float-left" style="margin-top: 5px;" id="s-upload-filescount"></div>
+                        <div id="s-upload-error" style="display:none" class="block half-padded errormsg">
+                            [`Files uploaded with errors`]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="template-upload" type="text/html">
+{literal}
+    {% for (var i=0, files=o.files, l=files.length, file=files[0]; i<l; file=files[++i]) { %}
+    <li class="template-upload">
+        <div class="s-upload-oneimage-progress">
+            <div class="s-image-filename">
+                {%=file.name%}
+                <span class="hint">{%=o.formatFileSize(file.size)%}</span>
+            </div>
+            <span class="start"></span><span class="cancel"></span>
+        </div>
+        &nbsp;
+    </li>
+    {% } %}
+{/literal}
+</script>
+
+<script id="template-download" type="text/html">
+{literal}
+    {% for (var i=0, files=o.files, l=files.length, file=files[0]; i<l; file=files[++i]) { %}
+    <li class="template-upload {% if (file.error) { %}error{% } %}">
+        {% if (file.error) { %}
+            <div class="s-upload-oneimage-progress" style="width:100%">
+                <div class="s-image-filename">
+                    <b>{%=file.name%}</b>
+                    {% if (typeof file.error === 'object' && file.error instanceof SyntaxError) { %}
+                        {% if (file.responseText) { %}
+                            {%#file.responseText%}
+                        {% } else { %}
+                            {%=$_('Failed to upload. Most probably, there is not enough memory to create thumbnails.')%}.
+                        {% } %}
+                    {% } else { %}
+                        {%=file.error%}
+                    {% } %}
+                </div>
+            </div>
+        {% } else { %}
+            <div class="s-upload-oneimage-progress" style="width:100%">
+                <div class="s-image-filename">
+                    {%=file.name%} <span class="hint">{%=o.formatFileSize(file.size)%}</span>
+                </div>
+            </div>
+        {% } %}
+        &nbsp;
+    </li>
+    {% } %}
+{/literal}
+</script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/load-image.min.js"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/jquery.fileupload-wa.js?v{$wa->version()}"></script>
+<script type="text/javascript">
+$(function() {
+    var fileupload = $('#fileupload');
+/*
+    $('#s-upload-images-link').click(function() {
+        fileupload.fileupload('option', 'fileInput').trigger('click');
+        return false;
+    });
+*/
+    // Initialize the jQuery File Upload widget:
+    fileupload.fileupload({
+        acceptFileTypes: /(\.|\/)(gif|jpe?g|png|webp)$/i,
+        sequentialUploads: true,
+        onDone: function(data) {
+            var counter = $('#s-product-edit-menu .images .hint');
+            var cnt = parseInt(counter.text(), 10) || 0;
+            var product_id = $.product_images.product_id;
+            counter.text(cnt + data.result.files.length);
+
+            var enable_2x = {if $wa->shop->config('enable_2x')}true{else}false{/if} && $.fn.retina;
+
+            var files = data.result.files;
+
+            // update images list for images tabs-product-image-crops
+            $('#s-product-image-list').append(tmpl('template-product-image-list', {literal}{
+                images: files,
+                placeholder: '{/literal}{$placeholder}{literal}',
+                product_id: product_id
+            }{/literal}));
+
+            enable_2x && $('#s-product-image-list img').retina();
+
+            // update images for sku settings blocks
+            var sku_settings_blocks = $('#shop-productprofile .js-sku-settings');
+            sku_settings_blocks.each(function() {
+                var self   = $(this);
+                var sku_id = self.attr('data-id');
+
+                var image_crops = self.find('.s-product-image-crops');
+                image_crops.append(tmpl('template-sku-image-list', {
+                    images: files,
+                    sku: {
+                        id: sku_id, product_id: product_id
+                    }
+                }));
+                enable_2x && image_crops.find('img').retina();
+
+                // wrapping container show if needed
+                var wrapper = self.find('.s-product-sku-images');
+                if (wrapper.is(':hidden') && image_crops.find('li').length + files.length > 1) {
+                    wrapper.show();
+                }
+            });
+
+            // update product profile crops
+            $('#s-product-view .s-product-image-crops').append(
+                tmpl('template-product-image-list', {literal}{
+                    images: files,
+                    product_id: product_id,
+                    type: 'crop'
+                }{/literal})
+            );
+
+            enable_2x && $('#s-product-view .s-product-image-crops img').retina();
+
+
+            // update photostream
+            var photo_stream = $.product_images.photo_stream;
+            if (photo_stream && photo_stream.length) {
+
+                var sample = photo_stream.find('li.dummy:last').prev().clone();
+
+                for (var i = 0, n = files.length, file = files[0]; i < n; file = files[++i]) {
+                    // fill attrs
+                    sample.attr('data-image-id', file.id);
+                    sample.find('a'  ).attr('href', '#/product/' + product_id + '/edit/images/' + file.id);
+                    sample.find('img').attr('src',  file.url_crop_small);
+
+                    // insert dom
+                    photo_stream.find('li.dummy:last').before(sample.clone());
+                }
+                // clear memory dom item
+                sample.remove();
+
+                // photostream style magic
+                photo_stream.find('li.visible').removeClass('visible');
+                photo_stream.
+                    find('li:last').addClass('visible').
+                    prev().addClass('visible').
+                    prev().addClass('visible');
+
+                // refresh photostream
+                photo_stream.trigger('refresh');
+
+                enable_2x && photo_stream.find('img').retina();
+
+            }
+        }
+    });
+});
+</script>

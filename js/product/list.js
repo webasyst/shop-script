@@ -70,7 +70,7 @@
             try {
                 this.options = options;
                 this.container = $('#product-list');
-                this.toolbar = $('#s-product-list-toolbar');
+                this.toolbar = $('.js-product-list-toolbar');
                 this.sidebar = $('#s-sidebar');
                 var products = this.options.products;
                 delete this.options.products;
@@ -233,7 +233,7 @@
                         }, "json");
                     }
                 });
-                $('.lazyloading-link').die('click').live('click', function () {
+                $('.lazyloading-link').off('click').on('click', function () {
                     $(window).lazyLoad('force');
                     return false;
                 });

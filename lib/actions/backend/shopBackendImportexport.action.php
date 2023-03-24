@@ -18,7 +18,7 @@ class shopBackendImportexportAction extends waViewAction
                 'id'           => 'csv:product:export',
                 'name'         => _w('Export products to CSV'),
                 'description'  => _w('Save your existing products information in a CSV file'),
-                'icon'         => 'ss excel',
+                'icon'         => wa()->whichUI() == '1.3' ? 'ss excel' : 'file-csv',
                 'importexport' => 'profiles',
             )
             ), $plugins);

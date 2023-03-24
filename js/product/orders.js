@@ -50,7 +50,7 @@
 
                             var html = $('<div></div>').html(data);
                             var list = html.find('table tr');
-                            
+
                             if (list.length) {
                                 offset += list.length;
                                 $('table', self.container).append(list);
@@ -80,7 +80,7 @@
                         });
                     }
                 });
-                $('.lazyloading-link').die('click').live('click', function() {
+                $('.lazyloading-link').off('click').on('click', function() {
                     $(window).lazyLoad('force');
                     return false;
                 });

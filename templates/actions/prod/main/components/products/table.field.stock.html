@@ -30,14 +30,14 @@
                             <span class="icon shift-up-1" v-bind:class="icon_class"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
                         </div>
                         <template v-if="states.is_preview">
-                            <input class="s-field wa-small full-width s-square-field align-right" placeholder="∞" type="text" readonly
+                            <input class="s-field small full-width s-square-field align-right" placeholder="∞" type="text" readonly
                                    v-bind:class="{ 'wa-error-field' : errors['stock_error'] }"
                                    v-on:click="togglePreview(false)"
                                    v-model="formatted_value">
                         </template>
                         <template v-else>
                             <component-input
-                                class="s-field wa-small full-width s-square-field align-right"
+                                class="s-field small full-width s-square-field align-right"
                                 v-model="column_data.value"
                                 v-bind:cancel="true"
                                 v-bind:focus="true"
@@ -51,9 +51,9 @@
                         </template>
                     </div>
 
-                    <div class="wa-error-text" v-if="errors['stock_error']">
+                    <div class="state-error" v-if="errors['stock_error']">
                         {_w("Invalid value")|escape}
-                        <span class="s-tooltip-icon" data-tooltip-id="stock-error"><i class="fas fa-question-circle color-red"></i></span>
+                        <span class="s-tooltip-icon" data-tooltip-id="stock-error"><i class="fas fa-question-circle text-red"></i></span>
                     </div>
                 </div>
             </template>
@@ -69,16 +69,16 @@
             <template v-else>
                 <div class="s-stock-wrapper" v-if="stock && stock.is_virtual">
                     <div class="s-icon-wrapper" data-tooltip-id="stock-virtual-edit-disabled">
-                        <span class="icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse_stroke'></use></svg></span>
+                        <span class="icon shift-up-1 text-light-gray"><svg><use xlink:href='{$_sprite_url}#warehouse_stroke'></use></svg></span>
                     </div>
                     <div class="s-count-wrapper">{ { column_data.value ? formatted_value : '∞' } }</div>
                 </div>
 
                 <div class="s-stock-wrapper is-edit" v-else  data-tooltip-id="stock-edit-disabled">
                     <div class="s-icon-wrapper">
-                        <span class="icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
+                        <span class="icon shift-up-1 text-light-gray"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
                     </div>
-                    <input class="s-field wa-small full-width s-square-field align-right is-disabled" type="text" readonly
+                    <input class="s-field small full-width s-square-field align-right is-disabled" type="text" readonly
                            v-bind:value="column_data.value ? formatted_value : '∞'">
                 </div>
             </template>

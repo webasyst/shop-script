@@ -1,46 +1,47 @@
-<div class="float-right">
-    <ul class="menu-h">
-        <li><a id="notification-delete" data-id="{$n.id}" href="#"><i class="icon16 delete"></i>[`Delete notification`]</a></li>
-    </ul>
     <script type="text/javascript">
-        $("#notification-delete").click(function () {
-            var id = $(this).attr('data-id');
-            var dialog = $('#s-settings-confirm-delete');   // html-code of dialog is located on main template
-            if (dialog.parent().get(0) != document.body) {
-                $(document.body).append(dialog);
-            }
-            dialog.waDialog({
-                disableButtonsOnSubmit: true,
-                onLoad: function() {
-                    $(this).find('form').find('input[name=id]').val(id);
-                },
-                onSubmit: function(dialog) {
-                    var form = $(this);
-                    var loading_icon = dialog.find('.loading').show();
-                    $.post(form.attr('action'), form.serialize(), function (response) {
-                        if (response.status == 'ok') {
+        $("#notification-delete").on('click', function (event) {
+            event.preventDefault();
+
+            const id = $(this).data('id');
+            const html = $('#s-settings-confirm-delete')[0].outerHTML;
+
+            $.waDialog({
+                html,
+                onOpen($dialog, dialog) {
+                    $dialog.find('input[name=id]').val(id);
+
+                    const form = dialog.$block.find('form');
+
+                    form.on('submit', function(event) {
+                        event.preventDefault();
+
+                        const loading_icon = form.find('.loading').show();
+                        $.post(form.attr('action'), form.serialize(), function (response) {
+                            if (response.status !== 'ok') {
+                                console.warn(response);
+                                return;
+                            }
+
                             $("#notification-" + id).remove();
                             loading_icon.hide();
-                            dialog.trigger('close');
+                            dialog.close();
                             $.settings.notificationsAction('');
-                        }
-                    }, "json");
-                    return false;
+                        }, "json");
+                    });
                 }
             });
-            return false;
         });
 
-        var $wrapper = $("#notification-form"),
-            $checkbox_list = $wrapper.find('.s-checkbox-list');
+        var $wrapper = $("#notification-form");
+        var $checkbox_list = $wrapper.find('.s-checkbox-list');
 
         $wrapper.on("change", ".js-type-group-field", function() {
             // DOM
-            var $field = $(this).closest(".s-radio-wrapper"),
-                $list = $field.find('.s-checkbox-list');
+            const $field = $(this).closest(".s-radio-wrapper");
+            const $list = $field.find('.s-checkbox-list');
 
             // CONST
-            var active_class = "is-active";
+            const active_class = "is-active";
 
             if ($list.length) {
                 $checkbox_list.show();
@@ -49,7 +50,7 @@
             }
 
             $wrapper.find('.s-radio-wrapper').each( function(i, _field) {
-                var $_field = $(_field);
+                const $_field = $(_field);
                 if (_field[0] === $field[0]) {
                     $_field.addClass(active_class);
                 } else {
@@ -59,8 +60,8 @@
         });
 
         $checkbox_list.on('change', '[name*="[selected_sources]"]', function () {
-            var $selected_sources_all = $checkbox_list.find('[name*="selected_sources_all"]'),
-                $selected_sources = $checkbox_list.find('[name*="[selected_sources]"]');
+            const $selected_sources_all = $checkbox_list.find('[name*="selected_sources_all"]');
+            const $selected_sources = $checkbox_list.find('[name*="[selected_sources]"]');
 
             if ($checkbox_list.find('[name*="[selected_sources]"]:checked').length === $selected_sources.length) {
                 $selected_sources_all.prop('checked', true);
@@ -70,7 +71,7 @@
         });
 
         $checkbox_list.on('change', '[name*="selected_sources_all"]', function () {
-            var $selected_sources = $checkbox_list.find('[name*="[selected_sources]"]');
+            const $selected_sources = $checkbox_list.find('[name*="[selected_sources]"]');
             if ($(this).prop('checked')) {
                 $selected_sources.prop('checked', true);
             } else {
@@ -80,18 +81,20 @@
     </script>
 </div>
 
-<h1>
-    {$n.name}
-</h1>
+<div class="flexbox middle">
+    <h1>{$n.name}</h1>
+
+
+</div>
 
 <form id="notification-form" method="post" action="?module=settings&action=notificationsSave&id={$n.id}">
-<div class="fields form">
-
+<div class="fields">
     <!-- notification content (transport-dependent) -->
-    <div class="field-group">
+    <div class="fields-group">
         <div class="field">
             <div class="name">[`Event`]</div>
-            <div class="value no-shift">
+
+            <div class="value">
                 {if empty($events[$n.event])}
                     {$n.event}
                 {else}
@@ -99,66 +102,109 @@
                 {/if}
             </div>
         </div>
+
         <div class="field">
             <div class="name">[`Notification name`]</div>
+
             <div class="value">
-                <input id="n-name" name="data[name]" type="text" class="bold" value="{$n.name}">
+                <input type="text" name="data[name]" class="small bold width-60" id="n-name" value="{$n.name}">
             </div>
         </div>
+
         <div class="field">
             <div class="name">[`Transport`]</div>
-            <div class="value no-shift">
-                <i class="icon16 {$transports[$n.transport].icon}"></i>{$transports[$n.transport].name}
+
+            <div class="value">
+                <span class="icon text-gray">{$wa->shop->getIcon($transports[$n.transport].icon)}</span>
+                <span>{$transports[$n.transport].name}</span>
             </div>
         </div>
+
         <div class="field">
             <div class="name">[`Enabled`]</div>
-            <div class="value no-shift">
-                <input type="checkbox" name="data[status]" value="1" {if $n.status}checked{/if}>
+
+            <div class="value">
+                <label>
+                    <span class="wa-checkbox small">
+                        <input type="checkbox" name="data[status]" value="1" {if $n.status}checked{/if}>
+                        <span>
+                            <span class="icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </span>
+                    </span>
+                </label>
             </div>
         </div>
     </div>
 
-    <div class="field-group">
+    <div class="fields-group">
         <div class="field">
             <div class="name">[`Order source`]</div>
-            <div class="value no-shift">
-                <ul class="s-fields-list menu-v">
+
+            <div class="value">
+                <ul class="s-fields-list menu custom-mt-8">
                     <li class="s-radio-wrapper is-active">
                         <label class="s-radio-label">
-                            <input class="s-radio js-type-group-field" type="radio" name="data[all_sources]" value="1" {if $all_sources}checked{/if}>
+                            <span class="wa-radio">
+                                <input class="s-radio js-type-group-field" type="radio" name="data[all_sources]" value="1" {if $all_sources}checked{/if}>
+                                <span></span>
+                            </span>
                             <span class="s-text bold">[`All storefronts`]</span>
                         </label>
                     </li>
+
                     <li class="s-radio-wrapper">
                         <label class="s-radio-label">
-                            <input class="s-radio js-type-group-field" type="radio" name="data[all_sources]" value="0" {if !$all_sources}checked{/if}>
+                            <span class="wa-radio">
+                                <input class="s-radio js-type-group-field" type="radio" name="data[all_sources]" value="0" {if !$all_sources}checked{/if}>
+                                <span></span>
+                            </span>
                             <span class="s-text">[`Selected only`]</span>
                         </label>
 
-                        <ul class="s-checkbox-list menu-v" style="margin-left: 18px; {if $all_sources}display: none;{/if}">
-                            <li class="s-checkbox-wrapper">
+                        <ul class="s-checkbox-list menu custom-ml-16" style="{if $all_sources}display: none;{/if}">
+                            <li class="s-checkbox-wrapper custom-mt-4">
                                 <label>
-                                    <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources_all]">
+                                    <span class="wa-checkbox">
+                                        <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources_all]">
+                                        <span>
+                                            <span class="icon">
+                                                <i class="fas fa-check"></i>
+                                            </span>
+                                        </span>
+                                    </span>
                                     <span class="s-text bold">[`Select all`]</span>
                                 </label>
                             </li>
-                            <li class="s-checkbox-wrapper">
+
+                            <li class="s-checkbox-wrapper custom-mt-4">
                                 <label>
-                                    <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="backend"
-                                           {if $backend_source}checked{/if}
-                                    >
+                                    <span class="wa-checkbox">
+                                        <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="backend" {if $backend_source}checked{/if}>
+                                        <span>
+                                            <span class="icon">
+                                                <i class="fas fa-check"></i>
+                                            </span>
+                                        </span>
+                                    </span>
                                     <span class="s-text">[`Backend orders`]</span>
                                 </label>
                             </li>
+
                             {foreach $routes as $domain => $domain_routes}
                                 {foreach $domain_routes as $route}
                                     {$url = $domain|cat:"/":$route.url}
-                                    <li class="s-checkbox-wrapper">
+                                    <li class="s-checkbox-wrapper custom-mt-4">
                                         <label>
-                                            <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="{$url}"
-                                                   {if $url|in_array:$sources !== false}checked{/if}
-                                            >
+                                            <span class="wa-checkbox">
+                                                <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="{$url}" {if $url|in_array:$sources !== false}checked{/if}>
+                                                <span>
+                                                    <span class="icon">
+                                                        <i class="fas fa-check"></i>
+                                                    </span>
+                                                </span>
+                                            </span>
                                             <span class="s-text" style="line-break: anywhere;">{$url}</span>
                                         </label>
                                         {if isset($active_domains.$domain) && !empty($active_domains.$domain)}
@@ -168,9 +214,14 @@
                                                     {$mirror_url = $mirror|cat:"/":$route.url}
                                                     <li class="s-checkbox-wrapper s-sublist-item">
                                                         <label>
-                                                            <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="{$mirror_url}"
-                                                                   {if $mirror_url|in_array:$sources !== false}checked{/if}
-                                                            >
+                                                            <span class="wa-checkbox">
+                                                                <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="{$mirror_url}" {if $mirror_url|in_array:$sources !== false}checked{/if}>
+                                                                <span>
+                                                                    <span class="icon">
+                                                                        <i class="fas fa-check"></i>
+                                                                    </span>
+                                                                </span>
+                                                            </span>
                                                             <span class="s-text" style="line-break: anywhere;">{$mirror_url}</span>
                                                         </label>
                                                     </li>
@@ -183,21 +234,19 @@
                         </ul>
                     </li>
                 </ul>
-                <p class="hint">[`Notification will be sent only for orders placed via the selected source.`]</p>
+
+                <div class="hint custom-mt-4">[`Notification will be sent only for orders placed via the selected source.`]</div>
             </div>
         </div>
     </div>
 
-    <div class="field-group">
+    <div class="fields-group">
         {include file="templates/actions/settings/SettingsNotifications.`$n.transport`.html" inline}
     </div>
 
     {include file="templates/actions/settings/SettingsNotificationsHelp.html" inline}
-
 </div>
 </form>
-
-<div class="clear-left"></div>
 
 {foreach $backend_notification_edit as $plugin_id => $_}
 <div class="hidden notification-plugin-wrapper edit {$plugin_id}">{$_}</div>

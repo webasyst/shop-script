@@ -10,7 +10,13 @@ class shopSettingsCheckoutAbstractAction extends waViewAction
         $view->assign(array(
             'storefronts' => $this->storefronts,
         ));
-        $sidebar_template = wa()->getAppPath('templates/actions/settings/SettingsCheckoutSidebar.html', 'shop');
+
+        if (wa()->whichUI() == '1.3') {
+            $sidebar_template = wa()->getAppPath('templates/actions-legacy/settings/SettingsCheckoutSidebar.html', 'shop');
+        } else {
+            $sidebar_template = wa()->getAppPath('templates/actions/settings/SettingsCheckoutSidebar.html', 'shop');
+        }
+
         $checkout_sidebar = $view->fetch($sidebar_template);
 
         $this->view->assign('checkout_sidebar', $checkout_sidebar);

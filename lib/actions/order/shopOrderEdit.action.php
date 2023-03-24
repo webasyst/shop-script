@@ -184,7 +184,8 @@ class shopOrderEditAction extends waViewAction
             'contact'                      => $this->order->contact,
             "formatted_units"              => $formatted_units,
             "fractional_config"            => $fractional_config,
-            'payment_methods'              => array_values($payment_methods)
+            'payment_methods'              => array_values($payment_methods),
+            'noproduct_item_name'          => wa('shop')->getConfig()->getOrderNoproductItemName(),
         ));
     }
 

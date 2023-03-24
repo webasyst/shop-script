@@ -259,14 +259,18 @@ class shopProduct implements ArrayAccess
 
     /**
      * Important: this method also filter array of product's categories
+     * @param string $domain
      * @param array $route
-     * @return array Primary category data if it available at $route
+     * @return array Primary category data if it available at given route
      */
-    public function getCanonicalCategory($route = null)
+    public function getCanonicalCategory($domain = null, $route = null)
     {
         $category = null;
 
         if ($this->categories) {
+            if ($route !== null) {
+                $route['full_url'] = ifset($domain, wa()->getRouting()->getDomain(null, true)).'/'.ifset($route, 'url', '');
+            }
             $categories = $this->getCategoriesByRoute($route);
             $this->categories = $categories;
 
@@ -631,6 +635,14 @@ class shopProduct implements ArrayAccess
             $id_changed = !empty($this->is_dirty['id']);
             foreach ($this->is_dirty as $field => $v) {
                 if ($this->model->fieldExists($field)) {
+                    if ($field == 'category_id') {
+                        if (!empty($this->is_dirty['categories'])) {
+                            $this->data['categories'] = array_keys([$this->data[$field] => 1] + array_flip($this->data['categories']));
+                        } else {
+                            $this['categories'] = array_keys([$this->data[$field] => 1] + $this['categories']);
+                        }
+                    }
+
                     $product[$field] = $this->data[$field];
                     if ($id && ($field == 'video_url')) {
                         waFiles::delete(shopVideo::getPath($id));
@@ -676,6 +688,13 @@ class shopProduct implements ArrayAccess
                     if (!isset($product[$product_field]) && !empty($this->type[$product_field])) {
                         $product[$product_field] = $this->type[$product_field];
                     }
+                }
+                if (isset($this->data['skus']) && is_array($this->data['skus'])) {
+                    $skus = [];
+                    foreach (array_values($this->data['skus']) as $i => $s) {
+                        $skus[-$i-1] = $s;
+                    }
+                    $this->data['skus'] = $skus;
                 }
 
                 if ($id = $this->model->insert($product)) {
@@ -1024,6 +1043,8 @@ class shopProduct implements ArrayAccess
     }
 
     /**
+     * https://www.php.net/manual/ru/migration81.incompatible.php#migration81.incompatible.core.type-compatibility-internal
+     *
      * Whether a offset exists
      * @link http://php.net/manual/en/arrayaccess.offsetexists.php
      * @param mixed $offset an offset to check for.
@@ -1031,6 +1052,7 @@ class shopProduct implements ArrayAccess
      * The return value will be casted to boolean if non-boolean was returned.
      * @throws waException
      */
+    #[ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         if (isset($this->data[$offset]) || $this->model->fieldExists($offset) || $this->getStorage($offset)) {
@@ -1048,6 +1070,7 @@ class shopProduct implements ArrayAccess
      * @return mixed Can return all value types.
      * @throws waException
      */
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->__get($offset);
@@ -1060,6 +1083,7 @@ class shopProduct implements ArrayAccess
      * @param mixed $value The value to set.
      * @return void
      */
+    #[ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         $this->__set($offset, $value);
@@ -1071,6 +1095,7 @@ class shopProduct implements ArrayAccess
      * @param mixed $offset The offset to unset.
      * @return void
      */
+    #[ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         $this->__set($offset, null);
@@ -1141,6 +1166,7 @@ class shopProduct implements ArrayAccess
         } else {
             // upselling on (manually)
             $collection = new shopProductsCollection('related/upselling/'.$this->getId());
+            $collection->orderBy('pr.sort');
         }
 
         if ($available_only) {
@@ -1226,6 +1252,7 @@ class shopProduct implements ArrayAccess
             }
         } elseif ($cross_selling) {
             $collection = new shopProductsCollection('related/cross_selling/'.$this->getId());
+            $collection->orderBy('pr.sort');
         }
 
         if ($collection instanceof shopProductsCollection && $exclude) {
@@ -1566,6 +1593,8 @@ class shopProduct implements ArrayAccess
             $duplicate->{$key} = $storage_data;
         }
 
+        $data['status'] = -1;
+
         $counter = 0;
         $data['url'] = shopHelper::genUniqueUrl($this->url, $this->model, $counter);
 
@@ -1576,15 +1605,6 @@ class shopProduct implements ArrayAccess
         if (!$duplicate->save($data, true, $errors)) {
             return false;
         }
-
-        // clone features selectable
-        $features_selectable_model = new shopProductFeaturesSelectableModel();
-        $features_selectable = $features_selectable_model->getByField(['product_id' => $this->getId()], true);
-        foreach ($features_selectable as &$item) {
-            $item['product_id'] = $duplicate->getId();
-        }
-        unset($item);
-        $features_selectable_model->multipleInsert($features_selectable);
 
         $product_id = $duplicate->getId();
 
@@ -1697,15 +1717,13 @@ class shopProduct implements ArrayAccess
         if ($skus_features_data) {
             $product_features_model->multipleInsert($skus_features_data);
         }
-        if ($this->sku_type == shopProductModel::SKU_TYPE_SELECTABLE) {
-            $product_features_selectable_model = new shopProductFeaturesSelectableModel();
-            if ($features_selectable = $product_features_selectable_model->getByField('product_id', $this->id, true)) {
-                foreach ($features_selectable as &$feature_selectable) {
-                    $feature_selectable['product_id'] = $product_id;
-                }
-                unset($feature_selectable);
-                $product_features_selectable_model->multipleInsert($features_selectable);
+        $product_features_selectable_model = new shopProductFeaturesSelectableModel();
+        if ($features_selectable = $product_features_selectable_model->getByField('product_id', $this->id, true)) {
+            foreach ($features_selectable as &$feature_selectable) {
+                $feature_selectable['product_id'] = $product_id;
             }
+            unset($feature_selectable);
+            $product_features_selectable_model->multipleInsert($features_selectable);
         }
 
         $product_services_model = new shopProductServicesModel();
@@ -1714,8 +1732,8 @@ class shopProduct implements ArrayAccess
                 unset($service['id']);
                 $service['product_id'] = $product_id;
                 $service['sku_id'] = ifset($sku_map[$service['sku_id']]);
-                unset($service);
             }
+            unset($service);
             $product_services_model->multipleInsert($services);
         }
 
@@ -1741,7 +1759,7 @@ class shopProduct implements ArrayAccess
 
     public static function getDefaultMetaTitle($product)
     {
-        return strip_tags($product['name']);
+        return strip_tags(ifset($product, 'name', ''));
     }
 
     public static function getDefaultMetaKeywords($product)
@@ -1774,6 +1792,6 @@ class shopProduct implements ArrayAccess
 
     public static function getDefaultMetaDescription($product)
     {
-        return strip_tags($product['summary']);
+        return strip_tags(ifset($product, 'summary', ''));
     }
 }

@@ -310,7 +310,7 @@
                         ul = $('ul:first', reviews_block).show();
                     }
                     if (!ul.length) {
-                        ul = $('<ul class="menu-v with-icon"></ul>');
+                        ul = $('<ul class="menu"></ul>');
                         parent_li.append(ul);
                     }
                     ul.append($('<li data-id="'+r.data.id+'" data-parent-id="'+r.data.parent_id+'"></li>').append(html));

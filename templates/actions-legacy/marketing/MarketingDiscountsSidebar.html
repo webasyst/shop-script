@@ -1,0 +1,43 @@
+<div class="s-settings-order-states s-inner-sidebar js-discounts-sidebar">
+    {strip}
+    <ul id="discount-types" class="menu-v stack with-icons">
+        {foreach $types as $_type}
+            <li{if !empty($current_type_id && $_type.id == $current_type_id)} class="selected"{/if}>
+                <a href="{if !$_type.is_custom}{$_type.url|escape}{else}{$marketing_url}discounts/{$_type.id|escape}/{/if}" rel="{$_type.id|escape}"{if $_type.is_custom} data-custom-url="{$_type.url|escape}"{/if}>
+                    <i class="icon16 {if $_type.status}status-blue-tiny{else}status-gray-tiny{/if}"></i>{$_type.name}
+                </a>
+            </li>
+        {/foreach}
+    </ul>
+    {/strip}
+
+    <div class="hr"></div>
+    <div class="block small">
+        <p>[`How total discount should be calculated if multiple rules are applicable for an order:`]</p>
+        <p>
+            <label><input type="radio" name="combiner" value="max"{if $combiner != 'sum'} checked{/if}> [`maximum of order-related discounts calculated after applying of order items’ individual maximum discounts`]</label>
+            <br><br>
+            <label><input type="radio" name="combiner" value="sum"{if $combiner == 'sum'} checked{/if}> [`all discounts for entire order and for order items`]</label>
+        </p>
+        <input type="button" id="combiner-save-button" value="[`Save`]" style="display:none">
+    </div>
+
+    <div class="hr"></div>
+    <div class="block small">
+        <p>[`How to save discount calculation description:`]</p>
+        <p>
+            <label><input type="radio" name="discount_description" value="1" {if $discount_description}checked{/if}> [`for each product`]</label>
+            <br><br>
+            <label><input type="radio" name="discount_description" value="0" {if !$discount_description}checked{/if}> [`for entire order`]</label>
+        </p>
+        <p class="gray">[`Depending on your store setup, different levels of discount description detail may be useful.`]</p>
+        <input type="button" id="discount-desc-save-button" value="[`Save`]" style="display:none">
+    </div>
+
+    <div class="hr"></div>
+    <div class="block small">
+        <p class="gray">
+            {sprintf_wp("Rounding of fractional discount values can be set up in %scurrency settings%s.", "<a href=\"`$wa_app_url`?action=settings#/currencies/\">", '</a>')}
+        </p>
+    </div>
+</div>

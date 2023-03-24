@@ -1,6 +1,7 @@
-<div class="content">
-    <div class="block double-padded ">
+{include "./sales_sidebar.html" inline}
 
+<div class="content">
+    <div>
         <div class="graph-wrapper">
             <div class="cohort-wrapper"></div>
             <div class="hint-wrapper"></div>
@@ -17,41 +18,45 @@
                 'months' => "[`month`]",
                 'quarters' => "[`quarters`]"
             ]}
-            <select id="s-cohorts-group-by-selector">
-                {foreach $group_by_options as $value => $name}
-                    <option value="{$value|escape}"{if $group_by == $value} selected{/if}>{$name|escape}</option>
-                {/foreach}
-            </select>
+            <div class="wa-select">
+                <select id="s-cohorts-group-by-selector">
+                    {foreach $group_by_options as $value => $name}
+                        <option value="{$value|escape}"{if $group_by == $value} selected{/if}>{$name|escape}</option>
+                    {/foreach}
+                </select>
+            </div>
         </div>
 
-        <ul class="menu-h" id="s-cohorts-type-selector">
-            <li>
+        <div class="flexbox middle full-width">
+            <div class="wa-select">
                 <select id="s-cohorts-source-selector">
                     <option value="">[`All sources`]</option>
                     {foreach $sources as $s}
                         <option value="{$s.name|escape}"{if ifset($request_options.source) == $s.name} selected{/if}>{$s.name|escape}</option>
                     {/foreach}
                 </select>
-            </li>
-
-            {$cohort_types = [
-                'sales' => "[`Sales`]",
-                'profit' => "[`Profit`]",
-                'order_count' => "[`Number of orders`]",
-                'clv' => "[`LTV`]",
-                'roi' => "[`ROI`]"
-            ]}
-            {foreach $cohort_types as $type_id => $type_name}
-                <li{if ifset($request_options.type) == $type_id} class="selected"{/if} data-type="{$type_id|escape}"><a href="javascript:void(0)" class="inline-link"><b><i>{$type_name|escape}</i></b></a></li>
-            {/foreach}
-            <li class="float-right">
-                <select id="change-cohort-type">
+            </div>
+            <ul class="chips" id="s-cohorts-type-selector">
+                {$cohort_types = [
+                    'sales' => "[`Sales`]",
+                    'profit' => "[`Profit`]",
+                    'order_count' => "[`Number of orders`]",
+                    'clv' => "[`LTV`]",
+                    'roi' => "[`ROI`]"
+                ]}
+                {foreach $cohort_types as $type_id => $type_name}
+                    <li{if ifset($request_options.type) == $type_id} class="selected"{/if} data-type="{$type_id|escape}">
+                        <a href="javascript:void(0)">{$type_name|escape}</a>
+                    </li>
+                {/foreach}
+            </ul>
+            <div class="wa-select custom-ml-auto">
+                <select id="change-cohort-type" class="not-styled">
                     <option value="center">[`Stream graph`]</option>
                     <option value="bottom">[`Stacked graph`]</option>
                 </select>
-            </li>
-        </ul>
-        <div class="clear-both"></div>
+            </div>
+        </div>
 
         {if $table_data}
 
@@ -92,7 +97,7 @@
 
                                     {if !empty($request_options.type) && $request_options.type == "roi" && (round($stats.metric) <= 100)}
                                         {$_image_url = "{$wa_url}wa-apps/shop/img/patterns/white-pattern.png"}
-                                        {$_bg_style = "background: url('{$_image_url}'), {$_bg_style};"}
+                                        {$_bg_style = "background: repeating-linear-gradient(-45deg, var(--background-color-blank), var(--background-color-blank) 12px, var(--border-color-input-outlined) 12px, var(--border-color-input-outlined) 15px);"}
                                     {else}
                                         {$_bg_style = "background: {$_bg_style};"}
                                     {/if}
@@ -123,22 +128,7 @@
                 </tbody>
             </table>
         {/if}
-
-        <div class="clear-both"></div>
     </div>
-</div>
-
-<div class="hidden">
-    <ul class="menu-h">
-        <li>
-            <select id="s-cohorts-report-storefront-selector" class="storefront-selector">
-                <option value="">[`All channels`]</option>
-                {foreach $sales_channels as $id => $name}
-                    <option value="{$id|escape}"{if ifset($request_options.sales_channel) == $id} selected{/if}>{$name|escape}</option>
-                {/foreach}
-            </select>
-        </li>
-    </ul>
 </div>
 
 <script>(function() { "use strict";
@@ -155,11 +145,11 @@
         var $storefront_selector = $('#s-cohorts-report-storefront-selector').removeAttr('id');
 
         // Move selector into the top menu wrapper
-        $('#s-reports-custom-controls').empty().append($storefront_selector.closest('ul'));
+        $('#s-reports-custom-controls').empty().append($storefront_selector.closest('.wa-select'));
 
         // Reload page when user changes something in the selector
         $storefront_selector.change(function() {
-            $storefront_selector.after('<i class="icon16 loading"></i>');
+            $storefront_selector.after('<i class="fas fa-spinner fa-spin"></i>');
             $.post(action_url, $.extend({ }, request_params, { sales_channel: $storefront_selector.val() }), function(r) {
                 $('#reportscontent').html(r);
             });

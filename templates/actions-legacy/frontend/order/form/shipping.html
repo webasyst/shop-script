@@ -1,0 +1,420 @@
+{strip}
+
+{$_errors = []}
+{if !empty($error_step_id) && $error_step_id === "shipping"}{$_errors = $errors}{/if}
+{$_error_text = null}
+
+{$_is_fast_render = false}
+{if !empty($_errors)}
+    {foreach $_errors as $_error}
+        {if !empty($_error["fast_render"])}
+            {$_is_fast_render = true}
+            {break}
+        {/if}
+    {/foreach}
+{/if}
+
+{$_types_sort = ["todoor", "pickup", "post"]}
+
+{$_is_default_mode = false}
+{$_is_minimal_mode = true}
+{if $config.order.show_pickuppoint_map === shopCheckoutConfig::PICKUPPOINT_MAP_TYPE_ALWAYS}
+    {$_is_default_mode = true}
+    {$_is_minimal_mode = false}
+{elseif $config.order.show_pickuppoint_map === shopCheckoutConfig::PICKUPPOINT_MAP_TYPE_EXCEPT_GADGETS}
+    {$_is_default_mode = true}
+    {$_is_minimal_mode = false}
+{/if}
+
+{$_map_display = "none"}
+{if !empty($_is_default_mode) && !empty($shipping.selected_type_id) && $shipping.selected_type_id == "pickup"}
+    {if $config.order.show_pickuppoint_map === shopCheckoutConfig::PICKUPPOINT_MAP_TYPE_ALWAYS}
+        {$_map_display = "always"}
+    {elseif $config.order.show_pickuppoint_map === shopCheckoutConfig::PICKUPPOINT_MAP_TYPE_EXCEPT_GADGETS}
+        {$_map_display = "desktop"}
+    {/if}
+{/if}
+
+{$_variant_first = null}
+{$_variants_count = 0}
+
+{$_hide_shipping = !empty($shipping.disabled) || (empty($shipping.types) && empty($_errors))}
+
+<section class="wa-step-section wa-step-shipping-section" id="wa-step-shipping-section" style="{if !empty($_hide_shipping)}display: none;{/if}">
+    {* BODY *}
+    <div class="wa-section-body">
+
+    <form>
+        {if !empty($shipping.possible_addresses)}
+            {* VARIANTS *}
+            <div class="wa-possible-addresses-section" id="js-possible-addresses-section">
+                <div class="wa-header">
+                    <span class="wa-tooltip is-inline top" data-title="[`Required field`]">
+                        [`Please specify the address`]<span class="wa-required"></span>
+                    </span>
+                </div>
+
+                <div class="wa-dropdown full-line js-possible-address-select">
+                    <div class="wa-dropdown-toggle">
+                        {if isset($shipping.selected_possible_address)}
+                            {$shipping.selected_possible_address.city}
+                        {else}
+                            [`Please specify the address`]
+                        {/if}
+                    </div>
+                    <div class="wa-dropdown-area">
+                        {foreach $shipping.possible_addresses as $_possible_address}
+                            <div class="wa-dropdown-item{if isset($shipping.selected_possible_address.name)
+                                && $_possible_address.name == $shipping.selected_possible_address.name
+                                && $_possible_address.plugin_id == $shipping.selected_possible_address.plugin_id} is-selected{/if}"
+                                data-index="{$_possible_address@index}">
+                                <div class="wa-address-variant">
+                                    <div class="wa-name">
+                                        {if !empty($_possible_address.image)}
+                                            <span class="wa-image" style="background-image: url('{$_possible_address.image|escape}');"></span>
+                                        {/if}
+                                        {$_possible_address.name|escape}
+                                    </div>
+                                </div>
+                            </div>
+                        {/foreach}
+                    </div>
+                </div>
+                <input type="hidden" name="region[possible_address][name]" class="js-possible-address-name" {if isset($shipping.selected_possible_address.name)}value="{$shipping.selected_possible_address.name}"{/if}>
+                <input type="hidden" name="region[possible_address][region]" class="js-possible-address-region" {if isset($shipping.selected_possible_address.region)}value="{$shipping.selected_possible_address.region}"{/if}>
+                <input type="hidden" name="region[possible_address][city]" class="js-possible-address-city" {if isset($shipping.selected_possible_address.city)}value="{$shipping.selected_possible_address.city}"{/if}>
+                <input type="hidden" name="region[possible_address][zip]" class="js-possible-address-zip" {if isset($shipping.selected_possible_address.zip)}value="{$shipping.selected_possible_address.zip}"{/if}>
+                <input type="hidden" name="region[possible_address][plugin_id]" class="js-possible-address-plugin-id" {if isset($shipping.selected_possible_address.plugin_id)}value="{$shipping.selected_possible_address.plugin_id}"{/if}>
+            </div>
+        {/if}
+
+        {if empty($shipping.disabled)}
+            {if !empty($shipping.types)}
+
+                {if !empty($_is_default_mode)}
+                    {$_active_type = null}
+
+                    {* TYPES *}
+                    <div class="wa-delivery-types-section" id="js-delivery-types-section">
+                        <div class="wa-header">[`Shipping types`]</div>
+
+                        <div class="wa-types-list">
+                            {foreach $_types_sort as $_type_id}
+                                {if empty($shipping.types[$_type_id])}
+                                    {continue}
+                                {/if}
+
+                                {$_type = $shipping.types[$_type_id]}
+
+                                {$_is_active = false}
+                                {if !empty($_type.is_selected)}
+                                    {$_is_active = true}
+                                    {$_active_type = $_type}
+                                {/if}
+
+                                {$_date = null}
+                                {if !empty($_type.date_formatted)}
+                                    {$_date = $_type.date_formatted}
+                                {/if}
+
+                                {$_price = null}
+                                {if isset($_type.rate_min) && $_type.rate_min !== null}
+                                    {if $_type.rate_min > 0}
+                                        {$_price = shop_currency($_type.rate_min, ['in_currency' => $_type.currency, 'format' => 'h'])}
+                                        {if !(isset($_type.rate_max) && $_type.rate_min === $_type.rate_max)}
+                                            {$_price = "[`from`] `$_price`"}
+                                        {/if}
+                                    {elseif $_type.rate_min !== $_type.rate_max}
+                                        {$_price = shop_currency($_type.rate_min, ['in_currency' => $_type.currency, 'format' => 'h'])}
+                                        {$_price = "[`from`] `$_price`"}
+                                    {else}
+                                        {$_price = _w("Free")}
+                                    {/if}
+                                {/if}
+
+                                {if !empty($_type.variants)}
+                                    <div class="wa-type-wrapper {if !empty($_is_active)}is-active{/if} {if empty($_type.variants)}is-empty is-disabled{/if}" data-id="{$_type.id|escape}">
+                                        <div class="wa-name">
+                                            <a href="javascript:void(0);">{$_type.name|escape}</a>
+                                        </div>
+
+                                        {if !empty($_price)}
+                                            <div class="wa-price">{$_price}</div>
+                                        {/if}
+
+                                        {if !empty($_date)}
+                                            <div class="wa-date">{$_date}</div>
+                                        {/if}
+                                    </div>
+                                {/if}
+                            {/foreach}
+                        </div>
+
+                        <input class="js-type-field" name="shipping[type_id]" type="hidden" value="{$shipping.selected_type_id|default:""|escape}">
+                    </div>
+
+                    {if !empty($_active_type)}
+                        {$_active_variant = null}
+                        {if !empty($shipping.selected_type_id) && !empty($_active_type.variants[$shipping.selected_variant_id])}
+                            {$_active_variant = $_active_type.variants[$shipping.selected_variant_id]}
+                        {/if}
+
+                        {* VARIANTS *}
+                        <div class="wa-delivery-variants-section" id="js-delivery-variants-section">
+                            <div class="wa-header">[`Shipping options`]</div>
+
+                            <div class="wa-dropdown full-line js-variants-select">
+                                <div class="wa-dropdown-toggle">
+                                    {if !empty($_active_variant)}
+                                        {$_active_variant.name|escape}
+                                    {else}
+                                        [`Select a shipping option`]
+                                    {/if}
+                                </div>
+                                <div class="wa-dropdown-area">
+                                    {foreach $_active_type.variants as $_variant}
+                                        {if $_variant@first}
+                                            {$_variant_first = ["id" => $_variant.variant_id, "name" => $_variant.name]}
+                                        {/if}
+
+                                        {$_date = null}
+                                        {if !empty($_variant.date_locale)}
+                                            {$_date = $_variant.date_locale}
+                                        {else}
+                                            {if !empty($_variant.date_min)}
+                                                {$_date = $_variant.date_min|wa_datetime:'shortdate'}
+                                                {$_date = "[`from`] `$_date`"}
+                                            {elseif !empty($_variant.date_max)}
+                                                {$_date = $_variant.date_max|wa_datetime:'shortdate'}
+                                                {$_date = "[`to`] `$_date`"}
+                                            {/if}
+                                        {/if}
+
+                                        {$_price = null}
+                                        {if isset($_variant.rate_min) && $_variant.rate_min !== null}
+                                            {if $_variant.rate_min > 0}
+                                                {$_price = shop_currency($_variant.rate_min, ['in_currency' => $_variant.currency, 'format' => 'h'])}
+                                                {if !(isset($_variant.rate_max) && $_variant.rate_min === $_variant.rate_max)}
+                                                    {$_price = "[`from`] `$_price`"}
+                                                {/if}
+                                            {else}
+                                                {$_price = _w("Free")}
+                                            {/if}
+                                        {/if}
+
+                                        {if !empty($_variant.variant_id)}
+
+                                            {if $_map_display !== "always" && $_map_display !== "desktop" && !($_active_type.id === "pickup" && count($_active_type.variants) > 5)}
+                                                <div class="wa-dropdown-item js-set-dropdown-item" data-id="{$_variant.variant_id|escape}">
+                                                    <div class="wa-delivery-variant">
+                                                        <div class="wa-name" data-name="{$_variant.name|escape}">{$_variant.name|escape}</div>
+
+                                                        {if !empty($_price)}
+                                                            <span class="wa-price">{$_price}</span>
+                                                        {/if}
+
+                                                        {if !empty($_date)}
+                                                            <span class="wa-date">{$_date}</span>
+                                                        {/if}
+
+                                                        {if !empty($_variant.service)}
+                                                            <span class="wa-service">{$_variant.service|escape}</span>
+                                                        {/if}
+                                                    </div>
+                                                </div>
+                                            {/if}
+
+                                            {$_variants_count = $_variants_count + 1}
+                                        {/if}
+                                    {/foreach}
+                                </div>
+                            </div>
+
+                            <input class="js-variant-field" name="shipping[variant_id]" type="hidden" value="{$shipping.selected_variant_id|default:""|escape}">
+                        </div>
+                    {else}
+                        {if !empty($_active_variant)}
+                            {$_error_text = "[`There are no shipping options available for specified location.`]<br>[`Please check values in location fields or contact us.`]"}
+                        {/if}
+                    {/if}
+
+                {elseif !empty($_is_minimal_mode)}
+
+                    {$_active_type = null}
+                    {$_active_variant = null}
+                    {$_variants = []}
+                    {foreach $_types_sort as $_type_id}
+                        {if empty($shipping.types[$_type_id])}{continue}{/if}
+
+                        {$_type = $shipping.types[$_type_id]}
+                        {$_is_active_type = !empty($_type.is_selected)}
+                        {if !empty($_is_active_type)}{$_active_type = $_type}{/if}
+
+                        {foreach $_type.variants as $_variant}
+                            {if !empty($_is_active_type) && !empty($shipping.selected_variant_id) && $shipping.selected_variant_id === $_variant.variant_id}
+                                {$_active_variant = $_variant}
+                            {/if}
+                            {$_variants[] = $_variant}
+                        {/foreach}
+                    {/foreach}
+
+                    {* VARIANTS *}
+                    <div class="wa-delivery-variants-section" id="js-delivery-short-variants-section">
+                        <div class="wa-header">[`Shipping options`]</div>
+
+                        <div class="wa-dropdown full-line js-variants-select">
+                            <div class="wa-dropdown-toggle">
+                                {if !empty($_active_variant)}
+                                    {$_active_variant.name|escape}
+                                {else}
+                                    [`Select a shipping option`]
+                                {/if}
+                            </div>
+                            <div class="wa-dropdown-area">
+                                {foreach $_variants as $_variant}
+                                    {if $_variant@first}
+                                        {$_variant_first = ["id" => $_variant.variant_id, "name" => $_variant.name]}
+                                    {/if}
+
+                                    {$_date = null}
+                                    {if !empty($_variant.date_locale)}
+                                        {$_date = $_variant.date_locale}
+                                    {else}
+                                        {if !empty($_variant.date_min)}
+                                            {$_date = $_variant.date_min|wa_datetime:'shortdate'}
+                                            {$_date = "[`from`] `$_date`"}
+                                        {elseif !empty($_variant.date_max)}
+                                            {$_date = $_variant.date_max|wa_datetime:'shortdate'}
+                                            {$_date = "[`to`] `$_date`"}
+                                        {/if}
+                                    {/if}
+
+                                    {$_price = null}
+                                    {if isset($_variant.rate_min) && $_variant.rate_min !== null}
+                                        {if $_variant.rate_min > 0}
+                                            {$_price = shop_currency($_variant.rate_min, ['in_currency' => $_variant.currency, 'format' => 'h'])}
+                                            {if !(isset($_variant.rate_max) && $_variant.rate_min === $_variant.rate_max)}
+                                                {$_price = "[`from`] `$_price`"}
+                                            {/if}
+                                        {else}
+                                            {$_price = _w("Free")}
+                                        {/if}
+                                    {/if}
+
+                                    {if !empty($_variant.variant_id)}
+                                        <div class="wa-dropdown-item js-set-dropdown-item" data-variant-id="{$_variant.variant_id|escape}" data-type-id="{$_variant.type|escape}">
+                                            <div class="wa-delivery-variant">
+                                                <div class="wa-name" data-name="{$_variant.name|escape}">{$_variant.name|escape}</div>
+
+                                                {if !empty($_price)}
+                                                    <span class="wa-price">{$_price}</span>
+                                                {/if}
+
+                                                {if !empty($_date)}
+                                                    <span class="wa-date">{$_date}</span>
+                                                {/if}
+
+                                                {if !empty($_variant.service)}
+                                                    <span class="wa-service">{$_variant.service|escape}</span>
+                                                {/if}
+                                            </div>
+                                        </div>
+
+                                        {$_variants_count = $_variants_count + 1}
+                                    {/if}
+                                {/foreach}
+                            </div>
+                        </div>
+
+                        <input class="js-type-field" name="shipping[type_id]" type="hidden" value="{$shipping.selected_type_id|default:""|escape}">
+                        <input class="js-variant-field" name="shipping[variant_id]" type="hidden" value="{$shipping.selected_variant_id|default:""|escape}">
+                    </div>
+                {/if}
+
+            {elseif empty($_is_fast_render)}
+                {$_error_text = "[`There are no shipping options available for specified location.`]<br>[`Please check values in location fields or contact us.`]"}
+            {/if}
+
+            {if !empty($_error_text)}
+                <div class="wa-errors-wrapper">
+                    <div class="wa-error-text">{$_error_text}</div>
+                </div>
+            {/if}
+
+            {* @event checkout_render_shipping *}
+            {foreach $event_hook.shipping as $_}
+                <div class="wa-plugin-hook">{$_}</div>
+            {/foreach}
+        {/if}
+    </form>
+    </div>
+
+    {$_map = [
+        "display" => $_map_display,
+        "adapter" => null,
+        "api_uri" => null
+    ]}
+
+    {if !empty($shipping.map.adapter)}
+        {$_map["adapter"] = $shipping.map.adapter}
+
+        {if $shipping.map.adapter === "yandex"}
+            {$_api_uri = "//api-maps.yandex.ru/2.1/?lang=ru_RU&load=Geolink,Map,Placemark,Clusterer,Collection,geoObject.addon.balloon,control.FullscreenControl,control.GeolocationControl,control.SearchControl,control.ZoomControl"}
+            {if !empty($shipping.map.api_key)}
+                {$_api_uri = "`$_api_uri`&apikey=`$shipping.map.api_key`"}
+            {/if}
+            {$_map["api_uri"] = $_api_uri}
+        {/if}
+
+        {if $shipping.map.adapter === "google"}
+            {$_api_uri = "//maps.googleapis.com/maps/api/js"}
+            {if !empty($shipping.map.api_key)}
+                {$_api_uri = "`$_api_uri`?key=`$shipping.map.api_key`"}
+            {/if}
+            {$_map["api_uri"] = $_api_uri}
+        {/if}
+    {/if}
+
+    <script>
+        ( function($) {
+            var $section = $("#wa-step-shipping-section"),
+                $wrapper = $("#wa-order-form-wrapper");
+
+            var ready_promise = $wrapper.data("ready").promise();
+            ready_promise.then(function (controller) {
+                var errors = {$_errors|json_encode};
+                var error  = (Array.isArray(errors) ? errors.shift() : []);
+
+                controller.initShipping({
+                    $wrapper: $section,
+                    map: {$_map|json_encode},
+                    variant_first: {$_variant_first|json_encode},
+                    variants_count: {$_variants_count|escape},
+                    disabled: {if !empty($shipping.disabled)}true{else}false{/if},
+                    errors: {$_errors|json_encode},
+                    possible_addresses: {$shipping.possible_addresses|default:[]|json_encode},
+                    urls: {
+                        variants_dialog: {$wa->getUrl('shop/frontendOrder/shippingDialog')|json_encode}
+                    },
+                    locales: {
+                        type_required: {_w("Select a shipping type.")|json_encode},
+                        variant_required: {_w("Select a shipping option.")|json_encode}
+                    }
+                });
+
+                {if !empty($_is_fast_render)}
+                    $wrapper.one("confirm_initialized", function() {
+                        controller.update({
+                            data: [{
+                                name: "use_session_input",
+                                value: "1"
+                            }]
+                        });
+                    });
+                {/if}
+            });
+        })(jQuery);
+    </script>
+</section>
+
+{/strip}

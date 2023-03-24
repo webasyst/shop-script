@@ -43,7 +43,7 @@ class shopProdListAction extends waViewAction
 
         $limit  = waRequest::request( "limit", $active_presentation["rows_on_page"], waRequest::TYPE_INT );
         $page   = waRequest::request( "page", 1, waRequest::TYPE_INT );
-        $offset = waRequest::request( "offset", ( ($page - 1) * $limit ), waRequest::TYPE_INT );
+        $offset = waRequest::request( "offset", null, waRequest::TYPE_INT );
 
         // Обновляем лимит у представления если он задан через параметр
         if ($limit != $active_presentation["rows_on_page"]) {
@@ -93,6 +93,10 @@ class shopProdListAction extends waViewAction
         if (!($pages >= 1)) {
             $pages = 1;
         }
+        $page = min($pages, max(1, $page));
+        if ($offset === null) {
+            $offset = ($page - 1) * $limit;
+        }
         $products = $presentation->getProducts($collection, [
             'offset' => $offset,
             'limit' => $limit,
@@ -116,8 +120,6 @@ class shopProdListAction extends waViewAction
             }
             $active_presentation["view"] = $view;
         }
-
-        shopHelper::setChapter('new_chapter');
 
         $filter['rules'] = $this->getFilterGroups($filter['rules']);
         $filter_model = new shopFilterModel();
@@ -337,7 +339,14 @@ class shopProdListAction extends waViewAction
                     }
                 }
             }
-            $rule['label'] = implode($divider, $label) . $unit_name;
+
+            $label = implode($divider, $label) . $unit_name;
+            if (in_array($rule["type"], ['price', 'purchase_price', 'compare_price'])) {
+                $rule['label'] = $label;
+            } else {
+                $rule['label'] = htmlentities($label, ENT_QUOTES, 'utf-8');
+            }
+
         }
     }
 

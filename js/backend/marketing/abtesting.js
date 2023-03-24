@@ -54,7 +54,7 @@
 
             // Add option when user clicks on a "New version" link
             $add_variant_link.on("click", function() {
-                var $field = $add_variant_link.closest('.field-group').siblings('.variant-option.template').clone().removeClass('hidden template');
+                var $field = $add_variant_link.closest('.fields-group').siblings('.variant-option.template').clone().removeClass('hidden template');
                 $field.insertBefore($add_variant_link.closest('.field')).find(':text').attr("required", "required").change();
             });
 
@@ -94,9 +94,10 @@
                 if ($get_code_button.prop('disabled')) {
                     return false;
                 }
-                $smarty_code.waDialog({
+                $.waDialog({
+                    $wrapper: $smarty_code,
                     buttons: $('<div><input type="button" class="button cancel" value="'+ that.locales["button_close_text"] +'"></div>'),
-                    onLoad: function() {
+                    onOpen: function() {
                         var editor = ace.edit('smarty-code-block');
                         editor.setTheme("ace/theme/eclipse");
                         var session = editor.getSession();

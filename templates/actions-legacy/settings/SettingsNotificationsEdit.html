@@ -1,0 +1,204 @@
+<div class="float-right">
+    <ul class="menu-h">
+        <li><a id="notification-delete" data-id="{$n.id}" href="#"><i class="icon16 delete"></i>[`Delete notification`]</a></li>
+    </ul>
+    <script type="text/javascript">
+        $("#notification-delete").click(function () {
+            var id = $(this).attr('data-id');
+            var dialog = $('#s-settings-confirm-delete');   // html-code of dialog is located on main template
+            if (dialog.parent().get(0) != document.body) {
+                $(document.body).append(dialog);
+            }
+            dialog.waDialog({
+                disableButtonsOnSubmit: true,
+                onLoad: function() {
+                    $(this).find('form').find('input[name=id]').val(id);
+                },
+                onSubmit: function(dialog) {
+                    var form = $(this);
+                    var loading_icon = dialog.find('.loading').show();
+                    $.post(form.attr('action'), form.serialize(), function (response) {
+                        if (response.status == 'ok') {
+                            $("#notification-" + id).remove();
+                            loading_icon.hide();
+                            dialog.trigger('close');
+                            $.settings.notificationsAction('');
+                        }
+                    }, "json");
+                    return false;
+                }
+            });
+            return false;
+        });
+
+        var $wrapper = $("#notification-form"),
+            $checkbox_list = $wrapper.find('.s-checkbox-list');
+
+        $wrapper.on("change", ".js-type-group-field", function() {
+            // DOM
+            var $field = $(this).closest(".s-radio-wrapper"),
+                $list = $field.find('.s-checkbox-list');
+
+            // CONST
+            var active_class = "is-active";
+
+            if ($list.length) {
+                $checkbox_list.show();
+            } else {
+                $checkbox_list.hide();
+            }
+
+            $wrapper.find('.s-radio-wrapper').each( function(i, _field) {
+                var $_field = $(_field);
+                if (_field[0] === $field[0]) {
+                    $_field.addClass(active_class);
+                } else {
+                    $_field.removeClass(active_class);
+                }
+            });
+        });
+
+        $checkbox_list.on('change', '[name*="[selected_sources]"]', function () {
+            var $selected_sources_all = $checkbox_list.find('[name*="selected_sources_all"]'),
+                $selected_sources = $checkbox_list.find('[name*="[selected_sources]"]');
+
+            if ($checkbox_list.find('[name*="[selected_sources]"]:checked').length === $selected_sources.length) {
+                $selected_sources_all.prop('checked', true);
+            } else {
+                $selected_sources_all.prop('checked', false);
+            }
+        });
+
+        $checkbox_list.on('change', '[name*="selected_sources_all"]', function () {
+            var $selected_sources = $checkbox_list.find('[name*="[selected_sources]"]');
+            if ($(this).prop('checked')) {
+                $selected_sources.prop('checked', true);
+            } else {
+                $selected_sources.prop('checked', false);
+            }
+        });
+    </script>
+</div>
+
+<h1>
+    {$n.name}
+</h1>
+
+<form id="notification-form" method="post" action="?module=settings&action=notificationsSave&id={$n.id}">
+<div class="fields form">
+
+    <!-- notification content (transport-dependent) -->
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Event`]</div>
+            <div class="value no-shift">
+                {if empty($events[$n.event])}
+                    {$n.event}
+                {else}
+                    {$events[$n.event].name}
+                {/if}
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">[`Notification name`]</div>
+            <div class="value">
+                <input id="n-name" name="data[name]" type="text" class="bold" value="{$n.name}">
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">[`Transport`]</div>
+            <div class="value no-shift">
+                <i class="icon16 {$transports[$n.transport].icon}"></i>{$transports[$n.transport].name}
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">[`Enabled`]</div>
+            <div class="value no-shift">
+                <input type="checkbox" name="data[status]" value="1" {if $n.status}checked{/if}>
+            </div>
+        </div>
+    </div>
+
+    <div class="field-group">
+        <div class="field">
+            <div class="name">[`Order source`]</div>
+            <div class="value no-shift">
+                <ul class="s-fields-list menu-v">
+                    <li class="s-radio-wrapper is-active">
+                        <label class="s-radio-label">
+                            <input class="s-radio js-type-group-field" type="radio" name="data[all_sources]" value="1" {if $all_sources}checked{/if}>
+                            <span class="s-text bold">[`All storefronts`]</span>
+                        </label>
+                    </li>
+                    <li class="s-radio-wrapper">
+                        <label class="s-radio-label">
+                            <input class="s-radio js-type-group-field" type="radio" name="data[all_sources]" value="0" {if !$all_sources}checked{/if}>
+                            <span class="s-text">[`Selected only`]</span>
+                        </label>
+
+                        <ul class="s-checkbox-list menu-v" style="margin-left: 18px; {if $all_sources}display: none;{/if}">
+                            <li class="s-checkbox-wrapper">
+                                <label>
+                                    <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources_all]">
+                                    <span class="s-text bold">[`Select all`]</span>
+                                </label>
+                            </li>
+                            <li class="s-checkbox-wrapper">
+                                <label>
+                                    <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="backend"
+                                           {if $backend_source}checked{/if}
+                                    >
+                                    <span class="s-text">[`Backend orders`]</span>
+                                </label>
+                            </li>
+                            {foreach $routes as $domain => $domain_routes}
+                                {foreach $domain_routes as $route}
+                                    {$url = $domain|cat:"/":$route.url}
+                                    <li class="s-checkbox-wrapper">
+                                        <label>
+                                            <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="{$url}"
+                                                   {if $url|in_array:$sources !== false}checked{/if}
+                                            >
+                                            <span class="s-text" style="line-break: anywhere;">{$url}</span>
+                                        </label>
+                                        {if isset($active_domains.$domain) && !empty($active_domains.$domain)}
+                                            <div class="s-sublist-title">[`Mirror sites:`]</div>
+                                            <ul class="s-sublist">
+                                                {foreach $active_domains.$domain as $mirror}
+                                                    {$mirror_url = $mirror|cat:"/":$route.url}
+                                                    <li class="s-checkbox-wrapper s-sublist-item">
+                                                        <label>
+                                                            <input class="s-checkbox js-type-field" type="checkbox" name="data[selected_sources][]" value="{$mirror_url}"
+                                                                   {if $mirror_url|in_array:$sources !== false}checked{/if}
+                                                            >
+                                                            <span class="s-text" style="line-break: anywhere;">{$mirror_url}</span>
+                                                        </label>
+                                                    </li>
+                                                {/foreach}
+                                            </ul>
+                                        {/if}
+                                    </li>
+                                {/foreach}
+                            {/foreach}
+                        </ul>
+                    </li>
+                </ul>
+                <p class="hint">[`Notification will be sent only for orders placed via the selected source.`]</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="field-group">
+        {include file="templates/actions-legacy/settings/SettingsNotifications.`$n.transport`.html" inline}
+    </div>
+
+    {include file="templates/actions-legacy/settings/SettingsNotificationsHelp.html" inline}
+
+</div>
+</form>
+
+<div class="clear-left"></div>
+
+{foreach $backend_notification_edit as $plugin_id => $_}
+<div class="hidden notification-plugin-wrapper edit {$plugin_id}">{$_}</div>
+{/foreach}

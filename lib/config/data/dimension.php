@@ -310,6 +310,28 @@ return array(
             )
         )
     ),
+    'voltage' => array(
+        'name' => _w('Напряжение'),
+        'base_unit' => 'Ah',
+        'units' => array(
+            'mV' => array(
+                'name' => _w('mV'),
+                'multiplier' => 0.001,
+            ),
+            'V' => array(
+                'name' => _w('V'),
+                'multiplier' => 1,
+            ),
+            'kV' => array(
+                'name' => _w('kV'),
+                'multiplier' => 1000,
+            ),
+            'MV' => array(
+                'name' => _w('MV'),
+                'multiplier' => 1000000,
+            )
+        )
+    ),
 
     //custom dimensions are added in a similar way
 

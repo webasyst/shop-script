@@ -406,7 +406,7 @@ class shopCategoryModel extends waNestedSetModel
     public function stripCategoryUrl($url)
     {
         $url_without_dashes = str_replace('-', '', $url);
-        $escaped_url_without_dashes = preg_quote($url_without_dashes, '!');
+        $escaped_url_without_dashes = str_replace('\\.', '.', preg_quote($url_without_dashes, '!'));
         if ($escaped_url_without_dashes != $url_without_dashes) {
             preg_match_all('~\\\\(.)~', $escaped_url_without_dashes, $matches);
             $url = str_replace($matches[1], '', $url);

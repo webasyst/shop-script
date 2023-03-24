@@ -1,0 +1,55 @@
+{strip}
+
+    {* ДАННЫЕ *}
+
+    {$_page_title = _w("Plugins")}
+
+{/strip}
+
+<div class="s-plugins-list-page blank box contentbox" id="js-plugins-list-page" style="height:calc(100vh - 7rem);visibility: hidden;">
+    {* @event backend_plugins_list.top *}
+    {if !empty($backend_plugins_list)}{foreach $backend_plugins_list as $_}{ifset($_.top)}{/foreach}{/if}
+
+    {* BODY *}
+    <div class="s-page-body">
+        {* @event backend_plugins_list.middle *}
+        {if !empty($backend_plugins_list)}{foreach $backend_plugins_list as $_}{ifset($_.middle)}{/foreach}{/if}
+
+        <div class="s-plugins-list-wrapper">
+            <div class="s-frame-wrapper " id="js-plugins-list"></div>
+            <script>( function($) {
+                    let plugins_url = sessionStorage.getItem("shop/plugins/list");
+                    plugins_url = (plugins_url ? plugins_url : {$plugins_list_url|json_encode});
+                    $("#js-plugins-list").html('<i class="fas fa-spin fa-spinner"></i>').load(plugins_url);
+                    sessionStorage.removeItem("shop/plugins/list");
+                })(jQuery);</script>
+        </div>
+    </div>
+
+    <script type="module">
+        try {
+            const { ShopPluginsListPage } = await import('{$wa_app_static_url}js/backend/plugins/plugins.js');
+            new ShopPluginsListPage({
+                $wrapper: $("#js-plugins-list-page")
+            })
+        }catch (e) {
+            alert("Page Loading Error")
+            console.error(e);
+        }
+
+        ( function($) {
+
+            const sources = [{
+                id: "wa-plugins-list-css",
+                type: "css",
+                uri: "{$wa_app_static_url}css/backend/plugins/plugins.css?v={$wa->version()}"
+            }];
+
+            $.shop.loadSources(sources);
+
+        })(jQuery);
+    </script>
+
+    {* @event backend_plugins_list.bottom *}
+    {if !empty($backend_plugins_list)}{foreach $backend_plugins_list as $_}{ifset($_.bottom)}{/foreach}{/if}
+</div>

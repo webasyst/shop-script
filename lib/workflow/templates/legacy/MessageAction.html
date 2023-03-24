@@ -1,0 +1,132 @@
+{* Note: this template is also used in CRM applications. *}
+
+<form id="wf-message-form" action="?module=workflow&action=perform" method="post">
+    <input type="hidden" name="id" value="{$order_id}">
+    <input type="hidden" name="action_id" value="{$action_id}">
+
+    <div class="fields form width100px">
+        <div class="field">
+            <div class="name">[`Send via`]</div>
+            {if !empty($contact_email)}
+            <div class="value no-shift">
+                <label>
+                    <input class="transport" type="radio" name="transport" value="email" {if $transport == 'email'}checked{/if}>
+                    <i class="icon16 email"></i>[`Email`]
+                </label>
+            </div>
+            {/if}
+            {if !empty($sms_from) && !empty($contact_phone)}
+            <div class="value no-shift">
+                <label>
+                    <input class="transport" type="radio" name="transport" value="sms" {if $transport == 'sms'}checked{/if}>
+                    <i class="icon16 mobile"></i>[`SMS`]
+                </label>
+            </div>
+            {/if}
+        </div>
+
+        <div class="field">
+            <div class="name"><label for="{if !empty($contact_email)}transport-email{elseif !empty($sms_from) && !empty($contact_phone)}transport-sms{/if}">[`Sender`]</label></div>
+            <div class="value no-shift">
+                {if !empty($contact_email)}
+                    {if $email_from}
+                        <select id="transport-email" name="sender"{if $transport != 'email'} style="display:none" disabled{/if}>
+                            {foreach $email_from as $from => $value}
+                                <option value="{$from}">{$from}</option>
+                            {/foreach}
+                        </select>
+                    {else}
+                        <div class="js-email-errors errormsg">
+                            <i class="icon16 exclamation"></i>
+                            <span>[`Primary email address is not specified in store settings.`]</span>
+                            <a href="{$wa_app_url}?action=settings" target="_blank">[`Edit settings`]</a>
+                        </div>
+                    {/if}
+                {/if}
+                {if !empty($sms_from) && !empty($contact_phone)}
+                    <select id="transport-sms" name="sender"{if $transport != 'sms'} style="display:none" disabled{/if}>
+                        {$cnt = count($sms_from)}
+                        <option value="" selected>[`Default (as configured in SMS gateway)`]</option>
+                        {if $cnt >= 1 && !($cnt == 1 && isset($sms_from["*"]))}
+                            {foreach $sms_from as $from => $value}
+                                <option value="{$from}">{$from}</option>
+                            {/foreach}
+                        {/if}
+                    </select>
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    <textarea name="text" placeholder="[`Message`]" style="width: 100%;">{$message_template|escape}</textarea>
+
+    <br><br>
+    <div class="float-right block message-edit-template">
+        <a href="?action=settings#/orderStates/{$state_id}/edit_action={$action_id}/" class="gray"><i class="icon16 settings"></i>[`Edit template`]</a>
+    </div>
+
+    {if !empty($plugins_html)}
+        {foreach $plugins_html as $plugin_id => $html}
+            <!-- {$plugin_id} -->
+            {$html}
+        {/foreach}
+    {/if}
+
+    {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
+    <footer class="js-form-footer-actions">
+        <input class="button green js-submit-button" type="submit" value="[`Send`]">
+        [`or`]
+        <a class="cancel inline-link js-cancel-button" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+    </footer>
+</form>
+
+<script>
+    ( function($) {
+        var $form = $("#wf-message-form"),
+            $error_place = $form.find('.js-email-errors'),
+            $submit_button = $form.find(':submit');
+
+        // cancel link
+        $('#wf-message-form .js-cancel-button').click(function() {
+            var el = $(this).closest('.workflow-content');
+            el.empty().hide();
+            el.prev().show();
+            return false;
+        });
+
+        $("#wf-message-form").submit(function () {
+            var f = $(this);
+            $submit_button.attr('disabled', true);
+            $.post(f.attr('action'), f.serialize(), function () {
+                $form.trigger("formSend"); // this event is used in CRM app
+                if ("order" in $) { $.order.reload(); }
+            }, "json");
+            return false;
+        });
+
+        $('#wf-message-form .transport').change(function () {
+            if ($('#wf-message-form .transport:checked').val() == 'sms') {
+                $('#transport-sms').show().removeAttr('disabled');
+                if ($error_place.length) {
+                    $submit_button.removeAttr('disabled');
+                    $error_place.hide();
+                } else {
+                    $('#transport-email').hide().attr('disabled', true);
+                }
+            } else {
+                $('#transport-sms').hide().attr('disabled', true);
+                if ($error_place.length) {
+                    $submit_button.attr('disabled', true);
+                    $error_place.show();
+                } else {
+                    $('#transport-email').show().removeAttr('disabled');
+                }
+            }
+        });
+
+        if ($error_place.length) {
+            $submit_button.attr('disabled', true);
+        }
+
+    })(jQuery);
+</script>

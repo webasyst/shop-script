@@ -92,7 +92,7 @@
                         });
                     }
                 });
-                $('.lazyloading-link').die('click').live('click', function() {
+                $('.lazyloading-link').off('click').on('click', function() {
                     $(window).lazyLoad('force');
                     return false;
                 });

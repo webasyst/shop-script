@@ -1,0 +1,59 @@
+{if $services}
+    <div class="sidebar left200px s-inner-sidebar">
+        <ul class="menu-v with-icons stack">
+            {foreach $services as $s}
+                <li data-service-id="{$s.id}" class="{if $s.status === shopProductServicesModel::STATUS_FORBIDDEN}gray{/if} {if $s.id == $service.id}selected{/if}">
+                    <span class="count"><i class="icon10 status-yellow-tiny" style="display: none;"></i></span>
+                    <a href="#/product/{$product.id}/edit/services/{$s.id}/">
+                        <i class="icon16 ss service"></i>{$s.name|escape}
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+        <div class="block not-padded right-padded align-center bordered-top top-padded">
+            <p class="hint">{sprintf('[`Add new services in “<a href="%s">Services</a>” section.`]', '#services/')}</p>
+        </div>
+    </div>
+
+    <div class="content left200px blank shadowed">
+        <form action="?module=product&action=servicesSave&product_id={$product.id}&service_id={$service.id}" method="post">
+
+            <div class="block double-padded js-product-service s-product-form-chunk"  id="s-product-edit-service-{$service.id}" data-service-id="{$service.id}">
+                <h2 class="s-service-name js-toggle-gray{if empty($service.status)} gray{/if}">
+                    {$service.name|escape} <span class="hint">[`for`] <span class="js-product-service-product-name">{$product.name|escape}</span></span>
+                </h2>
+
+                <table class="zebra js-toggle-gray{if empty($service.status)} gray{/if}">
+                    {$multi_variants = false}
+                    {if count($service.variants) > 1}
+                        {$multi_variants = true}
+                    {/if}
+                    {if empty($service.variants)}
+                        {include file="./include.service.html" variant=$service}
+                        {*call variant_row variant=$service*}
+                    {else}
+
+                        {foreach $service.variants as $variant}
+                            {*call variant_row*}
+                            {include file="./include.service.html"}
+                        {/foreach}
+                    {/if}
+
+                </table>
+            </div>
+
+        </form>
+        <div class="clear-left"></div>
+    </div>
+    <script type="text/javascript" src="{$wa_app_static_url}js-legacy/product/services.js?v={$wa->version()}"></script>
+    <script>
+        $.product.init(
+            {
+                'service_id':{$s.id}
+            },
+            'services'
+        );
+    </script>
+{else}
+    <p>{sprintf('[`No custom services are defined in your online store yet. Create a service using the <a href="%s">Services</a> screen.`]','#services/')}</p>
+{/if}

@@ -1,0 +1,295 @@
+{*
+@var string $code
+@var array $feature
+@var string $namespace one of skus[{$sku_id}] or product
+@var boolean $inline_edit
+@var mixed $item_features
+
+NOTICE: template contains generated javascript templates at `capture` sections
+*}
+{$_prefix = {$namespace|cat:'-features-'|regex_replace:'@([^\d_\w]+)@':'-'|regex_replace:'@([\-]{2,})@':'-'}}
+{if strpos($code,'.') === false}
+    <div class="field{if $feature.type eq 'divider'} divider{/if}"
+         data-type="{$feature.type}"
+         data-multiple="{$feature.multiple}"
+         data-selectable="{$feature.selectable}"
+         data-code="{$code|escape}"
+         data-default-unit="{$feature.default_unit}"
+    >
+        <div class="name" title="{$code|escape}">
+            <label for="{$_prefix}{$code}">
+                {if empty($feature.internal)}
+                    <i class="icon10 exclamation"
+                       title="[`This feature is not listed for the product type this product belongs to`]"></i>
+                {/if}
+                {$feature.name|escape}
+                {if $feature.status != 'public'}
+                    <i class="icon16 ss visibility" title="[`Only visible in backend`]"></i>
+                {/if}
+            </label>
+            <span class="hint">{$code|escape}</span>
+        </div>
+
+        {if $feature.selectable}
+            {$feature_selectable=($feature.multiple && !empty($features_selectable[$code]) && !empty($features_selectable[$code]['selected']))}
+            {$feature_selectable_disabled = 0}
+            {if $feature.multiple}
+                <input type="hidden" name="{$namespace}[features][{$code}][]" value="">
+                {foreach $feature.values as $value_id => $value}
+                    {$value_checked = !empty($item_features[$code][$value_id])}
+                    <div class="value"
+                         data-value="{$value|escape}"
+                         data-value-id="{$value_id}"
+                         {if $feature_selectable && !$value_checked} style="display: none;"{/if}
+                    >
+                        <label>
+                            <input type="checkbox"
+                                   name="{$namespace}[features][{$code}][]"
+                                   value="{$value|escape}"
+                                   {if $value_checked} checked="checked"{/if}
+                                   {if $feature_selectable} disabled="disabled"{/if}
+                            >
+                            {if is_object($value) && isset($value.icon)}{$value.icon}{/if}{$value|escape}
+                        </label>
+                    </div>
+                {/foreach}
+
+                {if !empty($inline_edit) && (empty($smarty.capture) || empty($smarty.capture['feature-value-multiple-template-js']))}
+                    <!-- {capture name="feature-value-multiple-template-js"}{literal} edit new feature value jquery template -->
+                    <div class="value">
+                        <label>
+                            <input type="checkbox"
+                                   checked="checked"
+                                   disabled="disabled"
+                                   name="{/literal}{$namespace}{literal}[{%=o.feature.input%}]"
+                                   value=""
+                            >
+                            {% include (o.feature.value_template, {'feature': o.feature}); %}
+                        </label>
+                        <a href="#/product/{/literal}{$product.id}{literal}/edit/features/value/delete/" class="inline-link js-action" title="[`Cancel`]">
+                            <i class="icon10 delete"></i>
+                        </a>
+                    </div>
+                    <!-- {/literal}{/capture} -->
+                {/if}
+
+            {else}{* $feature.multiple*}
+                <div class="value">
+                    <select id="{$_prefix}{$code}" name="{$namespace}[features][{$code}]">
+                        <option value=""{if empty($item_features[$code])} selected="selected"{/if}>&nbsp;</option>
+                        {foreach $feature.values as $value_id => $value}
+                            {$selected_ =  (!empty($item_features[$code]) && ((string)$item_features[$code] == $value))}
+                            <option value="{$value|escape}"{if $selected_} selected="selected"{/if}{if is_object($value)} style="{$value.style|default:''}"{/if}>
+                                {$value|escape}
+                            </option>
+                        {/foreach}
+                        {if !empty($inline_edit) && empty($smarty.capture) && empty($smarty.capture['feature-value-template-js'])}
+                            <!-- {capture name="feature-value-template-js"}{literal} edit feature jquery template -->
+                            <option value="{%=o.value%}">{%=o.value%}</option>
+                            <!-- {/literal}{/capture} -->
+                        {/if}
+                    </select>
+                </div>
+            {/if}
+
+        {if !empty($inline_edit)}
+            <div class="value js-value-add" {if $feature_selectable} style="display: none;"{/if}>
+                <a href="#/product/{$product.id}/edit/features/value/add/" class="inline-link hint js-action">
+                    <b><i>[`other`]</i></b>
+                </a>
+            </div>
+        {/if}
+{else}
+    <div class="value">
+        {if (strpos($feature.type,'2d') === 0) || (strpos($feature.type,'3d') === 0)}
+            {$type = substr($feature.type,3)}
+            {if strpos($type,'dimension') === 0}
+                {$units = shopDimension::getUnits($type)}
+                {$d=intval($feature.type)}
+                {$feature_unit = null}
+                {if !$feature_unit && isset($item_features[$code][$d-1]) && is_object($item_features[$code][$d-1])}
+                    {$feature_unit=$item_features[$code][$d-1]->unit}
+                {/if}
+                {for $i = 0; $i < $d; $i++}
+                    {$code_ = "`$code`.`$i`"}
+                    {if !$feature_unit && isset($item_features[$code][$i]) && is_object($item_features[$code][$i])}
+                        {$feature_unit=$item_features[$code][$i]->unit}
+                    {/if}
+                    {if $i}×{/if}
+                    <input id="{$_prefix}{if $i}{$code_}{else}{$code}{/if}"
+                           type="text"
+                           value="{if isset($item_features[$code][$i]) && is_object($item_features[$code][$i])}{$item_features[$code][$i]->convert($feature_unit,false)|escape}{/if}"
+                           name="{$namespace}[features][{$code_}][value]"
+                           class="numerical short"
+                    >
+                {/for}
+                <select name="{$namespace}[features][{$code}.0][unit]">
+                    {$default_unit = isset($feature['default_unit']) && isset($units[$feature['default_unit']])}
+                    {foreach $units as $unit}
+                        {if $feature_unit}
+                            {$selected_ = $feature_unit == $unit.value}
+                        {else}
+                            {if $default_unit}
+                                {$selected_ = $feature['default_unit'] == $unit.value}
+                            {else}
+                                {$selected_ = $unit@first}
+                            {/if}
+                        {/if}
+                        <option value="{$unit.value|escape}"
+                                title="{$unit.title|escape}"
+                                {if $selected_} selected="selected"{/if}
+                        >{$unit.title|escape}</option>
+                    {/foreach}
+                </select>
+            {else}
+                {for $i=0; $i < intval($feature.type); $i++}
+                    {$code_ = "`$code`.`$i`"}
+                    {if $i}×{/if}
+                    <input id="{$_prefix}{$code_}"
+                           type="text"
+                           value="{if isset($item_features[$code][$i])}{$item_features[$code][$i]|escape}{/if}"
+                           name="{$namespace}[features][{$code_}]"
+                           class="numerical short"
+                    >
+                {/for}
+            {/if}
+        {elseif strpos($feature.type,'dimension') === 0}
+            {$units = shopDimension::getUnits($feature.type)}
+            <input id="{$_prefix}{$code}" type="text"
+                   value="{if isset($item_features[$code])}{$item_features[$code]->value|escape}{/if}"
+                   name="{$namespace}[features][{$code}][value]"
+            >
+            <select name="{$namespace}[features][{$code}][unit]">
+                {$default_unit = isset($feature['default_unit']) && isset($units[$feature['default_unit']])}
+                {foreach $units as $unit}
+                    {if isset($item_features[$code])}
+                        {$selected_ = $item_features[$code]->unit == $unit.value}
+                    {else}
+                        {if $default_unit}
+                            {$selected_ = $feature['default_unit'] == $unit.value}
+                        {else}
+                            {$selected_ = $unit@first}
+                        {/if}
+                    {/if}
+                    <option value="{$unit.value|escape}"
+                            title="{$unit.title|escape}"{if $selected_} selected="selected"{/if}>{$unit.title|escape}</option>
+                {/foreach}
+            </select>
+        {elseif strpos($feature.type,'range') === 0}
+            {if $feature.type == 'range.date'}
+                <label class="js-datepicker-wrapper">
+                    <input id="{$_prefix}{$code}-start" type="text"
+                           value="{if isset($item_features[$code]) && !$item_features[$code]->begin->is_null()}{$item_features[$code]->begin->value|default:''|wa_date}{/if}"
+                           class="s-product-feature-date js-datepicker">
+                    <input name="{$namespace}[features][{$code}][value][begin]"
+                           id="{$_prefix}{$code}-start-hidden" type="hidden"
+                           value="{if isset($item_features[$code]) && !$item_features[$code]->begin->is_null()}{$item_features[$code]->begin->value|default:''}{/if}"
+                           class="s-product-feature-date js-datepicker-hidden">
+                    <i class="icon16 calendar js-focus-on-field"></i>
+                </label>
+                <span>—</span>
+                <label class="js-datepicker-wrapper">
+                    <input id="{$_prefix}{$code}-end" type="text"
+                           value="{if isset($item_features[$code]) && !$item_features[$code]->end->is_null()}{$item_features[$code]->end->value|default:''|wa_date}{/if}"
+                           class="s-product-feature-date js-datepicker">
+                    <input name="{$namespace}[features][{$code}][value][end]"
+                           id="{$_prefix}{$code}-end-hidden" type="hidden"
+                           value="{if isset($item_features[$code]) && !$item_features[$code]->end->is_null()}{$item_features[$code]->end->value|default:''}{/if}"
+                           class="s-product-feature-date js-datepicker-hidden">
+                    <i class="icon16 calendar js-focus-on-field"></i>
+                </label>
+            {else}
+                <input id="{$_prefix}{$code}-begin" type="text"
+                       value="{if isset($item_features[$code]) && !$item_features[$code]->begin->is_null()}{$item_features[$code]->begin->value|escape}{/if}"
+                       name="{$namespace}[features][{$code}][value][begin]" class="numerical short">
+                <span>—</span>
+                <input id="{$_prefix}{$code}-end" type="text"
+                       value="{if isset($item_features[$code]) && !$item_features[$code]->end->is_null()}{$item_features[$code]->end->value|escape}{/if}"
+                       name="{$namespace}[features][{$code}][value][end]" class="numerical short">
+            {/if}
+            {$units = shopDimension::getUnits($feature.type)}
+            {if $units}
+                <select name="{$namespace}[features][{$code}][unit]">
+                    {$default_unit = isset($feature['default_unit']) && isset($units[$feature['default_unit']])}
+                    {foreach $units as $unit}
+                        {if isset($item_features[$code])}
+                            {$selected_ = $item_features[$code]->unit == $unit.value}
+                        {else}
+                            {if $default_unit}
+                                {$selected_ = $feature['default_unit'] == $unit.value}
+                            {else}
+                                {$selected_ = $unit@first}
+                            {/if}
+                        {/if}
+                        <option value="{$unit.value|escape}"
+                                title="{$unit.title|escape}"{if $selected_} selected="selected"{/if}>{$unit.title|escape}</option>
+                    {/foreach}
+                </select>
+            {/if}
+        {elseif strpos($feature.type,'text') === 0}
+            {* WARNING: Do not use line break inside textarea, they are displayed in content *}
+            <textarea id="{$_prefix}{$code}" name="{$namespace}[features][{$code}]">{strip}
+                {if isset($item_features[$code])}{$item_features[$code]|escape}{/if}
+            {/strip}</textarea>
+        {elseif strpos($feature.type,'color') === 0}
+            <input id="{$_prefix}{$code}" name="{$namespace}[features][{$code}][value]" type="text"
+                   value="{$item_features[$code]['value']|default:''|escape}" placeholder="[`color name`]">
+            <a href="#/product/{$product.id}/edit/features/value/color/" class="inline-link js-action" style="display: inline;">
+                <i class="icon16 color" style="background: {$item_features[$code]['hex']|default:'#FFFFFF'};"></i>
+            </a>
+            <span>#</span>
+            <input name="{$namespace}[features][{$code}][code]" type="text"
+                   value="{$item_features[$code]['hex']|default:''|replace:'#':''|escape}" placeholder="[`000000`]" class="small">
+        {elseif strpos($feature.type,'boolean') === 0}
+            {if isset($item_features[$code])}
+                {$value = $item_features[$code]->value}
+            {else}
+                {$value = false}
+            {/if}
+            <label>
+                <input type="radio" name="{$namespace}[features][{$code}]" value="1"
+                       {if $value===1} checked="checked"{/if}>
+                [`Yes`]
+            </label>
+            </div>
+            <div class="value">
+                <label>
+                    <input type="radio" name="{$namespace}[features][{$code}]" value="0"
+                           {if $value === 0} checked="checked"{/if}>
+                    [`No`]
+                </label>
+            </div>
+            <div class="value">
+                <label>
+                    <input type="radio" name="{$namespace}[features][{$code}]" value=""
+                           {if $value === false} checked="checked"{/if}>
+                    [`Not defined`]
+                </label>
+        {elseif strpos($feature.type,'divider') === 0}
+            <input type="hidden" name="{$namespace}[features][{$code}]" value="-">
+        {elseif strpos($feature.type,'date') === 0}
+            <label class="js-datepicker-wrapper">
+                <input id="{$_prefix}{$code}" data-type="{$feature.type}" type="text"
+                       class="s-product-feature-date js-datepicker"
+                       value="{if isset($item_features[$code])}{$item_features[$code]|default:''|wa_date}{/if}">
+                <input name="{$namespace}[features][{$code}]"
+                       id="{$_prefix}{$code}-hidden" data-type="{$feature.type}" type="hidden"
+                       class="s-product-feature-date js-datepicker-hidden"
+                       value="{if isset($item_features[$code])}{$item_features[$code]|default:''}{/if}">
+                <i class="icon16 calendar js-focus-on-field"></i>
+            </label>
+
+        {else}
+            <input id="{$_prefix}{$code}" type="text" name="{$namespace}[features][{$code}]" data-type="{$feature.type}"
+                   value="{if isset($item_features[$code])}{$item_features[$code]|escape}{/if}">
+        {/if}
+        </div>
+        {/if}
+        {if $feature.type eq 'divider' && empty($feature.internal)}
+            <a class="inline-link js-delete-divider" style="float:right;" href="javascript:void(0);">
+                <i class="icon10 delete"></i>
+                <b><i>[`delete`]</i></b>
+            </a>
+        {/if}
+    </div>
+{/if}

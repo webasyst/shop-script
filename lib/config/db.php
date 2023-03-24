@@ -7,6 +7,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_abtest_variants' => array(
         'id' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
@@ -17,6 +18,7 @@ return array(
             'PRIMARY' => 'id',
             'antest_code' => array('abtest_id', 'code', 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_affiliate_transaction' => array(
         'id' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
@@ -31,6 +33,7 @@ return array(
             'PRIMARY' => 'id',
             'contact_id' => 'contact_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_api_courier' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -50,6 +53,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_api_courier_storefronts' => array(
         'courier_id' => array('int', 11, 'null' => 0),
@@ -57,6 +61,7 @@ return array(
         ':keys' => array(
             'courier' => 'courier_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_cart_items' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -74,6 +79,7 @@ return array(
             'PRIMARY' => 'id',
             'code' => 'code',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_category' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -99,26 +105,29 @@ return array(
         'status' => array('tinyint', 1, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'url' => array('parent_id', 'url', 'unique' => 1),
-            'full_url' => array('full_url', 'unique' => 1),
+            'url' => array('parent_id', ['url', 245], 'unique' => 1),
+            'full_url' => array(['full_url', 250], 'unique' => 1),
             'ns_keys' => array('left_key', 'right_key'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_category_og' => array(
         'category_id' => array('int', 11, 'null' => 0),
         'property' => array('varchar', 255, 'null' => 0),
         'content' => array('text', 'null' => 0),
         ':keys' => array(
-            'PRIMARY' => array('category_id', 'property'),
+            'PRIMARY' => array('category_id', ['property', 245]),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_category_params' => array(
         'category_id' => array('int', 11, 'null' => 0),
         'name' => array('varchar', 255, 'null' => 0),
         'value' => array('text', 'null' => 0),
         ':keys' => array(
-            'PRIMARY' => array('category_id', 'name'),
+            'PRIMARY' => array('category_id', ['name', 245]),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_category_products' => array(
         'product_id' => array('int', 11, 'null' => 0),
@@ -132,8 +141,9 @@ return array(
         'category_id' => array('int', 11, 'null' => 0),
         'route' => array('varchar', 255, 'null' => 0),
         ':keys' => array(
-            'PRIMARY' => array('category_id', 'route'),
+            'PRIMARY' => array('category_id', ['route', 245]),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_checkout_flow' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -148,6 +158,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_contact_category_discount' => array(
         'category_id' => array('int', 10, 'unsigned' => 1, 'null' => 0),
@@ -173,6 +184,7 @@ return array(
             'PRIMARY' => 'id',
             'code' => array('code', 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_currency' => array(
         'code' => array('char', 3, 'null' => 0),
@@ -194,6 +206,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'contact_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_customers_filter' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -207,6 +220,7 @@ return array(
             'PRIMARY' => 'id',
             'contact_id' => 'contact_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_discount_by_sum' => array(
         'type' => array('varchar', 32, 'null' => 0),
@@ -229,6 +243,7 @@ return array(
             'PRIMARY' => 'id',
             'start_end' => array('start', 'end'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_feature' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -247,6 +262,7 @@ return array(
             'PRIMARY' => 'id',
             'code' => array('code', 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_feature_values_color' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -256,8 +272,9 @@ return array(
         'value' => array('varchar', 255, 'null' => 0),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'values' => array('feature_id', 'value', 'unique' => 1),
+            'values' => array('feature_id', ['value', 245], 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_feature_values_dimension' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -269,8 +286,9 @@ return array(
         'value_base_unit' => array('double', 'null' => 0),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'feature_id' => array('feature_id', 'value', 'unit', 'type', 'unique' => 1),
+            'feature_id' => array('feature_id', 'value', ['unit', 230], 'type', 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_feature_values_double' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -294,8 +312,9 @@ return array(
         'end_base_unit' => array('double'),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'feature_id' => array('feature_id', 'begin', 'end', 'unit', 'type', 'unique' => 1),
+            'feature_id' => array('feature_id', 'begin', 'end', ['unit', 225], 'type', 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_feature_values_text' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -305,6 +324,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_feature_values_varchar' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -313,8 +333,9 @@ return array(
         'value' => array('varchar', 255, 'null' => 0),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'values' => array('feature_id', 'value', 'unique' => 1),
+            'values' => array('feature_id', ['value', 245], 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_filter' => array(
         'id' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
@@ -326,6 +347,7 @@ return array(
             'PRIMARY' => 'id',
             'creator_contact_id' => 'creator_contact_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_filter_rules' => array(
         'id' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
@@ -338,6 +360,7 @@ return array(
             'PRIMARY' => 'id',
             'filter_id' => 'filter_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_followup' => array(
         'id' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
@@ -355,6 +378,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_followup_sources' => array(
         'followup_id' => array('int', 11, 'null' => 0),
@@ -363,6 +387,7 @@ return array(
             'followup_id' => 'followup_id',
             'source' => array(array('source', '190')),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_importexport' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -375,6 +400,7 @@ return array(
             'PRIMARY' => 'id',
             'id' => array('plugin', 'id', 'sort', 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_notification' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -386,6 +412,7 @@ return array(
             'PRIMARY' => 'id',
             'event' => 'event',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_notification_params' => array(
         'notification_id' => array('int', 11, 'null' => 0),
@@ -394,6 +421,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => array('notification_id', 'name'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_notification_sources' => array(
         'notification_id' => array('int', 11, 'null' => 0),
@@ -402,6 +430,7 @@ return array(
             'notification_id' => 'notification_id',
             'source' => array(array('source', '190')),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_order' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -420,10 +449,12 @@ return array(
         'paid_quarter' => array('smallint', 6),
         'paid_month' => array('smallint', 6),
         'paid_date' => array('date', 'null' => 1, 'default' => null),
+        'paid_datetime' => array('datetime'),
         'auth_date' => array('date', 'null' => 1, 'default' => null),
         'is_first' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'unsettled' => array('tinyint', 1, 'null' => 0, 'default' => '0'),
         'comment' => array('text'),
+        'courier_contact_id' => array('int', 11),
         'shipping_datetime' => array('datetime'),
         ':keys' => array(
             'PRIMARY' => 'id',
@@ -431,6 +462,7 @@ return array(
             'contact_id' => 'contact_id',
             'shipping_datetime' => 'shipping_datetime',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_order_item_codes' => array(
         'order_id' => array('int', 11, 'null' => 0),
@@ -443,6 +475,7 @@ return array(
             'order_id' => 'order_id',
             'order_item_id' => 'order_item_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_order_items' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -470,6 +503,7 @@ return array(
             'order_type' => array('order_id', 'type'),
             'product_order' => array('product_id', 'order_id'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_order_log' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -485,6 +519,7 @@ return array(
             'order_id' => 'order_id',
             'datetime' => 'datetime',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_order_log_params' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -494,8 +529,9 @@ return array(
         'value' => array('text', 'null' => 0),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'name' => array('order_id', 'log_id', 'name', 'unique' => 1),
+            'name' => array('order_id', 'log_id', ['name', 245], 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_order_params' => array(
         'order_id' => array('int', 11, 'null' => 0),
@@ -505,6 +541,7 @@ return array(
             'PRIMARY' => array('order_id', 'name'),
             'name' => 'name',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_page' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -524,14 +561,16 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_page_params' => array(
         'page_id' => array('int', 11, 'null' => 0),
         'name' => array('varchar', 255, 'null' => 0),
         'value' => array('text', 'null' => 0),
         ':keys' => array(
-            'PRIMARY' => array('page_id', 'name'),
+            'PRIMARY' => array('page_id', ['name', 245]),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_plugin' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -545,8 +584,9 @@ return array(
         'options' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'type' => 'type',
+            'type' => [['type', 250]],
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_plugin_settings' => array(
         'id' => array('int', 11, 'null' => 0),
@@ -555,6 +595,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => array('id', 'name'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_presentation' => array(
         'id' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
@@ -573,6 +614,7 @@ return array(
             'PRIMARY' => 'id',
             'creator_contact_id' => 'creator_contact_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_presentation_columns' => array(
         'id' => array('int', 10, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
@@ -585,6 +627,7 @@ return array(
             'PRIMARY' => 'id',
             'presentation_id' => 'presentation_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -636,9 +679,10 @@ return array(
         'sku_count' => array('int', 11, 'null' => 0, 'default' => '1'),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'url' => 'url',
+            'url' => [['url', 250]],
             'total_sales' => 'total_sales',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_code' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -651,6 +695,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_features' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -692,14 +737,16 @@ return array(
             'PRIMARY' => 'id',
             'product_id' => 'product_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_og' => array(
         'product_id' => array('int', 11, 'null' => 0),
         'property' => array('varchar', 255, 'null' => 0),
         'content' => array('text', 'null' => 0),
         ':keys' => array(
-            'PRIMARY' => array('product_id', 'property'),
+            'PRIMARY' => array('product_id', ['property', 245]),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_pages' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -717,24 +764,28 @@ return array(
         'description' => array('text'),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'product_id' => array('product_id', 'url'),
+            'product_id' => array('product_id', ['url', 245]),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_params' => array(
         'product_id' => array('int', 11, 'null' => 0),
         'name' => array('varchar', 255, 'null' => 0),
         'value' => array('text', 'null' => 0),
         ':keys' => array(
-            'PRIMARY' => array('product_id', 'name'),
+            'PRIMARY' => array('product_id', ['name', 245]),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_related' => array(
         'product_id' => array('int', 11, 'null' => 0),
         'type' => array('enum', "'cross_selling','upselling'", 'null' => 0),
         'related_product_id' => array('int', 11, 'null' => 0),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => array('product_id', 'type', 'related_product_id'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_reviews' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -763,6 +814,7 @@ return array(
             'parent_id' => 'parent_id',
             'product_id' => array('product_id', 'review_id'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_reviews_images' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -781,6 +833,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_services' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -823,6 +876,7 @@ return array(
             'PRIMARY' => 'id',
             'product_id' => 'product_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_stocks' => array(
         'sku_id' => array('int', 11, 'null' => 0),
@@ -853,6 +907,7 @@ return array(
             'product_id' => array('product_id', 'sku_id'),
             'stock_id' => 'stock_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_product_tags' => array(
         'product_id' => array('int', 11, 'null' => 0),
@@ -876,6 +931,7 @@ return array(
         ':keys'               => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_promo_orders' => array(
         'order_id' => array('int', 10, 'unsigned' => 1, 'null' => 0),
@@ -889,8 +945,9 @@ return array(
         'storefront' => array('varchar', 255, 'null' => 0),
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
-            'PRIMARY' => array('storefront', 'promo_id'),
+            'PRIMARY' => array(['storefront', 245], 'promo_id'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_promo_rules' => array(
         'id'          => array('int', 11, 'unsigned' => 1, 'null' => 0, 'autoincrement' => 1),
@@ -902,6 +959,7 @@ return array(
             'promo_id'  => 'promo_id',
             'rule_type' => 'rule_type',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_push_client' => array(
         'contact_id' => array('int', 11, 'null' => 0),
@@ -913,6 +971,7 @@ return array(
         ':keys' => array(
             'client' => array('client_id', 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_sales' => array(
         'hash' => array('varchar', 32, 'null' => 0),
@@ -926,10 +985,11 @@ return array(
         'cost' => array('float', 'null' => 0, 'default' => '0'),
         'new_customer_count' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
-            'PRIMARY' => array('hash', 'name', 'date'),
+            'PRIMARY' => array('hash', ['name', 216], 'date'),
             'hash_date' => array('hash', 'date'),
             'date' => 'date',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_search_index' => array(
         'word_id' => array('int', 11, 'null' => 0),
@@ -945,8 +1005,9 @@ return array(
         'name' => array('varchar', 255, 'null' => 0),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'name' => array('name', 'unique' => 1),
+            'name' => array(['name', 250], 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_service' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -960,6 +1021,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_service_variants' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -972,6 +1034,7 @@ return array(
             'PRIMARY' => 'id',
             'service_id' => 'service_id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_set' => array(
         'id' => array('varchar', 64, 'null' => 0),
@@ -988,6 +1051,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_set_group' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -996,6 +1060,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_set_products' => array(
         'set_id' => array('varchar', 64, 'null' => 0),
@@ -1004,6 +1069,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => array('set_id', 'product_id'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_stock' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -1015,6 +1081,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_stock_rules' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -1026,6 +1093,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_tag' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -1033,8 +1101,9 @@ return array(
         'count' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => 'id',
-            'name' => array('name', 'unique' => 1),
+            'name' => array(['name', 250], 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_tax' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -1044,6 +1113,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_tax_regions' => array(
         'tax_id' => array('int', 11, 'null' => 0),
@@ -1055,6 +1125,7 @@ return array(
         ':keys' => array(
             'tax_country_region' => array('tax_id', 'country_iso3', 'region_code', 'unique' => 1),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_tax_zip_codes' => array(
         'tax_id' => array('int', 11, 'null' => 0),
@@ -1064,6 +1135,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => array('tax_id', 'zip_expr'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_transfer' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -1112,6 +1184,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_type_codes' => array(
         'type_id' => array('int', 11, 'null' => 0),
@@ -1146,6 +1219,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => array('type_id', 'feature'),
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_unit' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -1161,6 +1235,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_virtualstock' => array(
         'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
@@ -1172,6 +1247,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
         ),
+        ':options' => ['charset' => 'utf8mb4'],
     ),
     'shop_virtualstock_stocks' => array(
         'virtualstock_id' => array('int', 11, 'null' => 0),

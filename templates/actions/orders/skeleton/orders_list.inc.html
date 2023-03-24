@@ -1,0 +1,18 @@
+{function split_orders count=2 margin_height='1px'}
+    {for $i=1 to $count}
+    <span class="skeleton-line" style="width: 99%;height: 64px;padding: 11px;margin: {$margin_height} -10px;">
+        <div class="flexbox width-100">
+            <span class="skeleton-custom-circle custom-pr-8" style="width: 65px;height: 65px;"></span>
+            <div class="flexbox width-100">
+                <div>
+                    <span class="skeleton-line" style="width: 85px;height: 16px;"></span>
+                    <span class="skeleton-line custom-ml-8" style="width: 55px;height: 10px;"></span>
+                    <span class="skeleton-line custom-ml-8" style="width: 80%;height: 5px;"></span>
+                </div>
+                <span class="skeleton-line" style="opacity: 0;"></span>
+                <span class="skeleton-line" style="width: 75px;height: 16px;"></span>
+            </div>
+        </div>
+    </span>
+    {/for}
+{/function}

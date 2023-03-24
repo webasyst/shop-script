@@ -16,7 +16,7 @@
                         </template>
                     </div>
 
-                    <div class="s-search-column-wrapper">
+                    <div class="s-search-column-wrapper" v-bind:class="{ 'is-locked' : states.column_expand }">
                         <component-search-column></component-search-column>
                     </div>
 
@@ -28,13 +28,13 @@
 
                 </div>
                 <div class="dialog-footer">
-                    <button class="wa-button blue" type="button"
+                    <button class="button" type="button"
                             v-bind:disabled="states.locked"
                             v-on:click.prevent="save">
                         <span class="s-icon" v-if="states.locked"><i class="fas fa-spinner fa-spin"></i></span>
                         <span class="s-name">[`Done`]</span>
                     </button>
-                    <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                    <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
                 </div>
             </div>
         </div>
@@ -54,32 +54,33 @@
                 </template>
             </div>
             <div class="s-column s-column-enable">
-                <component-switch v-bind:value="column.enabled" v-bind:disabled="column.disabled" v-on:change="onToggleSwitch"></component-switch>
+                <component-switch v-bind:value="column.enabled" v-bind:disabled="column.disabled" v-on:change="onToggleSwitch" v-show="!states.show_settings"></component-switch>
             </div>
             <div class="s-column s-column-visibility">
                 <template v-if="is_feature">
                     <template v-if="column_info.available_for_sku">
-                        <span class="s-icon icon" v-bind:key="'fa-sitemap'"><svg class="color-gray"><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
+                        <span class="s-icon icon" v-bind:key="'fa-sitemap'"><svg class="text-gray"><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
                     </template>
                     <template v-else>
-                        <span class="s-icon icon" v-bind:key="'fa-sitemap-slash'"><svg class="color-gray-lighter"><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
+                        <span class="s-icon icon" v-bind:key="'fa-sitemap-slash'"><svg class="text-light-grayer"><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
                     </template>
                     <template v-if="column_info.visible_in_frontend">
-                        <span class="s-icon icon" v-bind:key="'fa-eye'"><i class="fas fa-eye color-gray"></i></span>
+                        <span class="s-icon icon" v-bind:key="'fa-eye'"><i class="fas fa-eye text-gray"></i></span>
                     </template>
                     <template v-else>
-                        <span class="s-icon icon" v-bind:key="'fa-eye-slash'"><i class="fas fa-eye-slash color-gray-lighter"></i></span>
+                        <span class="s-icon icon" v-bind:key="'fa-eye-slash'"><i class="fas fa-eye-slash text-light-grayer"></i></span>
                     </template>
                 </template>
                 <template v-else-if="is_virtual_stock">
-                    <span class="s-icon icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse_stroke'></use></svg></span>
+                    <span class="s-icon icon shift-up-1 text-light-gray"><svg><use xlink:href='{$_sprite_url}#warehouse_stroke'></use></svg></span>
                 </template>
                 <template v-else-if="is_stock">
-                    <span class="s-icon icon shift-up-1 color-gray-light"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
+                    <span class="s-icon icon shift-up-1 text-light-gray"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
                 </template>
             </div>
             <div class="s-column s-column-name">
                 <span class="s-name" v-text="column.name"></span>
+                <span class="s-code hint" v-if="column.feature_code" v-text="column.feature_code"></span>
             </div>
             <div class="s-column s-column-edit">
                 <span class="link" v-if="column.enabled && settings" v-on:click="setup">{ { states.show_settings ? {_w("hide")|json_encode} : {_w("configure")|json_encode}  } }</span>

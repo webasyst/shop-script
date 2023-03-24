@@ -1,0 +1,125 @@
+<div class="s-banner-wrapper js-banner-wrapper">
+    {* @description Show this block when multiple banners are used *}
+    <div class="s-banner-header" style="display: none;">
+        <a class="inline-link js-banner-delete" href="javascript:void(0);"{if !empty($banner.image_filename)} data-filename="{$banner.image_filename|escape}"{/if}>
+            <i class="icon16 delete"></i><b><i>[`Delete banner`]</i></b>
+        </a>
+    </div>
+    <div class="s-fields-wrapper">
+
+        <input type="hidden" data-name="[type]" value="link" />
+
+        <div class="field">
+            <div class="name">[`Image`]</div>
+            <div class="value">
+
+                <div class="s-image-wrapper js-image-wrapper"{if empty($banner.image)} style="display: none;"{/if}>
+                    <img class="js-image-preview" src="{$banner.image|default:""|escape}" alt="">
+                </div>
+
+                {* Control for upload a new image *}
+                <input class="js-image-field" type="file" accept=".gif,.jpg,.jpeg,.png,.webp">
+
+                {* Field for transferring an already uploaded image *}
+                {* If the new image will not be uploaded, we will use the data from this field *}
+                {* If the user wants to change the image, this field is suitable for us to delete the old image from the server. *}
+                <input class="js-banner-url-field" type="hidden" data-name="[old_image_filename]" value="{$banner.image_filename|default:""|escape}">
+
+                {* Field for transferring the name of the image, loaded into the flat directory in the cache *}
+                <input class="js-image-filename-field" type="hidden" data-name="[image_filename]" value="">
+
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">[`Title`]</div>
+            <div class="value">
+
+                <input type="text" data-name="[title]" value="{$banner.title|default:''|escape}">
+
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">[`Promo subtitle`]</div>
+            <div class="value">
+                <textarea type="text" data-name="[body]">{$banner.body|default:""|escape}</textarea>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">[`Link`]</div>
+            <div class="value">
+                <input type="text" data-name="[link]" value="{$banner.link|default:""|escape}" required>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">[`Text color`]</div>
+            <div class="value">
+                <input type="text" data-name="[color]" value="{$banner.color|escape|default:'#ffffff'}" class="short">
+                <i class="icon16 color"></i>
+                <div class="js-colorpicker"></div>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">[`Background color`]</div>
+            <div class="value">
+                <input type="text" data-name="[background_color]" value="{$banner.background_color|escape|default:'#aaaaaa'}" class="short">
+                <i class="icon16 color"></i>
+                <div class="js-colorpicker"></div>
+                <p class="hint">[`Image background color`]</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">[`Countdown`]</div>
+            <div class="value">
+
+                <div class="s-countdown-section js-countdown-section {if !empty($banner.countdown_datetime)}is-extended{/if}">
+                    <div class="s-visible">
+                        <label>
+                            <input class="js-countdown-toggle" type="checkbox" {if !empty($banner.countdown_datetime)}checked{/if}>
+                            <span class="s-toggle-text">[`Turn on`]</span>
+                        </label>
+
+                        <span class="s-timer js-date-timer" data-pattern="%s" {if !empty($banner.countdown_datetime)}data-date="{$banner.countdown_datetime|wa_datetime:"Y-m-d-H-i"}"{/if}></span>
+                    </div>
+
+                    <div class="s-hidden js-hidden">
+                        {$_date = ""}
+                        {$_date_view = ""}
+                        {$_time_hours = ""}
+                        {$_time_minutes = ""}
+                        {if !empty($banner.countdown_datetime)}
+                            {$_date_view = $banner.countdown_datetime|wa_date}
+                            {$_date = $banner.countdown_datetime|wa_datetime:"Y-m-d"}
+                            {$_time_hours = $banner.countdown_datetime|wa_datetime:"H"}
+                            {$_time_minutes = $banner.countdown_datetime|wa_datetime:"i"}
+                        {/if}
+
+                        <div class="line">
+                            <label class="s-datepicker-wrapper">
+                                <input class="s-datepicker js-datepicker" type="text" value="{$_date_view}" data-alt=".js-date" required {if empty($banner.countdown_datetime)}disabled{/if}>
+                                <input class="js-date" type="hidden" data-name="[countdown_datetime][date]" value="{$_date}"{if empty($banner.countdown_datetime)} disabled{/if}>
+                            </label>
+                            <label class="s-time-wrapper">
+                                <input class="s-time short js-hours" type="text" data-name="[countdown_datetime][hour]" pattern="{'[0-9]{2}'}" placeholder="00" maxlength="2" autocomplete="off" value="{$_time_hours}" required{if empty($banner.countdown_datetime)} disabled{/if}>
+                            </label>
+                            <span>:</span>
+                            <label class="s-time-wrapper">
+                                <input class="s-time short js-minutes" type="text" data-name="[countdown_datetime][minute]" pattern="{'[0-9]{2}'}" placeholder="00" maxlength="2" autocomplete="off" value="{$_time_minutes}" required{if empty($banner.countdown_datetime)} disabled{/if}>
+                            </label>
+                        </div>
+                        <div class="line">
+                            <span class="hint">([`date format`] <span class="s-countdown-user-date-format">DD.MM.YYYY</span><span class="s-countdown-current-user-time"></span>)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>

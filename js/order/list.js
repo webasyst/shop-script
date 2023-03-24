@@ -1,4 +1,4 @@
-( function($) {
+(function ($) {
 
     $.order_list = {
 
@@ -24,6 +24,12 @@
          * {Object|null}
          */
         $selectionMenu: null,
+
+        /**
+         * Jquery object
+         * {Object|null}
+         */
+        $search_form: null,
 
         /**
          * Jquery object related to sidebar
@@ -84,6 +90,10 @@
          */
         sort: ['create_datetime', 'desc'],
 
+        drawer_order: '', // v2
+
+        touched: false,
+
         /**
          * Collection of xhr-deffered objects for synchronization
          * {Object}
@@ -95,21 +105,163 @@
         },
 
 
-        init: function(options) {
+        init: function (options) {
             this.options = options = options || {};
             this.plugin_hash = options.plugin_hash || '';
             this.filter_params = options.filter_params || {};
             this.filter_params_str = options.filter_params_str || '';
+            this.drawer_order = options.drawer_order;
             this.container = $('#order-list');
 
             if (options.view == 'table') {
                 this.container = $('#order-list').find('tbody:first');
                 this.$selectionMenu = this.options["$selectionMenu"];
                 if (this.$selectionMenu) {
-                    $("#mainmenu .s-level2").append(this.$selectionMenu);
                     this.select_all_input = this.$selectionMenu.find('.s-order-list-select-all');
                     this.select_all_input.attr('checked', false);
+                    $('.js-selection-dropdown').waDropdown();
                 }
+            }
+
+            if (options.view == 'split') {
+
+                // for mobile
+                const order_li = 'li[data-order-id]';
+                const regexpId = new RegExp('&id=\\d+', 'g');
+
+                // function removeDrawerOrder() {
+                //     $('.drawer-order').remove();
+                // }
+
+                function openOrder(id) {
+                    if (!regexpId.test(window.location.hash)) {
+                        return;
+                    }
+
+                    const $order_list = $('#s-orders');
+                    const $order = $('#s-order');
+                    const desktop_class = 'desktop-and-tablet-only';
+                    let disable_back_history = true;
+
+                    $order_list.hide(200, function() {
+                        $order_list.addClass(desktop_class);
+                        $(this).show();
+                    });
+                    $order.removeClass(desktop_class);
+
+                    setTimeout(function() {
+                        disable_back_history = false;
+                    });
+                    $(window).unbind('hashchange');
+
+                    const $button_close = $order.find('.back.order-list')
+                            .addClass('js-close-drawer mobile-only')
+                            .show()
+                            .attr('href', window.location.hash.replace(regexpId, ''))
+
+                    $button_close.on('click', function() {
+                        $order.addClass(desktop_class);
+                        $order_list.removeClass(desktop_class);
+
+                        $(window).off('hashchange');
+
+                        disable_back_history = true;
+                    });
+
+                    $(window).on('hashchange', function() {
+                        if (disable_back_history) {
+                            return;
+                        }
+
+                        console.log('hashchange');
+                        $('.js-close-drawer', $order).trigger('click');
+                    });
+
+
+
+                    // let disable_back_history = true;
+                    // const html = $.order_list.drawer_order;
+                    // const $html = $(html);
+                    // const $order = $('#s-order');
+
+                    // $order.find('.back.order-list')
+                    //         .addClass('js-close-drawer mobile-only')
+                    //         .show();
+
+                    // $('.drawer-content', $html).html($order.html());
+
+                    // const hashchange = function() {
+                    //     if (disable_back_history) {
+                    //         return;
+                    //     }
+
+                    //     const $drawer_order = $('.drawer-order');
+                    //     if($drawer_order.length) {
+                    //         $('.js-close-drawer', $drawer_order).trigger('click');
+                    //         setTimeout(() => removeDrawerOrder(), 250);
+                    //     }
+                    // };
+
+                    // const drawer = $.waDrawer({
+                    //     $wrapper: $html,
+                    //     lock_body_scroll: false,
+                    //     direction: "right",
+                    //     onOpen: function() {
+                    //         $(window).on('hashchange', hashchange);
+                    //         setTimeout(function() {
+                    //             disable_back_history = false;
+                    //         });
+                    //     },
+                    //     onClose: function() {
+                    //         $(window).off('hashchange', hashchange);
+                    //         let order_list_hash = window.location.hash;
+                    //         if (id == $.order_list.params.id) {
+                    //             $.wa.setHash(order_list_hash.replace(regexpId, ''));
+                    //         }
+
+                    //         disable_back_history = true;
+                    //     }
+                    // });
+                    // drawer.animation_time = 250;
+                    // console.log(drawer);
+                }
+
+                this.container.off().on('orderMobile', function(e, id) {
+                    if (
+                        $.shop.helper.isMobile()
+                        && $.order_list.touched
+                        && id
+                        && $.order_list.id
+                    ) {
+                        $.order_list.touched = false;
+                        console.log('orderMobile', id);
+                        openOrder(id);
+                    }
+                })
+
+                this.container.on('touchstart', order_li, function(e) {
+                    $.order_list.touched = true;
+                });
+
+                this.container.on('click', order_li, function() {
+                    // removeDrawerOrder();
+
+                    if (!$.order_list.touched) {
+                        return;
+                    }
+
+                    const $li = $(this);
+                    const id = $.order_list.params.id || $.order_list.id;
+                    if (id == $li.data('order-id') && !regexpId.test(window.location.hash)) {
+                        const hash = $('a.details', $li).attr('href');
+                        $.wa.setHash(hash);
+                        $(this).trigger('orderMobile', [id]);
+                    }
+                });
+
+                this.container.on('click', '[data-order-id]:not(.selected) a', function() {
+                    $.skeletonLoader.repeatShow();
+                });
             }
 
             // for define which actions available for whole order list (see onSelectItem)
@@ -118,18 +270,37 @@
             this.sidebar = $('#s-sidebar');
             this.id = options.id || 0;
 
+            this.container.on('append_order_list', function () {
+                $("#s-orders [data-wa-tooltip-content]").waTooltip();
+            })
+
             if (options.orders && options.orders.length && options.view) {
                 try {
                     // template variants:
                     // template-order-list-table
                     // template-order-list-split
-                    this.container.append(
-                        tmpl('template-order-list-' + this.options.view, {
-                            orders: options.orders
-                        }, true
-                    ));
+                    // template-order-list-kanban
+                    if (this.options.view == 'kanban') {
+                        // kanban does not use JS templating, append HTML as is
+                        this.container.html(
+                            $('#template-order-list-kanban')[0].innerHTML
+                                .replace(/<\\\//g, '</')
+                        );
+                    } else {
+                        this.container.append(
+                            tmpl('template-order-list-' + this.options.view, {
+                                    orders: options.orders,
+                                    states: options.state_names || {}
+                                }, true
+                            ));
+                    }
                     this.container.trigger('append_order_list', [options.orders]);
                 } catch (e) {
+                    $.shop.notification({
+                        class: 'danger',
+                        content: `Error: ${e.message}`
+                    })
+
                     if (console) {
                         console.log(e.stack);
                     }
@@ -153,7 +324,7 @@
 
             if (options.sort && options.sort[0]) {
                 options.sort[0] = '' + options.sort[0];
-                var available_sort_values = $('#s-orders-sort .s-sort').map(function () {
+                var available_sort_values = $('.js-orders-sort .s-sort').map(function () {
                     var sort = $(this).data('sort') || '';
                     return sort ? sort : false;
                 }).toArray();
@@ -164,111 +335,119 @@
                 options.sort[1] = options.sort[1].toLowerCase() === 'desc' ? 'desc' : 'asc';
                 this.sort = options.sort;
             }
-
+            this.ordersNavTeleport();
             this.initView();
+            this.selectionMenuTeleport();
         },
 
-        initLazyLoad: function(options) {
+        initLazyLoad: function (options) {
+            if (this.options.view === 'kanban') return;
+
             var self = this;
             var count = self.options.count;
             var total_count = self.options.total_count;
+            var intersectionObserver = null;
+            var targetObserveable = null;
+            var $order_list = $('#s-orders');
 
-            var win = $(window);
+            $order_list.on('touchstart', function () {
+                $("body").css({overflow: "hidden"})
+                $(this).children('.sidebar-body').css({overflow: "auto"});
+                setTimeout(()  => {
+                    $("body").css({overflow: "auto"})
+                })
+            });
 
-            win.lazyLoad('stop');
-            if (count < total_count) {
-                win.lazyLoad({
-                    container: this.options.view ? self.container : win,
-                    state: (typeof options.auto === 'undefined' ? true: options.auto) ? 'wake' : 'stop',
-                    hash: ['orders', ''],   // ['', 'orders']
-                    load: function() {
-                        win.lazyLoad('sleep');
-                        $('.lazyloading-link').hide();
-                        $('.lazyloading-progress').show();
-                        var last_li = self.container.find('.order:last');
-                        var id = parseInt(last_li.attr('data-order-id'), 10);
-                        if (!id) {
-                            console.log("Unkown last item");
-                            win.lazyLoad('stop');
-                            return;
-                        }
-                        var process = function() {
-                            return $.getJSON(self.buildLoadListUrl(id),
-                                    function (r) {
+            $order_list.off('click', '.lazyloading-link').on('click', '.lazyloading-link', function () {
+                    fetch();
+                    return false;
+                }
+            );
 
-                                        if (r.status == 'ok') {
-                                            try {
-                                                self.container.append(
-                                                    tmpl('template-order-list-' + self.options.view, {
-                                                        orders: r.data.orders,
-                                                        check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
-                                                    }
-                                                ));
-                                                self.container.trigger('append_order_list', [r.data.orders]);
-                                                var order = self.container.find('[data-order-id='+self.options.id+']');
-                                                if (order.length) {
-                                                    self.container.find('.selected').removeClass('selected');
-                                                    self.container.find('[data-order-id='+self.options.id+']').addClass('selected');
-                                                }
-                                            } catch (e) {
-                                                if (console) {
-                                                    console.log(e.stack);
-                                                }
-                                                win.lazyLoad('stop');
-                                                return;
-                                            }
+            function observe () {
+                intersectionObserver = new IntersectionObserver((entries) => {
+                    if (entries[0].intersectionRatio <= 0) return;
 
-                                            $('.lazyloading-progress-string').text(r.data.progress.loaded + ' ' + r.data.progress.of);
-                                            $('.lazyloading-progress').hide();
-                                            $('.lazyloading-chunk').text(r.data.progress.chunk);
+                    console && console.log('observe:load');
+                    if (count < total_count) {
+                        fetch();
+                    }
+                });
 
-                                            if (r.data.loaded >= r.data.total_count) {
-                                                win.lazyLoad('stop');
-                                                $('.lazyloading-link').hide();
-                                            } else {
-                                                $('.lazyloading-link').show();
-                                                win.lazyLoad('wake');
-                                            }
-                                        } else {
-                                            if (console) {
-                                                console.log('Error when loading orders: ' + r.errors);
-                                            }
-                                            win.lazyLoad('stop');
+                targetObserveable = self.container.find('.order:last').get(0);
+                targetObserveable && intersectionObserver.observe(targetObserveable);
+            }
+            observe();
+
+            function fetch() {
+                var last_li = self.container.find('.order:last');
+                var id = parseInt(last_li.attr('data-order-id'), 10);
+                if (!id) {
+                    console.log("Unknown last item");
+                    return;
+                }
+
+                $('.lazyloading-link').hide();
+                $('.lazyloading-progress').show();
+
+                $.getJSON(self.buildLoadListUrl(id), function (r) {
+                        if (r.status == 'ok') {
+                            try {
+                                self.container.append(
+                                    tmpl('template-order-list-' + self.options.view, {
+                                            orders: r.data.orders,
+                                            states: self.options.state_names || {},
+                                            check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
                                         }
-                                    }
-                                ).error(function(r) {
-                                    if (console) {
-                                        if (r && r.errors) {
-                                            console.log('Error when loading orders: ' + r.errors);
-                                        } else if (r) {
-                                            console.log(r);
-                                        } else {
-                                            console.log('Error when loading orders');
-                                        }
-                                    }
-                                    win.lazyLoad('stop');
-                                });
-                        };
-                        if (self.xhrs.update_load === null) {
-                            self.xhrs.lazy_load = process();
+                                    ));
+                                self.container.trigger('append_order_list', [r.data.orders]);
+                                var order = self.container.find('[data-order-id=' + self.options.id + ']');
+                                if (order.length) {
+                                    self.container.find('.selected').removeClass('selected');
+                                    self.container.find('[data-order-id=' + self.options.id + ']').addClass('selected');
+                                }
+                            } catch (e) {
+                                if (console) {
+                                    console.log(e.stack);
+                                }
+                                return;
+                            }
+
+                            targetObserveable && intersectionObserver.unobserve(targetObserveable);
+
+                            $('.lazyloading-progress-string').text(r.data.progress.loaded + ' ' + r.data.progress.of);
+                            $('.lazyloading-progress').hide();
+                            $('.lazyloading-chunk').text(r.data.progress.chunk);
+
+                            if (r.data.loaded >= r.data.total_count) {
+                                $('.lazyloading-link').hide();
+                            } else {
+                                $('.lazyloading-link').show();
+                                targetObserveable = self.container.find('.order:last').get(0);
+                                targetObserveable && intersectionObserver.observe(targetObserveable);
+                            }
+
                         } else {
-                            self.xhrs.update_load.then(function() {
-                                self.xhrs.lazy_load = process();
-                            });
+                            if (console) {
+                                console.log('Error when loading orders: ' + r.errors);
+                            }
+                        }
+                    }
+                ).error(function (r) {
+                    if (console) {
+                        if (r && r.errors) {
+                            console.log('Error when loading orders: ' + r.errors);
+                        } else if (r) {
+                            console.log(r);
+                        } else {
+                            console.log('Error when loading orders');
                         }
                     }
                 });
-                $('#s-orders').off('click', '.lazyloading-link').
-                    on('click', '.lazyloading-link', function() {
-                        win.lazyLoad('force');
-                        return false;
-                    }
-                );
-                this.lazy_load_win = win;
             }
         },
 
-        initView: function() {
+        initView: function () {
             var that = this;
 
             this.initSortMenu();
@@ -278,19 +457,22 @@
                 this.initSelecting();
             }
             if (this.options.id) {
+                $.order_list.touched = $.shop.helper.isMobile();
                 this.loadOrder(this.options.id);
             }
             var orders_view_ul = $('#s-orders-views');
+            var order_nav = $('#s-order-nav');
             orders_view_ul.find('li.selected').removeClass('selected');
-            orders_view_ul.find('li[data-view="'+this.options.view+'"]').addClass('selected');
-            orders_view_ul.find('li a').each(function() {
+            orders_view_ul.find('li[data-view="' + this.options.view + '"]').addClass('selected');
+            order_nav.attr('data-view-mode', this.options.view);
+            orders_view_ul.find('li a').each(function () {
                 var self = $(this);
                 var li = $(this).parents('li:first');
-                self.attr('href', '#/orders/view=' + li.attr('data-view') + ($.order_list.options.filter_params_str ? '&'+$.order_list.options.filter_params_str : '') + '/');
+                self.attr('href', '#/orders/view=' + li.attr('data-view') + ($.order_list.options.filter_params_str ? '&' + $.order_list.options.filter_params_str : '') + '/');
             });
 
 
-            var performAction = function(action_id, selected_orders, onFinish) {
+            var performAction = function (action_id, selected_orders, onFinish) {
 
                 // ensure that we load chunk of order list to common list of orders
                 var ensureOrderListChunkLoaded = function () {
@@ -353,7 +535,7 @@
 
                     var showEmptyListHtml = function () {
                         if (!that.container.find('.order:not(:hidden):first').length) {
-                            var html = '<div class="block double-padded align-center blank"><br><br><br><br><span class="gray large">'+$_("There are no orders in this view.")+'</span><div class="clear-left"></div></div></div>';
+                            var html = '<div class="block double-padded align-center blank"><br><br><br><br><span class="gray large">' + $_("There are no orders in this view.") + '</span><div class="clear-left"></div></div></div>';
                             $('#s-content').html(html);
                         }
                     };
@@ -373,7 +555,7 @@
                     }
 
                     if (!$.isEmptyObject(ids)) {
-                        that.hideListItems(ids).done(function() {
+                        that.hideListItems(ids).done(function () {
                             showEmptyListHtml();
                             def.resolve();
                         });
@@ -416,16 +598,16 @@
                     return def;
                 };
 
-                var step = function(offset, onFinish) {
+                var step = function (offset, onFinish) {
                     offset = offset || 0;
 
                     $.shop.jsonPost(
                         '?module=orders&action=performAction' +
-                            '&id='+action_id +
-                            '&offset=' + offset +
-                            '&' + that.options.filter_params_str,
+                        '&id=' + action_id +
+                        '&offset=' + offset +
+                        '&' + that.options.filter_params_str,
                         selected_orders,
-                        function(r) {
+                        function (r) {
                             if (r.status === 'ok') {
                                 eachStep(r).done(function () {
                                     if (r.data.offset < r.data.total_count) {
@@ -453,7 +635,7 @@
                                 action_id = $item.data("action-id");
 
                             // disabled menu item
-                            if ($item.hasClass('s-disabled')) {
+                            if ($item.hasClass('disabled')) {
                                 return;
                             }
 
@@ -465,18 +647,18 @@
                     );
             }
 
-            function onActionClick( action_id ) {
+            function onActionClick(action_id) {
 
                 var selected_orders = $.order_list.getSelectedOrders();
 
                 var perform = function () {
 
-                    that.$selectionMenu.addClass('s-disabled');
+                    that.$selectionMenu.addClass('disabled');
                     that.$selectionMenu.find('.js-selection-menu-loading').show();
                     that.select_all_input.attr('disabled', true);
 
                     performAction(action_id, selected_orders, function () {
-                        that.$selectionMenu.removeClass('s-disabled');
+                        that.$selectionMenu.removeClass('disabled');
                         that.$selectionMenu.find('.js-selection-menu-loading').hide();
                         that.select_all_input.removeAttr('disabled');
                         that.select_all_input.trigger('select', false);
@@ -496,39 +678,42 @@
 
         },
 
-        loadOrder: function(order_id) {
+        loadOrder: function (order_id) {
+            if ($.shop.helper.isMobile() && !$.order_list.touched) {
+                return;
+            }
             this.container.find('.selected').removeClass('selected');
             this.container.find('[data-order-id=' + order_id + ']').addClass('selected');
 
-            var order_title = $('#s-order-title');
-            order_title.find('.loading').show();
             $.orders.load(
                 '?module=order&id= ' + order_id + '&' + this.filter_params_str,
-                { content: $('#s-order') },
-                function() {
+                {content: $('#s-order')},
+                function () {
                     this.id = order_id;
+                    $(window).trigger('wa_loaded', [['split', 'kanban']]);
+                    $('#order-list').trigger('orderMobile', [order_id]);
                 }
             );
         },
 
-        getSelectedOrders: function(serialize) {
+        getSelectedOrders: function (serialize) {
             serialize = serialize || false;
-            var data = { count: 0, all: false };
+            var data = {count: 0, all: false};
             if (this.select_all_input.attr('checked')) {
                 data.all = true;
                 var filter_params = $.order_list.filter_params;
                 if (serialize) {
                     data.serialized = [];
                     if ($.isEmptyObject(filter_params)) {
-                        data.serialized.push({ name: 'filter_params', value: '' });
+                        data.serialized.push({name: 'filter_params', value: ''});
                     } else {
                         $.each(filter_params, function (key, value) {
                             if ($.isArray(value)) {
                                 $.each(value, function (k, v) {
-                                    data.serialized.push({ name: 'filter_params[' + key + '][' + k + ']', value: v });
+                                    data.serialized.push({name: 'filter_params[' + key + '][' + k + ']', value: v});
                                 });
                             } else {
-                                data.serialized.push({ name: 'filter_params[' + key + ']', value: value });
+                                data.serialized.push({name: 'filter_params[' + key + ']', value: value});
                             }
                         });
                     }
@@ -538,12 +723,12 @@
                 data.count = this.options.total_count;
             } else {
                 if (serialize) {
-                    data.serialized = $.order_list.container.find('.order.selected').map(function() {
+                    data.serialized = $.order_list.container.find('.order.selected').map(function () {
                         data.count += 1;
-                        return { name: 'order_id[]', value: $(this).attr('data-order-id') };
+                        return {name: 'order_id[]', value: $(this).attr('data-order-id')};
                     }).toArray();
                 } else {
-                    data.order_id = $.order_list.container.find('.order.selected').map(function() {
+                    data.order_id = $.order_list.container.find('.order.selected').map(function () {
                         data.count += 1;
                         return $(this).attr('data-order-id');
                     }).toArray();
@@ -553,84 +738,94 @@
         },
 
         initSortMenu: function () {
+            const that = this;
 
-            var $menu = $('#s-orders-sort');
+            const $sort = $('.js-orders-sort');
+            const $dropdownSkeleton = $sort.find('.js-sort-dropdown-skeleton');
+            const $dropdown = $sort.find('.js-sort-dropdown');
+            let dropdownData;
 
             // update ui menu helper
-            var update = function (sort, change_hash) {
-                var sort_field = sort[0];
-                var sort_order = sort[1];
-                var text = $('.s-sort[data-sort="' + sort_field + '"] a', $menu).text();
-                $menu.find('.s-current-sort').data('sort', sort_field);
-                $menu.find('.s-current-sort').data('order', sort_order);
-                $menu.find('.s-current-sort .f-text').text(text);
-                $menu.find('.s-sort-order').hide().filter('[data-order="' + sort_order + '"]').show();
-                if (change_hash) {
+            const update = (sort, change_hash) => {
+                const [sort_field, sort_order] = sort;
 
-                    var hash = window.location.hash || '';
+                dropdownData.$button.data('sort', sort_field);
+                dropdownData.$button.data('order', sort_order);
 
-                    hash = hash.replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
-
-                    if (!hash.split('/')[1]) {
-                        hash = '#/orders/state_id=new|processing|auth|paid'
-                    }
-
-                    // clear hash, delete substring like sort[0]=foo and sort[1]=bar
-                    hash = hash.replace(/(&*sort\[[01]\]=.*?[&\/]|&*sort\[[01]\]=.*?$)/g, '');
-
-                    // check if exists any params in hash
-                    var params_tail_exists = hash.indexOf('=') > 0;
-
-                    if (params_tail_exists) {
-                        // delete / and & in the end of hash
-                        hash = hash.replace(/[\/&]$/, '');
-                    }
-                    // append new sort params
-                    hash += (params_tail_exists ? '&' : '') + 'sort[0]=' + sort_field + '&sort[1]=' + sort_order + '/';
-
-                    // update page
-                    $.wa.setHash(hash);
-
+                if (!change_hash) {
+                    return;
                 }
+
+                let hash = window.location.hash || '';
+                hash = hash.replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
+
+                if (!hash.split('/')[1]) {
+                    hash = '#/orders/state_id=new|processing|auth|paid'
+                }
+
+                // clear hash, delete substring like sort[0]=foo and sort[1]=bar
+                hash = hash.replace(/(&*sort\[[01]\]=.*?[&\/]|&*sort\[[01]\]=.*?$)/g, '');
+
+                // check if exists any params in hash
+                const params_tail_exists = hash.indexOf('=') > 0;
+
+                if (params_tail_exists) {
+                    // delete / and & in the end of hash
+                    hash = hash.replace(/[\/&]$/, '');
+                }
+                // append new sort params
+                hash += (params_tail_exists ? '&' : '') + 'sort[0]=' + sort_field + '&sort[1]=' + sort_order + '/';
+
+                // update page
+                $.wa.setHash(hash);
             };
 
-            update(this.sort);
-
             // prevent binding events twice, cause menu item located in layout block and it isn't updated when inner content changed
-            if (!$menu.data('inited')) {
+            if (!dropdownData) {
+                $dropdown.waDropdown({
+                    items: '.menu > li > a',
+                    ready(dropdown) {
+                        dropdownData = dropdown;
+                        dropdown.setValue('sort', that.sort[0]);
+                    },
+                    change(event, element, dropdown) {
+                        const el = $(element);
+                        const data = dropdown.$button.data();
+                        let sort_field = data.sort;
+                        let sort_order = data.order;
 
-                // when click to option click, change sort and order
-                $menu.find('.s-sort a').click(function () {
-                    var el = $(this);
-                    var data = $menu.find('.s-current-sort').data();
-                    var sort_field = data.sort;
-                    var sort_order = data.order;
-                    if (el.data('sort') === sort_field) {
-                        sort_order = sort_order === 'desc' ? 'asc' : 'desc';
-                    } else {
-                        sort_field = el.data('sort');
-                        sort_order = 'desc';
+                        if (el.data('sort') === sort_field) {
+                            sort_order = sort_order === 'desc' ? 'asc' : 'desc';
+                        } else {
+                            sort_field = el.data('sort');
+                            sort_order = 'desc';
+                        }
+
+                        el.find(`.${sort_order}`).removeClass('hidden').siblings('.count').addClass('hidden')
+                        dropdown.$button.find(`.${sort_order}`).removeClass('hidden').siblings('.count').addClass('hidden')
+
+                        update([sort_field, sort_order], true);
                     }
-                    update([sort_field, sort_order], true);
                 });
-
-                $menu.data('inited', 1);
             }
+
+            $dropdown.removeClass('hidden');
+            $dropdownSkeleton.addClass('hidden');
         },
 
-        initSidebar: function() {
+        initSidebar: function () {
             var sidebar = this.sidebar;
 
             // Replace list view type in all links in sidebar
             var view = this.options.view;
-            sidebar.find('li.list a').each(function() {
+            sidebar.find('.bricks a').each(function () {
                 var item = $(this);
                 var href = item.attr('href');
                 var match = href.match(/view=((.*)&|(.*)\/|(.*))/);
                 if (match) {
-                    item.attr('href', href.replace('view='+(match[2]||match[3]||match[4]), 'view='+view));
-                } else if ( ( match = href.match(/^#\/orders\/hash\/(.*?)\/?$/))) {/* */
-                    item.attr('href', '#/orders/view='+view +'&hash='+encodeURIComponent(match[1])+'/');
+                    item.attr('href', href.replace('view=' + (match[2] || match[3] || match[4]), 'view=' + view));
+                } else if ((match = href.match(/^#\/orders\/hash\/(.*?)\/?$/))) {/* */
+                    item.attr('href', '#/orders/view=' + view + '&hash=' + encodeURIComponent(match[1]) + '/');
                 } else {
                     match = href.match(/orders\/((.*)\/|(.*))/);
                     var chunk = '';
@@ -647,28 +842,28 @@
             });
 
             // Change active list view selection
-            var $prev_li_selected = sidebar.find('li.selected').removeClass('selected');
+            var $prev_li_selected = sidebar.find('.selected').removeClass('selected');
             if (this.filter_params.state_id) {
                 // Highlight a state
                 if ($.isArray(this.filter_params.state_id)) {
                     $('#s-pending-orders').addClass('selected');
                 } else {
-                    sidebar.find('li[data-state-id="'+this.filter_params.state_id+'"]').addClass('selected');
+                    sidebar.find('[data-state-id="' + this.filter_params.state_id + '"]').addClass('selected');
                 }
             } else if (this.filter_params.contact_id) {
-                sidebar.find('li[data-contact-id='+this.filter_params.contact_id+']').addClass('selected');
+                sidebar.find('[data-contact-id=' + this.filter_params.contact_id + ']').addClass('selected');
             } else if (this.filter_params.storefront) {
                 // Highlight storefront
                 var decoded_url = decodeURIComponent(this.filter_params.storefront);
                 if (decoded_url.slice(-1) === '/') {
                     decoded_url = decoded_url.slice(0, -1);
                 }
-                sidebar.find('li[data-storefront="'+decoded_url+'"]').addClass('selected');
+                sidebar.find('[data-storefront="' + decoded_url + '"]').addClass('selected');
             } else if (!$.order_list.filter_params_str) {
                 $('#s-all-orders').addClass('selected');
             } else {
                 // Do our best to highlight based on hash match
-                var $li = sidebar.find('[href="'+window.location.hash+'"]:first').closest('li').addClass('selected');
+                var $li = sidebar.find('[href="' + window.location.hash + '"]:first').closest('li').addClass('selected');
 
                 // When everything failed, leave the old selection
                 if (!$li.length) {
@@ -676,10 +871,14 @@
                 }
             }
 
-            sidebar.find('li.list a').unbind('click.order_list').bind('click.order_list', function() {
+            sidebar.find('.js-orders-link').unbind('click.order_list').bind('click.order_list', function () {
                 // Highlight link in sidebar right avay after a click to be responsive.
-                sidebar.find('li.selected').removeClass('selected');
-                $(this).closest('li').addClass('selected');
+                sidebar.find('.selected').removeClass('selected');
+                if ($(this).hasClass('brick')) {
+                    $(this).addClass('selected');
+                } else {
+                    $(this).closest('li').addClass('selected');
+                }
 
                 // Reload view even if user clicked on the active link again
                 var hash = $(this).attr('href').replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
@@ -697,7 +896,7 @@
          * Update UI enable/disable statuses of selection menu items by workflow states
          * @param {Array|String} state_id One or list of workflow states available now
          */
-        updateSelectionMenuActionItemsByStates: function(state_id) {
+        updateSelectionMenuActionItemsByStates: function (state_id) {
             var that = this;
 
             // state_ids, typecast input argument
@@ -714,7 +913,7 @@
             var $action_items = that.$selectionMenu.find('.wf-actions .js-wf-action-item');
 
             // all items disabled at beginning
-            $action_items.addClass('s-disabled');
+            $action_items.addClass('disabled');
 
             // state_id => [action_id]
             var enabled_states_actions = {};
@@ -748,21 +947,21 @@
                 var $enabled_items = $action_items.filter(function () {
                     return $.inArray($(this).data('actionId'), enable_actions) > -1;
                 });
-                $enabled_items.removeClass('s-disabled');
+                $enabled_items.removeClass('disabled');
             }
         },
 
-        enableAllSelectionMenuActionItems: function() {
+        enableAllSelectionMenuActionItems: function () {
             var that = this;
-            that.$selectionMenu.find('.wf-actions .js-wf-action-item').removeClass('s-disabled');
+            that.$selectionMenu.find('.wf-actions .js-wf-action-item').removeClass('disabled');
         },
 
-        disableAllSelectionMenuActionItems: function() {
+        disableAllSelectionMenuActionItems: function () {
             var that = this;
-            that.$selectionMenu.find('.wf-actions .js-wf-action-item').addClass('s-disabled');
+            that.$selectionMenu.find('.wf-actions .js-wf-action-item').addClass('disabled');
         },
 
-        initSelecting: function() {
+        initSelecting: function () {
             var that = this,
                 container = this.container,
                 select_all_input = this.select_all_input;
@@ -773,19 +972,19 @@
                 that.updateSelectionMenuActionItemsByStates(that.filter_params.state_id);
             }
 
-            select_all_input.click(function() {
+            select_all_input.click(function () {
                 $(this).trigger('select', this.checked);
             });
 
 
             // Hide action panel if user open other window
-            $(window).one('wa_before_dispatched',function (e) {
+            $(window).one('wa_before_dispatched', function (e) {
                 that.$selectionMenu.hide();
             });
 
             that.xhrs.printforms = null;
 
-            var renderPrintforms = function(data) {
+            var renderPrintforms = function (data) {
                 var html = tmpl('template-order-list-printforms-menu-items', data);
                 var $ul = that.$selectionMenu.find('.wf-actions');
                 $ul.find('.s-printform-item,.s-printform-item-sep,.s-printform-item-button').remove();
@@ -793,26 +992,31 @@
             };
 
             // when 'shift' held on prevent default browser selecting
-            $(document).keydown(function(e) {
+            $(document).keydown(function (e) {
                 if (e.keyCode == 16 && !$(e.target).closest('.redactor-box').length) {
-                    document.body.onselectstart = function() { return false; };
+                    document.body.onselectstart = function () {
+                        return false;
+                    };
                 }
-            }).keyup(function(e) {
+            }).keyup(function (e) {
                 if (e.keyCode == 16) {
                     document.body.onselectstart = null;
                 }
             });
 
-            var onSelectItem = function() {
+            var onSelectItem = function () {
 
                 var $table = $('#order-list'),
                     is_all_selected = select_all_input.attr("checked"),
-                    is_one_selected = ( $table.find('.order.selected:first').length ),
+                    is_one_selected = ($table.find('.order.selected:first').length),
                     is_selected = is_all_selected || is_one_selected;
 
                 // guard case - hide menu and this just it
                 if (!is_selected) {
                     that.$selectionMenu.hide();
+                    if (that.$search_form) {
+                        that.$search_form.show();
+                    }
                     return;
                 }
 
@@ -820,6 +1024,9 @@
 
                 // first of all show menu
                 that.$selectionMenu.show();
+                if (that.$search_form) {
+                    that.$search_form.hide();
+                }
 
                 // current list of order states (null means not defined for some reason)
                 var state_ids = null;
@@ -836,7 +1043,7 @@
                     // Extract all state ids from DOM items
                     // Not so effective solution, but simple to understand
                     // For example effective solution could be: keep track { state_id => count } map to dynamically has all "selected" state ids in current moment
-                    state_ids = that.container.find('.order.selected').map(function() {
+                    state_ids = that.container.find('.order.selected').map(function () {
                         return $(this).data('stateId');
                     }).toArray();
                 }
@@ -852,14 +1059,14 @@
             };
 
             // handler of triggerable 'select' event
-            container.off('select', '.order').on('select', '.order', function(e, selected) {
+            container.off('select', '.order').on('select', '.order', function (e, selected) {
                 selected = selected !== undefined ? selected : true;
                 if (selected) {
-                    $(this).addClass('selected').find('input:first').attr('checked', true);
+                    $(this).addClass('selected').find('input:first').attr('checked', true).prop('checked', true);
                 } else {
-                    $(this).removeClass('selected').find('input:first').attr('checked', false);
+                    $(this).removeClass('selected').find('input:first').attr('checked', false).prop('checked', false);
                     if (select_all_input.is(':checked')) {
-                        select_all_input.attr('checked', false);
+                        select_all_input.attr('checked', false).prop('checked', false);
                     }
                 }
                 onSelectItem();
@@ -895,7 +1102,7 @@
                 );
             };
 
-            select_all_input.unbind('select').bind('select', function(e, selected) {
+            select_all_input.unbind('select').bind('select', function (e, selected) {
                 selected = selected !== undefined ? selected : true;
                 var self = $(this);
                 if (selected) {
@@ -908,7 +1115,7 @@
                 loadPrintforms();
             });
 
-            container.off('click', '.order input').on('click', '.order input', function(e) {
+            container.off('click', '.order input').on('click', '.order input', function (e) {
                 var shiftKey = e.shiftKey,
                     checked = this.checked;
                 var self = $(this).parents('.order:first');
@@ -929,7 +1136,7 @@
                     }
 
                     // try find started before current
-                    var found = self.prevAll('.selected[data-order-id='+started.attr('data-order-id')+']');
+                    var found = self.prevAll('.selected[data-order-id=' + started.attr('data-order-id') + ']');
                     var item;
                     if (found.length) {
                         item = self.prev();
@@ -939,7 +1146,7 @@
                             item = item.prev();
                         }
                     } else {
-                        found = self.nextAll('.selected[data-order-id='+started.attr('data-order-id')+']');
+                        found = self.nextAll('.selected[data-order-id=' + started.attr('data-order-id') + ']');
                         if (found.length) {
                             item = self.next();
                             started = started.get(0);
@@ -961,7 +1168,7 @@
 
             });
 
-            var printPrintforms = function(printforms, selected_orders) {
+            var printPrintforms = function (printforms, selected_orders) {
 
                 var limit = 100;
                 if (selected_orders.count > limit) {
@@ -1020,7 +1227,7 @@
 
         },
 
-        updateTitle: function(title_suffix, count) {
+        updateTitle: function (title_suffix, count) {
             count = parseInt(count, 10) || 0;
 
             // context is mentioned in title
@@ -1029,7 +1236,7 @@
                 if (this.filter_params.state_id) {
                     if (typeof this.filter_params.state_id === 'string') {
                         var state_id = this.filter_params.state_id;
-                        context = this.options.state_names[state_id];
+                        context = this.options.state_names[state_id]['name'];
                     } else if ($.isArray(this.filter_params.state_id)) {
                         context = $_('Processing');
                     }
@@ -1059,7 +1266,7 @@
          * }
          *
          */
-        updateCounters: function(counters) {
+        updateCounters: function (counters) {
             var sidebar = this.sidebar;
             if (!sidebar) {
                 sidebar = $('#s-sidebar');
@@ -1075,9 +1282,9 @@
                                 item = $('#s-' + id + '-orders .count');
                             } else {
                                 if (name === 'storefront_counters') {
-                                    item = sidebar.find('li[data-'+name.replace('_counters', '')+'="'+id+'"] .count');
+                                    item = sidebar.find('li[data-' + name.replace('_counters', '') + '="' + id + '"] .count');
                                 } else {
-                                    item = sidebar.find('li[data-'+name.replace('_counters', '')+'-id='+id+'] .count');
+                                    item = sidebar.find('li[data-' + name.replace('_counters', '') + '-id=' + id + '] .count');
                                 }
                             }
                             var prev_cnt = parseInt(item.text(), 10) || 0;
@@ -1105,46 +1312,52 @@
             }
         },
 
-        updateListItems: function(data) {
+        updateListItems: function (data) {
+            if (this.options.view === 'kanban') {
+                return; // not used for kanban
+            }
+
             var self = this;
-            var tmpl_name = 'template-order-list-'+this.options.view;
+            var tmpl_name = 'template-order-list-' + this.options.view;
             if (document.getElementById(tmpl_name)) {
                 var container = this.container;
                 if (!$.isArray(data)) {
                     data = [data];
                 }
+
                 var rendered = $('<div></div>').append(tmpl(tmpl_name, {
                     orders: data,
+                    states: self.options.state_names,
                     check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
                 }));
                 var context = $('.order', container);
-                $('.order', rendered).each(function() {
+                $('.order', rendered).each(function () {
                     var item = $(this);
-                    context.filter('[data-order-id='+item.attr('data-order-id')+']').replaceWith(item);
+                    context.filter('[data-order-id=' + item.attr('data-order-id') + ']').replaceWith(item);
                 });
                 rendered.remove();
                 self.container.trigger('append_order_list', [data]);
             }
         },
 
-        hideListItems: function(id) {
+        hideListItems: function (id) {
             // deffered fiber
             var d = $.Deferred();
-            setTimeout(function() {
+            setTimeout(function () {
                 if ($.order_list && $.order_list.container && $.order_list.container.length) {
                     if (!$.isArray(id)) {
-                        var items = $.order_list.container.find('.order[data-order-id='+id+']');
+                        var items = $.order_list.container.find('.order[data-order-id=' + id + ']');
                     } else {
                         var context = $.order_list.container.find('.order');
                         var items = $();
                         for (var i = 0; i < id.length; i++) {
-                            var item = context.filter('[data-order-id='+id[i]+']');
+                            var item = context.filter('[data-order-id=' + id[i] + ']');
                             items = items.add(item);
                         }
                     }
                     var length = items.length;
                     var count = 0;
-                    items.slideUp(450, function() {
+                    items.slideUp(450, function () {
                         count++;
                         if (count >= length) {
                             d.resolve();
@@ -1155,18 +1368,19 @@
             return d.promise();
         },
 
-        dispatch: function(params, hard) {
+        dispatch: function (params, hard) {
             if (typeof params === 'string') {
                 params = $.shop.helper.parseParams(params);
             }
             var loaders = {
-                list: function() {
+                list: function () {
                     $.order_list.finit();
-                    $.orders.load('?module=orders&' + $.orders.buildOrdersUrlComponent(params), function() {
+                    $.orders.load('?module=orders&' + $.orders.buildOrdersUrlComponent(params), function () {
                         $.order_list.dispatch(params);
+                        $(window).trigger('wa_loaded', [['table']]);
                     });
                 },
-                order: function() {
+                order: function () {
                     $.order_list.loadOrder(params.id);
                 }
             };
@@ -1191,7 +1405,7 @@
             }
         },
 
-        diff: function(params1, params2) {
+        diff: function (params1, params2) {
             for (var name in params1) {
                 if (!params1.hasOwnProperty(name) || name == 'id') {
                     continue;
@@ -1207,23 +1421,25 @@
          * @param {Number} id
          * @param {Boolean} lt (less than order with id, i.e. new orders). Default: falsy
          * @param {Boolean} counters (load list counters). Default: falsy
+         * @param {String} order_update_datetime (load list updated orders). Default: falsy
          * @returns {String}
          */
-        buildLoadListUrl: function(id, lt, counters) {
+        buildLoadListUrl: function (id, lt, counters, order_update_datetime = '') {
             return '?module=orders&action=loadList&id=' + id +
                 (this.filter_params_str ? '&' + this.filter_params_str : '') +
                 (lt ? '&lt=1' : '') +
                 (counters ? '&counters=1' : '') +
-                (this.options.view ? '&view='+this.options.view : '') +
+                (this.options.view ? '&view=' + this.options.view : '') +
+                ((order_update_datetime != '') ? '&search=update_datetime>=' + order_update_datetime : '') +
                 ('&sort[0]=' + this.sort[0] + '&sort[1]=' + this.sort[1]);
         },
 
-        updateProcess: function(status, options) {
+        updateProcess: function (status, options) {
             status = status || 'run';
             options = options || {};
             timeout = options.timeout || 60000;
             var self = this;
-            var killProcess = function() {
+            var killProcess = function () {
                 if (self.timer_id !== null) {
                     clearTimeout(self.timer_id);
                     self.timer_id = null;
@@ -1236,68 +1452,175 @@
             killProcess();
 
             if (status == 'run') {
-                var process = function(success, error) {
+                var process = function (success, error) {
                     var first_li = self.container.find('.order:first');
                     var id = parseInt(first_li.attr('data-order-id'), 10) || 0;
-                    return $.getJSON(self.buildLoadListUrl(id, true, true),
-                            function (r) {
-                                if (r.status == 'ok') {
-                                    if (!$.isEmptyObject(r.data.counters)) {
-                                        self.updateCounters(r.data.counters);
-                                    }
 
-                                    if (r.data.count) {
-                                        try {
-                                            self.container.prepend(
-                                                tmpl('template-order-list-' + self.options.view, {
+                    process_order_update(id);
+
+                    return $.getJSON(self.buildLoadListUrl(id, true, true),
+                        function (r) {
+                            if (r.status == 'ok') {
+                                if (!$.isEmptyObject(r.data.counters)) {
+                                    self.updateCounters(r.data.counters);
+                                }
+
+                                if (r.data.count) {
+                                    try {
+                                        self.container.prepend(
+                                            tmpl('template-order-list-' + self.options.view, {
                                                     orders: r.data.orders,
+                                                    states: self.options.state_names || {},
                                                     check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
                                                 }
                                             ));
-                                            $('.lazyloading-progress-string').text(r.data.progress.loaded + ' ' + r.data.progress.of);
-                                            self.container.trigger('append_order_list', [r.data.orders]);
-                                        } catch (e) {
-                                            if (console) {
-                                                console.log('Error: ' + e.message);
-                                                error();
-                                            }
-                                            return;
+                                        $('.lazyloading-progress-string').text(r.data.progress.loaded + ' ' + r.data.progress.of);
+                                        self.container.trigger('append_order_list', [r.data.orders]);
+                                    } catch (e) {
+                                        if (console) {
+                                            console.log('Error: ' + e.message);
+                                            error();
                                         }
-                                    }
-                                    if (typeof success === 'function') {
-                                        success(r);
-                                    }
-                                } else {
-                                    if (console) {
-                                        console.log('Error when loading new orders: ' + r.errors);
-                                    }
-                                    if (typeof error === 'function') {
-                                        error();
+                                        return;
                                     }
                                 }
-                            }
-                        ).error(function(r) {
-                            if (console) {
-                                if (r && r.errors) {
+                                if (typeof success === 'function') {
+                                    success(r);
+                                }
+                            } else {
+                                if (console) {
                                     console.log('Error when loading new orders: ' + r.errors);
-                                } else {
-                                    console.log(['Error when loading new orders', r]);
+                                }
+                                if (typeof error === 'function') {
+                                    error();
                                 }
                             }
-                            if (typeof error === 'function') {
-                                error();
+                        }
+                    ).error(function (r) {
+                        if (console) {
+                            if (r && r.errors) {
+                                console.log('Error when loading new orders: ' + r.errors);
+                            } else {
+                                console.log(['Error when loading new orders', r]);
                             }
-                        });
+                        }
+                        if (typeof error === 'function') {
+                            error();
+                        }
+                    });
                 };
-                var runProcess = function() {
-                    self.timer_id = setTimeout(function() {
-                        var pr = function() {
+
+                var process_order_update = function (id) {
+                    // Получить текущую дату и время
+                    const currentDate = new Date();
+
+                    // Вычесть интервал обновления
+                    currentDate.setTime(currentDate.getTime() - timeout);
+
+                    // Год, месяц и день в нужном формате
+                    const year = currentDate.getFullYear();
+                    const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
+                    const day = ('0' + currentDate.getDate()).slice(-2);
+
+                    // Часы, минуты и секунды в нужном формате
+                    const hours = ('0' + currentDate.getHours()).slice(-2);
+                    const minutes = ('0' + currentDate.getMinutes()).slice(-2);
+                    const seconds = ('0' + currentDate.getSeconds()).slice(-2);
+
+                    // Строка в нужном формате
+                    const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+                    return $.getJSON(self.buildLoadListUrl(id, false, false, formattedDate),
+                        function (r) {
+                            if (r.status == 'ok') {
+
+                                if (r.data?.updated_orders.length) {
+                                    try {
+                                        for (const order of r.data.updated_orders) {
+                                            const orderElem = self.container.find(`[data-order-id=${order.id}]`);
+                                            const isSelectedOrder = orderElem.hasClass('selected');
+
+                                            if (orderElem.length) {
+                                                const oldStateId = orderElem.data('order-state');
+                                                const newStateId = order.state_id;
+                                                const hash = decodeURIComponent(window.location.hash);
+                                                const stateIdRegex = /state_id=([\w|]+)/;
+                                                const hashStateIds = stateIdRegex.exec(hash)?.[1]?.replace(/\|{1,2}/g, ',')?.split(',') || [];
+
+                                                const updateOrderList = (isSelected) => {
+                                                    const tmplParams = {
+                                                        orders: [order],
+                                                        states: self.options.state_names || {},
+                                                        check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false,
+                                                    };
+                                                    orderElem.after(tmpl(`template-order-list-${self.options.view}`, tmplParams)).remove();
+                                                    if (isSelected) {
+                                                        self.loadOrder(order.id);
+                                                    }
+                                                };
+
+                                                const shouldUpdateOrderList = () => {
+                                                    if (oldStateId !== newStateId) {
+                                                        if (hashStateIds.some(param => newStateId.includes(param))) {
+                                                            return true;
+                                                        } else {
+                                                            const nextOrder = orderElem.next();
+                                                            if (nextOrder.length) {
+                                                                self.loadOrder(nextOrder.data('order-id'));
+                                                            }
+                                                            orderElem.remove();
+                                                            return false;
+                                                        }
+                                                    } else {
+                                                        return true;
+                                                    }
+                                                };
+
+                                                if (shouldUpdateOrderList()) {
+                                                    updateOrderList(isSelectedOrder);
+                                                } else {
+                                                    orderElem.remove();
+                                                }
+                                            }
+                                        }
+                                        self.container.trigger('append_order_list', [r.data.updated_orders]);
+                                    } catch (e) {
+                                        if (console) {
+                                            console.log('Error: ' + e.message);
+                                        }
+                                        return;
+                                    }
+                                }
+                            } else {
+                                if (console) {
+                                    console.log('Error when loading updated orders: ' + r.errors);
+                                }
+                            }
+                        }
+                    ).error(function (r) {
+                        if (console) {
+                            if (r && r.errors) {
+                                console.log('Error when loading updated orders: ' + r.errors);
+                            } else {
+                                console.log(['Error when loading updated orders', r]);
+                            }
+                        }
+                        if (typeof error === 'function') {
+                            error();
+                        }
+                    });
+                };
+
+                var runProcess = function () {
+                    self.timer_id = setTimeout(function () {
+
+                        var pr = function () {
                             return process(runProcess, killProcess);
                         };
                         if (self.xhrs.lazy_load === null) {
                             self.xhrs.update_load = pr();
                         } else {
-                            self.xhrs.lazy_load.then(function() {
+                            self.xhrs.lazy_load.then(function () {
                                 self.xhrs.update_load = pr();
                             });
                         }
@@ -1311,7 +1634,7 @@
          * Finiting inited process
          * @param {Boolean?} destruct If true destructing object (delete)
          */
-        finit: function(destruct) {
+        finit: function (destruct) {
             var xhrs = this.xhrs, win = this.lazy_load_win;
             for (var k in xhrs) {
                 if (xhrs.hasOwnProperty(k) && xhrs[k] !== null) {
@@ -1323,6 +1646,29 @@
                 win.lazyLoad('stop');
             }
             this.params = null;
+        },
+
+        ordersNavTeleport() {
+            if (window.ordersNav !== undefined && $.orders !== undefined) {
+                window.ordersNav.show();
+                if (this.options.view === 'split') {
+                    $('#s-orders').find('.sidebar-header').prepend(window.ordersNav)
+                    $.orders.initDropdown();
+                } else {
+                    $('#s-content').before(window.ordersNav)
+                    $.orders.initDropdown();
+                }
+            }
+        },
+
+        selectionMenuTeleport() {
+            if (this.$selectionMenu) {
+                this.$search_form = $('.js-sidebar-search-form');
+                if (this.$search_form.length) {
+                    const $selection_menu = this.$selectionMenu.detach();
+                    this.$search_form.after($selection_menu)
+                }
+            }
         }
     };
 

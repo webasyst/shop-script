@@ -3,20 +3,20 @@
     <div class="tablebox space-20">
         <div class="column">
             {if empty($hide_save)}
-                <button class="wa-button blue js-product-save js-router-submit-button" type="button">[`Save`]</button>
+                <button class="button js-product-save js-router-submit-button green" type="button"{if !empty($confirmation_type)} data-confirmation-type="{$confirmation_type|escape}"{/if}>[`Save`]</button>
             {/if}
 
-            <a class="wa-button gray" href="{$wa_app_url}products/">{_w("Close")}</a>
+            <a class="button gray js-product-close-button" href="{$wa_app_url}products/">{_w("Close")}</a>
 
             {if !empty($frontend_urls)}
                 {$_front = reset($frontend_urls)}
-                <a class="wa-button transparent" href="{$_front.url|escape}" target="_blank"><i class="fas fa-external-link-square-alt"></i> [`View in the storefront`]</a>
+                <a class="button nobutton" href="{$_front.url|escape}" target="_blank"><i class="fas fa-external-link-square-alt"></i> [`View in the storefront`]</a>
             {/if}
         </div>
 
         {if !empty($product.id) && empty($hide_delete)}
             <div class="column align-right">
-                <button class="wa-button transparent-red js-product-delete" type="button">
+                <button class="button red outlined js-product-delete" type="button">
                     <span class="icon top"><i class="fas fa-trash-alt"></i></span>
                     [`Delete product`]
                 </button>

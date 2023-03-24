@@ -11,7 +11,7 @@
                 <div class="s-filter-section">
                     <div class="s-filter-form">
                         <span class="s-button"><i class="fas fa-search"></i></span>
-                        <input class="s-field wa-small" type="text"
+                        <input class="s-field small" type="text"
                                placeholder="{_w("Search")|escape}"
                                v-on:input="filterServices($event.target.value)">
                     </div>
@@ -24,7 +24,7 @@
                             <component-switch
                                 v-model="service.is_enabled"
                                 v-bind:disabled="service.is_disabled"
-                                v-bind:class="'wa-small'"
+                                v-bind:class="'small'"
                                 v-bind:data-tooltip-id="(service.is_disabled ? 'product-services-15' : '')"
                                 v-on:change="switchService(service)"></component-switch>
                             <span class="s-name">{ { service.name } }</span>
@@ -33,11 +33,11 @@
                 </div>
             </div>
             <div class="dialog-footer">
-                <button class="wa-button" type="button"
+                <button class="button green" type="button"
                         v-bind:class="{ 'yellow' : states.changed }"
                         v-on:click.prevent="onSuccess">[`Save`]</button>
 
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

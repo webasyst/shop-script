@@ -21,9 +21,9 @@
                 <label class="js-name" for="category[{$_category.id|default:"%category_id%"|escape}][checkbox]">{$_category.name|default:"%category_name%"|escape}</label>
             </div>
             <div class="s-actions">
-                <button class="s-action wa-button transparent-gray js-create-category" title="{_w("Add new category")|escape}">
+                <a class="s-action text-green small js-create-category" href="javascript:void(0);" title="{_w("Add new category")|escape}">
                     <i class="fas fa-plus-circle"></i>
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -50,10 +50,10 @@
     <form class="s-add-new-form">
         <div class="flexbox middle space-8">
             <input type="text" name="name" value="" placeholder="{_w("Enter a name")|escape}" required>
-            <button class="wa-button blue js-submit-button" type="submit">
+            <button class="js-submit-button button small" type="submit">
                 <span class="icon s-icon"><i class="fas fa-check"></i></span>
             </button>
-            <button class="wa-button top gray js-cancel" type="button">
+            <button class="js-cancel button top gray small" type="button">
                 <span class="icon"><i class="fas fa-times"></i></span>
             </button>
         </div>
@@ -92,8 +92,9 @@
                     <div class="s-category-wrapper">
                         <div class="s-category">
                             <div class="s-add-root-category-wrapper">
-                                <button class="wa-button transparent-gray js-create-category">
-                                    <span class="s-icon"><i class="fas fa-plus-circle"></i></span>{_w("Add new category")|escape}
+                                <button class="js-create-category button gray outlined smaller">
+                                    <span class="icon"><i class="fas fa-plus-circle"></i></span>
+                                    <span>{_w("Add new category")|escape}</span>
                                 </button>
                             </div>
                         </div>
@@ -109,8 +110,8 @@
 
         </div>
         <div class="dialog-footer">
-            <button class="js-add-categories wa-button blue" type="button">[`Add`]</button>
-            <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            <button class="js-add-categories button" type="button">[`Add`]</button>
+            <button class="js-dialog-close button gray" type="button">[`Cancel`]</button>
         </div>
     </div>
 

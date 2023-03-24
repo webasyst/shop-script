@@ -1,0 +1,124 @@
+{if !empty($features) && is_array($features)}
+    <div class="value s-product-feature-superposition" id="s-product-feature-superposition">
+        {if $product_has_incompatible_features_selectable}
+            <input type="hidden" name="ignore_features_selectable" value="1">
+            <div><i class="icon16 exclamation-red"></i>[`Disable some SKUs in the new products section to be able to edit them here`]</div>
+        {/if}
+        <div class="sidebar left150px">
+            <div class="block not-padded right-padded">
+                <ul class="menu-v with-icons features">
+                    {foreach $features as $code => $f}
+                        <li class="{if $f@first}selected{/if}" data-feature-id="{$f.id}" data-feature-code="{$f.code|escape}">
+                            <a href="#">
+                                <strong class="count">{$f.selected|string_format:'%d'}</strong>
+                                <i class="icon16 {if $f.selected}status-blue-tiny{else}status-gray-tiny{/if}"></i>{$f.name}
+                            </a>
+                        </li>
+                    {/foreach}
+                </ul>
+            </div>
+        </div>
+        <div class="content left150px bordered-left">
+
+            {foreach $features as $code => $f}
+                <div class="sidebar left150px feature-values" data-feature-id="{$f.id}" {if !$f@first}style="display:none;"{/if}>
+                    <div class="block not-padded right-padded left-padded">
+                        <ul class="menu-v values">
+                            {foreach $f['values'] as $v_id => $v}
+                                <li style="white-space: nowrap;"><label><input {if $product_has_incompatible_features_selectable}disabled{/if} type="checkbox" name="product[features_selectable][{$code}][{$v_id}]" value="{$v_id}" {if $v.selected}checked{/if}> {$v.html|default:$v.value}</label></li>
+                            {/foreach}
+                        </ul>
+                    </div>
+                </div>
+            {/foreach}
+            <div class="content left200px bordered-left s-selectable-features-box">
+                <div class="block not-padded right-padded left-padded">
+                    <div class="fields">
+                        <div class="field superposition-count" style="margin-bottom: 20px;">
+                            {$features_total_count = array_product($features_counts)}
+                            <div class="name options">
+                                {if $features_counts}
+                                    {sprintf(_w('Parameters: %s'), implode(' x ', $features_counts))}
+                                {/if}
+                            </div>
+                            <div class="value bold no-shift skus">
+                                {if $features_counts}
+                                    <span class="highlighted">
+                                        {sprintf(_w('SKUs: %d'), $features_total_count)}
+                                    </span>
+                                {/if}
+                            </div>
+
+
+                        </div>
+
+
+                        {if isset($use_product_currency)}
+                            <div class="field s-price-selectable">
+
+                                <div class="name">
+                                    [`Price`]
+                                </div>
+                                <div class="value">
+                                    <input {if $product_has_incompatible_features_selectable}disabled{/if} name="product[base_price_selectable]" type="text"
+                                           class="numerical short large bold" placeholder="0"
+                                           value="{(float)$product.base_price_selectable}"
+                                            >
+
+                                    {if $use_product_currency}
+                                        <select {if $product_has_incompatible_features_selectable}disabled{/if} class="s-product-currency">
+                                            {foreach $currencies as $code => $currency}
+                                                <option value="{$code}" {if $code == $product.currency}selected="selected"{/if}>{$code}</option>
+                                            {/foreach}
+                                        </select>
+                                    {else}
+                                        {if $product.currency !== null}{$product.currency}{else}{$primary_currency}{/if}
+                                    {/if}
+
+                                </div>
+                            </div>
+                            <div class="field s-price-selectable">
+                                <div class="name">
+                                    [`Purchase price`]
+                                </div>
+                                <div class="value">
+                                    <input {if $product_has_incompatible_features_selectable}disabled{/if} name="product[purchase_price_selectable]" type="text"
+                                           class="numerical short bold" placeholder="0"
+                                           value="{(float)$product.purchase_price_selectable}"
+                                            ><span class="s-product-currency-readonly">{$product.currency}</span>
+
+                                </div>
+                            </div>
+                            <div class="field s-price-selectable">
+                                <div class="name">
+                                    [`Compare at price`]
+                                </div>
+                                <div class="value strike">
+                                    <input {if $product_has_incompatible_features_selectable}disabled{/if} name="product[compare_price_selectable]" type="text"
+                                           class="numerical short bold" placeholder="0"
+                                           value="{(float)$product.compare_price_selectable}"
+                                            ><span class="s-product-currency-readonly">{$product.currency}</span>
+
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="value">
+                                    <p class="small">
+                                        [`Base price is applied unless you override it for a particular SKU. The list of overridden SKUs is shown below. Stock level can be tracked on the level of individual SKUs only, not for the entire product.`]
+                                    </p>
+                                </div>
+
+                            </div>
+                        {/if}
+
+                    </div>
+                    <div class="clear-both"></div>
+                </div>
+                <div class="clear-both"></div>
+            </div>
+        </div>
+    </div>
+
+{else}
+    <!-- There no selectable features -->
+{/if}

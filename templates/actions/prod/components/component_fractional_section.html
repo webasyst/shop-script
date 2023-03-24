@@ -7,11 +7,11 @@
 {capture assign="_component_fractional_dropdown"}
     <div class="vue-component-fractional-dropdown">
         <template v-if="readonly">
-            <button class="wa-button wa-small gray-field wa-ellipsis is-readonly" type="button">{ { active_unit ? active_unit.name : "{_w("Not specified")|escape}" } }</button>
+            <button class="button small light-gray wa-ellipsis is-readonly" type="button">{ { active_unit ? active_unit.name : "{_w("Not specified")|escape}" } }</button>
         </template>
         <template v-else>
             <div class="dropdown">
-                <button class="dropdown-toggle wa-button wa-small gray-field" type="button">{ { active_unit ? active_unit.name : "{_w("Not specified")|escape}" } }</button>
+                <button class="button dropdown-toggle light-gray" type="button">{ { active_unit ? active_unit.name : "{_w("Not specified")|escape}" } }</button>
                 <div class="dropdown-body" v-bind:style="{ 'width': body_width }">
                     <div class="dropdown-item" data-value=""
                          v-if="show_empty_item"
@@ -28,7 +28,7 @@
 
 {capture assign="_component_fractional_changes"}
     <template v-if="revert">
-        <span class="s-icon color-blue cursor-pointer"
+        <span class="s-icon text-blue cursor-pointer"
               v-if="show_refresh"
               data-tooltip-id="component-fractional-revert"
               v-on:click="revertMods"><i class="fas fa-sync-alt"></i></span>
@@ -37,7 +37,7 @@
         <span class="s-icon"
               v-if="show_indicator"
               v-bind:data-tooltip-id="(has_changes ? 'component-fractional-changes-yes' : 'component-fractional-changes-no')"
-              v-bind:class="{ 'color-gray' : has_changes, 'color-gray-light' : !has_changes }"><i class="fas fa-sitemap"></i></span>
+              v-bind:class="{ 'text-gray' : has_changes, 'text-light-gray' : !has_changes }"><i class="fas fa-sitemap"></i></span>
     </template>
 {/capture}
 {$_components["component-fractional-changes"] = $_component_fractional_changes|strip}
@@ -170,7 +170,7 @@
     {_w("Invalid value")|escape}
      
     <span class="s-tooltip-icon" data-tooltip-id="stock-base-ratio-invalid">
-        <i class="fas fa-question-circle color-red"></i>
+        <i class="fas fa-question-circle text-red"></i>
     </span>
 {/capture}
 {$_component_locales["stock_base_ratio_invalid"] = $_stock_base_ratio_invalid}
@@ -185,11 +185,11 @@
 
 {* Складская *}
 {capture assign="_field_1"}
-    <div class="wa-field" v-if="fractional.rights.stock_unit_id !== 'disabled'">
+    <div class="field" v-if="fractional.rights.stock_unit_id !== 'disabled'">
         <div class="name">
             <div class="s-label">
                 <span class="s-name">[`Stock unit`]</span>
-                <span class="s-icon color-gray-light" data-tooltip-id="component-fractional-stock-unit"><i class="fas fa-question-circle"></i></span>
+                <span class="s-icon text-light-gray" data-tooltip-id="component-fractional-stock-unit"><i class="fas fa-question-circle"></i></span>
             </div>
         </div>
         <div class="value">
@@ -201,11 +201,11 @@
                 v-bind:class="{ 'wa-error-field' : errors['units_error'] || errors['stock_unit'] }"
                 v-bind:data-tooltip-id="stock_unit_tooltip"></component-fractional-dropdown>
 
-            <div class="wa-error-text"
+            <div class="state-error"
                  v-if="errors['units_error']"
                  v-html="errors['units_error'].text"></div>
 
-            <div class="wa-error-text"
+            <div class="state-error"
                  v-if="errors['stock_unit']"
                  v-html="errors['stock_unit'].text"></div>
         </div>
@@ -214,11 +214,11 @@
 
 {* Базовая *}
 {capture assign="_field_2"}
-    <div class="wa-field" v-if="fractional.rights.base_unit_id !== 'disabled'">
+    <div class="field" v-if="fractional.rights.base_unit_id !== 'disabled'">
         <div class="name">
             <div class="s-label">
                 <span class="s-name">[`Base unit`]</span>
-                <span class="s-icon color-gray-light" data-tooltip-id="component-fractional-base-unit"><i class="fas fa-question-circle"></i></span>
+                <span class="s-icon text-light-gray" data-tooltip-id="component-fractional-base-unit"><i class="fas fa-question-circle"></i></span>
             </div>
         </div>
         <div class="value">
@@ -231,7 +231,7 @@
                 v-bind:class="{ 'wa-error-field' : errors['units_error'] }"
                 v-bind:data-tooltip-id="base_unit_tooltip"></component-fractional-dropdown>
 
-            <div class="wa-error-text"
+            <div class="state-error"
                  v-if="errors['units_error']"
                  v-html="errors['units_error'].text"></div>
         </div>
@@ -240,11 +240,11 @@
 
 {* Соотношение единиц *}
 {capture assign="_field_3"}
-    <div class="wa-field" v-if="show_stock_base_ratio">
+    <div class="field" v-if="show_stock_base_ratio">
         <div class="name">
             <div class="s-label">
                 <span class="s-name">[`Units ratio`]</span>
-                <span class="s-icon color-gray-light" data-tooltip-id="component-fractional-stock-ratio"><i class="fas fa-question-circle"></i></span>
+                <span class="s-icon text-light-gray" data-tooltip-id="component-fractional-stock-ratio"><i class="fas fa-question-circle"></i></span>
             </div>
         </div>
         <div class="value">
@@ -256,7 +256,7 @@
 
             <span>{sprintf(_w("1 %s"), "{ { selected_stock_unit } }")}&nbsp;=</span>
             <span>
-                <input class="wa-small size-short is-number" type="text"
+                <input class="small size-short is-number" type="text"
                        v-model="fractional.stock_base_ratio"
                        v-on:input="onChangeStockBaseRatio"
                        v-bind:class="{ 'wa-error-field' : errors['stock_base_ratio'] }"
@@ -272,7 +272,7 @@
                     v-bind:changes="sku_mods_changes"></component-fractional-changes>
             </template>
 
-            <div class="wa-error-text"
+            <div class="state-error"
                  v-if="errors['stock_base_ratio']"
                  v-html="errors['stock_base_ratio'].text"></div>
         </div>
@@ -281,22 +281,22 @@
 
 {* Дробность *}
 {capture assign="_field_4"}
-    <div class="wa-field" v-if="fractional.rights.order_multiplicity_factor !== 'disabled'">
+    <div class="field" v-if="fractional.rights.order_multiplicity_factor !== 'disabled'">
         <div class="name">
             <div class="s-label">
                 <span class="s-name">[`Step`]</span>
-                <span class="s-icon color-gray-light" data-tooltip-id="component-fractional-count-denominator"><i class="fas fa-question-circle"></i></span>
+                <span class="s-icon text-light-gray" data-tooltip-id="component-fractional-count-denominator"><i class="fas fa-question-circle"></i></span>
             </div>
         </div>
         <div class="value">
-            <input class="wa-small size-medium is-number" type="text"
+            <input class="small size-medium is-number" type="text"
                    v-model="fractional.order_multiplicity_factor"
                    v-on:input="onChangeCountDenominator"
                    v-bind:class="{ 'wa-error-field' : errors['order_multiplicity_factor'] }"
                    v-bind:readonly="isReadonly('order_multiplicity_factor')"
-                   v-bind:data-tooltip-id="order_multiplicity_factor_tooltip">&nbsp;<span v-bind:class="{ 'color-gray-light' : isReadonly('order_multiplicity_factor') }" v-text="selected_stock_unit"></span>
+                   v-bind:data-tooltip-id="order_multiplicity_factor_tooltip">&nbsp;<span v-bind:class="{ 'text-light-gray' : isReadonly('order_multiplicity_factor') }" v-text="selected_stock_unit"></span>
 
-            <div class="wa-error-text"
+            <div class="state-error"
                  v-if="errors['order_multiplicity_factor']"
                  v-html="errors['order_multiplicity_factor'].text"></div>
         </div>
@@ -305,11 +305,11 @@
 
 {* Минимум *}
 {capture assign="_field_5"}
-    <div class="wa-field" v-if="fractional.rights.order_count_min !== 'disabled'">
+    <div class="field" v-if="fractional.rights.order_count_min !== 'disabled'">
         <div class="name">
             <div class="s-label">
                 <span class="s-name">[`Minimum`]</span>
-                <span class="s-icon color-gray-light" data-tooltip-id="component-fractional-count-min"><i class="fas fa-question-circle"></i></span>
+                <span class="s-icon text-light-gray" data-tooltip-id="component-fractional-count-min"><i class="fas fa-question-circle"></i></span>
             </div>
         </div>
         <div class="value">
@@ -319,13 +319,13 @@
                     v-bind:changes="sku_mods_changes"></component-fractional-changes>
             </template>
 
-            <input class="wa-small size-medium is-number" type="text"
+            <input class="small size-medium is-number" type="text"
                    v-model="fractional.order_count_min"
                    v-on:input="onChangeOrderCountMin"
                    v-bind:class="{ 'wa-error-field' : errors['order_count_min'] }"
                    v-bind:readonly="isReadonly('order_count_min')"
                    v-bind:placeholder="getPlaceholder('order_count_min')"
-                   v-bind:data-tooltip-id="getTooltip('order_count_min', 'count-min-readonly')">&nbsp;<span v-bind:class="{ 'color-gray-light' : isReadonly('order_count_min') }" v-text="selected_stock_unit"></span>
+                   v-bind:data-tooltip-id="getTooltip('order_count_min', 'count-min-readonly')">&nbsp;<span v-bind:class="{ 'text-light-gray' : isReadonly('order_count_min') }" v-text="selected_stock_unit"></span>
 
             <template v-if="section === 'general'">
                 <component-fractional-changes
@@ -334,7 +334,7 @@
                     v-bind:changes="sku_mods_changes"></component-fractional-changes>
             </template>
 
-            <div class="wa-error-text"
+            <div class="state-error"
                  v-if="errors['order_count_min']"
                  v-html="errors['order_count_min'].text"></div>
         </div>
@@ -343,11 +343,11 @@
 
 {* Шаг *}
 {capture assign="_field_6"}
-    <div class="wa-field" v-if="fractional.rights.order_count_step !== 'disabled'">
+    <div class="field" v-if="fractional.rights.order_count_step !== 'disabled'">
         <div class="name">
             <div class="s-label">
                 <span class="s-name">[`Adjustment with “+/-” buttons`]</span>
-                <span class="s-icon color-gray-light" data-tooltip-id="component-fractional-count-step"><i class="fas fa-question-circle"></i></span>
+                <span class="s-icon text-light-gray" data-tooltip-id="component-fractional-count-step"><i class="fas fa-question-circle"></i></span>
             </div>
         </div>
         <div class="value">
@@ -357,13 +357,13 @@
                     v-bind:changes="sku_mods_changes"></component-fractional-changes>
             </template>
 
-            <input class="wa-small size-medium is-number" type="text"
+            <input class="small size-medium is-number" type="text"
                    v-model="fractional.order_count_step"
                    v-on:input="onChangeOrderCountStep"
                    v-bind:class="{ 'wa-error-field' : errors['order_count_step'] }"
                    v-bind:readonly="isReadonly('order_count_step')"
                    v-bind:placeholder="getPlaceholder('order_count_step')"
-                   v-bind:data-tooltip-id="getTooltip('order_count_step', 'count-step-readonly')">&nbsp;<span v-bind:class="{ 'color-gray-light' : isReadonly('order_count_step') }" v-text="selected_stock_unit"></span>
+                   v-bind:data-tooltip-id="getTooltip('order_count_step', 'count-step-readonly')">&nbsp;<span v-bind:class="{ 'text-light-gray' : isReadonly('order_count_step') }" v-text="selected_stock_unit"></span>
 
             <template v-if="section === 'general'">
                 <component-fractional-changes
@@ -372,7 +372,7 @@
                     v-bind:changes="sku_mods_changes"></component-fractional-changes>
             </template>
 
-            <div class="wa-error-text"
+            <div class="state-error"
                  v-if="errors['order_count_step']"
                  v-html="errors['order_count_step'].text"></div>
         </div>
@@ -390,7 +390,7 @@
                 <div class="s-title">[`Quantity units`]</div>
             </div>
             <div class="s-section-body">
-                <div class="wa-fields space-24 vertical fields-3">
+                <div class="fields space-24 vertical fields-3">
                     {$_field_1}
                     {$_field_2}
                     {$_field_3}
@@ -403,7 +403,7 @@
                 <div class="s-title">[`Adding to the shopping cart`]</div>
             </div>
             <div class="s-section-body">
-                <div class="wa-fields space-24 vertical fields-3">
+                <div class="fields space-24 vertical fields-3">
                     {$_field_4}
                     {$_field_5}
                     {$_field_6}
@@ -418,7 +418,7 @@
             <div class="s-section-body">
                 <div class="s-fields-group" v-if="show_section_1">
                     <div class="s-group-label">[`Quantity units`]</div>
-                    <div class="wa-fields space-24 vertical fields-3">
+                    <div class="fields space-24 vertical fields-3">
                         {$_field_1}
                         {$_field_2}
                         {$_field_3}
@@ -427,7 +427,7 @@
 
                 <div class="s-fields-group" v-if="show_section_2">
                     <div class="s-group-label">[`Adding to the shopping cart`]</div>
-                    <div class="wa-fields space-24 vertical fields-3">
+                    <div class="fields space-24 vertical fields-3">
                         {$_field_4}
                         {$_field_5}
                         {$_field_6}

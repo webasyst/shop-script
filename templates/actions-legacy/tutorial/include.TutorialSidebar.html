@@ -1,0 +1,88 @@
+{capture assign="_complete_icon"}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+        <path fill="currentColor" d="M211.5,450.4l285.2-285.2c9.7-9.7,9.7-25.4,0-35.1L461.7,95c-9.7-9.7-25.4-9.7-35.1,0L194,327.6L85.4,219 c-9.7-9.7-25.4-9.7-35.1,0l-35.1,35.1c-9.7,9.7-9.7,25.4,0,35.1l161.2,161.2C186.1,460,201.9,460,211.5,450.4L211.5,450.4z"/>
+    </svg>
+{/capture}
+
+<script src="{$wa_app_static_url}js-legacy/tutorial/tutorial_sidebar.js?v={$wa->version()}"></script>
+<link rel="stylesheet" href="{$wa_app_static_url}css-legacy/backend/tutorial.css?v={$wa->version()}">
+
+<div class="sidebar left300px">
+    <div class="block s-tutotial-steps s-inner-sidebar">
+
+        {if isset($tutorial_visible) && $smarty.server.REQUEST_URI == "`$wa_app_url`?action=welcome"}
+            <div class="s-tutorial-quick-start is-active">
+                <a href="{$wa_app_url}?action=welcome">
+                    <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
+                        <img src="{$wa_app_static_url}img/rocket-fly.png" class="s-rocket"/>
+                        <span class="s-tutorial-step-title">[`Quick start`]</span>
+                        <div class="s-tutorial-progressbar-outer">
+                            <div class="s-tutorial-progressbar-inner"></div>
+                             <span id="s-tutorial-progressbar-content">{$tutorial_progress.complete} [`of`] {$tutorial_progress.total}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {/if}
+
+        <div class="block">
+            {strip}
+            <ul class="menu-v s-tutorial-checklist" id="tutorial-actions">
+                {foreach $actions as $_step_id => $_step}
+                    {$_step_classes = []}
+
+                    {if $_step.complete}
+                        {$_step_classes[] = "is-complete"}
+                    {else}
+                        {if $_step_id == 'welcome'}
+                            {$_step_classes[] = "is-active"}
+                        {else}
+                            {$_step_classes[] = "is-disabled"}
+                        {/if}
+                    {/if}
+
+                    <li class="js-actions-link js-step-link {$_step_classes|join:" "}" data-step="{$_step_id}">
+                        <span class="s-activity-point">{$_step@iteration}</span>
+
+                        <a href="{if $actions['welcome'].complete}{$_step.href}{else}javascript:void(0){/if}">
+                            {$_step.name|escape}
+                        </a>
+
+                        <span class="s-step-icon js-status" {if !$_step.complete}style="display: none;"{/if}>{$_complete_icon}</span>
+                    </li>
+                {/foreach}
+
+                <li class="js-step-link is-disabled" data-step="profit">
+                    <a href="javascript:void(0)">
+                        <span class="s-activity-point"></span>
+                        [`Done!`]
+                    </a>
+                </li>
+            </ul>
+            {/strip}
+
+            <hr>
+
+            <p class="align-center">
+                <a href="{$wa_app_url}?skipwelcome=1" class="button green js-finish-tutorial">[`Close quick start`]</a>
+            </p>
+
+            <!-- plugin hook: 'backend_tutorial.sidebar_block' -->
+            {* @event backend_tutorial.%plugin_id%.sidebar_block *}
+            {if isset($backend_tutorial)}
+                {foreach ifempty($backend_tutorial, []) as $_}{ifset($_.sidebar_block)}{/foreach}
+            {/if}
+
+        </div>
+    </div>
+
+    <script>
+        (function ($) {
+            new TutorialSidebar({
+                $wrapper: $("#tutorial-actions"),
+                $actions: {$actions|json_encode},
+                active_step: "welcome"
+            });
+        })(jQuery);
+    </script>
+</div>

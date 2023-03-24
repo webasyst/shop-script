@@ -1,0 +1,365 @@
+{strip}
+
+{$_errors = []}
+{if !empty($error_step_id) && $error_step_id === "details"}{$_errors = $errors}{/if}
+
+{$_hide_details = empty($details) || !empty($details.disabled)}
+
+<section class="wa-step-section wa-step-details-section" id="wa-step-details-section" style="{if !empty($_hide_details)}display:none;{/if}">
+    {* BODY *}
+    <div class="wa-section-body">
+        <form>
+            {if empty($details.disabled)}
+                {if !empty($details)}
+                    {$_inline_fields = []}
+                    {$_custom_fields = []}
+                    {$_required_inline_fields = []}
+                    {$_required_custom_fields = []}
+
+                    {* shop_order_render_field function here *}
+                    {include file="./render_field.function.html" inline}
+
+                    {* FIELDS *}
+                    {if !empty($details.shipping_address_fields)}
+                        {foreach $details.shipping_address_fields_order as $_field_id}
+                            {if !empty($details.shipping_address_fields[$_field_id])}
+                                {$_field = $details.shipping_address_fields[$_field_id]}
+                            {else}
+                                {continue}
+                            {/if}
+
+                            {if !empty($_field.affects_rate)}
+                                {capture append="_required_inline_fields"}{shop_order_render_field _field=$_field}{/capture}
+                            {else}
+                                {capture append="_inline_fields"}{shop_order_render_field _field=$_field}{/capture}
+                            {/if}
+                        {/foreach}
+                    {/if}
+
+                    {* PLUGINS *}
+                    {if !empty($details.plugin_custom_fields_order)}
+                        {foreach $details.plugin_custom_fields_order as $_field_id}
+                            {if !empty($details.plugin_custom_fields[$_field_id])}
+                                {$_plugin = $details.plugin_custom_fields[$_field_id]}
+                                {if !empty($_plugin.html)}
+                                    {if !empty($_plugin.wa_css_class_added)}
+                                        {capture assign="_inline_field"}
+                                            <div class="wa-field-wrapper size-small">
+                                                {if !empty($_plugin.label)}
+                                                    <div class="wa-label">
+                                                        {$_plugin.label|escape}
+                                                        {if !empty($_plugin.affects_rate)}<span class="wa-required"></span>{/if}
+                                                    </div>
+                                                {/if}
+                                                {$_plugin.html}
+                                            </div>
+                                        {/capture}
+
+                                        {if !empty($_plugin.affects_rate)}
+                                            {$_required_inline_fields[] = $_inline_field}
+                                        {else}
+                                            {$_inline_fields[] = $_inline_field}
+                                        {/if}
+
+                                    {else}
+                                        {capture assign="_custom_field"}
+                                            <div class="wa-line wa-plugin-fields-wrapper">
+                                                {if !empty($_plugin.label)}
+                                                    <div class="wa-label">
+                                                        {$_plugin.label|escape}
+                                                        {if !empty($_plugin.affects_rate)}<span class="wa-required"></span>{/if}
+                                                    </div>
+                                                {/if}
+
+                                                <div class="wa-body">{$_plugin.html}</div>
+
+                                                {if !empty($_plugin.description)}
+                                                    <div class="wa-description">{$_plugin.description|escape}</div>
+                                                {/if}
+                                            </div>
+                                        {/capture}
+
+                                        {if !empty($_plugin.affects_rate)}
+                                            {$_required_custom_fields[] = $_custom_field}
+                                        {else}
+                                            {$_custom_fields[] = $_custom_field}
+                                        {/if}
+                                    {/if}
+                                {/if}
+                            {else}
+                                {continue}
+                            {/if}
+                        {/foreach}
+                    {/if}
+
+                    {$_plugin_description = ifset($details, 'preliminary_shipping_rate', 'description', '')}
+                    {if !empty($_plugin_description)}
+                        <div class="wa-details-description">{$_plugin_description}</div>
+                    {/if}
+
+                    {* RENDER *}
+                    {if !empty($_required_inline_fields) || !empty($_required_custom_fields)}
+                        <div class="wa-details-required-fields-section">
+
+                            {if !empty($_required_inline_fields)}
+                                <div class="wa-line wa-fields-group line">{""|join:$_required_inline_fields}</div>
+                            {/if}
+
+                            {if !empty($_required_custom_fields)}
+                                {""|join:$_required_custom_fields}
+                            {/if}
+                        </div>
+                    {/if}
+
+                    {* INFO *}
+                    {if !empty($details.shipping_rate)}
+                        {$_address = null}
+                        {$_way = null}
+                        {$_additional = null}
+                        {$_storage_days = null}
+                        {$_photos = null}
+
+                        {if !empty($details.shipping_rate.date_min)}
+                            {$_est_delivery = $details.shipping_rate.date_min|wa_datetime:"shortdate"}
+                        {else}
+                            {$_est_delivery = str_replace(date('Y'), '', $details.shipping_rate.est_delivery|default:"")}
+                        {/if}
+
+                        {if !empty($details.shipping_rate.custom_data)}
+                            {$_data = $details.shipping_rate.custom_data}
+                            {if !empty($details.shipping_rate.type) && !empty($_data[$details.shipping_rate.type])}
+                                {$_custom_data = $_data[$details.shipping_rate.type]}
+
+                                {if !empty($_custom_data.description)}
+                                    {$_address = $_custom_data.description}
+                                {/if}
+
+                                {if !empty($_custom_data.way)}
+                                    {$_way = $_custom_data.way}
+                                {/if}
+
+                                {if !empty($_custom_data.additional)}
+                                    {$_additional = $_custom_data.additional}
+                                {/if}
+
+                                {if !empty($_custom_data.storage.storage_days)}
+                                    {$_storage_days = $_custom_data.storage.storage_days}
+                                {/if}
+
+                                {if !empty($_custom_data.photos)}
+                                    {$_photos = $_custom_data.photos}
+                                {/if}
+                            {/if}
+                        {/if}
+
+                        <div class="wa-details-rates-section">
+                            <div class="wa-table">
+                                <div class="wa-row">
+                                    <div class="wa-cell wa-cell-name">
+                                        <div class="wa-name">[`Shipping cost`]</div>
+                                    </div>
+                                    <div class="wa-cell wa-cell-value">
+                                        <span class="wa-delivery-price">
+                                            {if $details.shipping_rate.rate > 0}
+                                                {shop_currency($details.shipping_rate.rate, ['in_currency' => $details.shipping_rate.currency,'format' => 'h'])}
+                                            {else}
+                                                [`free`]
+                                            {/if}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {if !empty($_est_delivery)}
+                                    <div class="wa-row">
+                                        <div class="wa-cell wa-cell-name">
+                                            <div class="wa-name">[`Estimated shipping time`]</div>
+                                        </div>
+                                        <div class="wa-cell wa-cell-value">
+                                            {$_est_delivery|escape}
+                                            {if !empty($details.plugin_custom_fields.desired_delivery.html)}
+                                                <div class="wa-cell-value-description">
+                                                    [`You can choose a convenient time starting from this date.`]
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                {/if}
+
+                                {if !empty($_storage_days)}
+                                    <div class="wa-row">
+                                        <div class="wa-cell wa-cell-name">
+                                            <div class="wa-name">[`Order storage time`]</div>
+                                        </div>
+                                        <div class="wa-cell wa-cell-value">
+                                            {_w('%d day', '%d days', $_storage_days)}
+                                        </div>
+                                    </div>
+                                {/if}
+
+                                {if !empty($_address)}
+                                    <div class="wa-row">
+                                        <div class="wa-cell wa-cell-name">
+                                            <div class="wa-name">[`Address`]</div>
+                                        </div>
+                                        <div class="wa-cell wa-cell-value">
+                                            {$_adapter = ""}
+                                            {if !empty($details.map.adapter)}{$_adapter = $details.map.adapter}{/if}
+
+                                            {if $_adapter === "yandex"}
+                                                <span class="ymaps-geolink" data-description="{$details.shipping_rate.name|escape}">{$_address|escape}</span>
+                                            {elseif $_adapter === "google"}
+                                                <a class="google-geolink" target="_blank" href="//maps.google.com/maps?q={$_address|urlencode}">{$_address|escape}</a>
+                                            {else}
+                                                {$_address|escape}
+                                            {/if}
+                                        </div>
+                                    </div>
+                                {/if}
+
+                                {if !empty($details.shipping_rate.service)}
+                                    <div class="wa-row">
+                                        <div class="wa-cell wa-cell-name">
+                                            <div class="wa-name">[`Shipping service`]</div>
+                                        </div>
+                                        <div class="wa-cell wa-cell-value">
+                                            {$details.shipping_rate.service|escape}
+                                        </div>
+                                    </div>
+                                {/if}
+                            </div>
+
+                            {if !empty($details.shipping_rate.pickup_schedule.days)}
+                                <div class="wa-line wa-schedule-wrapper">
+                                    <div class="wa-label">
+                                        [`Business hours`]:
+                                    </div>
+                                    <div class="wa-days-wrapper">
+                                        {$_locale_string = $wa->locale()|default:"en"|substr:0:2}
+                                        {foreach $details.shipping_rate.pickup_schedule.days as $_day}
+                                            <div class="wa-day-wrapper">
+                                                <div class="wa-date">{$_day.date_formatted|escape}, {if $_locale_string == "ru"}{$_day.weekday_full|mb_strtolower|escape}{else}{$_day.weekday_full}{/if}</div>
+                                                <div class="wa-value">
+                                                    {if !empty($_day.works)}
+                                                        <span class="wa-time"
+                                                            {if $details.shipping_rate.pickup_schedule.timezone != $details.shipping_rate.pickup_schedule.user_timezone}
+                                                                title="{$details.shipping_rate.pickup_schedule.timezone_text|escape}"
+                                                            {/if}
+                                                        >{$_day.time_start|escape}—{$_day.time_end|escape}</span>
+                                                    {else}
+                                                        <span class="wa-text">[`day off`]</span>
+                                                    {/if}
+                                                    {if !empty($_day.additional)}
+                                                        <span class="wa-additional">{$_day.additional|mb_substr:0:64|escape}</span>
+                                                    {/if}
+                                                </div>
+                                            </div>
+                                        {/foreach}
+                                    </div>
+                                </div>
+                            {elseif !empty($details.shipping_rate.pickup_schedule_html)}
+                                <div class="wa-line wa-schedule-wrapper">
+                                    <div class="wa-label">[`Business hours`]:</div>
+                                    <div class="wa-days-wrapper">
+                                        {$details.shipping_rate.pickup_schedule_html}
+                                    </div>
+                                </div>
+                            {/if}
+
+                            {if !empty($_way)}
+                                <div class="wa-line wa-comment-item">
+                                    <div class="wa-label">[`How to reach`]:</div>
+                                    <div class="wa-value">{$_way|escape}</div>
+                                </div>
+                            {/if}
+
+                            {if !empty($_additional)}
+                                <div class="wa-line wa-additional-item">
+                                    <div class="wa-label">[`More details`]:</div>
+                                    <div class="wa-value">{$_additional|escape}</div>
+                                </div>
+                            {/if}
+
+                            {if !empty($_photos)}
+                                <div class="wa-line wa-photos-section" data-name="{$details.shipping_rate.name|escape}">
+                                    <div class="wa-action left js-scroll-prev">
+                                        <i class="wa-icon arrow-left"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#arrow-left"></use></svg></i>
+                                    </div>
+                                    <div class="wa-photos-list">
+                                        {foreach $_photos as $_photo}
+                                            {if !empty($_photo.uri)}
+                                                {$_thumb_uri = $wa->shop->imgUrl($_photo.uri|escape, '100x75')}
+
+                                                <div class="wa-photo-wrapper" data-image-uri="{$_photo.uri|escape}" data-thumb-uri="{$_thumb_uri}">
+                                                    <a class="wa-photo js-show-photo" href="{$_photo.uri|escape}" style="background-image: url({$_thumb_uri});" target="_blank"></a>
+                                                </div>
+                                            {/if}
+                                        {/foreach}
+                                    </div>
+                                    <div class="wa-action right js-scroll-next">
+                                        <i class="wa-icon arrow-right"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#arrow-right"></use></svg></i>
+                                    </div>
+                                </div>
+                            {/if}
+
+                        </div>
+                    {/if}
+
+                    {if !empty($_inline_fields) || !empty($_custom_fields)}
+                        <div class="wa-details-fields-section">
+                            {if !empty($_inline_fields)}
+                                <div class="wa-line wa-fields-group line">{""|join:$_inline_fields}</div>
+                            {/if}
+
+                            {if !empty($_custom_fields)}
+                                {""|join:$_custom_fields}
+                            {/if}
+                        </div>
+                    {/if}
+                {/if}
+
+                {$_text_errors = []}
+                {foreach $_errors as $_error}
+                    {if !empty($_error.id) && $_error.id === "details_plugin" && !empty($_error.text)}
+                        {$_text_errors[] = $_error}
+                    {/if}
+                {/foreach}
+
+                {if !empty($_text_errors)}
+                    <div class="wa-errors-wrapper">
+                        {foreach $_text_errors as $_error}
+                            <div class="wa-error-text">{$_error.text|escape}</div>
+                        {/foreach}
+                    </div>
+                {/if}
+
+                {* @event checkout_render_details *}
+                {foreach $event_hook.details as $_}
+                    <div class="wa-plugin-hook">{$_}</div>
+                {/foreach}
+            {/if}
+        </form>
+    </div>
+
+    {capture assign=_photo_template_html}{include file="./dialog/photo.html" inline}{/capture}
+
+    <script>
+        ( function($) {
+            var $section = $("#wa-step-details-section"),
+                $wrapper = $("#wa-order-form-wrapper");
+
+            var ready_promise = $wrapper.data("ready").promise();
+            ready_promise.then( function(controller) {
+                controller.initDetails({
+                    $wrapper: $section,
+                    disabled: {if !empty($details.disabled)}true{else}false{/if},
+                    templates: {
+                        photo: {waUtils::jsonEncode($_photo_template_html)}
+                    },
+                    errors: {$_errors|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</section>
+
+{/strip}

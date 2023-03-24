@@ -303,7 +303,6 @@
 
             that.initDragAndDrop(vue_model);
 
-            console.log( that );
         };
 
         Dialog.prototype.initDragAndDrop = function(vue_model) {

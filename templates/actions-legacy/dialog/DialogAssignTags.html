@@ -1,0 +1,89 @@
+{if $can_assign_tags}
+    <div id="s-assign-tags" class="dialog width400px height300px">
+        <div class="dialog-background"></div>
+        <div class="dialog-window">
+            <form method="post" action="?module=products&action=assignTags">
+                <div class="dialog-content">
+                    <div class="dialog-content-indent">
+
+                        <h1>[`Assign tags`] <span class="gray" style="display:none;">(0)</span></h1>
+
+                        <textarea id="s-assign-tags-list" cols="30" rows="5" name="tags"></textarea>
+
+                        {if !empty($tags)}
+                            <div id="a-assign-tags-remove">
+                                <br>
+                                <h3>[`Remove tags`]</h3>
+                                <ul class="menu-v compact">
+                                    {foreach $tags as $tag_id => $tag_name}
+                                        <li><label>
+                                            <input name="delete_tags[]" value="{$tag_id}" type="checkbox">
+                                            {$tag_name|escape}
+                                        </label></li>
+                                    {/foreach}
+                                </ul>
+                            </div>
+                        {/if}
+
+                        <p id="s-popular-tags" class="tags small">
+                            {if $popular_tags}
+                                [`Popular tags`]:
+                                {foreach $popular_tags as $tag}
+                                    <span><a data-tag-id="{$tag.id}" href="javascript:void(0);" class="inline-link"><b><i>{$tag.name|escape}</i></b></a></span>
+                                {/foreach}
+                                <br>
+                            {/if}
+                        </p>
+
+                    </div>
+                </div>
+                <div class="dialog-buttons">
+                    <div class="dialog-buttons-gradient">
+                        <input class="button green" type="submit" value="[`Save`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    $(function() {
+        $('#s-assign-tags-list').tagsInput({
+            autocomplete_url: '?module=product&action=tagsAutocomplete',
+            height: 120,
+            defaultText: ''
+        });
+
+        $('#s-popular-tags').off('click.shop', 'a').
+                on('click.shop', 'a', function() {
+                    var name = $(this).text();
+                    var tags_input = $('#s-assign-tags-list');
+                    tags_input.removeTag(name);
+                    tags_input.addTag(name);
+            }
+        );
+    });
+    </script>
+{else}
+
+    <div id="s-assign-tags"  class="dialog width400px height150px">
+        <div class="dialog-background"></div>
+        <form method="post" action="">
+            <div class="dialog-window">
+                <div class="dialog-content" style="height: auto;">
+                    <div class="dialog-content-indent">
+                        <h1>[`Error`]</h1>
+                        <p>{_w('Insufficient access rights to assign tags to selected products.')}</p>
+                    </div>
+                </div>
+                <div class="dialog-buttons">
+                    <div class="dialog-buttons-gradient">
+                        {$wa->csrf()}
+                        <input type="button" class="button red cancel" value="[`Close`]">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+{/if}

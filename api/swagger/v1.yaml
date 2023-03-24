@@ -1,0 +1,3786 @@
+# https://swagger.io/docs/specification/about/
+openapi: 3.0.0
+
+info:
+  title: 'Shop Script API'
+  version: 1.0.0
+  contact:
+    name: Webasyst LLC
+
+externalDocs:
+  description: API Shop-Script
+  url: https://developers.webasyst.ru/api/explorer/shop/
+
+servers:
+  - url: /api.php
+    description: Current host server
+
+paths:
+#CATEGORY
+  /shop.category.add:
+    post:
+      summary: 'Добавляет новую категорию товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.category.add'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.category.add/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Наименование.'
+                parent_id:
+                  type: integer
+                  description: 'ID родительской категории. Если не указано, то используется значение по умолчанию 0.'
+                depth:
+                  type: integer
+                  description: 'Уровень вложенности в иерархии категорий.'
+                meta_title:
+                  type: string
+                  description: 'Элемент TITLE страницы категории.'
+                meta_keywords:
+                  type: string
+                  description: 'Содержимое атрибута META keywords.'
+                meta_description:
+                  type: string
+                  description: 'Содержимое атрибута META description.'
+                url:
+                  type: string
+                  description: 'Редактируемая часть URL страницы категории.'
+                description:
+                  type: string
+                  description: 'Описание.'
+                conditions:
+                  type: string
+                  description: 'Условия формирования списка товаров для динамических категорий.'
+                filter:
+                  type: string
+                  description: 'Параметры фильтров в категории.'
+                sort_products:
+                  type: string
+                  description: 'Параметры сортировки товаров.'
+                include_sub_categories:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                  description: 'Флаг, обозначающий необходимость показывать товары из подкатегорий. Значение по умолчанию — 0.'
+                status:
+                  type: integer
+                  description: 'Статус категории: 0 — скрытая, 1 — доступная на витрине.'
+                  enum:
+                    - 0
+                    - 1
+              required:
+                - name
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        500:
+          description: 'Внутренняя ошибка сервера.'
+
+  /shop.category.delete:
+    post:
+      summary: 'Удаляет категорию товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.category.delete'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.category.delete/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID категории, которую нужно удалить.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+          content:
+            application/json:
+              schema:
+                type: boolean
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        500:
+          description: 'Внутренняя ошибка сервера.'
+
+  /shop.category.getInfo:
+    get:
+      summary: 'Возвращает информацию о категории.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.category.getInfo'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.category.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID категории.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.category.getParents:
+    get:
+      summary: 'Возвращает список категорий всех уровней, являющихся родительскими по отношению к указанной категории.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.category.getParents'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.category.getParents/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID категории, родительские категории которой нужно получить.'
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: reverse
+          description: 'Флаг (0 или 1), обозначающий, нужно ли вернуть список родительских категорий в нисходящем порядке: начиная от корневой и вглубь иерархии категорий. Значение по умолчанию — 0.'
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.category.getTree:
+    get:
+      summary: 'Возвращает дерево категорий товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.category.getTree'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.category.getTree/
+      parameters:
+        - in: query
+          name: parent_id
+          description: 'ID категории, которая должна считаться корнем дерева.'
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: depth
+          description: 'Количество уровней дерева, которые нужно получить. Если не указано, то метод возвращает все дерево категорий.'
+          required: false
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.category.search:
+    get:
+      summary: 'Возвращает список категорий, имена которых содержат указанную строку.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.category.search'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.category.search/
+      parameters:
+        - in: query
+          name: name
+          description: 'Строка, которая должна присутствовать в названиях искомых категорий.'
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        401:
+          description: 'Запрос не был применен, поскольку ему не хватает действительных учетных данных.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.category.update:
+    post:
+      summary: 'Обновляет информацию о категории товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.category.update'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.category.update/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID категории.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                parent_id:
+                  type: integer
+                  description: 'ID родительской категории. Если не указано, то используется значение по умолчанию 0.'
+                depth:
+                  type: integer
+                  description: 'Уровень вложенности в иерархии категорий.'
+                meta_title:
+                  type: string
+                  description: 'Элемент TITLE страницы категории.'
+                meta_keywords:
+                  type: string
+                  description: 'Содержимое атрибута META keywords.'
+                meta_description:
+                  type: string
+                  description: 'Содержимое атрибута META description.'
+                url:
+                  type: string
+                  description: 'Редактируемая часть URL страницы категории.'
+                description:
+                  type: string
+                  description: 'Описание категории.'
+                conditions:
+                  type: string
+                  description: 'Условия формирования списка товаров в динамической категории.'
+                filter:
+                  type: string
+                  description: 'Параметры фильтров в категории.'
+                sort_products:
+                  type: string
+                  description: 'Параметры сортировки товаров.'
+                include_sub_categories:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                  description: 'Флаг (0 или 1), обозначающий, нужно ли показывать товары из подкатегорий. Значение по умолчанию — 0.'
+                status:
+                  type: integer
+                  description: 'Статус категории: 0 — скрытая, 1 — доступная на витрине.'
+                  enum:
+                    - '0'
+                    - '1'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        500:
+          description: 'Внутренняя ошибка сервера.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+
+  /shop.customer.search:
+    get:
+      summary: 'Выполняет поиск покупателей — контактов, у которых есть заказы.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.customer.search'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.customer.search/
+      parameters:
+        - in: query
+          name: hash
+          description: >
+            Строка с описанием условий фильтрации покупателей, закодированная для передачи в URL. Если значение не указано, то выполняется поиск всех покупателей без фильтрации. Примеры:
+
+              - id/1,5,12: поиск покупателей с указанными ID контактов.
+              - search/firstname=Иван: поиск по значению 'Иван' поля 'firstname' таблицы 'wa_contact'. В качестве оператора сравнения вместо '=' в этом примере можно использовать следующие: '=' (совпадение значения), '*=' (совпадение части строкового значения), '^=' (совпадение начала строкового значения), '=$' (совпадение окончания строкового значения), '!=' (несовпадение значения), математические операторы '<', '=', '>', '<=', '>='. Можно объединять поиск по нескольким полям с помощью оператора '&', например: 'search/firstname=Иван&birth_year>=2000'.
+              - search/name*=Иван+Петров: поиск по частичному совпадению частей имени с каждым элементом, отделенным символом '+'. В этом примере будут найдены все покупатели, в полном имени которых (включая имя, отчество и фамилию) содержатся оба фрагмента в любых сочетаниях: 'Иван' и 'Петров', например: 'Иван Петров', 'Иван Петрович', 'Василий Петрович Иванов'. Если в имени есть только один из фрагментов, то покупатель найден не будет, например: 'Иван Сидров' или 'Василий Петров'.
+              - search/email=ivan.petrov@domain.ru: поиск по email-адресу.
+              - search/email$=@domain.ru: поиск по части email-адреса.
+              - search/category=1: поиск по ID категории, в которую добавлен контакт покупателя.
+              - search/address:country=rus: поиск по 3-буквенному идентификатору страны в адресе.
+              - search/address:country*=Росси: поиск по началу локализованного названия страны в адресе.
+              - search/address:region=rus:77: поиск по идентификатору страны (в этом примере 'rus') и номеру региона (в этом примере '77') в адресе.
+              - search/address:region*=область: поиск по любой части названия региона в адресе.
+              - search/phone=799911122333: поиск по номеру телефона.
+              - search/phone.home=799911122333: поиск по номеру телефона покупателя с указанием расширения поля контакта (в этом примере 'home').
+              - search/phone^=7999: поиск по части номера телефона.
+              - search/phone^=8999: поиск по номеру телефона с кодом международной связи вместо кода страны — сработает, если код международной связи указан в настройках авторизации сайта.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: offset
+          description: 'Смещение относительно начала списка. Целое неотрицательное число. Значение по умолчанию — 0.'
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - in: query
+          name: limit
+          description: 'Ограничение количества найденных покупателей. Целое неотрицательное число. Значение по умолчанию — 100.'
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 100
+        - in: query
+          name: sort
+          description: >
+            Порядок сортировки покупателей: название поля контакта (например, id, name, firstname, lastname, create_datetime) и порядок сортировки (ASC или DESC), разделенные пробелом. Значение по умолчанию: 'name ASC'.
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+
+  /shop.customer.add:
+    post:
+      summary: 'Добавление нового покупателя.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.customer.add'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.customer.add/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: false
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  description: 'Данные контакта в формате id поля => значение. Формат зависит от типов полей, настроенных администратором магазина.'
+                  properties:
+                    name:
+                      type: string
+                    firstname:
+                      type: string
+                    middlename:
+                      type: string
+                    lastname:
+                      type: string
+                    email:
+                      type: string
+                    phone:
+                      type: string
+                skip_validation:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                  description: 'Если передано 1, то сервер не вернёт ошибок валидации, но сохранит переданные данные как есть. Поля, которые сервер сохранить не может, будут проигнорированы.'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+
+#DASHBOARD
+  /shop.dashboard.customers:
+    get:
+      summary: 'Возвращает информацию о количестве новых покупателей, полученных начиная с указанной даты.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.dashboard.customers'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.dashboard.customers/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.dashboard.realtime:
+    get:
+      summary: 'Возвращает подробную информацию о различных показателях продаж за определенное количество часов.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.dashboard.realtime'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.dashboard.realtime/
+      parameters:
+        - in: query
+          name: period
+          description: "За сколько последних секунд возвращать информацию. По умолчанию: за последние 48 часов."
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 172800 # 48 hours
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        403:
+          description: 'Доступ запрещен. Отказ авторизации'
+
+  /shop.dashboard.sales:
+    get:
+      summary: 'Возвращает информацию о различных показателях продаж начиная с указанной даты.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.dashboard.sales'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.dashboard.sales/
+      parameters:
+        - in: query
+          name: period
+          description: "За сколько последних секунд возвращать информацию. По умолчанию: за последние 30 дней."
+          schema:
+            type: integer
+            minimum: 0
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        403:
+          description: 'Доступ запрещен. Отказ авторизации'
+
+  /shop.dashboard.salesTotal:
+    get:
+      summary: 'Возвращает информацию о показателях продаж за все время работы магазина.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.dashboard.salesTotal'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.dashboard.salesTotal/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+
+#FEATURE
+  /shop.feature.add:
+    post:
+      summary: 'Добавляет новую характеристику товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.feature.add'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.feature.add/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: 'Идентификатор характеристики.'
+                type:
+                  type: string
+                  description: 'Тип характеристики.'
+                  enum:
+                  - 'varchar'
+                  - 'double'
+                  - 'text'
+                  - 'date'
+                  - 'dimension'
+                  - 'range'
+                  - '2d'
+                  - '3d'
+                  - 'boolean'
+                  - 'divider'
+                  - 'color'
+                name:
+                  type: string
+                  description: 'Название характеристики.'
+                selectable:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                  description: 'Флаг (0 или 1), обозначающий возможность выбора из нескольких заранее установленных значений характеристики.'
+                multiple:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                  description: 'Флаг (0 или 1), обозначающий возможность одновременного выбора более одного значения характеристики в свойствах товаров.'
+                available_for_sku:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                  description: 'Флаг (0 или 1), обозначающий возможность редактировать значения характеристики в свойствах модификаций товаров. Значение по умолчанию — 0.'
+                default_unit:
+                  type: string
+                  description: 'Единица измерения по умолчанию.'
+              required:
+                - code
+                - type
+                - name
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.feature.delete:
+    post:
+      summary: 'Удаляет характеристику товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.feature.delete'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.feature.delete/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID характеристики, которую нужно удалить. Если не указан, будет использоваться идентификатор характеристики, переданный в параметре code.'
+                code:
+                  type: string
+                  description: >
+                    Идентификатор характеристики. Если не указан, будет использоваться значение параметра 'id'.
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+          content:
+            application/json:
+              schema:
+                type: boolean
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.feature.getInfo:
+    get:
+      summary: 'Возвращает информацию о характеристике товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.feature.getInfo'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.feature.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: >
+            ID характеристики. Если не указан, то поиск характеристики будет выполняться по идентификатору, переданному в параметре 'code'.
+          schema:
+            type: integer
+        - in: query
+          name: code
+          description: >
+            Идентификатор характеристики. Если не указан, то поиск характеристики будет выполняться по ее идентификатору, переданному в параметре 'id'.
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.feature.getList:
+    get:
+      summary: 'Возвращает список характеристик товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.feature.getList'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.feature.getList/
+      parameters:
+        - in: query
+          name: type_id
+          description: 'ID типа товаров, характеристики которого нужно получить. Если не указан, то метод возвращает список всех характеристик, настроенных в интернет-магазине.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+
+#ORDER
+  /shop.order.action:
+    post:
+      summary: 'Выполняет действие с заказом.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.action'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.action/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID заказа.'
+                action:
+                  type: string
+                  description: 'Строковый идентификатор действия.'
+                  # ['process', 'pay', 'ship', 'complete', 'comment', 'edit', 'editcode', 'editshippingdetails', 'message', 'delete']
+                text:
+                  type: string
+                  description: >
+                    Комментарий, который можно сохранить в историю обработки заказа при выполнении действий 'comment', 'message', 'delete', 'pay', 'capture', 'refund'.
+                return_stock:
+                  type: integer
+                  description: >
+                    - Для действия 'capture': ID склада, на который нужно вернуть остатки товаров, для которых не выполняется списание средств при частичном списании. Пустое значение обозначает возврат остатков на тот склад, с которого они были списаны во время обработки заказа.
+
+                    - Для действия 'delete': ID склада, на который нужно вернуть остатки заказанных товаров. Пустое значение обозначает возврат остатков на тот склад, с которого они были списаны во время обработки заказа.
+
+                    - Для действия 'refund': ID склада, на который нужно вернуть остатки товаров при возврате заказа. Пустое значение обозначает возврат остатков на тот склад, с которого они были списаны во время обработки заказа.
+                capture_mode:
+                  type: string
+                  description: >
+                    Строка 'partial', если необходимо выполнить частичное списание при выполнении действия 'capture'.
+                capture_items:
+                  type: object
+                  description: >
+                    Массив информации о товарах, для которых выполняется частичное списание при выполнении действия 'capture' со структурой вида [item_id]['quantity'], где item_id — ID элементов заказа, являющихся модификациями товаров, а значения — количество каждой модификации.
+                capture_shipping_cost:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                  description: >
+                    Флаг (0 или 1), обозначающий необходимость списания стоимости доставки во время частичного списания при выполнении действия 'capture'. Значение по умолчанию — 0.
+                code:
+                  type: array
+                  description: >
+                    Массив с информацией о товарных кодах заказанных товаров, введенных при выполнении действия 'editcode', со структурой вида [code_id][item_id][], где code_id — ID товарного кода, настроенного в магазине, item_id — ID элемента заказа, являющегося модификацией товара, а значения — товарные коды.
+                shipping_date:
+                  type: string
+                  description: >
+                    Дата доставки заказа курьером в формате 'Y-m-d', которую можно указать при выполнении действий 'ship' и 'editshippingdetails'.
+                shipping_time_from:
+                  type: string
+                  description: >
+                    Начало диапазона времени доставки заказа курьером, который можно указать при выполнении действий 'ship' и 'editshippingdetails', в формате 'ЧЧ:ММ'.
+                shipping_time_to:
+                  type: string
+                  description: >
+                    Конец диапазона времени доставки заказа курьером, который можно указать при выполнении действий 'ship' и 'editshippingdetails', в формате 'ЧЧ:ММ'.
+                tracking_number:
+                  type: string
+                  description: >
+                    Идентификатор отправления, который можно указать при выполнении действий 'ship' и 'editshippingdetails'.
+                courier_id:
+                  type: integer
+                  description: >
+                    ID курьера, который можно указать при выполнении действий 'ship' и 'editshippingdetails'.
+                transport:
+                  type: string
+                  description: >
+                    Обозначение транспорта для отправки сообщения, которое можно указать при выполнении действия 'message': 'email' или 'sms'.
+                sender:
+                  type: string
+                  description: >
+                    Обозначение отправителя, которое можно указать при выполнении действия 'message': email-адрес либо номер телефона. Если для отправки email-сообщения не указано значение 'sender', то в качестве адреса отправителя используется основой email-адрес из настроек магазина.
+                refund:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                  description: >
+                    Флаг (0 или 1), обозначающий необходимость обработать возврат заказа платежным плагином при выполнении действия 'refund'.
+                refund_mode:
+                  type: string
+                  description: >
+                    Строка 'partial', если необходим частичный возврат при выполнении действия 'refund'.
+                refund_items:
+                  type: array
+                  description: >
+                    Массив информации о товарах в заказе, для которого выполняется возврат при выполнении действия 'refund', со структурой вида [item_id]['quantity'], где item_id — ID элементов заказа, являющихся модификациями товаров, а значения — количество модификаций.
+                master_id:
+                  oneOf:
+                    - type: integer
+                    - type: string
+                  description: >
+                    ID главного заказа, с которым нужно объединить подвешенный заказ при выполнении действия 'settle'. Или строка 'custom', если вместо одного из автоматически подобранных ID заказов необходимо вручную указать произвольный ID заказа.
+                master_id_custom:
+                  type: integer
+                  description: >
+                    ID главного заказа, с которым нужно объединить подвешенный заказ при выполнении действия 'settle'. Используется, если в параметре 'master_id' указана строка 'custom'.
+              required:
+                - id
+                - action
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        500:
+          description: 'Внутренняя ошибка сервера.'
+
+  /shop.order.actions:
+    get:
+      summary: 'Возвращает список действий, доступных для указанного заказа в его текущем состоянии.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.actions'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.actions/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID заказа.'
+          required: false
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+# не работает, потому неизвестно как заполнять параметр items
+  /shop.order.add:
+    post:
+      summary: 'Создает новый заказ.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.add'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.add/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                contact_id:
+                  type: integer
+                  description: 'ID контакта покупателя.'
+                contact:
+                  type: integer
+                  description: 'ID контакта покупателя. Альтернатива для contact_id, если он не указан.'
+                items:
+                  $ref: '#/components/schemas/orderItems'
+                comment:
+                  type: string
+                  description: 'Комментарий к заказу.'
+              required:
+                - contact_id
+                - items
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        500:
+          description: 'Внутренняя ошибка сервера.'
+
+  /shop.order.addInvoice:
+    post:
+      summary: 'Создает новый заказ для внесения предоплаты: без добавления товаров, только с общей суммой заказа.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.addInvoice'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.addInvoice/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                contact_id:
+                  type: integer
+                  description: 'ID контакта покупателя. Если не задан, заказ будет создан без привязки к контакту.'
+                comment:
+                  type: string
+                  description: 'Комментарий к заказу.'
+                currency:
+                  type: string
+                  description: 'ISO 4217 трёхсимвольный код валюты заказа, один из настроенных в магазине. По умолчанию - основная валюта магазина.'
+                payment_id:
+                  type: integer
+                  description: 'ID способа оплаты.'
+                total:
+                  type: number
+                  description: 'Общая сумма заказа к предоплате.'
+              required:
+                - total
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        500:
+          description: 'Внутренняя ошибка сервера.'
+
+# не работает, потому неизвестно как заполнять array
+  /shop.order.calculate:
+    post:
+      summary: 'Просмотр параметров заказа без сохранения в базу данных.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.calculate'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.calculate/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID заказа.'
+                items:
+                  $ref: '#/components/schemas/orderItems'
+                  description: >
+                    Массив состава заказа. Услуги должны быть указаны в подмассиве модификации товара с ключом 'services'.
+                customer:
+                  type: array
+                  description: 'Массив информации о покупателе.'
+                shipping_address:
+                  type: array
+                  description: 'Ассоциативный массив полей адреса доставки.'
+                billing_address:
+                  type: array
+                  description: 'Ассоциативный массив полей адреса плательщика.'
+                discount:
+                  type: string
+                  description: 'Информация о скидке: - Размер скидки в валюте заказа. - null, если не нужно изменять размер скидки. - true, если нужно автоматически пересчитать размер скидки.'
+                params:
+                  type: array
+                  description: 'Массив дополнительных параметров заказа для таблицы shop_order_params.'
+                currency:
+                  type: string
+                  description: '3-буквенное обозначение валюты заказа.'
+                payment_params:
+                  type: array
+                  description: 'Ассоциативный массив параметров оплаты.'
+                shipping_params:
+                  type: array
+                  description: 'Ассоциативный массив параметров доставки.'
+                shipping:
+                  type: number
+                  description: 'Стоимость доставки, выраженная в валюте заказа.'
+                tax:
+                  type: number
+                  description: >
+                    Режим сохранения размера налога. Строковое значение 'calculate' означает вычисление размера налога. Пустое значение (null) означает сохранение ранее вычисленного размера налога.
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        500:
+          description: 'Внутренняя ошибка сервера.'
+
+  /shop.order.comment:
+    post:
+      summary: 'Добавляет комментарий к заказу.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.comment'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.comment/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID заказа.'
+                text:
+                  type: string
+                  description: 'Текст комментария.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.order.complete:
+    post:
+      summary: 'Выполняет с заказом действие «Выполнен».'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.complete'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.complete/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID заказа.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.order.contactSave:
+    post:
+      summary: 'Изменяет контактную информацию о покупателе для указанного заказа.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.contactSave'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.contactSave/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                order_id:
+                  type: integer
+                  description: 'ID заказа.'
+                contact[name]:
+                  type: string
+                  description: 'Полное имя покупателя.'
+                contact[firstname]:
+                  type: string
+                  description: 'Первая часть имени покупателя.'
+                contact[middlename]:
+                  type: string
+                  description: 'Отчество покупателя.'
+                contact[lastname]:
+                  type: string
+                  description: 'Фамилия покупателя.'
+                contact[company]:
+                  type: string
+                  description: 'Название компании покупателя.'
+                contact[email]:
+                  type: string
+                  description: 'Email-адрес покупателя.'
+                contact[phone]:
+                  type: string
+                  description: 'Телефонный номер покупателя.'
+              required:
+                - order_id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.order.couriers:
+    get:
+      summary: 'Возвращает список доступных курьеров и информацию о выбранном курьере для этого заказа.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.couriers'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.couriers/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID заказа.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.order.delete:
+    post:
+      summary: 'Удаляет заказ.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.delete'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.delete/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID заказа.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.order.getPaymentlinks:
+    get:
+      summary: 'Возвращает ссылки для покупателя на оплату заказа на витрине магазина.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.getPaymentlinks'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.getPaymentlinks/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID заказа.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Оплата недоступна для данного заказа.'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.order.getInfo:
+    get:
+      summary: 'Возвращает информацию о заказе.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.getInfo'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID заказа.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.order.log:
+    get:
+      summary: 'Возвращает историю действий с заказом.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.log'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.log/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID заказа.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.order.process:
+    post:
+      summary: 'Выполняет с заказом действие «В обработку».'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.process'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.process/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID заказа.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+# не работает, потому неизвестно как заполнять параметр items
+  /shop.order.save:
+    post:
+      summary: 'Сохраняет информацию о заказе в базу данных.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.save'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.save/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID заказа.'
+                items:
+                  type: array
+                  description: >
+                    Массив состава заказа. Услуги должны быть указаны в подмассиве модификации товара с ключом 'services'.
+
+                    Параметр items является обязательным при создании нового заказа. При редактировании существующего - не обязателен.
+                contact_id:
+                  type: integer
+                  description: 'ID покупателя (если надо передать заказ другому покупателю)'
+                customer:
+                  type: array
+                  description: 'Массив информации о покупателе. Будет обновлён контакт, привязанный к заказу. Если передан ещё и contact_id, то будет изменён контакт с этим указанным id.'
+                shipping_address:
+                  type: array
+                  description: 'Ассоциативный массив полей адреса доставки.'
+                billing_address:
+                  type: array
+                  description: 'Ассоциативный массив полей адреса плательщика.'
+                discount:
+                  type: string
+                  description: 'Информация о скидке: - Размер скидки в валюте заказа. - null, если не нужно изменять размер скидки. - calculate, если нужно автоматически пересчитать размер скидки.'
+                params:
+                  type: array
+                  description: 'Массив дополнительных параметров заказа для таблицы shop_order_params.'
+                comment:
+                  type: string
+                  description: 'Комментарий к заказу.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.order.saveItem:
+    post:
+      summary: 'Изменяет количество элемента заказа. Автоматически пересчитывает размер скидки и стоимость доставки заказа.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.saveItem'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.saveItem/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                item_id:
+                  type: integer
+                  description: 'ID элемента заказа.'
+                quantity:
+                  type: integer
+                  description: 'Количество.'
+              required:
+                - item_id
+                - quantity
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.order.search:
+    get:
+      summary: 'Выполняет поиск заказов.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.search'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.search/
+      parameters:
+        - in: query
+          name: hash
+          description: >
+            Строка с описанием условий фильтрации заказов, закодированная для передачи в URL. Если значение не указано, то выполняется поиск всех заказов без фильтрации. Примеры:
+
+              - 'id/12,23,34': список ID заказов, информацию о которых нужно получить.
+              - 'search/state_id=new': поиск по значению 'new' поля 'state_id' в таблице 'shop_order'. Для поиска по нескольким значениям поля по условию «ИЛИ» нужно перечислить значения с оператором '||', например: 'search/state_id=new||processing||paid'. В качестве оператора сравнения вместо '=' в этом примере можно использовать следующие: '=' (совпадение значения), '*=' (совпадение части строкового значения), '^=' (совпадение начала строкового значения), '=$' (совпадение окончания строкового значения), '!=' (несовпадение значения), математические операторы '<', '=', '>', '<=', '>='. Можно объединять поиск по нескольким полям с помощью оператора '&', например: 'search/state_id=new||processing&total>=100'.
+              - 'search/params.shipping_id=64': поиск заказов по параметру заказа 'shipping_id' со значением '64', хранящемся в таблице 'shop_order_params'.
+              - 'search/items.service_id=2': поиск заказов по свойству заказанных товаров 'service_id' со значением '2', хранящемся в таблице 'shop_order_items'.
+              - 'search/items.product_id=10': поиск заказов с товаром, у которого id = 10.
+              - 'search/promo_id=10': поиск заказов, связанных с промоакцией с id = 10.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: offset
+          description: 'Смещение относительно начала списка найденных заказов . Целое неотрицательное число не более 1000. Значение по умолчанию ­— 0.'
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 1000
+            default: 0
+        - in: query
+          name: limit
+          description: 'Ограничение количества найденных заказов. Целое неотрицательное число. Значение по умолчанию ­— 100.'
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 100
+        - in: query
+          name: fields
+          description: 'Дополнительные поля заказа через запятую. Доступные поля: products,skus,state,subtotal,order_icon,sales_channel,contact,contact_full,shipping_info,billing_info,courier,payment_url'
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: escape
+          description: >
+            Флаг (0 или 1), обозначающий необходимость экранировать свойства полученных названий товаров и имён покупателей для использования в HTML-коде. Значение по умолчанию — 1.
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.order.setShippingAddress:
+    post:
+      summary: 'Устанавливает адрес доставки для указанного заказа.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.setShippingAddress'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.setShippingAddress/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID заказа.'
+                address[city]:
+                  type: string
+                  description: 'Название населенного пункта.'
+                address[country]:
+                  type: string
+                  description: '3-буквенный код страны.'
+                address[region]:
+                  type: string
+                  description: 'Код региона страны.'
+                address[street]:
+                  type: string
+                  description: 'Название улицы с номером дома и квартиры.'
+                address[zip]:
+                  type: string
+                  description: 'Почтовый индекс.'
+              required:
+                - id
+                - address
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.order.ship:
+    post:
+      summary: 'Выполняет с заказом действие «Отправлен».'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.order.ship'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.order.ship/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID заказа.'
+                tracking_number:
+                  type: string
+                  description: 'Идентификатор отправления.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+
+#PRODUCT
+# не работает, потому неизвестно как заполнять параметр с array
+  /shop.product.add:
+    post:
+      summary: 'Добавляет новый товар.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.add'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.add/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Наименование товара.'
+                type_id:
+                  type: integer
+                  description: 'ID типа товара.'
+                summary:
+                  type: string
+                  description: 'Краткое описание.'
+                description:
+                  type: string
+                  description: 'Полное описание.'
+                meta_title:
+                  type: string
+                  description: 'Элемент TITLE страницы товара.'
+                meta_keywords:
+                  type: string
+                  description: 'Содержимое атрибута META keywords.'
+                meta_description:
+                  type: string
+                  description: 'Содержимое атрибута META description.'
+                og:
+                  type: array
+                  description: >
+                    Ассоциативный массив значений параметров товара для соцсетей. Примеры допустимых ключей массива: 'title', 'description', 'video', 'image_id'.
+                status:
+                  type: integer
+                  description: 'Статус публикации: -1 (снят с публикации), 0 (скрытый), 1 (опубликован).'
+                  enum:
+                    - -1
+                    - 0
+                    - 1
+                image_id:
+                  type: integer
+                  description: 'ID основного изображения.'
+                sku_id:
+                  type: integer
+                  description: 'ID основной модификации.'
+                url:
+                  type: string
+                  description: 'Редактируемая часть URL страницы товара на витрине.'
+                video_url:
+                  type: string
+                  description: 'URL видеоролика.'
+                currency:
+                  type: string
+                  description: 'ISO3-код валюты товара.'
+                tax_id:
+                  type: integer
+                  description: 'ID налогового правила, применимого к товару.'
+                cross_selling:
+                  type: integer
+                  description: 'Режим выборки рекомендуемых товаров (cross-selling): 0 — рекомендуемые товары отключены, 1 — включен автоматический подбор рекомендуемых товаров, 2 — рекомендуемые товары выбраны вручную.'
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                upselling:
+                  type: integer
+                  description: 'Режим выборки рекомендуемых товаров (upselling): 0 — рекомендуемые товары отключены, 1 — включен автоматический подбор рекомендуемых товаров, 2 — рекомендуемые товары выбраны вручную.'
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                badge:
+                  type: string
+                  description: 'ID одной из стандартных наклеек или HTML-код пользовательской наклейки.'
+                sku_type:
+                  type: integer
+                  description: 'Способ выбора модификаций товара на витрине: 0 — по названиям артикулов, 1 — по значениям характеристик.'
+                  enum:
+                    - 0
+                    - 1
+                stock_base_ratio:
+                  type: number
+                  description: 'Отношение складской единицы измерения количества к базовой. Если не указано, используется значение из настроек типа товара.'
+                order_count_step:
+                  type: number
+                  description: 'Значение изменения количества кнопками «+/-». Если не указано, используется значение из настроек типа товара.'
+                order_count_min:
+                  type: number
+                  description: 'Минимальное количество для заказа. Если не указано, используется значение из настроек типа товара.'
+                skus:
+                  type: array
+                  description: >
+                    Массив информации о модификациях товара. Необходим в том случае, если в параметре 'sku_type' указано значение 0. Ключи массива — id модификаций, значения — подмассивы со значениями свойств модификаций:
+
+                    - available (int) Флаг (0 или 1) доступности для заказа.
+
+                    - status (int) Флаг (0 или 1) видимости на витрине.
+
+                    - price (float) Цена в формате decimal(15,4).
+
+                    - purchase_price (float) Закупочная цена в формате decimal(15,4).
+
+                    - compare_price (float) Зачеркнутая цена в формате decimal(15,4).
+
+                    - name (string) Название.
+
+                    - stock_base_ratio (float) Соотношение складской и базовой единиц измерения количества в формате decimal(16,8).
+
+                    - order_count_min (float) Минимальное количество для заказа в формате decimal(15,4).
+
+                    - order_count_step (float) Значение изменения количества кнопками «+/-» в формате decimal(15,4).
+
+                    - stock (array) Массив складских остатков модификации. Если в магазине не настроено ни одного склада, то массив должен содержать 1 элемент с количеством модификации в формате decimal(15,3). Если склады настроены, то ключами массива должны быть id складов, а значениями — количество модификации на данном складе в формате decimal(15,3).
+
+                    - features (array) Значения характеристик в параметрах модификации. Ключи массива — строковые идентификаторы характеристик, значения массива — значения характеристик.
+                categories:
+                  type: array
+                  description: 'Массив id категорий товара. Первый id в массиве сохранится как id основной категории товара.'
+                tags:
+                  oneOf:
+                    - type: string
+                    - type: array
+                  description: 'Список названий тегов, которые нужно привязать к товару, разделенные запятой в виде одной строки либо в виде массива строк.'
+                params:
+                  oneOf:
+                    - type: array
+                    - type: string
+                  description: >
+                    Дополнительные параметры товара в виде ассоциативного массива либо в виде строки вида 'name1=value1\nname2=value2\n...', в которой пары 'name=value' должны быть отделены друг от друга символом новой строки. Если в качестве значения передать null, то все дополнительные параметры товара будут удалены.
+                sets:
+                  type: array
+                  description: >
+                    Массив с информацией о списках, в которые должен быть включен товар. Элементами массива могут быть либо id списков, либо подмассивы с единственным ключом 'id', содержащим id каждого списка. Если товар ранее содержался в каких-то списках, то он автоматически исключается из тех списков, чьи id не указаны в этом параметре.
+                features:
+                  type: array
+                  description: 'Массив значений характеристик товара. Пример структуры массива удобно подсмотреть средствами разработчика в браузере при сохранении товара в панели управления магазина.'
+                features_selectable:
+                  type: array
+                  description: >
+                    Массив значений характеристик, из всех сочетаний которых должны автоматически сформироваться модификации товара. Ключи массива — строковые идентификаторы характеристик, значения массива — список ID значений этих характеристик. Может использоваться при передаче в параметре 'sku_type' значения '1'.
+                base_price_selectable:
+                  type: number
+                  description: >
+                    Цена, которая должна примениться ко всем модификациям, автоматически сформированным из значения параметра 'features_selectable'.
+                compare_price_selectable:
+                  type: number
+                  description: >
+                    Зачеркнутая цена, которая должна примениться ко всем модификациям, автоматически сформированным из значения параметра 'features_selectable'.
+                purchase_price_selectable:
+                  type: number
+                  description: >
+                    Закупочная цена, которая должна примениться ко всем модификациям, автоматически сформированным из значения параметра 'features_selectable'.
+              required:
+                - name
+                - type_id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.addTags:
+    post:
+      summary: 'Добавляет теги к указанному товару.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.addTags'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.addTags/
+      parameters:
+        - in: query
+          name : id
+          description: 'ID товара, к которому нужно добавить теги.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                tags:
+                  oneOf:
+                    - type: array
+                    - type: string
+                  description: 'Массив тегов или список тегов, разделенных запятой.'
+                  items:
+                    type: string
+              required:
+                - tags
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.addToCategory:
+    post:
+      summary: 'Добавляет товар в указанную категорию'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.addToCategory'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.addToCategory/
+      parameters:
+        - in: query
+          name : id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                category_id:
+                  type: integer
+                  description: 'ID категории, в которую нужно добавить товар.'
+              required:
+                - category_id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+          content:
+            application/json:
+              schema:
+                type: boolean
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.addToSet:
+    post:
+      summary: 'Добавляет товар в статический список.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.addToSet'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.addToSet/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                set_id:
+                  type: string
+                  description: 'ID списка, в который нужно добавить товар.'
+              required:
+                - set_id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+          content:
+            application/json:
+              schema:
+                type: boolean
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.delete:
+    post:
+      summary: 'Удаляет товары.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.delete'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.delete/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  oneOf:
+                    - type: integer
+                    - type: array
+                    - type: string
+                  description: 'ID товара, либо массив ID товаров, либо список ID товаров, разделенных запятой.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+          content:
+            application/json:
+              schema:
+                type: boolean
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.getInfo:
+    get:
+      summary: 'Возвращает информацию о товаре.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.getInfo'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.getServices:
+    post:
+      summary: 'Возвращает информацию об услугах, доступных для модификаций товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.getServices'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.getServices/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                sku_ids:
+                  type: array
+                  description: 'Массив ID модификаций.'
+                  items:
+                    type: integer
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+#не работает так как не реализована загрузка файлов в apiexplorer
+  /shop.product.images.add:
+    post:
+      summary: 'Добавляет новое изображение к товару.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.images.add'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.images.add/
+      parameters:
+        - in: query
+          name: product_id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  description: 'Файл изображения.'
+                  format: binary
+                description:
+                  type: string
+                  description: 'Описание изображения.'
+              required:
+                - product_id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        500:
+          description: 'Внутренняя ошибка сервера.'
+
+  /shop.product.images.addMany:
+    post:
+      summary: 'Добавляет одно или несколько новых изображений к товару.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.images.addMany'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.images.addMany/
+      parameters:
+        - in: query
+          name: product_id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  description: 'Файлы изображений.'
+                  items:
+                    type: string
+                    format: binary
+                descriptions:
+                  type: array
+                  items:
+                    type: string
+                    description: 'Описания изображений в порядке следования файлов.'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        500:
+          description: 'Внутренняя ошибка сервера.'
+
+  /shop.product.images.update:
+    post:
+      summary: 'Изменяет порядок существующих изображений, обновляет их описания и/или удаляет несколько изображений одного товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.images.update'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.images.update/
+      parameters:
+        - in: query
+          name: product_id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  description: 'Массив изображений товара — в том порядке, в каком их нужно расположить в свойствах товара. Изображения, отсутствующие в этом списке, будут удалены.'
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        description: 'ID существующего изображения товара.'
+                        type: integer
+                      description:
+                        description: 'Новое описние изображения.'
+                        type: string
+                    required:
+                      - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.images.delete:
+    post:
+      summary: 'Удаляет изображение товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.images.delete'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.images.delete/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID изображения, которое нужно удалить.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.images.getInfo:
+    get:
+      summary: 'Возвращает информацию об изображении товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.images.getInfo'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.images.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID изображения.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: size
+          description: >
+            Обозначение размера эскиза изображения, URL которого нужно вернуть в элементе массива 'url_thumb'. Если размер не указан, по умолчанию используется '200x0'.
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.images.getList:
+    get:
+      summary: 'Возвращает список изображений товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.images.getList'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.images.getList/
+      parameters:
+        - in: query
+          name: product_id
+          description: 'ID товара, список изображений которого нужно получить.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.images.sort:
+    post:
+      summary: 'Изменяет порядок сортировки изображений товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.images.sort'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.images.sort/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                photo_ids:
+                  type: array
+                  description: 'Массив ID изображений товара — в том порядке, в каком их нужно расположить в свойствах товара.'
+                  items:
+                    type: integer
+              required:
+                - photo_ids
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+# не работает, потому неизвестно как заполнять параметр с array
+  /shop.product.massUpdate:
+    post:
+      summary: 'Обновляет информацию о нескольких товарах и их модификациях.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.massUpdate'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.massUpdate/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                product:
+                  type: array
+                  description: >
+                    Массив значений со свойствами товаров. Подмассив каждого товара может содержать значения со следующими ключами:
+
+                    - id (int) ID товара. Обязательное поле.
+                    - name (string) Наименование.
+
+                    - type_id (int) ID типа товара.
+
+                    - summary (string) Краткое описание.
+
+                    - description (string) Полное описание.
+
+                    - meta_title (string) Элемент TITLE страницы товара.
+
+                    - meta_keywords (string) Содержимое атрибута META keywords.
+
+                    - meta_description (string) Содержимое атрибута META description.
+
+                    - og (array) Ассоциативный массив значений параметров товара для соцсетей. Примеры допустимых ключей массива: 'title', 'description', 'video', 'image_id'.
+
+                    - status (int) Статус публикации: -1 (снят с публикации), 0 (скрытый), 1 (опубликован).
+
+                    - image_id (int) Id основного изображения.
+
+                    - sku_id (int) Id основной модификации.
+
+                    - video_url (string) URL видеоролика.
+
+                    - url (string) Редактируемая часть URL страницы товара на витрине.
+
+                    - currency (string) 3-буквенный код валюты товара.
+
+                    - tax_id (int) Id налогового правила, применимого к товару.
+
+                    - cross_selling (int) Режим выборки рекомендуемых товаров (cross-selling): 0 — рекомендуемые товары отключены, 1 — включен автоматический подбор рекомендуемых товаров, 2 — рекомендуемые товары выбраны вручную.
+
+                    - upselling (int) Режим выборки рекомендуемых товаров (upselling): 0 — рекомендуемые товары отключены, 1 — включен автоматический подбор рекомендуемых товаров, 2 — рекомендуемые товары выбраны вручную.
+
+                    - badge (int|string) Id одной из стандартных наклеек или HTML-код пользовательской наклейки.
+
+                    - sku_type (int) Способ выбора модификаций товара на витрине: 0 — по названиям артикулов, 1 — по значениям характеристик.
+
+                    - stock_base_ratio (float) Отношение складской единицы измерения количества к базовой.
+
+                    - order_count_step (float) Значение изменения количества кнопками «+/-».
+
+                    - order_count_min (float) Минимальное количество для заказа.
+                sku:
+                  type: array
+                  description: >
+                    Массив значений со свойствами модификаций товаров. Подмассив каждой модификации может содержать значения со следующими ключами:
+
+                    - id (int) ID модификации. Обязательное поле.
+
+                    - sku (string) Код артикула.
+
+                    - sort (int) Значение сортировки.
+
+                    - name (string) Наименование артикула.
+
+                    - image_id (int) Id выбранного изображения.
+
+                    - price (float) Цена.
+
+                    - purchase_price (float) Закупочная цена.
+
+                    - compare_price (float) Зачеркнутая цена.
+
+                    - available (int) Флаг (0 или 1) доступности для покупки.
+
+                    - status (int) Флаг (0 или 1) видимости на витрине.
+
+                    - stock (array) Массив складских остатков модификации. Если в магазине не настроено ни одного склада, то массив должен содержать 1 элемент с количеством модификации в формате decimal(15,3). Если склады настроены, то ключами массива должны быть id складов, а значениями — количество модификации на данном складе в формате decimal(15,3).
+
+                    - count (int|float|null) Количество модификации на складе. Используется в том случае, если в магазине не настроены склады и если параметр 'stock' пуст.
+                jproduct:
+                  type: string
+                  description: >
+                    Если не указано значение для параметра 'product', используется значение, закодированное в строку с помощью функции json_encode().
+                jsku:
+                  type: string
+                  description: >
+                    Если не указано значение для параметра 'sku', используется значение, закодированное в строку с помощью функции json_encode().
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.pages.getInfo:
+    get:
+      summary: 'Возвращает информацию о подстранице товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.pages.getInfo'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.pages.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID страницы.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.pages.getList:
+    get:
+      summary: 'Возвращает список опубликованных подстраниц товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.pages.getList'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.pages.getList/
+      parameters:
+        - in: query
+          name: product_id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.removeFromCategory:
+    post:
+      summary: 'Удаляет товар из категории.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.removeFromCategory'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.removeFromCategory/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                category_id:
+                  type: integer
+                  description: 'ID категории, из которой нужно удалить товар.'
+              required:
+                - category_id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+          content:
+            application/json:
+              schema:
+                type: boolean
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.removeFromSet:
+    post:
+      summary: 'Удаляет товар из статического списка.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.removeFromSet'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.removeFromSet/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                set_id:
+                  type: string
+                  description: 'ID списка, из которого нужно удалить товар.'
+              required:
+                - set_id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+          content:
+            application/json:
+              schema:
+                type: boolean
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.removeTags:
+    post:
+      summary: 'Удаляет теги из свойств товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.removeTags'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.removeTags/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                tags:
+                  oneOf:
+                    - type: array
+                    - type: string
+                  description: 'Массив тегов или список тегов, разделенных запятой.'
+              required:
+                - tags
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+          content:
+            application/json:
+              schema:
+                type: boolean
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.reviews.getTree:
+    get:
+      summary: 'Возвращает дерево отзывов к товару.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.reviews.getTree'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.reviews.getTree/
+      parameters:
+        - in: query
+          name: product_id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: parent_id
+          description: 'ID отзыва, который должен считаться корнем дерева. Если не указан, то метод возвращает все дерево отзывов.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: depth
+          description: 'Количество уровней дерева, которые нужно получить. Если не указано, то метод возвращает все найденные отзывы.'
+          required: false
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.sales:
+    get:
+      summary: 'Возвращает информацию о продажах товара за последние 30 дней.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.sales'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.sales/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+#тут не описаны параметры filters и escape. описать
+  /shop.product.search:
+    get:
+      summary: 'Возвращает список товаров, соответствующих заданным критериям.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.search'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.search/
+      parameters:
+        - in: query
+          name: hash
+          description: >
+            Строка с описанием условий фильтрации товаров, закодированная для передачи в URL. Если значение не указано, то выполняется поиск всех товаров без фильтрации. Примеры:
+              - 'id/12,23,34' — список id товаров
+              - 'related/cross_selling/12' — товары, выбранные в качестве перекрестных продаж для товара с id = 12
+              - 'related/upselling/12' — товары, выбранные в качестве схожих и альтернативных для товара с id = 12
+              - 'category/27' — товары, содержащиеся в категории с id = 27
+              - 'search/query=style' — поиск по слову 'style'
+              - 'search/tag=style' или 'tag/style' — поиск по тегу 'style'
+              - 'search/type_id=1' — пример поиска по любому полю в таблице 'shop_product'
+              - 'search/name=SuperProduct' — точный поиск по полю 'name' таблицы 'shop_product'
+              - 'search/color.value_id=4,5,6' — поиск товаров с указанными id значений характеристики с указаным текстовым идентификатором (в этом примере — 'color')
+              - 'search/sku_id=11,22,33' — поиск по списку ID модификаций; чтобы получить только точно указанные модификации, добавьте полей 'skus_filtered' в список полей в параметре 'fields'
+              - 'search/category_id=7,8,9' — поиск товаров, для которых в качестве основной выбраны категории с указанным списком id
+              - 'type/1' — поиск по id типа товаров, синоним 'search/type_id=1'
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: offset
+          description: 'Номер начальной позиции в списке найденных товаров, начиная с которой нужно начинать формировать результат поиска. Допускается указание неотрицательных значений. Если не указано, то используется значение по умолчанию 0 (начинать с первого найденного элемента).'
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: limit
+          description: 'Максимальное количество товаров, которые нужно получить. Допустимый диапазон значений: от 0 до 1000. Если не указано, используется значение по умолчанию 100.'
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 1000
+            default: 100
+        - in: query
+          name: fields
+          description: >
+            Список полей со свойствами товаров, которые нужно получить. Названия полей должны быть перечислены через запятую в виде строки.
+            Если список полей не указан, то по умолчанию будут возвращены значения всех полей таблицы 'shop_product'.
+            Кроме этих стандартных полей, можно указывать дополнительные:
+
+              - images: в содержимое ответа добавляется элемент с ключом 'images' с подробной информацией обо всех изображениях товара включая 3 URL эскизов — с размерами '970', '96x96' и '270x0';
+
+              - images2x: аналогично полю 'images', но в информации об изображениях содержатся URL эскизов в для устройств с двойной плотностью пикселей;
+
+              - image: в содержимое ответа добавляется элемент с ключом 'images' с 3 URL эскизов основного изображения товара — с размерами '970', '96x96' и '270x0';
+
+              - image_crop_small: в содержимое ответа добавляется элемент с ключом 'image_crop_small' с URL эскиза основного изображения товара с размером '48x48';
+
+              - image_count: в содержимое ответа добавляется элемент с ключом 'image_count' с количеством изображений товара;
+
+              - skus: в содержимое ответа добавляется элемент с ключом 'skus' с подробной информацией о модификациях товара; если запрошено также поле 'stock_counts',
+                то в свойствах каждой модификации доступен элемент с ключам 'stock' с информацией об остатках модификаций на каждом складе;
+                если запрошено также поле 'skus_image', то в свойствах каждой модификации доступны элементы с ключами 'ext', 'image_filename', 'image_description' с информацией об изображении товара, отображающемся на витрине при выборе данной модификации;
+
+              - skus_filtered: аналогично полю 'sku', но в элементе 'skus' содержатся только те модификации, свойства которых соответствуют условиям фильтрации товаров;
+
+              - sku_filtered: аналогично полю 'skus_filtered', но в элементе 'skus' содержится только одна модификация, свойства которого соответствуют условиям фильтрации товаров;
+
+              - sku: в содержимое ответа добавляется элемент с ключом 'sku' с названием основной модификации товара;
+
+              - frontend_url: в содержимое ответа добавляется элемент с ключом 'frontend_url' с URL страницы товара относительно URL витрины;
+
+              - sales_30days: в содержимое ответа добавляются элементы с ключами 'sales_30days' — с суммарной стоимостью всех модификаций товара в оплаченных заказах в виде числа, соответствующего основной валюте магазина
+                и 'sales_30days_html' — с аналогичным значением, но с обозначением основной валюты магазина, подготовленным для использования в HTML-коде;
+
+              - stock_worth: в содержимое ответа добавляются элементы с ключами 'stock_worth' — с суммарной стоимостью всех модификаций товара, доступных на складе, в виде числа, соответствующего основной валюте магазина,
+                и 'stock_worth_html' — с аналогичным значением, но с обозначением основной валюты магазина, подготовленным для использования в HTML-коде.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: sort
+          description: >
+            Правило сортировки:
+
+            - по всем полям доступным в таблице shop_product. Например: name, create_datetime, price. Также в этом случае можно передать несколько полей для сортировки в одномерном массиве
+
+            - minimum_price: по минимальной цене среди артикулов;
+
+            - minimum_base_price: по минимальной базовой цене среди артикулов;
+
+            - stock_worth: по стоимости активов;
+
+            - sku: сортировка по наименованию артикула;
+
+            - purchase_price: по закупочной цене среди артикулов;
+
+            - image_count: по количеству изображений в товаре;
+
+            - sales_30days: по продажам за последние 30 дней;
+
+            - feature_{id}: по значениям характеристики с указанным идентификатором;
+
+            - stock_{id}: по количеству товаров на указанном складе.
+          required: false
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+        - in: query
+          name: order
+          description: >
+            Порядок сортировки. Используется только только если задан параметр `sort`. Если значение не будет передано, то будет использоваться сортировка по возрастанию. Возможные значения:
+
+            - `asc` - По возрастанию, от А до Я
+
+            - `desc` - По убыванию, от Я до А
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+        - in: query
+          name: filters
+          description: >
+            Закодированный для использования в URL массив параметров дополнительной фильтрации товаров со следующими ключами:
+
+            - in_stock_only: (int) 1, если нужно получить только товары с положительными или бесконечными остатками на складе.
+
+            - out_of_stock_only: (int) 1, если нужно получить только товары с нулевым остатком на складе (не null и меньше 1).
+
+            - price_min: (float) Минимальная цена, выраженная в основной валюте магазина, не ниже которой должна быть цена требуемых товаров.
+
+            - price_max: (float) Максимальная цена, выраженная в основной валюте магазина, не выше которой должна быть цена требуемых товаров.
+
+            - unit: (int) ID складской или базовой единицы измерения количества, которая должна быть у требуемых товаров.
+
+            - stock_unit_id: (int) ID складской единицы измерения количества, которая должна быть у требуемых товаров.
+
+            - base_unit_id: (int) ID базовой единицы измерения количества, которая должна быть у требуемых товаров.
+
+            - строковый идентификатор характеристики: (array) Массив информации о значениях характеристики с указанным идентификатором, которые должны быть указаны в свойствах товаров. Каждый элемент массива может представлять собой либо массив числовых ID значений характеристики, либо массив с ключами 'min' (минимальное значение), 'max' (максимальное значение), 'unit' (строковый идентификатор единицы измерения характеристики из файла dimension.php).
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: escape
+          description: >
+            Флаг (0 или 1), обозначающий необходимость экранировать свойства полученных товаров 'name' и 'url' для использования в HTML-коде. Значение по умолчанию — 1.
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.product.skus.add:
+    post:
+      summary: 'Добавляет модификацию к существующему товару.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.skus.add'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.skus.add/
+      parameters:
+        - in: query
+          name: product_id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                sku:
+                  type: string
+                  description: 'Код артикула.'
+                sort:
+                  type: integer
+                  description: 'Значение сортировки.'
+                name:
+                  type: string
+                  description: 'Наименование артикула.'
+                image_id:
+                  type: integer
+                  description: 'ID выбранного изображения.'
+                price:
+                  type: number
+                  description: 'Цена.'
+                purchase_price:
+                  type: number
+                  description: 'Закупочная цена.'
+                compare_price:
+                  type: number
+                  description: 'Зачеркнутая цена.'
+                available:
+                  type: integer
+                  description: 'Флаг (0 или 1) доступности модификации для покупки.'
+                  enum:
+                    - 0
+                    - 1
+                status:
+                  type: integer
+                  description: 'Флаг (0 или 1) видимости на витрине. Значение по умолчанию — 1.'
+                  enum:
+                    - 0
+                    - 1
+                stock:
+                  type: array
+                  description: >
+                    Массив складских остатков модификации. Если в магазине не настроено ни одного склада, то массив может содержать 1 элемент с количеством модификации в формате decimal(15,3). Если склады настроены, то ключами массива должны быть id складов, а значениями — количество модификации на данном складе в формате decimal(15,3).
+                count:
+                  type: number
+                  description: >
+                    Количество модификации на складе. Используется в том случае, если в магазине не настроены склады и если параметр 'stock' пуст.
+                stock_base_ratio:
+                  type: number
+                  description: >
+                    Отношение складской единицы измерения количества к базовой. Если не указано, используется значение из свойств товара.
+                order_count_min:
+                  type: number
+                  description: >
+                    Минимальное количество для заказа. Если не указано, используется значение из свойств товара.
+                order_count_step:
+                  type: number
+                  description: >
+                    Значение изменения количества кнопками «+/-». Если не указано, используется значение из свойств товара.
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.skus.delete:
+    post:
+      summary: 'Удаляет модификацию товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.skus.delete'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.skus.delete/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'ID модификации, которую нужно удалить.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+          content:
+            application/json:
+              schema:
+                type: boolean
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.skus.getInfo:
+    get:
+      summary: 'Возвращает информацию об указанной модификации товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.skus.getInfo'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.skus.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID модификации.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.skus.getList:
+    get:
+      summary: 'Возвращает список модификаций товара.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.skus.getList'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.skus.getList/
+      parameters:
+        - in: query
+          name: product_id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.product.skus.update:
+    post:
+      summary: 'Обновляет информацию о модификации товара. Требуются права доступа для редактирования товаров данного типа.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.skus.update'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.skus.update/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID модификации.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                sku:
+                  type: string
+                  description: 'Код артикула.'
+                sort:
+                  type: integer
+                  description: 'Значение сортировки.'
+                name:
+                  type: string
+                  description: 'Наименование артикула.'
+                image_id:
+                  type: integer
+                  description: 'ID выбранного изображения.'
+                price:
+                  type: number
+                  description: 'Цена.'
+                purchase_price:
+                  type: number
+                  description: 'Закупочная цена.'
+                compare_price:
+                  type: number
+                  description: 'Зачеркнутая цена.'
+                available:
+                  type: integer
+                  description: 'Флаг (0 или 1) доступности для заказа.'
+                  enum:
+                    - 0
+                    - 1
+                status:
+                  type: integer
+                  description: 'Флаг (0 или 1) видимости на витрине.'
+                  enum:
+                    - 0
+                    - 1
+                stock:
+                  type: array
+                  description: >
+                    Массив складских остатков модификации. Если в магазине не настроено ни одного склада, то массив может содержать 1 элемент с количеством модификации в формате decimal(15,3). Если склады настроены, то ключами массива должны быть id складов, а значениями — количество модификации на данном складе в формате decimal(15,3).
+                count:
+                  type: number
+                  description: >
+                    Количество модификации на складе. Используется в том случае, если в магазине не настроены склады и если параметр 'stock' пуст.
+                stock_base_ratio:
+                  type: number
+                  description: >
+                    Отношение складской единицы измерения количества к базовой.
+                order_count_min:
+                  type: number
+                  description: >
+                    Минимальное количество для заказа.
+                order_count_step:
+                  type: number
+                  description: >
+                    Значение изменения количества кнопками «+/-».
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+# частично работает, потому неизвестно как заполнять параметр с array
+  /shop.product.update:
+    post:
+      summary: 'Обновляет информацию о товаре.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.product.update'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.product.update/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID товара.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Наименование.'
+                summary:
+                  type: string
+                  description: 'Краткое описание.'
+                description:
+                  type: string
+                  description: 'Полное описание.'
+                meta_title:
+                  type: string
+                  description: 'Элемент TITLE страницы товара.'
+                meta_keywords:
+                  type: string
+                  description: 'Содержимое атрибута META keywords.'
+                meta_description:
+                  type: string
+                  description: 'Содержимое атрибута META description.'
+                og:
+                  type: array
+                  description: >
+                    Ассоциативный массив значений параметров товара для соцсетей. Примеры допустимых ключей массива: 'title', 'description', 'video', 'image_id'.
+                status:
+                  type: integer
+                  description: 'Статус публикации: -1 (скрыт и недоступен), 0 (скрыт), 1 (опубликован).'
+                  enum:
+                    - -1
+                    - 0
+                    - 1
+                type_id:
+                  type: integer
+                  description: 'ID типа товара.'
+                image_id:
+                  type: integer
+                  description: 'ID основного изображения.'
+                sku_id:
+                  type: integer
+                  description: 'ID основной модификации.'
+                url:
+                  type: string
+                  description: 'Редактируемая часть URL страницы товара на витрине.'
+                price:
+                  type: number
+                  description: 'Цена.'
+                compare_price:
+                  type: number
+                  description: 'Зачеркнутая цена.'
+                currency:
+                  type: string
+                  description: 'ISO3-код валюты товара.'
+                tax_id:
+                  type: integer
+                  description: 'ID налогового правила, применимого к товару.'
+                cross_selling:
+                  type: integer
+                  description: 'Режим выборки рекомендуемых товаров (cross-selling): 0 — рекомендуемые товары отключены, 1 — включен автоматический подбор рекомендуемых товаров, 2 — рекомендуемые товары выбраны вручную.'
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                upselling:
+                  type: integer
+                  description: 'Режим выборки рекомендуемых товаров (upselling): 0 — рекомендуемые товары отключены, 1 — включен автоматический подбор рекомендуемых товаров, 2 — рекомендуемые товары выбраны вручную.'
+                  enum:
+                    - 0
+                    - 1
+                    - 2
+                badge:
+                  type: string
+                  description: 'ID одной из стандартных наклеек или HTML-код пользовательской наклейки.'
+                sku_type:
+                  type: integer
+                  description: 'Способ выбора модификаций товара на витрине: 0 — по названиям артикулов, 1 — по значениям характеристик.'
+                  enum:
+                    - 0
+                    - 1
+                stock_base_ratio:
+                  type: number
+                  description: 'Отношение складской единицы измерения количества к базовой.'
+                order_count_step:
+                  type: number
+                  description: 'Значение изменения количества кнопками «+/-».'
+                order_count_min:
+                  type: number
+                  description: 'Минимальное количество для заказа.'
+                skus:
+                  type: array
+                  description: >
+                    Массив информации о модификациях товара. Необходим в том случае, если в параметре 'sku_type' указано значение 0. Ключи массива — id модификаций, значения — подмассивы со значениями свойств модификаций:
+
+                    - available (int) Флаг (0 или 1) доступности для заказа.
+
+                    - status (int) Флаг (0 или 1) видимости на витрине.
+
+                    - price (float) Цена в формате decimal(15,4).
+
+                    - purchase_price (float) Закупочная цена в формате decimal(15,4).
+
+                    - compare_price (float) Зачеркнутая цена в формате decimal(15,4).
+
+                    - name (string) Название.
+
+                    - stock_base_ratio (float) Соотношение складской и базовой единиц измерения количества в формате decimal(16,8).
+
+                    - order_count_min (float) Минимальное количество для заказа в формате decimal(15,4).
+
+                    - order_count_step (float) Значение изменения количества кнопками «+/-» в формате decimal(15,4).
+
+                    - stock (array) Массив складских остатков модификации. Если в магазине не настроено ни одного склада, то массив должен содержать 1 элемент с количеством модификации в формате decimal(15,3). Если склады настроены, то ключами массива должны быть id складов, а значениями — количество модификации на данном складе в формате decimal(15,3).
+
+                    - features (array) Значения характеристик в параметрах модификации. Ключи массива — строковые идентификаторы характеристик, значения массива — значения характеристик.
+                features:
+                  type: array
+                  description: 'Массив значений характеристик товара. Пример структуры массива удобно подсмотреть средствами разработчика в браузере при сохранении товара в панели управления магазина.'
+                categories:
+                  type: array
+                  description: 'Массив id категорий товара. Первый id в массиве сохранится как id основной категории товара.'
+                tags:
+                  oneOf:
+                    - type: string
+                    - type: array
+                  description: 'Список названий тегов, которые нужно привязать к товару, разделенные запятой в виде одной строки либо в виде массива строк.'
+                params:
+                  oneOf:
+                    - type: array
+                    - type: string
+                  description: >
+                    Дополнительные параметры товара в виде ассоциативного массива либо в виде строки вида 'name1=value1\nname2=value2\n...', в которой пары 'name=value' должны быть отделены друг от друга символом новой строки. Если в качестве значения передать null, то все дополнительные параметры товара будут удалены.
+                sets:
+                  type: array
+                  description: >
+                    Массив с информацией о списках, в которые должен быть включен товар. Элементами массива могут быть либо id списков, либо подмассивы с единственным ключом 'id', содержащим id каждого списка. Если товар ранее содержался в каких-то списках, то он автоматически исключается из тех списков, чьи id не указаны в этом параметре.
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+
+#PUSHNOTIFICATION
+  /shop.pushnotification.disable:
+    post:
+      summary: 'Отключает push-уведомления для указанного client_id.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.pushnotification.disable'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.pushnotification.disable/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                client_id:
+                  type: integer
+                  description: 'ID клиента пользователя, для которого нужно отключить уведомления.'
+              required:
+                - client_id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.pushnotification.enable:
+    post:
+      summary: 'Включает push-уведомления о действиях с заказами в устройстве пользователя.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.pushnotification.enable'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.pushnotification.enable/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                client_id:
+                  type: integer
+                  description: 'Идентификатор клиента для отправки push-уведомлений.'
+                shop_url:
+                  type: string
+                  description: >
+                    URL, через который пользователь, возможно, ранее уже подписался на получение push-уведомлений. Это значение нужно при использовании значения параметра 'force'.
+                force:
+                  type: integer
+                  description: >
+                    Флаг, обозначающий необходимость принудительно включить push-уведомления для указанного client_id без проверки того, подписался ли уже ранее этот пользователь на получение уведомлений.
+                    Если указано 0, то такая проверка выполняется и, если пользователь уже подписан, то выбрасывается исключение с информацией об URL, через который подписан пользователь.
+                    В противном случае такая проверка не выполняется, и пользователь принудительно подписывается на получение уведомлений, и в качестве URL подписки указывается корневой URL установки фреймворка.
+                  enum:
+                    - 0
+                    - 1
+              required:
+                - client_id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+
+#RIGHTS
+  /shop.rights:
+    get:
+      summary: 'Возвращает права доступа текущего пользователя к приложению.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.rights'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.rights/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+
+#SET
+  /shop.set.add:
+    post:
+      summary: 'Добавляет новый список товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.set.add'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.set.add/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: 'ID, который нужно присвоить новому списку.'
+                name:
+                  type: string
+                  description: 'Наименование нового списка.'
+              required:
+                - id
+                - name
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.set.delete:
+    post:
+      summary: 'Удаляет список товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.set.delete'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.set.delete/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: 'ID списка, который нужно удалить.'
+              required:
+                - id
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+          content:
+            application/json:
+              schema:
+                type: boolean
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+
+  /shop.set.getInfo:
+    get:
+      summary: 'Возвращает информацию о списке товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.set.getInfo'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.set.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID списка товаров.'
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.set.getList:
+    get:
+      summary: 'Возвращает информацию обо всех списках товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.set.getList'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.set.getList/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.set.update:
+    post:
+      summary: 'Обновляет информацию о списке товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.set.update'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.set.update/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID списка.'
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: 'Новый ID списка, если нужно его изменить.'
+                name:
+                  type: string
+                  description: 'Новое название списка.'
+              required:
+                - name
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+
+#SETTINGS
+  /shop.settings.get:
+    get:
+      summary: 'Возвращает значения настроек магазина.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.settings.get'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.settings.get/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.settings.getContactFields:
+    get:
+      summary: 'Возвращает список контактных полей из настроек пошагового оформления заказа.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.settings.getContactFields'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.settings.getContactFields/
+      parameters:
+        - in: query
+          name: customer_fields
+          description: >
+            Флаг, при указании значения 1 требующий вернуть только контактные поля, включенные в настройках оформления заказа. В противном случае метод возвращает список всех контактных полей, доступных в настройках оформления заказа. Значение по умолчанию — 0.
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.settings.getRegions:
+    get:
+      summary: 'Возвращает список регионов стран, настроенных в бекенде магазина.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.settings.getRegions'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.settings.getRegions/
+      parameters:
+        - in: query
+          name: country
+          description: '3-буквенный код страны, регионы которой нужно получить. Если не указан, то метод возвращает информацию о регионах всех настроенных стран.'
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.settings.getPaymentTypes:
+    get:
+      summary: 'Информация о настроенных способах оплаты.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.settings.getPaymentTypes'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.settings.getPaymentTypes/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+  /shop.settings.onboard:
+    post:
+      summary: 'Первоначальная настройка магазина, которую необходимо выполнить сразу после установки приложения.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.settings.onboard'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.settings.onboard/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                currency:
+                  type: string
+                  description: '3-буквенный код валюты, которая станет основной валютой магазина. Например: RUB'
+                country:
+                  type: string
+                  description: '3-буквенный код страны, в которой работает магазин. Это влияет на первоначальную настройку некоторых параметров, например, налогов. Например: rus.'
+                demo_db:
+                  type: integer
+                  description: 'Идентификатор набора демо-товаров, которые нужно добавить в каталог магазина.'
+                shop_name:
+                  type: string
+                  description: 'Название магазина.'
+                shop_phone:
+                  type: string
+                  description: 'Телефон магазина. Телефонный номер публикуется на витрине и добавляется в текст email-уведомлений.'
+                shop_email:
+                  type: string
+                  description: 'Основной email-адрес магазина. Используется в качестве адреса отправителя для автоматических уведомлений, отправляемых магазином. Также является адресом администратора для отправки ему уведомлений о заказах.'
+              required:
+                - currency
+                - country
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Неправильные параметры.'
+
+#STOCK
+  /shop.stock.getInfo:
+    get:
+      summary: 'Возвращает информацию о складе.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.stock.getInfo'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.stock.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID склада.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.stock.getList:
+    get:
+      summary: 'Возвращает список складов, настроенных в интернет-магазине.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.stock.getList'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.stock.getList/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+
+#TAG
+  /shop.tag.getList:
+    get:
+      summary: 'Возвращает список тегов товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.tag.getList'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.tag.getList/
+      parameters:
+        - in: query
+          name: limit
+          description: 'Максимальное количество тегов, которые нужно получить. Если не указано, то используется значение по умолчанию 100.'
+          required: false
+          schema:
+            type: integer
+            default: 100
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+
+#TYPE
+  /shop.type.getInfo:
+    get:
+      summary: 'Возвращает информацию о типе товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.type.getInfo'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.type.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: 'ID типа товаров.'
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+        400:
+          description: 'Сервер не смог понять запрос.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: 'Не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
+  /shop.type.getList:
+    get:
+      summary: 'Возвращает информацию обо всех типах товаров.'
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: 'shop.type.getList'
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.type.getList/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: 'Код ответа об успешном статусе.'
+
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: query
+      name: access_token
+  schemas:
+    invalidResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: 'Код ошибки'
+        error_description:
+          type: string
+          description: 'Описание ошибки'
+#разобраться как тут заполнять данные в массив
+#данные приходят в виде строки а не массива
+#это лучшее что получилось, но не работает
+    orderItems:
+      type: array
+      description: >
+        Массив со списком заказываемых модификаций товаров. Подмассив каждой позиции заказа должен содержать значения со следующими ключами: sku_id (ID модификации товара), quantity (необязательно — количество; если не указано, используется значение по умолчанию 1); services (необязательно — информация об услугах, которые нужно применить к модификациям товаров, в виде массива; каждый элемент массива — ­подмассив с единственным ключом 'service_variant_id', содержащим нужный ID варианта услуг.)
+      items:
+        type: object
+        properties:
+          sku_id:
+            type: integer
+          quantity:
+            type: number
+
+  parameters:
+    requestFormat:
+      name: format
+      in: query
+      description: 'Устанавливает формат ответа. Возможные значения: json (по умолчанию), xml'
+      required: false
+      schema:
+        type: string
+        enum:
+          - 'json'
+          - 'xml'
+
+#проверить все методы у которых указаны 500 ответы, значит мне удалось эти ответы получить исправить или что с ними делать?

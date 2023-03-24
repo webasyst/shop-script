@@ -77,35 +77,75 @@ class shopWorkflowAction extends waWorkflowAction
         } else {
             $attrs = '';
         }
-        $description = htmlspecialchars($this->getOption('description'), ENT_QUOTES, 'utf-8');
+        $description = htmlspecialchars($this->getOption('description', ''), ENT_QUOTES, 'utf-8');
+
+        $class_icon = 'icon16';
+        if (wa()->whichUI() >= '2.0') {
+            $class_icon = 'icon';
+        }
+
         if ($this->getOption('position') || $this->getOption('top')) {
+
+            // LINK
+
+            if (wa()->whichUI() >= '2.0') {
+
+                $icon = wa()->getView()->getHelper()->shop->convertIcon("icon16 {$this->getOption('icon')}", true);
+
+                return <<<HTML
+                <a {$attrs} href="#" class="wf-action actions-link {$this->getOption('button_class')}" data-action-id="{$this->getId()}" title="{$description}">
+                    <i class="$class_icon {$icon}"></i>{$name}
+                </a>
+HTML;
+            }
+
+            // 1.3 fallback
             return <<<HTML
-<a {$attrs} href="#" class="wf-action {$this->getOption('button_class')}" data-action-id="{$this->getId()}" title="{$description}">
-    <i class="icon16 {$this->getOption('icon')}"></i>{$name}
-</a>
+            <a {$attrs} href="#" class="wf-action {$this->getOption('button_class')}" data-action-id="{$this->getId()}" title="{$description}">
+                <i class="$class_icon {$this->getOption('icon')}"></i>{$name}
+            </a>
 HTML;
         } else {
+
+            // BUTTON
+
+            $class = array(
+                'wf-action',
+                'button',
+                $this->getOption('button_class'),
+            );
+            if (wa()->whichUI() >= '2.0') {
+                $class[] = 'rounded white';
+            }
+            $class = implode(' ', array_filter($class));
+
             if ($this->getOption('icon')) {
                 $icons = (array)$this->getOption('icon');
                 foreach ($icons as &$icon) {
-                    $icon = '<i class="icon16 '.$icon.'"></i>';
+                    $icon = '<i class="' . $class_icon . ' ' . $icon.'"></i>';
                 }
                 unset($icon);
                 $icons = implode('', $icons);
             } else {
                 $icons = '';
             }
+
             $style = array();
             if ($this->getOption('border_color')) {
                 $style[] = 'border-color: #'.$this->getOption('border_color');
             }
             $style = implode(' ', $style);
-            $class = array(
-                'wf-action',
-                'button',
-                $this->getOption('button_class'),
-            );
-            $class = implode(' ', array_filter($class));
+
+
+            if (wa()->whichUI() >= '2.0') {
+
+                return <<<HTML
+    <a href="#" {$attrs} class="{$class}" data-action-id="{$this->getId()}" title="{$description}"><i class="fas fa-circle custom-mr-4 small text-{$this->getOption('button_class')} js-icon" style="{$style}"></i> {$name}<span class="smaller">{$icons}</span></a>
+HTML;
+
+            }
+
+            // 1.3 fallback
             return <<<HTML
 <a href="#" {$attrs} class="{$class}" data-action-id="{$this->getId()}" style="{$style}" title="{$description}">{$name}{$icons}</a>
 HTML;
@@ -335,6 +375,10 @@ HTML;
      */
     protected function getTemplateDir()
     {
+        if (wa()->whichUI() == '1.3') {
+            return $this->workflow->getPath('/templates/legacy/');
+        }
+
         return $this->workflow->getPath('/templates/');
     }
 

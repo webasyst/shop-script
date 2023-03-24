@@ -1,0 +1,48 @@
+<div class="wa-variant-wrapper">
+    <h3 class="wa-variant-title">%title%</h3>
+
+    <div class="wa-table">
+        <div class="wa-row" style="%shipping_cost_style%">
+            <div class="wa-cell wa-cell-name">
+                <div class="wa-name">[`Shipping cost`]</div>
+            </div>
+            <div class="wa-cell wa-cell-value">
+                <span class="wa-delivery-price">%shipping_cost%</span>
+            </div>
+        </div>
+
+        <div class="wa-row" style="%shipping_time_style%">
+            <div class="wa-cell wa-cell-name">
+                <div class="wa-name">[`Estimated shipping time`]</div>
+            </div>
+            <div class="wa-cell wa-cell-value">%shipping_time%</div>
+        </div>
+
+        <div class="wa-row" style="%storage_time_style%">
+            <div class="wa-cell wa-cell-name">
+                <div class="wa-name">[`Order storage time`]</div>
+            </div>
+            <div class="wa-cell wa-cell-value">%storage_time%</div>
+        </div>
+
+        <div class="wa-row" style="%address_style%">
+            <div class="wa-cell wa-cell-name">
+                <div class="wa-name">[`Address`]</div>
+            </div>
+            <div class="wa-cell wa-cell-value">
+                <span class="%geolink%">%address%</span>
+            </div>
+        </div>
+
+        <div class="wa-row" style="%shipping_service_style%">
+            <div class="wa-cell wa-cell-name">
+                <div class="wa-name">[`Shipping service`]</div>
+            </div>
+            <div class="wa-cell wa-cell-value">%shipping_service%</div>
+        </div>
+    </div>
+
+    <div class="wa-variant-actions">
+        <button class="wa-button blue js-use-variant" type="button" data-variant-id="%variant_id%">[`Select a point`]</button>
+    </div>
+</div>

@@ -1,0 +1,372 @@
+<!DOCTYPE html><html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    {$title=$wa->title()}
+    <title>{{$title|default:$wa->appName()}|cat:" — ":{$wa->accountName(false)}|escape}</title>
+
+    {$wa->css()}
+
+    <link href="{$wa_url}wa-content/css/jquery-ui/base/jquery.ui.autocomplete.css" rel="stylesheet" />
+    <link href="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.css" rel="stylesheet" />
+    <link href="{$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.css" rel="stylesheet" />
+    <link href="{$wa_app_static_url}css-legacy/shop.css?v{$wa->version()}" rel="stylesheet" />
+    <!-- link your CSS files here -->
+
+    <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
+    <script src="{$wa_url}wa-content/js/jquery/jquery-migrate-1.2.1.min.js"></script>
+    <script src="{$wa_url}wa-content/js/jquery-plugins/jquery-plot/jquery.jqplot.min.js"></script>
+    {wa_js file="js-legacy/shop-jquery.min.js"}
+        {$wa_url}wa-content/js/jquery-wa/wa.core.js
+        {$wa_url}wa-content/js/jquery-wa/wa.dialog.js
+        {$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery.history.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery.store.js
+        {$wa_app_static_url}/js/jquery-ui/js/jquery-ui-1.9.2.custom.min.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery.tmpl.min.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery.retina.js
+
+        {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.highlighter.min.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.cursor.min.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.dateAxisRenderer.min.js
+        {$wa_url}wa-content/js/jquery-plugins/jquery-plot/plugins/jqplot.pieRenderer.min.js
+    {/wa_js}
+    {if is_readable("wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js")}
+        <script src="{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"></script>
+    {/if}
+    <script src="{$wa_app_static_url}js-legacy/shop.js?{$wa->version()}"></script>
+    <script src="{$wa_app_url}?action=loc&amp;v{$wa->version()}"></script>
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js"></script>
+    {$wa->js()}
+    {block name="head"} {/block}
+
+    <!-- link your JS files here -->
+    <script>
+        var menu_floating = true;
+        {if in_array($page, ['settings', 'importexport', 'plugins', 'storefronts', 'tutorial:default'])}
+            menu_floating = false;
+        {/if}
+        $(function() {
+            $.shop.init({
+                jquery_url: "{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js",
+                debug: {var_export(waSystemConfig::isDebug(),true)},
+                menu_floating: menu_floating,
+                page: '{if $page}{$page}{else}orders{/if}'
+            });
+        });
+    </script>
+
+</head>
+<body>
+<div id="wa"{if isset($no_level2)} class="s-no-level2"{/if}>
+
+    {if empty($embedded_version)}
+        {$wa->header()}
+    {/if}
+
+    <div id="wa-app">
+
+        {if empty($embedded_version)}
+        {strip}
+            <div id="mainmenu">
+                <ul class="tabs">
+                    {$rightmost_li_margin = ' style="margin-right: 30px;"'}
+                    {if $wa->userRights('settings')}
+                        <li class="small float-right{if $page=='plugins'} selected{else} no-tab{/if}"{$rightmost_li_margin}>
+                            <a href="{$wa_app_url}?action=plugins">[`Plugins`]</a>
+                        </li>
+                        <li class="small float-right{if $page=='settings'} selected{else} no-tab{/if}">
+                            <a href="{$wa_app_url}?action=settings">[`Settings`]</a>
+                        </li>
+                        {$rightmost_li_margin = ''}
+                    {/if}
+                    {if $wa->userRights('importexport')}
+                        <li class="small float-right{if $page=='importexport'} selected{else} no-tab{/if}"{$rightmost_li_margin}>
+                            <a href="{$wa_app_url}?action=importexport">[`Import / Export`]</a>
+                        </li>
+                        {$rightmost_li_margin = ''}
+                    {/if}
+
+                    <!-- plugin hook: 'backend_menu.aux_li' -->
+                    {* @event backend_menu.%plugin_id%.aux_li *}
+                    {foreach $backend_menu as $_}{ifset($_.aux_li)}{/foreach}
+
+                    {if $tutorial_visible}
+                        <li class="s-tutorial-qs-lnk" id="js-menu-tutorial-item">
+                            <div class="s-tutorial-quick-start">
+                                <a href="{$wa_app_url}?module=tutorial#/products/" class="s-tutorial-url js-tutorial-url">
+                                    <div class="s-tutorial-progressbar" id="s-tutorial-progressbar">
+                                        <img src="{$wa_app_static_url}img/rocket-fly.png" class="s-rocket"/>
+                                        <span class="s-tutorial-step-title" style="display: inline-block;">[`Quick start`]</span>
+                                        <div class="s-tutorial-progressbar-outer">
+                                            <div class="s-tutorial-progressbar-inner"></div>
+                                            <span class="s-tutorial-steps" id="s-tutorial-progressbar-content"><span class="js-step-count">{$tutorial_progress.complete}</span> [`of`] {$tutorial_progress.total}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </li>
+                        {if $tutorial_progress['complete']>0}
+                            <!-- Set tutorial Back link  -->
+                            <script>
+                                $(function() {
+                                    var step_link = localStorage.getItem('tutorial_step_link');
+                                    if (step_link) {
+                                        $('.js-tutorial-url').attr('href', step_link);
+                                    }
+                                });
+                            </script>
+                        {/if}
+                    {/if}
+
+                    {if $wa->userRights('orders')}
+                        <li class="{if !$page || $page=='orders'}selected{else}no-tab{/if}" id="mainmenu-orders-tab">
+                            <a href="{$wa_app_url}?action=orders#/orders/">
+                                [`Orders`]
+                                <sup class="red" {if $page != 'orders' && !empty($new_orders_count)}style="display:inline"{/if}>{if !empty($new_orders_count)}{$new_orders_count}{/if}</sup>
+                            </a>
+                        </li>
+                    {/if}
+                    {if $wa->userRights('customers')}
+                        <li class="{if $page=='customers'}selected{else}no-tab{/if}">
+                            <a href="{$wa_app_url}?action=customers">[`Customers`]</a>
+                        </li>
+                    {/if}
+                    {if $wa->userRights('products')}
+                        <li class="{if $page=='products'}selected{else}no-tab{/if}">
+                            <a href="{$wa_app_url}?action=products">[`Products`]</a>
+                        </li>
+                    {/if}
+                    {if $wa->userRights('marketing')}
+                        <li class="{if $page == 'marketing'}selected{else}no-tab{/if}">
+                            <a href="{$wa_app_url}marketing/">[`Marketing`]</a>
+                        </li>
+                    {/if}
+                    {if $wa->userRights('reports')}
+                        <li class="{if $page=='reports'}selected{else}no-tab{/if}">
+                            <a href="{$wa_app_url}?action=reports">[`Reports`]</a>
+                        </li>
+                    {/if}
+
+                    {if $wa->userRights('design') || $wa->userRights('pages')}
+                        <li class="{if $page=='storefronts'}selected{else}no-tab{/if} s-storefronts-tab">
+                            <a href="{$wa_app_url}?action=storefronts">[`Storefront`]</a>
+                        </li>
+                    {/if}
+
+                    <!-- plugin hook: 'backend_menu.core_li' -->
+                    {* @event backend_menu.%plugin_id%.core_li *}
+                    {foreach $backend_menu as $_}{ifset($_.core_li)}{/foreach}
+
+                    <li class="no-tab s-hidden-list" id="s-hidden-list" style="display: none;">
+                        <ul class="menu-h dropdown">
+                            <li class="no-tab">
+                                <a class="s-more-link" href="javascript:void(0);">[`More`]<i class="icon10 darr"></i></a>
+                                <ul class="menu-v" style="width: 200px;"></ul>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="no-tab s-openstorefront">
+                        <a href="{$frontend_url}" target="_blank">[`Open storefront`]</a>
+                    </li>
+                </ul>
+
+                {if !isset($no_level2)}
+                    <div class="s-level2">
+                        <div class="block bordered-bottom">
+
+                            {if $page == 'products'}
+
+                                <div class="s-search-form">
+                                    <i class="icon16 ss search-bw"></i>
+                                    <input type="search" placeholder="[`Search products`]" id="s-products-search">
+                                </div>
+
+                            {elseif $page == 'customers'}
+
+                                <ul class="menu-h with-icons">
+                                    <div class="s-search-form">
+                                        <i class="icon16 ss search-bw"></i>
+                                        <input type="search" placeholder="[`Search customers`]" id="s-customers-search">
+                                    </div>
+                                </ul>
+
+                            {elseif $page == 'reports'}
+
+                                {* Reports common period selector *}
+                                <div class="float-right">
+                                    <ul class="menu-h dropdown s-reports-timeframe" style="float: right;">
+                                        <li class="hidden s-custom-timeframe">
+                                            [`from`] <input type="text" name="from">
+                                            [`to`] <input type="text" name="to">
+                                            <select name="groupby">
+                                                <option value="days">[`by day`]</option>
+                                                <option value="months">[`by month`]</option>
+                                            </select>
+                                        </li>
+                                        <li class="s-reports-timeframe-dropdown">
+                                            <a href="javascript:void(0)" class="inline-link float-right"><b><i>{* Changed by JS *}</i></b>
+                                                <i class="icon10 darr"></i>
+                                            </a>
+                                            <ul class="menu-v">
+                                                <li data-timeframe="30" data-groupby="days" class="selected"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 30)}</a></li>
+                                                <li data-timeframe="90" data-groupby="days" data-default-choice="1"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 90)}</a></li>
+                                                <li data-timeframe="365" data-groupby="months"><a href="javascript:void(0)" class="nowrap">{_w('Last %d day', 'Last %d days', 365)}</a></li>
+                                                <li data-timeframe="all" data-groupby="months"><a href="javascript:void(0)" class="nowrap">[`All time`]</a></li>
+                                                <li data-timeframe="custom"><a href="javascript:void(0)" class="nowrap">[`Select dates...`]</a></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    <div id="s-reports-custom-controls" class="float-right"></div>
+                                </div>
+
+                                <ul class="menu-h s-reports" id="js-reports-menu-list">
+                                    {if $wa->shop->config('reports_simple')}
+                                        <li>
+                                            <a href="#/summary/">[`Sales`]</a>
+                                        </li>
+                                    {else}
+                                        <li>
+                                            <a href="#/sales/">[`Sales`]</a>
+                                        </li>
+                                        <li>
+                                            <a href="#/customers/">[`Customers`]</a>
+                                        </li>
+                                        <li>
+                                            <a href="#/cohorts/">[`Cohorts`]</a>
+                                        </li>
+                                        <li>
+                                            <a href="#/products/">[`Products`]</a>
+                                        </li>
+                                    {/if}
+
+                                    {if $need_checkout_flow_section}
+                                        <li>
+                                            <a href="#/checkoutflow/">[`Checkout funnel`]</a>
+                                        </li>
+                                    {/if}
+
+                                    <!-- plugin hook: 'backend_reports.menu_li' -->
+                                    {* @event backend_reports.%plugin_id%.menu_li *}
+                                    {foreach $backend_reports as $_}{ifset($_.menu_li)}{/foreach}
+
+                                    <li class="js-toggle-menu">
+                                        {strip}
+                                        <a href="javascript:void(0);">
+                                            {capture assign="_inactive"}<i class="icon16 darr"></i>[`More`]{/capture}
+                                            {capture assign="_active"}<i class="icon16 uarr"></i>[`Hide`]{/capture}
+                                            {$_inactive}
+                                        </a>
+                                        {/strip}
+
+                                        <script>
+                                            ( function($) {
+                                                $(document).ready( function() {
+                                                    $.reports.initMenuToggle({
+                                                        $wrapper: $("#js-reports-menu-list"),
+                                                        templates: {
+                                                            "active": {$_active|json_encode},
+                                                            "inactive": {$_inactive|json_encode}
+                                                        }
+                                                    });
+                                                });
+                                            })(jQuery);
+                                        </script>
+                                    </li>
+
+                                </ul>
+
+                            {elseif $page == 'orders'}
+
+                                <ul class="menu-h float-right" id="s-orders-views">
+                                    <li data-view="split">
+                                        <a href="#"title="[`List`]"><i class="icon16 view-splitview"></i></a>
+                                    </li>
+                                    <li data-view="table">
+                                        <a href="#" title="[`Table`]"><i class="icon16 view-table"></i></a>
+                                    </li>
+
+                                    <!-- plugin hook: 'backend_orders.viewmode_li' -->
+                                    {* @event backend_orders.%plugin_id%.viewmode_li *}
+                                    {foreach $backend_orders as $_}{ifset($_.viewmode_li)}{/foreach}
+
+                                </ul>
+
+                                <ul class="menu-v dropdown  with-icons float-right s-orders-sort" id="s-orders-sort">
+                                    <li>
+                                        <a href="javascript:void(0);" class="inline-link s-current-sort" data-sort=""><b><i>
+                                            <span class="f-text"></span>
+                                        </i></b></a>
+                                        <i class="icon10 darr-tiny s-sort-order" style="display: none;" data-order="desc"></i>
+                                        <i class="icon10 uarr-tiny s-sort-order" style="display: none;" data-order="asc"></i>
+                                        <ul class="menu-v with-icon">
+                                            <li class="s-sort" data-sort="create_datetime">
+                                                <a href="javascript:void(0);" data-sort="create_datetime">[`Time created`]</a>
+                                            </li>
+                                            <li class="s-sort" data-sort="updated">
+                                                <a href="javascript:void(0);" data-sort="updated">[`Time updated`]</a>
+                                            </li>
+                                            <li class="s-sort" data-sort="paid_date">
+                                                <a href="javascript:void(0);" data-sort="paid_date">[`Time paid`]</a>
+                                            </li>
+                                            <li class="s-sort" data-sort="shipping_datetime">
+                                                <a href="javascript:void(0);" data-sort="shipping_datetime">[`Shipping time`]</a>
+                                            </li>
+                                            <li class="s-sort" data-sort="state_id">
+                                                <a href="javascript:void(0);" data-sort="state_id">[`Order status`]</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+
+                                <div class="s-search-form">
+                                    <i class="icon16 ss search-bw"></i>
+                                    <input type="search" placeholder="[`Search orders`]" id="s-orders-search">
+                                </div>
+
+                            {/if}
+
+                        </div>
+                    </div>
+                {/if}
+            </div>
+            <script>
+                ( function($) {
+                    $.shop.initElasticMenu({
+                        $wrapper: $("#mainmenu")
+                    });
+                })(jQuery);
+            </script>
+        {/strip}
+        {/if}{* $embedded_version *}
+
+        <div id="maincontent"{if isset($no_level2)} class="s-no-level2"{/if}>
+        {block name="content"}
+            {$content}
+        {/block}
+        </div>
+
+    </div><!-- #wa-app -->
+
+</div><!-- #wa -->
+
+{* dialog section *}
+
+<div class="dialog width400px height200px" id="s-error-dialog" style="display:none;">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`An error occurred`]</h1>
+                <p class="f-text"></p>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <input class="button red cancel" type="button" value="[`Close`]">
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

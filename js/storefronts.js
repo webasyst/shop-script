@@ -85,22 +85,19 @@
             $("#" + id).addClass('selected');
         },
 
-        pagesAction: function (id) {
-            if ($("#s-storefronts-content").data('design')) {
-                if ($('#wa-design-container').length) {
-                    waDesignLoad('pages');
-                } else {
-                    $("#s-storefronts-content").load('?module=design', function () {
-                        waDesignLoad('pages');
-                    });
+        pagesAction: function () {
+            $("#s-storefronts-content").load("?module=pages", function (responseText) {
+                try {
+                    let response = $.parseJSON(responseText);
+                    if (response) {
+                        if (response.data && response.data.redirect) {
+                            let href = location.href.replace(/#.*$/, '') + response.data.redirect;
+                            location.replace(href);
+                        }
+                    }
+                } catch (e) {
                 }
-            } else {
-                if ($('#wa-page-container').length) {
-                    waLoadPage(id);
-                } else {
-                    $("#s-storefronts-content").load('?module=pages');
-                }
-            }
+            })
         },
 
         designAction: function(params) {
@@ -120,7 +117,7 @@
         },
 
         designPagesAction: function () {
-            this.designAction('pages');
+            this.pagesAction();
         },
 
         designThemesAction: function (params) {

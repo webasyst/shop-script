@@ -15,14 +15,14 @@
             </template>
             <template v-else>
                 <div class="s-field-wrapper" v-if="show_readonly">
-                    <input class="s-field wa-small full-width is-number s-square-field" type="text" readonly
+                    <input class="s-field small full-width is-number s-square-field" type="text" readonly
                            v-bind:class="{ 'strike' : column.column_type === 'compare_price' }"
                            v-on:click="edit(true)"
                            v-bind:value="formatted_value">
                     <span class="s-currency" v-html="column_data.currency.sign_html"></span>
                 </div>
                 <div class="s-field-wrapper" v-else>
-                    <input class="s-field wa-small full-width is-number s-square-field" type="text"
+                    <input class="s-field small full-width is-number s-square-field" type="text"
                            v-model="column_data.value"
                            v-bind:class="{ 'wa-error-field': errors['price_error'] }"
                            v-on:input="validate(column_data.value, 'price', column_data, 'value')"
@@ -30,9 +30,9 @@
                            v-on:change="onChange">
                         <span class="s-currency" v-html="column_data.currency.sign_html"></span>
 
-                    <div class="wa-error-text" v-if="errors['price_error']">
+                    <div class="state-error" v-if="errors['price_error']">
                         {_w("Invalid value")|escape}
-                        <span class="s-tooltip-icon" data-tooltip-id="price-error"><i class="fas fa-question-circle color-red"></i></span>
+                        <span class="s-tooltip-icon" data-tooltip-id="price-error"><i class="fas fa-question-circle text-red"></i></span>
                     </div>
                 </div>
             </template>

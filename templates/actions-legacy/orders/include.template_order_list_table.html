@@ -1,0 +1,42 @@
+{literal}
+    {% var orders = o.orders; %}
+    {% var check_all = o.check_all; %}
+    {% var order, order_iterator = $.shop.iterator(orders); %}
+    {% while (order = order_iterator.next()) { %}
+        <tr class="order{% if (order.unsettled==='1') { %} s-unsettled{% } %}  {% if (check_all) { %}selected{% } %}" data-order-id="{%#order.id%}" data-state-id="{%#order.state_id%}">
+            {% if (!o.hide_checkbox) { %}
+                <td><input type="checkbox" {% if (check_all) { %}checked="checked"{% } %}></td>
+            {% } %}
+            <td style="{%#order.style%}" class="nowrap">
+                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">
+                        <i class="{%#order.icon%}"></i><span{% if (order.state_id == 'new') { %} class="highlighted"{% } %}>{%#order.id_str%}</span></a>
+                </div>
+            </td>
+            <td style="{%#order.style%}">
+                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{%#order.create_datetime_str%}</a>
+                    <i class="shortener"></i>
+                </div>
+            </td>
+            <td style="{%#order.style%}">
+                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{%#order.contact.name%}</a>
+                    <i class="shortener"></i>
+                </div>
+            </td>
+            <td style="{%#order.style%}" class="nowrap align-right">
+                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{%#order.total_str%}</a>
+                </div>
+            </td>
+            <td style="{%#order.style%}">
+                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{%#order.shipping_name%}</a>
+                </div>
+            </td>
+            <td style="{%#order.style%}">
+                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}"><span style="color:#888">{%#order.courier_name%} {%#order.shipping_interval%}</span></a>
+                </div>
+            </td>
+            <td style="{%#order.style%}">
+                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{%#order.payment_name%}</a></div>
+            </td>
+        </tr>
+    {% } %}
+{/literal}

@@ -1,0 +1,89 @@
+<div class="dialog width600px height500px" id="s-field-values">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=checkoutFieldValuesSave&field={$field}">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>{$title}</h1>
+                <p>{sprintf('[`Enter available options for %s depending on it’s parent field value.`]', $title)} <a href="[`https://www.shop-script.com/help/46/conditional-contact-fields/`]" target="_blank">[`Get help`]</a> <i class="icon10 new-window"></i></p>
+                <div class="fields form">
+                    <div class="field-group">
+                        <div class="field">
+                            <div style="color: #888; font-size: 0.95em;">[`<strong>IF</strong> parent field`]
+                                <select name="parent_field">
+                                    {foreach $parent_fields as $pid => $pname}
+                                        <option value="{$pid|escape}"{if $pid == $parent_selected} selected{/if}>{$pname|escape}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <div>
+                        {* push dummy item for prepare adding-interface *}
+                        {$fields[] = ['value' => '', 'children' => [] ]}
+                        {foreach $fields as $parent}
+                            <div class="field {if $parent@last}s-new-rule{/if}" {if $parent@last}style="display:none;"{/if}>
+                                <div class="name" style="padding-top:0">
+                                    <input type="hidden" name="parent[]" value="{$parent@index}" {if $parent@last}disabled="disabled"{/if}>
+                                    = <input type="text" name="parent_value[{$parent@index}]" value="{$parent.value}" {if $parent@last}disabled="disabled"{/if} style="width: 120px;">
+                                </div>
+                                <div class="value">
+                                    {sprintf('[`Prompt to select %s from the following list:`]', $title)}<br><br>
+                                    <table>
+                                        {if !empty($parent.children)}
+                                            {foreach $parent.children as $child}
+                                                <tr class="sortable">
+                                                    <td class="min-width"><i class="icon16 sort"></i></td>
+                                                    <td><input type="text" class="small short" name="value[{$parent@index}][{$child.id}]" value="{$child.value}"></td>
+                                                    <td class="min-width"><a href="#" data-id="{$child.id}" class="s-delete-value"><i class="icon10 delete"></i></a></td>
+                                                </tr>
+                                            {/foreach}
+                                        {/if}
+                                        <tr class="s-new-value" style="display:none;">
+                                            <td class="min-width"><i class="icon16 sort"></i></td>
+                                            <td><input type="text" class="small short" name="value[{$parent@index}][0]" value="" disabled="disabled"></td>
+                                            <td class="min-width"><a href="#" class="s-delete-value"><i class="icon10 delete"></i></a></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="min-width"></td>
+                                            <td><a href="#" class="inline-link small s-add-value"><i class="icon10 add"></i><b><i>[`Add option`]</i></b></a></td>
+                                            <td class="min-width"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        {/foreach}
+                        </div>
+                        <div class="field">
+                            <div class="name">
+                                <a href="#" class="inline-link s-add-rule"><i class="icon16 add"></i><b><i>[`Add rule`]</i></b></a>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="name">[`<strong>ELSE</strong>, in case parent field value does not match any of the listed above`]</div>
+                            <div class="value">
+                                <select class="otherwise-options">
+                                    <option value="input">{sprintf('[`Display &lt;input&gt; (custom text) field for %s`]', $title)}</option>
+                                    <option value="hide">{sprintf('[`Do not prompt for %s`]', $title)}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <input type="submit" value="[`Save`]" class="button green">
+                [`or`] <a class="cancel" href="#">[`cancel`]</a>
+            </div>
+        </div>
+        {$wa->csrf()}
+    </div>
+    </form>
+</div>
+{*
+ * JS for this dialog is in SettingsCheckoutContactFormEditor.html
+ * and js/settings/checkout.js, checkoutFieldValuesDialog()
+ *}

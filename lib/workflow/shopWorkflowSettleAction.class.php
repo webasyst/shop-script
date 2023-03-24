@@ -92,6 +92,7 @@ class shopWorkflowSettleAction extends shopWorkflowAction
                         $update['paid_quarter'] = $order['paid_quarter'];
                         $update['paid_month'] = $order['paid_month'];
                         $update['paid_date'] = $order['paid_date'];
+                        $update['paid_datetime'] = $order['paid_datetime'];
                     }
 
                     if (!empty($order['auth_date'])) {
@@ -114,10 +115,11 @@ class shopWorkflowSettleAction extends shopWorkflowAction
                     if ($order && $order['paid_date']) {
                         // Empty paid_date and update stats so that deleted orders do not affect reports
                         $this->order_model->updateById($order_id, array(
-                            'paid_date'    => null,
-                            'paid_year'    => null,
-                            'paid_month'   => null,
-                            'paid_quarter' => null,
+                            'paid_date'     => null,
+                            'paid_datetime' => null,
+                            'paid_year'     => null,
+                            'paid_month'    => null,
+                            'paid_quarter'  => null,
                         ));
 
                         shopCustomer::recalculateTotalSpent($order['contact_id']);

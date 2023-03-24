@@ -1,0 +1,272 @@
+{strip}
+
+{$wa->globals("wa_order_form", [])}
+
+{$_use_adaptive_styles = true}
+{if !empty($options)}
+    {if isset($options["adaptive"]) && (empty($options["adaptive"]) || $options["adaptive"] === "false")}
+        {$_use_adaptive_styles = false}
+    {/if}
+{/if}
+
+{$_form_classes = []}
+{if !empty($_use_adaptive_styles)}
+    {$_form_classes[] = "with-adaptive"}
+{/if}
+{if $wa->locale() == 'ru_RU' || $wa->locale() == 'en_US'}
+    {$locale_file_exist = true}
+{else}
+    {$locale_file = "{$root_path}/wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"}
+    {$locale_file_exist = file_exists($locale_file)}
+{/if}
+
+<div class="wa-order-form-wrapper is-not-ready {$_form_classes|join:" "}" id="wa-order-form-wrapper">
+    <script>
+        ( function($) {
+            $("#wa-order-form-wrapper").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    <div class="wa-form-body">
+
+        <div class="wa-form-loader">
+            <p>[`Selecting shipping and payment options for selected items`]...</p>
+        </div>
+
+        <div class="wa-form-content js-invisible-content" style="display: none;">
+            {include file="./order/form/auth.html" inline}
+
+            {$_hide_region = false}
+            {$_form_globals = $wa->globals("wa_order_form")}
+            {if !empty($_form_globals["auth"]["locked"])}
+                {$_hide_region = true}
+            {/if}
+
+            {include file="./order/form/region.html" _hide_region=$_hide_region inline}
+
+            {include file="./order/form/shipping.html" inline}
+
+            {include file="./order/form/details.html" inline}
+
+            {include file="./order/form/payment.html" inline}
+
+            {$_confirm_locked = false}
+            {$_form_globals = $wa->globals("wa_order_form")}
+            {if !empty($_form_globals["auth"]["locked"])}
+                {$_confirm_locked = true}
+            {/if}
+
+            {include file="./order/form/confirm.html" _confirm_locked=$_confirm_locked inline}
+        </div>
+
+    </div>
+
+    {if !empty($config["shipping"]["service_agreement"])}
+        <footer class="wa-form-footer js-form-footer js-invisible-content" style="display: none;">
+            <div class="wa-line">
+                {$config["shipping"]["service_agreement_hint"]|default:""}
+            </div>
+        </footer>
+    {/if}
+
+    {strip}
+    {capture assign="_loading_template"}
+        <div class="s-loading-animation">
+            <span class="s-points-wrapper"><span class="s-point"></span><span class="s-point"></span><span class="s-point"></span></span>
+        </div>
+    {/capture}
+    {/strip}
+
+    <script>
+        ( function($) { "use strict";
+
+            var locale = {$wa->locale()|substr:0:2|json_encode},
+                locale_file_exist = {$locale_file_exist|json_encode};
+
+            {* used for pickup dialog and geolink at "details" section. required. async. *}
+            load([
+                {
+                    id: "wa-content-jquery-ui-js",
+                    type: "js",
+                    uri: "{$wa_app_static_url}js/frontend/order/jquery-ui/jquery-ui.min.js?v={$wa->version()}"
+                },
+                {
+                    id: "wa-content-jquery-ui-css",
+                    type: "css",
+                    uri: "{$wa_app_static_url}js/frontend/order/jquery-ui/jquery-ui.css?v={$wa->version()}"
+                },
+                {
+                    id: "wa-order-ui-js",
+                    type: "js",
+                    uri: "{$wa_app_static_url}js/frontend/order/ui.js?v={$wa->version()}"
+                },
+                {
+                    id: "wa-order-ui-css",
+                    type: "css",
+                    uri: "{$wa_app_static_url}css/frontend/order/ui.css?v={$wa->version()}"
+                },
+                {
+                    id: "wa-order-form-js",
+                    type: "js",
+                    uri: "{$wa_app_static_url}js/frontend/order/form.js?v={$wa->version()}"
+                },
+                {
+                    id: "wa-order-form-css",
+                    type: "css",
+                    uri: "{$wa_app_static_url}css/frontend/order/form.css?v={$wa->version()}"
+                }
+            ]).then( function() {
+                if (locale !== "en" && locale_file_exist) {
+                    load([{
+                        id: "wa-content-jquery-ui-locale-js",
+                        type: "js",
+                        uri: "{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js?v={$wa->version(true)}"
+                    }]).then(init);
+
+                } else {
+                    init();
+                }
+            });
+
+            function load(sources) {
+                var deferred = $.Deferred();
+
+                loader(sources).then( function() {
+                    deferred.resolve();
+                }, function(bad_sources) {
+                    if (console && console.error) {
+                        console.error("Error loading resource", bad_sources);
+                    }
+                    deferred.reject(bad_sources);
+                });
+
+                return deferred.promise();
+
+                function loader(sources) {
+                    var deferred = $.Deferred(),
+                        counter = sources.length;
+
+                    var bad_sources = [];
+
+                    $.each(sources, function(i, source) {
+                        switch (source.type) {
+                            case "css":
+                                loadCSS(source).then(onLoad, onError);
+                                break;
+                            case "js":
+                                loadJS(source).then(onLoad, onError);
+                                break;
+                        }
+                    });
+
+                    return deferred.promise();
+
+                    function loadCSS(source) {
+                        var deferred = $.Deferred(),
+                            promise = deferred.promise();
+
+                        var $link = $("#" + source.id);
+                        if ($link.length) {
+                            promise = $link.data("promise");
+
+                        } else {
+                            $link = $("<link />", {
+                                id: source.id,
+                                rel: "stylesheet"
+                            }).appendTo("head")
+                                .data("promise", promise);
+
+                            $link
+                                .on("load", function() {
+                                    deferred.resolve(source);
+                                }).on("error", function() {
+                                deferred.reject(source);
+                            });
+
+                            $link.attr("href", source.uri);
+                        }
+
+                        return promise;
+                    }
+
+                    function loadJS(source) {
+                        var deferred = $.Deferred(),
+                            promise = deferred.promise();
+
+                        var $script = $("#" + source.id);
+                        if ($script.length) {
+                            promise = $script.data("promise");
+
+                        } else {
+                            var script = document.createElement("script");
+                            document.getElementsByTagName("head")[0].appendChild(script);
+
+                            $script = $(script)
+                                .attr("id", source.id)
+                                .data("promise", promise);
+
+                            $script
+                                .on("load", function() {
+                                    deferred.resolve(source);
+                                }).on("error", function() {
+                                deferred.reject(source);
+                            });
+
+                            $script.attr("src", source.uri);
+                        }
+
+                        return promise;
+                    }
+
+                    function onLoad(source) {
+                        counter -= 1;
+                        watcher();
+                    }
+
+                    function onError(source) {
+                        bad_sources.push(source);
+                        counter -= 1;
+                        watcher();
+                    }
+
+                    function watcher() {
+                        if (counter === 0) {
+                            if (!bad_sources.length) {
+                                deferred.resolve();
+                            } else {
+                                deferred.reject(bad_sources);
+                            }
+                        }
+                    }
+                }
+            }
+
+            function init() {
+                window.waOrder.ui.initFormatPrice({$confirm.currency_info|default:""|json_encode});
+                window.waOrder.form = new window.waOrder.Form({
+                    $wrapper: $("#wa-order-form-wrapper"),
+                    outer_options: {$options|json_encode},
+                    use_storage: {if $session_is_alive}false{else}true{/if},
+                    templates: {
+                        loading: {$_loading_template|json_encode}
+                    },
+                    locales: {
+                        invalid: {_w("Incorrect value")|json_encode},
+                        required: {_w("Required field")|json_encode},
+                        invalid_date: {_w("Non-existent date.")|json_encode},
+                        incorrect_date: {_w("Delivery date cannot be earlier than specified.")|json_encode}
+                    },
+                    urls: {
+                        "order": {$wa->shop->checkout()->cartUrl()|json_encode},
+                        "calculate": {$wa->getUrl('shop/frontendOrder/calculate')|json_encode},
+                        "success": {$wa->getUrl('shop/frontend/checkout', ['step'=>'success'])|json_encode},
+                        "create": {$wa->getUrl('shop/frontendOrder/create')|json_encode},
+                        "auth_dialog": {$wa->getUrl('shop/frontendOrder/authDialog')|json_encode}
+                    }
+                });
+            }
+        })(jQuery);
+    </script>
+</div>
+
+{/strip}

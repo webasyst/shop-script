@@ -12,8 +12,8 @@
                 <h3>[`Products deletion`]</h3>
             </div>
             <div class="dialog-content">
-                <div class="s-description color-red">{_w('%d product will be deleted without the ability to restore.', '%d products will be deleted without the ability to restore.', $count)}</div>
-                <div class="wa-message wa-small warn flexbox space-8" style="margin-top: 1rem;">
+                <div class="s-description text-red">{_w('%d product will be deleted without the ability to restore.', '%d products will be deleted without the ability to restore.', $count)}</div>
+                <div class="wa-message small warn flexbox space-8" style="margin-top: 1rem;">
                     <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
                     <div class="message-text wide">
                         <span class="s-text">[`After you delete a product, all it’s sales reports, cross-selling data, and connections to the orders made in the past will be impossible to restore.`]</span>
@@ -22,11 +22,11 @@
                 </div>
             </div>
             <div class="dialog-footer">
-                <button class="wa-button red" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
+                <button class="button red" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
                     <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name">[`Delete`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

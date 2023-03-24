@@ -53,6 +53,9 @@
 
 {/strip}
 
+{* SKELETON *}
+{include "./MarketingPromosSkeleton.html" inline}
+
 {function name="_render_promo" _promo=[]}
     {$_promo_classes = []}
     {if !empty($_promo.enabled)}
@@ -116,7 +119,7 @@
                         {foreach ifset($promos_markers, $_promo.id, []) as $marker}
                             <div class="s-rule-wrapper" data-type="{$marker.type|escape}">
                                 <div class="s-rule" title="{$marker.name|escape}">
-                                    <i class="icon16 {$marker.css_class|escape}"></i>
+                                    {$wa->shop->getIcon($marker.css_class)}
                                 </div>
                             </div>
                         {/foreach}
@@ -128,18 +131,18 @@
                         "id" => "active",
                         "wrapper_class" => "is-active",
                         "point_class" => "pointer js-pause-promo",
-                        "icon_class" => "play"
+                        "icon_class" => "fa-play-circle"
                     ],
                     "pause" => [
                         "id" => "pause",
                         "wrapper_class" => "is-stopped",
                         "point_class" => "pointer js-play-promo",
-                        "icon_class" => "ss pause"
+                        "icon_class" => "fa-pause-circle"
                     ],
                     "complete" => [
                         "id" => "complete",
                         "wrapper_class" => "is-completed",
-                        "icon_class" => "clock"
+                        "icon_class" => "fa-clock"
                     ]
                 ]}
 
@@ -163,7 +166,9 @@
                     <div class="s-bar-wrapper">
                         <span class="s-bar" style="width: {$_percent|escape}%;">
                             <span class="s-point right {$_bar_state.point_class|default:""|escape}">
-                                <i class="icon16 {$_bar_state.icon_class|escape}"></i>
+                                <span class="icon large" style="background-color: var(--background-color-blank);">
+                                    <i class="fas {$_bar_state.icon_class}"></i>
+                                </span>
                             </span>
                         </span>
                     </div>
@@ -215,8 +220,11 @@
     </div>
 {/function}
 
+<div class="article wider">
+<div class="article-body">
+
 {* PAGE *}
-<div class="s-promos-page block double-padded" id="js-promos-page">
+<div class="s-promos-page" id="js-promos-page">
     <script>
         ( function($) {
             $("#js-promos-page").data("ready", $.Deferred());
@@ -225,57 +233,25 @@
 
     {* HEADER *}
     <header class="s-page-header">
-        <div class="s-table-box">
-            <div class="s-column">
+        <div class="flexbox middle space-12">
+            <div>
                 <h1 class="s-title">[`Promos on website`]</h1>
             </div>
-            <div class="s-column middle align-right">
 
-                {strip}
-                <ul class="menu-h dropdown">
-                    {foreach $additional_html.action_link as $_html}
-                        {$_html}
-                    {/foreach}
-                    <li>
-                        <a class="inline-link" href="javascript:void(0);">
-                            <b><i class="s-text">
-                                {if !empty($unattached_active)}
-                                    [`No storefronts`]
-                                {elseif !empty($active_storefront)}
-                                    {waIdna::dec($active_storefront)}
-                                {else}
-                                    [`All storefronts`] ({count($storefronts)})
-                                {/if}
-                            </i></b>&nbsp;<i class="icon10 darr"></i>
-                        </a>
-                        <ul class="menu-v without-icons right">
-                            <li class="{if empty($active_storefront) && empty($unattached_active)}selected{/if}">
-                                <a class="s-ellipsis" href="{$marketing_url}{if $status}?status={$status}{/if}" title="[`All storefronts`]">[`All storefronts`]</a>
-                            </li>
-                            {if !empty($show_unatt_storefronts) || !empty($unattached_active)}
-                                <li class="{if !empty($unattached_active)}selected{/if}">
-                                    <a class="s-ellipsis" href="{$marketing_url}?storefront=_unattached_{if $status}&status={$status}{/if}" title="[`No storefronts`]">[`No storefronts`]</a>
-                                </li>
-                            {/if}
-
-                            {foreach $storefronts as $_storefront}
-                                {$_is_active = false}
-                                {if !empty($active_storefront) && $active_storefront === $_storefront}
-                                    {$_is_active = true}
-                                {/if}
-
-                                <li class="{if !empty($_is_active)}selected{/if}">
-                                    <a class="s-ellipsis" href="{$marketing_url}?storefront={$_storefront|urlencode}{if $status}&status={$status}{/if}" title="{$_storefront|escape}">{waIdna::dec($_storefront)}</a>
-                                </li>
-                            {/foreach}
-                        </ul>
-                    </li>
-                </ul>
-                {/strip}
-
+            <div>
+                <a href="{$wa_app_url}marketing/promo/create/" class="button circle small custom-mt-4" title="[`New promo`]">
+                    <i class="fas fa-plus"></i>
+                </a>
             </div>
+
+            <div>
+                <a href="[`https://www.shop-script.com/help/33511/marketing/`]" class="button nobutton smaller gray nowrap custom-mt-4" target="_blank">[`Help`] <i class="fas fa-external-link-alt fa-xs text-gray"></i></a>
+            </div>
+
         </div>
     </header>
+
+    {wa_action app="shop" module="marketing" action="sidebar"}
 
     {* BODY *}
     <div class="s-page-body">
@@ -283,24 +259,32 @@
         {if empty($status) || $status === shopPromoModel::STATUS_ACTIVE}
             {* ACTUAL *}
             <div class="s-promos-section">
-                <div class="s-section-header">
-                    <h3 class="s-title">[`Active promos`]</h3>
+
+                <div class="flexbox wrap-mobile">
+
+                    <div class="s-section-header custom-mr-12">
+                        <h4 class="s-title">[`Active promos`]</h4>
+                    </div>
+
                 </div>
 
                 {if !empty($active_storefront)}
-                    <p class="gray">[`Change the sort order of active promos by using drag&amp;drop.`]</p>
+                    <p class="gray small">[`Change the sort order of active promos by using drag&amp;drop.`]</p>
                 {else}
-                    <p class="gray">[`Select a storefront to change active promos’ sort order.`]</p>
+                    <p class="gray small">[`Select a storefront to change active promos’ sort order.`]</p>
                 {/if}
 
+                <div id="skeleton_promos_list">
+                    {_render_promo_skeleton count=3}
+                </div>
                 {if !empty($active_promos)}
-                    <div class="s-promos-list js-active-promos-list">
+                    <div class="s-promos-list js-active-promos-list" data-skeleton="#skeleton_promos_list">
                         {foreach $active_promos as $_promo}
                             {_render_promo _promo=$_promo}
                         {/foreach}
                     </div>
                 {else}
-                    <p>[`No active promos.`]</p>
+                    <p class="gray small">[`No active promos.`]</p>
                 {/if}
             </div>
         {/if}
@@ -309,18 +293,21 @@
             {* PLANNED *}
             <div class="s-promos-section">
                 <div class="s-section-header">
-                    <h3 class="s-title">[`Scheduled promos`]</h3>
+                    <h4 class="s-title">[`Scheduled promos`]</h4>
                 </div>
 
                 {if !empty($planned_promos)}
-                    <div class="s-promos-list">
+                    <div class="s-promos-list" data-skeleton="#skeleton_planned_promos">
+                        <div id="skeleton_planned_promos">
+                            {_render_promo_skeleton count=3}
+                        </div>
                         {foreach $planned_promos as $_promo}
                             {$_promo.is_planned = 1}
                             {_render_promo _promo=$_promo}
                         {/foreach}
                     </div>
                 {else}
-                    <p>[`No scheduled promos.`]</p>
+                    <p class="gray small">[`No scheduled promos.`]</p>
                 {/if}
             </div>
         {/if}
@@ -328,16 +315,21 @@
         {if empty($status) || $status === shopPromoModel::STATUS_COMPLETED}
             {* COMPLETED *}
             <div class="s-promos-section s-completed-section">
-                <div class="s-section-header">
+                <div class="s-section-header custom-mb-4">
                     <div class="s-table-box fixed middle">
                         <div class="s-column">
-                            <h3 class="s-title">[`Completed promos`]</h3>
-                            <a href="{$wa_app_url}?action=reports">[`Complete report`] <i class="icon10 new-window" style="vertical-align: .3em;"></i></a>
+                            <h4 class="s-title">[`Completed promos`]</h4>
+                            <a href="{$wa_app_url}?action=reports" class="button rounded smaller light-gray">[`Complete report`]</a>
                         </div>
                     </div>
                 </div>
                 {if !empty($completed_promos)}
-                    <table class="s-promo-table">
+                    <div class="s-block">
+                    <div class="table-scrollable-x">
+                    <div id="skeleton_completed_promos">
+                        {_render_completed_promo_skeleton count=2}
+                    </div>
+                    <table class="zebra s-promo-table" data-skeleton="#skeleton_completed_promos">
                         <thead>
                             <tr>
                                 <th>
@@ -384,7 +376,7 @@
                                                     {foreach ifset($promos_markers, $_promo.id, []) as $marker}
                                                         <div class="s-rule-wrapper">
                                                             <div class="s-rule" title="{$marker.name|escape}">
-                                                                <i class="icon16 {$marker.css_class|escape}"></i>
+                                                                {$wa->shop->getIcon($marker.css_class)}
                                                             </div>
                                                         </div>
                                                     {/foreach}
@@ -455,8 +447,10 @@
                     {/foreach}
                     {$_url_params = substr($_url_params, 1)}
                     {$wa->shop->pager($total_completed_promos|default:0, $page, $_url_params)}
+                    </div>
+                    </div>
                 {else}
-                    <p>[`No completed promos.`]</p>
+                    <p class="gray small">[`No completed promos.`]</p>
                 {/if}
             </div>
         {/if}
@@ -530,8 +524,38 @@
 
     <script>
         ( function($) {
+            const skeletons = new SkeletonLoaderGroup([
+                {
+                    name: 'promoList',
+                    skeleton: '#skeleton_promos_list',
+                    content: '[data-skeleton="#skeleton_promos_list"]', // or empty
+                    delay: 700 // additional delay time (for test)
+                },
+                {
+                    name: 'promoPlanned',
+                    skeleton: '#skeleton_planned_promos',
+                    delay: 700
+                },
+                {
+                    name: 'promoCompleted',
+                    skeleton: '#skeleton_completed_promos',
+                    delay: 500
+                },
+            ]);
+            skeletons.promoList.show();
+            skeletons.promoList.hide();
+
+            skeletons.promoPlanned.show();
+            skeletons.promoPlanned.hide();
+
+            skeletons.promoCompleted.show();
+            skeletons.promoCompleted.hide();
 
             $.shop.marketing.setTitle({$_title|json_encode});
+
+            $('.js-marketing-storefronts-dropdown').waDropdown({
+                update_title: false
+            });
 
             var sources = [{
                 id: "wa-shop-marketing-promos-js",
@@ -568,4 +592,7 @@
 
         })(jQuery);
     </script>
+</div>
+
+</div>
 </div>

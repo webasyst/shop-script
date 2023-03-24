@@ -6,7 +6,7 @@ $.extend($.settings = $.settings || {}, {
     options: {
         backend_url: '/webasyst/',
         shop_marketing_url: '/webasyst/shop/marketing/',
-        loading: '<i class="icon16 loading"></i>',
+        loading: '<i class="fas fa-spinner fa-spin"></i>',
         path: '#/'
     },
 
@@ -37,7 +37,10 @@ $.extend($.settings = $.settings || {}, {
      * @param {Object=} options
      */
     init: function (options) {
+        this.xhr = false;
         this.options = $.extend(this.options, options || {});
+        this.initAnimation();
+
         if (!this.ready) {
             this.ready = true;
             this.menu = $('#s-settings-menu');
@@ -53,7 +56,9 @@ $.extend($.settings = $.settings || {}, {
                     $.settings.dispatch();
                 });
             }
-            var self = this;
+
+            const self = this;
+
             $.wa.errorHandler = function (xhr) {
                 if ((xhr.status === 403) || (xhr.status === 404)) {
                     var $text = $(xhr.responseText);
@@ -63,18 +68,106 @@ $.extend($.settings = $.settings || {}, {
                     } else {
                         $message.append($text.find(':not(style)'));
                     }
-                    self.$container.empty().append($message).append('<div class="clear-both"></div>');
+                    self.$container.empty().append($message);
                     return false;
                 }
                 return true;
             };
-            var hash = window.location.hash;
+
+            const hash = window.location.hash;
             if (hash === '#/' || !hash) {
                 this.dispatch();
             } else {
                 $.wa.setHash(hash);
             }
         }
+    },
+
+    initAnimation: function() {
+        var waLoading = $.waLoading();
+        var $wrapper = $("#wa"),
+            locked_class = "is-locked";
+
+        $wrapper
+            .on("wa_before_load", function() {
+                waLoading.show();
+                waLoading.animate(3000, 100, false);
+                $wrapper.addClass(locked_class);
+            })
+            .on("wa_loading", function(event, xhr_event) {
+                var percent = (xhr_event.loaded / xhr_event.total) * 100;
+                waLoading.set(percent);
+            })
+            .on("wa_abort", function() {
+                waLoading.abort();
+                $wrapper.removeClass(locked_class);
+            })
+            .on("wa_loaded", function() {
+                waLoading.done();
+                $wrapper.removeClass(locked_class);
+            });
+    },
+
+    load: function(content_url, doneCallback, config) {
+        config = $.extend({
+            data: {}, wrapper: false, setHtml: true
+        }, config);
+        const deferred = $.Deferred();
+        const self = this;
+        const $wrapper = typeof config.wrapper === "object" ? config.wrapper : this.$container;
+
+        if (this.xhr) { this.xhr.abort(); }
+
+        $wrapper.trigger("wa_before_load", [{
+            content_url: content_url,
+            data: $.extend({}, config.data),
+        }]);
+
+
+        this.xhr = $.ajax({
+                method: 'GET',
+                url: content_url,
+                data: config.data,
+                dataType: 'html',
+                global: false,
+                cache: false,
+                xhr: function() {
+                    var xhr = new window.XMLHttpRequest();
+
+                    xhr.addEventListener("progress", function(event) {
+                        self.$container.trigger("wa_loading", event);
+                    }, false);
+
+                    xhr.addEventListener("abort", function(event) {
+                        self.$container.trigger("wa_abort");
+                    }, false);
+
+                    return xhr;
+                }
+            })
+            .always(function() {
+                self.xhr = false;
+            })
+            .done(function(html) {
+                $wrapper.trigger("wa_loaded");
+                if (config.setHtml) {
+                    $wrapper.html(html);
+                }
+                deferred.resolve(html);
+
+                if (typeof doneCallback === "function") {
+                   doneCallback();
+                }
+            })
+            .fail(function(data, state) {
+                if (data.responseText) {
+                    console.log(data.responseText);
+                }
+                $wrapper.trigger("wa_load_fail");
+                deferred.reject(state);
+            });
+
+        return deferred.promise();
     },
 
     /**
@@ -136,7 +229,8 @@ $.extend($.settings = $.settings || {}, {
         if (load) {
             window.location.hash = hash;
         }
-        var path = this.parsePath(hash.replace(/^[^#]*#\/*/, ''));
+
+        const path = this.parsePath(hash.replace(/^[^#]*#\/*/, ''));
 
         // Redirect to Marketing tab
         if (path.section === "discounts") {
@@ -151,7 +245,7 @@ $.extend($.settings = $.settings || {}, {
         this.path.dispatch = path;
         $.shop && $.shop.trace('$.settings.dispatch ' + this.path.section + ' -> ' + path.section + ' # ' + path.tail);
 
-        var pre_load_result = this.settingsPreLoad(path.section, path.tail, load);
+        const pre_load_result = this.settingsPreLoad(path.section, path.tail, load);
         if (false === pre_load_result) {
             $.shop && $.shop.trace('$.settings.dispatch: PreLoad returned false, no further action required.');
             return true;
@@ -175,8 +269,8 @@ $.extend($.settings = $.settings || {}, {
                 this.$container.html(this.options.loading);
             }
 
-            var self = this;
-            var url = '?module=settings&action=' + path.section;
+            const self = this;
+            let url = '?module=settings&action=' + path.section;
             for (var param in path.params) {
                 if (path.params.hasOwnProperty(param)) {
                     url += '&' + param + '=' + path.params[param];
@@ -188,7 +282,7 @@ $.extend($.settings = $.settings || {}, {
             }
 
             $.shop && $.shop.trace('$.settings.dispatch: Load URL', [url, path.params]);
-            this.$container.load(url, function () {
+            this.load(url, function () {
                 self.path.section = path.section || self.path.section;
                 self.menu.find('a[href*="\\#\/' + self.path.section + '\/"]').parents('li').addClass('selected');
                 self.settingsAction(path.section, path.tail);
@@ -211,14 +305,29 @@ $.extend($.settings = $.settings || {}, {
      * @return {Boolean}
      */
     click: function ($el) {
-        var args = $el.attr('href').replace(/.*#\//, '').replace(/\/$/, '').split('/');
-        var method = $.shop.getMethod(args, this);
+        const that = this;
+        const args = $el.attr('href').replace(/.*#\//, '').replace(/\/$/, '').split('/');
+        const method = $.shop.getMethod(args, this);
 
         if (method.name) {
             $.shop.trace('$.settings.click', method);
-            if (!$el.hasClass('js-confirm') || confirm($el.data('confirm-text') || $el.attr('title') || $_('Are you sure?'))) {
+
+            if ($el.hasClass('js-confirm')) {
+                $.waDialog.confirm({
+                    title: $el.attr('title'),
+                    text: $el.data('confirm-text'),
+                    success_button_title: $_('Are you sure?'),
+                    success_button_class: 'danger',
+                    cancel_button_title: $el.data('cancel') || $.wa.locale['cancel'] || 'Cancel',
+                    cancel_button_class: 'light-gray',
+                    onSuccess() {
+                        method.params.push($el);
+                        that[method.name].apply(that, method.params);
+                    }
+                });
+            } else {
                 method.params.push($el);
-                this[method.name].apply(this, method.params);
+                that[method.name].apply(that, method.params);
             }
         } else {
             $.shop.error('Not found js handler for link', [method, $el])
@@ -295,6 +404,10 @@ $.extend($.settings = $.settings || {}, {
      */
     settingsPreLoad: function (section, tail, load) {
         $.shop && $.shop.trace('$.settings.settingsPreLoad', [section, tail, load]);
+        if (typeof this.onPreLoad === "function") {
+          this.onPreLoad(section);
+        }
+
         return this.call(section + 'PreLoad', [tail, load]);
     },
 
@@ -304,7 +417,6 @@ $.extend($.settings = $.settings || {}, {
      * @param {Array=} args
      */
     call: function (name, args) {
-
         var method = name;
         var matches = method.match(/^(\w+)&plugin=([a-z0-9_]+)(Action|Blur|)$/);
         if (matches) {
@@ -344,7 +456,7 @@ $.extend($.settings = $.settings || {}, {
 
         // Load content
         var self = this;
-        this.$container.load('?module=settings&action=taxes&id=' + id, function () {
+        this.load('?module=settings&action=taxes&id=' + id, function () {
             self.settingsAction(self.path.section, tail);
         });
         return true;
@@ -362,19 +474,20 @@ $.extend($.settings = $.settings || {}, {
 
         // Load content
         var self = this;
-        this.$container.load('?module=settings&action=followups&id=' + id, function () {
+        this.load('?module=settings&action=followups&id=' + id, function() {
             self.settingsAction(self.path.section, tail);
         });
         return true;
     },
 
     couriersPreLoad: function (id) {
-        this.$container.load('?module=settings&action=couriers&id=' + (id || ''));
+        this.load('?module=settings&action=couriers&id=' + (id || ''));
         return true;
     },
 
     typefeatPreLoad: function (id) {
-        this.$container.load('?module=settings&action=typefeatList&type=' + (id || ''));
+        this.load('?module=settings&action=typefeatList&type=' + (id || ''));
+        // this.$container.load('?module=settings&action=typefeatList&type=' + (id || ''))
         return true;
     },
 

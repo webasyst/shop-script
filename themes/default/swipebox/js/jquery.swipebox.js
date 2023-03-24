@@ -1,8 +1,10 @@
-/*! Swipebox v1.4.1 | Constantin Saguin csag.co | MIT License | github.com/brutaldesign/swipebox */
+/*! Swipebox v1.5.2 | Constantin Saguin csag.co | MIT License | github.com/brutaldesign/swipebox */
 
 ;( function ( window, document, $, undefined ) {
 
 	$.swipebox = function( elem, options ) {
+
+        $( elem ).addClass( 'swipebox' ); // fugly but yea, swipebox class all the things
 
 		// Default options
 		var ui,
@@ -18,6 +20,7 @@
 				beforeOpen: null,
 				afterOpen: null,
 				afterClose: null,
+				afterMedia: null,
 				nextSlide: null,
 				prevSlide: null,
 				loopAtEnd: false,
@@ -29,8 +32,7 @@
 			plugin = this,
 			elements = [], // slides array [ { href:'...', title:'...' }, ...],
 			$elem,
-			selector = elem.selector,
-			$selector = $( selector ),
+			selector = '.swipebox',
 			isMobile = navigator.userAgent.match( /(iPad)|(iPhone)|(iPod)|(Android)|(PlayBook)|(BB10)|(BlackBerry)|(Opera Mini)|(IEMobile)|(webOS)|(MeeGo)/i ),
 			isTouch = isMobile !== null || document.createTouch !== undefined || ( 'ontouchstart' in window ) || ( 'onmsgesturechange' in window ) || navigator.msMaxTouchPoints,
 			supportSVG = !! document.createElementNS && !! document.createElementNS( 'http://www.w3.org/2000/svg', 'svg').createSVGRect,
@@ -54,8 +56,8 @@
 					</div>\
 			</div>';
 
-		plugin.settings = {};
-
+        plugin.settings = {};
+        
 		$.swipebox.close = function () {
 			ui.closeSlide();
 		};
@@ -68,7 +70,7 @@
 
 			plugin.settings = $.extend( {}, defaults, options );
 
-			if ( $.isArray( elem ) ) {
+			if ( Array.isArray( elem ) ) {
 
 				elements = elem;
 				ui.target = $( window );
@@ -85,19 +87,19 @@
 						return false;
 					}
 
-					if ( ! $.isArray( elem ) ) {
+					if ( ! Array.isArray( elem ) ) {
 						ui.destroy();
 						$elem = $( selector );
 						ui.actions();
 					}
 
 					elements = [];
-					var index , relType, relVal;
+					var index, relType, relVal;
 
 					// Allow for HTML5 compliant attribute before legacy use of rel
 					if ( ! relVal ) {
 						relType = 'data-rel';
-						relVal  = $( this ).attr( relType );
+						relVal = $( this ).attr( relType );
 					}
 
 					if ( ! relVal ) {
@@ -106,7 +108,7 @@
 					}
 
 					if ( relVal && relVal !== '' && relVal !== 'nofollow' ) {
-						$elem = $selector.filter( '[' + relType + '="' + relVal + '"]' );
+						$elem = $( selector ).filter( '[' + relType + '="' + relVal + '"]' );
 					} else {
 						$elem = $( selector );
 					}
@@ -119,7 +121,6 @@
 						if ( $( this ).attr( 'title' ) ) {
 							title = $( this ).attr( 'title' );
 						}
-
 
 						if ( $( this ).attr( 'href' ) ) {
 							href = $( this ).attr( 'href' );
@@ -157,7 +158,7 @@
 				this.preloadMedia( index+1 );
 				this.preloadMedia( index-1 );
 				if ( plugin.settings.afterOpen ) {
-					plugin.settings.afterOpen();
+					plugin.settings.afterOpen(index);
 				}
 			},
 
@@ -357,7 +358,7 @@
 									} );
 								}
 
-							// swipe rught
+							// swipe right
 							} else if ( 0 > hDistance ) {
 
 								// last Slide
@@ -584,7 +585,9 @@
 					} );
 				}
 
-				$( '#swipebox-close' ).bind( action, function() {
+				$( '#swipebox-close' ).bind( action, function( event ) {
+					event.preventDefault();
+					event.stopPropagation();
 					$this.closeSlide();
 				} );
 			},
@@ -685,11 +688,19 @@
 				if ( ! $this.isVideo( src ) ) {
 					slide.addClass( 'slide-loading' );
 					$this.loadMedia( src, function() {
-						slide.removeClass( 'slide-loading' );
+                        slide.removeClass( 'slide-loading' );
 						slide.html( this );
+
+						if ( plugin.settings.afterMedia ) {
+							plugin.settings.afterMedia( index );
+						}
 					} );
 				} else {
 					slide.html( $this.getVideo( src ) );
+
+					if ( plugin.settings.afterMedia ) {
+						plugin.settings.afterMedia( index );
+					}
 				}
 
 			},
@@ -725,11 +736,9 @@
 					}
 
 					if ( src.toLowerCase().indexOf( 'swipeboxvideo=1' ) >= 0 ) {
-
 						return true;
-					}
+                    }
 				}
-
 			},
 
 			/**
@@ -773,15 +782,19 @@
 					youtubeShortUrl = url.match(/(?:www\.)?youtu\.be\/([a-zA-Z0-9\-_]+)/),
 					vimeoUrl = url.match( /(?:www\.)?vimeo\.com\/([0-9]*)/ ),
 					qs = '';
-				if ( youtubeUrl || youtubeShortUrl) {
+                
+                if ( youtubeUrl || youtubeShortUrl) {
 					if ( youtubeShortUrl ) {
 						youtubeUrl = youtubeShortUrl;
-					}
+                    }
+                    
+                    console.log( youtubeUrl );
+
 					qs = ui.parseUri( url, {
 						'autoplay' : ( plugin.settings.autoplayVideos ? '1' : '0' ),
 						'v' : ''
 					});
-					iframe = '<iframe width="560" height="315" src="//' + youtubeUrl[1] + '/embed/' + youtubeUrl[2] + '?' + qs + '" frameborder="0" allowfullscreen></iframe>';
+					iframe = '<iframe width="560" height="315" src="https://' + youtubeUrl[1] + '/embed/' + youtubeUrl[2] + '?' + qs + '" frameborder="0" allowfullscreen></iframe>';
 
 				} else if ( vimeoUrl ) {
 					qs = ui.parseUri( url, {
@@ -843,7 +856,7 @@
 					$this.setSlide( index );
 					$this.preloadMedia( index+1 );
 					if ( plugin.settings.nextSlide ) {
-						plugin.settings.nextSlide();
+						plugin.settings.nextSlide(index);
 					}
 				} else {
 
@@ -855,7 +868,7 @@
 						$this.setSlide( index );
 						$this.preloadMedia( index + 1 );
 						if ( plugin.settings.nextSlide ) {
-							plugin.settings.nextSlide();
+							plugin.settings.nextSlide(index);
 						}
 					} else {
 						$( '#swipebox-overlay' ).addClass( 'rightSpring' );
@@ -879,7 +892,7 @@
 					this.setSlide( index );
 					this.preloadMedia( index-1 );
 					if ( plugin.settings.prevSlide ) {
-						plugin.settings.prevSlide();
+						plugin.settings.prevSlide(index);
 					}
 				} else {
 					$( '#swipebox-overlay' ).addClass( 'leftSpring' );
@@ -888,12 +901,12 @@
 					}, 500 );
 				}
 			},
-
-			nextSlide : function () {
+			/* jshint unused:false */
+			nextSlide : function ( index ) {
 				// Callback for next slide
 			},
 
-			prevSlide : function () {
+			prevSlide : function ( index ) {
 				// Callback for prev slide
 			},
 
@@ -918,7 +931,7 @@
 				$( '#swipebox-slider' ).unbind();
 				$( '#swipebox-overlay' ).remove();
 
-				if ( ! $.isArray( elem ) ) {
+				if ( ! Array.isArray( elem ) ) {
 					elem.removeData( '_swipebox' );
 				}
 

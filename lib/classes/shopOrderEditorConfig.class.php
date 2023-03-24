@@ -169,6 +169,14 @@ class shopOrderEditorConfig implements ArrayAccess
         return wa()->getConfig()->getConfigPath('order_editor.php', true, 'shop');
     }
 
+    /**
+     * https://www.php.net/manual/ru/migration81.incompatible.php#migration81.incompatible.core.type-compatibility-internal
+     *
+     * @param $offset
+     * @param $value
+     * @return void
+     */
+    #[ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         if (is_null($offset)) {
@@ -178,16 +186,19 @@ class shopOrderEditorConfig implements ArrayAccess
         }
     }
 
+    #[ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return isset($this->config[$offset]);
     }
 
+    #[ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->config[$offset]);
     }
 
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return isset($this->config[$offset]) ? $this->config[$offset] : null;

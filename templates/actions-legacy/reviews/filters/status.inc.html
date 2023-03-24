@@ -1,0 +1,66 @@
+{*
+     used at:
+     - main reviews page (reviews/Reviews.html)
+     - product reviews section (product/productReviews.html)
+
+     required:
+     - "$_active_filters" — array with active filters data
+     - "_render_filter_uri" — function for render links href
+*}
+
+{$_moderate_enabled = $wa->setting('moderation_reviews', 0, 'shop')}
+{if !empty($_moderate_enabled)}
+    <li class="with-menu">
+        {$_deleted = shopProductReviewsModel::STATUS_DELETED}
+        {$_published = shopProductReviewsModel::STATUS_PUBLISHED}
+        {$_moderation = shopProductReviewsModel::STATUS_MODERATION}
+
+        {$_status_filters = []}
+        {$_status_filters["all"] = [
+            "id" => "all",
+            "name" => _w("all"),
+            "uri" => {_render_filter_uri _filters_data=["filters[status]" => "all"]}
+        ]}
+        {$_status_filters[$_deleted] = [
+            "id" => $_deleted,
+            "name" => _w("deleted ones"),
+            "uri" => {_render_filter_uri _filters_data=["filters[status]" => $_deleted]}
+        ]}
+        {$_status_filters[$_published] = [
+            "id" => $_published,
+            "name" => _w("published"),
+            "uri" => {_render_filter_uri _filters_data=["filters[status]" => $_published]}
+        ]}
+        {$_status_filters[$_moderation] = [
+            "id" => $_moderation,
+            "name" => _w("pending moderation"),
+            "uri" => {_render_filter_uri _filters_data=["filters[status]" => $_moderation]}
+        ]}
+
+        {$_active_status_filter = $_status_filters["all"]}
+        {$_active_status_filter_id = $_active_filters["filters[status]"]}
+        {if !empty($_active_status_filter_id) && !empty($_status_filters[$_active_status_filter_id])}
+            {$_active_status_filter = $_status_filters[$_active_status_filter_id]}
+        {/if}
+
+        <span class="s-label">[`Moderation`]:</span>
+
+        <a href="javascript:void(0);" class="inline-link">
+            <b><i>{$_active_status_filter.name|escape}</i></b>
+            <i class="icon16 darr"></i>
+        </a>
+
+        <ul class="menu-v without-icons right">
+            {foreach $_status_filters as $_filter}
+                {$_is_active = false}
+                {if $_filter.id === $_active_status_filter_id}
+                    {$_is_active = true}
+                {/if}
+
+                <li class="{if !empty($_is_active)}selected{/if}">
+                    <a href="{$_filter.uri|escape}">{$_filter.name|escape}</a>
+                </li>
+            {/foreach}
+        </ul>
+    </li>
+{/if}

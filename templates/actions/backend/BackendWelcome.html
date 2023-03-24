@@ -1,225 +1,186 @@
 {$_is_complete = false}
 {if $actions['welcome'].complete == 1}{$_is_complete = true}{/if}
 
-{$_locale_string = substr($wa->locale()|default:"en", 0, 2)}
-{$_is_ru = false}
-{if $_locale_string === "ru"}{$_is_ru = true}{/if}
-
 <script src="{$wa_url}wa-content/js/jquery-wa/wa.core.js?{$wa->version(true)}"></script>
 <script src="{$wa_app_static_url}js/backend/welcome.js?{$wa->version()}"></script>
 <script src="{$wa_app_static_url}js/tutorial/tutorial.js"></script>
 
-{include file="templates/actions/tutorial/include.TutorialSidebar.html" inline}
+<div class="content hide-scrollbar welcome box contentbox">
+    <div class="article">
+        <div class="article-body">
+            <form method="post" action="?action=welcome" id="js-welcome-form">
+                <div class="_s-welcome-page">
+                    <h1>[`Welcome to Shop-Script!`]</h1>
 
-<div class="block double-padded welcome">
-    <form method="post" action="?action=welcome" id="js-welcome-form">
-        <div class="s-welcome-page">
-            <h1>[`Welcome to Shop-Script!`]</h1>
-            <p>[`This screen will help you to quickly launch your new online store.`]</p>
+                    <div class="fields">
 
-            <div class="form fields" style="float: none;">
-                <div class="s-content-with-indent">
-                    {* CURRENCY *}
-                    <div class="s-tutorial-block">
-                        <div class="s-title">
-                            <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.green.svg" class="s-arrow" alt=""/><span class="s-title">[`Select a primary currency`]</span>
-                        </div>
-                        <div class="s-sub-title">
-                            {if $_is_ru}
-                                Дополнительные валюты можно добавить позже в разделе «Настройки → Валюты».
-                            {else}
-                                You can add more currencies later in “Settings → Currencies” section
-                            {/if}
-                        </div>
-                        <div class="s-select-wrapper">
-                            <select name="currency" class="s-currency" id="" {if $actions['welcome'].complete != 1}required{/if}>
-                                <option value="" disabled selected>[`Select currency`]</option>
-                                {foreach $currencies as $currency}
-                                    <option value="{$currency.code}" title="{$currency.code}"{if $currency.code === null} disabled{/if}>{_w($currency.title)}</option>
-                                {/foreach}
-                            </select>
-                        </div>
-                    </div>
-
-                    {* COUNTRY *}
-                    <div class="s-tutorial-block">
-                        <div class="s-title">
-                            <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.green.svg" class="s-arrow" alt=""/><span class="s-title-text">[`Select a country`]</span>
-                        </div>
-                        <div class="s-sub-title">
-                            {if $_is_ru}
-                                Для нее включатся соответствующие ставки налогов.
-                            {else}
-                                This will automatically set up corresponding tax rates.
-                            {/if}
-                        </div>
-                        <div class="s-select-wrapper">
-                            <select name="country" class="s-country">
-                                {foreach $countries as $country}
-                                    <option value="{$country.iso3letter|escape}"{if $country.iso3letter == $country_iso} selected{/if}>{$country.name|escape}</option>
-                                {/foreach}
-                                <option value="">[`Other`] ([`No default regional data will be added`])</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {* PRODUCTS *}
-                    <div class="s-tutorial-block">
-                        <div class="s-title">
-                            <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.green.svg" class="s-arrow" alt=""/>
-                            <span class="s-title-text">
-                                {if $_is_ru}
-                                    Выберите товарную нишу, для которой мы добавим примеры товаров в ваш магазин
-                                {else}
-                                    Select a product range for which we will add a few examples to your store
-                                {/if}
-                            </span>
-                        </div>
-                        <div class="s-sub-title">
-                            {if $_is_ru}
-                                Для выбранной ниши будут настроены типы товаров со своими наборами характеристик. С помощью характеристик вы сможете подробно описать товары на витрине, настроить фильтры и автоматические рекомендации. Другие типы товаров и характеристики для них можно настроить позже.
-                            {else}
-                                For the selected product range, corresponding product types with their default sets of product features will be added. Features are useful to describe products in the storefront, and to set up filters and automatic recommendations. You can add more product types and features later in settings.
-                            {/if}
-                        </div>
-                        <div class="s-demo-sources-wrapper">
-                            {$_sources_html = []}
-
-                            {$_can_work = $shop_demo_importer_can_work.status}
-                            {$_reason   = $shop_demo_importer_can_work.reason}
-
-                            {if !$_can_work}
-                                <p class="errormsg"><i class="icon16 exclamation"></i> {$_reason}</p>
-                            {/if}
-
-                            {foreach $shop_demo_data_source_list as $_source_id => $_source}
-                                {capture append="_sources_html"}
-                                    <div class="s-source-wrapper">
-                                        <label>
-                                            <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
-                                            {$_source.name|default:''|escape}
-                                        </label>
+                        {* REGION *}
+                        <div class="fields-group">
+                            <div class="field">
+                                <div class="name for-input">
+                                    [`Primary currency`]
+                                </div>
+                                <div class="value">
+                                    <div class="wa-select">
+                                        <select name="currency" id="" {if $actions['welcome'].complete != 1}required{/if}>
+                                            <option value="" disabled selected>[`Select currency`]</option>
+                                            {foreach $currencies as $currency}
+                                                <option value="{$currency.code}" title="{$currency.code}"{if $currency.code === null} disabled{/if}>{$currency.code} — {_w($currency.title)}</option>
+                                            {/foreach}
+                                        </select>
                                     </div>
-                                {/capture}
-                            {/foreach}
-
-                            {capture append="_sources_html"}
-                                <div class="s-source-wrapper">
-                                    <label>
-                                        <input type="radio" name="demo_db" value="">
-                                        <span class="bold">
-                                            {if $_is_ru}
-                                                Не добавлять примеры товаров
-                                            {else}
-                                                Do not add product examples
-                                            {/if}
-                                        </span>
-                                    </label>
                                 </div>
-                            {/capture}
-                            {$_half_count = ceil(count($_sources_html)/2)}
+                            </div>
 
-                            <div class="s-table-box">
-                                <div class="s-column">
-                                    {foreach $_sources_html as $_html}
-                                        {if $_html@iteration <= $_half_count}
-                                            {$_html}
-                                        {/if}
-                                    {/foreach}
+                            <div class="field">
+                                <div class="name for-input">
+                                    [`Select a country`]
                                 </div>
-                                <div class="s-column">
-                                    {foreach $_sources_html as $_html}
-                                        {if $_html@iteration > $_half_count}
-                                            {$_html}
-                                        {/if}
-                                    {/foreach}
+                                <div class="value">
+                                    <div class="wa-select">
+                                        <select name="country">
+                                            {foreach $countries as $country}
+                                                <option value="{$country.iso3letter|escape}"{if $country.iso3letter == $country_iso} selected{/if}>{$country.name|escape}</option>
+                                            {/foreach}
+                                            <option value="">[`Other`] ([`No default regional data will be added`])</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        {* PRODUCTS *}
+                        <div class="fields-group">
+
+                            <h5 class="heading">
+                                [`Demo products`]
+                            </h5>
+
+                            <div class="field">
+                                <div class="value">
+
+                                    {$_sources_html = []}
+
+                                    {$_can_work = $shop_demo_importer_can_work.status}
+                                    {$_reason   = $shop_demo_importer_can_work.reason}
+
+                                    {if !$_can_work}
+                                        <p class="state-error-hint"><i class="fas fa-exclamation-triangle"></i> {$_reason}</p>
+                                    {/if}
+
+                                    {foreach $shop_demo_data_source_list as $_source_id => $_source}
+                                        <div class="custom-mb-8">
+                                            <label class="flexbox space-8 middle">
+                                                <span class="wa-radio">
+                                                    <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
+                                                    <span></span>
+                                                </span>
+                                                <div style="width: 1.75rem; text-align: center;">
+                                                    <i class="{$_source.icon} custom-ml-4"></i>
+                                                </div>
+                                                <div>
+                                                    {$_source.name|default:''|escape}
+                                                </div>
+                                            </label>
+                                        </div>
+                                    {/foreach}
+
+                                    <div class="custom-mb-8">
+                                        <label class="flexbox space-8 middle">
+                                            <span class="wa-radio">
+                                                <input type="radio" name="demo_db" value="">
+                                                <span></span>
+                                            </span>
+                                            <span class="gray custom-pl-4">
+                                                [`Don’t add demo products`]
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
-                    {* IMPORT *}
-                    <div class="s-tutorial-block s-welcome-import">
-                        <div class="s-title">
-                            <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.red.svg" class="s-arrow" alt=""/>
-                            <span class="s-title-text">
-                                {if $_is_ru}
-                                    Можно бесплатно импортировать данные из вашего старого <span class="nowrap">интернет-магазина</span> — <a href="https://www.webasyst.ru/my/requests/my/" class="js-apply-for-transfer-shop" target="_blank">обратитесь в нашу службу поддержки</a>
-                                {else}
-                                    You may import products from your previous online store, please <a href="https://www.webasyst.com/my/requests/my/" class="js-apply-for-transfer-shop" target="_blank">contact our support team</a> for free help
-                                {/if}
-                            </span>
+                </div>
+                {if empty($_is_complete)}
+                    {$wa->csrf()}
+                {/if}
+            </form>
+
+            {capture assign="_loading_html"}
+                <div style="display:grid;place-items:center;position:absolute;inset:0;background-color:var(--dialog-background-color);backdrop-filter:blur(0.5rem);">
+                    <div>
+                        <div class="flexbox large gray italic">
+                            <div class="custom-mr-8" style="padding-top: 2px;">
+                                <div class="spinner"></div>
+                            </div>
+                            <span>[`Finalizing your storefront setup may take up to 1-2 minutes...`]</span>
                         </div>
+
+                        <div class="progressbar custom-mb-8 js-progressbar custom-mt-8">
+                            <div class="progressbar-line-wrapper text-outside">
+                                <div class="progressbar-outer">
+                                    <div class="progressbar-inner" style="width: 10%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <script>
+                            const $progress = document.querySelector(".js-progressbar .progressbar-inner");
+                            let startPos = 10;
+                            const endPos = 90;
+                            /*за сколько секунд должен пройти прогресс от startPos до endPos*/
+                            const duration = 60;
+                            const timeRatio = 10;
+                            const stepRatio = (endPos - startPos) / duration / timeRatio;
+
+                            const timer = setInterval(() => {
+                                if (startPos >= endPos) {
+                                    clearInterval(timer);
+                                }
+                                startPos += stepRatio;
+                                $progress.style.width = startPos + "%";
+                            }, 1000 / timeRatio);
+                        </script>
                     </div>
                 </div>
+            {/capture}
 
-                <div class="s-actions-wrapper">
-                    {if empty($_is_complete)}
-                        {$wa->csrf()}
-                        <input type="hidden" name="passed_action" value="welcome">
-                        <input type="submit" class="button green" value="[`Next step`] &rarr;">
-                    {else}
-                        <div style="margin-top: 100px;">
-                            <a class="button green" href="{$actions['products'].href}">[`Next step`] &rarr;</a>
-                        </div>
-                    {/if}
-                </div>
-            </div>
+            <script>
+                ( function($) {
 
-            {if !empty($_is_complete)}
-                <div class="s-tutorial-disabled"></div>
-                <div class="s-tutorial-hint">
-                    <p>
-                        {if $_is_ru}
-                            Выбранные здесь значения можно будет позже изменить в <a href="?action=settings" target="_blank">настройках</a>.
-                        {else}
-                            Values selected here can be changed later in <a href="?action=settings" target="_blank">settings</a>.
-                        {/if}
-                    </p>
-                </div>
-            {/if}
-        </div>
-    </form>
-
-    {* Hack for Firefox, preload image *}
-    <div style="position: absolute; visibility: hidden; width: 0; height: 0; overflow: hidden;"><img src="{$wa_url}wa-apps/shop/img/backend/tutorial/loading.svg?v=1" alt=""></div>
-
-    {capture assign="_loading_html"}
-        <div class="s-loading-wrapper">
-            <div class="s-loading-body">
-                <img class="s-loading-image" src="{$wa_url}wa-apps/shop/img/backend/tutorial/loading.svg?v=1" alt="">
-                <div class="s-loading-text">
-                    {if $_is_ru}
-                        Подождите немного,<br>мы добавляем примеры товаров в ваш интернет-магазин.
-                    {else}
-                        Please wait<br>while product examples are being added to your online store.
-                    {/if}
-                </div>
-            </div>
-        </div>
-    {/capture}
-
-    <script>
-        ( function($) {
-            $("#wa").addClass("s-no-level2");
-
-            var $form = $("#js-welcome-form"),
-                html = {$_loading_html|trim|json_encode},
-                is_loading = false;
-
-            $form.on("submit", function() {
-                if (!is_loading) {
-                    is_loading = true;
-                    var $field = $("input[name=\"demo_db\"]:checked");
-                    if ($field.length) {
-                        var value = $field.val();
-                        if (value) {
-                            $("body").append(html);
+                    var $form = $("#js-welcome-form"),
+                        html = {$_loading_html|trim|json_encode},
+                        is_loading = false;
+                    $form.on("submit", function() {
+                        if (!is_loading) {
+                            is_loading = true;
+                            var $field = $("input[name=\"demo_db\"]:checked");
+                            if ($field.length) {
+                                var value = $field.val();
+                                if (value) {
+                                    $("body").append(html);
+                                }
+                            }
                         }
-                    }
-                }
-            });
+                    });
 
-        })(jQuery);
-    </script>
+                })(jQuery);
+            </script>
+
+            {if empty($_is_complete)}
+                <div class="flexbox wrap-mobile space-4 middle custom-mt-24">
+                    <button type="submit" form="js-welcome-form" class="button largest green rounded gradient">[`Start selling`]</button>
+                    <a href="{$wa_app_url}?skipwelcome=1" class="button outlined light-gray largest rounded js-finish-tutorial">[`Skip quick setup`]</a>
+                </div>
+            {else}
+                <p class="large italic">
+                    <span class="gray">[`Your store is up and running already. No need to re-set up.`]</span>
+                    <a href="{$wa_app_url}">[`Get back to orders`] &rarr;</a>
+                </p>
+            {/if}
+
+        </div>
+    </div>
 </div>

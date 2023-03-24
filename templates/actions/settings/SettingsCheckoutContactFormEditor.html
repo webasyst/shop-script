@@ -4,42 +4,42 @@
 
 {if in_array($ftype, array('select', 'checklist', 'radio', 'branch'))}{* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 
-<table id="{$uniqid}" style="margin-bottom:0.5em;width:1%;min-width:120px;"><tbody>
+<table id="{$uniqid}" class="small" style="margin-bottom:0.5em;width:1%;min-width:120px;"><tbody>
     {if $f->getParameter('options')}
         {if $ftype == 'branch'}
             {$hide = $f->getParameter('hide')}
         {/if}
         {foreach $f->getOptions() as $value => $label}
             <tr class="item-row">
-                <td class="min-width"><i class="icon16 sort"></i></td>
+                <td class="min-width"><i class="fas fa-grip-vertical text-gray js-sort"></i></td>
                 <td>
                     <input type="text" name="{$prefix}[{$fid}][options][]" value="{$label|escape}" class="small short">
                     {if $ftype == 'branch'}
                         <input type="hidden" name="{$prefix}[{$fid}][hide][]" value="{implode(',', ifempty($hide[$value], array()))}">
                     {/if}
                 </td>
-                <td class="min-width"><a href="#" title="[`Delete`]" onClick="return false;"><i class="icon10 delete"></i></a></td>
+                <td class="min-width"><a href="#" title="[`Delete`]" onClick="return false;"><i class="fas fa-trash-alt text-red js-delete"></i></a></td>
             </tr>
         {/foreach}
     {/if}
     <tr class="hidden item-row template">
-        <td class="min-width"><i class="icon16 sort"></i></td>
+        <td class="min-width"><i class="fas fa-grip-vertical text-gray js-sort"></i></td>
         <td>
             <input type="text" name="{$prefix}[{$fid}][options][]" class="small short">
             {if $ftype == 'branch'}
                 <input type="hidden" name="{$prefix}[{$fid}][hide][]" value="">
             {/if}
         </td>
-        <td class="min-width"><a href="#" title="[`Delete`]" onClick="return false;"><i class="icon10 delete"></i></a></td>
+        <td class="min-width"><a href="#" title="[`Delete`]" onClick="return false;"><i class="fas fa-trash-alt text-red js-delete"></i></a></td>
     </tr>
-    <tr class="add-item">
-        <td colspan="3"><a class="inline-link add-item small" href="javascript:void(0)"><i class="icon10 add"></i> <b><i>[`Add item`]</i></b></a></td>
+    <tr class="add-item nowrap">
+        <td colspan="3"><a class="inline-link add-item small" href="javascript:void(0)"><i class="fas fa-plus-circle text-green"></i> <b><i>[`Add item`]</i></b></a></td>
     </tr>
 </tbody></table>
 
 <div class="show-in-readonly">
     {if $f->getParameter('options')}
-        <ul class="menu-v compact small with-icons read-only-items-list hide-when-field-disabled" style="max-width:200px;">
+        <ul class="list compact small with-icons read-only-items-list hide-when-field-disabled" style="max-width:200px;">
             {foreach $f->getOptions() as $value => $label}
                 <li>{$label|escape}</li>
             {/foreach}
@@ -49,27 +49,45 @@
 
 {if $ftype == 'branch'}
     <div class="show-always hide-when-modified">
-        <a href="javascript:void(0)" class="advanced-settings-link small"><i class="icon10 settings"></i>[`Advanced settings`]</a>
+        <a href="javascript:void(0)" class="advanced-settings-link nowrap small"><i class="fas fa-cog"></i>&nbsp;[`Advanced settings`]</a>
     </div>
     <span class="hidden highlighted small italic show-when-modified">[`Click “Save” button below to commit changes.`]</span>
 {/if}
 
 {if $ftype == 'branch'}
-    <div class="hidden branch-advanced-settings-dialog">
-        <h1>[`Radio selector advanced settings`]</h1>
-        <p>[`Depending on the current radio selector value, other contact form fields may be set to be omitted (become hidden). Manage form fields visibility settings using checkboxes below for each radio selector value.`]</p>
-        <div class="fields form">
-            <div class="field hidden option template">
-                <div class="name insert-option-name-here"></div>
-                <div class="value">
-                    <ul class="menu-v" style="margin-top:0">
-                        <li class="field-checkbox template" style="display:none"><label>
-                            <input type="checkbox">{* JS assigns attrs at dialog creation time: name = option name, value = field id *}
-                            <span class="field-name">{* JS inserts field name here *}</span>
-                            <span class="hidden hint">[`Required`]</span>
-                        </label></li>
-                    </ul>
+    <div class="hidden branch-advanced-settings-dialog dialog">
+        <div class="dialog-background"></div>
+        <div class="dialog-body">
+            <div class="dialog-header"><h1>[`Radio selector advanced settings`]</h1></div>
+            <div class="dialog-content">
+                <p>[`Depending on the current radio selector value, other contact form fields may be set to be omitted (become hidden). Manage form fields visibility settings using checkboxes below for each radio selector value.`]</p>
+                <div class="fields form">
+                    <div class="field hidden option template">
+                        <div class="name insert-option-name-here bold large"></div>
+                        <div class="value">
+                            <ul class="chips small" style="margin-top:0">
+                                <li class="field-checkbox template custom-mt-0" style="display:none">
+                                    <label class="chip">
+                                        <span class="wa-checkbox">
+                                            <input type="checkbox">{* JS assigns attrs at dialog creation time: name = option name, value = field id *}
+                                            <span>
+                                                <span class="icon">
+                                                    <i class="fas fa-check"></i>
+                                                </span>
+                                            </span>
+                                        </span>
+                                        <span class="field-name">{* JS inserts field name here *}</span>
+                                        <span class="hidden hint">[`Required`]</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            <div class="dialog-footer">
+                <input type="submit" value="[`Save`]" class="button green">
+                <button type="button" class="button light-gray js-close-dialog">[`Cancel`]</button>
             </div>
         </div>
     </div>
@@ -82,7 +100,7 @@
     // Drag-and-drop for list items
     table.children('tbody').sortable({
         items : ".item-row",
-        handle : "i.sort"
+        handle : ".js-sort"
     });
 
     // Link to add new item
@@ -92,7 +110,7 @@
     });
 
     // Link to delete item
-    table.on('click', '.delete', function() {
+    table.on('click', '.js-delete', function() {
         $(this).closest('tr').remove();
     });
 
@@ -123,13 +141,13 @@
                 return;
             }
 
-            table.find('.errormsg').remove();
-            table.find('.error').removeClass('error');
+            table.find('.state-error-hint').remove();
+            table.find('.state-error').removeClass('state-error');
             var valid = true;
 
             if (table.closest('tr').find('[name$="[_disabled]"]:checked').length) {
                 if (!table.find('tr:not(.template) [name$="[options][]"]').length) {
-                    table.find('a.add-item').parent().append($('<em class="errormsg"></em>').text("[`Please specify options for multiple choice field.`]"));
+                    table.find('a.add-item').parent().append($('<p class="state-error-hint"></p>').text("[`Please specify options for multiple choice field.`]"));
                     valid = false;
                 }
             }
@@ -144,116 +162,112 @@
 
     {if $ftype == 'branch'}
         (function() {
-            var dialog = table.parent().find('.branch-advanced-settings-dialog');
+            var $dialog = table.parent().find('.branch-advanced-settings-dialog');
 
             // Advanced settings dialog
             table.parent().find('a.advanced-settings-link').click(function() {
+            var $form = table.closest('form');
+            // Init dialog
+            $.waDialog({
+                html: $dialog[0],
+                onOpen: function($dialog, dialog) {
+                    $dialog.removeClass('hidden');
+                    //
+                    // Dialog contents
+                    //
+                    var fields = $dialog.find('.fields');
+                    fields.children('.field:not(.template)').remove();
 
-                // Dialog buttons: [save] or _cancel_
-                var buttons = $('<div></div>');
-                buttons.append($('<input type="submit" class="button green" value="[`Save`]">').click(function() {
+                    // Set up list of fields in option template
+                    var option_template = fields.children('.option.template');
+                    var option_template_ul = option_template.find('ul');
+                    option_template_ul.children(':not(.template)').remove();
+                    var field_checkbox_template = option_template_ul.children('.field-checkbox.template');
+                    $('#main-field-list tr:not(.template) :checkbox:checked[name$="[_disabled]"]').each(function() {
+                        var self = $(this);
+                        var self_name = self.attr('name');
+                        var field_id = self_name.substring(8, self_name.length - 12); // options[...][_disabled]
+                        if (field_id === '{$fid}') {
+                            return;
+                        }
 
-                    var hide_fields = {};
-                    fields.find('.field:not(.template) .field-checkbox:not(.template) :checkbox').each(function() {
-                        var cb = $(this);
-                        if (cb.is(':not(:disabled):not(:checked)')) {
-                            var option_id = cb.attr('name');
-                            var field_id = cb.val();
-                            hide_fields[option_id] = hide_fields[option_id] || [];
-                            hide_fields[option_id].push(field_id);
+                        var field_row = self.closest('.field-row');
+                        var field_name = field_row.find('.name-input').val();
+                        var field_requried = field_row.find('input:checkbox[name$="[required]"]').is(':checked');
+
+                        var field_li = field_checkbox_template.clone().insertBefore(field_checkbox_template).removeClass('template').show();
+                        var span_name = field_li.find('span.field-name');
+                        var span_required = field_li.find('span.hint');
+                        var cb = field_li.find('input:checkbox');
+
+                        span_name.text(field_name);
+                        cb.attr('value', field_id).attr('checked', true);
+                        if (field_requried) {
+                            cb.attr('disabled', true);
+                            span_required.removeClass('hidden');
                         }
                     });
 
+                    // Set up list of options
                     table.find('tr:not(.template) [name$="[options][]"]').each(function(i) {
                         var self = $(this);
-                        var option_id = self.val();
-                        self.closest('tr').find('[name$="[hide][]"]').val((hide_fields[option_id] || []).join(','));
+                        var option_id = $(this).val();
+                        var hide_fields = {};
+                        self.closest('tr').find('[name$="[hide][]"]').val().split(',').forEach(function(field_id) {
+                            hide_fields[field_id] = true;
+                        });
+                        var option = option_template.clone().insertBefore(option_template).removeClass('hidden').removeClass('template');
+                        option.find('.field-checkbox :checkbox').attr('name', option_id).each(function() {
+                            var cb = $(this);
+                            var field_id = cb.val();
+                            if (hide_fields[field_id] && !cb.attr('disabled')) {
+                                cb.attr('checked', false);
+                            }
+                        });
+                        option.find('.insert-option-name-here').text(option_id);
                     });
 
-                    dialog.trigger('close');
-                    table.parent().find('.show-when-modified').show();
-                    table.parent().find('.hide-when-modified').hide();
-                }));
-                buttons.append($('<span></span>').text(" [`or`] "));
-                buttons.append($('<a href="javascript:void(0)"></a>').text("[`cancel`]").click(function() {
-                    dialog.trigger('close');
-                }));
+                    $dialog.find(':submit').click(function() {
+                        var hide_fields = {};
 
-                // Init dialog
-                dialog = dialog.waDialog({
-                    buttons: buttons
-                }).show();
+                        fields.find('.field:not(.template) .field-checkbox:not(.template) :checkbox').each(function() {
+                            var cb = $(this);
+                            if (cb.is(':not(:disabled):not(:checked)')) {
+                                var option_id = cb.attr('name');
+                                var field_id = cb.val();
+                                hide_fields[option_id] = hide_fields[option_id] || [];
+                                hide_fields[option_id].push(field_id);
+                            }
+                        });
 
-                //
-                // Dialog contents
-                //
+                        table.find('tr:not(.template) [name$="[options][]"]').each(function(i) {
+                            var self = $(this);
+                            var option_id = self.val();
+                            self.closest('tr').find('[name$="[hide][]"]').val((hide_fields[option_id] || []).join(','));
+                        });
 
-                var fields = dialog.find('.fields');
-                fields.children('.field:not(.template)').remove();
-                var option_template = fields.children('.option.template');
-
-                // Set up list of fields in option template
-                var option_template_ul = option_template.find('ul');
-                option_template_ul.children(':not(.template)').remove();
-                var field_checkbox_template = option_template_ul.children('.field-checkbox.template');
-                $('#main-field-list tr:not(.template) :checkbox:checked[name$="[_disabled]"]').each(function() {
-                    var self = $(this);
-                    var self_name = self.attr('name');
-                    var field_id = self_name.substring(8, self_name.length - 12); // options[...][_disabled]
-                    if (field_id === '{$fid}') {
-                        return;
-                    }
-
-                    var field_row = self.closest('.field-row');
-                    var field_name = field_row.find('.name-input').val();
-                    var field_requried = field_row.find('input:checkbox[name$="[required]"]').is(':checked');
-
-                    var field_li = field_checkbox_template.clone().insertBefore(field_checkbox_template).removeClass('template').show();
-                    var span_name = field_li.find('span.field-name');
-                    var span_required = field_li.find('span.hint');
-                    var cb = field_li.find('input:checkbox');
-
-                    span_name.text(field_name);
-                    cb.attr('value', field_id).attr('checked', true);
-                    if (field_requried) {
-                        cb.attr('disabled', true);
-                        span_required.removeClass('hidden');
-                    }
-                });
-
-                // Set up list of options
-                table.find('tr:not(.template) [name$="[options][]"]').each(function(i) {
-                    var self = $(this);
-                    var option_id = $(this).val();
-                    var hide_fields = {};
-                    self.closest('tr').find('[name$="[hide][]"]').val().split(',').forEach(function(field_id) {
-                        hide_fields[field_id] = true;
+                        table.parent().find('.show-when-modified').show();
+                        table.parent().find('.hide-when-modified').hide();
+                        $form.trigger('submit');
+                        dialog.close();
                     });
-                    var option = option_template.clone().insertBefore(option_template).removeClass('hidden').removeClass('template');
-                    option.find('.field-checkbox :checkbox').attr('name', option_id).each(function() {
-                        var cb = $(this);
-                        var field_id = cb.val();
-                        if (hide_fields[field_id] && !cb.attr('disabled')) {
-                            cb.attr('checked', false);
-                        }
-                    });
-                    option.find('.insert-option-name-here').text(option_id);
-                });
+                }
             });
+        });
         })();
     {/if}
 
 });</script>
 
-{elseif $ftype == 'textarea'} {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
+{elseif $ftype == 'textarea'}
 
     <input type="hidden" name="{$prefix}[{$fid}][input_height]" value="5">
 
-{elseif $ftype == 'conditional'}{* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
+{elseif $ftype == 'conditional'}
 
     <input type="hidden" name="{$prefix}[{$fid}][hide_unmatched]" value="{$f->getParameter('hide_unmatched')}">
     <div class="show-always hide-when-modified">
-        <a href="javascript:void(0)" class="small" id="{$uniqid}" style="margin-top:5px"><i class="icon10 settings"></i>[`Manage conditions`]</a>
+        <a href="javascript:void(0)" class="small" id="{$uniqid}" style="margin-top:5px"><div class="icon"><i class="fas fa-cog"></i></div>&nbsp;[`Manage conditions`]</a>
     </div>
     <div class="hidden show-when-modified"><span class="highlighted small italic">[`Click “Save” button below to commit changes.`]</span></div>
 
@@ -283,5 +297,4 @@
     }
 
 });</script>
-{/if} {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
-
+{/if}

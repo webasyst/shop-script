@@ -16,7 +16,7 @@
                     </div>
 
                     <div class="s-add-value-form-wrapper" v-if="feature.can_add_value">
-                        <button class="s-add-button wa-button wa-small transparent" type="button"
+                        <button class="s-add-button button small outlined" type="button"
                                 v-if="!feature.show_form"
                                 v-on:click.prevent="feature.show_form = true">
 
@@ -48,8 +48,8 @@
                 </div>
             </div>
             <div class="dialog-footer">
-                <button class="wa-button" type="button" v-on:click.prevent="success">[`Select`]</button>
-                <button class="wa-button gray-light" type="button" v-on:click.prevent="close">[`Cancel`]</button>
+                <button class="button" type="button" v-on:click.prevent="success">[`Select`]</button>
+                <button class="button light-gray" type="button" v-on:click.prevent="close">[`Cancel`]</button>
             </div>
         </div>
     </div>

@@ -1,0 +1,37 @@
+<div class="block double-padded s-csv-settings" id="s-csvproduct-form">
+    <form id="s-csvproduct" method="post" action="?module=csv&action=productrun">
+        <input type="hidden" name="direction" value="{$direction|escape}">
+        {$wa->csrf()}
+        <div class="fields form" style="width: 100%;">
+            {include file="./CsvProductsetup.{$direction|default:'import'}.html"}
+        </div>
+    </form>
+</div>
+
+<div class="clear"></div>
+
+
+{if $direction eq 'import'}
+    <script type="text/javascript" src="{$wa_app_static_url}js-legacy/tmpl.min.js"></script>
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js"></script>
+{/if}
+
+{if !empty($smarty.capture)}{foreach $smarty.capture as $name => $template} {if strpos($name,'template-js')}
+    <script type="text/x-jquery-tmpl" id="{$name}">
+<!-- begin {$name} {$template|replace:'</':'<\\/'} end {$name} -->
+
+    </script>
+{/if} {/foreach}{/if}
+
+<script type="text/javascript">
+    {* generic code for plugins with profiles support *}
+    if ($.importexport.csv_productInit) {
+        $.importexport.csv_productInit();
+    } else {
+        $.getScript('{$wa_app_static_url}js-legacy/csv/csvproduct.js?{$wa->version()}', function () {
+            $.importexport.csv_productInit();
+        });
+    }
+    $.importexport.profiles.set('csv:product:{$direction|escape}', {$profiles|json_encode});
+
+</script>

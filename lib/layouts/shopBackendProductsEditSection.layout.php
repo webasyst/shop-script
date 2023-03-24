@@ -56,8 +56,11 @@ class shopBackendProductsEditSectionLayout extends shopBackendProductsLayout
         $this->blocks = [
             'content' => $view->fetch($this->getTemplate()),
         ];
-
-        $this->template = wa()->getAppPath('templates/layouts/BackendProducts.html', 'shop');
+        if (wa()->whichUI() == '1.3') {
+            $this->template = wa()->getAppPath('templates/layouts-legacy/BackendProducts.html', 'shop');
+        } else {
+            $this->template = wa()->getAppPath('templates/layouts/BackendProducts.html', 'shop');
+        }
         parent::execute();
     }
 
@@ -75,12 +78,15 @@ class shopBackendProductsEditSectionLayout extends shopBackendProductsLayout
 
         $this->executeAction('products_menu', new shopProdListSidebarAction());
 
-        $presentation_id = waRequest::request('presentation', null, waRequest::TYPE_INT);
+        $context = [
+            'presentation' => waRequest::request('presentation', null, waRequest::TYPE_INT),
+            'another_section_url' => rawurldecode(waRequest::get('another_section_url', '', waRequest::TYPE_STRING_TRIM)),
+        ];
         $product_list_data = null;
-        if ($presentation_id && $product_id) {
+        if ($context['presentation'] && $product_id) {
             $wa_app_url = wa()->getAppUrl('shop') . 'products/';
-            $presentation_param = '/?presentation=' . $presentation_id;
-            $near_products = shopPresentation::getNearestProducts($product_id, $presentation_id, true);
+            $near_products = shopPresentation::getNearestProducts($product_id, $context['presentation'], true);
+            $context['page'] = $near_products['page'];
             if ($near_products['count'] > 1) {
                 $product_list_data = [
                     'prev' => null,
@@ -88,15 +94,18 @@ class shopBackendProductsEditSectionLayout extends shopBackendProductsLayout
                     'position' => $near_products['position'],
                     'count' => $near_products['count']
                 ];
+                $pre_link = $this->options['content_id'] . '/?presentation=' . $context['presentation'];
                 if ($near_products['prev']['id'] > 0) {
                     $product_list_data['prev'] = [
-                        'url' => $wa_app_url . $near_products['prev']['id'] . '/' . $this->options['content_id'] . $presentation_param,
+                        'url' => $wa_app_url . $near_products['prev']['id'] . '/',
+                        'pre_url' => $wa_app_url . $near_products['prev']['id'] . '/' . $pre_link,
                         'name' => $near_products['prev']['name'],
                     ];
                 }
                 if ($near_products['next']['id'] > 0) {
                     $product_list_data['next'] = [
-                        'url' => $wa_app_url . $near_products['next']['id'] . '/' . $this->options['content_id'] . $presentation_param,
+                        'url' => $wa_app_url . $near_products['next']['id'] . '/',
+                        'pre_url' => $wa_app_url . $near_products['next']['id'] . '/' . $pre_link,
                         'name' => $near_products['next']['name'],
                     ];
                 }
@@ -106,6 +115,7 @@ class shopBackendProductsEditSectionLayout extends shopBackendProductsLayout
         $this->view->assign([
             'product'            => $this->getProduct(),
             'product_list_data'  => $product_list_data,
+            'context'            => $context,
             'backend_prod_event' => $backend_prod_event
         ] );
     }

@@ -1,26 +1,25 @@
-<div id="s-checkout-contact-form-wrapper">
+<div id="s-checkout-contact-form-wrapper" class="custom-mt-24">
 
 {*
  * Non-address fields form
  *}
 <div class="field">
-    <div class="name">[`Misc fields`]</div>
+    <div class="name for-switch">[`Misc fields`]</div>
     <div class="value no-shift">
-        <table id="main-field-list" class="field-list zebra"><tbody>
+        <table id="main-field-list" class="field-list zebra small">
+            <tbody>
             {foreach $fields as $fid => $f}
                 {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid=$fid f=$f css_class='field-row editor-off'}
             {/foreach}
 
-            {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid='%FID%' f=null css_class='hidden field-row template editor-on just-added'}
+            {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid='%FID%' f=null css_class='hidden field-row template editor-on just-added wrap'}
 
             <tr class="white add-field">
                 <td class="min-width">&nbsp;</td>
-                <td class="min-width"><a class="add-field" href="#"><i class="icon16 add"></i></a></td>
-                <td>
-                    <a href="javascript:void(0)" class="add-field inline-link"><b><i>[`Add field`]</i></b></a>
-                </td>
+                <td colspan="3"><a href="javascript:void(0)" class="add-field"><i class="fas fa-plus-circle text-green custom-mr-8"></i>[`Add field`]</a></td>
             </tr>
-        </tbody></table>
+        </tbody>
+        </table>
     </div>
 </div>
 
@@ -32,19 +31,16 @@
     <div class="value no-shift">
         <input type="hidden" name="options[address][_disabled]" value="">
         <input type="hidden" name="options[address][localized_names]" value="[`Address`]">
-        <table id="address-subfields-list" class="field-list zebra" data-field-parent="address" data-field-prefix="options[address][fields]">
+        <table id="address-subfields-list" class="field-list zebra small" data-field-parent="address" data-field-prefix="options[address][fields]">
             {foreach $address->getParameter('fields') as $f}
                 {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid=$f->getId() f=$f parent='address' css_class='field-row editor-off'}
             {/foreach}
 
-            {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid='%FID%' f=null parent='address' css_class='hidden field-row template editor-on just-added'}
+            {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid='%FID%' f=null parent='address' css_class='hidden field-row template editor-on just-added wrap'}
 
             <tr class="white add-field">
                 <td class="min-width">&nbsp;</td>
-                <td class="min-width"><a class="add-field" href="#"><i class="icon16 add"></i></a></td>
-                <td>
-                    <a href="javascript:void(0)" class="add-field inline-link"><b><i>[`Add field`]</i></b></a>
-                </td>
+                <td colspan="3"><a href="javascript:void(0)" class="add-field"><i class="fas fa-plus-circle text-green custom-mr-8"></i>[`Add field`]</a></td>
             </tr>
         </table>
     </div>
@@ -56,35 +52,43 @@
 {foreach $shipbill_address as $addr}
     <div class="field">
         <div class="name">{$addr.name}</div>
-        <div class="value no-shift s-ibutton-checkbox">
+        <div class="value">
             <input type="hidden" name="options[{$addr.id}][_disabled]" value="1">
-            <ul class="menu-h">
-                <li><span class="gray" id="s-{$addr.short_id}-addr-disabled-label">[`Disabled`]</span></li>
+            <ul>
                 <li>
-                    <input type="checkbox" id="s-{$addr.short_id}-addr-status" name="options[{$addr.id}][_disabled]" value=""{if !$addr.f->getParameter('_disabled')} checked{/if}>
+                    <div class="switch-with-text ">
+                        <span class="switch js-checkout-switch smaller">
+                            <input type="checkbox" id="s-{$addr.short_id}-addr-status" name="options[{$addr.id}][_disabled]" value=""{if !$addr.f->getParameter('_disabled')} checked{/if}>
+                        </span>
+                        <label for="s-{$addr.short_id}-addr-status" data-active-text="[`Enabled`]" data-inactive-text="[`Disabled`]">[`Enabled`]</label>
+                    </div>
+                    {if $addr.short_id == 'ship'}
+                        <p class="hint italic">[`When shipping address form is disabled (hidden) on the “Contact info” step, address will be automatically prompted on the “Shipping” checkout step.`]</p>
+                    {/if}
                 </li>
-                <li><span id="s-{$addr.short_id}-addr-enabled-label">[`Enabled`]</span></li>
+                <li{if $addr.f->getParameter('_disabled')} style="display:none"{/if}>
+                    <input type="text" name="options[{$addr.id}][localized_names]" value="{$addr.f->getName()|escape}">
+                </li>
+                <li{if $addr.f->getParameter('_disabled')} style="display:none"{/if}>
+                    <p class="small">
+                        [`If enabled, customer will be prompted to fill in address fields directly on the “Contact info” checkout step.`]
+                        {if $addr.short_id == 'ship'}[`In case shipping method and address were prompted prior to the contact info, only missing address fields will be requested.`]{/if}
+                        <a href="javascript:void(0)" class="customize-fields-link">[`Hide certain fields`]</a>
+                    </p>
+                    <table class="zebra shipbill-subfields small"{if !$addr.show_custom_settings} style="display: none;"{/if}>
+                        {foreach $addr.subfields as $sf}
+                            <tr>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" name="options[{$addr.id}][fields][{$sf.id}]" value="1"{if $sf.enabled} checked{/if}>
+                                        <span>{$sf.name}</span>
+                                    </label>
+                                </td>
+                            </tr>
+                        {/foreach}
+                    </table>
+                </li>
             </ul>
-            {if $addr.short_id == 'ship'}
-                <p class="hint italic">[`When shipping address form is disabled (hidden) on the “Contact info” step, address will be automatically prompted on the “Shipping” checkout step.`]</p>
-            {/if}
-        </div>
-        <div class="value"{if $addr.f->getParameter('_disabled')} style="display:none"{/if}>
-            <input type="text" name="options[{$addr.id}][localized_names]" value="{$addr.f->getName()|escape}">
-        </div>
-        <div class="value no-shift"{if $addr.f->getParameter('_disabled')} style="display:none"{/if}>
-            <p class="small">
-                [`If enabled, customer will be prompted to fill in address fields directly on the “Contact info” checkout step.`]
-                {if $addr.short_id == 'ship'}[`In case shipping method and address were prompted prior to the contact info, only missing address fields will be requested.`]{/if}
-                <a href="javascript:void(0)" class="customize-fields-link inline-link"><b><i>[`Hide certain fields`]</i></b></a></p>
-            <table class="{if !$addr.show_custom_settings} hidden{/if} zebra shipbill-subfields">
-                {foreach $addr.subfields as $sf}
-                    <tr><td><label>
-                        <input type="checkbox" name="options[{$addr.id}][fields][{$sf.id}]" value="1"{if $sf.enabled} checked{/if}>
-                        <span>{$sf.name}</span>
-                    </label></td></tr>
-                {/foreach}
-            </table>
         </div>
     </div>
 {/foreach}
@@ -93,31 +97,54 @@
  * Personal data processing settings
  *}
     <div class="field" id="service-agreement-settings-wrapper">
-        <div class="name">[`Personal data processing`]</div>
+        <div class="name for-checkbox">[`Personal data processing`]</div>
         <div class="value">
-            <label>
-                <input type="radio" name="config[service_agreement]" value=""{if empty($service_agreement.setting)} checked{/if}>
-                [`Do not require consent to personal data protection policy`]
-            </label>
-        </div>
-        <div class="value">
-            {$link_tag = sprintf('<a href="%s" target="_blank">', _w('---INSERT A LINK HERE!---'))}
-            <label data-default-text="{sprintf_wp('By submitting this form I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
-                <input type="radio" name="config[service_agreement]" value="notice"{if ifset($service_agreement.setting) == 'notice'} checked{/if}>
-                [`Show only notice and link to policy`]
-            </label>
-        </div>
-        <div class="value">
-            <label data-default-text="{sprintf_wp('I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
-                <input type="radio" name="config[service_agreement]" value="checkbox"{if ifset($service_agreement.setting) == 'checkbox'} checked{/if}>
-                [`Show mandatory checkbox, notice, and link`]
-            </label>
-        </div>
-        <div class="hidden value text-editor">
-            <input type="checkbox" style="vertical-align:top;margin:0px 2px 90px 2px;float:left;" checked disabled>
-            <textarea name="config[service_agreement_hint]">{$service_agreement.text|escape}</textarea>
-            <br>
-            <span class="hint"><a href="javascript:void(0)" class="inline-link generalte-example-link"><b><i>[`Restore original text`]</i></b></a></span>
+            <ul>
+                <li>
+                    <label>
+                        <span class="wa-radio">
+                            <input type="radio" name="config[service_agreement]" value=""{if empty($service_agreement.setting)} checked{/if}>
+                            <span></span>
+                        </span>
+                        [`Do not require consent to personal data protection policy`]
+                    </label>
+                </li>
+                <li>
+                    {$link_tag = sprintf('<a href="%s" target="_blank">', _w('---INSERT A LINK HERE!---'))}
+                    <label data-default-text="{sprintf_wp('By submitting this form I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                        <span class="wa-radio">
+                            <input type="radio" name="config[service_agreement]" value="notice"{if ifset($service_agreement.setting) == 'notice'} checked{/if}>
+                            <span></span>
+                        </span>
+                        [`Show only notice and link to policy`]
+                    </label>
+                </li>
+                <li>
+                    <label data-default-text="{sprintf_wp('I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                        <span class="wa-radio">
+                            <input type="radio" name="config[service_agreement]" value="checkbox"{if ifset($service_agreement.setting) == 'checkbox'} checked{/if}>
+                            <span></span>
+                        </span>
+                        [`Show mandatory checkbox, notice, and link`]
+                    </label>
+                </li>
+                <li style="display:none">
+                    <div class="text-editor">
+                        <label>
+                        <span class="wa-checkbox">
+                            <input type="checkbox" checked disabled>
+                            <span>
+                                <span class="icon">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </span>
+                        </span>
+                        </label>
+                        <textarea name="config[service_agreement_hint]">{$service_agreement.text|escape}</textarea>
+                        <span class="hint"><a href="javascript:void(0)" class="generalte-example-link">[`Restore original text`]</a></span>
+                    </div>
+                </li>
+            </ul>
         </div>
     </div>
 
@@ -185,21 +212,21 @@
 
     // Form validation
     form.off('submit.inner').on('submit.inner', function(e) {
-        form.find('.errormsg').remove();
-        form.find('.error').removeClass('error');
+        form.find('.state-error-hint').remove();
+        form.find('.state-error').removeClass('state-error');
         var valid = true;
         $('[name$="[localized_names]"]').each(function() {
             var self = $(this);
             if (!self.val() && self.parents('.template').length <= 0) {
                 if (self.closest('tr').find('[name$="[_disabled]"]:checked').length) {
                     valid = false;
-                    self.addClass('error').parent().append($('<em class="errormsg"></em>').text("[`This field is required.`]"));
+                    self.addClass('state-error').parent().append($('<p class="state-error-hint"></p>').text("[`This field is required.`]"));
                 }
             }
         });
 
         if (!valid) {
-            form.find(':submit').before($('<p class="errormsg"></p>').text("[`Please correct errors.`]"));
+            form.find(':submit').before($('<p class="state-error-hint custom-mb-4"></p>').text("[`Please correct errors.`]"));
             e.validation_failed = true;
         }
 
@@ -258,7 +285,7 @@
             var select = $(this);
             var tr = select.closest('tr');
             var table = tr.closest('table');
-            var adv_settings_block = tr.find('.field-advanced-settings').html('<i class="icon16 loading"></i>');
+            var adv_settings_block = tr.find('.field-advanced-settings').html('<i class="fas fa-spinner fa-spin text-gray fa-xs"></i>');
             $.post('?module=settings&action=checkoutContactFormEditor', {
                 ftype: select.val(),
                 fid: tr.data('fieldId'),
@@ -270,35 +297,40 @@
         });
 
         // Links to edit field
-        wrapper.on('click', 'table.field-list .edit', function() {
+        wrapper.on('click', 'table.field-list .js-edit', function() {
             $(this).parents('tr').addClass('editor-on').removeClass('editor-off');
             markAsChanged();
             return false;
         });
 
         // Links to delete field
-        wrapper.on('click', '.delete-outer', function() {
+        wrapper.on('click', '.js-delete-outer', function() {
             var tr = $(this).closest('tr');
             if (tr.hasClass('just-added')) {
                 tr.remove();
                 return false;
             }
-            if (!confirm("[`This will remove field and all its data from all existing contacts. Are you sure?`]")) {
-                return false;
-            }
 
-            var name = tr.find('input:hidden[name$="[_disabled]"]').attr('name').replace("[_disabled]", "[_deleted]");
-            wrapper.append($('<input type="hidden" name="" value="1">').attr('name', name));
-            tr.children().children(':not(label)').remove();
-            tr.find('label').addClass('gray').addClass('strike');
-            markAsChanged();
-            return false;
+            $.waDialog.confirm({
+                title: '[`This will remove field and all its data from all existing contacts. Are you sure?`]',
+                success_button_title: '[`Delete`]',
+                success_button_class: 'danger',
+                cancel_button_title: '[`Cancel`]',
+                cancel_button_class: 'light-gray',
+                onSuccess: function() {
+                    var name = tr.find('input:hidden[name$="[_disabled]"]').attr('name').replace("[_disabled]", "[_deleted]");
+                    wrapper.append($('<input type="hidden" name="" value="1">').attr('name', name));
+                    tr.children().children(':not(label)').remove();
+                    tr.find('label').addClass('gray').addClass('strike');
+                    markAsChanged();
+                }
+            });
         });
 
         // Drag-and-drop for form field rows
         wrapper.find('table.field-list > tbody').sortable({
-            items : ".field-row",
-            handle : "i.sort-outer"
+            animate: 150,
+            handle : ".sort-outer"
         });
     })();
 
@@ -368,23 +400,27 @@
     // Controller for shipping and billing address blocks
     //
     (function() {
-        var ibuttons = $('#s-ship-addr-status, #s-bill-addr-status');
-        var wrappers = ibuttons.closest('.field');
+        var wrappers = $('#s-ship-addr-status, #s-bill-addr-status').closest('.field');
 
-        // iButtons enable/disable corresponding addresses
-        ibuttons.iButton( { labelOn : "", labelOff : "", className: 'mini', resizeHandle: false, resizeContainer: false } ).change(function() {
-            markAsChanged();
-            var self = $(this);
-            if ($(this).is(':checked')) {
-                self.parents('.value').siblings('.value').show(200);
-            } else {
-                self.parents('.value').siblings('.value').hide(200);
+        // enable/disable corresponding addresses
+        $(".js-checkout-switch").waSwitch({
+            ready: function (wa_switch) {
+                let $label = wa_switch.$wrapper.siblings('label');
+                wa_switch.$label = $label;
+                wa_switch.active_text = $label.data('active-text');
+                wa_switch.inactive_text = $label.data('inactive-text');
+            },
+            change: function(active, wa_switch) {
+                wa_switch.$label.text(active ? wa_switch.active_text : wa_switch.inactive_text);
+                markAsChanged();
+                wa_switch.$wrapper.parents('li').siblings('li').toggle(200);
             }
         });
 
         // "Customize fields" link shows and hides fields list
+
         wrappers.on('click', '.customize-fields-link', function() {
-            $(this).closest('.field').find('table.zebra').toggle(200);
+            $(this).closest('li').find('table.zebra').toggle(200);
         });
 
         // Helper to change local checkbox status depending on global subfield status
@@ -480,13 +516,13 @@
 
             switch(this.value) {
                 case 'notice':
-                    $checkbox.hide().closest('.value').show();
+                    $checkbox.parent().hide().closest('li').show();
                     break;
                 case 'checkbox':
-                    $checkbox.show().closest('.value').show();
+                    $checkbox.parent().show().closest('li').show();
                     break;
                 default:
-                    $checkbox.closest('.value').hide();
+                    $checkbox.closest('li').hide();
                     break;
             }
         }).find(':radio:checked').change();

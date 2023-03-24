@@ -1,0 +1,69 @@
+
+<!-- categories begin -->
+
+{if !empty($categories)}
+
+    {$categories_rights = $wa->userRights('setscategories')}
+
+    {$depth = -1}
+
+    {foreach $categories as $category}
+
+      {if $category.depth < $depth}
+        {section name="end-category" loop = $depth - $category.depth}
+                </li>
+                <li class="drag-newposition" data-type="category"></li>
+            </ul>
+        {/section}
+        {$depth = $category.depth}
+      {/if}
+
+      {if $category.depth == $depth}
+          </li>
+          <li class="drag-newposition" data-type="category"></li>
+          <li class="{if $categories_rights}dr{/if} {if $category.type == shopCategoryModel::TYPE_DYNAMIC}dynamic{/if}" id="category-{$category.id}" data-type="category">
+      {/if}
+
+      {if $category.depth > $depth}
+          <ul class="menu-v with-icons">
+              <li class="drag-newposition" data-type="category"></li>
+              <li class="{if $categories_rights}dr{/if} {if $category.type == shopCategoryModel::TYPE_DYNAMIC}dynamic{/if}" id="category-{$category.id}" data-type="category">
+              {$depth = $category.depth}
+      {/if}
+        <i class="icon16 loading" style="float:right; display:none;"></i>
+        <span class="counters">
+            <span class="count" {if empty($category.expanded) && $category.children_count > 0}style="display:none;"{/if}>
+                {if $category.include_sub_categories}
+                    {$category.total_count}
+                {else}
+                    {$category.count}
+                {/if}
+            </span>
+            <span class="count subtree" {if !empty($category.expanded) || $category.children_count == 0}style="display:none;"{/if}>
+                {$category.total_count}
+            </span>
+        </span>
+
+        {if $category.children_count > 0}
+            <i class="icon16 {if empty($category.expanded)}rarr{else}darr{/if} overhanging collapse-handler-ajax" id="category-{$category.id}-handler"></i>
+        {/if}
+
+        <a href="#/products/category_id={$category.id}" class="s-product-list{if !$category.status} gray{/if}">{strip}
+            <i class="icon16 {if $category.type == shopCategoryModel::TYPE_DYNAMIC}funnel{else}folder{/if}"></i><span class="name">{$category.name|escape}</span>
+            <span class="hint routes"> {if !empty($category.routes)}{implode(' ', $category.routes_decoded)}{/if}</span>
+            <strong class="small highlighted count-new"></strong>
+            {if $categories_rights}
+            <span class="count"><i class="icon10 add s-new-list"></i></span>
+            {/if}
+        {/strip}</a>
+
+    {/foreach}
+
+    {section name="end-category" loop = $depth + 1}
+          </li>
+          <li class="drag-newposition" data-type="category"></li>
+        </ul>
+    {/section}
+{/if}
+
+<!-- categories end -->

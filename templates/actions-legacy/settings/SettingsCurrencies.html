@@ -1,0 +1,314 @@
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/tmpl.min.js?{$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/inline.editable.widget.js?{$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/settings/currencies.js?{$wa->version()}"></script>
+<div class="blank s-settings-form" id="s-settings-currencies">
+    <div class="block double-padded">
+        <div class="float-right">
+            <ul class="menu-h with-icons">
+                <li><a href="#" id="s-settings-change-primary-currency"><i class="icon16 dollar"></i>[`Change primary currency`]</a></li>
+            </ul>
+        </div>
+        <h1>[`Currencies`]</h1>
+        <div class="fields form">
+
+              <div class="field-group">
+                <div class="field">
+                    <div class="name">
+                        [`Currencies`]
+                    </div>
+                    <div class="value no-shift">
+                        <table class="zebra s-settings-currencies">
+                            {foreach $currencies as $currency}
+                                <tr data-code="{$currency.code}" class="s-settings-currency">
+                                    <td class="min-width">
+                                        <i class="icon16 sort"></i>
+                                        <input type="hidden" name="currency[{$currency.code}]" value="{$currency.code}">
+                                    </td>
+                                    <td class="nowrap"><strong>{$currency.title}</strong> <span class="hint">{$currency.sign}</span></td>
+                                    <td class="s-rate editable{if $currency.code == $primary} primary{/if}">
+                                        {if $currency.code == $primary}
+                                            <span class="gray italic">[`Primary currency`]</span>
+                                        {else}
+                                            1 {$currency.code} = <span id="s-rate-{$currency.code}">{$currency.rate}</span>
+                                            <input type="text" name="rate[{$currency.code}]" value="{(float)$currency.rate}" id="s-rate-{$currency.code}-input" style="display:none;" class="numerical short">
+                                            {$primary}
+                                        {/if}
+
+                                        <div class="rounding-readonly float-right" style="display:none;">
+                                            <span class="rounding-value"></span>
+                                            <span class="rounding-up-only-enabled">[`(up only)`]</span>
+                                        </div>
+                                        <div class="rounding" style="display: none">
+                                            <select name="rounding[{$currency.code}]">
+                                                {foreach $rounding_options as $o_value => $o_label}
+                                                    <option value="{$o_value|escape}"{if empty($o_value) && !empty($currency.precision)} disabled{elseif ifempty($currency.rounding) == $o_value} selected{/if}>{$o_label|escape}</option>
+                                                {/foreach}
+                                            </select>
+                                            <input type="hidden" name="round_up_only[{$currency.code}]" value="">
+                                            <label><input type="checkbox" name="round_up_only[{$currency.code}]" value="1"{if !empty($currency.round_up_only)} checked{/if}> [`Round fractions up only`]</label>
+                                        </div>
+
+                                        </td>
+                                    <td class="s-actions">
+                                        <a href="javascript:void(0);"><i class="icon16 settings"></i></a>
+                                        {if $currency.code != $primary}
+                                            <a href="javascript:void(0);"><i class="icon16 delete"></i></a>
+                                        {/if}
+                                        <input type="button" class="save" value="[`Save`]">
+                                    </td>
+                                </tr>
+                            {/foreach}
+                            {capture "template-new-currency"}{literal}
+                            <tr data-code="{%#o.code%}" class="s-settings-currency new" style="display: none;">
+                                <td class="min-width">
+                                    <i class="icon16 sort"></i>
+                                    <input type="hidden" name="currency[{%#o.code%}]" value="{%#o.code%}">
+                                </td>
+                                <td width="26%"><strong class="s-settings-name">{%#o.title%}</strong> <span class="hint">{%#o.sign%}</span></td>
+                                <td class="s-rate editable">
+                                    1 {%#o.code%}  = <span id="s-rate-{%#o.code%}">1</span>
+                                    <input type="text" name="rate[{%#o.code%}]" value="1" id="s-rate-{%#o.code%}-input" style="display:none;" class="numerical short">
+                                    {/literal}{$primary}{literal}
+
+
+                                    <div class="rounding-readonly float-right" style="display:none;">
+                                        <span class="rounding-value"></span>
+                                        <span class="rounding-up-only-enabled">[`(up only)`]</span>
+                                    </div>
+                                    <div class="rounding">
+                                        <select name="rounding[{%#o.code%}]">
+                                            {/literal}{foreach $rounding_options as $o_value => $o_label}
+                                                <option value="{$o_value|escape}"
+                                                        {if empty($o_value)}{literal}
+                                                            {% if(o.precision){ %} disabled {% } %}
+                                                        {/literal}{else}{literal}
+                                                            {% if(o.precision='{/literal}{$o_value}{literal}'){ %} selected {% } %}
+                                                        {/literal}{/if}
+                                                >{$o_label|escape}</option>
+                                            {/foreach}{literal}
+                                        </select>
+
+                                        <input type="hidden" name="round_up_only[{%#o.code%}]" value="">
+                                        <label><input type="checkbox" name="round_up_only[{%#o.code%}]" value="1" checked> [`Round fractions up only`]</label>
+                                    </div>
+                                </td>
+                                <td class="s-actions">
+                                    <a href="javascript:void(0);"><i class="icon16 settings"></i></a>
+                                    <a href="javascript:void(0);"><i class="icon16 delete"></i></a>
+                                    <input type="button" class="save" value="[`Save`]">
+                                </td>
+                            </tr>
+                            {/literal}{/capture}
+                            {if !empty($rest_system_currencies)}
+                            <tr class="white">
+                                <td class="min-width"></td>
+                                <td colspan="4">
+                                    <select class="add-new-currency">
+                                        <option value="0">[`Add currency...`]</option>
+                                    {foreach $system_currencies as $code => $currency}
+                                        <option value="{$code}" {if !isset($rest_system_currencies[$code])}disabled="disabled" style="display:none;"{/if} data-sign="{$currency.sign}" data-title="{$currency.title}">{$code} - {$currency.title}</option>
+                                    {/foreach}
+                                    </select>
+                                </td>
+                            </tr>
+                            {/if}
+                        </table>
+                        <p class="hint">[`Maximum available rounding precision is to nearest 0.01.`]<br>
+                        [`“Not round” option is not available by default, unless enabled in user configuration.`]</p>
+                    </div>
+                </div>
+              </div>
+
+              <form method="POST" action="?module=settings&action=currenciesSave">
+              <div class="field-group">
+                <div class="field">
+                    <div class="name">
+                        [`Rounding`]
+                    </div>
+                    <div class="value no-shift"><label>
+                        <input type="checkbox" checked disabled>
+                        [`For product prices`]
+                        <br><span class="hint">
+                            [`Rounding is always applied when product price is converted to storefront currency, if rounding is enabled for that currency.`]
+                        </span>
+                    </label></div>
+                    <div class="value no-shift"><label>
+                            <input type="checkbox" name="round_services" value="1"{if !empty($round_services)} checked{/if}>
+                            [`For service cost`]
+                            <br><span class="hint">
+                            [`If checked, service cost in newly placed orders will be rounded according to order currency settings.`]
+                        </span>
+                        </label></div>
+                    <div class="value no-shift"><label>
+                        <input type="checkbox" name="round_discounts" value="1"{if !empty($round_discounts)} checked{/if}>
+                        [`For total discount amount`]
+                        <br><span class="hint">
+                            [`If checked, total discount amount of new orders will be rounded according to order currency settings.`]
+                        </span>
+                    </label></div>
+                    <div class="value no-shift"><label>
+                        <input type="checkbox" name="round_shipping" value="1"{if !empty($round_shipping)} checked{/if}>
+                        [`For shipping cost`]
+                        <br><span class="hint">
+                            [`If checked, shipping cost of new orders will be rounded according to order currency settings.`]
+                        </span>
+                    </label></div>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field">
+                    <div class="name">
+                        [`Product prices`]
+                    </div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="radio" name="use_product_currency" value="0" {if !$use_product_currency}checked{/if}> [`I will input all prices in the primary currency`]
+                        </label>
+                    </div>
+                    <div class="value no-shift">
+                        <label>
+                            <input type="radio" name="use_product_currency" value="1" {if $use_product_currency}checked{/if}> [`I will input prices in different currencies depending on product`]
+                        </label>
+                    </div>
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field">
+                    <div class="name">
+                        [`Order discount adjustment`]
+                    </div>
+                    <div class="value no-shift">
+                        <p class="hint">[`When it is impossible to equally distribute the discount amount across all order items,`]</p>
+                        <label>
+                            <input type="radio" name="discount_distribution" value="increase_discount"{if $discount_distribution == 'increase_discount'} checked{/if}> [`increase the discount`]
+                            <br>
+                            <span class="hint">
+                                [`The discount will be increased, and the order total will be reduced, by a minimum amount necessary for correct discount distribution across order items.`]
+                                [`To set a certain rounding precision for the discount adjustment amount, enable rounding for the <em>total discount amount</em> and select the desired rounding precision for the currencies, in which you receive orders, in their settings on this page.`]
+                            </span>
+                        </label>
+                    </div>
+                    {if $discount_distribution == 'increase_discount_no_rounding'}
+                        <div class="value no-shift">
+                            <label>
+                                <input type="radio" name="discount_distribution" value="increase_discount_no_rounding" checked> [`Increase discount without rounding`]
+                                <br>
+                                <span class="hint">
+                                    [`The discount will be increased, and the order total will be reduced, by a minimum amount necessary for correct discount distribution across order items.`]
+                                    [`Order currency rounding settings are not applied as when rounding to 0.01 is selected.`]
+                                </span>
+                            </label>
+                        </div>
+                    {/if}
+                    <div class="value no-shift">
+                        <label>
+                            <input type="radio" name="discount_distribution" value="split_order_item"{if $discount_distribution == 'split_order_item'} checked{/if}> [`split one of order items into two`]
+                            <br>
+                            <span class="hint">
+                                [`One of order items will be split into two separate items.`]
+                                [`The price of a new order item will differ by one cent.`]
+                                <br>
+                                <em>[`This option is not available for multi-step checkout.`]</em>
+                            </span>
+                        </label>
+                    </div>
+                    {if $discount_distribution == 'split_order_item_with_rounding'}
+                        <div class="value no-shift">
+                            <label>
+                                <input type="radio" name="discount_distribution" value="split_order_item_with_rounding" checked> [`Split one of order items into two with rounding applied`]
+                                <br>
+                                <span class="hint">
+                                    [`One of order items will be split into two separate items.`]
+                                    [`The price of a new order item will differ by a minimum amount, depending on the order currency rounding settings.`]
+                                    <em>[`This option is not available for multi-step checkout.`]</em>
+                                </span>
+                            </label>
+                        </div>
+                    {/if}
+                </div>
+              </div>
+              <div class="field-group">
+                <div class="field">
+                    <div class="value no-shift submit" style="display: none">
+                        {$wa->csrf()}
+                        <input type="submit" class="button green" value="[`Save`]">
+                    </div>
+                </div>
+
+              </div>
+              </form>
+        </div>
+        <div class="clear-both"></div>
+    </div>
+</div>
+
+{* dialogs section *}
+
+{$convert_text = "[`Convert product prices (%d) to the new primary currency (%s) according to the current exchange rate (%s)`]"}
+{$convert_text = $convert_text|replace:"%d":$product_count}
+<div class="dialog width600px {if $product_count > 0}height250px{else}height200px{/if}" id="s-settings-change-primary-currency-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=currencyChange">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Change primary currency`] <span>({$primary})</span></h1>
+                <div class="fields form">
+                    <div class="field">
+                        <div class="name">[`New primary currency`]</div>
+                        <div class="value no-shift">
+                            <select name="code" data-primary="{$primary}">
+                                {foreach $currencies as $currency}
+                                    {if $currency.code != $primary}
+                                        <option value="{$currency.code}" {if $currency.code == $primary}checked="checked"{/if} data-rate="{(float)$currency.rate}">{$currency.code}</option>
+                                    {/if}
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                    {if $product_count > 0}
+                    <div class="field">
+                        <div class="name">[`Convert prices`]</div>
+                        <div class="value no-shift">
+                            <label><input type="radio" name="convert" value="1" checked="checked">
+                                <span class="s-convert-text">{$convert_text}</span>
+                            </label>
+                        </div>
+                        <div class="value no-shift">
+                            <label><input type="radio" name="convert" value="0"> [`Don’t convert, leave all product prices as is`]</label>
+                        </div>
+                    </div>
+                    {/if}
+                </div>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button blue" type="submit" value="[`Change primary currency`]">
+                <i class="icon16 loading" style="display:none;"></i>
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
+{* js templates block*}
+{foreach $smarty.capture as $template => $template_content}
+{if $template_content && (strpos($template, 'template-')===0)}
+    <script id="{$template}" type="text/html">
+        {$template_content|replace:'</':'<\/'}
+    </script>
+{/if}
+{/foreach}
+
+<script type="text/javascript">
+    document.title = '{"[`Currencies`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+    $.settings.currenciesInit({
+        primary: '{$primary}',
+        remove_text: '[`Click “Save” button below to commit the delete.`]',
+        convert_text: '{$convert_text}',
+        system_currencies: {json_encode($system_currencies)}
+    });
+</script>

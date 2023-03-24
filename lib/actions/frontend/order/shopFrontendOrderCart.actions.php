@@ -427,6 +427,7 @@ class shopFrontendOrderCartActions extends waJsonActions
     // Helper for saveAction()
     protected function getItemsUpdate($old_cart_items, $items_data)
     {
+        $any_product_removed = false;
         $type_by_id = [];
         $new_items_data = [];
         $everything_is_deleted = true;
@@ -439,6 +440,7 @@ class shopFrontendOrderCartActions extends waJsonActions
 
             if (empty($item['quantity'])) {
                 $new_items_data[$item_id] = false;
+                $any_product_removed = true;
                 continue;
             }
             if (!empty($item['services']) && is_array($item['services'])) {
@@ -458,16 +460,12 @@ class shopFrontendOrderCartActions extends waJsonActions
                 }
             }
 
-            if (empty($item['quantity'])) {
-                $new_items_data[$item_id] = false;
-            } else {
-                unset($item['id'], $item['services']);
-                if (isset($old_cart_items[$item_id]) && !empty($old_cart_items[$item_id]['product']['order_multiplicity_factor'])) {
-                    $item['quantity'] = shopFrac::formatQuantityWithMultiplicity($item['quantity'], $old_cart_items[$item_id]['product']['order_multiplicity_factor']);
-                }
-                $new_items_data[$item_id] = $item;
-                $everything_is_deleted = false;
+            unset($item['id'], $item['services']);
+            if (isset($old_cart_items[$item_id]) && !empty($old_cart_items[$item_id]['product']['order_multiplicity_factor'])) {
+                $item['quantity'] = shopFrac::formatQuantityWithMultiplicity($item['quantity'], $old_cart_items[$item_id]['product']['order_multiplicity_factor']);
             }
+            $new_items_data[$item_id] = $item;
+            $everything_is_deleted = false;
         }
         unset($item);
 
@@ -496,19 +494,20 @@ class shopFrontendOrderCartActions extends waJsonActions
             // Check services
             foreach(ifset($item, 'services', []) as $s) {
                 $type_by_id[$s['id']] = $item['id'];
+                unset($unknown_new_items[$s['id']]);
+
                 // New data for service exists: all fine
                 if (isset($new_items_data[$s['id']])) {
-                    unset($unknown_new_items[$s['id']]);
                     continue;
                 }
                 // Parent product item removed: all fine
                 if (isset($new_items_data[$s['parent_id']]) && !$new_items_data[$s['parent_id']]) {
-                    unset($unknown_new_items[$s['id']]);
                     continue;
                 }
                 // no data came for this service
-                $item_errors[$item['id']]['services'][$s['id']]['general'] = _w('Data mismatch. Shopping cart parameters have changed beyond this page?');
-                $errors_cancel_update = true;
+                // this may happen in old carts if service since was disaabled for this product
+                // behave as if service was marked for removal
+                $new_items_data[$s['id']] = false;
             }
 
             $type_by_id[$item['id']] = 'product';
@@ -549,7 +548,7 @@ class shopFrontendOrderCartActions extends waJsonActions
             }
         }
 
-        if ($errors_cancel_update) {
+        if ($errors_cancel_update && !$any_product_removed) {
             // Bad errors cancel the whose save
             $new_items_data = [];
         } else {

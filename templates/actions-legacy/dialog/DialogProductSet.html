@@ -1,0 +1,162 @@
+{$new = false}
+{if !$settings.id}{$new = true}{/if}
+
+<div class="dialog width650px height500px s-product-set-dialog" id="s-product-set-dialog">
+    <div class="dialog-background"></div>
+    <form id="s-product-set-form" method="post"
+          action="?module=set&action=save&set_id={$settings.id|default:0}"
+          enctype="multipart/form-data">
+        <div class="dialog-window">
+            <div class="dialog-content">
+                <div class="dialog-content-indent">
+                    <h1>
+                        {$settings.name|default:_w('New set')|escape}
+                        <i class="icon16 ss {if $settings.type == shopSetModel::TYPE_STATIC}set{else}set-dynamic{/if}"></i>
+                    </h1>
+                    <div class="fields form s-dialog-form">
+                        <div class="field-group">
+
+                            {*SET NAME*}
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name">[`Name`]</div>
+                                    <div class="value">
+                                        <input type="text" name="name" class="large long s-full-width-input js-product-list-name" value="{$settings.name|escape}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            {if !empty($event_dialog)}{foreach $event_dialog as $plugin_id => $plugin_html}{$plugin_html}{/foreach}{/if}
+
+                        </div>
+                        <div class="field">
+                            <div class="name">[`Set ID`]</div>
+                            <div class="value no-shift">
+                                &#123;$wa->shop->productSet("<input type="text" name="id" class="s-full-width-input js-product-set-id" value="{$settings.id|escape}"
+                                                                    style="margin-top: -3px;">")&#125;
+                                <em class="errormsg"></em>
+                                <p class="hint">[`Set ID is used in the code for embedding product set into frontend design templates and pages.`]
+                                    {if !$new}[`Changing the set ID <em>will not</em> automatically update templates and pages in which this code is embedded, so be sure to update them if you change the ID.`]</p> {/if}
+
+                                {if $settings.id == 'promo' || $settings.id == 'bestsellers'}
+                                    <p class="small black"><i class="icon10 exclamation"></i> [`It is highly advisable to keep product sets with IDs <strong>promo</strong> and <strong>bestsellers</strong>, as these set IDs are used by most Shop-Script frontend design themes.`]</p>
+                                {/if}
+                            </div>
+                        </div>
+
+                        {if $new}
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name">
+                                        [`Type`]
+                                    </div>
+                                    <div class="value no-shift">
+                                        <ul class="thumbs li150px s-list-type-selector">
+                                            <li style="margin-bottom: 0;">
+                                                <label>
+                                                    <input id="s-type-static" type="radio" name="type" value="0" checked="checked">
+                                                    <strong>[`Set`]</strong>
+                                                    <i class="icon16 ss set"></i>
+                                                    <br><br>
+                                                    <span class="hint">[`A static set for adding and arranging products manually.`]</span>
+                                                </label>
+                                            </li>
+                                            <li style="margin-bottom: 0;">
+                                                <label>
+                                                    <input id="s-type-dynamic" type="radio" name="type" value="1">
+                                                    <strong>[`Filter`]</strong>
+                                                    <i class="icon16 funnel"></i>
+                                                    <br><br>
+                                                    <span class="hint">[`A dynamic set based on a search criteria, e.g. rating or tags.`]</span>
+                                                </label>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        {else}
+                            <input type="hidden" name="type" value="{$settings.type}">
+                        {/if}
+
+                        {if $settings.type == shopSetModel::TYPE_DYNAMIC || $new}
+                            <div class="field-group js-set-dynamic-settings" style="{if $new}display: none;{/if}">
+                                <div class="field">
+                                    <div class="name">
+                                        {if $new}[`Product filtering`]{else}[`Dynamic set rule`]{/if}
+                                    </div>
+                                    <div class="value no-shift">
+                                        <select name="rule" class="js-set-rules">
+                                            <option value="price DESC" {if $settings.rule == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
+                                            <option value="price ASC" {if $settings.rule == 'price ASC'}selected="selected"{/if}>[`Least expensive`]</option>
+                                            <option value="rating DESC" {if $settings.rule == 'rating DESC'}selected="selected"{/if}>[`Highest rated`]</option>
+                                            <option value="rating ASC" {if $settings.rule == 'rating ASC'}selected="selected"{/if}>[`Lowest rated`]</option>
+                                            <option value="total_sales DESC" {if $settings.rule == 'total_sales DESC'}selected="selected"{/if}
+                                                    data-date-field="1">[`Bestsellers by sold amount`]
+                                            </option>
+                                            <option value="{shopSetModel::TOTAL_COUNT_RULE}" {if $settings.rule == shopSetModel::TOTAL_COUNT_RULE}selected="selected"{/if}
+                                                    data-date-field="1">[`Bestsellers by sold quantity`]
+                                            </option>
+                                            <option value="{shopSetModel::BESTSELLERS_RULE}" {if $settings.rule == shopSetModel::BESTSELLERS_RULE}selected="selected"{/if}
+                                                    data-date-field="1">[`Bestsellers by complex value of “quantity × amount × rating”`]
+                                            </option>
+                                            <option value="total_sales ASC" {if $settings.rule == 'total_sales ASC'}selected="selected"{/if}>[`Worst sellers`]</option>
+                                            <option value="name ASC" {if $settings.rule == 'name ASC'}selected="selected"{/if}>[`By name`]</option>
+                                            <option value="compare_price DESC" {if $settings.rule == 'compare_price DESC'}selected="selected"{/if}>[`Compare at price is set`]</option>
+                                            <option value="edit_datetime DESC" {if $settings.rule == 'edit_datetime DESC'}selected="selected"{/if}>[`Date edited`]</option>
+                                            <option value="" {if empty($settings.rule)}selected="selected"{/if}>[`Date added`]</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">
+                                        [`Select products by orders from date`]
+                                    </div>
+                                    <div class="value">
+
+                                        <label class="s-datepicker-wrapper">
+                                            <input type="text" class="s-datepicker js-sd-date js-datepicker js-start-date" value="{$date_start|wa_date|default:''|escape}" name="date_start" autocomplete="off">
+                                            <i class="icon16 calendar"></i>
+                                        </label>
+                                        <br><span class="hint">[`Products will be selected from orders paid on or after specified date.`]</span>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">
+                                        [`Select products by orders until date`]
+                                    </div>
+                                    <div class="value">
+
+                                        <label class="s-datepicker-wrapper">
+                                            <input type="text" class="s-datepicker js-sd-date js-datepicker js-finish-date" value="{$date_end|wa_date|default:''|escape}" name="date_end" autocomplete="off">
+                                            <i class="icon16 calendar"></i>
+                                        </label>
+                                        <br><span class="hint">[`Products will be selected from orders paid on or before specified date.`]</span>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="name">
+                                        [`Max number of products`]
+                                    </div>
+                                    <div class="value">
+                                        <input type="text" name="count" value="{if $new}{$default_count}{else}{$settings.count|escape}{/if}">
+                                        <p class="hint">[`Limit the maximum number of products in this set`]</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <div class="dialog-buttons-gradient">
+                    <input type="submit" value="[`Save`]" class="button green"> [`or`] <a class="cancel" href="#">[`cancel`]</a>
+                </div>
+            </div>
+            {$wa->csrf()}
+        </div>
+    </form>
+
+    <script>
+        // see js/set/products.set.js
+    </script>
+</div>

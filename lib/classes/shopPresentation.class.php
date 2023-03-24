@@ -678,6 +678,8 @@ class shopPresentation
                 'prepare_filter' => $presentation->getFilterId(),
             ]);
             $nearest_product_ids = $collection->getPrevNextProductId($product_id, $with_name);
+            $page = max(1, ceil($nearest_product_ids['position'] / $presentation->getField('rows_on_page')));
+            $nearest_product_ids['page'] = $page;
         }
 
         return $nearest_product_ids;

@@ -119,7 +119,11 @@ class shopReportsproductsActions extends waViewActions
             'pie_data' => $pie_data,
         ));
 
-        $this->setTemplate('templates/actions/reports/ReportsProducts.html');
+        if(wa()->whichUI() === '1.3') {
+            $this->setTemplate('templates/actions-legacy/reports/ReportsProducts.html');
+        }else{
+            $this->setTemplate('templates/actions/reports/ReportsProducts.html');
+        }
     }
 
     /**
@@ -159,10 +163,10 @@ class shopReportsproductsActions extends waViewActions
             $stock_where = "";
             $stock_join = "";
         }
-        $sql = "SELECT 
-                  p.*, 
-                  {$net_worth_expr} AS net_worth, 
-                  {$purchase_worth_expr} AS purchase_worth, 
+        $sql = "SELECT
+                  p.*,
+                  {$net_worth_expr} AS net_worth,
+                  {$purchase_worth_expr} AS purchase_worth,
                   {$stock_expr} AS stock
                 FROM shop_product AS p
                     JOIN shop_product_skus AS s
@@ -238,7 +242,12 @@ class shopReportsproductsActions extends waViewActions
             unset($p);
         }
 
-        $this->setTemplate('templates/actions/reports/ReportsProductsAssets.html');
+        if(wa()->whichUI() === '1.3') {
+            $this->setTemplate('templates/actions-legacy/reports/ReportsProductsAssets.html');
+        }else{
+            $this->setTemplate('templates/actions/reports/ReportsProductsAssets.html');
+        }
+
         $this->view->assign(array(
             'sort' => $order_by,
             'stocks' => wao(new shopStockModel())->getAll('id'),
@@ -376,7 +385,13 @@ class shopReportsproductsActions extends waViewActions
         }
 
         $def_cur = wa()->getConfig()->getCurrency();
-        $this->setTemplate('templates/actions/reports/ReportsProductsWhatToSell.html');
+
+        if(wa()->whichUI() === '1.3') {
+            $this->setTemplate('templates/actions-legacy/reports/ReportsProductsWhatToSell.html');
+        }else{
+            $this->setTemplate('templates/actions/reports/ReportsProductsWhatToSell.html');
+        }
+
         $this->view->assign(array(
             'def_cur' => $def_cur,
             'cur_tmpl' => str_replace('0', '%s', wa_currency_html(0, $def_cur)),

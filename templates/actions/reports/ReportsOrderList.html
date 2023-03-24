@@ -18,7 +18,7 @@
                 [`Show more orders`]
             </a>
             <span class="lazyloading-progress" style="display:none">
-                <i class="icon16 loading"></i> [`Loading`]
+                <i class="fas fa-spinner wa-animation-spin loading"></i> [`Loading`]
                 <span class="lazyloading-chunk">
                     {$chunk = max(min($total_count - $already_loaded_count, $limit), 0)}
                     {_w('%d order', '%d orders', $chunk)}...
@@ -33,11 +33,18 @@
 
                 var renderOrderList = function (data) {
                     data.hide_checkbox = true;
-                    table.find('tbody').html(tmpl('template-order-list-table', data));
+                    var rows = tmpl('template-order-list-table', data);
+
+                    if ($.reports.sales_order_list_lazyloading && $.reports.is_lazyloading === true) {
+                        $.reports.sales_order_list_lazyloading.resolve(rows);
+                        $.reports.is_lazyloading = false;
+                    } else {
+                        table.find('tbody').html(rows);
+                        $.reports.sales_order_list_lazyloading = $.Deferred();
+                    }
                 };
 
-                renderOrderList({ orders: {$orders|default:[]|json_encode} });
-
+                renderOrderList({ orders: {$orders|default:[]|json_encode}, states: {$state_names|json_encode} });
 
                 {if !$disabled_lazyload && $already_loaded_count < $total_count}
 
@@ -57,6 +64,10 @@
                             container.lazyLoad({
                                 state: 'wake',
                                 load: function() {
+                                    if ($('#'+container.attr('id')).length === 0) {
+                                        return false;
+                                    }
+
                                     container.lazyLoad('sleep');
                                     $('.lazyloading-link', container).hide();
                                     $('.lazyloading-progress', container).show();
@@ -65,35 +76,38 @@
                                     data_params.total_count = total_count;
 
                                     $.get(url, data_params, function(data) {
-
+                                        $.reports.is_lazyloading = true;
                                         var tmp = $('<div class="s-tmp-block" style="display: none;"></div>');
                                         container.append(tmp);
                                         tmp.append(data);
 
-                                        var list = tmp.find('table tbody tr');
+                                        $.reports.sales_order_list_lazyloading.then(function (list) {
+                                            list = $(list).filter('tr');
 
-                                        if (list.length) {
-                                            offset += list.length;
-                                            table.append(list);
-                                            if (offset >= total_count) {
+                                            if (list.length) {
+                                                offset += list.length;
+                                                table.append(list);
+                                                if (offset >= total_count) {
+                                                    container.lazyLoad('stop');
+                                                    $('.lazyloading-progress', container).hide();
+                                                } else {
+                                                    container.lazyLoad('wake');
+                                                    $('.lazyloading-link', container).show();
+                                                }
+                                            } else {
                                                 container.lazyLoad('stop');
                                                 $('.lazyloading-progress', container).hide();
-                                            } else {
-                                                container.lazyLoad('wake');
-                                                $('.lazyloading-link', container).show();
                                             }
-                                        } else {
-                                            container.lazyLoad('stop');
-                                            $('.lazyloading-progress', container).hide();
-                                        }
+
+                                            tmp.remove();
+                                            container.remove('s-tmp-block');
+                                            $.reports.sales_order_list_lazyloading = $.Deferred();
+                                        });
 
                                         $.each(['lazyloading-progress-string', 'lazyloading-chunk'], function (i, clz) {
                                             var el = tmp.find('.' + clz);
                                             container.find('.' + clz).not(el).replaceWith(el);
                                         });
-
-                                        tmp.remove();
-                                        container.remove('s-tmp-block');
 
                                     });
                                 }

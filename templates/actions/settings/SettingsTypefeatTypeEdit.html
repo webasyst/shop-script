@@ -35,9 +35,13 @@
 {$_templates = []}
 
 {capture assign="_component_switch"}
-    <div class="vue-component-switch">
-        <div class="wa-switch wa-small" v-bind:class="class_switch"><input type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled"></div>
-        <div class="shop-tooltip" v-if="title_data"><span v-html="title_data"></span></div>
+    <div class="vue-component-switch flexbox middle space-4">
+        <div v-if="title_data">
+            <span class="wa-tooltip icon size-14 text-dark-gray top"
+                :data-wa-tooltip-content="title_data"
+            ><i class="fas fa-question-circle"></i></span>
+        </div>
+        <div class="switch small" v-bind:class="class_switch"><input type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled"></div>
     </div>
 {/capture}
 {$_templates["component-switch"] = $_component_switch}
@@ -47,36 +51,24 @@
 
 {/strip}
 
-<div class="wa-dialog s-settings-type-add-dialog" id="js-settings-type-add-dialog">
-    <div class="wa-dialog-background"></div>
-    <div class="wa-dialog-body">
+<div class="dialog s-settings-type-add-dialog" id="js-settings-type-add-dialog">
+    <div class="dialog-background"></div>
+    <div class="wa-dialog-body dialog-body">
         {* HEADER *}
-        <header class="wa-dialog-header">
+        <header class="dialog-header">
             <h1 class="s-title">{$_title|escape}</h1>
         </header>
 
         {* CONTENT *}
         <form action="" method="post">
-            <div class="wa-dialog-content">
+            <div class="dialog-content">
 
                 {* TOGGLE *}
                 {strip}
                 {if !empty($type_templates)}
-                    <div class="s-type-toggle-section js-type-toggle-section">
-                        <ul class="s-toggle-list">
-                            <li class="s-toggle-wrapper selected">
-                                <label class="s-label">
-                                    <input class="s-field" type="radio" name="source" value="custom" checked>
-                                    <span class="s-name">[`Custom product type`]</span>
-                                </label>
-                            </li>
-                            <li class="s-toggle-wrapper">
-                                <label class="s-label">
-                                    <input class="s-field" type="radio" name="source" value="template">
-                                    <span class="s-name">[`Select from templates`]</span>
-                                </label>
-                            </li>
-                        </ul>
+                    <div class="toggle js-type-toggle-section" id="toggle-tabs">
+                        <span class="s-field selected" data-section="custom">[`Custom product type`]</span>
+                        <span class="s-field" data-section="template">[`Select from templates`]</span>
                     </div>
                 {/if}
                 {/strip}
@@ -86,18 +78,18 @@
                         <div class="field">
                             <div class="name">[`Product type name`]</div>
                             <div class="value">
-                                <input type="text" name="name" class="wa-input large" value="{$type.name|default:""|escape}">
+                                <input type="text" name="name" class="width-50" value="{$type.name|default:""|escape}">
                             </div>
                         </div>
-                        <div class="field">
+                        <div class="field custom-mt-16">
                             <div class="name">[`Product type icon`]</div>
                             <div class="value">
-                                <ul class="s-type-icons-list js-type-icons-list">
+                                <ul class="chips s-type-icons-list js-type-icons-list">
                                     {foreach $icons as $_icon_class}
                                         <li class="s-toggle-wrapper">
-                                            <label class="s-label">
+                                            <label class="chip s-label">
                                                 <input class="s-field" type="radio" name="icon" value="{$_icon_class}" {if !empty($_active_icon) && $_active_icon === $_icon_class}checked{/if}>
-                                                <span class="s-name"><i class="icon16 {$_icon_class}"></i></span>
+                                                <span class="icon"><i class="{$wa->shop->convertIcon($_icon_class)}"></i></span>
                                             </label>
                                         </li>
                                     {/foreach}
@@ -105,7 +97,7 @@
 
                                 <div class="s-custom-icon-wrapper">
                                     <div class="s-description small">[`Or enter icon URL (should be a 16x16 px image)`]:</div>
-                                    <input class="s-field wa-input" type="text" name="icon_url" value="{$_icon_uri|default:""|escape}">
+                                    <input class="s-field width-50" type="text" name="icon_url" value="{$_icon_uri|default:""|escape}">
                                 </div>
                             </div>
                         </div>
@@ -138,7 +130,7 @@
                                         <div class="s-option-wrapper">
                                             <div class="s-column-switch">
                                                 <component-switch
-                                                    class="s-switch wa-small"
+                                                    class="s-switch"
                                                     v-model="fractional.stock_unit.enabled"
                                                     v-bind:class_switch="'js-switch-stock-unit'"
                                                     v-bind:title="!fractional.stock_unit.status ? '{$_tooltips["disabled"]|escape}' : ''"
@@ -153,27 +145,31 @@
                                                 <div class="flexbox space-12">
                                                     <div class="s-title-wrapper">
                                                         <span class="s-title">[`Stock unit`]</span>
-                                                        <span class="shop-tooltip"><i class="icon10 info"></i><span>{$_tooltips["stock_unit"]|escape}</span></span>
+                                                        <span class="wa-tooltip text-dark-gray size-12 icon baseline" data-wa-tooltip-content="{$_tooltips['stock_unit']|escape}">
+                                                            <i class="fas fa-question-circle"></i>
+                                                        </span>
                                                     </div>
                                                     <div class="s-default-wrapper wide">
-                                                        <select class="s-select" name="stock_unit_id"
+                                                        <div class="wa-select smallest">
+                                                            <select name="stock_unit_id"
                                                                 v-bind:class="{ 'wa-error-field' : errors['units_error'] }"
                                                                 v-bind:disabled="!fractional.stock_unit.status || !fractional.stock_unit.enabled"
                                                                 v-on:change="onChangeStockUnit"
                                                                 v-model="fractional.stock_unit.value">
-                                                            {foreach $fractional["units"] as $_unit}
-                                                                <option value="{$_unit.value|escape}">{$_unit.name|escape}</option>
-                                                            {/foreach}
-                                                        </select>
-
+                                                                {foreach $fractional["units"] as $_unit}
+                                                                    <option value="{$_unit.value|escape}">{$_unit.name|escape}</option>
+                                                                {/foreach}
+                                                            </select>
+                                                        </div>
                                                         <div class="wa-error-text"
                                                              v-if="errors['units_error']"
                                                              v-html="errors['units_error'].text"></div>
 
                                                         <template v-if="fractional.stock_unit.status && fractional.stock_unit.enabled">
-                                                            <div class="s-rights-wrapper">
+                                                            <div class="s-rights-wrapper small custom-mt-4">
                                                                 <label>
                                                                     <input class="s-checkbox js-checkbox" type="checkbox"
+                                                                           type="text"
                                                                            v-on:change="onChangeStockUnitEditable"
                                                                            v-model="fractional.stock_unit.editable">
                                                                     <span class="s-label">[`Allow to change in product properties`]</span>
@@ -181,7 +177,7 @@
                                                             </div>
                                                         </template>
                                                         <template v-else>
-                                                            <div class="s-hint-disabled">[`For all products of this type`]</div>
+                                                            <div class="hint">[`For all products of this type`]</div>
                                                         </template>
                                                     </div>
                                                 </div>
@@ -192,7 +188,6 @@
                                         <div class="s-option-wrapper">
                                             <div class="s-column-switch">
                                                 <component-switch
-                                                    class="s-switch wa-small"
                                                     v-model="fractional.base_unit.enabled"
                                                     v-bind:class_switch="'js-switch-base-unit'"
                                                     v-bind:title="!fractional.base_unit.status ? '{$_tooltips["disabled"]|escape}' : ''"
@@ -207,29 +202,35 @@
                                                 <div class="flexbox space-12">
                                                     <div class="s-title-wrapper">
                                                         <span class="s-title">[`Base unit`]</span>
-                                                        <span class="shop-tooltip"><i class="icon10 info"></i><span>{$_tooltips["base_unit"]|escape}</span></span>
+                                                        <span class="wa-tooltip text-dark-gray size-12 icon baseline" data-wa-tooltip-content="{$_tooltips['base_unit']|escape}">
+                                                            <i class="fas fa-question-circle"></i>
+                                                        </span>
                                                     </div>
 
                                                     <div class="s-default-wrapper wide">
-                                                        <select class="s-select" name="base_unit_id"
+                                                        <div class="wa-select smallest">
+                                                            <select name="base_unit_id"
+                                                                type="text"
                                                                 v-bind:class="{ 'wa-error-field' : errors['units_error'] }"
                                                                 v-bind:disabled="!fractional.base_unit.status || !fractional.base_unit.enabled"
                                                                 v-on:change="onChangeBaseUnit"
                                                                 v-model="fractional.base_unit.value">
-                                                            <option value="">[`Not specified`]</option>
-                                                            {foreach $fractional["units"] as $_unit}
-                                                                <option value="{$_unit.value|escape}" {if $_unit.value === $fractional["base_unit"]["value"]}selected{/if}>{$_unit.name|escape}</option>
-                                                            {/foreach}
-                                                        </select>
+                                                                    <option value="">[`Not specified`]</option>
+                                                                {foreach $fractional["units"] as $_unit}
+                                                                    <option value="{$_unit.value|escape}" {if $_unit.value === $fractional["base_unit"]["value"]}selected{/if}>{$_unit.name|escape}</option>
+                                                                {/foreach}
+                                                            </select>
+                                                        </div>
 
                                                         <div class="wa-error-text"
                                                              v-if="errors['units_error']"
                                                              v-html="errors['units_error'].text"></div>
 
                                                         <template v-if="fractional.base_unit.status && fractional.base_unit.enabled">
-                                                            <div class="s-rights-wrapper">
+                                                            <div class="s-rights-wrapper small custom-mt-4">
                                                                 <label>
-                                                                    <input class="s-checkbox js-checkbox" type="checkbox"
+                                                                    <input class="s-checkbox js-checkbox"
+                                                                           type="checkbox"
                                                                            v-on:change="onChangeBaseUnitEditable"
                                                                            v-model="fractional.base_unit.editable">
                                                                     <span class="s-label">[`Allow to change in product properties`]</span>
@@ -237,17 +238,19 @@
                                                             </div>
                                                         </template>
                                                         <template v-else>
-                                                            <div class="s-hint-disabled">[`For all products of this type`]</div>
+                                                            <div class="hint">[`For all products of this type`]</div>
                                                         </template>
                                                     </div>
                                                 </div>
 
                                                 <div class="s-ratio-wrapper flexbox space-12"
-                                                     v-if="fractional.base_unit.status && fractional.base_unit.enabled && fractional.base_unit.value">
+                                                     v-show="fractional.base_unit.status && fractional.base_unit.enabled && fractional.base_unit.value">
 
                                                     <div class="s-title-wrapper">
                                                         <span class="s-title">[`Units ratio`]</span>
-                                                        <span class="shop-tooltip"><i class="icon10 info"></i><span>{$_tooltips["stock_base_ratio"]|escape}</span></span>
+                                                        <span class="wa-tooltip text-dark-gray size-12 icon baseline" data-wa-tooltip-content="{$_tooltips['stock_base_ratio']|escape}">
+                                                            <i class="fas fa-question-circle"></i>
+                                                        </span>
                                                     </div>
 
                                                     {strip}
@@ -255,7 +258,9 @@
                                                         <input name="stock_base_ratio_fixed" type="hidden" v-model="stock_base_ratio_fixed">
                                                         <span>
                                                             {sprintf(_w("1 %s"), "{ { selected_stock_unit } }")}&nbsp;=&nbsp;
-                                                            <input class="wa-input is-number" name="stock_base_ratio"
+                                                            <input class="is-number smallest"
+                                                                    type="text"
+                                                                    name="stock_base_ratio"
                                                                    v-bind:class="{ 'wa-error-field' : errors['stock_base_ratio_error'] }"
                                                                    v-on:input="checkStockBaseRatio"
                                                                    v-on:change="onChangeStockBaseRatio"
@@ -264,8 +269,7 @@
                                                         <div class="wa-error-text"
                                                              v-if="errors['stock_base_ratio_error']"
                                                              v-html="errors['stock_base_ratio_error'].text"></div>
-
-                                                        <div class="s-label">[`Can be changed in product properties`]</div>
+                                                        <div class="s-label small">[`Can be changed in product properties`]</div>
                                                     </div>
                                                     {/strip}
                                                 </div>
@@ -276,7 +280,7 @@
                                         <div class="s-option-wrapper">
                                             <div class="s-column-switch">
                                                 <component-switch
-                                                    class="s-switch wa-small"
+                                                    class="s-switch"
                                                     v-model="fractional.order_multiplicity_factor.enabled"
                                                     v-bind:title="!fractional.order_multiplicity_factor.status ? '{$_tooltips["order_multiplicity_factor_disabled"]|escape}' : ''"
                                                     v-bind:disabled="!fractional.order_multiplicity_factor.status"
@@ -290,10 +294,14 @@
                                                 <div class="flexbox space-12">
                                                     <div class="s-title-wrapper">
                                                         <span class="s-title">[`Add-to-cart step`]</span>
-                                                        <span class="shop-tooltip"><i class="icon10 info"></i><span>{$_tooltips["order_multiplicity_factor"]|escape}</span></span>
+                                                        <span class="wa-tooltip text-dark-gray size-12 icon baseline" data-wa-tooltip-content="{$_tooltips['order_multiplicity_factor']|escape}">
+                                                            <i class="fas fa-question-circle"></i>
+                                                        </span>
                                                     </div>
                                                     <div class="s-default-wrapper wide">
-                                                        <input class="wa-input is-number" name="order_multiplicity_factor"
+                                                        <input class="is-number smallest"
+                                                                type="text"
+                                                                name="order_multiplicity_factor"
                                                                v-model="fractional.order_multiplicity_factor.value"
                                                                v-bind:class="{ 'wa-error-field' : errors['order_multiplicity_factor_error'] }"
                                                                v-bind:disabled="!fractional.order_multiplicity_factor.status || !fractional.order_multiplicity_factor.enabled"
@@ -305,7 +313,7 @@
                                                                  v-if="errors['order_multiplicity_factor_error']"
                                                                  v-html="errors['order_multiplicity_factor_error'].text"></div>
 
-                                                            <div class="s-rights-wrapper">
+                                                            <div class="s-rights-wrapper small custom-mt-4">
                                                                 <label>
                                                                     <input class="s-checkbox js-checkbox" type="checkbox"
                                                                            v-on:change="onChangeCountDenominatorEditable"
@@ -315,7 +323,7 @@
                                                             </div>
                                                         </template>
                                                         <template v-else>
-                                                            <div class="s-hint-disabled">[`For all products of this type`]</div>
+                                                            <div class="hint">[`For all products of this type`]</div>
                                                         </template>
                                                     </div>
                                                 </div>
@@ -326,7 +334,7 @@
                                         <div class="s-option-wrapper">
                                             <div class="s-column-switch">
                                                 <component-switch
-                                                    class="s-switch wa-small"
+                                                    class="s-switch"
                                                     v-model="fractional.order_count_min.enabled"
                                                     v-bind:title="!fractional.order_count_min.status ? '{$_tooltips["order_count_min_disabled"]|escape}' : ''"
                                                     v-bind:disabled="!fractional.order_count_min.status"
@@ -341,28 +349,31 @@
                                                 <div class="flexbox space-12">
                                                     <div class="s-title-wrapper">
                                                         <span class="s-title">[`Minimum orderable quantity`]</span>
-                                                        <span class="shop-tooltip"><i class="icon10 info"></i><span>{$_tooltips["order_count_min"]|escape}</span></span>
+                                                        <span class="wa-tooltip text-dark-gray size-12 icon baseline" data-wa-tooltip-content="{$_tooltips['order_count_min']|escape}">
+                                                            <i class="fas fa-question-circle"></i>
+                                                        </span>
                                                     </div>
 
                                                     <div class="s-default-wrapper wide">
-                                                    <template v-if="fractional.order_multiplicity_factor.value">
+                                                    <template v-if="is_fractional_order_multiplicity_factor">
                                                         <template v-if="fractional.order_count_min.status && fractional.order_count_min.enabled">
-                                                            <input class="wa-input is-number" name="order_count_min"
+                                                            <input class="is-number smallest"
+                                                                    type="text"
+                                                                    name="order_count_min"
                                                                    v-model="fractional.order_count_min.value"
                                                                    v-bind:class="{ 'wa-error-field' : errors['order_count_min_error'] }"
                                                                    v-on:change="onChangeOrderCountMinValue"
                                                                    v-on:input="checkOrderCountMin">&nbsp;<span class="s-stock-unit-name">{ { selected_stock_unit } }</span>
                                                         </template>
                                                         <template v-else>
-                                                            <input class="wa-input is-number" name="order_count_min" disabled
+                                                            <input class="is-number smallest" type="text" name="order_count_min" disabled
                                                                    v-model="fractional.order_multiplicity_factor.value">&nbsp;<span class="s-stock-unit-name">{ { selected_stock_unit } }</span>
                                                         </template>
                                                     </template>
                                                     <template v-else>
-                                                        <div class="shop-tooltip">
-                                                            <input class="wa-input is-number" disabled>&nbsp;<span class="s-stock-unit-name">{ { selected_stock_unit } }</span>
-                                                            <span>{$_locales["denominator_min_required"]}</span>
-                                                        </div>
+                                                        <span class="wa-tooltip" data-wa-tooltip-content="{$_locales['denominator_min_required']}">
+                                                            <input class="is-number smallest" type="text" :value="fractional.order_count_min.value" disabled>&nbsp;<span class="s-stock-unit-name" v-text="selected_stock_unit"></span>
+                                                        </span>
                                                     </template>
 
                                                     <template v-if="fractional.order_count_min.status && fractional.order_count_min.enabled">
@@ -371,7 +382,7 @@
                                                              v-html="errors['order_count_min_error'].text"></div>
 
                                                         <template v-if="!fractional.order_multiplicity_factor.enabled || !fractional.order_multiplicity_factor.editable">
-                                                            <div class="s-rights-wrapper">
+                                                            <div class="s-rights-wrapper small custom-mt-4">
                                                                 <label>
                                                                     <input class="s-checkbox js-checkbox" type="checkbox"
                                                                            v-on:change="onChangeOrderCountMinEditable"
@@ -381,13 +392,13 @@
                                                             </div>
                                                         </template>
                                                         <template v-else>
-                                                            <div class="s-rights-wrapper">
+                                                            <div class="s-rights-wrapper small custom-mt-4">
                                                                 <span class="s-label">[`Can be changed in product properties`]</span>
                                                             </div>
                                                         </template>
                                                     </template>
                                                     <template v-else>
-                                                        <div class="s-hint-disabled">[`For all products of this type`]</div>
+                                                        <div class="hint">[`For all products of this type`]</div>
                                                     </template>
                                                 </div>
                                                 </div>
@@ -398,7 +409,7 @@
                                         <div class="s-option-wrapper">
                                             <div class="s-column-switch">
                                                 <component-switch
-                                                    class="s-switch wa-small"
+                                                    class="s-switch"
                                                     v-model="fractional.order_count_step.enabled"
                                                     v-bind:title="!fractional.order_count_step.status ? '{$_tooltips["order_count_step_disabled"]|escape}' : ''"
                                                     v-bind:disabled="!fractional.order_count_step.status"
@@ -413,28 +424,31 @@
                                                 <div class="flexbox space-12">
                                                     <div class="s-title-wrapper">
                                                         <span class="s-title">[`Quantity adjustment with “+/-” buttons`]</span>
-                                                        <span class="shop-tooltip"><i class="icon10 info"></i><span>{$_tooltips["order_count_step"]|escape}</span></span>
+                                                        <span class="wa-tooltip text-dark-gray size-12 icon baseline" data-wa-tooltip-content="{$_tooltips['order_count_step']|escape}">
+                                                            <i class="fas fa-question-circle"></i>
+                                                        </span>
                                                     </div>
 
                                                     <div class="s-default-wrapper wide">
                                                         <template v-if="fractional.order_multiplicity_factor.value">
                                                             <template v-if="fractional.order_count_step.status && fractional.order_count_step.enabled">
-                                                            <input class="wa-input is-number" name="order_count_step"
+                                                            <input class="is-number smallest"
+                                                                    type="text"
+                                                                    name="order_count_step"
                                                                    v-model="fractional.order_count_step.value"
                                                                    v-bind:class="{ 'wa-error-field' : errors['order_count_step_error'] }"
                                                                    v-on:change="onChangeOrderCountStepValue"
                                                                    v-on:input="checkOrderCountStep">&nbsp;<span class="s-stock-unit-name">{ { selected_stock_unit } }</span>
                                                             </template>
                                                             <template v-else>
-                                                                <input class="wa-input is-number" name="order_count_step" disabled
+                                                                <input class="is-number smallest" type="text" name="order_count_step" disabled
                                                                        v-model="fractional.order_multiplicity_factor.value">&nbsp;<span class="s-stock-unit-name">{ { selected_stock_unit } }</span>
                                                             </template>
                                                         </template>
                                                         <template v-else>
-                                                            <div class="shop-tooltip">
-                                                                <input class="wa-input is-number" disabled>&nbsp;<span class="s-stock-unit-name">{ { selected_stock_unit } }</span>
-                                                                <span>{$_locales["denominator_step_required"]}</span>
-                                                            </div>
+                                                            <span class="wa-tooltip" data-wa-tooltip-content="{$_locales['denominator_step_required']}">
+                                                                <input class="is-number smallest" type="text" disabled :value="fractional.order_count_step.value">&nbsp;<span class="s-stock-unit-name" v-text="selected_stock_unit"></span>
+                                                            </span>
                                                         </template>
 
                                                         <template v-if="fractional.order_count_step.status && fractional.order_count_step.enabled">
@@ -443,7 +457,7 @@
                                                                  v-html="errors['order_count_step_error'].text"></div>
 
                                                             <template v-if="!fractional.order_multiplicity_factor.enabled || !fractional.order_multiplicity_factor.editable">
-                                                                <div class="s-rights-wrapper">
+                                                                <div class="s-rights-wrapper small custom-mt-4">
                                                                     <label>
                                                                         <input class="s-checkbox js-checkbox" type="checkbox"
                                                                                v-on:change="onChangeOrderCountStepEditable"
@@ -453,13 +467,13 @@
                                                                 </div>
                                                             </template>
                                                             <template v-else>
-                                                                <div class="s-rights-wrapper">
+                                                                <div class="s-rights-wrapper small custom-mt-4">
                                                                     <span class="s-label">[`Can be changed in product properties`]</span>
                                                                 </div>
                                                             </template>
                                                         </template>
                                                         <template v-else>
-                                                            <div class="s-hint-disabled">[`For all products of this type`]</div>
+                                                            <div class="hint">[`For all products of this type`]</div>
                                                         </template>
                                                     </div>
                                                 </div>
@@ -482,13 +496,19 @@
                                     <div class="s-radio-list">
                                         <div class="s-radio-wrapper {if !$selected_storefront && !empty($all_storefronts_is_checked)}is-active{/if}">
                                             <label class="s-radio-label">
-                                                <input class="s-radio js-storefront-group-field" type="radio" name="type[all_storefronts_is_checked]" value="all" {if !$selected_storefront && !empty($all_storefronts_is_checked)}checked{/if}>
-                                                <span class="s-text{if !$selected_storefront} bold{/if}">[`Use for all storefronts`]</span>
+                                                <span class="wa-radio">
+                                                    <input class="js-storefront-group-field" type="radio" name="type[all_storefronts_is_checked]" value="all" {if !$selected_storefront && !empty($all_storefronts_is_checked)}checked{/if}>
+                                                    <span></span>
+                                                </span>
+                                            <span class="s-text{if !$selected_storefront} bold{/if}">[`Use for all storefronts`]</span>
                                             </label>
                                         </div>
                                         <div class="s-radio-wrapper {if !$selected_storefront && empty($all_storefronts_is_checked)}is-active{/if}">
                                             <label class="s-radio-label">
-                                                <input class="s-radio js-storefront-group-field" type="radio" name="type[all_storefronts_is_checked]" value="0" {if !$selected_storefront && empty($all_storefronts_is_checked)}checked{/if}>
+                                                <span class="wa-radio">
+                                                    <input class="js-storefront-group-field" type="radio" name="type[all_storefronts_is_checked]" value="0" {if !$selected_storefront && empty($all_storefronts_is_checked)}checked{/if}>
+                                                    <span></span>
+                                                </span>
                                                 <span class="s-text">[`Use only for selected storefronts`]</span>
                                             </label>
 
@@ -503,13 +523,26 @@
                                                     {/foreach}
 
                                                     <label class="s-checkbox-wrapper s-all-checkbox-wrapper">
-                                                        <input class="s-checkbox js-all-storefronts-field" type="checkbox" {if !empty($_all_is_checked)}checked{/if}>
+                                                        <span class="wa-checkbox">
+                                                            <input class="js-all-storefronts-field" type="checkbox" {if !empty($_all_is_checked)}checked{/if}>
+                                                            <span>
+                                                                <span class="icon">
+                                                                    <i class="fas fa-check"></i>
+                                                                </span>
+                                                            </span>
+                                                        </span>
                                                         <span class="s-text">[`Select all`]</span>
                                                     </label>
-
                                                     {foreach $storefronts as $_storefront}
                                                         <label class="s-checkbox-wrapper">
-                                                            <input class="s-checkbox js-storefront-field" type="checkbox" name="storefronts[{$_storefront.domain|escape}][{$_storefront.url|escape}]" value="{$_storefront.url|escape}" {if !empty($_storefront.is_checked)}checked{/if}>
+                                                            <span class="wa-checkbox">
+                                                                <input class="js-storefront-field" type="checkbox" name="storefronts[{$_storefront.domain|escape}][{$_storefront.url|escape}]" value="{$_storefront.url|escape}" {if !empty($_storefront.is_checked)}checked{/if}>
+                                                                <span>
+                                                                    <span class="icon">
+                                                                        <i class="fas fa-check"></i>
+                                                                    </span>
+                                                                </span>
+                                                            </span>
                                                             <span class="s-text">{$_storefront.domain|escape}/{$_storefront.url|escape}</span>
                                                         </label>
                                                     {/foreach}
@@ -528,15 +561,18 @@
                             <div class="field">
                                 <div class="name">[`Product type template`]</div>
                                 <div class="value">
-                                    <ul class="s-templates-list">
+                                    <ul class="s-templates-list chips">
                                         {foreach $type_templates as $template_id => $info}
                                             <li class="s-template-wrapper">
-                                                <label class="s-label">
-                                                    <input class="s-field" type="radio" name="template" value="{$template_id|escape}">
-                                                    <i class="icon16 {$info.icon|escape}"></i>
+                                                <label class="chip">
+                                                    <span class="wa-radio">
+                                                        <input class="s-field" type="radio" name="template" value="{$template_id|escape}">
+                                                        <span></span>
+                                                    </span>
+                                                    <span class="icon gray"><i class="{$wa->shop->convertIcon($info.icon)}"></i></span>
                                                     <span class="s-name">{$info.name|escape}</span>
                                                     {if !empty($info.description)}
-                                                        <span class="s-description hint">{$info.description}</span>
+                                                    <span class="s-description hint">{$info.description}</span>
                                                     {/if}
                                                 </label>
                                             </li>
@@ -552,10 +588,9 @@
             </div>
 
             {* FOOTER *}
-            <footer class="wa-dialog-footer">
+            <footer class="dialog-footer">
                 <button class="s-button button green js-submit-button" type="submit">[`Save`]</button>
-                <span class="s-divider">[`or`]</span>
-                <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+                <a href="javascript:void(0);" class="js-close-dialog button light-gray">[`Cancel`]</a>
             </footer>
 
             <input type="hidden" name="id" value="{$type.id|default:""|escape}">

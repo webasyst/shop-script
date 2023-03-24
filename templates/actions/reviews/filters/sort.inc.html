@@ -8,7 +8,7 @@
      - "_render_filter_uri" — function for render links href
 *}
 
-<li class="with-menu">
+<li class="dropdown js-dropdown-menu">
     {$_sorts_filter = [
         "rate" => [
             "id" => "rate",
@@ -28,12 +28,11 @@
 
     <span class="s-label">[`Sort order`]:</span>
 
-    <a href="javascript:void(0);" class="inline-link">
-        <b><i>{$_active_sort_filter.name|escape}</i></b>
-        <i class="icon10 {if $_active_filters["order"] === "DESC"}darr-tiny{else}uarr-tiny{/if}"></i>
-    </a>
+    {*if $_active_filters["order"] === "DESC"}darr-tiny{else}uarr-tiny{/if*}
+    <button class="dropdown-toggle button light-gray" type="button">{$_active_sort_filter.name|escape}</button>
 
-    <ul class="menu-v without-icons right">
+    <div class="dropdown-body">
+        <ul class="menu">
         {foreach $_sorts_filter as $_filter}
             {$_is_active = false}
             {$_order = "DESC"}
@@ -59,5 +58,6 @@
                 </a>
             </li>
         {/foreach}
-    </ul>
+        </ul>
+    </div>
 </li>

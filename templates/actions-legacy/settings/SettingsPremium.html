@@ -1,0 +1,178 @@
+{strip}
+
+{$_is_ru = $wa->locale() == 'ru_RU'}
+{$_lang = "en"}{if $_is_ru}{$_lang = "ru"}{/if}
+{$_page_title = _w("PREMIUM license functionality")}
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/settings/premium/icons.svg?v=`$wa->version()`"}
+{$_version = "2022.02.09.1236"}
+
+{$_demo_urls = null}
+{if $wa->locale() == 'ru_RU'}
+    {$_demo_urls = [
+        'backend' => 'https://demo.shop-script.ru/webasyst/shop/?action=products',
+        'storefront' => 'https://demo.shop-script.ru/'
+    ]}
+{/if}
+
+{$_has_license = shopLicensing::hasLicense()}
+{$_is_premium = shopLicensing::hasPremiumLicense()}
+{$_buy_premium_link_url = "`$wa_backend_url`installer/store/app/shop/"}
+
+{$_features = [
+    [
+        "title" => _w("Arbitrary product quantity units"),
+        "description" => _w("Product quantities displayed in the storefront can be expressed in any units of your choice. You may want to sell products in packages, pieces, linear feet, or any other quantity units. Select units from a built-in list or add any custom units which you may need."),
+        "image" => [
+            "name" => "image1.jpg"
+        ]
+    ],
+    [
+        "title" => _w("Two quantity units, with their corresponding prices, for convenient products comparison"),
+        "description" => _w("This may be convenient for selling flooring materials, which are usually sold in packages (stock quantity units) and whose prices can be conveniently compared per square foot (base quantity unit). Set two quantity units for such products, with a conversion ratio between them, to have them displayed in the storefront with two prices, each for one of the two units. You only need to specify a price per stock unit, as usual, and a price per base unit will be calculated automatically, according to the specified conversion ratio."),
+        "image" => [
+            "name" => "image2.jpg"
+        ]
+    ],
+    [
+        "title" => _w("Sorting & filtering of products by the prices of different quantity units"),
+        "description" => _w("If a category contains products with different quantity units then a customer can select any of those units which is most convenient for filtering or sorting products in a particular case."),
+        "image" => [
+            "name" => "image3.jpg"
+        ]
+    ],
+    [
+        "title" => _w("Selling fractional product quantities"),
+        "description" => _w("Sell fractional product quantities with precision up to 0.001. You can set individual quantity precision degree for every product. For example, clothes buttons can be sold by dozens or pieces, and fabric can be sold with the precision of 0.01 feet."),
+        "image" => [
+            "name" => "image4.jpg"
+        ]
+    ],
+    [
+        "title" => _w("Custom product add-to-cart step"),
+        "description" => _w("Configure an individual add-to-cart step for each product so that customers can add only quantities, divisible by the specified step values, to the shopping cart. For weight products, the add-to-cart step may be set to 0.01 lb., or to 8.5 sq. ft. for ceramic tiles (quantity contained in an individual package)."),
+        "image" => [
+            "name" => "image5.jpg"
+        ]
+    ],
+    [
+        "title" => _w("Minimum orderable product quantity"),
+        "description" => _w("Set a minimum quantity for each product below which cannot be added to the shopping cart. For example, 0.3 m for fabrics sold by linear feet, or 0.5 kg for fruits and vegetables, which are sold by weight."),
+        "image" => [
+            "name" => "image6.jpg"
+        ]
+    ]
+]}
+
+{/strip}
+
+<div class="s-settings-premium-page block blank double-padded" id="js-settings-premium-page" style="visibility: hidden;">
+    {* @event backend_settings_premium.top *}
+    {if !empty($backend_settings_premium)}{foreach $backend_settings_premium as $_}{ifset($_.top)}{/foreach}{/if}
+
+    <div class="s-page-header">
+        <h1>[`PREMIUM license functionality`]</h1>
+        <ul>
+            <li>
+                <p>
+                    <span class="icon size-16"><svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
+                    [`Extended product catalog management.`]
+                </p>
+            </li>
+            <li>
+                <p>
+                    <span class="icon size-16"><svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
+                    [`New product showcase options for the storefront.`]
+                </p>
+            </li>
+            <li>
+                <p>
+                    <span class="icon size-16"><svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
+                    [`Special add-to-cart settings for your products.`]
+                </p>
+            </li>
+        </ul>
+    </div>
+    <div class="s-page-body" id="js-information-block-place">
+        {if empty($_is_premium)}
+            <div class="s-information-block">
+                <div class="s-image-wrapper">
+                    <span class="icon"><svg><use xlink:href='{$_sprite_url}#rocket'></use></svg></span>
+                </div>
+                <div class="s-text-wrapper">
+                    <h2>[`How to start using PREMIUM`]</h2>
+
+                    <p>[`To get all the extended Shop-Script functionality, you need to switch to the PREMIUM license.`] [`Your online store will continue working as usual, and you will be free to enable any of the extended functions at any time when it is most convenient to you.`]</p>
+                    <p>
+                        <span class="icon"><svg class="color-green"><use xlink:href='{$_sprite_url}#hand-point-right'></use></svg></span>
+                        {sprintf(_w("<a href=\"%s\">Check up</a> how the installed plugins, apps, and design themes are compatible with PREMIUM’s extended features."), "{$wa_app_url}?action=settings#/compatibility/")}
+                    </p>
+                    <div class="btn-block">
+                        {if !empty($_has_license)}
+                            <div class="s-plan">{sprintf(_w("Your current license is %s."), _w("PRO"))}</div>
+                            <a href="{$_buy_premium_link_url|escape}" class="button blue">[`Switch to PREMIUM`]</a>
+                        {else}
+                            <div class="s-plan">
+                                [`No valid license detected.`]
+                            </div>
+                            <a href="{$_buy_premium_link_url|escape}" class="button blue">[`Acquire license`]</a>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        {/if}
+
+        <div class="s-features-list">
+            {foreach $_features as $_feature}
+                <div class="s-feature-wrapper">
+                    <div class="s-description-wrapper">
+                        <h3 class="s-title">{$_feature.title|escape}</h3>
+                        <p class="s-description">{$_feature.description|escape}</p>
+                    </div>
+                    <div class="s-image-wrapper">
+                        <img class="s-image" src="{$wa_app_static_url}img/backend/settings/premium/{$_lang}/{$_feature.image.name|escape}?v={$_version}" alt="{$_feature.title|escape}" {if !empty($_feature.image.width)}style="max-width: {$_feature.image.width}"{/if}>
+                    </div>
+                </div>
+            {/foreach}
+        </div>
+
+        {if !empty($_demo_urls)}
+            <div class="s-information-block">
+                <div class="s-image-wrapper">
+                    <span class="icon"><svg><use xlink:href='{$_sprite_url}#cogs'></use></svg></span>
+                </div>
+                <div class="s-text-wrapper">
+                    <h2><i class="icon16 store"></i> [`Demo store`]</h2>
+                    <p>[`Look how various products can be presented in the storefront and how you can manage the extended functionality available with the PREMIUM license.`]</p>
+                    <p>
+                        <a class="bold no-underline" href="{$_demo_urls.storefront|escape}" target="_blank">[`Demo storefront`] <i class="icon16 new-window"></i></a>
+                        <a class="bold no-underline" href="{$_demo_urls.backend|escape}" target="_blank">[`Demo backend`] <i class="icon16 new-window"></i></a>
+                    </p>
+                </div>
+            </div>
+        {/if}
+    </div>
+
+    <script>
+        ( function($) {
+
+            document.title = {$_page_title|json_encode} + ' — ' + {$wa->accountName()|json_encode};
+
+            var sources = [{
+                id: "wa-settings-premium-css",
+                type: "css",
+                uri: "{$wa_app_static_url}css-legacy/backend/settings/premium.css?v={$wa->version()}"
+            }];
+
+            $.shop.loadSources(sources).then( function() {
+                $("#js-settings-premium-page").css("visibility", "");
+            }, function() {
+                alert("Page Loading Error");
+            });
+
+        })(jQuery);
+    </script>
+
+    {* @event backend_settings_premium.bottom *}
+    {if !empty($backend_settings_premium)}{foreach $backend_settings_premium as $_}{ifset($_.bottom)}{/foreach}{/if}
+
+</div>

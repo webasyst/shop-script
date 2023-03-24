@@ -27,13 +27,13 @@
 
 {foreach $expenses as $e}
     <tr class="expense-row{if $e.type == 'campaign'} s-tr-campaign{/if}" data-expense-id="{$e.id}">
-        <td class="channel">
+        <td class="channel width-20" title="{$e.name|escape}">
             <div>{$e.name|escape}<i class="shortener"></i></div>
         </td>
-        <td class="note gray" style="max-width: 20%;">
+        <td class="note gray width-20 custom-p-0" title="{$e.note|escape}">
             <div>{$e.note|escape}<i class="shortener"></i></div>
         </td>
-        <td class="period-td">
+        <td class="period-td width-30">
             <div class="period" style="width:0;" data-start-ts="{$e.start_ts}" data-end-ts="{$e.end_ts}">
                 <div class="period-bar" style="width:0; background-color: {$e.color};" title="{format_nice_date s=$e.start e=$e.end}"></div>{* Widths are updated by JS *}
             </div>
@@ -41,7 +41,7 @@
         <td class="amount align-right nowrap">
             {shop_currency_html($e.amount, $def_cur, $def_cur)}
         </td>
-        <td class="date-td gray">
+        <td class="date-td gray custom-p-4" title="{format_nice_date s=$e.start e=$e.end}">
             <div>
                 <span class="period-dates">
                     {format_nice_date s=$e.start e=$e.end}
@@ -50,7 +50,7 @@
             </div>
         </td>
         <td class="min-width">
-            <a href="javascript:void(0)" class="edit js-edit-expense" title="[`Edit`]"><i class="icon16 edit"></i></a>
+            <a href="javascript:void(0)" class="edit js-edit-expense" title="[`Edit`]"><i class="fas fa-pencil-alt"></i></a>
         </td>
     </tr>
 {/foreach}

@@ -1,0 +1,127 @@
+{strip}
+
+{*
+@var array $set array of available sets
+@var array $types array of available product types
+@var array $hint array of hash hints
+@var string $hash
+@var boolean $subcategory
+*}
+
+{$hash = shopImportexportHelper::parseHash($hash)}
+
+{/strip}
+
+<div class="field s-products-selection-wrapper js-product-selector-field">
+    <div class="name">[`Applied to`]</div>
+    <div class="value">
+        <div class="s-table-wrapper">
+            <div class="s-variants-column">
+                <ul class="menu-v">
+                    <li>
+                        <label class="black"><input type="radio" value="" name="hash" {if empty($hash.type)}checked{/if}>&nbsp;[`Entire order except for shipping`]</label>
+                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`The coupon will be applied to products and services and will not affect the shipping cost.`]</span></span>
+                    </li>
+                    <li>
+                        <span><input type="radio" style="visibility:hidden;">&nbsp;[`To specified products:`]</span>
+                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`The coupon will be applied only to products and will not affect the cost of services or the shipping cost.`]</span></span>
+                    </li>
+                    <li class="s-shifted">
+                        <label class="black"><input type="radio" value="id" name="hash"{if $hash.type eq 'id'} checked="checked"{/if}>
+                            <input type="hidden" value="{$hash.product_ids|default:''}" name="product_ids"> <span data-text="{_wd('shop',"Selected products (%d)")|escape}">{if $hash.type eq 'id'}{$hash.count|string_format:"{_wd('shop',"Selected products (%d)")|escape}"}{else}{'0'|string_format:"{_wd('shop',"Selected products (%d)")|escape}"}{/if}</span></label>
+                    </li>
+                    <li class="s-shifted" {if $hash.type neq 'category' && empty($hash.data.categories)}style="display: none;"{/if}>
+                        <label class="black"><input type="radio" value="category" name="hash"{if $hash.type eq 'category'} checked="checked"{/if}>
+                            <input type="hidden" value="{$hash.category_ids|default:''}" name="category_ids">
+                            <span data-text="{_wd('shop','Category')|escape}">[`Category`]</span>
+                        </label>
+                    </li>
+                    <li class="s-shifted">
+                        <label class="black"><input type="radio" value="set" name="hash"{if $hash.type eq 'set'} checked="checked"{/if}>&nbsp;[`Set`]</label>
+                    </li>
+                    <li class="s-shifted">
+                        <label class="black"><input type="radio" value="type" name="hash"{if $hash.type eq 'type'} checked="checked"{/if}>&nbsp;[`Type`]</label>
+                    </li>
+                </ul>
+            </div>
+            <div class="s-values-column">
+                <div class="js-hash-values js-hash-">
+                    <div class="">
+                        <ul class="menu-v"><li>&nbsp;</li></ul>
+                        {if !empty($hints.all)}<br/><span class="small">{$hints.all}</span>{/if}
+                    </div>
+                </div>
+                <div class="js-hash-values js-hash-all">
+                    <div class="">
+                        <ul class="menu-v"><li>&nbsp;</li></ul>
+                    </div>
+                </div>
+                <div class="js-hash-values js-hash-set">
+                    <div class="">
+                        <ul class="menu-v with-icons">
+                            {foreach $sets as $set}
+                                <li>
+                                    <label title="{$set.id|escape}">
+                                        <span class="count">{$set.count}</span>
+                                        <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i>
+                                        <input type="radio" name="set_id" value="{$set.id}"{if ($set@first && empty($hash.set_id))||($hash.set_id eq $set.id)} checked="checked"{/if}>
+                                        {$set.name|escape}
+                                    </label>
+                                </li>
+                            {/foreach}
+                        </ul>
+                        {if !empty($hints.set)}<br/><span class="small">{$hints.set}</span>{/if}
+                    </div>
+                </div>
+                <div class="js-hash-values js-hash-type">
+                    <div class="">
+                        <ul class="menu-v with-icons">
+                            {strip}
+                            {foreach $types as $type}
+                                {if $type.count}
+                                    <li>
+                                        <label>
+                                            <span class="count">{$type.count}</span>
+                                            {if !empty($type.icon)}
+                                                {shopHelper::getIcon($type.icon)}
+                                            {else}
+                                                <i class="icon16" style="visibility: hidden;"></i>
+                                            {/if}
+                                            <input type="radio" name="type_id" value="{$type.id}" {if ($type@first && empty($hash.type_id))||($hash.type_id eq $type.id)} checked="checked"{/if}> {$type.name|escape}
+                                        </label>
+                                    </li>
+                                {/if}
+                            {/foreach}
+                            {/strip}
+                        </ul>
+                        {if !empty($hints.type)}<br/><span class="small">{$hints.type}</span>{/if}
+                    </div>
+                </div>
+                <div class="js-hash-values js-hash-id">
+                    <div class="">
+                        {if $hash.type eq 'id'}
+                            <ul class="menu-v">
+                                <li><a href="{$wa_app_url}?action=products#/products/hash={"id/`$hash.product_ids`"|escape:'url'}" target="_blank" class="inline-link">{_wd('shop','%d product','%d products',$hash.count)|escape}<i class="icon16 new-window"></i></a></li>
+                            </ul>
+                            {if !empty($hints.id)}<br/><span class="small">{$hints.id}</span>{/if}
+                        {else}
+                            <h5><i class="icon16 exclamation"></i><strong>[`No products are selected.`]</strong></h5>
+                            <p>[`Select products and execute a corresponding action using the menu on the right in “Products” section.`]</p>
+                        {/if}
+                    </div>
+                </div>
+
+                {if !empty($hash.data.categories) || !empty($hints.category)}
+                    <div class="js-hash-values js-hash-category">
+                        <div class="">
+                            {if !empty($hash.data.categories)}
+                            {wa_print_tree tree=$hash.data.categories elem='<label><i class="icon16 :icon"></i><input type="radio" name="category_ids" data-selected=":selected" value=":id"/> :name</label>' class="menu-v with-icons"}
+                            {/if}
+                            {if !empty($hints.category)}<br/><span class="gray">{$hints.category}</span>{/if}
+                        </div>
+                    </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+</div>

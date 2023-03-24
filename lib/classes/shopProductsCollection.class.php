@@ -739,14 +739,15 @@ class shopProductsCollection
                         } else {
                             $sku_where = '';
                         }
-
+                        $skus_joins = $this->getJoinsByTableName('shop_product_skus');
+                        $join_where = $skus_joins ? $skus_joins[0]['alias'] . ".id = $t.sku_id" : "p.id = $t.product_id";
                         $this->where[] = <<<SQL
 EXISTS (
   SELECT
     1
   FROM shop_product_features {$t}
   WHERE
-    p.id = {$t}.product_id
+    {$join_where}
     AND
     {$t}.feature_id = {$feature_id}
     AND
@@ -757,7 +758,9 @@ SQL;
 
                     } else {
                         $this->filtered_by_features[$feature_id] = $values;
-                        $on = 'p.id = :table.product_id AND :table.feature_id = '.$feature_id;
+                        $skus_joins = $this->getJoinsByTableName('shop_product_skus');
+                        $join_where = $skus_joins ? $skus_joins[0]['alias'] . '.id = :table.sku_id' : 'p.id = :table.product_id';
+                        $on = $join_where . ' AND :table.feature_id = '.$feature_id;
                         $where = ':table.feature_value_id IN ('.$imploded_values.')';
                         if (!empty($skus_alias)) {
                             $where .= ' AND (:table.sku_id IS NULL OR :table.sku_id = '.$skus_alias.'.id)';
@@ -937,7 +940,7 @@ SQL;
                             $inner_where[] = "$set_alias.compare_price > $set_alias.price";
                             $order_by = "$set_alias.compare_price DESC";
                         } else {
-                            $order_by = !empty($set['rule']) ? $set['rule'] : 'p.create_datetime DESC';
+                            $order_by = !empty($set['rule']) ? 'p.'.$set['rule'] : 'p.create_datetime DESC';
                         }
 
                         if (!empty($params['date_start'])) {
@@ -1344,6 +1347,11 @@ SQL;
                 $this->order_by = $alias.'.sort ASC, p.id';
             }
         } else {
+            $init_data = [];
+            foreach (['fields', 'order_by', 'where', 'join_index', 'joins', 'group_by', 'prepared'] as $field) {
+                $init_data[$field] = $this->{$field};
+            }
+
             $rule = ifset($set, 'rule', false);
 
             $json_params = ifset($set, 'json_params', '');
@@ -1378,7 +1386,7 @@ SQL;
             } elseif ($rule == 'compare_price DESC') {
                 $this->setByComparePrice();
             } else {
-                $this->order_by = !empty($set['rule']) ? $set['rule'] : 'p.create_datetime DESC';
+                $this->order_by = !empty($set['rule']) ? 'p.'.$set['rule'] : 'p.create_datetime DESC';
                 $this->order_by .= ', p.id';
 
                 if (!isset($this->join_index['ps']) && preg_match('~^(price)\s(asc|desc)$~ui', $set['rule'], $matches)) {
@@ -1393,6 +1401,38 @@ SQL;
 
             if (!empty($params['date_end'])) {
                 $this->where[] = "{$alias_order}.paid_date <= '{$params['date_end']}'";
+            }
+
+            if (!empty($set['sort_products'])) {
+                $this->prepared = true;
+
+                $distinct = $this->joins && !$this->group_by ? 'DISTINCT ' : '';
+                $from_and_where = $this->getSQL();
+                $group_by = $this->_getGroupBy();
+
+                $inner_sql = 'SELECT ' . $distinct . $this->getFields('') . "\n" . $from_and_where;
+                if ($group_by) {
+                    $inner_sql .= $group_by;
+                }
+                $inner_sql .= $this->_getOrderBy();
+
+                foreach (['fields', 'order_by', 'where', 'join_index', 'joins', 'group_by', 'prepared'] as $field) {
+                    $this->{$field} = $init_data[$field];
+                }
+
+                if ($set['sort_products'] == 'compare_price ASC' || $set['sort_products'] == 'purchase_price ASC') {
+                    $skus_alias = $this->addUniqueJoin('shop_product_skus', 'p.id = :table.product_id', '', 'LEFT');
+                    $this->order_by = $skus_alias. '.' . $set['sort_products'];
+                } else {
+                    $this->order_by = 'p.' . $set['sort_products'];
+                }
+                $this->order_by .= ', p.id';
+
+                $this->addJoin([
+                    'table' => '(' . $inner_sql . ')',
+                    'alias' => 'iq',
+                    'on'    => 'p.id = :table.id',
+                ]);
             }
         }
     }
@@ -1814,6 +1854,7 @@ SQL;
                         // if not found try find by name
                         if (!$this->count()) {
                             $this->count = null;
+                            $auto_joins = $this->joins;
                             $this->joins = $this->where = $this->having = array();
                             $this->fields = $auto_fields; //restore fields;
                             if ($this->is_frontend) {
@@ -1822,7 +1863,10 @@ SQL;
                                 }
                                 $this->frontendConditions();
                             }
-                            if (waRequest::request('sort', 'weight', 'string') == 'weight') {
+                            $join_aliases = is_array($auto_joins) ? array_column($auto_joins, 'alias') : [];
+                            if (waRequest::request('sort', 'weight', 'string') == 'weight'
+                                || ($join_aliases && preg_match('/(' . join('|', $join_aliases) . ')\./m', $auto_order_by, $matches) && $matches)
+                            ) {
                                 $this->order_by = 'p.create_datetime DESC, p.id';
                             } else {
                                 $this->order_by = $auto_order_by;
@@ -1840,6 +1884,7 @@ SQL;
                     }
                     $title[] = $parts[0].$parts[1].$parts[2];
                 } elseif ($parts[0] == 'tag') {
+                    $title[] = $parts[0].$parts[1].$parts[2];
                     $tag_model = $this->getModel('tag');
                     /**
                      * @var shopTagModel $tag_model
@@ -1848,12 +1893,12 @@ SQL;
                         $tags = explode('||', $parts[2]);
                         $tag_ids = $tag_model->getIds($tags);
                     } else {
-                        $sql = "SELECT id FROM ".$tag_model->getTableName();
-                        $sql .= " WHERE name".$this->getExpression($parts[1], $parts[2]);
+                        $sql = "SELECT `id` FROM ".$tag_model->getTableName();
+                        $sql .= " WHERE `name`".$this->getExpression($parts[1], $parts[2]);
                         $tag_ids = $tag_model->query($sql)->fetchAll(null, true);
                     }
                     if ($tag_ids) {
-                        $this->addJoin('shop_product_tags', null, ":table.tag_id IN ('".implode("', '", $tag_ids)."')");
+                        $this->addJoin('shop_product_tags', null, ":table.tag_id IN (".implode(", ", $tag_ids).")");
                     } else {
                         $this->where[] = "0";
                     }
@@ -1897,7 +1942,8 @@ SQL;
                         }
 
                         $join_where = ":table.feature_id = {$feature['id']} AND :table.feature_value_id IN ({$value_id})";
-                        $this->addUniqueJoin('shop_product_features', null, $join_where);
+                        $skus_join = $this->addUniqueJoin('shop_product_skus', ':table.product_id = p.id', null);
+                        $this->addUniqueJoin('shop_product_features', $skus_join.'.id = :table.sku_id', $join_where);
 
                         $this->filtered_by_features[$feature['id']] = $values_id;
                         $this->group_by = 'p.id';
@@ -1997,7 +2043,9 @@ SQL;
                     if ($range_ids) {
                         $value_ids = join(', ', array_keys($range_ids));
 
-                        $this->addJoin('shop_product_features', null, ':table.feature_id = '.$feature['id'].' AND :table.feature_value_id IN ('.$value_ids.')');
+                        $skus_join = $this->addUniqueJoin('shop_product_skus', ':table.product_id = p.id', null);
+                        $this->addJoin('shop_product_features', $skus_join.'.id = :table.sku_id', ':table.feature_id = '.$feature['id'].' AND :table.feature_value_id IN ('.$value_ids.')');
+
                         $this->filtered_by_features[$feature['id']] = array_keys($range_ids);
                         $this->group_by = 'p.id';
                     } else {
@@ -2044,7 +2092,12 @@ SQL;
             case "==":
             case "=":
             default:
-                return " = '".$model->escape($value)."'";
+                if (strpos($value, '||') !== false) {
+                    $values = explode('||', $value);
+                    return " IN ('".implode("','", $model->escape($values))."')";
+                } else {
+                    return " = '".$model->escape($value)."'";
+                }
         }
     }
 
@@ -3379,19 +3432,15 @@ SQL;
                     }
 
                     // Replace image
-                    if (!empty($sku['image_id']) && !empty($product['image_id']) && $product['image_id'] != $sku['image_id']) {
-                        if (isset($sku['ext'])) {
-                            $product['image_id'] = $sku['image_id'];
-                            $product['ext'] = $sku['ext'];
-                            $product['image_filename'] = $sku['image_filename'];
-                        }
-                    }
+                    $this->replaceMainProductImage($product, $sku);
 
                     // Show full url for product (product+sku)
                     // if set up in settlement parameters
                     if ($this->is_frontend && !empty($product['frontend_url'])) {
                         $product['frontend_url'] .= '?sku='.$sku['id'];
                     }
+                } elseif ($sku && $this->filtered_by_features && count($product['skus']) != $product['sku_count']) {
+                    $this->replaceMainProductImage($product, $sku);
                 }
             }
             unset($product);
@@ -3465,20 +3514,27 @@ SQL;
                 // Updates only if 1 sku is found.
                 if (isset($product['skus']) && count($product['skus']) == 1) {
                     $main_sku = reset($product['skus']);
-
-                    $image_id = ifset($main_sku, 'image_id', null);
-                    if ($image_id && $product['image_id'] !== $image_id && isset($main_sku['ext'])) {
-                        $product['image_id'] = $image_id;
-                        $product['ext'] = $main_sku['ext'];
-                        $product['image_filename'] = $main_sku['image_filename'];
-                        $product['image_description'] = $main_sku['image_description'];
-                    }
+                    $this->replaceMainProductImage($product, $main_sku);
                 }
             }
             unset($product);
         }
 
         return $products;
+    }
+
+    /**
+     * @param array $product
+     * @param array $sku
+     */
+    protected function replaceMainProductImage(&$product, $sku)
+    {
+        if (!empty($sku['image_id']) && !empty($product['image_id']) && $product['image_id'] !== $sku['image_id']) {
+            $product['image_id'] = $sku['image_id'];
+            $product['ext'] = ifset($sku, 'ext', '');
+            $product['image_filename'] = ifset($sku, 'image_filename', '');
+            $product['image_description'] = ifset($sku, 'image_description', '');
+        }
     }
 
     protected function sortSkus($a, $b)

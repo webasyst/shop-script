@@ -8,10 +8,10 @@ class shopBackendProductsAction extends waViewAction
 
     public function execute()
     {
-        /** Редактор по умолчанию */
-        if (true === !!waRequest::get('force-old')) {
-            wa()->getUser()->setSettings('shop', 'default_chapter', 'old_chapter');
+        if (!wa()->getUser()->getRights('shop', 'products')) {
+            throw new waRightsException(_w("Access denied"));
         }
+
         $this->setLayout(new shopBackendLayout());
 
         $this->getResponse()->setTitle(_w('Products'));

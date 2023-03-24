@@ -426,13 +426,14 @@ SQL;
                     }
                 }
             }
+            unset($variant);
             if ($default_price === null) {
                 if (isset($service['variants'][$service['variant_id']])) {
                     $default_price = $service['variants'][$service['variant_id']]['price'];
                     if ($service['currency'] == '%') {
                         $default_percent_price = $service['variants'][$service['variant_id']]['percent_price'];
                     }
-                } else {
+                } elseif (!empty($service['variants'])) {
                     reset($service['variants']);
                     $first = current($service['variants']);
                     $default_price = $first['price'];
@@ -441,11 +442,12 @@ SQL;
                     }
                 }
             }
-            $service['price'] = $default_price;
-            if ($service['currency'] == '%') {
-                $service['percent_price'] = $default_percent_price;
+            if (!empty($service['variants'])) {
+                $service['price'] = $default_price;
+                if ($service['currency'] == '%') {
+                    $service['percent_price'] = $default_percent_price;
+                }
             }
-            unset($variant);
         }
         unset($service);
     }

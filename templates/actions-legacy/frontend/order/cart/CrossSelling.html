@@ -1,0 +1,250 @@
+{if !empty($products)}
+
+{$_use_adaptive_styles = true}
+{if !empty($options)}
+    {if isset($options["adaptive"]) && (empty($options["adaptive"]) || $options["adaptive"] === "false")}
+        {$_use_adaptive_styles = false}
+    {/if}
+{/if}
+
+{$_classes = []}
+{if !empty($_use_adaptive_styles)}
+    {$_classes[] = "with-adaptive"}
+{/if}
+
+<div class="wa-order-cross_selling-wrapper is-not-ready {$_classes|join:" "}" id="wa-order-cross_selling-wrapper">
+    {strip}
+    <div class="wa-cross_selling-body">
+        <div class="wa-cross_selling-loader">
+            <p>[`Generating a shopping cart from selected items`]...</p>
+        </div>
+
+        <div class="wa-cross_selling-content js-invisible-content" style="display: none;">
+            <div class="wa-slider-wrapper js-slider-wrapper">
+                <div class="wa-slider-list">
+                    {foreach $products as $_product}
+                        {$_show_dialog = ($_product.sku_count > 1 || $_product["order_multiplicity_factor"] != 1)}
+
+                        <div class="wa-slide-wrapper">
+
+                            {* PRODUCT *}
+                            <div class="wa-product-wrapper"
+                                 data-product-id="{$_product.id|escape}"
+                                 data-sku-id="{$_product.sku_id|default:""|escape}"
+                                 {if $_show_dialog}data-show-dialog="true"{/if}">
+                                {* IMAGE *}
+                                <div class="wa-image-wrapper">
+                                    {$_image_uri = $wa->shop->productImgUrl($_product, '96x96')}
+                                    {if empty($_image_uri)}{$_image_uri = "`$wa_app_static_url`img/image-dummy.png"}{/if}
+
+                                    <a href="{$wa->shop->productUrl($_product)}" target="_blank">
+                                        <img class="wa-image" src="{$_image_uri|escape}" alt="">
+                                    </a>
+                                </div>
+
+                                {* DETAILS *}
+                                <div class="wa-details-wrapper">
+                                    <a class="wa-name" href="{$wa->shop->productUrl($_product)}" title="{$_product.name}" target="_blank">{$_product.name}</a>
+                                    {if !empty($_product.sku_name) && $_product.sku_name != $_product.name}
+                                        <span class="wa-sku">{$_product.sku_name|escape}</span>
+                                    {/if}
+
+                                    {if !empty($_product.weight_html)}
+                                        <span class="wa-weight" title="{_w('One item’s weight')|escape}">{$_product.weight_html}</span>
+                                    {/if}
+                                </div>
+
+                                {* PRICE *}
+                                <div class="wa-actions-wrapper">
+                                    <button class="wa-button gray js-add-product" type="button" title="{_w("Add to cart")|escape}">
+                                        <i class="wa-icon size-14 cart-icon"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#cart"></use></svg></i>
+                                        {shop_currency($_product.frontend_price, ['in_currency' => true, 'format' => 'h'])}
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    {/foreach}
+                </div>
+                <div class="wa-slider-actions">
+                    <span class="wa-action left js-scroll-prev" title="[`Prev`]">
+                        <i class="wa-icon arrow-left"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#arrow-left"></use></svg></i>
+                    </span>
+                    <span class="wa-action right js-scroll-next" title="[`Next`]">
+                        <i class="wa-icon arrow-left"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#arrow-right"></use></svg></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {capture assign="_success_button"}
+        <button class="wa-button gray" type="button" title="{_w("Added")|escape}">
+            {_w("Added")|escape}
+        </button>
+    {/capture}
+
+    {/strip}
+    <script>
+        ( function($) {
+
+            load([
+                {
+                    id: "wa-order-ui-css",
+                    type: "css",
+                    uri: "{$wa_app_static_url}css/frontend/order/ui.css?v={$wa->version()}"
+                },
+                {
+                    id: "wa-order-ui-js",
+                    type: "js",
+                    uri: "{$wa_app_static_url}js/frontend/order/ui.js?v={$wa->version()}"
+                },
+                {
+                    id: "wa-order-cross_selling-css",
+                    type: "css",
+                    uri: "{$wa_app_static_url}css/frontend/order/cross_selling.css?v={$wa->version()}"
+                },
+                {
+                    id: "wa-order-cross_selling-js",
+                    type: "js",
+                    uri: "{$wa_app_static_url}js/frontend/order/cross_selling.js?v={$wa->version()}"
+                },
+                {
+                    id: "wa-order-product-js",
+                    type: "js",
+                    uri: "{$wa_app_static_url}js/frontend/order/product.js?v={$wa->version()}"
+                }
+            ]).then(init);
+
+            function load(sources) {
+                var deferred = $.Deferred();
+
+                loader(sources).then( function() {
+                    deferred.resolve();
+                }, function(bad_sources) {
+                    if (console && console.error) {
+                        console.error("Error loading resource", bad_sources);
+                    }
+                    deferred.reject(bad_sources);
+                });
+
+                return deferred.promise();
+
+                function loader(sources) {
+                    var deferred = $.Deferred(),
+                        counter = sources.length;
+
+                    var bad_sources = [];
+
+                    $.each(sources, function(i, source) {
+                        switch (source.type) {
+                            case "css":
+                                loadCSS(source).then(onLoad, onError);
+                                break;
+                            case "js":
+                                loadJS(source).then(onLoad, onError);
+                                break;
+                        }
+                    });
+
+                    return deferred.promise();
+
+                    function loadCSS(source) {
+                        var deferred = $.Deferred(),
+                            promise = deferred.promise();
+
+                        var $link = $("#" + source.id);
+                        if ($link.length) {
+                            promise = $link.data("promise");
+
+                        } else {
+                            $link = $("<link />", {
+                                id: source.id,
+                                rel: "stylesheet"
+                            }).appendTo("head")
+                                .data("promise", promise);
+
+                            $link
+                                .on("load", function() {
+                                    deferred.resolve(source);
+                                }).on("error", function() {
+                                deferred.reject(source);
+                            });
+
+                            $link.attr("href", source.uri);
+                        }
+
+                        return promise;
+                    }
+
+                    function loadJS(source) {
+                        var deferred = $.Deferred(),
+                            promise = deferred.promise();
+
+                        var $script = $("#" + source.id);
+                        if ($script.length) {
+                            promise = $script.data("promise");
+
+                        } else {
+                            var script = document.createElement("script");
+                            document.getElementsByTagName("head")[0].appendChild(script);
+
+                            $script = $(script)
+                                .attr("id", source.id)
+                                .data("promise", promise);
+
+                            $script
+                                .on("load", function() {
+                                    deferred.resolve(source);
+                                }).on("error", function() {
+                                deferred.reject(source);
+                            });
+
+                            $script.attr("src", source.uri);
+                        }
+
+                        return promise;
+                    }
+
+                    function onLoad(source) {
+                        counter -= 1;
+                        watcher();
+                    }
+
+                    function onError(source) {
+                        bad_sources.push(source);
+                        counter -= 1;
+                        watcher();
+                    }
+
+                    function watcher() {
+                        if (counter === 0) {
+                            if (!bad_sources.length) {
+                                deferred.resolve();
+                            } else {
+                                deferred.reject(bad_sources);
+                            }
+                        }
+                    }
+                }
+            }
+
+            function init() {
+                window.waOrder.cross_selling = new window.waOrder.CrossSelling({
+                    $wrapper: $("#wa-order-cross_selling-wrapper"),
+                    outer_options: {$options|json_encode},
+                    templates: {
+                        "success_button": {$_success_button|json_encode}
+                    },
+                    urls: {
+                        "product_dialog": {$wa->getUrl('shop/frontendOrderCart/productdialog')|json_encode},
+                        "add_product": {$wa->getUrl('shop/frontendOrderCart/add')|json_encode}
+                    }
+                });
+            }
+
+        })(jQuery);
+    </script>
+</div>
+
+{/if}

@@ -51,9 +51,8 @@
             }
 
             var form = this.form;
-            form.submit(function () {
-                return false;
-            });
+
+            this.formChanged(form, '.product-autocomplete');
 
             $('#s-sidebar').find('.selected').removeClass('selected');
             $('#s-services').addClass('selected').find('.count').text(this.options.count || 0);
@@ -101,6 +100,7 @@
 
                     $.product_services.calcProductCount();
                     $.product_services.testProductsCheckbox();
+                    form.trigger('change');
 
                     return false;
                 }
@@ -116,35 +116,29 @@
 
 
             $('#s-services-list').sortable({
-                distance: 5,
-                opacity: 0.75,
-                items: 'li:not(:last)',
-                handle: '.sort',
-                cursor: 'move',
-                tolerance: 'pointer',
-                update: function (event, ui) {
-                    var item = ui.item;
-                    var next = item.next();
-                    var id = item.attr('data-service-id');
-                    var before_id = next.attr('data-service-id');
+                group: 'services-list',
+                handle: '.js-sort',
+                animation: 150,
+                removeCloneOnHide: true,
+                onEnd: function (evt) {
+                    const $item = $(evt.item);
+                    const next = $item.next();
+                    const id = $item.attr('data-service-id');
+                    const before_id = next.attr('data-service-id');
                     $.shop.jsonPost('?module=service&action=move', {
                         id: id, before_id: before_id
                     });
                 }
             });
 
-            $('.s-services-variants').sortable({
-                distance: 5,
-                opacity: 0.75,
-                items: 'tr.s-services-variant',
-                handle: '.sort',
-                cursor: 'move',
-                tolerance: 'pointer',
-                update: function (event, ui) {
-                    var item = ui.item;
-                    var next = item.next();
-                    var id = item.find('input[name="variant[]"]').val();
-                    var before_id = next.find('input[name="variant[]"]').val();
+            $('.s-services-variants > tbody').sortable({
+                animation: 150,
+                handle: '.js-sort',
+                onEnd(event) {
+                    const item = $(event.item);
+                    const next = item.next();
+                    const id = item.find('input[name="variant[]"]').val();
+                    const before_id = next.find('input[name="variant[]"]').val();
                     $.shop.jsonPost('?module=service&action=move&service_id=' + $.product_services.service_id, {
                         id: id, before_id: before_id
                     });
@@ -152,18 +146,19 @@
             });
 
             // save service info for services page
-            $('#s-save-service-submit').click(function () {
+            var $submit = $('#s-save-service-submit');
+            $submit.on('click', function () {
                 $(this).attr('disabled', true);
                 var showSuccessIcon = function () {
-                    var icon = $('#s-save-service-submit').parent().find('i.yes').show();
+                    $submit.parent().find('.js-yes').show();
                     setTimeout(function () {
-                        icon.hide();
-                    }, 3000);
+                        $submit.parent().find('.js-yes').hide();
+                    }, 1000);
                 };
                 var showLoadingIcon = function () {
-                    var p = $('#s-save-service-submit').parent();
-                    p.find('i.yes').hide();
-                    p.find('i.loading').show();
+                    var p = $submit.parent();
+                    p.find('.js-yes').hide();
+                    p.find('.js-loading').show();
                 };
                 // after update services hash, dispatching and load proper content
                 // 'afterServicesAction' will be called. Extend this handler
@@ -283,30 +278,29 @@
                 }
             );
             container.off('click', '.s-delete-service').on('click', '.s-delete-service', function () {
-                    var d = $('#s-delete-service');
-                    d.waDialog({
-                        disableButtonsOnSubmit: true,
-                        onLoad: function () {
-                        },
-                        onSubmit: function () {
-                            var self = $(this);
-                            $.products.jsonPost(self.attr('action'), self.serialize(), function () {
-                                var list = $.product_services.container.find('#s-services-list');
-                                var li = list.find('li.selected');
-                                var near = li.prev();
-                                if (!near.length) {
-                                    near = li.next();
-                                }
-                                if (near.length) {
-                                    location.hash = near.find('a').attr('href');
-                                } else if ($.products.hash === 'services') {
-                                    $.products.dispatch();
-                                } else {
-                                    location.hash = '#/services/';
-                                }
-                                d.trigger('close');
-                            });
-                            return false;
+                    $.waDialog({
+                        $wrapper: $('#s-delete-service'),
+                        onOpen(_, dialog) {
+                            dialog.$block.on('submit', function (e) {
+                                e.preventDefault();
+                                $(this).prop('disabled', true);
+                                $.products.jsonPost(dialog.$block.attr('action'), dialog.$block.serialize(), function () {
+                                    const list = $.product_services.container.find('#s-services-list');
+                                    const li = list.find('li.selected');
+                                    let near = li.prev();
+                                    if (!near.length) {
+                                        near = li.next();
+                                    }
+                                    if (near.length) {
+                                        location.hash = near.find('a').attr('href');
+                                    } else if ($.products.hash === 'services') {
+                                        $.products.dispatch();
+                                    } else {
+                                        location.hash = '#/services/';
+                                    }
+                                    dialog.close();
+                                });
+                            })
                         }
                     });
                     return false;
@@ -328,7 +322,7 @@
                             tr.find('input[name="price[]"]').val() + ' ' +
                             tr.find('select.s-service-currency').val() || tr.find('.s-service-currency').text();
                         var html =
-                            "<td class='min-width strike'></td>" +
+                            "<td colspan=\"2\" class='min-width strike'></td>" +
                             "<td class='bold strike'>" + text + "</td>" +
                             "<td colspan='2'>" + $_('Click “Save” button below to commit the delete.') + "</td>";
                         tr.html(html).addClass('gray highlighted s-services-variant-deleted').removeClass('s-services-variant');
@@ -355,6 +349,9 @@
                     if (checked) {
                         container.find('input[name=default]:first').attr('checked', true);
                     }
+
+                    form.trigger('change');
+
                     return false;
                 }
             );
@@ -370,6 +367,7 @@
                     }
                     $.product_services.calcProductCount();
                     $.product_services.testProductsCheckbox();
+                    form.trigger('change');
                     return false;
                 }
             );
@@ -404,6 +402,21 @@
             } else {
                 $('#s-services-products-choosen').attr('checked', false);
             }
+        },
+
+        formChanged: function($form, except) {
+            const $submit = $('#s-save-service-submit');
+            const submitChanged = () => {
+                $submit.removeClass('green').addClass('yellow');
+            };
+
+            $(`:input:not(${except})`, $form).on('input', submitChanged);
+            $form.on('change', submitChanged);
+
+            $submit.one('click', function() {
+                $form.off('change input');
+                $submit.removeClass('yellow').addClass('green');
+            });
         }
 
     };

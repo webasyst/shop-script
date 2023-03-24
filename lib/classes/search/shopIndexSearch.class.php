@@ -75,7 +75,7 @@ class shopIndexSearch extends shopSearch
         foreach (array('name', 'summary', 'description') as $k) {
             $v = $p[$k];
             if ($k != 'name') {
-                $v = strip_tags(str_replace('><', '> <', $v));
+                $v = strip_tags(str_replace('><', '> <', ifset($v, '')));
             }
             if ($v) {
                 $this->addToIndex($index, $v, $k);
@@ -165,7 +165,7 @@ class shopIndexSearch extends shopSearch
 
     public function getWordIds($string, $only_exist = false)
     {
-        $words = preg_split("/([\s,;:]+|[\.!\?](\s+|$))/su", $string, null, PREG_SPLIT_NO_EMPTY);
+        $words = preg_split("/([\s,;:]+|[\.!\?](\s+|$))/su", (string) $string, -1, PREG_SPLIT_NO_EMPTY);
         $additional_words = array();
         foreach ($words as $i => $w) {
             if ($this->options['ignore']) {
@@ -219,7 +219,7 @@ class shopIndexSearch extends shopSearch
             return $result;
         }
         if (strpbrk($word, '/.!?|<>[]«»()-') !== false) {
-            $result = preg_split("/[\/\.!\?|<>\[\]«»\(\)-]/u", $word, null, PREG_SPLIT_NO_EMPTY);
+            $result = preg_split("/[\/\.!\?|<>\[\]«»\(\)-]/u", (string) $word, -1, PREG_SPLIT_NO_EMPTY);
             if ($result) {
                 $n = count($result);
                 $w = "";

@@ -1,0 +1,94 @@
+{strip}
+
+{$_uniqid = uniqid()}
+
+{$_rule_name = ""}
+{if !empty($rule.id)}
+    {$_rule_name = "rules[{$rule.id}]"}
+
+{else}
+    {$_rule_name = "rules[new]"}
+    {if isset($options.ident)}
+        {$_rule_name = "{$_rule_name}[{$options.ident}]"}
+    {/if}
+{/if}
+
+{/strip}
+
+<div class="s-custom-price-rule-section js-custom-price-rule-section" id="js-custom-price-rule-section-{$_uniqid}">
+    <div class="s-section-description">
+        [`Use the form below to set up extra rules for ordinary and purchase prices which should apply while this promo is active.`]
+    </div>
+
+    <div class="s-products-autocomplete">
+        <span class="s-label">[`Add product`]:</span>
+        <i class="icon16 add"></i>
+        <div class="s-field-wrapper">
+            <input type="text" class="s-autocomplete js-autocomplete" value="" placeholder="{_w("type a product name")|escape}">
+            <div class="s-field-description hint">{sprintf("[`or add from “%s” section`]", "<a href=\"`$wa_app_url`?action=products\">[`Products`]</a>")}</div>
+        </div>
+    </div>
+
+    <div class="s-products-wrapper {if empty($products)}is-empty{/if}">
+        <table class="s-products-table">
+            <thead>
+                <tr>
+                    <td colspan="2"></td>
+                    <td colspan="3" style="white-space: normal;">
+                        <i class="icon16 exclamation"></i>
+                        <span>[`Promo prices are not a discount.`]</span>
+                        {shopHinter::hint('marketing_promo_stock_price_products')}
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">[`Products`]</td>
+                    <td>[`Default prices`]</td>
+                    <td>[`Promo’s prices`]</td>
+                    <td></td>
+                </tr>
+            </thead>
+
+            <tbody class="s-products-list">
+                {if !empty($products)}
+                    {foreach $products as $_product}
+                        {$_rule_product_data = $rule.rule_params[$_product.id]|default:[]}
+                        {include file="./custom_price.product.html" product=$_product rule_name=$_rule_name rule_product_data=$_rule_product_data inline}
+                    {/foreach}
+                {/if}
+            </tbody>
+        </table>
+
+        <div class="s-empty-message">[`No products in this tool. First add products please.`]</div>
+    </div>
+
+    <input class="js-rule-type" type="hidden" name="{$_rule_name}[rule_type]" value="custom_price">
+
+    {capture assign="_custom_price_delete_dialog_template"}{include file="./custom_price_delete.dialog.html"}{/capture}
+    {capture assign="_custom_price_confirm_dialog_template"}{include file="./custom_price_confirm.dialog.html"}{/capture}
+    {$_templates = [
+        'custom_price_delete_dialog' => $_custom_price_delete_dialog_template,
+        'custom_price_confirm_dialog' => $_custom_price_confirm_dialog_template
+    ]}
+
+    <script>
+        ( function($) {
+            var $wrapper = $("#js-custom-price-rule-section-{$_uniqid}").removeAttr('id');
+
+            var ready_promise = $("#js-promo-page").data("ready");
+            ready_promise.then( function(controller) {
+                controller.initPriceRulesSection({
+                    $wrapper: $wrapper,
+                    rule_name: {$_rule_name|json_encode},
+                    urls: {
+                        "autocomplete": "{$wa_app_url}?action=autocomplete",
+                        "product": "{$wa_app_url}?module=marketingPromo&action=customPriceProduct"
+                    },
+                    locales: {
+                        "disabled_product": {_w("Not included in the promo")|json_encode}
+                    },
+                    templates: {$_templates|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

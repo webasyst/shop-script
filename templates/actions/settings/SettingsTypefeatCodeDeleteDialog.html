@@ -1,10 +1,10 @@
-<div class="wa-dialog s-settings-code-delete-dialog">
-    <div class="wa-dialog-background"></div>
-    <div class="wa-dialog-body">
-        <header class="wa-dialog-header">
+<div class="dialog s-settings-code-delete-dialog">
+    <div class="dialog-background"></div>
+    <div class="wa-dialog-body dialog-body">
+        <header class="dialog-header">
             <h1 class="s-title">{sprintf('[`Deletion of product code “%s”`]', $code.name|escape)}</h1>
         </header>
-        <div class="wa-dialog-content">
+        <div class="dialog-content">
             {if !empty($order_usage_count)}
                 {_w(
                     'You have <strong>%d order</strong> with this product code’s values specified.',
@@ -16,10 +16,9 @@
                 [`This product code’s values have not been saved for any of your orders, so you can safely delete it.`]
             {/if}
         </div>
-        <div class="wa-dialog-footer">
+        <div class="dialog-footer">
             <button class="s-button button red js-submit-button" type="submit">[`Delete`]</button>
-            <span class="s-divider">[`or`]</span>
-            <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+            <a href="javascript:void(0);" class="js-close-dialog button light-gray">[`Cancel`]</a>
         </div>
     </div>
 </div>

@@ -654,7 +654,7 @@ HTML;
     {
         $order_discount_description = '';
         foreach ($discounts as $discount) {
-            if ($discount && (!empty($discount['discount']) || strlen(ifset($discount['description'])))) {
+            if ($discount && (!empty($discount['discount']) || strlen(ifset($discount['description'], '')))) {
                 if (self::getDiscountCombineType() == 'sum') {
                     $order_discount += $discount['discount'];
                     $order_discount_description .= '<li>'.$discount['description'].'</li>';

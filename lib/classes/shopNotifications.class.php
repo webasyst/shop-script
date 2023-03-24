@@ -481,9 +481,11 @@ SQL;
                     'item' => $i['id'],
                 ), true, $storefront_domain, $storefront_route_url);
             }
-            $i['product']['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
-                'product_url' => $i['product']['url'],
-            ), true, $storefront_domain, $storefront_route_url);
+            if (isset($i['product']['url'])) {
+                $i['product']['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', array(
+                    'product_url' => $i['product']['url'],
+                ), true, $storefront_domain, $storefront_route_url);
+            }
         }
         unset($i);
     }
@@ -943,7 +945,48 @@ SQL;
                         $host_client_ids[$push_client['shop_url']][$push_client['client_id']] = $push_client['client_id'];
                     } else {
                         // Forget the client if their API token is invalid
-                        $push_client_model->deleteById('api_token', $push_client['client_id']);
+                        $push_client_model->deleteByField('client_id', $push_client['client_id']);
+                    }
+                }
+            } elseif ($data['order']['courier_contact_id'] != ifset($data['order']['params']['notified_courier_contact_id'])) {
+                $params_model = new shopOrderParamsModel();
+                $params_model->setOne($data['order']['id'], 'notified_courier_contact_id', $data['order']['courier_contact_id']);
+
+                $contact_model = new waContactModel();
+                $is_user = $contact_model->select('is_user')->where('is_user = 1 AND id = ?', $data['order']['courier_contact_id'])->fetchField('is_user');
+                $contact_rights_model = new waContactRightsModel();
+                $can_access = $contact_rights_model->get($data['order']['courier_contact_id'], 'shop', 'backend');
+
+                if ($is_user && $can_access) {
+                    $notification_text = _w('Вы назначены курьером для заказа') . ' ' . shopHelper::encodeOrderId($data['order']['id']);
+                    $shop_orders_app_url = wa()->getRootUrl(true) . wa()->getConfig()->getBackendUrl() . '/shop?action=orders';
+                    $workflow = new shopWorkflow();
+                    $push_data = array(
+                        'title' => $notification_text,
+                        'message' => _w('Current order status') . ' ' . $workflow->getStateById($data['order']['state_id'])->getName(),
+                        'url' => $shop_orders_app_url . '#/orders/state_id=new|processing|auth|paid&id=' . $data['order']['id'] . '/',
+                    );
+
+                    // Send web push notification
+                    $web_push = new shopWebPushNotifications();
+                    $web_push->sendByContactId($data, $notification_text, [$data['order']['courier_contact_id']], $push_data);
+                }
+
+                $push_client = $push_client_model->getByField([
+                    'contact_id' => $data['order']['courier_contact_id'],
+                    'type' => ['', 'mobile']
+                ]);
+                if ($push_client) {
+                    // Make sure client's API token is still valid
+                    $api_token_model = new waApiTokensModel();
+                    $api_token = $api_token_model->getById($push_client['api_token']);
+
+                    if ($is_user && $can_access && $api_token && (!$api_token['expires'] || strtotime($api_token['expires']) > time())) {
+                        // Add to recipients
+                        $host_client_ids[$push_client['shop_url']][$push_client['client_id']] = $push_client['client_id'];
+                    } else {
+                        // Forget the client if their API token is invalid
+                        $push_client_model->deleteByField('client_id', $push_client['client_id']);
                     }
                 }
             }

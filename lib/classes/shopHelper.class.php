@@ -857,6 +857,14 @@ class shopHelper
             }
             $state = (isset($order['state_id']) && isset($states[$order['state_id']])) ? $states[$order['state_id']] : null;
 
+            if (!empty($order['paid_date'])) {
+                $order['paid_date_str'] = waDateTime::format( 'humandate', $order['paid_date']);
+            }
+
+            if (!empty($order['paid_datetime'])) {
+                $order['paid_datetime_str'] = waDateTime::format( 'humandatetime', $order['paid_datetime']);
+            }
+
             $icon = '';
             $style = '';
             if ($state) {
@@ -1168,7 +1176,7 @@ class shopHelper
             $stocks = $model->getAll('id');
         }
         if ($count === null) {
-            $icon = "<i class='icon10 status-green' title='"._w("In stock")."'></i>";
+            $icon = "<i class='" . self::getNeedIconClass('icon10 status-green') . "' title='"._w("In stock")."'></i>";
         } else {
             if (!$stock_id || empty($stocks[$stock_id])) {
                 $bounds = array(
@@ -1179,17 +1187,17 @@ class shopHelper
                 $bounds = $stocks[$stock_id];
             }
             if ($count <= 0) {
-                $icon = "<i class='icon10 status-red' title='"._w("Out of stock")."'></i>";
+                $icon = "<i class='" . self::getNeedIconClass('icon10 status-red') . "' title='"._w("Out of stock")."'></i>";
                 $warn = 's-stock-warning-none';
             } else {
                 if ($count <= $bounds['critical_count']) {
-                    $icon = "<i class='icon10 status-red' title='"._w("Almost out of stock")."'></i>";
+                    $icon = "<i class='" . self::getNeedIconClass('icon10 status-red') . "' title='"._w("Almost out of stock")."'></i>";
                     $warn = 's-stock-warning-none';
                 } elseif ($count > $bounds['critical_count'] && $count <= $bounds['low_count']) {
-                    $icon = "<i class='icon10 status-yellow' title='"._w("Low stock")."'></i>";
+                    $icon = "<i class='" . self::getNeedIconClass('icon10 status-yellow') . "' title='"._w("Low stock")."'></i>";
                     $warn = 's-stock-warning-low';
                 } else {
-                    $icon = "<i class='icon10 status-green' title='"._w("In stock")."'></i>";
+                    $icon = "<i class='" . self::getNeedIconClass('icon10 status-green') . "' title='"._w("In stock")."'></i>";
                     $warn = '';
                 }
             }
@@ -1202,12 +1210,28 @@ class shopHelper
                         "</span>";
                 }
                 $icon .=
-                    "<span class='small s-stock-left-text $warn'>" .
+                    "<span class='custom-pl-4 small s-stock-left-text $warn'>" .
                         _w('%s left', '%s left', shopFrac::discardZeros($count)) . " $all_balance_stocks_text</span>";
             }
         }
 
         return $icon;
+    }
+
+    /**
+     * Returns the desired icon class depending on the version of UI
+     *
+     * @param string $icon_class
+     * @return string
+     */
+    private static function getNeedIconClass($icon_class)
+    {
+        if (wa()->whichUI() == '2.0') {
+            $icon_class = str_replace('icon10 ', '', $icon_class);
+            return wa()->getView()->getHelper()->shop->convertIcon($icon_class);
+        }
+
+        return $icon_class;
     }
 
     /**
@@ -1392,18 +1416,28 @@ class shopHelper
      */
     public static function getRatingHtml($rating, $size = 10, $show_when_zero = false)
     {
+        if(wa()->whichUI() == '1.3') {
+            $icon = '<i class="icon'.$size.' star';
+            $start_half = '-half';
+            $start_empty = '-empty';
+        } else {
+            $start_half = '-half-alt';
+            $start_empty = ' far';
+            $icon = '<i class="fas text-yellow '.$size.' fa-star';
+        }
+
         $rating = round($rating * 2) / 2;
         if (!$rating && !$show_when_zero) {
             return '';
         }
         $html = '';
         for ($i = 1; $i <= 5; $i += 1) {
-            $html .= '<i class="icon'.$size.' star';
+            $html .= $icon;
             if ($i > $rating) {
                 if ($i - $rating == 0.5) {
-                    $html .= '-half';
+                    $html .= $start_half;
                 } else {
-                    $html .= '-empty';
+                    $html .= $start_empty;
                 }
             }
             $html .= '"></i>';
@@ -1976,7 +2010,7 @@ SQL;
 
         $shipping_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'shipping'));
         $billing_address = array_merge($empty_address, shopHelper::getOrderAddress($order['params'], 'billing'));
-        if (!count(array_filter($billing_address, 'strlen'))) {
+        if (!count(array_filter($billing_address, function($v) { return strlen(ifset($v, '')); }))) {
             $billing_address = $shipping_address;
         }
 
@@ -2178,15 +2212,13 @@ SQL;
      * @return string
      * @throws waException
      */
-    public static function getBackendEditorUrl($product_id, $tab = '', $options = [])
+    public static function getBackendEditorUrl($product_id = null, $tab = '', $options = [])
     {
-        if ((int) $product_id < 1 && !in_array($product_id, ['new', '@s'])) {
+        if ($product_id !== null && (int)$product_id < 1 && !in_array($product_id, ['new', '@s'])) {
             return '';
         }
 
         $param = '';
-        $current_chapter = self::getCurrentChapter();
-
         if (!empty($options)) {
             foreach ($options as $key => $value) {
                 if (null === $value) {
@@ -2197,9 +2229,23 @@ SQL;
             }
         }
 
-        if ('old_chapter' === $current_chapter) {
+        if (wa()->whichUI() == '1.3') {
             switch ($tab) {
+                case 'seo':
+                case 'descriptions':
+                    $tab = 'edit/descriptions/';
+                    break;
+                case 'media':
+                case 'images':
+                    $tab = 'edit/images/';
+                    break;
+                case 'sku':
+                case 'features':
+                    $tab = 'edit/features/';
+                    break;
+                case 'related':
                 case 'services':
+                case 'pages':
                     $tab = 'edit/'.$tab.'/';
                     break;
                 case 'product':
@@ -2210,8 +2256,11 @@ SQL;
                 default:
                     $tab = 'edit/';
             }
-
-            $link_editor = '?action=products#/product/'.$product_id.'/'.$tab.$param;
+            if ($product_id) {
+                $link_editor = '?action=products#/product/'.$product_id.'/'.$tab.$param;
+            } else {
+                $link_editor = '?action=products#/products/';
+            }
         } else {
             switch ($tab) {
                 case 'product':
@@ -2228,6 +2277,7 @@ SQL;
      * @param $chapter
      * @param $options
      * @return string
+     * @depecated
      * @throws waException
      */
     public static function getBackendChapterUrl($chapter, $options = [])
@@ -2271,6 +2321,7 @@ SQL;
 
     /**
      * @return string
+     * @deprecated
      * @throws waException
      */
     public static function getCurrentChapter()
@@ -2281,6 +2332,7 @@ SQL;
     /**
      * @param string $default_chapter new_chapter/old_chapter
      * @return void
+     * @depecated
      * @throws waException
      */
     public static function setChapter($default_chapter = '')

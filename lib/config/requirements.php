@@ -1,7 +1,7 @@
 <?php
 return array(
     'app.installer' => array(
-        'version' => 'latest',
+        'version' => '>=2.8.0', //don't use 'latest' for the framework as it may block installer.product.install API flow
         'strict' => true,
     ),
     'app.site' => array(

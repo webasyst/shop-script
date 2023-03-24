@@ -236,7 +236,7 @@
                                         <div class="wa-quantity-cart-section js-quantity-cart-section {if !empty($_is_out_of_stock) || !empty($_is_product_disabled)}disabled{/if}">
                                             <div class="wa-section-body">
                                                 <div class="wa-button-wrapper">
-                                                    <button class="wa-button s-minus-button transparent js-decrease" type="button" {if !empty($_is_product_disabled)}disabled{/if}>
+                                                    <button class="wa-button s-minus-button outlined js-decrease" type="button" {if !empty($_is_product_disabled)}disabled{/if}>
                                                         <span class="wa-icon-wrapper"><i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#minus"></use></svg></i></span>
                                                         <span class="wa-description js-min-description" style="display: none;"></span>
                                                     </button>
@@ -249,7 +249,7 @@
                                                     {/if}
                                                 </label>
                                                 <div class="wa-button-wrapper">
-                                                    <button class="wa-button s-plus-button transparent js-increase" type="button" {if !empty($_is_product_disabled) || !empty($_is_limit)}disabled{/if}>
+                                                    <button class="wa-button s-plus-button outlined js-increase" type="button" {if !empty($_is_product_disabled) || !empty($_is_limit)}disabled{/if}>
                                                         <span class="wa-icon-wrapper"><i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#plus"></use></svg></i></span>
                                                         <span class="wa-description js-max-description" style="display: none;"></span>
                                                     </button>
@@ -418,7 +418,7 @@
                                 </div>
                                 <div class="wa-active-state">
                                     <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#yes"></use></svg></i>&nbsp;[`Coupon applied`]</span>
-                                    <button class="wa-button transparent js-cancel-coupon" type="button">[`Undo`]</button>
+                                    <button class="wa-button outlined js-cancel-coupon" type="button">[`Undo`]</button>
                                 </div>
 
                                 {if $_is_bad_code}
@@ -447,7 +447,7 @@
                                         </div>
                                         <div class="wa-active-state">
                                             <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#yes"></use></svg></i>&nbsp;[`Bonus used`]</span>
-                                            <button class="wa-button transparent js-cancel-bonus" type="button">[`Undo`]</button>
+                                            <button class="wa-button outlined js-cancel-bonus" type="button">[`Undo`]</button>
                                         </div>
                                     </div>
                                     {/strip}

@@ -1,6 +1,6 @@
 /**
  * {literal}
- * 
+ *
  * @names reset*
  * @property {} reset_options
  * @method resetInit
@@ -20,7 +20,7 @@ if (typeof($) != 'undefined') {
 
         /**
          * Init section
-         * 
+         *
          */
         resetInit : function() {
             $.shop.trace('$.settings.resetInit');
@@ -39,12 +39,11 @@ if (typeof($) != 'undefined') {
 
         },
         resetSubmit : function($form) {
-
-            var data = $form.serialize();
-            var url = $form.attr('action');
+            const data = $form.serialize();
+            const url = $form.attr('action');
             $.shop.trace('$.settings.resetSubmit', [url, data]);
 
-            $form.find(':submit:first').after('<i class="icon16 loading"></i>');
+            $form.find(':submit:first').append('<i class="fas fa-spinner fa-spin custom-ml-4"></i>');
             $form.find(':input').attr('disabled', true);
             this.resetBlur();
             $.ajax({
@@ -54,13 +53,15 @@ if (typeof($) != 'undefined') {
                 'dataType': 'html',
                 'success' : function(response, textStatus, jqXHR) {
                     //remove tutorial_step_link it is used for onboarding
-                    var step_link = localStorage.getItem('tutorial_step_link');
+                    const step_link = localStorage.getItem('tutorial_step_link');
+
                     if (step_link) {
                         localStorage.removeItem('tutorial_step_link');
                     }
+
                     $.shop.trace('$.settings.resetSubmit response', [textStatus, response]);
 
-                    var data = false;
+                    let data = false;
                     try {
                         data = $.parseJSON(response);
                     } catch (e) {

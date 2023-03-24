@@ -23,12 +23,14 @@
  * @property string $discount_description   Human-readable text description of how discounts were calculated. Intended for store admin, not customer. If you call without calculating a discount, then you will calculate the discount yourself and return the value without affecting the rest of the order.
  * @property-read string $auth_date         Date when order payment was auth, or NULL if it wasn't
  * @property-read string $paid_date         Date when order was paid, or NULL if it wasn't.
+ * @property-read string $paid_datetime     Datetime when order was paid, or NULL if it wasn't.
  * @property-read string $paid_year         Part of paid_date used for stats.
  * @property-read string $paid_quarter      Part of paid_date used for stats.
  * @property-read string $paid_month        Part of paid_date used for stats.
  * @property-read bool $is_first            `true` if this order is the first paid order of a customer
  * @property-read bool $unsettled           `true` if this order is unsettled (Created via payment callback and the order was not matched with the existing one)
  * @property string $comment                Text left by a customer during checkout
+ * @property-read int $courier_contact_id
  * @property-read datetime $shipping_datetime Estimated shipping datetime as may be set by store admin using "Edit shipping details" order action.
  *
  * @property array[] $items                 Order items
@@ -169,6 +171,7 @@ class shopOrder implements ArrayAccess
         'log',
         'map',
         'paid_date',
+        'paid_datetime',
         'paid_month',
         'paid_quarter',
         'paid_year',
@@ -177,6 +180,7 @@ class shopOrder implements ArrayAccess
         'printforms',
         'products',
         'rate',
+        'courier_contact_id',
         'shipping_address_text',
         'shipping_datetime',
         'shipping_id',
@@ -200,7 +204,6 @@ class shopOrder implements ArrayAccess
 
     protected static $once_edit_fields = array(
         'currency',
-        'contact_id',
     );
 
     protected static $dynamic_fields = array(
@@ -375,6 +378,7 @@ class shopOrder implements ArrayAccess
             'currency',
             'rate',
             'items',
+            'contact_id',
             'customer',
             'customer_id',
             'discount_description',
@@ -582,12 +586,16 @@ class shopOrder implements ArrayAccess
     }
 
     /**
+     * https://www.php.net/manual/ru/migration81.incompatible.php#migration81.incompatible.core.type-compatibility-internal
+     *
      * Whether a offset exists
      * @link http://php.net/manual/en/arrayaccess.offsetexists.php
      * @param mixed $offset an offset to check for.
      * @return boolean true on success or false on failure.
      * The return value will be casted to boolean if non-boolean was returned.
+     * @throws waException
      */
+    #[ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return isset($this->data[$offset])
@@ -603,6 +611,7 @@ class shopOrder implements ArrayAccess
      * @param mixed $offset The offset to retrieve.
      * @return mixed Can return all value types.
      */
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->__get($offset);
@@ -615,6 +624,7 @@ class shopOrder implements ArrayAccess
      * @param mixed $value The value to set.
      * @return void
      */
+    #[ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         $this->__set($offset, $value);
@@ -626,6 +636,7 @@ class shopOrder implements ArrayAccess
      * @param mixed $offset The offset to unset.
      * @return void
      */
+    #[ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         $this->__set($offset, null);
@@ -1043,6 +1054,7 @@ class shopOrder implements ArrayAccess
         }
         $notification_model = new shopNotificationModel();
         $transports = $notification_model->getActionTransportsBySource($source);
+        $ui = wa()->whichUI();
 
         foreach ($this->actions as $action) {
             /**
@@ -1062,10 +1074,18 @@ class shopOrder implements ArrayAccess
             } else {
                 $icons = array();
                 if (!empty($transports[$action->getId()]['email'])) {
-                    $icons[] = 'ss notification-bw';
+                    if ($ui == '1.3') {
+                        $icons[] = 'ss notification-bw';
+                    }else{
+                        $icons[] = 'fas fa-envelope custom-ml-8 text-light-gray';
+                    }
                 }
                 if (!empty($transports[$action->getId()]['sms'])) {
-                    $icons[] = 'ss phone-bw';
+                    if ($ui == '1.3') {
+                        $icons[] = 'ss phone-bw';
+                    }else{
+                        $icons[] = 'fas fa-mobile-alt custom-ml-8 text-light-gray';
+                    }
                 }
                 if ($icons) {
                     $action->setOption('icon', $icons);
@@ -1177,13 +1197,11 @@ class shopOrder implements ArrayAccess
 
         // Validation for customer form
         if ($customer_id !== null) {
-
-            $contact = new waContact($customer_id);
-            $form = $this->customerForm();
-
             $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation', '', 'shop');
             if (!$customer_validation_disabled) {
-                if (!$form->isValid($contact)) {
+                $form = $this->customerForm();
+                $contact = new waContact($customer_id);
+                if ($form && !$form->isValid($contact)) {
                     $this->errors['customer']['html'] = $form->html();
                 }
             }
@@ -1211,17 +1229,17 @@ class shopOrder implements ArrayAccess
                             }
                             break;
                         case 'product':
-                            if (empty($item['product_id'])) {
+                            if (!strlen($item['product_id'])) {
                                 $fields[] = 'product_id';
                             }
-                            if (empty($item['sku_id'])) {
+                            if (!strlen($item['sku_id'])) {
                                 $fields[] = 'sku_id';
                             }
                             break;
                     }
                     if ($fields) {
                         $key = ifset($item['_index'], ifset($item['id']));
-                        $this->errors['order']['items'][$key] = sprintf('Missed required item fields: `%s`', implode($fields, '`, `'));
+                        $this->errors['order']['items'][$key] = sprintf('Missed required item fields: `%s`', join('`, `', $fields));
                     }
 
                 }
@@ -1365,7 +1383,7 @@ class shopOrder implements ArrayAccess
                     $sku_id = ifset($item['sku_id']);
                     $stock_id = ifempty($item['stock_id']);
 
-                    if (empty($stock_id) && is_array($sku_stocks[$sku_id]) && !empty($sku_stocks[$sku_id])) {
+                    if (empty($stock_id) && isset($sku_stocks[$sku_id]) && is_array($sku_stocks[$sku_id]) && !empty($sku_stocks[$sku_id])) {
                         # Stock not selected
                         $errors[$index]['stock_id'] = _w('Select stock');// *not selected
                     } elseif ($stock_id !== null) {
@@ -1565,6 +1583,26 @@ class shopOrder implements ArrayAccess
         return $parsed;
     }
 
+    protected function parseContactId($contact_id)
+    {
+        if ($this['contact_id'] && $this['contact_id'] != $contact_id) {
+            // Not allowed to change customer for an existing order,
+            // unless no customer for that order exist yet.
+            //return $this['contact_id'];
+
+            // Throw exception here rather than silently ignoring change
+            // because otherwise 'customer' data might be saved to a wrong contact.
+            throw new waException('Unable to change customer for an existing order.');
+        }
+
+        if (isset($this->data['contact'])) {
+            if ($this->data['contact']['id'] != $contact_id) {
+                unset($this->data['contact']);
+            }
+        }
+        return $contact_id;
+    }
+
     protected function parseContact($contact)
     {
         if (!empty($contact) && ($contact instanceof waContact)) {
@@ -1724,6 +1762,27 @@ class shopOrder implements ArrayAccess
                     }
                 }
             }
+
+            if (empty($customer_errors)) {
+                if ($this->contact->getId() != $this['contact_id']) {
+                    $this->data['contact_id'] = $this->contact->getId();
+                    if ($this->id) {
+                        // When we assign customer to an existing order, update their stats
+                        // (this only happens when order had no customer assigned, i.e. contact_id=0)
+                        (new shopCustomerModel())->updateFromNewOrder($this->data['contact_id'], $this->id);
+                    }
+                }
+
+                // create_method='api_stub' marks temporary empty contacts created by API.
+                // Every action with an order from such contact should change contact into a real entity.
+                if ($this->contact['create_method'] == 'api_stub' && $this->contact['create_app_id'] == 'shop' && $this->contact['id']) {
+                    $contact_model = new waContactModel();
+                    $contact_model->updateById($this->contact['id'], [
+                        'create_method' => 'api',
+                    ]);
+                }
+            }
+
         }
 
         if ($this->errors) {
@@ -2176,6 +2235,33 @@ class shopOrder implements ArrayAccess
         }
     }
 
+    protected function getEntropy()
+    {
+        $params = $this['params'];
+        if (isset($params['entropy'])) {
+            return $params['entropy'];
+        }
+        $result = waUtils::getRandomHexString(32);
+        $this->data['params']['entropy'] = $result;
+
+        if ($this['id']) {
+            $order_params_model = new shopOrderParamsModel();
+            $order_params_model->setOne($this['id'], 'entropy', $result);
+        }
+
+        return $result;
+    }
+
+    public function getPaymentLinkHash()
+    {
+        return self::getPaymentLinkHashFromEntropy($this['id'], $this['entropy']);
+    }
+
+    public static function getPaymentLinkHashFromEntropy($id, $entropy)
+    {
+        $hash = md5('pamentlink'.$entropy.'e!afd0qd818a74aZ');
+        return substr($hash, 0, 16).$id.substr($hash, 16);
+    }
 
     ###############################
     # Discount section
@@ -4429,6 +4515,9 @@ HTML;
         if (($params = $this->params) && !empty($params['courier_id'])) {
             $courier_model = new shopApiCourierModel();
             $courier = $courier_model->getById($this->params['courier_id']);
+        } elseif ($this->courier_contact_id) {
+            $contact_model = new waContactModel();
+            $courier = $contact_model->getById($this->courier_contact_id);
         }
         return $courier;
     }
@@ -4516,7 +4605,7 @@ HTML;
 
     protected function castPrice($value, $currency = null)
     {
-        if (strpos($value, ',') !== false) {
+        if (is_string($value) && strpos($value, ',') !== false) {
             $value = str_replace(',', '.', $value);
         }
         if (!empty($currency)) {

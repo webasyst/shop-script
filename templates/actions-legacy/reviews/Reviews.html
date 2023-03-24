@@ -1,0 +1,236 @@
+{$_active_filters = [
+    "sort" => "datetime",
+    "order" => "DESC",
+    "product_id" => "",
+    "filters[images_count]" => "all",
+    "filters[status]" => "all"
+]}
+
+{if !empty($order)}
+    {$_active_filters["order"] = $order}
+{/if}
+
+{if !empty($sort)}
+    {$_active_filters["sort"] = $sort}
+{/if}
+
+{if !empty($product_id)}
+    {$_active_filters["product_id"] = $product_id}
+
+    {if !empty($current_product.name)}
+        {$_product_name = $current_product.name}
+    {/if}
+{/if}
+
+{if isset($filters["images_count"])}
+    {$_active_filters["filters[images_count]"] = $filters["images_count"]}
+{/if}
+
+{if !empty($filters["status"])}
+    {$_active_filters["filters[status]"] = $filters["status"]}
+{/if}
+
+{strip}
+{function name="_render_filter_uri" _filters_data=[]}
+    {$_merged_filters = array_merge($_active_filters, $_filters_data)}
+    {$_params = []}
+    {foreach $_merged_filters as $_name => $_value}
+        {if isset($_value) && mb_strlen($_value) > 0 && $_value !== "all"}
+            {$_params[] = "`$_name`=`$_value`"}
+        {/if}
+    {/foreach}
+
+    {$wa_app_url}?action=products#/reviews/{$_params|join:"&"}
+{/function}
+{/strip}
+
+{strip}
+{capture assign="_lazyloading_url"}
+    {$_params = []}
+    {foreach $_active_filters as $_name => $_value}
+        {if isset($_value) && mb_strlen($_value) > 0 && $_value !== "all"}
+            {$_params[] = "`$_name`=`$_value`"}
+        {/if}
+    {/foreach}
+
+    {$wa_app_url}?module=reviews{if !empty($_params)}&{$_params|join:"&"}{/if}
+{/capture}
+{/strip}
+
+{capture name="review_list"}
+    {foreach $reviews as $id => $review}
+        <li data-id="{$review.id}">{include file="./../product/include.review.html" reply_allowed=$reply_allowed inline}</li>
+    {/foreach}
+{/capture}
+
+{if !$lazy}
+    <div class="s-products-reviews-page block double-padded">
+        <header class="s-page-header">
+            <div class="s-table-box">
+                <div class="s-column">
+                    <h1 class="s-title">[`Reviews`]</h1>
+                </div>
+                <div class="s-column middle align-right">
+
+                    <ul class="s-filters-list menu-h dropdown" id="js-filters-list">
+                        <li>
+                            <div class="s-search-form">
+                                <input class="s-search-field js-search-field" type="text" value="{$_product_name|default:""|escape}" placeholder="{_w("type a product name")}">
+                                {if !empty($_product_name)}
+                                    <a class="s-reset-link" href="{_render_filter_uri _filters_data=["product_id" => "all"]}">
+                                        <i class="icon16 close js-reset-form"></i>
+                                    </a>
+                                {/if}
+
+                                <script>
+                                    {$_reset_uri = {_render_filter_uri _filters_data=["product_id" => "all"]}}
+                                    ( function($) {
+                                        var $field = $(".s-products-reviews-page .js-search-field");
+
+                                        $field.autocomplete({
+                                            source: "?action=autocomplete&term=term",
+                                            minLength: 2,
+                                            focus: function() {
+                                                return false;
+                                            },
+                                            select: function(event, ui) {
+                                                location.href = location.pathname + "?action=products#/reviews/product_id=" + ui.item.id;
+                                                return false;
+                                            }
+                                        });
+
+                                        var reset_uri = {$_reset_uri|json_encode};
+                                        $field.on("keyup", function(event) {
+                                            var code = event.keyCode;
+                                            if (code === 13) {
+                                                var value = $field.val();
+                                                if (!value) {
+                                                    $field.autocomplete("destroy");
+                                                    location.href = reset_uri;
+                                                }
+                                            }
+                                        });
+
+                                    })(jQuery);
+                                </script>
+                            </div>
+                        </li>
+
+                        {* photo filter *}
+                        {include file="./filters/photo.inc.html" inline}
+
+                        {* status filter*}
+                        {include file="./filters/status.inc.html" inline}
+
+                        {* sort filter *}
+                        {include file="./filters/sort.inc.html" inline}
+                    </ul>
+
+                    <script>
+                        ( function($) {
+                            var $wrapper = $("#js-filters-list");
+
+                            var $active_li = null;
+
+                            $wrapper
+                                .on("mouseenter", "li.with-menu", function() {
+                                    var $li = $(this),
+                                        timer = $li.data("timer");
+
+                                    if (timer) { clearTimeout(timer); }
+                                    if ($active_li) {
+                                        toggle($active_li, false);
+                                    }
+
+                                    toggle($li, true);
+                                })
+                                .on("mouseleave", "li.with-menu", function() {
+                                    var $li = $(this);
+
+                                    var timer = setTimeout( function() {
+                                        var is_exist = $.contains(document, $wrapper[0]);
+                                        if (is_exist) {
+                                            toggle($li, false);
+                                        }
+                                        $li.data("timer", null);
+                                    }, 500);
+
+                                    $li.data("timer", timer);
+                                });
+
+                            function toggle($li, show) {
+                                var opened_class = "is-opened";
+
+                                if (show) {
+                                    $li.addClass(opened_class);
+                                    $active_li = $li;
+                                } else {
+                                    var timer = $li.data("timer");
+                                    if (timer) { clearTimeout(timer); }
+
+                                    $li.removeClass(opened_class);
+                                    $active_li = null;
+                                }
+                            }
+
+                        })(jQuery);
+                    </script>
+                </div>
+            </div>
+        </header>
+
+        <div class="s-reviews">
+            <ul class="menu-v with-icons">{$smarty.capture.review_list}</ul>
+            <div id="s-review-add" style="display:none;">
+                {include './../product/include.addReview.html' inline}
+            </div>
+        </div>
+
+        <!-- plugin hook: 'products_reviews_hook' -->
+        {* @event products_reviews_hook.%plugin_id% *}
+        {foreach $products_reviews_hook as $_}{$_|default:''}{/foreach}
+
+        <div class="lazyloading-wrapper">
+            <div class="lazyloading-progress-string">{_w('%d review','%d reviews', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+            <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more reviews`]</a>
+            <span class="lazyloading-progress" style="display:none">
+                <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d review', '%d reviews', min($total_count - $count, $count))}...</span>
+            </span>
+        </div>
+
+        <script>
+            ( function($) {
+                document.title = "[`Reviews`] — {$wa->accountName(false)|escape:javascript}";
+
+                $.product_reviews.init({
+                    statuses: {
+                        deleted: '{shopProductReviewsModel::STATUS_DELETED}',
+                        published: '{shopProductReviewsModel::STATUS_PUBLISHED}'
+                    },
+                    lazy_loading: {
+                        url: {$_lazyloading_url|json_encode},
+                        auto: true,
+                        total_count: {$total_count},
+                        count: {$count}
+                    },
+                    container: '#s-content'
+                });
+            })(jQuery);
+        </script>
+    </div>
+
+{else}
+    <ul class="s-reviews">{$smarty.capture.review_list}</ul>
+
+    <div class="lazyloading-progress-string">{_w('%d review','%d reviews', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
+    <br>
+    <span class="lazyloading-progress" style="display:none">
+        <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d review', '%d reviews', min($total_count - $offset - $count, $count))}...</span>
+    </span>
+{/if}
+
+<script>
+    ( function($) {
+        $(document).trigger("update_reviews_counter", {$sidebar_counters|json_encode});
+    })(jQuery);
+</script>

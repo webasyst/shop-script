@@ -1,0 +1,225 @@
+{$_is_complete = false}
+{if $actions['welcome'].complete == 1}{$_is_complete = true}{/if}
+
+{$_locale_string = substr($wa->locale()|default:"en", 0, 2)}
+{$_is_ru = false}
+{if $_locale_string === "ru"}{$_is_ru = true}{/if}
+
+<script src="{$wa_url}wa-content/js/jquery-wa/wa.core.js?{$wa->version(true)}"></script>
+<script src="{$wa_app_static_url}js-legacy/backend/welcome.js?{$wa->version()}"></script>
+<script src="{$wa_app_static_url}js-legacy/tutorial/tutorial.js"></script>
+
+{include file="templates/actions-legacy/tutorial/include.TutorialSidebar.html" inline}
+
+<div class="block double-padded welcome">
+    <form method="post" action="?action=welcome" id="js-welcome-form">
+        <div class="s-welcome-page">
+            <h1>[`Welcome to Shop-Script!`]</h1>
+            <p>[`This screen will help you to quickly launch your new online store.`]</p>
+
+            <div class="form fields" style="float: none;">
+                <div class="s-content-with-indent">
+                    {* CURRENCY *}
+                    <div class="s-tutorial-block">
+                        <div class="s-title">
+                            <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.green.svg" class="s-arrow" alt=""/><span class="s-title">[`Select a primary currency`]</span>
+                        </div>
+                        <div class="s-sub-title">
+                            {if $_is_ru}
+                                Дополнительные валюты можно добавить позже в разделе «Настройки → Валюты».
+                            {else}
+                                You can add more currencies later in “Settings → Currencies” section
+                            {/if}
+                        </div>
+                        <div class="s-select-wrapper">
+                            <select name="currency" class="s-currency" id="" {if $actions['welcome'].complete != 1}required{/if}>
+                                <option value="" disabled selected>[`Select currency`]</option>
+                                {foreach $currencies as $currency}
+                                    <option value="{$currency.code}" title="{$currency.code}"{if $currency.code === null} disabled{/if}>{_w($currency.title)}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+
+                    {* COUNTRY *}
+                    <div class="s-tutorial-block">
+                        <div class="s-title">
+                            <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.green.svg" class="s-arrow" alt=""/><span class="s-title-text">[`Select a country`]</span>
+                        </div>
+                        <div class="s-sub-title">
+                            {if $_is_ru}
+                                Для нее включатся соответствующие ставки налогов.
+                            {else}
+                                This will automatically set up corresponding tax rates.
+                            {/if}
+                        </div>
+                        <div class="s-select-wrapper">
+                            <select name="country" class="s-country">
+                                {foreach $countries as $country}
+                                    <option value="{$country.iso3letter|escape}"{if $country.iso3letter == $country_iso} selected{/if}>{$country.name|escape}</option>
+                                {/foreach}
+                                <option value="">[`Other`] ([`No default regional data will be added`])</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {* PRODUCTS *}
+                    <div class="s-tutorial-block">
+                        <div class="s-title">
+                            <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.green.svg" class="s-arrow" alt=""/>
+                            <span class="s-title-text">
+                                {if $_is_ru}
+                                    Выберите товарную нишу, для которой мы добавим примеры товаров в ваш магазин
+                                {else}
+                                    Select a product range for which we will add a few examples to your store
+                                {/if}
+                            </span>
+                        </div>
+                        <div class="s-sub-title">
+                            {if $_is_ru}
+                                Для выбранной ниши будут настроены типы товаров со своими наборами характеристик. С помощью характеристик вы сможете подробно описать товары на витрине, настроить фильтры и автоматические рекомендации. Другие типы товаров и характеристики для них можно настроить позже.
+                            {else}
+                                For the selected product range, corresponding product types with their default sets of product features will be added. Features are useful to describe products in the storefront, and to set up filters and automatic recommendations. You can add more product types and features later in settings.
+                            {/if}
+                        </div>
+                        <div class="s-demo-sources-wrapper">
+                            {$_sources_html = []}
+
+                            {$_can_work = $shop_demo_importer_can_work.status}
+                            {$_reason   = $shop_demo_importer_can_work.reason}
+
+                            {if !$_can_work}
+                                <p class="errormsg"><i class="icon16 exclamation"></i> {$_reason}</p>
+                            {/if}
+
+                            {foreach $shop_demo_data_source_list as $_source_id => $_source}
+                                {capture append="_sources_html"}
+                                    <div class="s-source-wrapper">
+                                        <label>
+                                            <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
+                                            {$_source.name|default:''|escape}
+                                        </label>
+                                    </div>
+                                {/capture}
+                            {/foreach}
+
+                            {capture append="_sources_html"}
+                                <div class="s-source-wrapper">
+                                    <label>
+                                        <input type="radio" name="demo_db" value="">
+                                        <span class="bold">
+                                            {if $_is_ru}
+                                                Не добавлять примеры товаров
+                                            {else}
+                                                Do not add product examples
+                                            {/if}
+                                        </span>
+                                    </label>
+                                </div>
+                            {/capture}
+                            {$_half_count = ceil(count($_sources_html)/2)}
+
+                            <div class="s-table-box">
+                                <div class="s-column">
+                                    {foreach $_sources_html as $_html}
+                                        {if $_html@iteration <= $_half_count}
+                                            {$_html}
+                                        {/if}
+                                    {/foreach}
+                                </div>
+                                <div class="s-column">
+                                    {foreach $_sources_html as $_html}
+                                        {if $_html@iteration > $_half_count}
+                                            {$_html}
+                                        {/if}
+                                    {/foreach}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {* IMPORT *}
+                    <div class="s-tutorial-block s-welcome-import">
+                        <div class="s-title">
+                            <img src="{$wa_url}wa-apps/shop/img/backend/tutorial/arrow.red.svg" class="s-arrow" alt=""/>
+                            <span class="s-title-text">
+                                {if $_is_ru}
+                                    Можно бесплатно импортировать данные из вашего старого <span class="nowrap">интернет-магазина</span> — <a href="https://www.webasyst.ru/my/requests/my/" class="js-apply-for-transfer-shop" target="_blank">обратитесь в нашу службу поддержки</a>
+                                {else}
+                                    You may import products from your previous online store, please <a href="https://www.webasyst.com/my/requests/my/" class="js-apply-for-transfer-shop" target="_blank">contact our support team</a> for free help
+                                {/if}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="s-actions-wrapper">
+                    {if empty($_is_complete)}
+                        {$wa->csrf()}
+                        <input type="hidden" name="passed_action" value="welcome">
+                        <input type="submit" class="button green" value="[`Next step`] &rarr;">
+                    {else}
+                        <div style="margin-top: 100px;">
+                            <a class="button green" href="{$actions['products'].href}">[`Next step`] &rarr;</a>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+
+            {if !empty($_is_complete)}
+                <div class="s-tutorial-disabled"></div>
+                <div class="s-tutorial-hint">
+                    <p>
+                        {if $_is_ru}
+                            Выбранные здесь значения можно будет позже изменить в <a href="?action=settings" target="_blank">настройках</a>.
+                        {else}
+                            Values selected here can be changed later in <a href="?action=settings" target="_blank">settings</a>.
+                        {/if}
+                    </p>
+                </div>
+            {/if}
+        </div>
+    </form>
+
+    {* Hack for Firefox, preload image *}
+    <div style="position: absolute; visibility: hidden; width: 0; height: 0; overflow: hidden;"><img src="{$wa_url}wa-apps/shop/img/backend/tutorial/loading.svg?v=1" alt=""></div>
+
+    {capture assign="_loading_html"}
+        <div class="s-loading-wrapper">
+            <div class="s-loading-body">
+                <img class="s-loading-image" src="{$wa_url}wa-apps/shop/img/backend/tutorial/loading.svg?v=1" alt="">
+                <div class="s-loading-text">
+                    {if $_is_ru}
+                        Подождите немного,<br>мы добавляем примеры товаров в ваш интернет-магазин.
+                    {else}
+                        Please wait<br>while product examples are being added to your online store.
+                    {/if}
+                </div>
+            </div>
+        </div>
+    {/capture}
+
+    <script>
+        ( function($) {
+            $("#wa").addClass("s-no-level2");
+
+            var $form = $("#js-welcome-form"),
+                html = {$_loading_html|trim|json_encode},
+                is_loading = false;
+
+            $form.on("submit", function() {
+                if (!is_loading) {
+                    is_loading = true;
+                    var $field = $("input[name=\"demo_db\"]:checked");
+                    if ($field.length) {
+                        var value = $field.val();
+                        if (value) {
+                            $("body").append(html);
+                        }
+                    }
+                }
+            });
+
+        })(jQuery);
+    </script>
+</div>

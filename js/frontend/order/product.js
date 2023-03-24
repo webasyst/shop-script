@@ -32,8 +32,6 @@
 
             // INIT
             that.init();
-
-            console.log( that );
         };
 
         Product.prototype.init = function() {

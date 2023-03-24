@@ -1,0 +1,171 @@
+{* Note: this template is also used in CRM applications. *}
+
+<div class="block double-padded s-unsettled-order-settle-form">
+    <h1><em>[`Unsettled order`]</em> <i class="icon16 loading" style="display: none;"></i></h1>
+    <p><em>[`This order was received via sales channel that did not provide any information on the order content and the customer. If it is a duplicate of an existing order (or a payment confirmation for an existing order), merge orders by <strong>selecting the master order below</strong>.`]</em></p>
+<form method="post" action="?module=workflow&action=perform" id="wf-settle-form">
+    <input type="hidden" name="id" value="{$order_id}">
+    <input type="hidden" name="action_id" value="{$action_id}">
+
+    <ul class="menu-v">
+        {if !empty($unsettled_suggest_orders)}
+            {foreach $unsettled_suggest_orders as $suggest_order}
+                <li title="{$suggest_order.create_datetime_str|escape}">
+                    <label>
+                        <input type="radio" name="master_id" value="{$suggest_order.id|escape}"{if $suggest_order@first} checked="checked"{/if}
+                               data-id="{$suggest_order.id_str}"
+                               data-amount="{wa_currency($suggest_order.total, $suggest_order.currency)|escape}"
+                               data-state="{$suggest_order.state.name|escape}"
+                        >
+
+                        <i class="{$suggest_order.icon}"></i><span class="highlighted" style="{$suggest_order.style}">{$suggest_order.id_str}</span>
+                        <span style="{$suggest_order.style}">{$suggest_order.total_str}</span>
+
+                        <span>{$suggest_order.contact.name}</span>
+
+                        <span class="small">
+                            {$suggest_order.create_datetime_str}
+                        </span>
+
+                        <a href="#/order/{$suggest_order.id}/" class="inline" target="_blank">
+                            <i class="icon10 new-window"></i>
+                        </a>
+
+                    </label>
+                </li>
+            {/foreach}
+        {/if}
+        <li>
+            <label>
+                <input type="radio" name="master_id" value="custom"{if empty($unsettled_suggest_orders)} checked="checked"{/if}>
+                [`Order ID`]:
+            </label>
+            <input type="hidden" name="master_id_custom" data-id="order id_str placeholder">
+            <input type="text" id="wf-settle-form-autocomplete" data-id="order id_str placeholder">
+            <span class="selected"></span>
+        </li>
+    </ul>
+    <br>
+
+    {if !empty($plugins_html)}
+        {foreach $plugins_html as $plugin_id => $html}
+            <!-- {$plugin_id} -->
+            {$html}
+        {/foreach}
+    {/if}
+
+    {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
+    <div class="js-settle-form-actions js-form-footer-actions">
+        <input type="submit" class="button yellow js-submit-button" value="[`Merge orders`]" data-confirm="{'[`This will replace selected order %id% details with the amount (%amount%) and status (%state%) of this unsettled order. Are you sure?`]'|replace:'%state%':"%state% → {$order.state->getName()|default:$order.state_id|default:'error'}"|replace:'%amount%':"%amount% → {$order.total_str|default:'unknown'|strip_tags}"|escape}"
+        > [`or`] <a href="#" class="inline">[`mark this order as settled`]</a>
+    </div>
+
+</form>
+
+
+
+
+<script type="text/javascript">
+    $(function () {
+        var $form = $("#wf-settle-form");
+        var $submit = $form.find(':submit');
+        var $custom = $form.find('input[name="master_id_custom"]:first');
+        var $autocomplete = $form.find('#wf-settle-form-autocomplete');
+        var $checkboxes = $form.find('input[name="master_id"]');
+        var autocomplete_url = '?action=autocomplete&type=order_id&{$filter}&{$order_by}';
+        var $selected = $form.find('li .selected:first');
+
+        var $settle = $form.find('.js-settle-form-actions > a');
+
+        $settle.click(function(){
+            $checkboxes.filter(':checked').attr('checked',null);
+            $form.submit();
+            return false;
+        });
+
+        var last_response = [];
+        $form.submit(function () {
+
+            var $checked = $checkboxes.filter(':checked');
+            if ($checked.val() == 'custom') {
+                $checked = $custom;
+            }
+
+            var id = $checked.data('id');
+
+            var confirm_text = $submit.data('confirm').replace('%id%', $checked.data('id')).replace('%amount%', $checked.data('amount')).replace('%state%', $checked.data('state'));
+            if (id && !confirm(confirm_text)) {
+                return false;
+            }
+
+            var data =$form.serialize();
+            $form.find(':input').attr('disabled','disabled');
+            $('.s-unsettled-order-settle-form i.icon16.loading:first').show();
+            $.post($form.attr('action'), data, function (response) {
+                $form.trigger("formSend"); // this event is used in CRM app
+
+                if ("order" in $) {
+                    if (response.data.params
+                            && response.data.params['workflow.settle_target_id']
+                            && (response.data.params['workflow.settle_target_id'] != response.data.order_id)
+                    ) {
+                        window.location.hash = '/order/' + response.data.params['workflow.settle_target_id'] + '/';
+                    } else {
+                        $.order.reload();
+                    }
+                }
+
+            }, "json");
+            return false;
+        });
+
+        var onSelect = function (autocomplete_item) {
+            var $custom_checkbox = $checkboxes.filter('[value="custom"]');
+
+            $custom_checkbox.attr('checked', 'checked');
+
+            $custom.val(autocomplete_item.id);
+            $autocomplete.val(autocomplete_item.value);
+            $custom.data('id',autocomplete_item.value);
+            $custom.data('amount',autocomplete_item.amount);
+            $custom.data('state',autocomplete_item.state);
+            $selected.html(autocomplete_item.label);
+        };
+
+        $autocomplete.unbind('keydown').bind('keydown', function (event) {
+            if (event.keyCode == 13 || event.keyCode == 10) { // 'Enter'
+                var self = $(this);
+                if (!self.val()) {
+                    self.autocomplete("close");
+                    return false;
+                } else {
+                    if (last_response && $.isArray(last_response) && last_response.length) {
+                        onSelect(last_response[0]);
+                        setTimeout(function () {
+                            self.autocomplete("close");
+                        }, 150);
+                        return false;
+                    }
+                }
+            }
+        });
+
+        $autocomplete.autocomplete({
+            minLength: 1,
+            delay: 300,
+            html: true,
+            select: function (event, ui) {
+                onSelect(ui.item);
+                return false;
+            },
+            source: function (request, response) {
+                $.getJSON(autocomplete_url, request, function (r) {
+                    last_response = r;
+                    response(r);
+                });
+            }
+        });
+    });
+</script>
+
+</div>

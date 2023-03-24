@@ -220,8 +220,34 @@ class shopSetProductsModel extends waModel implements shopProductStorageInterfac
         $sql = "DELETE FROM {$this->table} WHERE product_id=? AND set_id NOT IN (?)";
         $this->exec($sql, array($product->id, ifempty($set_ids, 0)));
 
+        /**
+         * Attaches a product to the sets. Get data before changes
+         *
+         * @param array $set_ids with $new_set_id
+         * @param array|string products_id
+         *
+         * @event products_add_sets.before
+         */
+        $params = array(
+            'set_ids' => $set_ids,
+            'products_id' => (array)$product->id,
+        );
+        wa('shop')->event('products_add_sets.before', $params);
         // Make sure product is belongs to $set_ids
         $set_ids && $this->add(array($product->id), $set_ids);
+        /**
+         * Attaches a product to the sets
+         *
+         * @param array $set_ids with $new_set_id
+         * @param array|string products_id
+         *
+         * @event products_add_sets.after
+         */
+        $params = array(
+            'set_ids' => $set_ids,
+            'products_id' => (array)$product->id,
+        );
+        wa('shop')->event('products_add_sets.after', $params);
 
         return $this->getData($product);
     }

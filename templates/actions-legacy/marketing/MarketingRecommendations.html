@@ -1,0 +1,110 @@
+{* PAGE *}
+<div class="s-recommendations-page block double-padded" id="js-recommendations-page">
+    {* HEADER *}
+    <header class="s-page-header">
+        <h1 class="s-title">[`Automated product recommendations`]</h1>
+    </header>
+
+    {* BODY *}
+    <div class="s-page-body">
+
+        <div class="s-settings-form">
+            <h2 class="black">[`Cross-selling`]</h2>
+            <p class="gray">[`Cross-selling is a technique of getting customer to buy related products to the order, e.g. complementary products and accessories. In Shop-Script, cross-selling mechanism works on a customers-who-bought-this-also-bought model. Shop-Script analyses which products are more likely to be bought with a particular product based on what other customers purchased so far. Related products are suggested to customer based on his current order content.`]</p>
+
+            <div class="fields cross-selling">
+                {foreach $types as $type_id => $type}
+                <div class="field" data-type-id="{$type_id}">
+                    <div class="name">
+                        {shopHelper::getIcon($type.icon)}<strong>{$type.name|escape}</strong>
+                    </div>
+                    <div class="value no-shift">
+                        <div class="float-left s-ibutton-checkbox">
+                            <ul class="menu-h">
+                                <li><input type="checkbox"{if $type.cross_selling} checked{/if} class="i-button-mini"></li>
+                                <li><span class="status {if !$type.cross_selling} s-off{/if}">{if $type.cross_selling}[`On`]{else}[`Off`]{/if}</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="field-settings float-left"{if !$type.cross_selling} style="display:none"{/if}>
+                            <select>
+                                <option value="alsobought" {if !$type.cross_selling || $type.cross_selling == 'alsobought'}selected{/if}>[`Auto (based on what other customers purchased with a particular product)`]</option>
+                                <optgroup label="[`Random products from a category`]">
+                                {foreach $categories as $c}
+                                <option value="category/{$c.id}" {if $type.cross_selling == "category/`$c.id`"}selected{/if}>{str_repeat("&nbsp;&nbsp;", $c.depth)}{$c.name|escape}</option>
+                                {/foreach}
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {foreachelse}
+                    <p><em>[`Create at least one product type to setup product recommendations.`]</em></p>
+                {/foreach}
+
+            </div>
+            <div class="clear-left"></div>
+        </div>
+
+        <div class="s-settings-form">
+            <h2>[`Upselling &amp; Similar products`]</h2>
+            <p class="gray">[`Upselling is a technique of encouraging customer to purchase more expensive products or upgrades. In Shop-Script, up-selling is based on suggesting customers to view and purchase similar and/or alternative products. Similar product list is fetched automatically based on the product that the customer is currently viewing, or recently viewed, and filtering conditions which can be customized individually for every product type.`]</p>
+
+            <div class="fields upselling">
+                {foreach $types as $type}
+                <div class="field" data-type-id="{$type.id}">
+                    <div class="name">
+                        {shopHelper::getIcon($type.icon)}<strong>{$type.name|escape}</strong>
+                    </div>
+                    <div class="value s-ibutton-checkbox">
+                        <ul class="menu-h">
+                            <li><input type="checkbox" {if $type.upselling} checked{/if} class="i-button-mini"></li>
+                            <li><span class="status{if !$type.upselling} s-off{/if}">{if $type.upselling}[`On`]{else}[`Off`]{/if}</span></li>
+                        </ul>
+
+                        <div class="field-settings" {if !$type.upselling}style="display:none"{/if}>
+                            <div class="small">
+                                {$type.upselling_html|default:''}
+                                <a href="javascript:void(0)" class="customize inline-link"><b><i>[`Customize`]</i></b></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {foreachelse}
+                    <p><em>[`Create at least one product type to setup product recommendations.`]</em></p>
+                {/foreach}
+            </div>
+            <div class="clear"></div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+
+            $.shop.marketing.setTitle({_w("Recommendations")|json_encode});
+
+            var sources = [{
+                id: "wa-jquery-slider-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-shop-settings-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/settings/recommendations.js?v={$wa->version()}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                $.settings.recommendationsInit({
+                    $wrapper: $("#js-recommendations-page"),
+                    features: {json_encode($features)},
+                    data: {json_encode($data)},
+                    locales: {
+                        'yes': {_w('Yes')|json_encode},
+                        'no': {_w('No')|json_encode}
+                    }
+                });
+            });
+
+        })(jQuery);
+    </script>
+</div>

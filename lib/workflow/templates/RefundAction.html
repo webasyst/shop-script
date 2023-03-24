@@ -72,14 +72,14 @@
             {strip}
 
             {capture assign="_warning_message"}
-                <div class="s-message yellow"><i class="icon16 exclamation"></i>[`Money will be returned to the customer via the payment gateway.`]</div>
+                <div class="s-message yellow"><i class="fas fa-exclamation-triangle"></i> [`Money will be returned to the customer via the payment gateway.`]</div>
             {/capture}
 
             <div class="s-messages-place">
                 {if !empty($transaction_data)}
                     {$_warning_message}
                 {else}
-                    <div class="s-message red"><i class="icon16 exclamation-red"></i>[`Moneyback via Shop-Script is not supported by the payment gateway. Please use your account on the payment gateway website.`]</div>
+                    <div class="s-message red"><i class="fas fa-exclamation-triangle"></i> [`Moneyback via Shop-Script is not supported by the payment gateway. Please use your account on the payment gateway website.`]</div>
                 {/if}
             </div>
             {/strip}
@@ -150,7 +150,9 @@
                                     {else}
                                         <label for="id-product-checkbox-{$item@iteration}">{$item.name|escape}</label>
                                     {/if}
-                                    <span class="gray">{if $_is_service}[`deleted service`]{else}[`deleted product`]{/if}</span>
+                                    {if !empty($item.product_id) || !empty($item.sku_id)}
+                                        <span class="gray">{if $_is_service}[`deleted service`]{else}[`deleted product`]{/if}</span>
+                                    {/if}
                                 {else}
                                     {if $_is_service}
                                         {$item.name|escape}
@@ -161,7 +163,7 @@
 
                                 {if empty($item.deleted) && $item.type == 'product' && isset($item.current_product_name) && $item.current_product_name|escape != $item.name|escape}
                                     <div class="s-product-previous-name">
-                                        <i class="icon16 exclamation"></i>
+                                        <i class="fas fa-exclamation-triangle"></i>
                                         <span class="gray">[`Current name`]: {$item.current_product_name|escape}</span>
                                     </div>
                                 {/if}
@@ -179,11 +181,11 @@
                             </td>
 
                             <td class="s-amount-column align-right nowrap">
-                                <span class="gray">{wa_currency_html($item.price_with_discount, $currency_info.code)} &times;</span>
+                                <span>{wa_currency_html($item.price_with_discount, $currency_info.code)} &times;</span>
 
                                 <span class="s-visible">
                                     {if !$_is_service}
-                                        <input class="short js-quantity-field {if $_is_disabled}is-disabled{/if}" name="refund_items[{$item.id}][quantity]" type="number" value="0" min="0" max="{$item.quantity}" step="{1 / $item.quantity_denominator}" {if $_is_disabled}disabled{/if}>
+                                        <input class="shortest js-quantity-field {if $_is_disabled}is-disabled{/if}" name="refund_items[{$item.id}][quantity]" type="number" value="0" min="0" max="{$item.quantity}" step="{1 / $item.quantity_denominator}" {if $_is_disabled}disabled{/if}>
                                         <span class="">[`of`] {$item.quantity|floatval}</span>
                                     {else}
                                         <span class="js-quantity-text">{$item.quantity}</span>
@@ -193,7 +195,7 @@
                                     <span class="js-quantity-text">{$item.quantity}</span>
                                 </span>
                                 <div class="s-product-invalid-quantity" style="display: none">
-                                    <i class="icon10 exclamation"></i>
+                                    <i class="fas fa-exclamation-triangle"></i>
                                     <span>[`The precision of this value must not exceed<br>that of the product’s add-to-cart step value.`]</span>
                                 </div>
                             </td>
@@ -224,8 +226,7 @@
                     {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
                     <div class="s-actions js-form-footer-actions">
                         <input class="button {$button_class} js-submit-button" type="submit" value="[`Complete the refund`]">
-                        [`or`]
-                        <a class="js-close-section inline-link" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+                        <a class="js-close-section button light-gray" href="javascript:void(0);">[`Cancel`]</a>
                     </div>
 
                 </div>
@@ -259,7 +260,7 @@
     {if !empty($uncorrected_refund_plugins)}
         {capture assign="_uncorrected_refund_plugins_message"}
             <div class="s-message red">
-                <i class="icon16 exclamation-red"></i>Проверьте, поддерживается ли это действие плагином, который используется в вашем магазине для фискализации чеков.
+                <i class="fas fa-exclamation-triangle"></i> Проверьте, поддерживается ли это действие плагином, который используется в вашем магазине для фискализации чеков.
                 <br><br>
                 Если действие не поддерживается, выполните его также вручную в личном кабинете сервиса фискализации. Если вы не знаете, как это сделать, то не выполняйте это действие с заказом.
                 <br><br>

@@ -76,6 +76,14 @@ class shopCustomersListAction extends waViewAction
 
         $this->view->assign('backend_customers_list', $backend_customers_list_result);
 
+        /*
+         * @event backend_customers
+         * @return array[string]array $return[%plugin_id%] array of html output
+         * @return array[string][string]string $return[%plugin_id%]['sidebar_top_li'] html output
+         * @return array[string][string]string $return[%plugin_id%]['sidebar_section'] html output
+         */
+        $this->view->assign('backend_customers', wa()->event('backend_customers'));
+
     }
 
     public function getHash()
@@ -107,7 +115,7 @@ class shopCustomersListAction extends waViewAction
 
     public function getQuery($prepare_for_view = false)
     {
-        $query = $this->query === null ? ($this->query = urldecode(waRequest::request('search'))) : $this->query;
+        $query = $this->query === null ? ($this->query = urldecode(waRequest::request('search', ''))) : $this->query;
         if ($prepare_for_view) {
             return str_replace('/', "\\/", $query);
         }

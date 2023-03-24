@@ -61,7 +61,7 @@ class shopReviewsAction extends waViewAction
         $review_template = $this->getReviewTemplate();
 
         if ($review_template) {
-            $this->setTemplate('templates/actions/product/ProductReviews.html');
+            $this->setTemplate('product/ProductReviews.html', true);
         }
     }
 

@@ -1,9 +1,5 @@
-{strip}
-
-{$ui_version = $wa->whichUI()|substr:0:1}
-
-{/strip}<!DOCTYPE html>
-<html lang="{if $wa->locale()}{$wa->locale()}{else}en{/if}" class="wa-ui-version-{$ui_version}">
+<!DOCTYPE html>
+<html lang="{if $wa->locale()}{$wa->locale()}{else}en{/if}">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>{$wa->title()|default:$wa->appName()|escape} — {$wa->accountName()}</title>
@@ -13,11 +9,9 @@
     <meta http-equiv="x-ua-compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    {* Принудительно включаем светлую тему *}
-    <script>localStorage.setItem("wa_theme_user_mode", "light");</script>
-
     {* CSS *}
     {$wa->css()}
+    <link href="{$wa_app_static_url}css/backend/sidebar_menu.css?v{$wa->version()}" rel="stylesheet" />
     <link href="{$wa_app_static_url}css/backend/products/wa2/wa2.css?v{$wa->version()}" rel="stylesheet" />
     {* коррекция общего интерфейса раздела под разные версии wa-ui *}
     <link href="{$wa_app_static_url}css/backend/products/ui/ui.css?v={$wa->version(true)}" rel="stylesheet" />
@@ -27,11 +21,10 @@
     <link href="{$wa_app_static_url}css/backend/products/product/product.css?v={$wa->version(true)}" rel="stylesheet" />
 
     {* JS *}
-    <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
-    {* FYI: без мигрейта Datepicker выдает простыню ошибок. *}
-    <script src="{$wa_url}wa-content/js/jquery/jquery-migrate-1.2.1.min.js"></script>
+    <script src="{$wa_url}wa-content/js/jquery/jquery-3.6.0.min.js"></script>
 
     <script src="{$wa_app_static_url}js/backend/products/wa2.js?v{$wa->version()}"></script>
+    {*<script src="{$wa_url}wa-content/js/jquery-wa/wa.js?v={$wa->version(true)}"></script>*}
 
     <script src="{$wa_app_static_url}js/backend/products/products.js?v{$wa->version()}"></script>
     <script src="{$wa_url}wa-content/js/fontawesome/fontawesome-all.min.js?v={$wa->version(true)}"></script>
@@ -58,14 +51,14 @@
 
     {* Диалон уведомления об удалённом продукте *}
     {capture assign="_dialog_deleted_product"}
-        <div class="wa-dialog s-deleted-product-dialog" id="js-deleted-product-dialog">
+        <div class="dialog s-deleted-product-dialog" id="js-deleted-product-dialog">
             <div class="dialog-background"></div>
             <div class="dialog-body">
                 <div class="dialog-header">
                     <h2>[`The product has been deleted.`]</h2>
                 </div>
                 <div class="dialog-footer">
-                    <button class="js-dialog-close wa-button gray" type="button">[`Close`]</button>
+                    <button class="js-dialog-close button gray" type="button">[`Close`]</button>
                 </div>
             </div>
         </div>
@@ -73,9 +66,9 @@
 
     <script>
         ( function($) {
-            var template = {$_dialog_deleted_product|json_encode};
+            const template = {$_dialog_deleted_product|json_encode};
             $.wa_shop_products.showDeletedProductDialog = function() {
-                var url = "{$wa_app_url}products/";
+                const url = "{$wa_app_url}products/";
                 $.waDialog({
                     html: template,
                     onClose: function() {
@@ -106,19 +99,21 @@
     </div>
 
     {capture assign="_confirm_dialog"}
-        <div class="wa-dialog">
+        <div class="dialog">
             <div class="dialog-background"></div>
             <div class="dialog-body">
-                <div class="dialog-header">
-                    <h2>[`Save modified data before leaving?`]</h2>
-                </div>
+                <h2 class="dialog-header">[`Save modified data before leaving?`]</h2>
                 <div class="dialog-content">
                     <p>[`Your changes will be lost if you do not save them.`]</p>
                 </div>
+                <div class="hidden dialog-content js-confirmation-type-media">
+                    <p>[`Your changes will be lost if you do not save them.`]
+                        [`Uploaded images are always saved until you delete them.`]</p>
+                </div>
                 <div class="dialog-footer">
-                    <button class="js-save-button wa-button yellow" type="button">[`Save`]</button>
-                    <button class="js-leave-button wa-button gray" type="button">[`Leave without saving`]</button>
-                    <button class="js-dialog-close wa-button blue" type="button">[`Stay`]</button>
+                    <button class="js-save-button button yellow" type="button">[`Save`]</button>
+                    <button class="js-leave-button button gray" type="button">[`Leave without saving`]</button>
+                    <button class="js-dialog-close button blue" type="button">[`Stay`]</button>
                 </div>
             </div>
         </div>
@@ -131,7 +126,7 @@
     <script>
         ( function($) {
 
-            var sections = {
+            const sections = {
                 "products": {
                     id: "products",
                     content_selector: "#js-products-page-content"
@@ -142,7 +137,7 @@
                 }
             }
 
-            var routes = {
+            const routes = {
                 "/products/"              : sections["products"],
                 "/products/categories/"   : sections["products"],
                 "/products/sets/"         : sections["products"],
@@ -168,7 +163,7 @@
                 sections: sections,
                 routes: routes,
                 onClick: function(node, url) {
-                    var $link = $(node);
+                    const $link = $(node);
                     if ($link.hasClass("js-disable-router") || $link.data("router-disable")) {
                         return false;
                     }

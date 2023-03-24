@@ -172,13 +172,20 @@ class shopOrderModel extends waModel
      */
     public function getStateCounters($state_id = null)
     {
-        $where = "";
+        $where = ['1=1'];
+        $left_join = '';
         if ($state_id !== null) {
-            $where = "WHERE ".$this->getWhereByField('state_id', $state_id);
+            $where[] = $this->getWhereByField('state_id', $state_id, 'o');
         }
-        $sql = "
-            SELECT state_id, COUNT(state_id) cnt FROM `{$this->table}`
-            {$where} GROUP BY state_id";
+        if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
+            $where[] = $this->getWhereByField('courier_contact_id', wa()->getUser()->getId(), 'o');
+            $left_join = "LEFT JOIN shop_order_log ol ON o.id = ol.order_id AND ol.action_id IN ('complete', 'delete')";
+            $where[] = "(ol.id IS NULL OR datetime >= '" . date('Y-m-d H:i:s', time() - 3600 * 24) . "')";
+        }
+        $where_str = join(' AND ', $where);
+        $sql = "SELECT o.state_id, COUNT(o.state_id) cnt FROM `{$this->table}` o
+            $left_join
+            WHERE {$where_str} GROUP BY o.state_id";
         $r = $this->query($sql);
         if ($state_id !== null) {
             $cnt = $r->fetchField('cnt');
@@ -194,6 +201,30 @@ class shopOrderModel extends waModel
         $counters = $r->fetchAll('state_id', true) + $counters;
 
         return $counters ? $counters : array();
+    }
+
+    /**
+     * @return int
+     */
+    public function countByField($field, $value = null)
+    {
+        if ($field == 'all') {
+            $where = ['1=1'];
+        } else {
+            $where = [$this->getWhereByField($field, $value, 'o')];
+        }
+        $left_join = '';
+        if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
+            $where[] = $this->getWhereByField('courier_contact_id', wa()->getUser()->getId(), 'o');
+            $left_join = "LEFT JOIN shop_order_log ol ON o.id = ol.order_id AND ol.action_id IN ('complete', 'delete')";
+            $where[] = "(ol.id IS NULL OR datetime >= '" . date('Y-m-d H:i:s', time() - 3600 * 24) . "')";
+        }
+        $where_str = join(' AND ', $where);
+        $sql = "SELECT COUNT(DISTINCT o.id) cnt FROM `{$this->table}` o
+            $left_join
+            WHERE $where_str";
+        $count = $this->query($sql)->fetchField('cnt');
+        return $count ? $count : 0;
     }
 
     public function getStorefrontCounters()

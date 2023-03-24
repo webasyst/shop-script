@@ -27,7 +27,7 @@ return array(
     'review_highlight_time'    => 180,
     'products_default_view'    => 'thumbs',/* 'table' or 'thumbs' */
     'orders_default_view'      => 'split',
-    'orders_per_page'          => array('split' => 15, 'table' => 30),
+    'orders_per_page'          => array('split' => 15, 'table' => 30, 'kanban' => 50),
     'product_orders_per_page'  => 30,
     'types_per_page'           => 25,
     'features_per_page'        => 200,

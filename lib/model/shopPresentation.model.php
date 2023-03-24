@@ -453,6 +453,7 @@ class shopPresentationModel extends waModel
                 'data' => ['settings' => ['visible_count' => 3, 'format' => 'origin']],
             ], [
                 'column_type' => 'sets',
+                'width' => 163,
                 'data' => ['settings' => ['visible_count' => 3, 'format' => 'origin']],
             ], [
                 'column_type' => 'tags',
@@ -488,6 +489,18 @@ class shopPresentationModel extends waModel
         $this->columnsModel()->multipleInsert($prices_columns);
         $this->columnsModel()->multipleInsert($catalog_columns);
         $this->columnsModel()->multipleInsert($publication_columns);
+
+        /**
+         * @event backend_presentation_user_init
+         *
+         * First-time initialization of product presentations for given backend user.
+         *
+         * @since 10.0.0
+         */
+        wa('shop')->event('backend_presentation_user_init', ref([
+            'contact_id' => $contact_id,
+            'presentation_ids' => [$prices_id, $catalog_id, $publication_id],
+        ]));
 
         return [$prices_id, $catalog_id, $publication_id];
     }

@@ -23,7 +23,7 @@
 
 {/strip}
 
-<div class="s-compatibility-settings-page blank block double-padded" id="js-compatibility-settings-page">
+<div class="s-compatibility-settings-page" id="js-compatibility-settings-page">
     {* HEADER *}
     <div class="s-page-header">
         <h1 class="s-title">{$_page_title}</h1>
@@ -118,7 +118,7 @@
                             </div>
                             {if !empty($_item["compatibility_description"])}
                                 <div class="s-toggle s-text-hint">
-                                    <a class="js-toggle" href="javascript:void(0);">{$_locales["show"]}</a>
+                                    <a class="js-toggle semibold" href="javascript:void(0);">{$_locales["show"]}</a>
                                 </div>
                                 <div class="s-description">{$_item["compatibility_description"]}</div>
                             {/if}
@@ -152,7 +152,7 @@
                                     </div>
                                 {/if}
                                 <div>
-                                    <a class="js-interaction-dialog" href="javascript:void(0);">[`Change`]</a>
+                                    <a class="js-interaction-dialog semibold small" href="javascript:void(0);">[`Change`]</a>
                                 </div>
                             {/if}
                         {else}
@@ -163,9 +163,11 @@
                 <td>
                     {if !in_array($_system_type, ['shipping', 'payment']) && isset($_item["enabled"]) && $_type === "plugin"}
                         <div class="s-checkbox-section">
-                            <div class="s-checkbox-wrapper">
-                                <input class="js-ibutton" type="checkbox" {if $_item["enabled"] === "1"}checked{/if}>
-                                <div class="s-label js-label s-text-hint">
+                            <div class="align-center s-checkbox-wrapper">
+                                <span class="js-switch switch smaller">
+                                    <input type="checkbox" {if $_item["enabled"] === "1"}checked{/if}>
+                                </span>
+                                <div class="js-label small desktop-and-tablet-only" data-active-text="{$_locales['on']}" data-inactive-text="{$_locales['off']}">
                                     {if $_item["enabled"] === "1"}
                                         {$_locales["on"]}
                                     {else}
@@ -180,179 +182,188 @@
         {/function}
 
         {if $installer_enable}
-        <table class="s-groups-table">
-            <thead>
-                <tr class="s-table-header">
-                    <th class="s-column-icon"></th>
-                    <th class="s-column-name"></th>
-                    <th class="s-column-version">[`Version`]</th>
-                    <th class="s-column-compatibility">[`Functionality support`]</th>
-                    <th class="s-column-interaction">[`Interaction`]</th>
-                    <th class="s-column-toggle"></th>
-                </tr>
-            </thead>
-            <tbody>
-                {if !empty($groups["delivery"])}
-                    <tr class="s-group-row">
-                        <td class="s-column-icon">
-                            <div class="s-group-icon">
-                                <span class="icon size-48"><svg><use xlink:href='{$_sprite_url}#truck'></use></svg></span>
-                            </div>
-                        </td>
-                        <td class="s-column-group-name">
-                            <div class="s-group-name s-text-header">[`Shipping`]</div>
-                        </td>
-                        <td colspan="4"></td>
-                    </tr>
-
-                    {foreach $groups["delivery"] as $_plugin}
-                        {_render_item _item=$_plugin _type="plugin" _system_type="shipping"}
-                    {/foreach}
-                {/if}
-                {if !empty($groups["payment"])}
-                    <tr class="s-group-row">
-                        <td class="s-column-icon">
-                            <div class="s-group-icon">
-                                <span class="icon size-48"><svg><use xlink:href='{$_sprite_url}#credit-card'></use></svg></span>
-                            </div>
-                        </td>
-                        <td class="s-column-group-name">
-                            <div class="s-group-name s-text-header">[`Payment`]</div>
-                        </td>
-                        <td colspan="4"></td>
-                    </tr>
-
-                    {foreach $groups["payment"] as $_plugin}
-                        {_render_item _item=$_plugin _type="plugin" _system_type="payment"}
-                    {/foreach}
-                {/if}
-                {if !empty($groups["apps"])}
-                    {foreach $groups["apps"] as $_app}
-                        <tr class="s-app-row is-app" data-app-id="{$_app.id|escape}">
-                            <td colspan="2">
-                                <div class="s-name-section">
-                                    <div class="s-image">
-                                        <img src="{$_app["image"]}" alt="">
-                                    </div>
-                                    <div class="s-name-wrapper">
-                                        <div class="s-type">[`App`]</div>
-                                        <div class="s-name s-text-header">
-                                            <a href="{$_app["link_view"]}">{$_app["name"]|escape}</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="s-version-section">
-                                    {if version_compare($_app['version_installed'], $_app['version_latest']) >= 0}
-                                        <div class="s-version-wrapper">
-                                            <div class="s-version">{$_app['version_installed']}</div>
-                                            <div class="s-description">[`Up-to-date version is installed.`]</div>
-                                        </div>
-                                    {else}
-                                        <div class="s-version-wrapper is-old">
-                                            <div class="s-version">{$_app["version_installed"]}</div>
-                                            <div class="s-description">[`Outdated version is installed.`]</div>
-                                        </div>
-                                        <div class="s-version-wrapper">
-                                            <div class="s-version">{$_app["version_latest"]}</div>
-                                            <div class="s-description">
-                                                [`Up-to-date version`]
-                                                <a href="{$_app["link_update"]}">[`Update`]</a>
-                                            </div>
-                                        </div>
-                                    {/if}
-                                </div>
-                            </td>
-                            {if $_app.id === 'shop'}
-                            <td colspan="3"></td>
-                            {else}
-                            <td>
-                                {if $_app.id !== 'shop'}
-                                <div class="s-compatibility-section">
-                                    <div class="s-compatibility-wrapper">
-                                        <div class="s-image">
-                                            <span class="icon size-16">
-                                                {if $_app["compatibility"] === "0"}
-                                                    <svg class="color-red"><use xlink:href='{$_sprite_url}#times'></use></svg>
-                                                {elseif $_app["compatibility"] === "1"}
-                                                    <svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg>
-                                                {elseif $_app["compatibility"] === "2"}
-                                                    <svg class="color-yellow"><use xlink:href='{$_sprite_url}#warning'></use></svg>
-                                                {else}
-                                                    <svg class="color-yellow"><use xlink:href='{$_sprite_url}#warning'></use></svg>
-                                                {/if}
-                                            </span>
-                                        </div>
-                                        <div class="s-text-wrapper">
-                                            <div class="s-text">
-                                                {if $_app["compatibility"] === "0"}
-                                                    <span class="color-gray">[`No support`]</span>
-                                                {elseif $_app["compatibility"] === "1"}
-                                                    [`Full support`]
-                                                {elseif $_app["compatibility"] === "2"}
-                                                    [`Partial support`]
-                                                {else}
-                                                    [`No information`]
-                                                {/if}
-                                            </div>
-                                            {if !empty($_app["compatibility_description"])}
-                                                <div class="s-toggle s-text-hint">
-                                                    <a class="js-toggle" href="javascript:void(0);">{$_locales["show"]}</a>
-                                                </div>
-                                                <div class="s-description">{$_app["compatibility_description"]}</div>
-                                            {/if}
-                                        </div>
-                                    </div>
-                                </div>
-                                {/if}
-                            </td>
-                            <td>
-                                <div class="s-interaction-section">
-                                    <div>[`No settings`]</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="s-checkbox-section">
-                                    <div class="s-checkbox-wrapper">
-                                        <input class="js-ibutton" type="checkbox" {if $_app["enabled"] === true}checked{/if}>
-                                        <div class="s-label js-label s-text-hint">
-                                            {if $_app["enabled"] === true}
-                                                {$_locales["on"]}
-                                            {else}
-                                                {$_locales["off"]}
-                                            {/if}
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            {/if}
+        <div class="fields">
+            <div class="fields-group">
+                <table class="s-groups-table">
+                    <thead>
+                        <tr class="s-table-header">
+                            <th class="s-column-icon"></th>
+                            <th class="s-column-name"></th>
+                            <th class="s-column-version">[`Version`]</th>
+                            <th class="s-column-compatibility">[`Functionality support`]</th>
+                            <th class="s-column-interaction">[`Interaction`]</th>
+                            <th class="s-column-toggle"></th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        {if !empty($groups["delivery"])}
+                            <tr class="s-group-row">
+                                <td class="s-column-icon">
+                                    <div class="s-group-icon">
+                                        <span class="icon size-48"><svg><use xlink:href='{$_sprite_url}#truck'></use></svg></span>
+                                    </div>
+                                </td>
+                                <td class="s-column-group-name">
+                                    <div class="s-group-name s-text-header">[`Shipping`]</div>
+                                </td>
+                                <td colspan="4"></td>
+                            </tr>
 
-                        {foreach $_app["plugins"] as $_plugin}
-                            {_render_item _item=$_plugin _type="plugin" _system_type="" _app_id=$_app["id"]}
-                        {/foreach}
-                    {/foreach}
-                {/if}
-                {if !empty($groups["themes"])}
-                    <tr class="s-group-row">
-                        <td class="s-column-icon">
-                            <div class="s-group-icon">
-                                <span class="icon size-48"><svg><use xlink:href='{$_sprite_url}#palette'></use></svg></span>
-                            </div>
-                        </td>
-                        <td class="s-column-group-name">
-                            <div class="s-group-name s-text-header">[`Design themes`]</div>
-                        </td>
-                        <td colspan="4"></td>
-                    </tr>
+                            {foreach $groups["delivery"] as $_plugin}
+                                {_render_item _item=$_plugin _type="plugin" _system_type="shipping"}
+                            {/foreach}
+                        {/if}
+                        {if !empty($groups["payment"])}
+                            <tr class="s-group-row">
+                                <td class="s-column-icon">
+                                    <div class="s-group-icon">
+                                        <span class="icon size-48"><svg><use xlink:href='{$_sprite_url}#credit-card'></use></svg></span>
+                                    </div>
+                                </td>
+                                <td class="s-column-group-name">
+                                    <div class="s-group-name s-text-header">[`Payment`]</div>
+                                </td>
+                                <td colspan="4"></td>
+                            </tr>
 
-                    {foreach $groups["themes"] as $_theme}
-                        {_render_item _item=$_theme _type="theme"}
-                    {/foreach}
-                {/if}
-            </tbody>
-        </table>
+                            {foreach $groups["payment"] as $_plugin}
+                                {_render_item _item=$_plugin _type="plugin" _system_type="payment"}
+                            {/foreach}
+                        {/if}
+                        {if !empty($groups["apps"])}
+                            {foreach $groups["apps"] as $_app}
+                                <tr class="s-app-row is-app" data-app-id="{$_app.id|escape}">
+                                    <td colspan="2">
+                                        <div class="s-name-section">
+                                            <div class="s-image">
+                                                <img src="{$_app["image"]}" alt="">
+                                            </div>
+                                            <div class="s-name-wrapper">
+                                                <div class="s-type">[`App`]</div>
+                                                <div class="s-name s-text-header">
+                                                    <a href="{$_app["link_view"]}">{$_app["name"]|escape}</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="s-version-section">
+                                            {if version_compare($_app['version_installed'], $_app['version_latest']) >= 0}
+                                                <div class="s-version-wrapper">
+                                                    <div class="s-version">{$_app['version_installed']}</div>
+                                                    <div class="s-description">[`Up-to-date version is installed.`]</div>
+                                                </div>
+                                            {else}
+                                                <div class="s-version-wrapper is-old">
+                                                    <div class="s-version">{$_app["version_installed"]}</div>
+                                                    <div class="s-description">[`Outdated version is installed.`]</div>
+                                                </div>
+                                                <div class="s-version-wrapper">
+                                                    <div class="s-version">{$_app["version_latest"]}</div>
+                                                    <div class="s-description">
+                                                        [`Up-to-date version`]
+                                                        <a href="{$_app["link_update"]}">[`Update`]</a>
+                                                    </div>
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    </td>
+                                    {if $_app.id === 'shop'}
+                                    <td colspan="3"></td>
+                                    {else}
+                                    <td>
+                                        {if $_app.id !== 'shop'}
+                                        <div class="s-compatibility-section">
+                                            <div class="s-compatibility-wrapper">
+                                                <div class="s-image">
+                                                    <span class="icon size-16">
+                                                        {if $_app["compatibility"] === "0"}
+                                                            <svg class="color-red"><use xlink:href='{$_sprite_url}#times'></use></svg>
+                                                        {elseif $_app["compatibility"] === "1"}
+                                                            <svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg>
+                                                        {elseif $_app["compatibility"] === "2"}
+                                                            <svg class="color-yellow"><use xlink:href='{$_sprite_url}#warning'></use></svg>
+                                                        {else}
+                                                            <svg class="color-yellow"><use xlink:href='{$_sprite_url}#warning'></use></svg>
+                                                        {/if}
+                                                    </span>
+                                                </div>
+                                                <div class="s-text-wrapper">
+                                                    <div class="s-text">
+                                                        {if $_app["compatibility"] === "0"}
+                                                            <span class="color-gray">[`No support`]</span>
+                                                        {elseif $_app["compatibility"] === "1"}
+                                                            [`Full support`]
+                                                        {elseif $_app["compatibility"] === "2"}
+                                                            [`Partial support`]
+                                                        {else}
+                                                            [`No information`]
+                                                        {/if}
+                                                    </div>
+                                                    {if !empty($_app["compatibility_description"])}
+                                                        <div class="s-toggle s-text-hint">
+                                                            <a class="js-toggle semibold" href="javascript:void(0);">{$_locales["show"]}</a>
+                                                        </div>
+                                                        <div class="s-description">{$_app["compatibility_description"]}</div>
+                                                    {/if}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/if}
+                                    </td>
+                                    <td>
+                                        <div class="s-interaction-section">
+                                            <div>[`No settings`]</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="s-checkbox-section">
+                                            <div class="s-checkbox-section">
+                                                <div class="align-center s-checkbox-wrapper">
+                                                    <span class="js-switch switch smaller">
+                                                        <input type="checkbox" {if $_app["enabled"] === true}checked{/if}>
+                                                    </span>
+                                                    <div class="js-label small desktop-and-tablet-only" data-active-text="{$_locales['on']}" data-inactive-text="{$_locales['off']}">
+                                                        {if $_app["enabled"] === true}
+                                                            {$_locales["on"]}
+                                                        {else}
+                                                            {$_locales["off"]}
+                                                        {/if}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    {/if}
+                                </tr>
+
+                                {foreach $_app["plugins"] as $_plugin}
+                                    {_render_item _item=$_plugin _type="plugin" _system_type="" _app_id=$_app["id"]}
+                                {/foreach}
+                            {/foreach}
+                        {/if}
+                        {if !empty($groups["themes"])}
+                            <tr class="s-group-row">
+                                <td class="s-column-icon">
+                                    <div class="s-group-icon">
+                                        <span class="icon size-48"><svg><use xlink:href='{$_sprite_url}#palette'></use></svg></span>
+                                    </div>
+                                </td>
+                                <td class="s-column-group-name">
+                                    <div class="s-group-name s-text-header">[`Design themes`]</div>
+                                </td>
+                                <td colspan="4"></td>
+                            </tr>
+
+                            {foreach $groups["themes"] as $_theme}
+                                {_render_item _item=$_theme _type="theme"}
+                            {/foreach}
+                        {/if}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         {else}
             {$_inst_title}
         {/if}
@@ -372,14 +383,6 @@
                 id: "wa-compatibility-settings-js",
                 type: "js",
                 uri: "{$wa_app_static_url}js/backend/settings/compatibility/compatibility.js?v={$wa->version()}"
-            }, {
-                id: "wa-dialog-css",
-                type: "css",
-                uri: "{$wa_url}wa-content/js/dialog/dialog.css?v={$wa->version(true)}"
-            }, {
-                id: "wa-dialog-js",
-                type: "js",
-                uri: "{$wa_url}wa-content/js/dialog/dialog.js?v={$wa->version(true)}"
             }];
 
             $.shop.loadSources(sources).then(init, function() {

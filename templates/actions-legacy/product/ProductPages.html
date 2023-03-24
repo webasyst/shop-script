@@ -1,0 +1,43 @@
+<script src="{$wa_app_static_url}js-legacy/live.dragndrop.js?v={$wa->version()}" type="text/javascript"></script>
+<script src="{$wa_app_static_url}js-legacy/product/pages.js?v={$wa->version()}" type="text/javascript"></script>
+
+<div class="s-pages">
+    <div class="sidebar left250px s-internal-sidebar" style="min-height: 300px;">
+        <div class="block block-pages">
+          <ul class="menu-v collapsible with-icons">
+            <li class="drag-newposition"></li>
+            {foreach $pages as $p}
+                <li class="dr {if $p@first}selected{/if}" id="page-{$p.id}">
+                    <a class="s-page-link" href="#/product/{$product_id}/edit/pages/{$p.id}/">
+                        <i class="icon16 notebook"></i>{$p.name|escape}
+                        <span class="hint">/{$p.url|escape}</span>
+                        {if $p.status == shopProductPagesModel::STATUS_DRAFT} <span class="s-page-draft">[`draft`]</span>{/if}
+                    </a>
+                </li>
+                <li class="drag-newposition"></li>
+            {/foreach}
+            <li class="top-padded selected s-add-page"><a class="s-page-link small" href="#/product/{$product_id}/edit/pages"><i class="icon10 add"></i>[s`New page`]</a></li>
+          </ul>
+          <div class="block top-padded align-center">
+            <p class="hint">[`Product subpages are great for publishing product extra information such as manuals, galleries, honorable mentions, etc.`]</p>
+          </div>
+        </div>
+    </div>
+    <div id="s-page-container" class="content bordered-left blank left250px shadowed">
+        <div  class="block double-padded">
+            [`Loading`]... <i class="icon16 loading"></i>
+        </div>
+        <div class="clear"></div>
+    </div>
+
+<script type="text/javascript">
+    $.product_pages.init({
+        container: '.s-product-form.pages',
+        product_id: {$product_id},
+        page_id: '{$page_id}',
+        count: {$count}
+    });
+    $.wa.locale['New page'] = '[s`New page`]';
+</script>
+
+</div>

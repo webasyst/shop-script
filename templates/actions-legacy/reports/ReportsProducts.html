@@ -1,0 +1,277 @@
+<div class="content">
+    <div class="block double-padded">
+
+        {if $graph_data === null}
+            <h1>
+                [`Best selling products and services`]
+                <span class="hint" id="period-description">[`Custom range`]</span>
+            </h1>
+
+            <ul class="menu-h s-product-reports">
+                <li class="selected"><a href="#/products/bestsellers/">[`Best sellers`]</a></li>
+                <li><a href="#/products/assets/">[`Assets`]</a></li>
+                <li><a href="#/products/whattosell/">[`What to sell`]</a></li>
+            </ul>
+        {else}
+            <div class="block half-padded float-right">
+                <ul class="menu-h">
+                    <li><a href="?module=reports&action=exportsales&{http_build_query($request_options)}"><i class="icon16 ss excel"></i>[`Download chart data in CSV`]</a></li>
+                </ul>
+            </div>
+
+            <h1>
+                [`Sales`]
+                <span class="hint" id="period-description">[`Custom range`]</span>
+            </h1>
+
+            <div class="graph-wrapper">
+                <script>
+                    (function() {
+                        if (typeof showSalesGraph == 'undefined') {
+                            return $.ajax({
+                                  dataType: "script",
+                                  url: "{$wa_url}wa-apps/shop/js-legacy/charts/d3chart-sales.js?{$wa->version()}",
+                                  cache: true
+                            });
+                        } else {
+                            return $.Deferred(function(d) {
+                                d.resolve();
+                            });
+                        }
+                    })().done(function() {
+                        showSalesGraph({json_encode($graph_data)}, {wa_currency_html(0, $def_cur)|replace:'0':'%s'|json_encode});
+                    });
+                </script>
+                <!-- CHART WRAPPERS -->
+                <div class="sales-wrapper"></div>
+                <div class="hint-wrapper" id="hint-wrapper"></div>
+            </div>
+        {/if}
+
+
+
+        <div class="clear-both"></div>
+
+        {*
+         * Right sidebar with a pie chart
+         *}
+        <div class="sidebar right300px">
+
+            {if !empty($pie_data)}
+                <div class="graph-wrapper">
+                    <div class="pie-wrapper"></div>
+                    <div class="hint-wrapper"></div>
+                </div>
+                <script>
+                    (function() {
+                        if (typeof showPieGraph == 'undefined') {
+                            return $.ajax({
+                                dataType: "script",
+                                url: "{$wa_url}wa-apps/shop/js-legacy/charts/d3chart-pie.js?{$wa->version()}",
+                                cache: true
+                            });
+                        } else {
+                            return $.Deferred(function(d) {
+                                d.resolve();
+                            });
+                        }
+                    })().done(function() {
+                        showPieGraph({json_encode($pie_data)}, {
+                            color_type: "products"
+                        });
+                    });
+                </script>
+            {/if}
+        </div>
+
+        {*
+         * Content on the left
+         *}
+        <div class="content right300px">
+
+            {if $top_products}
+                {*
+                 * Best selling products table
+                 *}
+                <table id="s-report-products-bestsellers-table" class="zebra">
+                    <thead>
+                        <tr class="white s-header-row">
+                            <th style="width:50px;"></th>
+                            <th></th>
+                            <th class="align-right">
+                                {if $request_options.sort == 'quantity'}
+                                    [`Quantity`]<i class="icon16 darr"></i>
+                                {else}
+                                    <a href="#/products/bestsellers/sort=quantity/">[`Quantity`]</a>
+                                {/if}
+                            </th>
+                            <th class="align-right">
+                                {if $request_options.sort == 'sales'}
+                                    [`Sales`]<i class="icon16 darr"></i>
+                                {else}
+                                    <a href="#/products/bestsellers/sort=sales/">[`Sales`]</a>
+                                {/if}
+                            </th>
+                            <th class="s-wider-cell align-right">
+                                {if $request_options.sort == 'profit'}
+                                    [`Profit`]<i class="icon16 darr"></i>
+                                {else}
+                                    <a href="#/products/bestsellers/sort=profit/">[`Profit`]</a>
+                                {/if}
+                            </th>
+                            <th style="width:100px;"></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {if $wa->shop->config('enable_2x')}
+                            {$size = '48x48@2x'}
+                        {else}
+                            {$size = '48x48'}
+                        {/if}
+                        {$rows_show_immidiately = 10}
+                        {foreach $top_products as $p}
+                        {if $p@index == $rows_show_immidiately - 1}
+                            <tr class="white">
+                                <td></td>
+                                <td style="height:48px;">
+                                    <a id="show-all-rows-link" class="gray inline-link" href="javascript:void(0)"><b><i>[`Show more products`]</i></b></a>
+                                </td>
+                                <td class="align-right"></td>
+                                <td class="s-wider-cell align-right"></td>
+                                <td class="s-wider-cell"></td>
+                            </tr>
+                        {/if}
+                        <tr{if $p@index >= $rows_show_immidiately - 1} style="display:none;"{/if}>
+                            <td>
+                                <a href="{shopHelper::getBackendEditorUrl($p.id, 'prices')}">
+                                    {$wa->shop->getProductImgHtml($p, $size, ['height' => 48, 'width' => 48])}
+                                </a>
+                            </td>
+                            <td><a href="{shopHelper::getBackendEditorUrl($p.id, 'prices')}">{$p.name|escape}</a></td>
+                            <td class="align-right">
+                                <span>
+                                    {$p.quantity}
+                                </span>
+                            </td>
+                            <td class="align-right">
+                                <span title="{sprintf_wp('Subtotal %1$s &minus; discount %2$s', wa_currency($p.sales_subtotal, $def_cur), wa_currency($p.discount, $def_cur))}">
+                                    {wa_currency_html($p.sales, $def_cur)}
+                                </span>
+                            </td>
+                            <td class="s-wider-cell align-right">
+                                <span title="{sprintf_wp('Total sales %1$s &minus; Purchase expense %2$s', wa_currency($p.sales, $def_cur), wa_currency($p.purchase, $def_cur))}">
+                                    {wa_currency_html($p.profit, $def_cur)}
+                                </span>
+                            </td>
+                            <td class="s-wider-cell" style="background: #fff;"{if $p.sales - $p.profit > 0} title="{sprintf('[`Profit percentage = Net profit (%s) / Cost price (%s) = %s%%`]', wa_currency($p.profit, $def_cur), wa_currency($p.sales - $p.profit, $def_cur), round( 100 * $p.profit / ($p.sales - $p.profit)) )}"{/if}>
+                                {strip}<div class="s-bar" style="width:{$p.sales_percent}px;">
+                                    <div class="s-bar2" style="width:{$p.profit_percent}px;"></div>
+                                </div>{/strip}
+                            </td>
+                        </tr>
+                        {/foreach}
+                    </tbody>
+                </table>
+
+
+                {*
+                 * Best selling services table
+                 *}
+                <br><br>
+
+                <h2>[`Services`]</h2>
+
+                {if $top_services}
+                    <table class="zebra" id="s-report-products-services-table">
+                        {foreach $top_services as $s}
+                        <tr>
+                            <td><a href="?action=products#/services/{$s.id}/">{$s.name|escape}</a></td>
+                            <td class="s-wider-cell align-right">+{wa_currency_html($s.total, $def_cur)}</td>
+                            <td class="s-wider-cell" style="background: #fff;">
+                                <div class="s-bar" style="width:{$s.total_percent/2}px;"></div>
+                            </td>
+                        </tr>
+                        {/foreach}
+                        <tr class="white">
+                            <td></td>
+                            <td class="s-wider-cell bold align-right">+{wa_currency_html($service_total_val, $def_cur)}</td>
+                            <td class="s-wider-cell hint">{sprintf('[`<strong>+%s%%</strong> to average order value`]', $service_total_percent)}</td>
+                        </tr>
+                    </table>
+                {else}
+                    <p style="margin-top:10px;">{sprintf('[`On the selected time period, there were no orders with <a href="%s">extra services</a>.`]', $wa_app_url|cat:'?action=products#/services/')}</p>
+                {/if}
+
+            {else}
+                <p style="margin-top:10px;">[`There were no products sold on the selected period.`]</p>
+            {/if}
+
+        </div>
+
+        <div class="clear-both"></div>
+    </div>
+</div>
+
+<div class="hidden">
+    <ul class="menu-h">
+        <li>
+            <select id="s-products-report-storefront-selector" class="storefront-selector">
+                <option value="">[`All channels`]</option>
+                {foreach $sales_channels as $id => $name}
+                    <option value="{$id|escape}"{if ifset($request_options.sales_channel) == $id} selected{/if}>{$name|escape}</option>
+                {/foreach}
+            </select>
+        </li>
+    </ul>
+</div>
+
+<script>(function() { "use strict";
+    {if $graph_data === null}
+        document.title = "[`Best selling products and services`] — {$wa->accountName(false)|escape:javascript}";
+    {else}
+        document.title = "[`Sales`] — {$wa->accountName(false)|escape:javascript}";
+        $.wa.locale = $.extend($.wa.locale, {
+            'Sales': "[`Sales`]",
+            'Profit': "[`Profit`]"
+        });
+    {/if}
+
+    var request_params = {json_encode($request_options)};
+    var action_url = '?module=reportsproducts&action=default';
+
+    // Storefront selector logic
+    (function() { "use strict";
+
+        var $storefront_selector = $('#s-products-report-storefront-selector').removeAttr('id');
+
+        // Move selector into the top menu wrapper
+        $('#s-reports-custom-controls').empty().append($storefront_selector.closest('ul'));
+
+        // Reload page when user changes something in the selector
+        $storefront_selector.change(function() {
+            $storefront_selector.after('<i class="icon16 loading"></i>');
+            $.post(action_url, $.extend({ }, request_params, { sales_channel: $storefront_selector.val() }), function(r) {
+                $('#reportscontent').html(r);
+            });
+        });
+
+    })();
+
+    // Human-readable period description in page header
+    (function() {
+        var $timeframe_selected_li = $('#mainmenu .s-reports-timeframe .selected');
+        if ($timeframe_selected_li.length && $timeframe_selected_li.data('timeframe') != 'custom') {
+            $('#period-description').html($timeframe_selected_li.find('a').html());
+        }
+    })();
+
+    // Show all table rows when user clicks on a "Load more..." link
+    $('#show-all-rows-link').click(function() {
+        var $tr = $(this).closest('tr');
+        var $trs = $tr.siblings();
+        $tr.remove();
+        $trs.show();
+    });
+
+})();</script>

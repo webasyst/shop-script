@@ -1,0 +1,120 @@
+{strip}
+
+{$_uniqid = uniqid()}
+
+{$_rule_name = ""}
+{if !empty($rule.id)}
+    {$_rule_name = "rules[{$rule.id}]"}
+
+{else}
+    {$_rule_name = "rules[new]"}
+    {if isset($options.ident)}
+        {$_rule_name = "{$_rule_name}[{$options.ident}]"}
+    {/if}
+{/if}
+
+{function name="_render_coupon" _coupon=[]}
+    <div class="s-coupon-wrapper" data-id="{$_coupon.id|default:"%coupon_id%"}">
+        <div class="s-checkbox-column">
+            <input class="s-checkbox" id="id-coupon-{$_uniqid}-{$_coupon.id|default:"%coupon_id%"}" type="checkbox" name="{$_rule_name}[rule_params][]" value="{$_coupon.id|default:"%coupon_id%"}" {if empty($_coupon.id) || in_array($_coupon.id, $selected_coupon_ids)}checked{/if}>
+        </div>
+        <div class="s-details-column">
+            <div class="s-name-wrapper">
+                <label class="s-name" for="id-coupon-{$_uniqid}-{$_coupon.id|default:"%coupon_id%"}">
+                    {if !empty($_coupon.code)}
+                        {$_coupon.code|escape}
+                    {else}
+                        %code%
+                    {/if}
+                </label>
+            </div>
+
+            <div class="s-discount-wrapper">
+                <span class="s-label">[`Coupon discount`]:</span>
+                <span class="s-discount">
+                    {if !empty($_coupon.id)}
+                        {shopCouponModel::formatValue($_coupon)}
+                    {else}
+                        %discount%
+                    {/if}
+                </span>
+            </div>
+
+            {if !empty($_coupon.id)}
+                {if !empty($_coupon.expire_datetime)}
+                    <div class="s-date-wrapper">
+                        <span class="s-label">[`Expires:`]</span>
+                        <span class="s-date">
+                            {$_coupon.expire_datetime|wa_date}
+                        </span>
+                    </div>
+                {/if}
+            {else}
+                %expire%
+            {/if}
+        </div>
+        <div class="s-actions-column">
+            <a class="s-action" href="{$marketing_url}coupons/{$_coupon.id|default:"%coupon_id%"}/" target="_blank">
+                <i class="icon16 settings"></i>[`Coupon settings`]
+            </a>
+        </div>
+    </div>
+{/function}
+
+{capture assign="_coupon_expire_html"}
+    <div class="s-date-wrapper">
+        <span class="s-label">[`Expires:`]</span>
+        <span class="s-date">%expire%</span>
+    </div>
+{/capture}
+
+{/strip}
+
+<div class="s-coupon-rule-section js-coupon-rule-section" id="js-coupon-rule-section-{$_uniqid}">
+    <div class="s-section-description">
+        [`Select coupons for this promo. Orders with selected coupons will be automatically associated with this promo.`]
+    </div>
+
+    {if !empty($coupons)}
+        <div class="s-coupons-list">
+            {foreach $coupons as $_coupon}
+                {_render_coupon _coupon=$_coupon}
+            {/foreach}
+        </div>
+
+        {strip}
+        <div class="s-coupon-autocomplete">
+            <span class="s-label">[`Find coupon & add to promo`]:</span>
+            <i class="icon16 add"></i>
+            <input type="text" class="s-autocomplete js-autocomplete" value="" placeholder="{_w("Enter coupon code")|escape}">
+        </div>
+        {/strip}
+    {else}
+        <div class="">
+            <span class="gray">[`No coupons.`]</span>
+            <a href="{$marketing_url}coupons/create/">[`Add a new coupon`]</a>
+        </div>
+    {/if}
+
+    <input class="js-rule-type" type="hidden" name="{$_rule_name}[rule_type]" value="coupon">
+
+    <script>
+        ( function($) {
+            var $wrapper = $("#js-coupon-rule-section-{$_uniqid}").removeAttr('id');
+
+            var ready_promise = $("#js-promo-page").data("ready");
+            ready_promise.then( function(controller) {
+                controller.initCouponRulesSection({
+                    $wrapper: $wrapper,
+                    urls: {
+                        "autocomplete": "{$marketing_url}?module=marketingCouponsAutocomplete"
+                    },
+                    templates: {
+                        coupon: {_render_coupon|json_encode},
+                        coupon_expire: {$_coupon_expire_html|json_encode}
+                    }
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

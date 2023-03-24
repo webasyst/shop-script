@@ -1,0 +1,75 @@
+<div class="field">
+    <div class="name">
+        <p>[`Prompt for address`]</p>
+    </div>
+    <div class="value">
+        <p>[`During the “Shipping” checkout step, when customer selects a preferred shipping option but shipping address was not yet entered, instantly prompt customer to provide:`]</p>
+    </div>
+
+    <div class="value no-shift">
+        <label>
+            <input name="config[prompt_type]" type="radio" value="0"{if ifset($config,'prompt_type', null) == 0} checked{/if}>
+            [`All address fields required by selected shipping option`]
+        </label>
+        <p class="hint">[`Prompt for all address fields according to the selected shipping option implementation. If you use this option and have “Shipping” prior to “Contact info” in the checkout step order, it is advisable to hide (disable) shipping address form on the “Contact Info” checkout step to avoid asking for address twice.`]
+        <br><br>
+        [`If a customer has completed some address fields on “Contact info” checkout step, those fields may be not available for editing on “Shipping” step depending on shipping modules’ settings.`]</p>
+    </div>
+    <div class="value no-shift">
+        <label>
+            <input name="config[prompt_type]" type="radio" value="2"{if ifset($config,'prompt_type', null) == 2} checked{/if}>
+            [`All address fields required by selected shipping option including hidden completed fields`]
+        </label>
+        <p class="hint">[`Make completed address fields, hidden with previous option “All address fields required by selected shipping option”, available for editing on “Shipping” step.`]</p>
+    </div>
+    <div class="value no-shift">
+        <label>
+            <input name="config[prompt_type]" type="radio" value="1"{if ifset($config,'prompt_type', null) == 1} checked{/if}>
+            [`Only fields required for shipping rate estimation`]
+        </label>
+        <p class="hint">[`Prompt for fields required for shipping rate and delivery date estimation only (shipping option implementation declares the list of such fields). This is a suitable setup option if you have “Shipping” prior to “Contact info” in the checkout step order setup.`]</p>
+    </div>
+    <div class="value no-shift">
+        <p class="hint italic">[`This list of address fields is configured in the “Contact info” step settings.`]</p>
+    </div>
+</div>
+<div class="field" id="shipping-terms-of-service">
+    <div class="name">[`Personal data processing`]</div>
+    <div class="value"><label>
+        <input type="checkbox" name="config[service_agreement]" value="notice"{if !empty($config.service_agreement_hint)} checked{/if}>
+        [`Show notice`]
+    </label></div>
+    <div class="hidden value text-editor">
+        <textarea name="config[service_agreement_hint]">{$config.service_agreement_hint|default:''|escape}</textarea>
+        <br>
+        <span class="hint"><a href="javascript:void(0)" class="inline-link generalte-example-link"><b><i>[`Restore original text`]</i></b></a></span>
+    </div>
+</div>
+
+<script>(function() { "use strict";
+
+    var template = {sprintf_wp(
+        'By submitting this form I agree to %spersonal data protection policy%s',
+        sprintf('<a href="%s" target="_blank">', _w('---INSERT A LINK HERE!---')),
+        '</a>'
+    )|json_encode};
+
+    var $wrapper = $('#shipping-terms-of-service');
+    $wrapper.find(':checkbox').on('change', function() {
+        if (this.checked) {
+            $wrapper.find('.text-editor').slideDown();
+        } else {
+            $wrapper.find('.text-editor').slideUp();
+        }
+    }).change();
+
+    var $textarea = $wrapper.find('textarea');
+    if (!$textarea.val()) {
+        $textarea.val(template);
+    }
+
+    $wrapper.on('click', '.generalte-example-link', function() {
+        $textarea.val(template);
+    });
+
+})();</script>

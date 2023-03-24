@@ -10,7 +10,7 @@
 
 {$_moderate_enabled = $wa->setting('moderation_reviews', 0, 'shop')}
 {if !empty($_moderate_enabled)}
-    <li class="with-menu">
+    <li class="dropdown js-dropdown-menu">
         {$_deleted = shopProductReviewsModel::STATUS_DELETED}
         {$_published = shopProductReviewsModel::STATUS_PUBLISHED}
         {$_moderation = shopProductReviewsModel::STATUS_MODERATION}
@@ -45,12 +45,9 @@
 
         <span class="s-label">[`Moderation`]:</span>
 
-        <a href="javascript:void(0);" class="inline-link">
-            <b><i>{$_active_status_filter.name|escape}</i></b>
-            <i class="icon16 darr"></i>
-        </a>
-
-        <ul class="menu-v without-icons right">
+        <button class="dropdown-toggle button light-gray" type="button">{$_active_status_filter.name|escape}</button>
+        <div class="dropdown-body">
+            <ul class="menu">
             {foreach $_status_filters as $_filter}
                 {$_is_active = false}
                 {if $_filter.id === $_active_status_filter_id}
@@ -61,6 +58,7 @@
                     <a href="{$_filter.uri|escape}">{$_filter.name|escape}</a>
                 </li>
             {/foreach}
-        </ul>
+            </ul>
+        </div>
     </li>
 {/if}

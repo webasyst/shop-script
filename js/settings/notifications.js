@@ -1,29 +1,21 @@
 (function ($) {
     $.extend($.settings = $.settings || {}, {
-        notififcationsSetEditor: function(transport) {
-            if (transport === 'email') {
-                var options = {
-                    'prefix': 'n-send-',
-                    'id': 'n-email-body',
-                    'ace_editor_container': 'n-email-body-container'
-                };
-            } else {
-                var options = {
-                    'prefix': 'n-send-',
-                    'id': 'n-sms-text',
-                    'ace_editor_container': 'n-sms-text-container'
-                };
-            }
-            waEditorAceInit(options);
-        },
-
         notificationsAction: function (tail) {
             if (!tail) {
-                $.wa.setHash($('#notifications a:first').attr('href'));
-            } else if (tail == 'add') {
+                const firstNotify = $('#notifications a:first');
+                if (firstNotify.length) {
+                    $.wa.setHash(firstNotify.attr('href'));
+                } else {
+                    $.wa.setHash('#/notifications/add/');
+                }
+            } else if (tail === 'add') {
                 this.notificationsAddAction();
             } else {
-                this.notificationsEditAction(tail);
+                if ($("#notification-" + tail).length) {
+                    this.notificationsEditAction(tail);
+                } else {
+                    this.notificationsAddAction();
+                }
             }
 
         },
@@ -34,101 +26,27 @@
         notificationsEditAction : function(id) {
             $("#notifications-content").load("?module=settings&action=NotificationsEdit&id=" + id, this.notificationsLoad(id));
         },
-        initElasticFooter:function() {
-            // DOM
-            var $window = $(window),
-                $wrapper = this.$container,
-                $header = $wrapper.find(".js-footer-block"),
-                $dummy = false,
-                is_set = false;
-
-            var active_class = "is-fixed-to-bottom";
-
-            var header_o, header_w, header_h;
-
-            clear();
-
-            $window.on("scroll", useWatcher);
-            $window.on("resize", onResize);
-
-            onScroll();
-
-            function useWatcher() {
-                var is_exist = $.contains(document, $header[0]);
-                if (is_exist) {
-                    onScroll();
-                } else {
-                    $window.off("scroll", useWatcher);
-                }
-            }
-
-            function onScroll() {
-                var scroll_top = $window.scrollTop(),
-                    use_scroll = header_o.top + header_h > scroll_top + $window.height();
-
-                if (use_scroll) {
-                    if (!is_set) {
-                        is_set = true;
-                        $dummy = $("<div />");
-
-                        $dummy.height(header_h).insertAfter($header);
-
-                        $header
-                            .css("left", header_o.left - 20)// Because parents are doing padding 20
-                            .width(header_w)
-                            .addClass(active_class);
-                    }
-
-                } else {
-                    clear();
-                }
-            }
-
-            function onResize() {
-                clear();
-                $window.trigger("scroll");
-            }
-
-            function clear() {
-                if ($dummy && $dummy.length) {
-                    $dummy.remove();
-                }
-                $dummy = false;
-
-                $header
-                    .removeAttr("style")
-                    .removeClass(active_class);
-
-                header_o = $header.offset();
-                header_w = $header.outerWidth() + 40; // Because parents are doing padding 20
-                header_h = $header.outerHeight();
-
-                is_set = false;
-            }
-        },
         notificationsLoad: function (tail) {
-            var that = this;
-
             return function () {
-                var form = $("#notification-form");
+                const form = $("#notification-form");
 
-                var send_test_button = $('#send-test-button');
-                var send_button = $('#n-send-button');
-                var form_modified = false;
+                const send_test_button = $('#send-test-button');
+                const send_button = $('#n-send-button');
+                let form_modified = false;
 
                 $("#notifications li.selected").removeClass('selected');
 
                 if (tail == 'add') {
                     $("#notifications li.small").addClass('selected');
 
-                    var transportHandler = function(item) {
+                    const transportHandler = function(item) {
                         $(".transport-content").hide().find('input,select,textarea').attr('disabled', 'disabled');
                         $('#' + item.val() + '-content').show().find('input,select,textarea').removeAttr('disabled', 'disabled');
                         $('#' + item.val() + '-content .body').change();
-                       $.settings.notififcationsSetEditor(item.val);
                     };
-                    var transport_input = $("#notifications-settings-content input.transport");
-                    transport_input.change(function () {
+
+                    const transport_input = $("#notifications-settings-content input.transport");
+                    transport_input.on('change', function () {
                         transportHandler($(this));
                     });
                     transportHandler(transport_input);
@@ -137,18 +55,20 @@
                     $("#notification-" + tail).addClass('selected');
                 }
 
-                $("#notification-form").submit(function () {
-                    var form = $(this);
-                    form.find(':submit').prop('disabled', true).parent().append('<span class="s-msg-after-button"><i class="icon16 loading"></i></span>');
+                $("#notification-form").on('submit', function(event) {
+                    event.preventDefault();
+
+                    const form = $(this);
+                    form.find(':submit').prop('disabled', true).append('<span class="s-msg-after-button"><i class="fas fa-spinner fa-spin"></i></span>');
                     send_test_button.prop('disabled', true);
 
                     // find out transport in add and edit mode
-                    var transport = form.find('input[name="data[transport]"]:checked').val();
+                    let transport = form.find('input[name="data[transport]"]:checked').val();
                     if (transport === undefined) {
                         transport = $('#n-email-body').length ? 'email' : 'sms';
                     }
 
-                    var prev_wa_editor = wa_editor;
+                    const prev_wa_editor = wa_editor;
                     if (transport === 'email') {
                         wa_editor = $('#n-email-body').data('wa_editor');
                         waEditorUpdateSource({
@@ -163,54 +83,64 @@
                     wa_editor = prev_wa_editor;
 
                     $.post(form.attr('action'), form.serialize(), function (response) {
-
-                        if (response.status == 'ok') {
-                            var n = response.data;
-                            if ($("#notification-" + n.id).length) {
-                                $("#notification-" + n.id + ' a').html('<i class="icon16 ' + n.icon + '"></i>' + n.name);
-                                form.find(':submit').prop('disabled', false);
-                                send_test_button.prop('disabled', false);
-                            } else {
-                                $('<li id="notification-' + n.id + '">' +
-                                '<a href="#/notifications/' + n.id + '/">' +
-                                '<i class="icon16 ' + n.icon + '"></i>' + n.name + '</a></li>').insertBefore($("#notifications li.small"));
-                                $.wa.setHash('#/notifications/' + n.id + '/');
-                            }
-
-                            if (n.status == '0') {
-                                $("#notification-" + n.id).addClass('gray');
-                            } else {
-                                $("#notification-" + n.id).removeClass('gray');
-                            }
-
-                            form.find('span.s-msg-after-button')
-                                .html('<i class="icon16 yes"></i>'+ $_('Saved') +'</span>')
-                                .animate({ opacity: 0 }, 1500, function() {
-                                    $(this).remove();
-                            });
-
-                            $('#n-send-button').removeClass('yellow').addClass('green');
-                            form_modified = false;
+                        if (response.status !== 'ok') {
+                            console.warn(response);
+                            return;
                         }
 
-                    }, "json");
-                    return false;
-                });
-                if ($(".notification-to").length) {
-                    $(".notification-to").change(function () {
-                        if (!$(this).val()) {
-                            $('<input type="text" name="to" value="">').insertAfter(this).focus();
+                        const n = response.data;
+                        if ($("#notification-" + n.id).length) {
+                            $("#notification-" + n.id + ' a').html( '<span class="icon">' + $.icon_convert[n.icon] + '</span><span>' + n.name + ' </span>');
+                            form.find(':submit').prop('disabled', false);
+                            send_test_button.prop('disabled', false);
                         } else {
-                            $(this).next('input').remove();
+                            const $li = $('<li class="rounded" id="notification-' + n.id + '">' +
+                                            '<a href="#/notifications/' + n.id + '/">' +
+                                            '<span class="icon">' + $.icon_convert[n.icon] + '</span><span>' + n.name + ' </span></a></li>');
+
+                            $("#notifications").append($li);
+
+                            $.wa.setHash('#/notifications/' + n.id + '/');
+                        }
+
+                        if (n.status == '0') {
+                            $("#notification-" + n.id).addClass('gray');
+                        } else {
+                            $("#notification-" + n.id).removeClass('gray');
+                        }
+
+                        form.find('span.s-msg-after-button')
+                            .html('<i class="fas fa-check-circle"></i></span>')
+                            .animate({ opacity: 0 }, 1500, function() {
+                                $(this).remove();
+                        });
+
+                        $('#n-send-button').removeClass('yellow').addClass('green');
+                        form_modified = false;
+
+                    }, "json");
+                });
+
+                if ($(".notification-to").length) {
+                    $(".notification-to > select").on('change', function () {
+                        let parent = $(this).parent();
+
+                        if (!$(this).val()) {
+                            $('<input type="text" name="to" class="small" value="">').insertAfter(parent).focus();
+                        } else {
+                            parent.next('input').remove();
                         }
                     });
                 }
+
                 if ($(".notification-from").length) {
-                    $(".notification-from").change(function() {
+                    $(".notification-from > select").on('change', function() {
+                        let parent = $(this).parent();
+
                         if ($(this).val() === 'other') {
-                            $('<input type="text" name="from" value="">').insertAfter(this).focus();
+                            $('<input type="text" name="from" class="small" value="">').insertAfter(parent).focus();
                         } else {
-                            $(this).next('input').remove();
+                            parent.next('input').remove();
                         }
                     });
                 }
@@ -224,93 +154,108 @@
                 };
 
                 if ($('#n-email-body').length) {
-                    $('#n-email-body').data('wa_editor').on('change', formModified);
-                }
-                if ($('#n-sms-text').length) {
-                    $('#n-sms-text').data('wa_editor').on('change', formModified);
+                    $('#n-email-body').on('change', formModified);
                 }
 
+                if ($('#n-sms-text').length) {
+                    $('#n-sms-text').on('change', formModified);
+                }
+
+                $('textarea', form).on('input', formModified);
                 $('select', form).change(formModified);
                 $('input', form).change(formModified).keyup(formModified);
-                that.initElasticFooter();
 
-            // Controller for sending tests
-            (function() {
-                var dialog = $('#send-test-dialog');
+                // Controller for sending tests
+                (function() {
+                    // Show dialog when user clicks "Send test" button in main form
+                    send_test_button.on('click', function(event) {
+                        event.preventDefault();
 
-                // Select row when user clicks on it
-                dialog.find('table').on('click', 'tr', function() {
-                    var tr = $(this).addClass('selected');
-                    tr.siblings('.selected').removeClass('selected');
-                    tr.find(':radio').attr('checked', true);
-                });
+                        if (form_modified) {
+                            $.waDialog.alert({
+                                title: $_("Please save changes to be able to send tests."),
+                                button_title: $_("Close"),
+                                button_class: 'light-gray',
+                            });
 
-                dialog.find(':submit').click(function() {
-                    sendTest($(this).data('n-id'));
-                    return false;
-                });
-
-                // Actual send: called when user clicks "send test" button in dialog
-                var sendTest = function(id) {
-                    dialog.find('.select-order-message').removeClass('errormsg');
-
-                    var to_field = dialog.find('input:text').removeClass('error');
-                    var to = to_field.val();
-                    if (!to) {
-                        to_field.addClass('error');
-                        return false;
-                    }
-
-                    var order_id = dialog.find('input:radio:checked').val();
-                    if (!order_id) {
-                        dialog.find('.select-order-message').addClass('errormsg');
-                        return false;
-                    }
-
-                    dialog.find(':input').attr('disabled', true);
-                    dialog.find('.s-msg-after-button').show();
-                    $.post("?module=settings&action=notificationsTest&id="+id, {
-                        order_id: order_id,
-                        to: to
-                    }, function(response) {
-                        dialog.find(':input').attr('disabled', false);
-                        dialog.find('.s-msg-after-button').hide();
-                        dialog.find('.before-send').hide();
-                        dialog.find('.after-send').show();
-                        if(response.status ==='ok'){
-                            dialog.find('.after-send .errormsg').hide();
-                            dialog.find('.after-send .successmsg').show();
-                        } else {
-                            var error = dialog.find('.after-send .errormsg');
-                            error.text(response.errors);
-                            error.show();
-                            dialog.find('.after-send .successmsg').hide();
+                            return;
                         }
 
-                    });
+                        let dialog;
 
-                    return false;
-                };
-
-                // Show dialog when user clicks "Send test" button in main form
-                send_test_button.click(function() {
-                    if (form_modified) {
-                        alert($_("Please save changes to be able to send tests."));
-                        return false;
-                    }
-                    dialog.waDialog({
-                        onLoad: function() {
-                            dialog.find(':input').attr('disabled', false);
-                            dialog.find('.before-send').show();
-                            dialog.find('.after-send').hide();
+                        if (dialog) {
+                            dialog.show();
+                            return;
                         }
+
+                        dialog = $.waDialog({
+                            html: $('#send-test-dialog')[0].outerHTML,
+                            onOpen($dialog, dialog) {
+                                dialog.$block.find(':input').attr('disabled', false);
+                                dialog.$block.find('.before-send').show();
+                                dialog.$block.find('.after-send').hide();
+
+                                // Select row when user clicks on it
+                                dialog.$block.find('table').on('click', 'tr', function() {
+                                    $(this).addClass('selected').siblings().removeClass('selected');
+                                    $(this).find(':radio').prop('checked', true);
+                                });
+
+                                dialog.$block.find(':submit').on('click', function(e) {
+                                    e.preventDefault();
+                                    sendTest($(this).data('n-id'));
+                                });
+
+                                // Actual send: called when user clicks "send test" button in dialog
+                                function sendTest(id) {
+                                    dialog.$block.find('.select-order-message').removeClass('state-error');
+
+                                    const to_field = dialog.$block.find('input:text').removeClass('state-error');
+                                    const to = to_field.val();
+                                    if (!to) {
+                                        to_field.addClass('state-error');
+                                        to_field.focus();
+                                        $dialog.scrollTop(to_field.position().top);
+                                        return;
+                                    }
+
+                                    const order_id = dialog.$block.find('input:radio:checked').val();
+                                    if (!order_id) {
+                                        const order_message = dialog.$block.find('.select-order-message').addClass('state-error');
+                                        $dialog.scrollTop(order_message.position().top);
+                                        return;
+                                    }
+
+                                    dialog.$block.find(':input').attr('disabled', true);
+                                    dialog.$block.find('.s-msg-after-button').show();
+
+                                    $.post("?module=settings&action=notificationsTest&id="+id, {
+                                        order_id: order_id,
+                                        to: to
+                                    }, function(response) {
+                                        dialog.$block.find(':input').attr('disabled', false);
+                                        dialog.$block.find('.s-msg-after-button').hide();
+                                        dialog.$block.find('.before-send').hide();
+                                        dialog.$block.find('.after-send').show();
+                                        if(response.status ==='ok') {
+                                            dialog.$block.find('.after-send .state-error').hide();
+                                            dialog.$block.find('.after-send .state-success').show();
+                                        } else {
+                                            dialog.$block.find('.after-send .state-success').hide();
+                                            const error = dialog.$block.find('.after-send .state-error');
+                                            error.find('.error').text(response.errors);
+                                            error.show();
+                                        }
+                                    });
+                                };
+                            },
+                            onClose(dialog) {
+                                dialog.hide();
+                                return false;
+                            }
+                        });
                     });
-                    return false;
-                });
-
-
-            })();
-
+                })();
             };
         }
     });

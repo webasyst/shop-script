@@ -2,79 +2,110 @@
 <script type="text/javascript" src="{$wa_url}wa-content/js/ace/ace.js?{$wa->version(true)}"></script>
 <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-wa/wa.elrte.ace.js"></script>
 <link rel="stylesheet" href="{$wa_url}wa-content/css/wa/design.css?{$wa->version()}">
+{$icon_convert = [
+    'email' => $wa->shop->getIcon('email'),
+    'mobile' => $wa->shop->getIcon('mobile'),
+    'globe-small' => $wa->shop->getIcon('globe-small')
+]}
+<div class="flexbox space-8">
+    <div class="sidebar overflow-visible s-sidebar-section">
+        <div class="sidebar-header">
+            <ul class="menu ellipsis custom-mb-8" id="notifications">
+                {foreach $notifications as $n}
+                <li  id="notification-{$n.id}" class="rounded">
+                    <a href="#/notifications/{$n.id}/" title="{$n.name}">
+                        {if isset($transports[$n.transport].icon)}
+                        <span class="icon">{$icon_convert[$transports[$n.transport].icon]}</span>
+                        {/if}
+                        <span>{$n.name}</span>
+                    </a>
+                </li>
+                {/foreach}
+            </ul>
+        </div>
 
-<div class="sidebar left200px s-settings-order-states">
-    <div class="s-inner-sidebar">
-        <ul class="menu-v stack with-icons" id="notifications">
-            {foreach $notifications as $n}
-            <li id="notification-{$n.id}"{if !$n.status} class="gray"{/if}>
-                <a href="#/notifications/{$n.id}/">{strip}
-                    {if isset($transports[$n.transport].icon)}
-                        <i class="icon16 {$transports[$n.transport].icon}"></i>
-                    {/if}
-                    {$n.name}
-                {/strip}</a>
-            </li>
-            {/foreach}
+        <div class="custom-pl-8">
+            <a href="#/notifications/add/" class="button nobutton smaller light-gray rounded">
+                <i class="fas fa-plus-circle text-green"></i>
+                [`Add custom notification`]
+            </a>
 
-            <li class="top-padded small">
-                <a href="#/notifications/add/">
-                    <i class="icon10 add"></i>[`Add custom notification`]
-                </a>
-            </li>
-        </ul>
-        <div class="hr"></div>
-        <div class="block small">
-            <h5 class="heading">[`Sender name`]</h5>
-            <br>
-            <p>
-                <label><input type="radio" name="notification_name" value="general" {if !$notification_name || $notification_name == 'general'}checked{/if}> [`Store name`] <span class="gray">[`as specified in the “Settings → General settings” section`]</span> </label>
-                <br><br>
-                <label><input type="radio" name="notification_name" value="route_params" {if $notification_name == 'route_params'}checked{/if}> [`Storefront name`] <span class="gray">[`as specified in the “Storefront → Settings” section for each storefront`]</span> </label>
-            </p>
-            <input type="button" id="notification-name-save-button" value="[`Save`]" style="display:none">
+            <div class="custom-mt-8 box">
+                <h5 class="heading custom-m-0 custom-mb-8">[`Sender name`]</h5>
+
+                <label class="small">
+                    <span class="wa-radio">
+                        <input type="radio" name="notification_name" value="general" {if !$notification_name || $notification_name == 'general'}checked{/if}>
+                        <span></span>
+                    </span>
+
+                    <span>[`Store name`]</span>
+                </label>
+                <div class="hint custom-mt-4 custom-ml-20">[`as specified in the “Settings → General settings” section`]</div>
+
+                <div class="custom-mt-12">
+                    <label class="small">
+                        <span class="wa-radio">
+                            <input type="radio" name="notification_name" value="route_params" {if $notification_name == 'route_params'}checked{/if}>
+                            <span></span>
+                        </span>
+
+                        [`Storefront name`]
+                    </label>
+
+                    <div class="hint custom-mt-4 custom-ml-20">[`as specified in the “Storefront → Settings” section for each storefront`]</div>
+                </div>
+
+                <div class="custom-mt-12 custom-ml-20">
+                    <button type="button" class="button smallest green" id="notification-name-save-button" style="display: none;">[`Save`]</button>
+                </div>
+            </div>
         </div>
     </div>
 
-</div>
-
-<div class="content left200px s-settings-form blank bordered-left">
-    <div class="block double-padded" id="notifications-content">
-        <i class="icon16 loading"></i> [`Loading...`]
+    <div class="wide">
+        <div id="notifications-content" class="custom-mt-12">
+            <i class="fas fa-spinner fa-spin"></i>
+            [`Loading...`]
+        </div>
     </div>
-    <div class="clear-both"></div>
 </div>
 
-<div class="dialog width450px height150px" id="s-settings-confirm-delete">
+<div class="dialog" id="s-settings-confirm-delete">
     <div class="dialog-background"></div>
-    <form method="post" action="?module=settings&action=NotificationsDelete">
-    <div class="dialog-window">
-        <div class="dialog-content">
-            <div class="dialog-content-indent">
+
+    <div class="dialog-body">
+        <form method="post" action="?module=settings&action=NotificationsDelete">
+            <header class="dialog-header">
                 <h1>[`Delete notification`]</h1>
+            </header>
+
+            <main class="dialog-content">
                 <p>[`This will permanently delete this notification. Are you sure?`]</p>
                 <input type="hidden" name="id" value="0">
-            </div>
-        </div>
-        <div class="dialog-buttons">
-            <div class="dialog-buttons-gradient">
+            </main>
+
+            <footer class="dialog-footer">
                 {$wa->csrf()}
-                <input class="button red" type="submit" value="[`Delete`]"> <i class="icon16 loading" style="display:none;"></i>
-                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
-            </div>
-        </div>
+                <button type="submit" class="button red">[`Delete`]</button>
+                <span class="loading custom-mr-8" style="display:none;"><i class="fas fa-spinner fa-spin"></i></span>
+                <button class="button light-gray js-dialog-close">[`Cancel`]</button>
+            </footer>
+        </form>
     </div>
 </div>
 
 <script>
+    $.icon_convert = {$icon_convert|json_encode};
+
     document.title = '{"[`Notifications`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     (function() {
-        var radios = $('input:radio[name="notification_name"]');
-        var button = $('#notification-name-save-button');
+        const radios = $('input:radio[name="notification_name"]');
+        const button = $('#notification-name-save-button');
         radios.change(function() {
             button.show();
         });
-        button.click(function() {
+        button.on('click', function() {
             button.hide();
             radios.attr('disabled', true);
             $.post('?module=settings&action=configSave', { notification_name: radios.filter(':checked').val() }, function() {

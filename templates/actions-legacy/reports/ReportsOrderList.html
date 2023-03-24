@@ -1,0 +1,118 @@
+{$container_id = uniqid('s-reports-order-list-')}
+<div id="{$container_id}">
+
+    {if $orders}
+        <script id="template-order-list-table" type="text/html">
+            {include file='../orders/include.template_order_list_table.html' params_str='' inline}
+        </script>
+
+        <table class="zebra single-lined padded s-reports-order-list">
+            <tbody></tbody>
+        </table>
+
+        <div class="lazyloading-wrapper">
+            <div class="lazyloading-progress-string">
+                {_w('%d order','%d orders', $already_loaded_count)}&nbsp;{sprintf(_w('of %d'), $total_count)}
+            </div><br>
+            <a href="javascript:void(0);" class="lazyloading-link" {if $already_loaded_count >= $total_count}style="display:none;"{/if}>
+                [`Show more orders`]
+            </a>
+            <span class="lazyloading-progress" style="display:none">
+                <i class="icon16 loading"></i> [`Loading`]
+                <span class="lazyloading-chunk">
+                    {$chunk = max(min($total_count - $already_loaded_count, $limit), 0)}
+                    {_w('%d order', '%d orders', $chunk)}...
+                </span>
+            </span>
+        </div>
+
+        <script>
+            $(function () {
+                var container = $('#{$container_id}');
+                var table = $('.s-reports-order-list', container);
+
+                var renderOrderList = function (data) {
+                    data.hide_checkbox = true;
+                    table.find('tbody').html(tmpl('template-order-list-table', data));
+                };
+
+                renderOrderList({ orders: {$orders|default:[]|json_encode} });
+
+
+                {if !$disabled_lazyload && $already_loaded_count < $total_count}
+
+                    (function () {
+                        var offset = {$already_loaded_count};
+                        var total_count = {$total_count};
+                        var url = '?module=reports&action=orderList';
+                        var data_params = {
+                            disabled_lazyload: 1,
+                            report_type: "{$report_type|default:''}",
+                            filter: {$filter|json_encode},
+                            sales_channel: "{$sales_channel}",
+                            timerange: {$timerange|json_encode}
+                        };
+
+                        if (offset < total_count) {
+                            container.lazyLoad({
+                                state: 'wake',
+                                load: function() {
+                                    container.lazyLoad('sleep');
+                                    $('.lazyloading-link', container).hide();
+                                    $('.lazyloading-progress', container).show();
+
+                                    data_params.offset = offset;
+                                    data_params.total_count = total_count;
+
+                                    $.get(url, data_params, function(data) {
+
+                                        var tmp = $('<div class="s-tmp-block" style="display: none;"></div>');
+                                        container.append(tmp);
+                                        tmp.append(data);
+
+                                        var list = tmp.find('table tbody tr');
+
+                                        if (list.length) {
+                                            offset += list.length;
+                                            table.append(list);
+                                            if (offset >= total_count) {
+                                                container.lazyLoad('stop');
+                                                $('.lazyloading-progress', container).hide();
+                                            } else {
+                                                container.lazyLoad('wake');
+                                                $('.lazyloading-link', container).show();
+                                            }
+                                        } else {
+                                            container.lazyLoad('stop');
+                                            $('.lazyloading-progress', container).hide();
+                                        }
+
+                                        $.each(['lazyloading-progress-string', 'lazyloading-chunk'], function (i, clz) {
+                                            var el = tmp.find('.' + clz);
+                                            container.find('.' + clz).not(el).replaceWith(el);
+                                        });
+
+                                        tmp.remove();
+                                        container.remove('s-tmp-block');
+
+                                    });
+                                }
+                            });
+                            container.off('click', '.lazyloading-link').on('click', '.lazyloading-link', function() {
+                                container.lazyLoad('force');
+                                return false;
+                            });
+                        }
+                    })();
+
+                {/if}
+
+
+            });
+        </script>
+
+    {else}
+        <p>[`No orders`]</p>
+    {/if}
+
+</div>

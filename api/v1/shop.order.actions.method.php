@@ -46,7 +46,25 @@ class shopOrderActionsMethod extends shopApiMethod
     protected static function formatActions($actions, $order_id)
     {
         $result = array();
+
+        $user = wa()->getUser();
+        $rights = true;
+        if (!$user->isAdmin('shop')) {
+            $rights = $user->getRights('shop', 'workflow_actions.%');
+            if (!empty($rights['all'])) {
+                $rights = true;
+            }
+            if (empty($rights)) {
+                return $result;
+            }
+        }
+
         foreach ($actions as $id => $a) {
+            // Filter out unavailable actions
+            if (is_array($rights) && empty($rights[$id])) {
+                unset($actions[$id]);
+                continue;
+            }
             $type = 'button';
 
             $b_class = $a->getOption('button_class');
@@ -60,9 +78,9 @@ class shopOrderActionsMethod extends shopApiMethod
             }
 
             if ($id === "delete") {
-                $color = "#853133";
+                $color = "#aaaaaa";
             } elseif ($id === "process") {
-                $color = "#2e65c7";
+                $color = "#22d13d";
             }
 
             if ($a->getOption('top') || $a->getOption('position') == 'top') {
@@ -93,11 +111,11 @@ class shopOrderActionsMethod extends shopApiMethod
     protected static function getHexColorCode($b_class)
     {
         $colors = array(
-            'green'  => '#6c3',
-            'yellow' => '#fdda3b',
-            'blue'   => '#09f',
-            'purple' => '#96a',
-            'red'    => '#f60',
+            'green'  => '#22d13d',
+            'yellow' => '#f3c200',
+            'blue'   => '#1a9afe',
+            'purple' => '#7256ee',
+            'red'    => '#ed2509',
         );
 
         if (isset($colors[$b_class])) {

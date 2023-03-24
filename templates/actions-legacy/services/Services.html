@@ -1,0 +1,257 @@
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/services.js?v={$wa->version()}"></script>
+
+<div class="sidebar left250px s-inner-sidebar">
+    <ul class="menu-v with-icons stack" id="s-services-list">
+        {foreach $services as $item}
+            <li {if $service.id == $item.id}class="selected"{/if} data-service-id="{$item.id}">
+                <a href="#/services/{$item.id}/"><i class="icon16 sort"></i><i class="icon16 ss service no-overhanging"></i> <span class="name">{$item.name|escape}</span></a>
+            </li>
+        {/foreach}
+        <li class="top-padded">
+            <a href="#/services/0/" class="s-new-service">
+                <i class="icon16 no-overhanging"></i>
+                <i class="icon16 add"></i>[`New service`]
+            </a>
+        </li>
+    </ul>
+    <div class="block hint align-center">
+        <p>[`Services allow you to add customization options for products and SKUs; e.g., custom packaging, extended warranty, engraving. Services are great for increasing your online store’s average order value.`]</p>
+    </div>
+</div>
+
+<form method="post" action="?module=service&action=save&id={$service.id}" id="s-services-save">
+
+<div class="content left250px blank bordered-left">
+    <div class="block double-padded">
+        <div class="float-right">
+            {if $service.id}
+                <ul class="menu-h">
+                    <li><a href="#" class="s-delete-service"><i class="icon16 delete"></i>[`Delete this service`]</a></li>
+                </ul>
+            {/if}
+        </div>
+        <h1>
+            <span class="editable" id="s-service-title">{$service.name|escape}</span>
+            <input name="service_name" id="s-service-title-input" value="{$service.name|escape}" style="display:none;">
+        </h1>
+
+        <div class="fields form width100px">
+            <div class="field">
+                <div class="name" style="padding-top: 10px;">
+                    [`Service price`]
+                </div>
+                <div class="value">
+                    <table class="zebra s-services-variants">
+                        {$multi_variants = false}
+                        {if count($variants) > 1 || (count($variants) == 1 && !empty($variants[0]['name']))}
+                            {$multi_variants = true}
+                        {/if}
+
+                        {foreach $variants as $variant}
+                            <tr class="s-services-variant">
+                                <td class="min-width s-services-ext-cell" {if !$multi_variants}style="display:none;"{/if}><i class="icon16 sort"></i></td>
+                                <td class="min-width s-services-ext-cell" {if !$multi_variants}style="display:none;"{/if}>
+                                    <input type="radio" name="default" value="{$variant@index}" {if $variant.id === $service.variant_id}checked="checked"{/if}>
+                                </td>
+                                <td class="s-services-ext-cell" {if !$multi_variants}style="display:none;"{/if}>
+                                    <input type="text" name="name[]" value="{$variant.name|escape}" placeholder="[`Option name`]">
+                                </td>
+                                <td class="s-price-surplus">
+                                    +<input type="text" name="price[]" value="{(double)$variant.price}" placeholder="{(double)$service.price}" class="s-price-surplus">
+                                    <div class="s-services-choose-currency">
+                                        <select class="s-service-currency">
+                                            {if $use_product_currency}
+                                                {foreach $currencies as $code => $currency}
+                                                    <option value="{$code}" {if $service.currency == $code}selected="selected"{/if}>{$code}</option>
+                                                {/foreach}
+                                                <option value="%" {if $service.currency == '%'}selected="selected"{/if}>%</option>
+                                            {else}
+                                                <option value="{$primary_currency}">{$primary_currency}</option>
+                                                <option value="%" {if $service.currency == '%'}selected="selected"{/if}>%</option>
+                                            {/if}
+                                        </select>
+                                    </div>
+                                </td>
+                                <td class="s-service-actions-cell">
+                                    <a href="#" class="small inline-link s-multiple-options-toggle" {if $multi_variants}style="display:none"{/if}>
+                                        <i class="icon16 settings"></i><b><i>[`Multiple options`]</i></b>
+                                    </a>
+                                    <a href="#" class="s-delete-option" {if !$multi_variants}style="display:none"{/if}>
+                                        <i class="icon16 delete"></i>
+                                    </a>
+                                </td>
+                                <input type="hidden" name="variant[]" value="{$variant.id}">
+                            </tr>
+                        {/foreach}
+                        <tr class="white s-add-row" {if !$multi_variants}style="display:none"{/if}>
+                            <td></td>
+                            <td colspan="4">
+                                <a href="#" class="inline-link s-add-new-option">
+                                    <i class="icon16 add"></i>
+                                    <b><i>[`Add option`]</i></b>
+                                </a>
+                            </td>
+                        </tr>
+                        <input type="hidden"
+                                          value="{$service.currency}"
+                                          name="currency"
+                                          id="s-service-currency-code"
+                                      >
+                    </table>
+                </div>
+                <div class="value">
+                    <p class="hint">[`When ordered with a particular product, service increases product base price by the amount provided. Service price can be set in bulk for all products, or customized for every individual product or SKU.`]</p>
+                </div>
+            </div>
+            {*
+            <div class="field">
+                <div class="name">
+                    [`Efficiency`]
+                </div>
+                <div class="value">
+                    <p class="large">
+                        [`<strong>+%s (+%f%)</strong> to the overall sales during the last 30 days`]
+                    </p>
+                </div>
+            </div>
+            *}
+            <div class="field">
+                {if !empty($types)}
+                <div class="value no-shift">
+                    [`Offer this service with following products:`]
+                    <table class="full-width">
+                    <tr>
+                      <td>
+                        <ul class="menu-v" id="s-services-types">
+                            {foreach $types as $type}
+                            <li>
+                                <label>
+                                    <input type="checkbox" name="type[]" value="{$type.id}" {if (!empty($type.type_id) && $type.type_id) || !$service.id}checked="checked"{/if}>
+                                    {shopHelper::getIcon($type.icon, 'icon.box')}
+                                    {$type.name|escape}
+                                    <span class="hint">{$type.count}</span>
+                                </label>
+                            </li>
+                            {/foreach}
+                            <li>
+                                <label>
+                                    <input id="s-services-products-choosen" type="checkbox" disabled="disabled" {if $products}checked="checked"{/if}> [`Select particular products`]
+                                </label>
+                                <div class="block double-padded" id="s-services-products">
+                                    <table class="zebra">
+                                        {foreach $products as $product}
+                                            {if $product.edit_rights}
+                                                {$edit_rights = 'services'}
+                                            {else}
+                                                {$edit_rights ='prices'}
+                                            {/if}
+                                            <tr data-product-id="{$product.id}">
+                                                <td><a href="{shopHelper::getBackendEditorUrl($product.id, $edit_rights, [$service.id => null])}">{$product.name|escape}</a></td>
+                                                <td class="min-width">
+                                                    <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
+                                                    <input type="hidden" name="product[]" value="{$product.id}">
+                                                </td>
+                                            </tr>
+                                        {/foreach}
+                                        {capture "template-services-new-product"}{literal}
+                                        <tr data-product-id="{%#o.product.id%}" class="s-new-product">
+                                            <td><a href="{%#'{/literal}{shopHelper::getBackendEditorUrl('@s', 'services', ['@r' => null])}{literal}'.replace('@s', o.product.id).replace('@r', o.service_id)%}">{%=o.product.name%}</a></td>
+                                            <td class="min-width">
+                                                <a href="#" class="s-delete-product"><i class="icon16 delete"></i></a>
+                                                <input type="hidden" name="product[]" value="{%#o.product.id%}">
+                                            </td>
+                                        </tr>
+                                        {/literal}{/capture}
+                                        <tr class="s-add-new-service-product">
+                                            <td colspan="2">
+                                                <i class="icon16 add" style="margin-top: 0.3em;"></i>
+                                                <input type="text" placeholder="[`Start typing product or SKU name`]" class="product-autocomplete long">
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </li>
+                        </ul>
+                      </td>
+                      <td class="s-service-appliance-est">
+                        <div class="block">
+                            <em id="s-services-products-count">≈ {_w('%d product', '%d products', $products_count)}</em>
+                        </div>
+                      </td>
+                    </tr>
+                    </table>
+                </div>
+                {/if}
+            </div>
+            <div class="field">
+                <div class="name">
+                    [`Taxable`]
+                </div>
+                <div class="value no-shift">
+                    <select name="tax_id">
+                        <option value="0" {if $service.tax_id === '0' || $service.tax_id == '0'}selected="selected"{/if}>[`Inherit from product`]</option>
+                        <option value="-1" {if $service.tax_id === null}selected="selected"{/if}>[`No`]</option>
+                        {foreach $taxes as $tax}
+                            <option value="{$tax.id}" {if $service.tax_id == $tax.id}selected="selected"{/if}>{$tax.name|escape}</option>
+                        {/foreach}
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <div class="value no-shift">
+                    {$wa->csrf()}
+                    <input type="button" value="[`Save`]" class="button green" id="s-save-service-submit">
+                    <i class="icon16 loading" style="display:none;"></i>
+                    <i class="icon16 yes" style="display:none;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="clear-both"></div>
+</div>
+
+</form>
+
+{* dialogs section *}
+<div class="dialog width300px height150px" id="s-delete-service">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=service&action=delete&id={$service.id}">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Delete service`]</h1>
+                [`Are you sure you want to delete this service?`]
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Delete`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
+<script>
+    $(function() {
+        document.title = '{$service.name|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+        $.product_services.init({
+            container: '#s-content',
+            service_id: {$service.id},
+            count: {$count}
+        });
+    });
+</script>
+
+{* js templates block*}
+{if !empty($smarty.capture)}
+    {foreach $smarty.capture as $template => $template_content}
+        {if $template_content && (strpos($template, 'template-')===0)}
+            <script id="{$template}" type="text/html">
+                {$template_content|replace:'</':'<\/'}
+            </script>
+        {/if}
+    {/foreach}
+{/if}
+

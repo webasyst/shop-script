@@ -337,7 +337,10 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $order['contact_id'] = $contact->getId();
 
         // Add contact to 'shop' category
-        $contact->addToCategory('shop');
+        try {
+            $contact->addToCategory('shop');
+        } catch (waException $e) {
+        }
 
         // Save order
         $order_id = $this->order_model->insert($order);
@@ -352,6 +355,12 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             $item['order_id'] = $order_id;
             if (isset($item['product']['stock_unit_id'])) {
                 $item['stock_unit_id'] = $item['product']['stock_unit_id'];
+            }
+            if (isset($item['product_id']) && $item['product_id'] === 0
+                && isset($item['sku_id']) && $item['sku_id'] === 0
+                && isset($item['name']) && is_string($item['name'])
+            ) {
+                $item['name'] = str_replace('{$order.id_str}', shopHelper::encodeOrderId($order_id), $item['name']);
             }
             if ($item['type'] == 'product') {
                 $parent_id = $this->order_items_model->insert($item);

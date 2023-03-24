@@ -1,0 +1,86 @@
+<div class="dialog width650px s-product-associate-promo-dialog" id="js-product-associate-promo-dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                {if !empty($products)}
+                    <h1 class="s-dialog-title">{sprintf('[`Add selected products to promo %s`]', "<span class='gray'>(`$products|count`)</span>")}</h1>
+
+                    <form method="post" action="">
+                        <div class="s-new-promo-section">
+                            <label>
+                                <input class="js-promo-field" type="radio" name="promo[id]" value="create">
+                                [`Add a new promo`]
+                            </label>
+                        </div>
+
+                        {if !empty($active_promos)}
+                            <div class="s-active-promos-section">
+                                <h4 class="s-section-title">[`Active promos`]</h4>
+                                <ul class="menu-v">
+                                    {foreach $active_promos as $_promo}
+                                        <li>
+                                            <label>
+                                                <input class="js-promo-field" type="radio" name="promo[id]" value="{$_promo.id|escape}">
+                                                {$_promo.name|default:""|escape}
+                                            </label>
+                                        </li>
+                                    {/foreach}
+                                </ul>
+                            </div>
+                        {/if}
+
+                        {if !empty($planned_promos)}
+                            <div class="s-planned-promos-section">
+                                <h4 class="s-section-title">[`Scheduled promos`]</h4>
+                                <ul class="menu-v">
+                                    {foreach $planned_promos as $_promo}
+                                        <li>
+                                            <label>
+                                                <input class="js-promo-field" type="radio" name="promo[id]" value="{$_promo.id|escape}">
+                                                {$_promo.name|default:""|escape}
+                                            </label>
+                                        </li>
+                                    {/foreach}
+                                </ul>
+                            </div>
+                        {/if}
+                    </form>
+
+                {else}
+                    <h1>[`No products.`]</h1>
+                {/if}
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {if !empty($products)}
+                    <button class="button blue js-associate-promo">[`Add`]</button>
+                    <span class="s-divider">[`or`]</span>
+                    <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+                {else}
+                    <button class="button gray cancel">[`Close`]</button>
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var $wrapper = $("#js-product-associate-promo-dialog").removeAttr("id"),
+                redirect_pattern = "{$wa_app_url}marketing/promo/%id%/?options[action]=associate&options[products_hash]={$products_hash|escape}";
+
+            $wrapper.on("click", ".js-associate-promo", function(event) {
+                event.preventDefault();
+
+                $(this).attr("disabled", true).removeClass("blue").addClass("gray");
+
+                var $input = $wrapper.find(".js-promo-field:checked"),
+                    value = $input.val(),
+                    promo_id = value ? value : "create";
+
+                location.href = redirect_pattern.replace("%id%", promo_id);
+            });
+        })(jQuery);
+    </script>
+</div>

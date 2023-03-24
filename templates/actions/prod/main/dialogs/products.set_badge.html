@@ -28,17 +28,19 @@
                     </div>
                     <div class="s-badge-textarea" v-if="active_badge && active_badge.id === 'custom'">
                         <component-textarea
-                            class="wa-small wide s-textarea"
+                            class="small wide s-textarea"
                             v-model="active_badge.value"></component-textarea>
 
                         <div class="s-code-wrapper">
-                            <div class="wa-message wa-small white flexbox space-8">
-                                <div class="message-icon">
-                                    <i class="fas fa-info-circle"></i>
-                                </div>
-                                <div class="message-text wide">
-                                    <div class="s-title">[`Code example:`]</div>
-                                    <code class="s-code">&lt;div class="badge" style="background-color: #a1fcff;"&gt;&lt;span&gt;ВАШ ТЕКСТ&lt;/span&gt;&lt;/div&gt;</code>
+                            <div class="alert outlined small">
+                                <div class="wa-message small white flexbox space-8">
+                                    <div class="message-icon">
+                                        <i class="fas fa-info-circle"></i>
+                                    </div>
+                                    <div class="message-text wide">
+                                        <div class="s-title">[`Code example:`]</div>
+                                        <code class="s-code">&lt;div class="badge" style="background-color: #a1fcff;"&gt;&lt;span&gt;ВАШ ТЕКСТ&lt;/span&gt;&lt;/div&gt;</code>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -47,12 +49,12 @@
 
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="disabled">
+                <button class="button" type="button" v-on:click="save" v-bind:disabled="disabled">
                     <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name" v-if="active_badge && active_badge.id === 'remove'">[`Remove`]</span>
                     <span class="s-name" v-else>[`Add`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

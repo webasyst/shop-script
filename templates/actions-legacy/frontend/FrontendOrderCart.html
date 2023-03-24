@@ -1,0 +1,753 @@
+{$_config = $config.cart}
+
+{$_locales = [
+    "product_delete" => _w('Delete product from the cart'),
+    "product_disabled" => _w('This item is not available'),
+    "quantity_empty" => _w("Out of stock"),
+    "quantity_limit" => _w("No more items in stock"),
+    "quantity_delete" => _w('Delete product from the cart'),
+    "quantity_decrease" => _w('Reduce quantity'),
+    "quantity_increase" => _w('Increase quantity'),
+    "quantity_stock_error" => _w("The quantity in your shopping cart is greater than that available in stock. Please reduce the quantity or delete this product from the cart.")
+]}
+
+{function name="_renderError" _text=""}
+    <div class="wa-error-text js-error-text">{$_text|default:""}</div>
+{/function}
+
+{$_use_adaptive_styles = true}
+{if !empty($options)}
+    {if isset($options["adaptive"]) && (empty($options["adaptive"]) || $options["adaptive"] === "false")}
+        {$_use_adaptive_styles = false}
+    {/if}
+{/if}
+
+{$_cart_classes = []}
+{if !empty($_use_adaptive_styles)}
+    {$_cart_classes[] = "with-adaptive"}
+{/if}
+
+{$_currency = $wa->shop->currency()}
+
+<div class="wa-order-cart-wrapper is-not-ready {$_cart_classes|join:" "}" id="wa-order-cart-wrapper">
+    <script>
+        ( function($) {
+            $("#wa-order-cart-wrapper").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    {if empty($cart.count)}
+        <div class="wa-cart-body">
+            <p class="align-center" style="margin: 100px 0;">[`Your shopping cart is empty.`]</p>
+        </div>
+
+    {else}
+        <div class="wa-cart-body">
+
+            <div class="wa-cart-loader">
+                <p>[`Generating a shopping cart from selected items`]...</p>
+            </div>
+
+            <div class="wa-cart-content js-invisible-content" style="display: none;">
+                {* @event frontend_order_cart_vars *}
+                {foreach $event_hook as $_}{if isset($_.before_items)}
+                    <div class="wa-plugin-hook">{$_.before_items}</div>
+                {/if}{/foreach}
+
+                {* ITEMS LIST *}
+                {if !empty($cart.items)}
+                    <div class="wa-products">
+                        {foreach $cart.items as $_item}
+                            {* this code sets default values for empty SKU fields *}
+                            {$_item.product = shopFrac::inheritSkuFieldsFromProduct($_item.product)}
+                            {$_active_sku = $_item.product.skus[$_item.product.sku_id]|default:null}
+                            {$_show_fractional = !empty($formatted_units[$_item.product["stock_unit_id"]]) && !empty($formatted_units[$_item.product["base_unit_id"]]) && ($_item.product["stock_unit_id"] !== $_item.product["base_unit_id"]) && !empty($_active_sku["stock_base_ratio"])}
+
+                            {$_product_front_uri = $wa->shop->productUrl($_item.product)}
+                            {$_product_image_uri = $wa->shop->productImgHtml($_item.product, '200', ['default' => "`$wa_app_static_url`img/image-dummy.png"])}
+
+                            {$_stock_count = null}
+                            {$_is_in_stock = false}
+                            {$_is_out_of_stock = false}
+                            {$_is_more_than_limit = false}
+                            {$_is_limit = false}
+
+                            {$_is_product_disabled = false}
+                            {if empty($_item.sku_available)}
+                                {$_is_product_disabled = true}
+                            {/if}
+
+                            {if $_item.stock_count === null}
+                                {$_is_in_stock = true}
+                            {else}
+                                {$_stock_count = $_item.stock_count|floatval}
+                                {$_min_max = (!empty($_item["order_count_min"]) && ($_item["order_count_min"] > $_stock_count))}
+                                {if ($_stock_count === 0 || $_stock_count === 0.0 || $_min_max)}
+                                    {$_is_out_of_stock = true}
+                                {elseif $_stock_count > 0 && $_item.quantity <= $_stock_count}
+                                    {$_is_in_stock = true}
+                                    {if $_item.quantity == $_stock_count}
+                                        {$_is_limit = true}
+                                    {/if}
+                                {elseif $_item.quantity > $_stock_count}
+                                    {$_is_more_than_limit = true}
+                                {/if}
+                            {/if}
+
+                            {$_product_classes = []}
+                            {if !empty($_is_out_of_stock)}
+                                {$_product_classes[] = "is-out-of-stock"}
+                            {/if}
+                            {if !empty($_is_more_than_limit)}
+                                {$_product_classes[] = "is-more-than-limit"}
+                            {/if}
+                            {if !empty($_is_product_disabled)}
+                                {$_product_classes[] = "is-disabled"}
+                            {/if}
+
+                            <div class="wa-product {$_product_classes|join:" "}" data-id="{$_item.id|escape}" data-product-id="{$_item.product_id|escape}" data-sku-id="{$_item.sku_id|default:""|escape}">
+
+                                <div class="wa-product-body">
+                                    {* IMAGE *}
+                                    <div class="wa-column-image">
+                                        <div class="wa-image-section">
+                                            <a href="{$_product_front_uri}" title="{$_item.product.name|escape}" target="_blank">
+                                                {$_product_image_uri}
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    {* DETAILS *}
+                                    <div class="wa-column-details">
+                                        <div class="wa-details-section">
+                                            <div class="wa-details">
+                                                <a class="wa-name" href="{$_product_front_uri}" target="_blank">{$_item.product.name|escape}</a>
+                                                {if isset($_item.sku_name) && strlen($_item.sku_name) && $_item.sku_name != $_item.product.name}
+                                                    <span class="wa-sku">{$_item.sku_name|escape}</span>
+                                                {/if}
+
+                                                {if !empty($_config["show_weight"]) && !empty($_item.weight_html)}
+                                                    <span class="wa-weight" title="{_w('One item’s weight')|escape}">{$_item.weight_html}</span>
+                                                {/if}
+
+                                                <span class="wa-actions">
+                                                    {if !empty($_config.change_sku) && $_item.product.sku_count > 1}
+                                                        <span class="wa-action js-edit-product">
+                                                            <i class="wa-icon edit size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#edit"></use></svg></i> [`Select another SKU`]
+                                                        </span>
+                                                    {/if}
+                                                    <span class="wa-action js-delete-product">
+                                                        <span class="wa-tooltip is-inline bottom" data-title="{$_locales["product_delete"]|escape}">
+                                                            <i class="wa-icon delete size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#trash"></use></svg></i> [`Delete`]
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                            </div>
+
+                                            {if !empty($_item.services)}
+                                                <div class="wa-services">
+                                                    {foreach $_item.services as $_service_id => $_service}
+                                                        {$_is_active = !empty($_service.id)}
+                                                        <div class="wa-service {if !empty($_is_active)}is-active{/if}" data-id="{if !empty($_service.id)}{$_service.id}{/if}" data-service-id="{$_service_id}" data-enabled="{if !empty($_service.id)}1{else}0{/if}">
+                                                            <label class="wa-label">
+                                                                <span class="wa-field">
+                                                                    <input class="js-service-field" {if !empty($_service.id)}checked{/if} type="checkbox" name="services[{$_item.id}][]" value="{$_service_id}">
+                                                                </span>
+
+                                                                {$_service.name|escape}
+
+                                                                {if $_service.price && !isset($_service.variants)}
+                                                                    (<span>+{shop_currency($_service.price, [
+                                                                        'in_currency' => $_service.currency,
+                                                                        'format' => 'h'
+                                                                    ])}</span>)
+                                                                {/if}
+                                                            </label>
+
+                                                            {if isset($_service.variants)}
+                                                                <div class="wa-variant">
+                                                                    <select class="js-variant-field" name="service_variant[{$_item.id}][{$_service_id}]" {if empty($_service.id)}disabled{/if}>
+                                                                        {foreach $_service.variants as $variant_id => $v}
+                                                                            <option {if $_service.variant_id == $variant_id}selected{/if} value="{$variant_id}">
+                                                                                {$v.name|escape}
+                                                                                (+{shop_currency($v.price, [
+                                                                                    'in_currency' => $_service.currency,
+                                                                                    'extended_format' => '%t{s}'
+                                                                                ])})
+                                                                            </option>
+                                                                        {/foreach}
+                                                                    </select>
+                                                                </div>
+                                                            {else}
+                                                                <input class="js-variant-field" type="hidden" name="service_variant[{$_item.id}][{$_service_id}]" value="{$_service.variant_id}">
+                                                            {/if}
+                                                        </div>
+                                                    {/foreach}
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    </div>
+
+                                    {* QUANTITY *}
+                                    <div class="wa-column-quantity">
+                                        {*
+                                        <div class="wa-quantity-section">
+                                            {$_hint = ""}
+                                            {if !empty($_is_more_than_limit)}
+                                                {$_hint = $_locales["quantity_empty"]}
+                                            {elseif !empty($_is_limit)}
+                                                {$_hint = $_locales["quantity_limit"]}
+                                            {else}
+                                                {$_hint = $_locales["quantity_increase"]}
+                                            {/if}
+
+                                            <div class="wa-quantity-box {if !empty($_is_out_of_stock) || !empty($_is_product_disabled)}disabled{/if}">
+                                                <span class="wa-button js-decrease {if !empty($_is_product_disabled)}is-disabled{/if}">
+                                                    <span class="wa-tooltip is-inline bottom" data-title="{if $_item.quantity == 1}{$_locales["quantity_delete"]|escape}{else}{$_locales["quantity_decrease"]|escape}{/if}"><i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#minus"></use></svg></i></span>
+                                                </span>
+                                                <input class="wa-input js-product-quantity {if !empty($_item.error)}wa-error-field{/if}" type="text" name="quantity[{$_item.id}]" value="{$_item.quantity}" data-max="{$_item.stock_count|default:""}" {if !empty($_is_out_of_stock) || !empty($_is_product_disabled)}disabled{/if}>
+                                                <span class="wa-button js-increase {if !empty($_is_more_than_limit) || !empty($_is_product_disabled) || !empty($_is_limit)}is-disabled{/if}">
+                                                    <span class="wa-tooltip is-inline bottom" data-title="{$_hint|escape}"><i class="wa-icon plus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#plus"></use></svg></i></span>
+                                                </span>
+                                            </div>
+
+                                            {$_errors = []}
+                                            {if !empty($_is_product_disabled)}
+                                                {$_errors[] = $_locales["product_disabled"]}
+                                            {elseif !empty($_is_out_of_stock)}
+                                                {$_errors[] = "[`Out of stock`]"}
+                                            {elseif !empty($_is_more_than_limit)}
+                                                {$_errors[] = sprintf($_locales["quantity_stock_error"], $_item.stock_count)}
+                                            {/if}
+
+                                            {foreach $_errors as $_error}
+                                                {_renderError _text=$_error}
+                                            {/foreach}
+
+                                            <div class="wa-product-price js-product-price" style="{if empty($_item.quantity) || $_item.quantity == 1}display: none;{/if}">
+                                                {shop_currency($_item.price, [
+                                                    'in_currency' => true,
+                                                    'format' => 'h'
+                                                ])}/[`item`]
+                                            </div>
+                                        </div>
+                                        *}
+
+                                        <div class="wa-quantity-cart-section js-quantity-cart-section {if !empty($_is_out_of_stock) || !empty($_is_product_disabled)}disabled{/if}">
+                                            <div class="wa-section-body">
+                                                <div class="wa-button-wrapper">
+                                                    <button class="wa-button s-minus-button transparent js-decrease" type="button" {if !empty($_is_product_disabled)}disabled{/if}>
+                                                        <span class="wa-icon-wrapper"><i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#minus"></use></svg></i></span>
+                                                        <span class="wa-description js-min-description" style="display: none;"></span>
+                                                    </button>
+                                                </div>
+                                                <label class="wa-field-wrapper">
+                                                    <input class="wa-field js-product-quantity {if !empty($_item.error)}wa-error-field{/if}" name="quantity[{$_item.id}]" value="{$_item.quantity|floatval}" {if !empty($_is_out_of_stock) || !empty($_is_product_disabled)}disabled{/if}>
+                                                    {if !empty($formatted_units) && !empty($formatted_units[$_item.product["stock_unit_id"]])}
+                                                        {$_stock_unit = $formatted_units[$_item.product["stock_unit_id"]]}
+                                                        <span class="wa-unit top">{$_stock_unit["name_short"]}</span>
+                                                    {/if}
+                                                </label>
+                                                <div class="wa-button-wrapper">
+                                                    <button class="wa-button s-plus-button transparent js-increase" type="button" {if !empty($_is_product_disabled) || !empty($_is_limit)}disabled{/if}>
+                                                        <span class="wa-icon-wrapper"><i class="wa-icon minus size-12"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#plus"></use></svg></i></span>
+                                                        <span class="wa-description js-max-description" style="display: none;"></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="wa-section-footer">
+                                                {$_errors = []}
+                                                {if !empty($_is_product_disabled)}
+                                                    {$_errors[] = $_locales["product_disabled"]}
+                                                {elseif !empty($_is_out_of_stock)}
+                                                    {$_errors[] = "[`Out of stock`]"}
+                                                {elseif !empty($_is_more_than_limit)}
+                                                    {$_errors[] = sprintf($_locales["quantity_stock_error"], $_item.stock_count)}
+                                                {/if}
+
+                                                {foreach $_errors as $_error}
+                                                    {_renderError _text=$_error}
+                                                {/foreach}
+
+                                                {$_min = $_active_sku["order_count_min"]|default:1|floatval}
+
+                                                <div class="wa-product-fractional-prices" style="{if empty($_item.quantity)}display: none;{/if}">
+                                                    {if !empty($_show_fractional)}
+                                                        {$_stock_unit = $formatted_units[$_item.product["stock_unit_id"]]}
+                                                        {$_base_unit = $formatted_units[$_item.product["base_unit_id"]]}
+                                                        {$_stock_price = $wa->shop->formatPrice($_active_sku["price"], ["unit" => $_stock_unit["name_short"], "currency" => $_currency])}
+                                                        {$_base_price = ($_active_sku["price"]/$_active_sku["stock_base_ratio"])}
+                                                        {$_base_price = $wa->shop->formatPrice($_base_price, ["unit" => $_base_unit["name_short"], "currency" => $_currency])}
+
+                                                        <div class="wa-product-ratio-wrapper" data-ratio="{shop_number_format($_active_sku["stock_base_ratio"])}">
+                                                            <span class="js-stock-value">{$wa->shop->roundNumber($_item.quantity, 3, null, null)}</span>&nbsp;<span>{$_stock_unit["name_short"]}</span>
+                                                            <span>&nbsp;=&nbsp;</span>
+                                                            <span class="js-base-value">{$wa->shop->roundNumber($_item.quantity * $_active_sku["stock_base_ratio"], 3, null, null)}</span>&nbsp;<span>{$_base_unit["name_short"]}</span>
+                                                        </div>
+                                                        <div class="wa-product-price">{$_stock_price}</div>
+                                                        <div class="wa-product-base-price">{$_base_price}</div>
+
+                                                    {elseif $fractional_config["stock_units_enabled"] && !empty($formatted_units) && !empty($formatted_units[$_item.product["stock_unit_id"]])}
+                                                        {$_stock_unit = $formatted_units[$_item.product["stock_unit_id"]]}
+                                                        {$_stock_price = $wa->shop->formatPrice($_active_sku["price"], ["unit" => $_stock_unit["name_short"], "currency" => $_currency])}
+                                                        <div class="wa-product-price">{$_stock_price}</div>
+                                                    {else}
+                                                        <div class="wa-product-price">
+                                                            {shop_currency($_item.price, [ 'in_currency' => true, 'format' => 'h' ])}/[`item`]
+                                                        </div>
+                                                    {/if}
+                                                </div>
+                                            </div>
+
+                                            <script>
+                                                ( function($) {
+                                                    var promise = $("#wa-order-cart-wrapper").data("ready");
+                                                    promise.done( function(controller) {
+                                                        var $wrapper = $(".wa-product[data-id=\"{$_item.id|escape}\"]");
+                                                        if ($wrapper.length) {
+
+                                                            {$_max = 0}{if !$wa->shop->settings('ignore_stock_count') && $_active_sku.count > 0}{$_max = $_active_sku.count}{/if}
+
+                                                            controller.initQuantity({
+                                                                $wrapper: $wrapper,
+                                                                denominator: {$_item.product["order_multiplicity_factor"]|default:1|floatval|json_encode},
+                                                                step: {$_active_sku["order_count_step"]|default:1|floatval|json_encode},
+                                                                min: {$_active_sku["order_count_min"]|default:1|floatval|json_encode},
+                                                                max: {$_max|floatval|json_encode},
+                                                                locales: {
+                                                                    "min": {_w("min. %s")|json_encode},
+                                                                    "max": {_w("max. %s")|json_encode}
+                                                                }
+                                                            });
+                                                        } else {
+                                                            console.error("ERROR: Field not found");
+                                                        }
+                                                    });
+                                                })(jQuery);
+                                            </script>
+                                        </div>
+
+                                        <div class="wa-quantity-actions">
+                                            <div class="wa-actions">
+                                                {if !empty($_config.change_sku) && $_item.product.sku_count > 1}
+                                                    <div class="wa-action js-edit-product">
+                                                        <i class="wa-icon edit size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#edit"></use></svg></i>
+                                                    </div>
+                                                {/if}
+                                                <div class="wa-action js-delete-product">
+                                                    <div class="wa-tooltip is-inline bottom" data-title="{$_locales["product_delete"]|escape}">
+                                                        <i class="wa-icon delete size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#trash"></use></svg></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {* PRICE *}
+                                    <div class="wa-column-price">
+                                        <div class="wa-price-section">
+                                            <div class="wa-price-total js-product-full-price">
+                                                {$_full_price = $_item.full_price}
+                                                {if !empty($_item.discount)}
+                                                    {$_full_price = $_full_price - $_item.discount}
+                                                {/if}
+
+                                                {shop_currency($_full_price, ['in_currency' => true, 'format' => 'h'])}
+                                            </div>
+
+                                            {$_compare_price = null}
+                                            {if !empty($_item.discount)}
+                                                {$_compare_price = $_item.full_price}
+                                            {/if}
+
+                                            <div class="wa-price-compare js-product-compare" {if empty($_compare_price)}style="display: none;"{/if}>
+                                                {if !empty($_compare_price)}
+                                                    {shop_currency($_compare_price, ['in_currency' => true, 'format' => 'h'])}
+                                                {else}0{/if}
+                                            </div>
+
+                                            {*{if $_config.discount_item === shopCheckoutConfig::DISCOUNT_ITEM_TYPE_STRIKEOUT}*}
+                                            {if $_config.discount_item === shopCheckoutConfig::DISCOUNT_ITEM_TYPE_AMOUNT}
+                                                <div class="wa-price-discount js-product-discount" {if empty($_item.discount)}style="display: none;"{/if}>
+                                                    [`Discount`]
+                                                    <span class="wa-discount js-discount">{if !empty($_item.discount)}
+                                                        {shop_currency($_item.discount, ['in_currency' => true, 'format' => 'h'])}
+                                                    {else}0{/if}</span>
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {* @event frontend_order_cart_vars
+                                 * Items can be modified to insert custom HTML here. *}
+                                {if isset($_item.cart_custom_html)}
+                                    <div class="wa-plugin-hook">{$_item.cart_custom_html}</div>
+                                {/if}
+                            </div>
+                        {/foreach}
+                    </div>
+                {/if}
+
+                {* @event frontend_order_cart_vars *}
+                {foreach $event_hook as $_}{if isset($_.after_items)}
+                    <div class="wa-plugin-hook">{$_.after_items}</div>
+                {/if}{/foreach}
+
+                <div class="wa-cart-details">
+                    <div class="wa-column-content">
+
+                        {* COUPONS *}
+                        {if isset($coupon_code)}
+                            {$_is_active = false}
+                            {$_is_bad_code = false}
+                            {if !empty($coupon_code)}
+                                {if empty($coupon_discount) && empty($coupon_free_shipping)}
+                                    {$_is_bad_code = true}
+                                {else}
+                                    {$_is_active = true}
+                                {/if}
+                            {/if}
+
+                            {strip}
+                            <div class="wa-coupon-section {if !empty($_is_active)}is-active{/if}" data-enabled="{if !empty($_is_active)}1{else}0{/if}">
+                                <div class="wa-inactive-state">
+                                    <input class="wa-input js-coupon-code" type="text" name="coupon_code" value="{$coupon_code|escape}" placeholder="[`Coupon code`]" autocomplete="false">
+                                    <button class="wa-button gray js-use-coupon" type="button">[`Activate`]</button>
+                                </div>
+                                <div class="wa-active-state">
+                                    <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#yes"></use></svg></i>&nbsp;[`Coupon applied`]</span>
+                                    <button class="wa-button transparent js-cancel-coupon" type="button">[`Undo`]</button>
+                                </div>
+
+                                {if $_is_bad_code}
+                                    {_renderError _text=_w("Invalid coupon code")}
+                                {/if}
+                            </div>
+                            {/strip}
+                        {/if}
+
+                        {* AFFILIATE BONUS *}
+                        {if !empty($affiliate)}
+                            {$_is_active = false}
+                            {if !empty($affiliate.use_affiliate)}{$_is_active = true}{/if}
+
+                            <div class="wa-affiliate-section {if !empty($_is_active)}is-active{/if}" data-enabled="{if !empty($_is_active)}1{else}0{/if}">
+                                {if $affiliate.affiliate_bonus > 0}
+                                    {strip}
+                                    <div class="wa-bonus-details">
+                                        <div class="wa-inactive-state">
+                                            <div class="wa-details">{sprintf(
+                                                _w('You have %s bonus point! You can use it to get an additional discount of up to %s.', 'You have %s bonus points! You can use some of them to get an additional discount of up to %s.', $affiliate.affiliate_bonus, false),
+                                                "<strong>{$affiliate.affiliate_bonus}</strong>",
+                                                "<strong id=\"wa-affiliate-order-discount\">{shop_currency_html($affiliate.affiliate_discount, true)}</strong>"
+                                            )}</div>
+                                            <button class="wa-button gray js-use-bonus" type="button">[`Use bonus`]</button>
+                                        </div>
+                                        <div class="wa-active-state">
+                                            <span class="wa-text"><i class="wa-icon yes size-13"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg?v={$wa->version()}#yes"></use></svg></i>&nbsp;[`Bonus used`]</span>
+                                            <button class="wa-button transparent js-cancel-bonus" type="button">[`Undo`]</button>
+                                        </div>
+                                    </div>
+                                    {/strip}
+                                {/if}
+                                {if !empty($affiliate.add_affiliate_bonus)}
+                                    <div class="wa-order-bonus" id="wa-affiliate-order-bonus">{sprintf("[`This order will add <strong>+%s bonuses</strong> to  your account, which you will be able to spend on getting additional discounts later.`]", $affiliate.add_affiliate_bonus)}</div>
+                                {/if}
+                            </div>
+                        {/if}
+
+                    </div>
+                    <div class="wa-column-price">
+
+                        <div class="wa-price-section">
+                            {if $_config.discount_general === shopCheckoutConfig::DISCOUNT_GENERAL_TYPE_AMOUNT}
+
+                                {*discount*}
+                                {$_total_discount = $cart.discount}
+                                <div class="wa-price-discount" id="wa-cart-full-discount" style="{if empty($_total_discount)}display: none;{/if}">
+                                    [`Total discount`]
+
+                                    {capture assign="_discout_html"}
+                                        <span class="wa-discount js-price">{if !empty($cart.discount)}{shop_currency($_total_discount, ['in_currency' => true, 'format' => 'h'])}{else}0{/if}</span>
+                                    {/capture}
+
+                                    {$_round_discounts = $wa->shop->settings('round_discounts')}
+                                    {if !empty($_round_discounts)}
+                                        <span class="wa-tooltip is-inline top with-underline" data-title="[`Rounded discount value`]">{$_discout_html}</span>
+                                    {else}
+                                        {$_discout_html}
+                                    {/if}
+                                </div>
+
+                            {elseif $_config.discount_general === shopCheckoutConfig::DISCOUNT_GENERAL_TYPE_SEPARATION}
+                                {*subtotal*}
+                                <div class="wa-price-subtotal" id="wa-cart-subtotal">
+                                    [`Subtotal`]
+                                    <span class="wa-price js-price">
+                                        {shop_currency($cart.subtotal, [
+                                            'in_currency' => true,
+                                            'format' => 'h'
+                                        ])}
+                                    </span>
+                                </div>
+
+                                {*
+                                 * discount without coupon and affiliate
+                                 *}
+                                {$_partial_discount = $cart.discount}
+                                {if !empty($coupon_discount)}
+                                    {$_partial_discount = $_partial_discount - $coupon_discount}
+                                {/if}
+                                {if !empty($affiliate.use_affiliate) && !empty($affiliate.affiliate_discount)}
+                                    {$_partial_discount = $_partial_discount - $affiliate.affiliate_discount}
+                                {/if}
+                                <div class="wa-price-discount" id="wa-cart-discount" style="{if empty($_partial_discount)}display: none;{/if}">
+                                    [`Discount`]
+                                    <span class="wa-discount js-price">{if !empty($_partial_discount)}
+                                        {shop_currency($_partial_discount, [
+                                            'in_currency' => true,
+                                            'format' => 'h'
+                                        ])}
+                                    {else}0{/if}</span>
+                                </div>
+                                {*coupon*}
+                                <div class="wa-price-discount" id="wa-cart-discount-coupon" style="{if empty($coupon_discount)}display: none;{/if}">
+                                    [`Coupon discount`]
+                                    <span class="wa-discount js-price">{if !empty($coupon_discount)}
+                                        {shop_currency($coupon_discount, [
+                                            'in_currency' => true,
+                                            'format' => 'h'
+                                        ])}
+                                    {else}0{/if}</span>
+                                </div>
+                                {*affiliate*}
+                                <div class="wa-price-discount" id="wa-cart-discount-affiliate" style="{if empty($affiliate.use_affiliate)}display: none;{/if}">
+                                    [`Affiliate bonus discount`]
+                                    <span class="wa-discount js-price">{if !empty($affiliate.use_affiliate)}
+                                        {shop_currency($affiliate.affiliate_discount, [
+                                            'in_currency' => true,
+                                            'format' => 'h'
+                                        ])}
+                                    {else}0{/if}</span>
+                                </div>
+                            {/if}
+
+                            {*total*}
+                            <div class="wa-price-total" id="wa-cart-total">
+                                [`Total`]
+                                <span class="wa-price js-price">
+                                    {shop_currency($cart.total, [
+                                        'in_currency' => true,
+                                        'format' => 'h'
+                                    ])}
+                                </span>
+                            </div>
+                        </div>
+
+                        {strip}
+                        {$_show_weight = ( !empty($_config["show_weight"]) && !empty($cart.total_weight_html) && !empty($cart.count_html) )}
+                        <div class="wa-weight-section" id="wa-cart-weight" style="{if empty($_show_weight)}display: none;{/if}">
+                            {if !empty($_show_weight)}
+                                {sprintf('[`%s with total weight %s`]', "<span class=\"wa-count\">{$cart.count_html}</span>", "<span class=\"wa-weight\">{$cart.total_weight_html}</span>")}
+                            {/if}
+                        </div>
+                        {/strip}
+
+                    </div>
+                </div>
+
+                {* @event frontend_order_cart_vars *}
+                {foreach $event_hook as $_}{if isset($_.bottom)}
+                    <div class="wa-plugin-hook">{$_.bottom}</div>
+                {/if}{/foreach}
+            </div>
+
+        </div>
+
+        {capture assign="_delete_product_dialog"}{include file="./order/cart/dialog/product.delete.html" inline}{/capture}
+        {capture assign="_clear_cart_dialog"}{include file="./order/cart/dialog/clear.html" inline}{/capture}
+
+        <script>
+            ( function($) {
+
+                load([
+                    {
+                        id: "wa-order-ui-css",
+                        type: "css",
+                        uri: "{$wa_app_static_url}css/frontend/order/ui.css?v={$wa->version()}"
+                    },
+                    {
+                        id: "wa-order-ui-js",
+                        type: "js",
+                        uri: "{$wa_app_static_url}js/frontend/order/ui.js?v={$wa->version()}"
+                    },
+                    {
+                        id: "wa-order-cart-css",
+                        type: "css",
+                        uri: "{$wa_app_static_url}css/frontend/order/cart.css?v={$wa->version()}"
+                    },
+                    {
+                        id: "wa-order-cart-js",
+                        type: "js",
+                        uri: "{$wa_app_static_url}js/frontend/order/cart.js?v={$wa->version()}"
+                    },
+                    {
+                        id: "wa-order-product-js",
+                        type: "js",
+                        uri: "{$wa_app_static_url}js/frontend/order/product.js?v={$wa->version()}"
+                    }
+                ]).then(init);
+
+                function load(sources) {
+                    var deferred = $.Deferred();
+
+                    loader(sources).then( function() {
+                        deferred.resolve();
+                    }, function(bad_sources) {
+                        if (console && console.error) {
+                            console.error("Error loading resource", bad_sources);
+                        }
+                        deferred.reject(bad_sources);
+                    });
+
+                    return deferred.promise();
+
+                    function loader(sources) {
+                        var deferred = $.Deferred(),
+                            counter = sources.length;
+
+                        var bad_sources = [];
+
+                        $.each(sources, function(i, source) {
+                            switch (source.type) {
+                                case "css":
+                                    loadCSS(source).then(onLoad, onError);
+                                    break;
+                                case "js":
+                                    loadJS(source).then(onLoad, onError);
+                                    break;
+                            }
+                        });
+
+                        return deferred.promise();
+
+                        function loadCSS(source) {
+                            var deferred = $.Deferred(),
+                                promise = deferred.promise();
+
+                            var $link = $("#" + source.id);
+                            if ($link.length) {
+                                promise = $link.data("promise");
+
+                            } else {
+                                $link = $("<link />", {
+                                    id: source.id,
+                                    rel: "stylesheet"
+                                }).appendTo("head")
+                                    .data("promise", promise);
+
+                                $link
+                                    .on("load", function() {
+                                        deferred.resolve(source);
+                                    }).on("error", function() {
+                                    deferred.reject(source);
+                                });
+
+                                $link.attr("href", source.uri);
+                            }
+
+                            return promise;
+                        }
+
+                        function loadJS(source) {
+                            var deferred = $.Deferred(),
+                                promise = deferred.promise();
+
+                            var $script = $("#" + source.id);
+                            if ($script.length) {
+                                promise = $script.data("promise");
+
+                            } else {
+                                var script = document.createElement("script");
+                                document.getElementsByTagName("head")[0].appendChild(script);
+
+                                $script = $(script)
+                                    .attr("id", source.id)
+                                    .data("promise", promise);
+
+                                $script
+                                    .on("load", function() {
+                                        deferred.resolve(source);
+                                    }).on("error", function() {
+                                    deferred.reject(source);
+                                });
+
+                                $script.attr("src", source.uri);
+                            }
+
+                            return promise;
+                        }
+
+                        function onLoad(source) {
+                            counter -= 1;
+                            watcher();
+                        }
+
+                        function onError(source) {
+                            bad_sources.push(source);
+                            counter -= 1;
+                            watcher();
+                        }
+
+                        function watcher() {
+                            if (counter === 0) {
+                                if (!bad_sources.length) {
+                                    deferred.resolve();
+                                } else {
+                                    deferred.reject(bad_sources);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                function init() {
+                    window.waOrder.ui.initFormatPrice({$currency_info|default:""|json_encode});
+                    window.waOrder.cart = new window.waOrder.Cart({
+                        $wrapper: $("#wa-order-cart-wrapper"),
+                        outer_options: {$options|json_encode},
+                        weight_enabled: {if !empty($_config["show_weight"])}true{else}false{/if},
+                        templates: {
+                            error: {_renderError|strip|trim|json_encode},
+                            delete_product_dialog: {$_delete_product_dialog|strip|trim|json_encode},
+                            clear_cart_dialog: {$_clear_cart_dialog|strip|trim|json_encode}
+                        },
+                        urls: {
+                            "add": {$wa->getUrl('shop/frontendOrderCart/add')|json_encode},
+                            "save": {$wa->getUrl('shop/frontendOrderCart/save')|json_encode},
+                            "refresh": {$wa->getUrl('shop/frontendOrderCart/render')|json_encode},
+                            "product_edit": {$wa->getUrl('shop/frontendOrderCart/productdialog')|json_encode}
+                        },
+                        locales: {
+                            coupon_invalid: {_w('Invalid coupon code')|json_encode},
+                            coupon_empty: {_w('Coupon code is empty')|json_encode},
+
+                            quantity_limit: {$_locales["quantity_limit"]|json_encode},
+                            quantity_empty: {$_locales["quantity_empty"]|json_encode},
+                            quantity_delete: {$_locales["quantity_delete"]|json_encode},
+                            quantity_decrease: {$_locales["quantity_decrease"]|json_encode},
+                            quantity_increase: {$_locales["quantity_increase"]|json_encode},
+                            quantity_stock_error: {$_locales["quantity_stock_error"]|json_encode},
+
+                            weight_total: {sprintf('[`%s with total weight %s`]', "<span class=\"wa-count\">%s</span>", "<span class=\"wa-weight\">%s</span>")|json_encode},
+                            affiliate_bonus: {_w('This order will add <strong>+%s bonuses</strong> to  your account, which you will be able to spend on getting additional discounts later.')|json_encode}
+                        }
+                    });
+                }
+
+            })(jQuery);
+        </script>
+    {/if}
+</div>

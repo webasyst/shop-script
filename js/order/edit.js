@@ -178,6 +178,11 @@ $.order_edit = {
                         product.skus[product.sku_id].checked = true;
                     }
 
+                    if ($('#subtotal.hidden').length === 1) {
+                        $('#productless-subtotal').addClass('hidden').prop('disabled', true).hide();
+                        $('#subtotal').removeClass('hidden').show();
+                    }
+
                     if ($('#order-currency').length && !$('#order-currency').attr('disabled')) {
                         $('<input type="hidden" name="currency">').val($('#order-currency').val()).insertAfter($('#order-currency'));
                         $('#order-currency').attr('disabled', 'disabled');
@@ -671,7 +676,7 @@ $.order_edit = {
             $update_discount_button = $('#update-discount'),
             $js_coupon_invalid_msg = $('#js-coupon-invalid-msg');
 
-        $js_edit_coupon.click(function() {
+        $js_edit_coupon.on('click', function() {
             $(this).add($js_no_coupon_text).add($js_coupon_icon).add($coupon_code_label).hide();
             $coupon_code.data('value', $coupon_code.val());
             $coupon_code.val('').show();
@@ -866,8 +871,6 @@ $.order_edit = {
 
                 // INIT
                 that.init();
-
-                console.log( that );
 
                 function getValue() {
                     var value = that.$field.val();
@@ -1238,7 +1241,14 @@ $.order_edit = {
         // For customer form need also storefront, cause functionality of form depends of storefront also
         data['storefront'] = that.getStorefront();
 
-        data.items = $.order_edit.getOrderItems(container);
+        if ($('#subtotal.hidden').length === 1) {
+            data.items = [{
+                quantity: 1,
+                price: $('#productless-subtotal').val()
+            }];
+        } else {
+            data.items = $.order_edit.getOrderItems(container);
+        }
 
         //see discount property in shopOrder
         var update_discount = $('#update-discount').data('discount');
@@ -1495,7 +1505,7 @@ $.order_edit = {
                     data: r.data,
                     is_new: true
                 });
-                if (!$.order_edit.options.embedded_version && $.order_edit.slide(false, true)) {
+                if ($.order_edit.slide(false, true)) {
                     location.href = '#/orders/state_id=new&view=split&id=' + r.data.order.id + '/';
                 }
             };
@@ -1505,10 +1515,20 @@ $.order_edit = {
                     data: r.data,
                     is_new: false
                 });
-                if (!$.order_edit.options.embedded_version) {
-                    $.order_edit.container.find('.back').click();
-                }
+                $.order_edit.container.find('.back').click();
             };
+        }
+
+        if ($('#subtotal.hidden').length === 1) {
+            var productless_data = [
+                {name: 'quantity[edit][0][product]', value: 1},
+                {name: 'product[edit][0]', value: 0},
+                {name: 'sku[edit][0]', value: 0},
+                {name: 'name[edit][0]', value: $.order_edit.locales.noproduct_item_name},
+                {name: 'item[edit][0]', value: 0},
+                {name: 'currency', value: $('#order-currency').val()},
+            ];
+            data = [...data, ...productless_data];
         }
 
         //$.shop.trace(type, form.serialize());
@@ -1645,9 +1665,6 @@ $.order_edit = {
             deferreds.push($('#s-orders').animate({
                 'width': 300
             }, duration).show());
-            deferreds.push($('#s-content').animate({
-                'margin-left': 200
-            }, duration));
             deferreds.push($('#maincontent').animate({
                 'margin-top': 84
             }, duration));

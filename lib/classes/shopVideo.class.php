@@ -153,6 +153,9 @@ class shopVideo
                 }
 
                 if ($file_url) {
+                    if (!waFiles::create($file_path)) {
+                        throw new waException("Insufficient write permissions for the $file_path dir.");
+                    }
                     waFiles::upload($file_url, $file_path);
                     return $file_path;
                 }

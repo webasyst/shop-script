@@ -23,7 +23,9 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
         $shipping_time_to = waRequest::post('shipping_time_to', 'string_trim', '');
         if ($shipping_date && $shipping_time_from && $shipping_time_to) {
             $ts = @strtotime($shipping_date);
-            if ($ts && preg_match('~^\d\d:\d\d$~', $shipping_time_from) && preg_match('~^\d\d:\d\d$~', $shipping_time_to)) {
+            if ($ts && preg_match('~^\d?\d:\d\d$~', $shipping_time_from) && preg_match('~^\d?\d:\d\d$~', $shipping_time_to)) {
+                $this->formatTime($shipping_time_from);
+                $this->formatTime($shipping_time_to);
                 $text[] = _w('Shipping').': '.date('Y-m-d', $ts).' '.$shipping_time_from.'-'.$shipping_time_to;
                 $params['shipping_start_datetime'] = date('Y-m-d', $ts).' '.$shipping_time_from.':00';
                 $params['shipping_end_datetime'] = date('Y-m-d', $ts).' '.$shipping_time_to.':00';
@@ -54,15 +56,26 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
         // Courier
         if (null !== ( $courier_id = waRequest::post('courier_id', null, 'int'))) {
             if ($courier_id) {
-                $courier_model = new shopApiCourierModel();
-                $courier = $courier_model->getById($courier_id);
-                if ($courier) {
-                    $text[] = _w('Courier').': '.htmlspecialchars(ifempty($courier['name'], '('.$courier_id.')'));
-                    $params['courier_id'] = $courier_id;
+                if ($courier_id > 0) {
+                    $courier_model = new shopApiCourierModel();
+                    $courier = $courier_model->getById($courier_id);
+                    if ($courier) {
+                        $text[] = _w('Courier').': '.htmlspecialchars(ifempty($courier['name'], '('.$courier_id.')'));
+                        $params['courier_id'] = $courier_id;
+                        $update['courier_contact_id'] = null;
+                    }
+                } else {
+                    $contact_model = new waContactModel();
+                    $contact = $contact_model->getByField(['id' => -$courier_id, 'is_user' => 1]);
+                    if ($contact) {
+                        $text[] = _w('Courier').': '.htmlspecialchars(ifempty($contact['name'], '('.$contact['id'].')'));
+                        $update['courier_contact_id'] = $contact['id'];
+                        $params['courier_id'] = null;
+                    }
                 }
             } else {
                 $text[] = _w('Courier').': '._w('None');
-                $params['courier_id'] = null;
+                $params['courier_id'] = $update['courier_contact_id'] = null;
             }
         }
 
@@ -75,6 +88,13 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
             );
         } else {
             return true;
+        }
+    }
+
+    protected function formatTime(&$time)
+    {
+        if (mb_strlen($time) == 4) {
+            $time = '0' . $time;
         }
     }
 
@@ -98,11 +118,43 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
         list($customer_delivery_date, $customer_delivery_time) = shopHelper::getOrderCustomerDeliveryTime($params);
         list($shipping_date, $shipping_time_start, $shipping_time_end) = shopHelper::getOrderShippingInterval($params);
 
+        $users = $this->getUsersByRights('orders', [
+            'courier_access' => shopRightConfig::RIGHT_ORDERS_COURIER,
+            'full_access' => shopRightConfig::RIGHT_ORDERS_FULL,
+        ]);
+        $contacts = $contacts_as_courier = [];
+        if ($users) {
+            $contact_model = new waContactModel();
+            $all_contacts = $contact_model->select('`id`, `name`')->where('`is_user` = 1 AND `id` IN (?)', [array_keys($users)])->fetchAll('id');
+            foreach ($users as $contact_id => $user) {
+                if (isset($all_contacts[$contact_id])) {
+                    if ($user['courier_access']) {
+                        $contacts_as_courier[$contact_id] = $all_contacts[$contact_id];
+                    } else {
+                        $contacts[$contact_id] = $all_contacts[$contact_id];
+                    }
+                }
+            }
+            usort($contacts, function($c1, $c2) {
+                return strnatcasecmp(mb_strtolower(trim($c1['name'])), mb_strtolower(trim($c2['name'])));
+            });
+        }
+        $order = $this->order_model->getById($order_id);
+
+        $selected_courier_id = null;
+        if (isset($params['courier_id'])) {
+            $selected_courier_id = $params['courier_id'];
+        } elseif ($order['courier_contact_id']) {
+            $selected_courier_id = -$order['courier_contact_id'];
+        }
+
         $this->getView()->assign(array(
             'other_couriers_exist' => count($all_couriers) > count($couriers),
             'storefront'           => $storefront,
             'couriers'             => $couriers,
-            'selected_courier_id'  => ifset($params['courier_id']),
+            'selected_courier_id'  => $selected_courier_id,
+            'contacts_as_courier'  => $contacts_as_courier,
+            'contacts'             => $contacts,
             'tracking_number'      => ifset($params['tracking_number']),
             'customer_delivery_date' => $customer_delivery_date,
             'customer_delivery_time' => $customer_delivery_time,
@@ -123,5 +175,42 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
     {
         // This makes the form appear above order instead of in the right sidebar
         return parent::getButton('data-container="#workflow-content"');
+    }
+
+    /**
+     * Return array ids of users who have access right to given rules
+     *
+     * @param string $name
+     * @param array $rights minimal user rights
+     * @return array
+     * @throws waDbException
+     */
+    protected function getUsersByRights($name, $rights)
+    {
+        $conditions = [
+            "(r.app_id = s:app_id AND r.name = s:name AND r.value IN (:rights))",
+            "(r.app_id = 'webasyst' AND r.name = 'backend' AND r.value > 0)",
+        ];
+        if ($name != 'backend') {
+            $conditions[] = "(r.app_id = s:app_id AND r.name = 'backend' AND r.value > 1)";
+        }
+
+        $fields = [];
+        foreach ($rights as $field_name => $level) {
+            $fields[] = "r.name = s:name AND r.value = $level `$field_name`";
+        }
+
+        $sql = "SELECT DISTINCT IF(r.group_id < 0, -r.group_id, g.contact_id) AS cid, " . implode(', ', $fields) . "
+                FROM wa_contact_rights r
+                    LEFT JOIN wa_user_groups g ON r.group_id = g.group_id
+                WHERE (r.group_id < 0 OR g.contact_id IS NOT NULL)
+                    AND (" . implode(' OR ', $conditions) . ")";
+
+        $contact_rights_model = new waContactRightsModel();
+        return $contact_rights_model->query($sql, [
+            'app_id' => 'shop',
+            'name' => $name,
+            'rights' => $rights,
+        ])->fetchAll('cid', true);
     }
 }

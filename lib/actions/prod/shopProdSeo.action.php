@@ -27,7 +27,6 @@ class shopProdSeoAction extends waViewAction
         $formatted_product = self::formatProduct($product);
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setChapter();
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,
@@ -72,13 +71,13 @@ class shopProdSeoAction extends waViewAction
 
         return [
             "id"               => $product["id"],
-            "name"             => $product["name"],
-            "summary"          => $product["summary"],
-            "description"      => $product["description"],
+            "name"             => is_null($product["name"]) ? "" : $product["name"],
+            "summary"          => is_null($product["summary"]) ? "" : $product["summary"],
+            "description"      => is_null($product["description"]) ? "" : $product["description"],
             "image_id"         => $product["image_id"],
-            "meta_title"       => $product["meta_title"],
-            "meta_keywords"    => $product["meta_keywords"],
-            "meta_description" => $product["meta_description"],
+            "meta_title"       => is_null($product["meta_title"]) ? "" : $product["meta_title"],
+            "meta_keywords"    => is_null($product["meta_keywords"]) ? "" : $product["meta_keywords"],
+            "meta_description" => is_null($product["meta_description"]) ? "" : $product["meta_description"],
             "og"               => $product["og"],
             "price"            => shop_currency_html($product["price"]),
             "photo"            => $photo,

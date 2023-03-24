@@ -20,10 +20,18 @@ class shopWorkflowCommentAction extends shopWorkflowAction
 
     public function getButton()
     {
+        $class_icon = "icon16 {$this->getOption('icon')}";
+        $class_button = $this->getOption('button_class');
+
+        if (wa()->whichUI() >= '2.0') {
+            $class_icon = "icon text-green fas fa-plus-circle";
+            $class_button = "button light-gray rounded";
+        }
+
         if ($this->getOption('position') || $this->getOption('top')) {
             return <<<HTML
-<a href="#" class="wf-action {$this->getOption('button_class')}" data-action-id="{$this->getId()}">
-    <i class="icon16 {$this->getOption('icon')}"></i><b><i>{$this->getName()}</i></b>
+<a href="#" class="wf-action {$class_button} actions-link" data-action-id="{$this->getId()}">
+    <i class="$class_icon"></i> {$this->getName()}
 </a>
 HTML;
         } else {

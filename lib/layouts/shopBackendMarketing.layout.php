@@ -17,7 +17,11 @@ class shopBackendMarketingLayout extends shopBackendLayout
         $view->assign($this->blocks);
         $this->blocks['content'] = $view->fetch($this->getTemplate());
 
-        $this->template = wa()->getAppPath('templates/layouts/Backend.html', 'shop');
+        if (wa()->whichUI() == '1.3') {
+            $this->template = wa()->getAppPath('templates/layouts-legacy/Backend.html', 'shop');
+        } else {
+            $this->template = wa()->getAppPath('templates/layouts/Backend.html', 'shop');
+        }
 
         return parent::execute();
     }

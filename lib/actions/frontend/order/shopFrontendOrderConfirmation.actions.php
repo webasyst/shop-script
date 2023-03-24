@@ -21,7 +21,11 @@ class shopFrontendOrderConfirmationActions extends waJsonActions
             'is_last_channel' => $this->isLastChannelToConfirm(),
         ));
 
-        $html = $view->fetch(wa()->getAppPath('templates/actions/frontend/order/form/dialog/channel_confirmation.html', 'shop'));
+        if(wa()->whichUI() === '1.3') {
+            $html = $view->fetch(wa()->getAppPath('templates/actions-legacy/frontend/order/form/dialog/channel_confirmation.html', 'shop'));
+        }else{
+            $html = $view->fetch(wa()->getAppPath('templates/actions/frontend/order/form/dialog/channel_confirmation.html', 'shop'));
+        }
         $this->response['confirmation_dialog'] = $html;
     }
 

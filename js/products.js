@@ -40,6 +40,7 @@
         hash: '',
         list_hash: '', // hash of last list
         list_params: {}, // params of last list
+        options: {},
         random: '',
         init: function (options) {
             $.extend(this.options, options);
@@ -64,7 +65,6 @@
             $.wa.errorHandler = function (xhr) {
                 if ((xhr.status === 403) || (xhr.status === 404)) {
                     var text = $(xhr.responseText);
-                    console.log(text);
                     if (text.find('.dialog-content').length) {
                         text = $('<div class="block double-padded"></div>').append(text.find('.dialog-content *'));
 
@@ -181,6 +181,7 @@
                         $.shop.error('$.products.load callback error: ' + e.message, e);
                     }
                 }
+                $(document).trigger("wa_loaded");
             });
         },
 
@@ -295,7 +296,7 @@
                     $.product_list.fixed_blocks.category.unsetFixed();
                 }
             }
-            this.load('?module=products&' + this.buildProductsUrlComponent(params), this.checkAlerts);
+            window.location.href = this.options.shop_url + 'products/';
         },
 
         checkAlerts: function () {
@@ -445,7 +446,7 @@
                 var parent = $(el).parent();
                 return parent.is('li') ? parent.find('ul:first') : parent.next();
             };
-            $(".collapse-handler").die('click').live('click',function () {
+            $(".collapse-handler").off('click').on('click',function () {
                 var self = $(this);
                 if (self.hasClass('darr')) {
                     collapse(this);

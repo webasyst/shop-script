@@ -1,0 +1,233 @@
+
+<h1>[`CSV product export`]</h1>
+<p>
+    {sprintf('[`Export products to a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`https://www.shop-script.com/help/45/import-products-from-csv-file/`]')}
+    <i class="icon10 new-window"></i>
+</p>
+{if !empty($info)}
+<div class="field-group" style="border-bottom: 1px solid #ccc;">
+    <div class="field">
+        <div class="name bold">
+            [`Last export`]
+        </div>
+        {foreach $info as $f}
+        <div class="value" style="min-width: 300px;">
+            <p>
+                <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}&file={$f.name|escape}" class="bold nowrap inline"><i class="icon16 download" style="margin-top: 0.3em;"></i>[`Download`]</a>
+                <span class="hint inline">{$f.size|wa_format_file_size}</span>
+                <br>
+                <span class="hint inline" style="color: #aaa;">[`Updated`]: {$f.mtime|wa_datetime:"humandatetime"}</span>
+            </p>
+        </div>
+        {/foreach}
+    </div>
+</div>
+{/if}
+
+
+<div class="field js-profile-description">
+   <div class="name">[`Profile`]</div>
+   <div class="value">
+       <input type="text" name="profile[name]" value="{$profile.name|default:''|escape}">
+       <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
+   </div>
+</div>
+
+<div class="field">
+    <div class="name">
+        [`Products representation in file rows`]
+    </div>
+    <div class="value no-shift">
+        <select name="export_mode">
+            <option value="0" {if empty($profile.config.export_mode)}selected="selected"{/if}>[`Default mode`]</option>
+            <option value="1" {if !empty($profile.config.export_mode)}selected="selected"{/if}>[`SKU as product`]</option>
+        </select>
+        <p class="hint {if !empty($profile.config.export_mode)}hidden{/if}">[`For a product with <em>multiple</em> SKUs, a separate row is exported with product-related data and additional rows are exported with the product’s SKUs. A product with <em>one</em> SKU is exported in one row.`]</p>
+        <div class="block-hint {if empty($profile.config.export_mode)}hidden{/if}">
+            <span>[`For each product SKU, a separate row, containing that SKU’s properties, is added to a file. If some SKU property is empty but has a value stored in the common product data then such a common property value is exported to an SKU row. No separate row with common product data is exported.`]</span>
+            <div class="wa-csv-message wa-small error flexbox">
+                <div class="message-icon">
+                    <svg aria-hidden="true" data-prefix="fas" data-icon="exclamation-triangle" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg="" class="svg-inline--fa">
+                        <path fill="currentColor" d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"></path>
+                    </svg>
+                </div>
+                <div class="message-text wide">
+                    <span class="s-text">{sprintf_wp('This export mode is not recommended for product updates to avoid corruption of the original data structure. You may find it useful to transfer information to external services. To update your products via an exported CSV file, use “%s”.', _w('Default mode'))}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{if count($settlements)>1}
+<div class="field-group">
+    <div class="field">
+        <div class="name">
+            [`Storefront`]
+        </div>
+        <div class="value no-shift">
+            <select name="domain">
+                {foreach $settlements as $route => $title}
+                    <option value="{$route|escape}"{if $route eq $current_domain} selected="selected"{/if}>{$title|escape}</option>
+                {/foreach}
+            </select>
+            <p class="hint">[`Select storefront to make product image URLs exported properly`]</p>
+        </div>
+    </div>
+</div>
+{elseif $route = reset($settlements)}
+<input type="hidden" value="{$route|escape}" name="domain">
+{/if}
+
+<div class="field-group">
+    <div class="field">
+        <div class="name">
+           [`Encoding`]
+        </div>
+        <div class="value">
+            <select name="encoding">
+            {foreach $encoding as $enc}<option{if $enc == $profile.config.encoding} selected="selected"{/if}>{$enc|escape}</option>{/foreach}
+            </select>
+        </div>
+        <div class="value hint js-encoding-hint" style="display: none;">
+            <i class="icon10 exclamation" style="margin-top: 0;"></i>
+            {sprintf('[`Certain symbols (such as %s) may be omitted when exporting with the selected encoding. Consider using UTF-8 encoding for safe export and import.`]','©, ±, ö')}
+            <br><br>
+        </div>
+
+    </div>
+
+    <div class="field">
+        <div class="name">
+           [`Separator`]
+        </div>
+        <div class="value">
+            <select name="delimiter">
+                <option value=";"{if $profile.config.delimiter eq ';'} selected="selected"{/if}>[`Semicolon`] (;)</option>
+                <option value=","{if $profile.config.delimiter eq ','} selected="selected"{/if}>[`Comma`] (,)</option>
+                <option value="tab"{if $profile.config.delimiter eq 'tab'} selected="selected"{/if}>[`Tab`]</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">
+            [`Features`]
+        </div>
+        <div class="value no-shift">
+            <label><input type="checkbox" name="features"{if !empty($profile.config.features)} checked="checked"{/if}> [`Export product feature values`]</label>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">
+            [`Product &amp; category descriptions`]
+        </div>
+        <div class="value no-shift">
+            <label><input type="checkbox" name="description"{if !empty($profile.config.description)||!isset($profile.config.description)} checked="checked"{/if}> [`Export descriptions`]</label>
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="name">
+            [`Product images`]
+        </div>
+        <div class="value no-shift">
+            <label>
+                <select title="[`Select how to export product images`]" name="images">
+                    <option value="">[`Do not export`]</option>
+                    <option value="true" {if  (!empty($profile.config.images) && !isset($image_sizes[$profile.config.images]))} selected{/if}>[`Export default size images`]</option>
+                    {foreach $image_sizes as $image_size=>$image_size_name}
+                        <option value="{$image_size|escape}"{if (!empty($profile.config.images) && ($image_size eq $profile.config.images))} selected{/if}>{$image_size_name|string_format:"[`Export %s large images`]"|escape}</option>
+                    {/foreach}
+                </select>
+            </label>
+            <span class="hint"><a href="?action=settings#/images/">[`Product image size settings`]</a></span>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">
+            [`Additional categories`]
+        </div>
+        <div class="value no-shift">
+            <label><input type="checkbox" name="extra_categories"{if !empty($profile.config.extra_categories)} checked="checked"{/if}> [`Duplicate product row under each category it belongs to`]</label>
+            <p class="hint">{sprintf_wp('This option works only if the <em>%s</em> setting’s value <strong>%s</strong> or <strong>%s</strong> is selected. With its other values, information about categories is not exported.', _w('Select products'), _w('All products'), _w('Categories'))}
+            <br>
+            {sprintf_wp('When the <strong>%s</strong> value is used then product rows are duplicated only for the selected parent category and its subcategories.', _w('Categories'))}
+        </p>
+        </div>
+    </div>
+    <div class="field">
+        <div class="name">[`Primary SKU`]</div>
+        <div class="value no-shift"><label><input name="primary_sku" type="checkbox"{if !empty($profile.config.primary_sku)} checked="checked"{/if}> [`Export default SKU choice value`]</label></div>
+    </div>
+    <div class="field">
+        <div class="name">
+            [`Custom parameters`]
+        </div>
+        <div class="value no-shift"><label><input type="checkbox" name="params"{if !empty($profile.config.params)} checked="checked"{/if}> [`Export product and category custom parameters`]</label></div>
+    </div>
+
+    <div class="field">
+        <div class="name">
+            [`Plugin fields`]
+        </div>
+        <div class="value no-shift"><label><input type="checkbox" name="extra"{if !empty($profile.config.extra)} checked="checked"{/if}> [`Export product extra fields`]</label></div>
+    </div>
+</div>
+
+
+<div class="field-group">
+    {include
+    file="templates/includes/productSelector.html"
+    hints=[
+        'id'=>'<i class="icon10 exclamation"></i> [`Product categories will not be exported`]',
+        'set'=>'<i class="icon10 exclamation"></i> [`Product categories will not be exported`]',
+        'type'=>'<i class="icon10 exclamation"></i> [`Product categories will not be exported`]'
+    ]
+        hash=$profile.config.hash
+    }
+</div>
+
+<div class="clear-left"></div>
+
+<div class="field-group" id="s-csvproduct-report" style="display: none;">
+    <div class="field">
+        <div class="value"></div>
+        <div class="value">
+            <br>
+            <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}" class="bold nowrap"><i class="icon16 download"></i>[`Download`]</a>
+        </div>
+    </div>
+</div>
+
+<div class="field-group" id="s-csvproduct-submit">
+    <div class="field">
+        <div class="value submit">
+            <input type="submit" class="button green" value="[`Start export`]">
+        </div>
+
+        <div class="value js-progressbar-container" style="display:none;">
+
+            <div class="progressbar blue float-left" style="display: none; width: 70%;">
+                <div class="progressbar-outer">
+                    <div class="progressbar-inner" style="width: 0;"></div>
+                </div>
+            </div>
+
+            <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
+            <div class="clear"></div>
+            <span class="progressbar-description"></span>
+            <br>
+            <br>
+                <span class="small italic">
+                    [`Please do not close your browser window and do not leave this page until the entire export process is finished.`]
+                </span>
+        </div>
+        <br>
+        <br>
+        <em class="errormsg"></em>
+    </div>
+</div>
+

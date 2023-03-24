@@ -1,0 +1,173 @@
+{$placeholder = '[`add description`]'}
+
+<!-- plugin hook: 'backend_product_edit.images' -->
+{* @event backend_product_edit.%plugin_id%.images *}
+{if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.images)}{/foreach}{/if}
+
+{if $images}
+    {foreach from=$images key=id item=image}
+        {$images.$id.description = $image.description|default:''|escape}
+    {/foreach}
+{/if}
+
+<div class="sidebar right200px" id="s-product-images-toolbar">
+
+    <div class="block s-product-images-actions">
+        <h6 class="heading">[`Badge`]</h6>
+        <ul class="menu-v with-icons" id="photo-organize-menu">
+
+            <!-- plugin hook: 'backend_product_edit.image_toolbar_badge_li' -->
+            {* @event backend_product_edit.%plugin_id%.image_toolbar_badge_li *}
+            {if !empty($backend_product_edit)}{foreach $backend_product_edit as $_}{ifset($_.image_toolbar_badge_li)}{/foreach}{/if}
+
+            {$badges = shopProductModel::badges()}
+            {foreach $badges as $bid => $b}
+                <li data-action='set-badge' {if $bid == $product.badge}class="selected"{/if} data-type="{$bid}">
+                    <a href="#"><i class="icon16 ss {$bid}"></i>{$b.name}</a>
+                </li>
+            {/foreach}
+            {$custom_setted = $product.badge !== null && !isset($badges[$product.badge])}
+            <li data-action='set-custom-badge' data-type="custom" {if $custom_setted}class="selected"{/if}>
+                <a href="#"><i class="icon16 ss div"></i>[`Custom`]</a><span class="small editable"></span>
+                <div id="s-product-set-custom-badge" {if !$custom_setted}style="display:none;"{/if}>
+                    <textarea name="code" id="s-product-set-custom-badge-code" style="min-height: 100px; margin: 10px 0 5px;">{strip}
+                        {if $custom_setted}
+                            {$product.badge}
+                        {else}
+                            <div class="badge" style="background-color: #a1fcff;"><span>[`YOUR TEXT`]</span></div>
+                        {/if}
+                    {/strip}</textarea>
+                    <input type="button" value="[`Set custom badge`]">
+                </div>
+            </li>
+            <li class="top-padded" data-action='delete-badge'><a href="#"><i class="icon16 no-bw"></i>[`Remove badge`]</a></li>
+        </ul>
+    </div>
+
+</div>
+
+<div class="content right200px">
+
+    <div id="s-product-video-block">
+
+        <form id="s-product-video" style="margin-top: 1rem;">
+            <div>
+                <input type="text" name="url" value="{$product.video_url|escape}" placeholder="{_w("Video URL on YouTube, Vimeo or Rutube")|escape}" class="long">
+                <input type="submit" value="[`Link video`]">
+                <i class="icon16 loading" style="display: none; margin-top: 5px;"></i>
+                <i class="icon16 yes" style="margin-top: 5px;{if !$product.video_url} display: none;{/if}"></i>
+                <a class="small s-product-video-unlink"
+                    style="{if !$product.video_url} display: none;{/if}"
+                    href="javascript:void(0);"
+                    data-confirm="[`This will remove video from the product page. Are you sure?`]">[`Unlink video`]
+                </a>
+            </div>
+            <p>
+                <em class="s-product-video-error-url errormsg" style="display: none;"></em>
+            </p>
+        </form>
+    </div>
+
+    <form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
+        <div class="s-image-upload-dropbox">
+        	<a href="javascript:void(0);" id="s-upload-images-link" class="fileinput-button">
+                <i class="icon16 upload"></i>[`Select images`]<input type="file" name="files[]" multiple=""></a>
+        	<span class="gray">[`or drag them here to start upload`]</span>
+        </div>
+
+        <input type="hidden" name="product_id" value="{$product_id}">
+        {$wa->csrf()}
+
+        {include './include.imageUpload.html' inline}
+
+    </form>
+    <ul class="thumbs li250px" id="s-product-image-list"></ul>
+</div>
+
+<script type="text/javascript">
+
+$.product_images.init({
+    product_id:   '{$product_id}',
+    placeholder: '{$placeholder}',
+    images: {json_encode(array_values($images))},
+    count: {count($images)},
+    enable_2x: {if $wa->shop->config('enable_2x')}true{else}false{/if},
+
+    // handler triggered after drag-n-drop sort
+    onSort: function(id, before_id) {
+
+        // update product profile image list
+        var product_view_images_list = $('#s-product-view .s-product-image-crops');
+        var item = product_view_images_list.find('li[data-image-id=' + id + ']');
+        if (before_id) {
+            product_view_images_list.find('li[data-image-id=' + before_id + ']').before(item);
+        } else {
+            product_view_images_list.append(item);
+        }
+
+        // update images for sku settings blocks
+        var sku_settings_blocks = $('#shop-productprofile .js-sku-settings');
+        sku_settings_blocks.each(function() {
+            var self   = $(this);
+            var sku_id = self.attr('data-id');
+
+            var image_crops = self.find('.s-product-image-crops');
+            var item = image_crops.find('li[data-image-id=' + id + ']');
+            if (before_id) {
+                image_crops.find('li[data-image-id=' + before_id + ']').before(item);
+            } else {
+                image_crops.append(item);
+            }
+        });
+    }
+
+});
+
+var saveProductVideo = function () {
+    var form = $('#s-product-video');
+    form.find('.loading').show();
+    form.find('.error').removeClass();
+    form.find('.errormsg').hide();
+    $.shop.jsonPost(
+        '?module=productVideoSave&id={$product_id}',
+        form.serialize(),
+        function (r) {
+            form.find('.loading').hide();
+            form.find('.yes').show();
+            if (!r.data.product.video_url) {
+                setTimeout(function() {
+                    form.find('.yes').hide();
+                    form.find('.s-product-video-unlink').hide();
+                }, 250);
+            } else {
+                setTimeout(function () {
+                    form.find('.s-product-video-unlink').show();
+                }, 250);
+            }
+        },
+        function (r) {
+            var errors = (r && r.errors) || [];
+            form.find('.loading').hide();
+            $.each(errors, function (i, error) {
+                var input = form.find('[name="' + error.name + '"]');
+                input.addClass('error');
+                form.find('.s-product-video-error-url').show().text(error.msg);
+            });
+        }
+    );
+};
+
+(function (form) {
+    form.submit(function(e) {
+        e.preventDefault();
+        saveProductVideo();
+    });
+    form.find('.s-product-video-unlink').click(function () {
+        if (confirm($(this).data('confirm'))) {
+            form.find('[name=url]').val('');
+            saveProductVideo();
+        }
+    });
+})($('#s-product-video'));
+
+</script>

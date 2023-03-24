@@ -1,0 +1,46 @@
+{*
+ * Note: this template is used by SettingsTaxesCountry action,
+ * as well as included by SettingsTaxes template.
+ *
+ * Represents one country block (several <tr>s) in tax settings page.
+ *}
+
+<tr class="s-country {$c.css_class}" rel="{$c.iso3}"> {* class=one_rate|regions_simple|regions_advanced *}
+    <td class="min-width">
+        {if substr($c.iso3, 0, 1) !== '%'}
+            <i class="icon16 country" style="background:url({$wa_url}wa-content/img/country/{$c.iso3}.gif) no-repeat;"></i>
+        {/if}
+    </td>
+    <td class="bold">{$c.name|escape}</td>
+    <td>
+        <div class="global-country-rate">
+            <span class="small">[`Global rate`]:</span>
+            <input type="text" name="countries[{$c.iso3}]" value="{$c.global_rate}" class="numerical" placeholder="0">%
+            <a href="javascript:void(0)" class="inline-link hint back-to-simple-mode-link"><i class="icon10 settings"></i><b><i>[`Simple mode`]</i></b></a>
+        </div>
+        {if $c.regions}
+            <a href="javascript:void(0)" class="inline-link hint setup-by-regions-link"><b><i>[`Setup by regions`]</i></b></a>
+            <a href="javascript:void(0)" class="inline-link hint advanced-settings-link"><i class="icon10 settings"></i><b><i>[`Advanced settings`]</i></b></a>
+        {/if}
+        <em class="small commit-delete-message">[`Click “Save” button below to commit the delete.`]</em>
+    </td>
+    <td class="min-width"><a href="javascript:void(0)"><i class="icon16 delete"></i></a></td>
+</tr>
+
+{foreach $c.regions as $r}
+    <tr class="small s-region {$r.css_class}" rel="{$c.iso3}-region"> {* class="hidden|regions_simple|regions_advanced" *}
+        <td class="min-width"></td>
+        <td>{$r.name} <span class="hint">{$r.code}</span></td>
+        <td>
+            <input type="text" class="short s-tax-name" name="country_regions[{$c.iso3}][{$r.code}][name]" value="{$r.tax_name|escape}" placeholder="[`Tax name`]">
+            <input type="text" class="short numerical" name="country_regions[{$c.iso3}][{$r.code}][tax_value]" value="{ifset($r.params.tax_value, $r.tax_value)|escape}" placeholder="0">%
+            <select name="country_regions[{$c.iso3}][{$r.code}][tax_value_modifier]">
+                <option value="+"{if ifset($r.params.tax_value_modifier) == '+'} selected{/if}>[`+ added to global country rate`]</option>
+                <option value="*"{if ifset($r.params.tax_value_modifier) == '*'} selected{/if}>[`* compound on top of global rate`]</option>
+                <option value=""{if ifset($r.params.tax_value_modifier) === ''} selected{/if}>[`replaces global country rate`]</option>
+            </select>
+        </td>
+        <td class="min-width"></td>
+    </tr>
+{/foreach}
+

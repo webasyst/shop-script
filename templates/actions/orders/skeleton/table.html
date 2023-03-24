@@ -1,0 +1,13 @@
+{function table_orders count=2}
+    {for $i=1 to $count}
+    <span class="skeleton-list custom-m-0 custom-ml-40 custom-mt-4" style="height: 30px; width: 97%;"></span>
+    {/for}
+{/function}
+<div class="skeleton">
+    {if empty($no_sidebar)}
+        {include './table_sidebar.html' inline}
+    {/if}
+    <div class="custom-mt-16">
+        {table_orders count=10}
+    </div>
+</div>

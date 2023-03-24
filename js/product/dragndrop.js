@@ -29,7 +29,7 @@
         initDragProducts: function() {
             var product_list = $('#product-list');
             var context = product_list.find('.product:not(.s-alien)');
-            context.find('.drag-handle').live('selectstart', function() {
+            context.find('.drag-handle').on('selectstart', function() {
                 document.onselectstart = function() {
                     return false;
                 };

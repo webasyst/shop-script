@@ -1,0 +1,115 @@
+
+<div class="blank s-settings-form">
+    <div class="block double-padded">
+
+        <div class="float-right">
+            <ul class="menu-h with-icons dropdown" id="s-payment-menu">
+                <li>
+                    <a href="#/payment/" class="inline-link js-action"><i class="icon16 add"></i><b><i>[`Add payment option`]</i></b><i class="icon16 darr"></i></a>
+                    <ul class="menu-v with-icons">
+                        {foreach $plugins as $id => $plugin}
+                        <li>
+                            <a href="#/payment/plugin/add/{$id}/">
+                            {if empty($plugin.icon.16)}
+                            {shopHelper::getIcon('ss payment-bw')}
+                            {else}
+                            {shopHelper::getIcon($plugin.icon.16)}
+                            {/if}
+                            {$plugin.name|escape}
+                            </a>
+
+                        </li>
+                        {/foreach}
+                        {if !empty($installer)}
+                        <li class="bordered-top" style="padding-top: 10px; padding-bottom: 10px; margin-top: 7px; padding-left: 8px;">
+                            <a href="#/payment/plugins/" style="text-align: center;">[`Browse payment plugins...`]</a>
+                            <br>
+                            <span class="hint align-center">[`Multiple instances of every payment option with custom settings can be created.`]</span>
+                        </li>
+                        {/if}
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <h1 class="js-bread-crumbs">[`Payment`]</h1>
+
+        <br>
+        <table class="zebra" id="s-settings-payment">
+            <tbody>
+            {foreach $instances as $id => $plugin}
+
+            <tr data-id="{$id}">
+                <td class="min-width"><i class="icon16 sort"></i></td>
+                <td class="min-width">
+                    {if empty($plugin.installed)}
+                        <i class="icon16 exclamation"></i>
+                    {else}
+                        {if !empty($plugin.logo)}
+                            <img src="{$plugin.logo}" class="s-payment-shipping-logo">
+                        {elseif !empty($plugin.img)}
+                            <img src="{$plugin.img}" class="s-payment-shipping-logo">
+                        {/if}
+                    {/if}
+                </td>
+                <td>
+                    <h3 class="large{if empty($plugin.status)} gray{/if}  js-plugin-title">
+                        {$plugin.name|escape}
+                        {if empty($plugin.status)}([`disabled`]){/if}
+                        {if empty($plugin.installed)}
+                            <span class="red">[`deleted`]</span>
+                        {/if}
+                    </h3>
+                    {if empty($plugin.installed)}
+                        <span><i class="icon16 info"></i>
+                            {if $installer}
+                                {"#/payment/plugins/"|string_format:'[`You can remove settings or install the <a href="%s" class="inline">plugin</a>.`]'}
+                            {else}
+                                [`You can remove settings or install the plugin.`]
+                            {/if}
+                        </span>
+                    {/if}
+                    <p class="hint">{strip_tags($plugin.description)}</p>
+                </td>
+                <td>
+                    <ul class="menu-h with-icons">
+                        <li><a href="#/payment/plugin/setup/{$id}/" class="nowrap js-payment-plugin-setup"><i class="icon16 settings"></i>[`Configure`]</a></li>
+                        <li>
+                            <a href="#" class="nowrap js-payment-plugin-clone">
+                                <i class="icon16 split"></i>[`Create a copy`]
+                            </a>
+                        </li>
+                        <li><a href="#/payment/plugin/delete/{$id}/" class="nowrap js-action js-confirm js-payment-plugin-delete"
+                               data-confirm-text="[`This will permanently delete this payment option. Are you sure?`]"><i class="icon16 delete"></i>[`Delete`]</a></li>
+                    </ul>
+                </td>
+
+            </tr>
+            {foreachelse}
+            <tr>
+                <td>
+                    <em class="gray">[`No payment options are defined.`]</em>
+                </td>
+            </tr>
+            {/foreach}
+            </tbody>
+        </table>
+
+    <div id="s-settings-payment-setup" class="fields form"></div>
+
+    </div>
+    <div class="clear-both"></div>
+</div>
+
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/settings/payment.js?{$wa->version()}"></script>
+
+<script type="text/javascript">
+document.title = '{"[`Payment`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+if(typeof($)!='undefined') {
+$.settings.paymentInit({
+    locales: {
+        disabled: {_w('disabled')|json_encode}
+    }
+});
+}
+</script>

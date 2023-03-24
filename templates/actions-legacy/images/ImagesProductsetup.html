@@ -1,0 +1,67 @@
+<div class="block double-padded s-images-import" id="s-imagesproduct-form">
+    <h1>[`Bulk image upload`]</h1>
+    <p>[`Bulk image upload allows you to instantly create multiple products by uploading a single set of image files. Shop-Script will automatically group images according to their file names, and you will be able to manually arrange them between each other to either create new products or attach to existing products. Bulk image uploader works in HTML5-enabled browsers only.`]</p>
+    
+    <form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
+    
+        <div class="block double-padded s-image-upload-dropbox" id="s-image-upload-dropbox">
+            <a href="javascript:void(0);" id="s-upload-images-link" class="fileinput-button">
+                <i class="icon16 upload"></i>[`Select images`]<input type="file" name="files[]" multiple=""></a>
+            <span class="gray">[`or drag them here to start upload`]</span>
+        </div>
+        <p class="gray" style="display:none;" id="s-image-upload-explanation">
+            [`Drag images between automatically detected groups, and assign them to either new or existing products. Click “Upload images” when setup is complete.`]
+        </p>
+        
+        <table class="zebra s-bulk-image-uploader-map">
+            <tbody class="preload-files">
+            </tbody>
+        </table>
+        
+        {* send with separate image to say for what product this image is *}
+        <input type="hidden" name="product_id" value="">
+        {$wa->csrf()}
+        
+        {include './include.imageUpload.html' inline}
+    
+        <div class="block">
+
+            <p id="add-new-group-container" style="display:none;">
+                <a href="#" class="inline-link" id="add-new-group"><i class="icon16 add"></i><b><i>[`Add product`]</i></b></a>
+            </p>
+        
+            <p id="s-product-type-container" style="display:none;">
+                {$type = reset($types)}
+                [`Assign all new products following product type:`]
+                {$icon = shopHelper::getIcon($type.icon)}
+                <span id="s-product-type-icon">{$icon}</span>
+                <select name="type_id" id="s-product-type">
+                    {foreach $types as $id => $type}
+                        <option data-icon="{shopHelper::getIcon($type.icon)|escape}" value="{$id}">
+                            {$type.name|escape}
+                        </option>
+                    {/foreach}
+                </select>
+            </p>
+            
+            <div class="fileupload-buttonbar">
+                <input type="button" class="button green start" value="[`Upload images`]" style="display:none" id="submit">
+                <span id="s-imagesproduct-report" style="display: none;"></span>
+            </div>
+            
+        </div>
+    
+    </form>
+    
+    <div class="clear-both"></div>
+
+</div>
+
+<script>
+    $('#s-product-type').bind('change', function() {
+        var self = $(this);
+        $('#s-product-type-icon').html(
+            self.find('option:selected').attr('data-icon')
+        );
+    });
+</script>

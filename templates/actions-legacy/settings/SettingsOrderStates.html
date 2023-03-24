@@ -1,0 +1,323 @@
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/live.dragndrop.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/settings/order_states.js?v={$wa->version()}"></script>
+<script type="text/javascript" src="{$wa_url}wa-content/js/farbtastic/farbtastic.js"></script>
+<link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
+
+{*
+ * Sidebar
+ *}
+<div class="sidebar left200px s-settings-order-states">
+    <div class="s-inner-sidebar">
+        <ul class="menu-v stack with-icons">
+            {foreach $states as $id => $s}
+                <li class="dr {if $id == $info.id}selected{/if}" id="state-{$id}">
+                    <a href="#/orderStates/{$id}/" style="{$s->getStyle()}">
+                        <i class="icon16 sort count"></i>
+                        <i class="{$s->getOption('icon')}"></i>
+                        <span style="display: inline-block; width: calc(100% - 28px);">{$s->getName()|escape}</span>
+                    </a>
+                </li>
+            {/foreach}
+            <li class="top-padded small {if $info.id == 'new_state'}selected{/if} s-add-state" id="state-new_state">
+                <a href="#/orderStates/new_state/">
+                    <i class="icon10 add"></i>[`New order state`]
+                </a>
+            </li>
+            <li class="top-padded small">
+                <a href="[`https://www.shop-script.com/help/28265/order-processing-in-shop-script/`]" target="_blank">
+                    <i class="icon10 info"></i>[`About order statuses and actions`]
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="content left200px s-settings-form blank bordered-left">
+    <div class="block double-padded">
+        {if !$info.original}
+            <div class="float-right">
+                <ul class="menu-h">
+                    <li><a href="?module=settings&action=orderStateDelete" id="s-delete-state"><i class="icon16 delete"></i>[`Delete order state`]</a></li>
+                </ul>
+            </div>
+        {/if}
+        <h1>{$info.name|escape}</h1>
+    </div>
+    <div class="s-workflow-action-buttons-preview">
+        <ul class="menu-h s-workflow-action-buttons s-order-actions" style="margin-top: 20px;">
+            {foreach $buttons as $id => $b}
+                <li>{$b}</li>
+            {/foreach}
+        </ul>
+    </div>
+    <div class="block double-padded">
+        <div class="fields form">
+            <form id="s-save-order-state" method="post" action="?module=settings&action=orderStateSave&id={$info.id}">
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`Order state name`]
+                        </div>
+                        <div class="value">
+                            <input type="text" name="name" class="bold" value="{if $info.id != 'new_state'}{$info.name|escape}{else}{/if}">
+                        </div>
+                    </div>
+
+                    {if !$info.original}
+                        <div class="field">
+                            <div class="name">
+                                [`State ID`]
+                            </div>
+                            <div class="value">
+                                {if $info.id != 'new_state'}
+                                    <span class="hint">{$info.id|escape}</span>
+                                {else}
+                                    <input type="text" name="new_id" class="small" value="" id="c-state-id">
+                                {/if}
+                            </div>
+                        </div>
+                    {/if}
+
+                    <div class="field">
+                        <div class="name">
+                            [`Appearance`]
+                        </div>
+                        <div class="value">
+                            #<input type="text" name="style[color]" value="{if !empty($info.options.style.color)}{$info.options.style.color|substr:'1'|lower}{/if}" id="s-color" class="short">
+                            <span class="s-color-replacer" id="s-color-replacer">
+                            <i class="icon16 color" style="background: #{$info.options.style.color|substr:'1'|lower};"></i>
+                        </span>
+                            <div id="s-colorpicker" style="display:none;"></div>
+                            <br><br>
+
+                            <label><input type="checkbox" name="style[font-weight]" {if !empty($info.options.style['font-weight'])}checked="checked"{/if} value="bold"> <strong>[`Bold`]</strong></label>
+                            <label><input type="checkbox" name="style[font-style]"   {if !empty($info.options.style['font-style'])}checked="checked"{/if} value="italic"> <em>[`Italic`]</em></label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Icon`]
+                        </div>
+                        <div class="value">
+                            <ul class="menu-h s-icons">
+                                {$state_icon = ''}
+                                {if isset($info.options.icon)}
+                                    {$state_icon = str_replace('icon16 ss ', '', $info.options.icon)}
+                                {/if}
+                                {foreach $icons as $icon}
+                                    <li data-icon="{$icon|escape}" {if $icon == $state_icon}class="selected"{/if}>
+                                        <a href="#"><i class="icon16 ss {$icon}"></i></a>
+                                    </li>
+                                {/foreach}
+                            </ul>
+                        </div>
+                    </div>
+
+                    {if $info['payment_allowed']!==null}
+                        {$_hidden = $info['payment_allowed']}
+
+                        <div class="field s-payment-section">
+                            <div class="name">[`Payment option availability`]</div>
+                            <div class="value no-shift">
+                                <label>
+                                    <input class="js-checkbox" type="checkbox" name="payment_allowed" value="1" {if $info['payment_allowed']} checked="checked"{/if}>
+                                    [`customers can pay for orders in this state`]
+                                </label>
+                            </div>
+                            <div class="js-hidden value no-shift" style="{if $_hidden}display: none;{/if}">
+                                <textarea class="js-textarea" name="payment_not_allowed_text"  {if $_hidden}disabled{/if}>{$info['payment_not_allowed_text']}</textarea>
+                                <p class="hint">{sprintf('[`Show this message on checkout completion and in customers’ personal accounts if setting “<strong>%s</strong>” is disabled.`]', '[`customers can pay for orders in this state`]')}</p>
+                            </div>
+                        </div>
+                    {/if}
+                    <div class="field">
+                        <div class="name">
+                            [`Allowed actions`]
+                        </div>
+                        <div class="s-order-allowed-actions">
+                            {foreach $actions as $id => $a}
+                                {if empty($a.internal)}
+                                    <div class="value no-shift s-order-action{if !in_array($id, $info.actions)} unsortable{/if}"
+                                         data-id="{$id|escape}"
+                                         data-name="{$a.name|default:''|escape}"
+                                         data-description="{$a.options.description|default:''|escape}"
+                                         data-state="{$a.state|default:''|escape}"
+                                         data-link="{if !empty($a.options) && !empty($a.options.position)}1{/if}"
+                                         data-border_color="{if !empty($a.options) && !empty($a.options.border_color)}{$a.options.border_color}{else}dddddd{/if}"
+                                         data-extends="{if !empty($extend_classes[$a.classname])}{$a.extends|default:''|escape}{else}false{/if}"
+                                         data-icon="{if !empty($a.options) && !empty($a.options.icon)}{$a.options.icon}{/if}"
+                                         title="{$a.options.description|default:''|escape}"
+                                    >
+                                        <label>
+                                            <i class="icon16 sort"{if !in_array($id, $info.actions)} style="display: none;"{/if}></i>
+                                            <input type="checkbox" name="action[]" value="{$id|escape}" {if in_array($id, $info.actions)}checked="checked"{/if} {if $id == 'create'}disabled="disabled"{/if}>
+                                            {$a.name|default:''|escape} <span class="hint">{$id|upper}</span>
+                                        </label>
+                                        {if empty($a.original)}
+                                            <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                                        {elseif $id == 'message'}
+                                            <a href="javascript:void(0)" class="inline-link small s-edit-action" data-id="{$id}" id="s-edit-message-action"><i class="icon10 edit"></i><b><i>[`edit`]</i></b></a>
+                                        {/if}
+                                    </div>
+                                {/if}
+                            {/foreach}
+                        </div>
+                        <br>
+
+                        {*
+                         * Form to create new or modify existing custom action.
+                         *}
+                        <div class="value no-shift s-new-action" style="display:none" title="">
+                            <div class="block double-padded s-new-action-details">
+                                <div class="float-right hidden s-delete-action">
+                                    <ul class="menu-h">
+                                        <li><a href="#"><i class="icon16 delete"></i>[`Delete order action`]</a></li>
+                                    </ul>
+                                </div>
+                                <input type="checkbox" name="new_action[0]" checked="checked" disabled="disabled">
+                                <input type="text" name="new_action_name[0]" value="" placeholder="[`Action name`]" disabled="disabled" class="bold">
+                                <input type="hidden" name="new_action_id[0]" value="" disabled="disabled" class="short">
+                                <div class="fields form width100px">
+                                    <div class="field">
+                                        <textarea name="new_action_description[0]" placeholder="[`Enter a hint, visible only in backend, to describe what your action does and when it should be executed.`]"></textarea>
+                                    </div>
+                                    <div class="field">
+                                        <div class="name">[`Set order state`]</div>
+                                        <div class="value no-shift">
+                                            {if !empty($states)}
+                                                <select name="new_action_state[0]" disabled="disabled">
+                                                    <option value="">[`Don’t change order state`]</option>
+                                                    {foreach $states as $id => $s}
+                                                        <option value="{$id}">{$s->getName()|escape}</option>
+                                                    {/foreach}
+                                                </select>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="name">[`Appearance`]</div>
+                                        <div class="value no-shift">
+                                            <label>
+                                                <input type="radio" name="new_action_link[0]" checked="checked" value="" class="s-action-button"> [`Button`]
+                                            </label>
+                                            #<input type="text" name="new_action_border_color[0]" class="s-color short" value="ddd">
+                                            <span class="s-color-replacer">
+                                            <i class="icon16 color" style="background: #ddd;"></i>
+                                        </span>
+                                            <div class="s-colorpicker" style="display:none;"></div>
+                                        </div>
+                                        <div class="value no-shift">
+                                            <label>
+                                                <input type="radio" name="new_action_link[0]" value="1" class="s-action-link"> [`Link`]
+                                                <input type="hidden" name="new_action_icon[0]" class="s-action-icon" value="">
+                                            </label>
+                                        </div>
+                                        <div class="value no-shift s-action-icons" style="display:none;">
+                                            <ul class="menu-h">
+                                                {foreach $action_icons as $icon}
+                                                    <li data-icon="{$icon|escape}">
+                                                        <a href="#"><i class="icon16 {$icon}"></i></a>
+                                                    </li>
+                                                {/foreach}
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="field">
+                                        <div class="name">[`Behavior`]</div>
+                                        <div class="value no-shift">
+                                            <label><input name="new_action_extends[0]" type="radio" value="" checked>&nbsp;[`default`]</label>
+                                        </div>
+                                        {foreach $extend_actions as $pattern_id => $pattern_info}
+                                            <div class="value no-shift">
+                                                <label title="{$pattern_info.description|default:''|escape}"><input name="new_action_extends[0]" type="radio" value="{$pattern_id|escape}">&nbsp;{$pattern_info.name|default:$pattern_id|escape}</label>
+                                                <span class="hint">{$pattern_id|upper}</span>
+                                                {if !empty($pattern_info.options.description)}
+                                                    <span class="hint">{$pattern_info.options.description|escape}</span>
+                                                {/if}
+                                            </div>
+                                        {/foreach}
+                                    </div>
+                                    <div class="field">
+                                        <div class="name">[`Notifications`]</div>
+                                        <div class="value no-shift s-new-action-hint">
+                                            [`Email and SMS notifications on order actions are configured in “<a href="?action=settings#/notifications/" class="nowrap">Settings → Notifications</a>” section.`]
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="clear-both"></div>
+                            </div>
+                        </div>
+
+                        {*
+                         * Form to edit settings of a built-in 'message' action.
+                         *}
+                        {if !empty($actions.message)}
+                            <div id="s-message-action-editor" class="value no-shift" style="display:none">
+                                <div class="block double-padded s-new-action-details">
+                                    <div class="fields form width100px">
+                                        <div class="field">
+                                            <div class="name">[`Sender name`]</div>
+                                            <div class="value no-shift">
+                                                {$message_sender_name = ifset($actions.message.options.sender_name)|escape}
+                                                <label><input type="radio" name="action_options[message][sender_name]" value="general" {if !$message_sender_name || $message_sender_name == 'general'}checked{/if}> [`Store name`] <span class="gray">[`as specified in the “Settings → General settings” section`]</span> </label>
+                                                <br><br>
+                                                <label><input type="radio" name="action_options[message][sender_name]" value="route_params" {if $message_sender_name == 'route_params'}checked{/if}> [`Storefront name`] <span class="gray">[`as specified in the “Storefront → Settings” section for each storefront`]</span> </label>
+                                            </div>
+                                        </div>
+                                        <div class="field">
+                                            <div class="name">[`Template`]</div>
+                                            <div class="value no-shift">
+                                                <textarea name="action_options[message][template]" style="width:100%;">{ifset($actions.message.options.template)|escape}</textarea>
+                                            </div>
+                                            <div class="value no-shift">
+                                                <div class="float-right">
+                                                    <a href="javascript:void(0)" class="inline-link template-vars-link"><i class="icon16 script"></i><b><i>[`Cheat sheet`]</i></b><i class="icon10 darr-tiny"></i></a>
+                                                </div>
+                                                <div class="clear-both"></div>
+                                            </div>
+                                            <div class="hidden template-vars-wrapper">
+                                                {include file="./SettingsOrderStatesActionTemplateHelp.html" inline}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="clear-both"></div>
+                                </div>
+                            </div>
+                        {/if}
+
+                        <div class="value no-shift">
+                            <a href="#" class="inline-link" id="s-add-action">
+                                <i class="icon16 add"></i><b><i>[`Add custom action`]</i></b>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="value">
+                            <input type="submit" class="button green" value="[`Save`]"  id="s-settings-order-states-submit">
+                            <i class="icon16 loading" style="display:none;"></i>
+                            <i class="icon16 yes" style="display:none;"></i>
+                            <i class="icon16 no" style="display:none;"></i>
+                        </div>
+                    </div>
+                </div>
+                {$wa->csrf()}
+            </form>
+        </div>
+    </div>
+    <div class="clear"></div>
+</div>
+<script type="text/javascript">
+    $.wa.locale = $.extend($.wa.locale || {}, {
+        "Order action will be deleted. Are you sure?": "[`Order action will be deleted. Are you sure?`]"
+    });
+    document.title = "[`Order States`] — {$wa->accountName(false)|escape:javascript}";
+    $.settings.orderStatesInit({
+        id: "{$info.id}",
+        edit_actions_map: {$edit_actions_map|json_encode}
+    });
+</script>

@@ -1,10 +1,10 @@
-<div class="wa-dialog s-settings-type-delete-dialog">
-    <div class="wa-dialog-background"></div>
-    <div class="wa-dialog-body">
-        <header class="wa-dialog-header">
+<div class="dialog s-settings-type-delete-dialog">
+    <div class="dialog-background"></div>
+    <div class="wa-dialog-body dialog-body">
+        <header class="dialog-header">
             <h1 class="s-title">{sprintf("[`Deletion of product type “%s”`]", $type.name|escape)}</h1>
         </header>
-        <div class="wa-dialog-content">
+        <div class="dialog-content">
             {if $products_count > 0}
                 <p>{sprintf(
                     _w(
@@ -21,13 +21,12 @@
                 <p>[`Are you sure you want to delete this product type?`]</p>
             {/if}
         </div>
-        <div class="wa-dialog-footer">
+        <div class="dialog-footer">
             {if $products_count > 0}
                 <button class="s-button button gray js-close-dialog" type="submit">[`Close`]</button>
             {else}
                 <button class="s-button button red js-submit-button" type="submit">[`Delete`]</button>
-                <span class="s-divider">[`or`]</span>
-                <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+                <a href="javascript:void(0);" class="js-close-dialog button light-gray">[`Cancel`]</a>
             {/if}
         </div>
     </div>

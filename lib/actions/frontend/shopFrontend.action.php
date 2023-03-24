@@ -42,7 +42,8 @@ class shopFrontendAction extends waViewAction
      */
     protected function setCollection(shopProductsCollection $collection, $additional_filters = [])
     {
-        list($stock_units_ids, $base_units_ids, $all_base_unit_ids) = $collection->getAllUnitIds();
+        $collection_before_filters = clone $collection;
+        list($stock_units_ids, $base_units_ids, $all_base_unit_ids) = $collection_before_filters->getAllUnitIds();
         $this->setCollectionParams($collection, true, $additional_filters);
 
         $limit = (int)waRequest::cookie('products_per_page');
@@ -137,6 +138,8 @@ class shopFrontendAction extends waViewAction
         $this->view->assign('formatted_units', shopFrontendProductAction::formatUnits($units));
         $this->view->assign('fractional_config', shopFrac::getFractionalConfig());
         unset($units);
+
+        $this->getResponse()->setCanonical();
 
         $this->setThemeTemplate('home.html');
 

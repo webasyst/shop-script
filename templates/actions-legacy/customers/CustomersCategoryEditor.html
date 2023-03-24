@@ -1,0 +1,144 @@
+<div class="block double-padded">
+    {if $category.id}
+        <h1>{$category.name|escape}</h1>
+    {else}
+        <h1>[`New customer category`]</h1>
+    {/if}
+
+    <form id="category-editor-form" action="?module=customers&action=categoryEditor">
+        <div class="fields form">
+          <div class="field-group">
+            <div class="field">
+                <div class="name bold">[`Category name`]</div>
+                <div class="value bold">
+                    <input id="name" class="large" value="{$category.name|escape}" type="text">
+                    <br>
+                    <br>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">[`Discount`]</div>
+                <div class="value no-shift">
+
+                        {$discount|default:0}% <a href="?action=settings#/discounts/category/" title="[`Edit`]"><i class="icon16 settings"></i></a>
+
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">[`Icon`]</div>
+                <div class="value s-category-icons no-shift">
+                    <ul class="menu-h" id="icons">
+                        {foreach $icons as $i}
+                            <li{if $category.icon == $i} class="selected"{/if}><a href="javascript:void(0)"><i class="icon16 {$i}"></i></a></li>
+                        {/foreach}
+                    </ul>
+                    <span class="small">[`Or specify image URL (must be exactly 16x16 pixels):`]<br>
+                        <input value="{if substr($category.icon, 0, 4) == 'http'}{$category.icon|escape}{/if}" type="text" id="icon">
+                    </span>
+                </div>
+            </div>
+
+          </div>
+          <div class="field-group">
+            <div class="field">
+                <div class="value submit">
+                    <input type="submit" class="button green" id="submit" value="[`Save`]">
+                </div>
+            </div>
+          </div>
+        </div>
+    </form>
+
+</div>
+
+<script>$(function() { "use strict";
+
+    var loc = {
+            'max': "[`Max 255 characters`]",
+            'empty_name': "[`List name cannot be empty`]"
+    };
+    var id = '{$category.id}';
+
+    var form = $('#category-editor-form'),
+        $icon_field = $('#icon');
+
+    // Form submit via XHR
+    form.submit(function() {
+        if (form.find(':submit').attr('disabled')) {
+            return false;
+        }
+
+        var name = $('#name').val();
+        if (!name) {
+            alert(loc.empty_name);
+            return false;
+        }
+
+        var icon = $icon_field.val();
+
+        if (icon.length < 9 || icon.substr(0, 4) !== 'http') {
+            if ($('#icons li.selected i').length > 0) {
+                icon = $('#icons li.selected i').attr('class').replace('icon16 ', '');
+            } else {
+                icon = 'c-white';
+            }
+        }
+
+        $('#submit').attr('disabled', true).parent().append($('<i class="icon16 loading">'));
+        var data = {
+            name: name,
+            icon: icon,
+            id: id
+        };
+
+        $.post(form.attr('action'), data, function(r) {
+            $('#s-content').html(r);
+        });
+
+        return false;
+    });
+
+    if (!$icon_field.val()) {
+        setProtocol();
+    }
+
+    // Select icon
+    $("#icons li").on("click", function(event) {
+        event.preventDefault();
+
+        var active_class = "selected";
+        $(this).addClass(active_class)
+            .siblings().removeClass(active_class);
+
+        setProtocol();
+    });
+
+    // Warn user when there's more than 255 symbols are in name or icon field
+    var warn = function(input) {
+        var msg = input.next('.max255');
+        if (input.val().length > 255 && !msg.length) {
+            input.after('<em class="hint max255">'+loc.max+'</em>');
+        } else if (input.val().length <= 255 && msg.length) {
+            msg.remove();
+        }
+    };
+
+    $('#name').keyup(function() {
+        warn($(this));
+    });
+
+    $icon_field.keyup(function() {
+        warn($(this));
+    });
+
+    $icon_field.blur(function() {
+        warn($(this));
+    });
+
+    function setProtocol() {
+        $icon_field.val(location.protocol + "//");
+    }
+
+});</script>

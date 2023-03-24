@@ -24,8 +24,13 @@ class shopProdSidebarAction extends waViewAction
 
     public function execute()
     {
-        shopProdAction::setNewDesign();
         $product_id = waRequest::param('id', '', waRequest::TYPE_STRING);
+        $action = waRequest::param('action', '', waRequest::TYPE_STRING_TRIM);
+        if (wa()->whichUI() == '1.3') {
+            $url = wa()->getAppUrl() . shopHelper::getBackendEditorUrl($product_id, $action);
+            $this->redirect($url);
+            exit;
+        }
 
         $can_edit = true;
         $prices_available = false;

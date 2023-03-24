@@ -1,0 +1,183 @@
+{if !empty($settings.features)}
+    {foreach $settings.features as $f_id => $f}
+        {$conditions_feature = ifset($settings, 'conditions', 'feature', [])}
+        <tr>
+            <td colspan="2" class="js-condition-feature-names">
+                <label>
+                    <input class="js-condition-feature s-condition" type="checkbox" name="" data-feature_id="{$f.id}" value=""
+                           {if isset($settings.conditions.feature[$f.code])}checked{/if}>
+                    {$f.name|escape}
+                </label>
+                <span class="hint">{$f.code}</span>
+                {if (isset($f.status) && $f.status == 'private')}<i class="icon16 ss visibility" title="[`Only visible in backend`]"></i>{/if}
+            </td>
+            <td colspan="2">
+                <div class="js-condition-feature-block s-feature-block-values">
+
+                    {* Rendering of characteristic values ​​for a new category occurs in products.category.js :: initGetFeatures () *}
+                    {if !empty($settings.id)}
+                        {$_feature_values = ifset($conditions_feature, $f.code, null)}
+
+                        <div class="js-feature-list-value">
+                            {* Особое оформление даты *}
+                            {if ($f.type === "date" || $f.type === "range.date")}
+                                {$_start = ifset($_feature_values, "begin", null)}
+                                {if !empty($_start)}
+                                    <input type="hidden" name="condition[features][{$f.code}][values][begin]" value="{$_start}">
+                                    {$_start = waDateTime::format('date', strtotime($_start))}
+                                {/if}
+
+                                {$_end = ifset($_feature_values, "end", null)}
+                                {if !empty($_end)}
+                                    <input type="hidden" name="condition[features][{$f.code}][values][end]" value="{$_end}">
+                                    {$_end = waDateTime::format('date', strtotime($_end))}
+                                {/if}
+
+                                <div>
+                                    {if !empty($_start) && !empty($_end)}
+                                        {$_start} – {$_end}
+                                    {elseif !empty($_start)}
+                                        ≥ {$_start}
+                                    {elseif !empty($_end)}
+                                        ≤ {$_end}
+                                    {else}
+                                        [`Date not specified.`]
+                                    {/if}
+                                </div>
+                                <div class="hint" style="margin-top: 4px;">[`The value can be set up in the new section.`]</div>
+
+                            {* Прочее *}
+                            {else}
+                                {* Range поля *}
+                                {if substr($f.type, 0, 5) == 'range' || $_feature_values["type"] === "range"}
+                                    {if !empty($_feature_values)}
+                                        <div class="js-feature-slider-{$f.code} s-feature-slider-block" data-slider="range" data-code="{$f.code}">
+                                            {$begin = ifset($_feature_values, 'begin', null)}
+                                            {$end = ifset($_feature_values, 'end', null)}
+
+                                            [`from`]
+                                            <input type="text" class="js-begin" name="condition[features][{$f.code}][values][begin]" placeholder="{if isset($begin)}{$begin}{/if}"
+                                                   value="{if isset($begin)}{$begin}{/if}">
+                                            [`to`]
+                                            <input type="text" class="js-end" name="condition[features][{$f.code}][values][end]" placeholder="{if isset($end)}{$end}{/if}"
+                                                   value="{if isset($end)}{$end}{/if}">
+
+                                            {$_unit_id = ifset($_feature_values, 'unit', null)}
+                                            {if !empty($_unit_id)}
+                                                {$_unit = shopDimension::getUnit($f.type, $_unit_id)}
+                                                <input type="hidden" name="condition[features][{$f.code}][values][unit]" value="{$_unit_id}">
+                                            {else}
+                                                {$_unit = shopDimension::getBaseUnit($f.type)}
+                                            {/if}
+
+                                            {if !empty($_unit) && isset($_unit['title'])}
+                                                <span class="s-unit">{$_unit['title']}</span>
+                                            {/if}
+
+                                            <div class="js-range-slider"></div>
+                                        </div>
+                                    {/if}
+
+                                {elseif !empty($f.values)}
+                                    {foreach $f.values as $v_id => $value}
+                                        <label>
+                                            <input class="s-condition js-feature-value" type="checkbox" data-f_val="{$v_id}" name="condition[features][{$f.code}][values][]" value="{$v_id}"
+                                                   checked="checked">
+                                            {if $f.type == 'color'}
+                                                <i class="icon16 color s-color-icon" style="{$value.style|default:''}"></i>
+                                            {/if}
+                                            {$value|truncate:64:'...':true|escape}
+                                        </label>
+                                    {/foreach}
+                                    {if $f.count > count($f.values)}
+                                        <a href="javascript:void(0);" class="js-show-all-feature inline-link" data-feature_id="{$f.id}"><b><i>[`Show all`]</i></b></a>
+                                    {/if}
+                                {/if}
+                            {/if}
+                        </div>
+
+                        <input type="hidden" name="condition[features][{$f.code}][type]" value="{$f.type}">
+                        <span class="errormsg"></span>
+                    {/if}
+                </div>
+            </td>
+        </tr>
+    {/foreach}
+{/if}
+
+<!-- {capture name="template_feature_field_values"} feature field values jquery template -->
+{literal}
+    {% var count = 0; %}
+    {% if (o.feature.type === 'date' || o.feature.type === 'range.date') { %}
+        <div style="margin-top: -15px;">[`Date not specified.`]</div>
+        <div class="hint" style="margin-top: 4px;">[`The value can be set up in the new section.`]</div>
+    {% } else { %}
+        {% for (var v_id in o.feature.values) { %}
+            {% if (o.feature.values.hasOwnProperty(v_id)) { %}
+                {% if (o.feature.type.substr(0, 5) !== 'range') { %}
+                    <!-- checkbox feature values template -->
+                    <label {% if (!o.show_all && count>= 7) { %}class="js-feature-hidden" style="display: none;"{% } %}>
+                        <input class="s-condition js-feature-value" type="checkbox" name="condition[features][{%=o.feature.code%}][values][]" value="{%=v_id%}" {% if (!o.default_checked) {
+                               %}disabled="disabled" {% } %}>
+                        {% if (o.feature.type == 'color') { %}
+                        <i class="icon16 color s-color-icon" style="background:{%=o.feature.values[v_id].hex%};"></i>
+                        {%=o.feature.values[v_id].value%}
+                        {% } else { %}
+                        {%=o.feature.values[v_id]%}
+                        {% } %}
+                    </label>
+                    {% if (!o.show_all && count == 7) { %}
+                    <a href="javascript:void(0);" class="js-show-all-feature inline-link"><b><i>[`Show all`]</i></b></a>
+                    {% } %}
+                    {% count++; %}
+                {% }else { %}
+                    <!-- slider feature values template (only range) -->
+                    <div class="js-feature-slider-{%=o.feature.code%} s-feature-slider-block">
+                        {% if (o.feature.values[v_id]) { %}
+                        [`from`] <input type="text" class="js-begin" name="condition[features][{%=o.feature.code%}][values][begin]"
+                                        value="{% if (o.feature.values[v_id].begin) { %}{%=o.feature.values[v_id].begin%}{% }else{ %}0{% } %}"
+                                        placeholder="{% if (o.feature.values[v_id].begin) { %}{%=o.feature.values[v_id].begin%}{% }else{ %}0{% } %}" {% if (!o.default_checked) {
+                                        %}disabled="disabled" {% } %}>
+                        [`to`] <input type="text" class="js-end" name="condition[features][{%=o.feature.code%}][values][end]"
+                                      value="{% if (o.feature.values[v_id].end) { %}{%=o.feature.values[v_id].end%}{% }else{ %}100{% } %}"
+                                      placeholder="{% if (o.feature.values[v_id].end) { %}{%=o.feature.values[v_id].end%}{% }else{ %}100{% } %}" {% if (!o.default_checked) { %}disabled="disabled"
+                                      {% } %}>
+                        {% if (o.feature.unit) { %}{%=o.feature.unit%}{% } %}
+                        <div class="js-range-slider"></div>
+                        {% } %}
+                    </div>
+                {% } %}
+            {% } %}
+        {% } %}
+        {% if (!o.show_all) { %}
+            <input type="hidden" name="condition[features][{%=o.feature.code%}][type]" value="{%=o.feature.type%}" {% if (!o.default_checked) { %}disabled="disabled" {% } %}>
+            <span class="errormsg"></span>
+        {% } %}
+    {% } %}
+{/literal}
+<!-- {/capture} -->
+
+<script type="text/x-jquery-tmpl" id="template_feature_field_values">
+{$smarty.capture["template_feature_field_values"]|regex_replace:'@(^.*-->)|(<!\-\-.*$)@m':''|replace:'</':'<\/'}
+</script>
+
+<!-- {capture name="template_feature_field"} feature field jquery template {literal} -->
+<tr>
+    <td colspan="2">
+        <label><input class="js-condition-feature s-condition" type="checkbox" name="" data-loading="ok" data-feature_id="{%=o.feature.id%}" value="" {% if (o.default_checked) {
+                      %}checked="checked" {% } %}> {%=o.feature.name%}</label>
+        <span class="hint">{%=o.feature.code%}</span>
+        {% if (o.feature.status == 'private') { %}<i class="icon16 ss visibility" title="[`Only visible in backend`]"></i>{% } %}
+    </td>
+    <td colspan="2">
+        <div class="js-condition-feature-block s-feature-block-values" {% if (!o.show_all && !o.default_checked) { %}style="display:none" {% } %}>
+            {/literal}{$smarty.capture["template_feature_field_values"]}{literal}
+        </div>
+    </td>
+</tr>
+<!-- {/literal} {/capture} -->
+
+<script type="text/x-jquery-tmpl" id="template_feature_field">
+    {$smarty.capture["template_feature_field"]|regex_replace:'@(^.*-->)|(<!\-\-.*$)@m':''|replace:'</':'<\/'}
+
+</script>

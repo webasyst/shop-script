@@ -210,7 +210,7 @@
                     is_locked = true;
 
                     $submit_button.attr("disabled", true);
-                    var $loading = $("<i class=\"icon16 loading\" />").css("margin-left", "4px").appendTo($submit_button);
+                    var $loading = $('<i class="fas fa-spinner fa-spin custom-ml-4 loading" />').appendTo($submit_button);
 
                     var formData = getData();
                     if (formData.errors.length) {
@@ -381,9 +381,13 @@
                 this.initScroll();
             }
 
+            this.initAdaptiveAuxSidebar();
+
+            this.initNameControl();
+
             // workflow
             // action buttons click handler
-            $('.wf-action').click(function () {
+            $('.wf-action').on('click', function () {
                 var self = $(this);
                 if (self.data('running')) {
                     return false;
@@ -395,15 +399,19 @@
                 if (self.data('confirm') && !confirm(self.data('confirm'))) {
                     return false;
                 }
+
                 self.data('running', true);
-                self.after('<i class="icon16 loading"></i>');
+                self.addClass('opacity-70');
+                var $icon = $('.js-icon', self).hide().after('<i class="fas fa-spinner wa-animation-spin custom-mr-4 small text-gray"></i>');
+                var action_id = self.attr('data-action-id');
                 $.post('?module=workflow&action=prepare', {
-                    action_id: self.attr('data-action-id'),
+                    action_id,
                     id: $.order.id
                 }, function (response) {
+                    $('.wa-animation-spin', self).remove();
+                    $icon.show();
+                    self.removeClass('opacity-70');
                     self.data('running', false);
-                    var el;
-                    self.parent().find('.loading').remove();
 
                     if (self.data('form-in-dialog')) {
                         $.waDialog({
@@ -415,18 +423,27 @@
                             }
                         });
                     } else {
+                        var el,
+                            has_form = $.trim(response) && $(response).prop("tagName") !== 'SCRIPT';
                         if (self.data('container')) {
                             el = $(self.data('container'));
                             el.prev('.workflow-actions').hide();
                         } else {
-                            self.closest('.workflow-actions').hide();
+                            if (has_form) {
+                                self.closest('.workflow-actions').hide();
+                            }
                             el = self.closest('.workflow-actions').next();
                         }
-                        el.empty().html(response).show();
-                    }
-                    // set focus on comment field(textarea)
-                    if (self.attr('data-action-id') == 'comment') {
-                        el.find('textarea').focus();
+
+                        el.empty().html(response);
+                        if (has_form) {
+                            el.show();
+                        }
+
+                        // set focus on comment field(textarea)
+                        if (action_id === 'comment') {
+                            el.find('textarea').focus();
+                        }
                     }
                 });
                 return false;
@@ -502,6 +519,26 @@
                 });
                 return false;
             });
+
+            $('.js-copy-btn').on('click', function() {
+                const $this = $(this)
+                    initial_title = $this.data('initial-title')
+                    title_copied = $this.data('title-copied')
+                    copied_text = $($this.data('copy-target')).text();
+
+                $this.html(`<i class="fas fa-check"></i> ${title_copied}`)
+                    .attr('disabled', true)
+                    .addClass('green');
+
+                $.wa.copyToClipboard(copied_text);
+
+                setTimeout(() => {
+                    $this.text(initial_title)
+                        .removeClass('green')
+                        .attr('disabled', false);
+                }, 1000);
+
+            });
         },
 
         initView: function () {
@@ -521,12 +558,14 @@
                     return false;
                 }
             });
-            this.container.find('h1 .back.read-mode').click(function () {
+            this.container.find('#s-order-title .back.read-mode').click(function () {
                 $.order.reload();
                 return false;
             });
             if (this.options.order) {
-                if ($.order_list) $.order_list.updateListItems(this.options.order);
+                if ($.order_list) {
+                    $.order_list.updateListItems(this.options.order);
+                }
                 var container = ($.order_list.container || $("#s-content"));
                 container.find('.selected').removeClass('selected');
                 container.find('.order[data-order-id=' + this.options.order.id + ']').
@@ -535,28 +574,6 @@
                     $.order_list.hideListItems(this.id);
                 }
 
-            }
-
-            // adjust order content height to height of view-port when 'split' order list
-            $(window).unbind('resize.order');
-            if ($.order_list && $.order_list.options.view == 'split') {
-                (function () {
-                    var win = $(window);
-                    var container = $('#s-order').find('.s-order');
-                    if (container.length) {
-                        var top = container.offset().top;
-                        var height = win.height() - top;   // height of view-port
-                        if (height > container.height()) {
-                            container.height(height);
-                        }
-                        win.bind('resize.order', function () {
-                            var height = $(this).height() - top;   // height of view-port
-                            if (height > container.height()) {
-                                container.height(height);
-                            }
-                        });
-                    }
-                })();
             }
         },
 
@@ -596,7 +613,7 @@
 
             // DOM
             var $window = $(window),
-                $wrapper = $("#maincontent"),
+                $wrapper = $("#wa-app"),
                 $block = $("#s-split-order-wrapper");
 
             // VARS
@@ -839,6 +856,80 @@
             options["scope"] = this;
             return new MarkingDialog(options);
 
+        },
+
+        initAdaptiveAuxSidebar: function() {
+            const $aux_sidebar = this.$wrapper.find('.sidebar.s-order-aux');
+
+            $('.js-more-details', this.$wrapper).on('click', function() {
+                $aux_sidebar.removeClass('hide-animation').addClass('show');
+                setTimeout(() => $aux_sidebar.addClass('show-animation'));
+            })
+
+            $('.js-close-aux-sidebar', $aux_sidebar).on('click', function() {
+                $aux_sidebar.addClass('hide-animation');
+                setTimeout(() => $aux_sidebar.removeClass('show').removeClass('show-animation'), 250);
+            })
+        },
+
+        initNameControl: function () {
+            var $js_edit_item_name = $('.js-edit-item-name'),
+                $js_save_item_name = $('.js-save-item-name'),
+                $js_close_item_name = $('.js-close-item-name'),
+                $s_product_basic_info = null,
+                $js_item_name_label = null,
+                $js_item_name_field = null,
+                $js_save_name_error = null;
+
+            function findControls($that) {
+                $s_product_basic_info = $that.parents('.s-product-basic-info'),
+                $js_item_name_label = $s_product_basic_info.find('.js-item-name-label'),
+                $js_item_name_field = $s_product_basic_info.find('.js-item-name-field'),
+                $js_save_name_error = $s_product_basic_info.find('.js-save-name-error');
+            }
+
+            $js_edit_item_name.click(function() {
+                var $that = $(this);
+
+                findControls($that);
+                $js_item_name_field.val($js_item_name_label.text());
+                $that.add($js_item_name_label).hide();
+                $js_item_name_field.add($that.siblings('.js-save-item-name')).add($that.siblings('.js-close-item-name')).show();
+            });
+
+            $js_save_item_name.click(function () {
+                var $that = $(this);
+
+                findControls($that);
+                $.ajax({
+                    type: "POST",
+                    url: '?module=order&action=ItemNameSave',
+                    data: {
+                        id: $that.parents('tr.s-product-wrapper').data('id'),
+                        name: $js_item_name_field.val()
+                    },
+                    success: function (response) {
+                        if (response.data !== undefined) {
+                            $js_item_name_label.html(response.data.name);
+                        }
+                        if (response.errors !== undefined) {
+                            $js_save_name_error.html(response.errors[0].text).show();
+                        } else {
+                            $that.siblings('.js-edit-item-name').add($js_item_name_label).show();
+                            $that.add($js_item_name_field).add($that.siblings('.js-close-item-name')).add($js_save_name_error).hide();
+                        }
+                    }
+                });
+
+            });
+
+            $js_close_item_name.click(function () {
+                var $that = $(this);
+
+                findControls($that);
+                $that.siblings('.js-edit-item-name').add($js_item_name_label).show();
+                $that.add($js_item_name_field).add($that.siblings('.js-save-item-name')).add($js_save_name_error).hide();
+            });
         }
     };
 

@@ -1,278 +1,368 @@
-{*
- * Sidebar with list of couriers
- *}
-<div class="sidebar left200px">
-    <div class="s-inner-sidebar">
-        <ul class="menu-v stack with-icons s-courier-list">
-            {foreach $couriers as $c}
-                <li{if !$c.enabled} class="s-expired"{/if}>
-                    <span class="count">{$c.orders_processed}</span>
-                    <a href="#/couriers/{$c.id}" class="gray" data-id="{$c.id}">
-                        {if $c.contact_id}
-                            <i class="icon16 userpic20" style="background-image: url({waContact::getPhotoUrl($c.contact_id, $c.photo, 40)})"></i>
-                        {else}
-                            <i class="icon16 ss courier"></i>
-                        {/if}
-                        {$c.name|escape}
-                    </a>
-                </li>
-            {/foreach}
-            <li class="top-padded">
-                <a href="#/couriers/new" class="small" data-id=""><i class="icon10 add"></i>[`New courier`]</a>
-            </li>
-        </ul>
+<div class="flexbox space-12">
+    <div class="wide">
+        <div class="dropdown js-courier-list">
+            <div class="dropdown-toggle button small white rounded">
+                [`Выберите курьера`]
+            </div>
+
+            <div class="dropdown-body">
+                <ul class="menu">
+                    {foreach $couriers as $c}
+                    <li{if !$c.enabled} class="gray"{/if}>
+                        <a href="#/couriers/{$c.id}" data-id="{$c.id}">
+                            {if $c.contact_id}
+                            <span class="icon">
+                                <i class="userpic userpic-20" style="background-image: url({waContact::getPhotoUrl($c.contact_id, $c.photo, 40)})"></i>
+                            </span>
+                            {else}
+                            <span class="icon">
+                                <i class="fas fa-running"></i>
+                            </span>
+                            {/if}
+                            <span>{$c.name|escape}</span>
+                            <span class="count">{$c.orders_processed}</span>
+                        </a>
+                    </li>
+                    {/foreach}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <a href="#/couriers/new" class="button small light-gray rounded" data-id="">
+            <i class="fas fa-plus-circle text-green"></i>
+            [`New courier`]
+        </a>
     </div>
 </div>
 
 {*
- * Main content with editor form
- *}
-<div class="content left200px s-settings-form blank bordered-left">
+* Main content with editor form
+*}
 
-    {*
-     * One-time help block above the editor
-     *}
-    <div class="s-alert" style="border-left: 0;">
-        <a href="javascript:void(0)" class="s-alert-close">&times;</a>
-        [`Couriers are your teammates who are assigned to deliver orders to customers and to track and update order information on the go using <a href="http://www.shop-script.com/mobile/" target="_blank">Shop-Script mobile app</a>.<br><br> Unlike common backend users, couriers may not login to the main store backend and can only see orders they were assigned using the mobile app only. An order can be assigned to a courier upon the order SHIP action. <a href="https://www.shop-script.com/help/13421/shop-script-couriers/" target="_blank">Learn more about couriers</a>.`]
+{*
+* One-time help block above the editor
+*}
+<div class="alert info custom-mt-16 hidden js-alert">
+    <div class="flexbox space-12">
+        <div class="wide">
+            [`Couriers are your teammates who are assigned to deliver orders to customers and to track and update order information on the go using <a href="http://www.shop-script.com/mobile/" target="_blank">Shop-Script mobile app</a>.<br><br> Unlike common backend users, couriers may not login to the main store backend and can only see orders they were assigned using the mobile app only. An order can be assigned to a courier upon the order SHIP action. <a href="https://www.shop-script.com/help/13421/shop-script-couriers/" target="_blank">Learn more about couriers</a>.`]
+        </div>
+
+        <div>
+            <a href="#" class="alert-close"><i class="fas fa-times"></i></a>
+        </div>
     </div>
+</div>
 
-    <div class="block double-padded">
-    <form action="?module=settings&action=couriers">
-        <div class="fields form">
-          <div class="field-group">
+<form action="?module=settings&action=couriers">
+    <div class="fields">
+        <div class="fields-group">
             <input type="hidden" name="id" value="{$courier.id}">
+
             <div class="field">
                 <div class="name">[`Courier name`]</div>
+
                 <div class="value">
-                    <a href="{$wa_backend_url}contacts/#/contact/{$courier.contact_id}"{if !$courier.contact_id} style="display:none;"{/if}>
-                        <img class="userpic" src="{$courier_contact_photo_url|escape}" width="32" height="32" style="vertical-align:top;margin-top:-4px">
+                    <a href="{$wa_backend_url}contacts/#/contact/{$courier.contact_id}"{if !$courier.contact_id} style="display: none;"{/if}>
+                        <img class="userpic userpic-32" src="{$courier_contact_photo_url|escape}">
                     </a>
+
                     <input type="hidden" name="courier[contact_id]" value="{$courier.contact_id}">
-                    <input type="text" name="courier[name]" id="courier-contacts-autocomplete" value="{$courier.name|escape}" class="bold large long">
-                    <br><span class="hint">[`Courier real or nick name. Linking couriers with real contacts or backend users is optional.`]</span>
+                    <input type="text" name="courier[name]" class="bold small long" id="courier-contacts-autocomplete" value="{$courier.name|escape}">
+
+                    <div class="hint custom-mt-4">[`Courier real or nick name. Linking couriers with real contacts or backend users is optional.`]</div>
                 </div>
             </div>
+
             <div class="field">
                 <div class="name">[`Note`]</div>
+
                 <div class="value">
-                    <textarea name="courier[note]" placeholder="[`Optional`]">{$courier.note|escape}</textarea>
-                    <br><span class="hint">[`Any kind of useful information about this courier, e.g. contact information, preferred delivery hours and locations.`]</span>
+                    <textarea name="courier[note]" placeholder="[`Optional`]" class="small">{$courier.note|escape}</textarea>
+
+                    <div class="hint custom-mt-4">[`Any kind of useful information about this courier, e.g. contact information, preferred delivery hours and locations.`]</div>
                 </div>
             </div>
+
             {if $courier.storefronts}
-                <div class="field">
-                    <div class="name">[`Storefronts`]</div>
-                    <div class="value no-shift"><label>
-                        <input type="radio" name="courier[all_storefronts]" value="1"{if $courier.all_storefronts} checked{/if}>
+            <div class="field">
+                <div class="name">[`Storefronts`]</div>
+
+                <div class="value">
+                    <label>
+                        <span class="wa-radio">
+                            <input type="radio" name="courier[all_storefronts]" value="1"{if $courier.all_storefronts} checked{/if}>
+                            <span></span>
+                        </span>
                         [`All storefronts`]
-                    </label></div>
-                    <div class="value no-shift"><label>
-                        <input type="radio" name="courier[all_storefronts]" value="0"{if !$courier.all_storefronts} checked{/if}>
-                        [`Selected only`]
-                    </label></div>
+                    </label>
+
+                    <div class="custom-mt-4">
+                        <label>
+                            <span class="wa-radio">
+                                <input type="radio" name="courier[all_storefronts]" value="0"{if !$courier.all_storefronts} checked{/if}>
+                                <span></span>
+                            </span>
+                            [`Selected only`]
+                        </label>
+                    </div>
+
                     {foreach $courier.storefronts as $url => $enabled}
-                        <div class="value hide-when-all-storefronts" style="padding-left:1em;"><label>
-                            <input type="checkbox" name="storefronts[]" value="{$url|escape}"{if $enabled || $courier.all_storefronts} checked{/if}>
+                    <div class="custom-mt-4 hide-when-all-storefronts">
+                        <label>
+                            <span class="wa-checkbox">
+                                <input type="checkbox" name="storefronts[]" value="{$url|escape}"{if $enabled || $courier.all_storefronts} checked{/if}>
+                                <span>
+                                    <span class="icon">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </span>
+                            </span>
                             {waIdna::dec($url)|escape}
-                        </label></div>
+                        </label>
+                    </div>
                     {/foreach}
-                    <div class="value"><span class="hint">[`This courier assignment will be available for orders placed on selected storefronts only.`]</span></div>
+
+                    <div class="hint custom-mt-4">[`This courier assignment will be available for orders placed on selected storefronts only.`]</div>
                 </div>
+            </div>
             {else}
-                <input type="hidden" name="courier[all_storefronts]" value="1">
+            <input type="hidden" name="courier[all_storefronts]" value="1">
             {/if}
-          </div>
-          <div class="field-group">
+        </div>
+
+        <div class="fields-group">
             <div class="field">
                 <div class="name">[`Status`]</div>
-                <div class="value no-shift s-ibutton-checkbox">
-                    <ul class="menu-h">
-                        <li><input type="checkbox" name="courier[enabled]" value="1" id="courier-enabled-checkbox" class="i-button-mini"{if $courier.enabled} checked{/if}></li>
-                        <li><label for="courier-enabled-checkbox">
-                            <span class="hidden status-on">[`Working`]</span>
-                            <span class="hidden status-off">[`Not working`]</span>
-                        </label></li>
-                    </ul>
+
+                <div class="value">
+                    <span class="switch" id="courier-enabled-checkbox">
+                        <input type="checkbox" name="courier[enabled]" value="1" {if $courier.enabled} checked{/if}>
+                    </span>
+
+                    <span class="hidden status-on">[`Working`]</span>
+                    <span class="hidden status-off">[`Not working`]</span>
                 </div>
             </div>
+
             {if $courier.api_last_use || $courier.id != 'new'}
-                <div class="hide-when-disabled">
-                    <div class="field">
-                        <div class="name">[`Edit orders`]</div>
-                        <div class="value">
+            <div class="field hide-when-disabled">
+                <div class="name">[`Edit orders`]</div>
+
+                <div class="value">
+                    <label>
+                        <span class="wa-checkbox">
                             <input type="checkbox" name="courier[rights_order_edit]" value='1'{if !empty($courier.rights_order_edit)} checked{/if}>
-                            <br>
-                            <span class="hint">[`If enabled, a courier can edit order items, discount amount, and shipping cost via the mobile app.`]
-                                <br>
-                                [`Payment and shipping methods selected by a customer and values of default shipping address fields “Country”, “ZIP”, “State”, “City” cannot be changed via mobile app.`]
-                                <br>
-                                <em>[`A courier can change order status, shipping address in an order, except for fields “Country”, “ZIP”, “State”, and “City”, and other shipping parameters regardless of this setting’s value.`]</em></span>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="name">[`Edit customers`]</div>
-                        <div class="value">
-                            <input type="checkbox" name="courier[rights_customer_edit]" value='1' {if !empty($courier.rights_customer_edit)} checked{/if}>
-                            <br>
-                            <span class="hint">[`Courier can edit customers’ contact details in mobile app.`]</span>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="name">[`Last seen`]</div>
-                        <div class="value no-shift">
-                            {if $courier.api_last_use}
-                                {$courier.api_last_use|wa_date:humandatetime}
-                            {else}
-                                [`Never`]
-                            {/if}
-                        </div>
+                            <span>
+                                <span class="icon">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </span>
+                        </span>
+                    </label>
+
+                    <div class="hint">
+                        [`If enabled, a courier can edit order items, discount amount, and shipping cost via the mobile app.`]
+                        <br>
+                        [`Payment and shipping methods selected by a customer and values of default shipping address fields “Country”, “ZIP”, “State”, “City” cannot be changed via mobile app.`]
+                        <br>
+                        <em>[`A courier can change order status, shipping address in an order, except for fields “Country”, “ZIP”, “State”, and “City”, and other shipping parameters regardless of this setting’s value.`]</em>
                     </div>
                 </div>
+            </div>
+
+            <div class="field hide-when-disabled">
+                <div class="name">[`Edit customers`]</div>
+
+                <div class="value">
+                    <label>
+                        <span class="wa-checkbox">
+                            <input type="checkbox" name="courier[rights_customer_edit]" value='1' {if !empty($courier.rights_customer_edit)} checked{/if}>
+                            <span>
+                                <span class="icon">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </span>
+                        </span>
+                        [`Courier can edit customers’ contact details in mobile app.`]
+                    </label>
+                </div>
+            </div>
+
+            <div class="field hide-when-disabled">
+                <div class="name">[`Last seen`]</div>
+
+                <div class="value">
+                    {if $courier.api_last_use}
+                        {$courier.api_last_use|wa_date:humandatetime}
+                    {else}
+                        [`Never`]
+                    {/if}
+                </div>
+            </div>
             {/if}
+
             {if $courier.id != 'new'}
-                <div class="field hide-when-disabled">
-                    <div class="name">
-                        [`Auth code`]
-                    </div>
-                    <div class="value hide-when-clicked no-shift">
-                        {$pin_is_valid = $courier.api_pin && strtotime($courier.api_pin_expire) > time()}
-                        <strong>{if $pin_is_valid}
-                            {sprintf("%02d", $courier.id)}-{$courier.api_pin|escape}
-                            <i class="icon16 {if $courier.api_last_use}yes{else}clock{/if}"></i>
-                        {elseif $courier.api_pin_expire}
-                            {if $courier.api_last_use}
-                                <i class="icon16 yes"></i>
-                            {else}
-                                <span style="color: #a00;">[`Expired`]</span>
-                            {/if}
+            <div class="field hide-when-disabled">
+                <div class="name">
+                    [`Auth code`]
+                </div>
+
+                <div class="value hide-when-clicked">
+                    {$pin_is_valid = $courier.api_pin && strtotime($courier.api_pin_expire) > time()}
+                    <strong>{if $pin_is_valid}
+                        {sprintf("%02d", $courier.id)}-{$courier.api_pin|escape}
+                        <i class="fas fa-{if $courier.api_last_use}check-cirlce{else}clock{/if}"></i>
+                    {elseif $courier.api_pin_expire}
+                        {if $courier.api_last_use}
+                            <i class="fas fa-check-circle"></i>
                         {else}
-                            [`Not set`]
-                        {/if}</strong>
-                        <a href="javascript:void(0)" id="regenerate-pin-link" class="small inline-link" style="margin-left:1em;"><b><i>[`Re-generate the code`]</i></b></a>
-                        {if $pin_is_valid && !$courier.api_last_use}
-                            <br>
-                            <span class="hint">[`Expires:`] <strong>{$courier.api_pin_expire|wa_date:humandatetime}</strong></span>
+                            <span style="color: var(--red);">[`Expired`]</span>
                         {/if}
+                    {else}
+                        [`Not set`]
+                    {/if}</strong>
+
+                    <div class="custom-mt-4">
+                        <button type="button" id="regenerate-pin-link" class="button small orange outlined rounded">
+                            [`Re-generate the code`]
+                        </button>
                     </div>
-                    <div class="hidden value show-when-clicked">
+
+                    {if $pin_is_valid && !$courier.api_last_use}
+                    <div class="hint custom-mt-4">[`Expires:`] <strong>{$courier.api_pin_expire|wa_date:humandatetime}</strong></div>
+                    {/if}
+
+                    <div class="hidden show-when-clicked">
                         <input type="hidden" name="regenerate_pin" value="1" disabled>
                         <em>[`New authorization code will be generated after you save changes.`]</em>
                     </div>
-                    <div class="value">
-                        <span class="small">
-                            {if $pin_is_valid && !$courier.api_last_use}
-                                [`Auth code must be entered by the courier in the mobile app to authorize it with your online store. Once authorized with the code, the mobile app may then use the connection indefinitely. In case the code was not entered, it will automatically expire in 24 hours.`]
-                            {/if}
-                        </span>
+
+                    <div class="small custom-mt-12">
+                        {if $pin_is_valid && !$courier.api_last_use}
+                            [`Auth code must be entered by the courier in the mobile app to authorize it with your online store. Once authorized with the code, the mobile app may then use the connection indefinitely. In case the code was not entered, it will automatically expire in 24 hours.`]
+                        {/if}
                     </div>
                 </div>
-            {/if}
-          </div>
-          <div class="field-group">
-            <div class="field">
-                <div class="value">
-                    {if $courier.id != 'new'}
-                        <div class="float-right block half-padded">
-                            <ul class="menu-h">
-                                <li><a href="?action=orders#/orders/search/params.courier_id={$courier.id}/"><i class="icon16 ss orders-all"></i>[`View all courier orders`]</a></li>
-                                <li><a href="javascript:void(0)" id="delete-courier-link"><i class="icon16 delete"></i>[`Delete`]</a></li>
-                            </ul>
-                        </div>
-                    {/if}
-                    <input type="submit" class="button green submit" value="[`Save`]">
-                    <span class="s-yes" style="display: none"><i class="icon16 yes" style="margin-top: 0.5em;"></i> [`Saved`]</span>
-                </div>
             </div>
-          </div>
+            {/if}
         </div>
-
-    </form>
     </div>
 
-</div>
+    <div class="bottombar sticky s-settings-fixed-bottombar">
+        <div class="flexbox space-12">
+            <div class="wide">
+                <button type="submit" class="button green js-submit-button">
+                    [`Save`]
 
-<script>$(function() { "use strict";
+                    <span class="s-yes" style="display: none">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                </button>
+            </div>
 
+            {if $courier.id != 'new'}
+            <div>
+                <a href="?action=orders#/orders/search/params.courier_id={$courier.id}/" class="button gray">
+                    <i class="fas fa-file-excel"></i>
+                    [`View all courier orders`]
+                </a>
+
+                <a href="#" id="delete-courier-link" class="button red">
+                    <i class="fas fa-trash-alt"></i>
+                    [`Delete`]
+                </a>
+            </div>
+            {/if}
+        </div>
+    </div>
+</form>
+
+<script>$(function() {
     document.title = "[`Couriers`]";
-    var post_saved = {$saved|json_encode};
-    var post_errors = {$errors|json_encode};
-    var delete_confirm_msg = "[`Courier record will be permanently deleted without the ability to restore. Delete?`]";
+    const post_saved = {$saved|json_encode};
+    const post_errors = {$errors|json_encode};
+    const delete_confirm_msg = "[`Courier record will be permanently deleted without the ability to restore. Delete?`]";
     $.settings.forceHash("#/couriers/{$courier.id}");
 
-    var $wrapper = $('#s-settings-content');
-    var $sidebar = $wrapper.find('.sidebar');
-    var $content = $wrapper.find('.content');
-    var $form = $content.find('form');
-    var $submit_button = $form.find(':submit:first');
-    var is_locked = false;
+    const $wrapper = $('#s-settings-content');
+    const $dropdown = $wrapper.find('.js-courier-list');
+    const $form = $wrapper.find('form');
+    const $submit_button = $form.find('.js-submit-button');
+    const $fields_hide_when_inactive = $form.find('.hide-when-disabled');
+    let is_locked = false;
 
-    // Highlight items in both sidebars
-    $sidebar.find('a[href="'+location.hash+'"]').parent().addClass('selected');
+    // init dropdown
+    $dropdown.waDropdown();
 
     // Form submit via XHR
-    $form.submit(function() {
-        if (!is_locked) {
-            $submit_button.attr("disabled", true);
-            is_locked = true;
-            $submit_button.parent().append('<i class="icon16 loading"></i>');
+    $form.on('submit', function(event) {
+        event.preventDefault();
 
-            $.post($form.attr('action'), $form.serialize(), function (r) {
-                $wrapper.html(r);
-            }).always(function () {
-                is_locked = false;
-                $submit_button.attr("disabled", false);
-            });
-
-            return false;
+        if (is_locked) {
+            return;
         }
+
+        $submit_button.attr("disabled", true);
+        is_locked = true;
+        $submit_button.append('<i class="fas fa-spinner fa-spin js-loading"></i>');
+
+        $.post($form.attr('action'), $form.serialize(), function (r) {
+            $wrapper.html(r);
+        }).always(function () {
+            is_locked = false;
+            $submit_button.attr("disabled", false);
+            $submit_button.find('.js-loading').remove();
+        });
     });
 
     // Validation errors
     if (post_errors) {
         $.each(post_errors, function(field_id, error_msg) {
-            var $field = $form.find('[name="'+field_id+'"]').addClass('error');
+            let $field = $form.find('[name="'+field_id+'"]').addClass('state-error');
+
             if (!$field.length) {
                 $field = $submit_button;
             }
-            $field.parent().append($('<em class="errormsg"></em>').text(error_msg));
+
+            $('<div class="state-error"></div>').text(error_msg).insertAfter($field);
         });
     } else if (post_saved) {
         (function() {
-            var $saved_msg = $form.find('.s-yes').show();
+            const $saved_msg = $form.find('.s-yes').show();
+
             setTimeout(function() {
                 $saved_msg.fadeOut();
             }, 500);
         })();
     }
 
-    // iButton
-    $form.find(".i-button-mini").change(function() {
-        var $div_value = $(this).closest('.value');
-        var $label_off = $div_value.find('.status-off');
-        var $label_on = $div_value.find('.status-on');
-        var $fields_hide_when_inactive = $form.find('.hide-when-disabled');
-        if (this.checked) {
-            $fields_hide_when_inactive.show();
-            $label_off.hide();
-            $label_on.show();
-        } else {
-            $fields_hide_when_inactive.hide();
-            $label_off.show();
-            $label_on.hide();
+    $('#courier-enabled-checkbox').waSwitch({
+        change(active, switcher) {
+            const $label_off = switcher.$wrapper.siblings('.status-off');
+            const $label_on = switcher.$wrapper.siblings('.status-on');
+
+            if (active) {
+                $fields_hide_when_inactive.show();
+                $label_off.hide();
+                $label_on.show();
+            } else {
+                $fields_hide_when_inactive.hide();
+                $label_off.show();
+                $label_on.hide();
+            }
         }
-    }).change().iButton({
-        classContainer: 'ibutton-container mini',
-        labelOff : "",
-        labelOn : ""
     });
 
     // Contacts autocomplete
     (function() {
-        var $text_input = $('#courier-contacts-autocomplete');
-        var $hidden_input = $text_input.siblings('input:hidden');
-        var $img = $text_input.closest('.value').find('img');
-        var $img_a = $img.parent();
+        const $text_input = $('#courier-contacts-autocomplete');
+        const $hidden_input = $text_input.siblings('input:hidden');
+        const $img = $text_input.closest('.value').find('img');
+        const $img_a = $img.parent();
+
         $text_input.autocomplete({
             source: '?action=autocomplete&type=contact',
             minLength: 3,
@@ -281,7 +371,7 @@
                 $hidden_input.val(ui.item.id);
                 $text_input.val(ui.item.name);
                 $img[0].src = ui.item.photo_url;
-                var hew_href = $img_a.attr('href').replace(/\/[^\/]+\/?$/, '/'+ui.item.id+'/');
+                const hew_href = $img_a.attr('href').replace(/\/[^\/]+\/?$/, '/'+ui.item.id+'/');
                 $img_a.attr('href', hew_href).show();
                 return false;
             }
@@ -296,8 +386,11 @@
     })();
 
     // Link to regenerate pin
-    $('#regenerate-pin-link').click(function() {
-        var $field = $(this).closest('.field');
+    $('#regenerate-pin-link').on('click', function(event) {
+        event.preventDefault();
+
+        const $field = $(this).closest('.field');
+
         $field.find('.hide-when-clicked').hide();
         $field.find('.show-when-clicked').show();
         $field.find('[name="regenerate_pin"]').prop('disabled', false).change();
@@ -305,8 +398,9 @@
 
     // Storefronts toggle shows/hides the checklist
     $form.on('change', '[name="courier[all_storefronts]"]', function() {
-        var $checklist = $(this).closest('.field').find('.hide-when-all-storefronts');
-        if (this.value == '1') {
+        const $checklist = $(this).closest('.field').find('.hide-when-all-storefronts');
+
+        if (this.value === '1') {
             $checklist.hide();
         } else {
             $checklist.show();
@@ -319,14 +413,16 @@
             $submit_button.removeClass('green').addClass('yellow');
             return;
         }
-        var timeout = null;
-        var initial_form_data = $form.serialize();
+
+        let timeout = null;
+        const initial_form_data = $form.serialize();
         $form.on('change keyup', checkAndApply);
 
         function checkAndApply() {
             if (timeout) {
                 return;
             }
+
             timeout = window.setTimeout(function() {
                 timeout = null;
                 if (initial_form_data != $form.serialize()) {
@@ -338,28 +434,43 @@
     })();
 
     // Button to delete the courier
-    $('#delete-courier-link').click(function() {
-        if (!confirm(delete_confirm_msg)) {
-            return false;
-        }
-        var courier_id = $form.find('[name="id"]').val();
-        $(this).find('.icon16').attr('class', 'icon16 loading');
-        $.post('?module=settings&action=couriersdelete', { id: courier_id }, function() {
-            $.wa.setHash('#/couriers/');
+    $('#delete-courier-link').on('click', function(event) {
+        event.preventDefault();
+
+        const $button = $(this);
+
+        $.waDialog.confirm({
+            title: delete_confirm_msg,
+            success_button_title: '[`Delete`]',
+            success_button_class: 'danger',
+            cancel_button_title: '[`Cancel`]',
+            cancel_button_class: 'light-gray',
+            onSuccess() {
+                const courier_id = $form.find('[name="id"]').val();
+                const $spinner = $('<i class="fas fa-spinner fa-spin"></i>');
+
+                $button.append($spinner);
+
+                $.post('?module=settings&action=couriersdelete', { id: courier_id }, function() {
+                    $spinner.remove();
+                    $.wa.setHash('#/couriers/');
+                });
+            }
         });
     });
 
     // one-time help block
-    (function() { "use strict";
-        var $alert_block = $wrapper.find('.s-alert:first');
-        if ($.storage.get('shop/couriers_alert_hidden')) {
-            $alert_block.hide();
-        } else {
-            $alert_block.show();
-            $alert_block.find('.s-alert-close').click(function() {
+    (function() {
+        const $alert_block = $wrapper.find('.js-alert:first');
+
+        if (!$.storage.get('shop/couriers_alert_hidden')) {
+            $alert_block.removeClass('hidden');
+
+            $alert_block.find('.alert-close').on('click', function(event) {
+                event.preventDefault();
+
                 $alert_block.hide();
                 $.storage.set('shop/couriers_alert_hidden', 1);
-                return false;
             });
         }
     })();

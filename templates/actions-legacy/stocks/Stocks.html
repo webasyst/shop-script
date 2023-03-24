@@ -1,0 +1,116 @@
+<div class="block double-padded" id="s-stocks-container">
+
+    <h1>[`Stocks`]</h1>
+
+
+    <!-- plugin hook: 'backend_stocks.%plugin_id%.stocks' -->
+    {* @event backend_stocks.%plugin_id%.stocks *}
+    {foreach $backend_stocks_hook as $_}{$_.stocks|default:''}{/foreach}
+
+    <div style="margin: 20px 0">
+        <a href="javascript:void(0);" id="s-transfer-product" class="bold"><i class="icon16 move"></i> [`New transfer`]</a>
+
+        <div class="s-stocks-transfers" style="margin: 20px 0 0;" {if $transfers.count <= 0}data-empty="1"{/if}>
+            {$transfers.html}
+        </div>
+
+        {if $transfers.rest_count > 0}
+            <div class="s-stocks-transfers-show-all-wrapper block half-padded">
+                <a href="javascript:void(0)" class="s-stocks-transfers-show-all inline-link gray"><b><i>{sprintf('[`Show all %d completed transfers`]', $transfers.rest_count)}</i></b></a>
+                <i class="icon16 loading" style="display: none;"></i>
+            </div>
+        {/if}
+
+    </div>
+
+    <ul class="tabs s-stocks-tabs">
+        <li class="s-menu-item {if $tab === 'balance'}selected{/if}" data-tab="balance">
+            <a class="s-menu-item-link" data-tab="balance" href="#/stocks/">[`Stock balance`]</a>
+        </li>
+        <li class="s-menu-item {if $tab === 'log'}selected{/if}" data-tab="log">
+            <a class="s-menu-item-link" data-tab="log" href="#/stockslog/">[`Stock updates`]</a>
+        </li>
+    </ul>
+    <div class="tab-content s-stocks-tab-content">
+        <div class="block not-padded s-tab-block" data-tab="balance" {if $tab !== 'balance'}style="display: none"{/if}>
+            {if $tab === 'balance'}{$content}{/if}
+        </div>
+        <div class="block not-padded s-tab-block" data-tab="log" {if $tab !== 'log'}style="display: none"{/if}>
+            {if $tab === 'log'}{$content}{/if}
+        </div>
+    </div>
+</div>
+
+<script>
+    $( function() {
+        var container = $('#s-stocks-container');
+        var menu = $('.s-stocks-tabs', container);
+        var loadTab = function (tab, params) {
+            var block = $('.s-tab-block[data-tab="' + tab + '"]', container);
+            if (!block.length) {
+                return;
+            }
+            $('.s-tab-block', container).hide();
+            block.show().html('<i class="icon16 loading"></i>').load('?module=stocks&action=' + tab + (params ? '&' + params : ''));
+            menu.find('.selected').removeClass('selected');
+            menu.find('.s-menu-item[data-tab="' + tab + '"]').addClass('selected');
+        };
+        $('.s-class-menu-item-link', menu).click(function () {
+            var li = $(this).closest('.s-menu-item');
+            if (!li.hasClass('selected')) {
+                var tab = $(this).data('tab');
+                loadTab(tab);
+            }
+        });
+
+        // interface
+        container.bind('load', function (e, tab, params) {
+            loadTab(tab, params);
+        });
+
+        var $body = $("body"),
+            locked_class = "is-locked";
+
+        $body.on("close", function() {
+            $body.removeClass(locked_class);
+        });
+
+        // new transfer
+        $('#s-transfer-product').click(function () {
+            var d = $('#s-transfer-product-dialog');
+            if (d.length) {
+                d.parent().remove();
+            }
+            var p = $('<div></div>').appendTo('body');
+            p.load('?module=transfer', function() {
+                var d = $(this).find('.dialog');
+                $body.addClass(locked_class);
+                d.on('afterSubmit', function(e, r) {
+                    var $list = $('.s-stocks-transfers');
+                    if ($list.data('empty')) {
+                        $list.data('empty', 0);
+                        $list.html(r.data.html);
+                        $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', $list).addClass('highlighted');
+                    } else {
+                        var tmp = $('<div>').html(r.data.html);
+                        var item = $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', tmp).addClass('highlighted');
+                        $list.find('tbody').prepend(item);
+                    }
+                });
+            });
+        });
+
+        {if $transfers.rest_count > 0}
+            $('.s-stocks-transfers-show-all', container).click(function () {
+                $('.s-stocks-transfers-show-all-wrapper', container).find('.loading').show();
+                var limit = {$transfers.count} + {$transfers.limit};
+                var url = '?module=transfer&action=list&sort=create_datetime&order=desc&limit=' + limit;
+                $('.s-stocks-transfers', container).load(url, function () {
+                    $('.s-stocks-transfers-show-all-wrapper', container).hide();
+                });
+            });
+        {/if}
+
+        document.title = '{"[`Stocks`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+    });
+</script>

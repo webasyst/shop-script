@@ -16,7 +16,16 @@
 {function name="_render_coupon" _coupon=[]}
     <div class="s-coupon-wrapper" data-id="{$_coupon.id|default:"%coupon_id%"}">
         <div class="s-checkbox-column">
-            <input class="s-checkbox" id="id-coupon-{$_uniqid}-{$_coupon.id|default:"%coupon_id%"}" type="checkbox" name="{$_rule_name}[rule_params][]" value="{$_coupon.id|default:"%coupon_id%"}" {if empty($_coupon.id) || in_array($_coupon.id, $selected_coupon_ids)}checked{/if}>
+            <label>
+                <span class="wa-checkbox">
+                    <input class="s-checkbox" id="id-coupon-{$_uniqid}-{$_coupon.id|default:"%coupon_id%"}" type="checkbox" name="{$_rule_name}[rule_params][]" value="{$_coupon.id|default:"%coupon_id%"}" {if empty($_coupon.id) || in_array($_coupon.id, $selected_coupon_ids)}checked{/if}>
+                    <span>
+                        <span class="icon">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    </span>
+                </span>
+            </label>
         </div>
         <div class="s-details-column">
             <div class="s-name-wrapper">
@@ -55,7 +64,7 @@
         </div>
         <div class="s-actions-column">
             <a class="s-action" href="{$marketing_url}coupons/{$_coupon.id|default:"%coupon_id%"}/" target="_blank">
-                <i class="icon16 settings"></i>[`Coupon settings`]
+                <i class="fas fa-cog settings"></i> [`Coupon settings`]
             </a>
         </div>
     </div>
@@ -71,21 +80,23 @@
 {/strip}
 
 <div class="s-coupon-rule-section js-coupon-rule-section" id="js-coupon-rule-section-{$_uniqid}">
-    <div class="s-section-description">
-        [`Select coupons for this promo. Orders with selected coupons will be automatically associated with this promo.`]
+    <div class="alert">
+        <div class="s-section-description">
+            [`Select coupons for this promo. Orders with selected coupons will be automatically associated with this promo.`]
+        </div>
     </div>
 
     {if !empty($coupons)}
-        <div class="s-coupons-list">
+        <div class="s-coupons-list s-block">
             {foreach $coupons as $_coupon}
                 {_render_coupon _coupon=$_coupon}
             {/foreach}
         </div>
 
         {strip}
-        <div class="s-coupon-autocomplete">
+        <div class="s-coupon-autocomplete flexbox middle space-8">
             <span class="s-label">[`Find coupon & add to promo`]:</span>
-            <i class="icon16 add"></i>
+            <span class="icon"><i class="fas fa-plus-circle text-green add"></i></span>
             <input type="text" class="s-autocomplete js-autocomplete" value="" placeholder="{_w("Enter coupon code")|escape}">
         </div>
         {/strip}

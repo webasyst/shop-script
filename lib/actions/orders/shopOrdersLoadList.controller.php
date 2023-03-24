@@ -25,6 +25,10 @@ class shopOrdersLoadListController extends shopOrderListAction
         $total_count = $this->getTotalCount();
         $orders = $this->getOrders($offset, $count);
 
+        if (waRequest::get('search', null, waRequest::TYPE_STRING)) {
+            $update_orders = array_values($this->getUpdatedOrders());
+        }
+
         $count = count($orders);
 
         // set response
@@ -32,6 +36,7 @@ class shopOrdersLoadListController extends shopOrderListAction
             // basic info
             array(
                 'orders'         => array_values($orders),
+                'updated_orders' => (isset($update_orders)) ? $update_orders : [],
                 'total_count'    => $total_count,
                 'current_offset' => $offset,
                 'count'          => $count,

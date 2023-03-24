@@ -1,0 +1,59 @@
+<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+<link href="{$wa_url}wa-content/css/wa/wa-1.3.css?v{$wa->version(true)}" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<div class="block">
+
+{if $payment_form_html !== null}
+    {$payment_form_html}
+{elseif $methods}
+    <div class="wa-methods-list wide js-methods-list">
+        {foreach $methods as $_method}
+            <div class="wa-method-wrapper" data-id="{$_method.id|escape}">
+                <div class="wa-method">
+                    {if $_method.info.type != 'manual'}<a href="?payment_id={$_method.id|escape}">{/if}
+                        {if !empty($_method.logo)}
+                            <div class="wa-image-wrapper">
+                                <img src="{$_method.logo}" alt="">
+                            </div>
+                        {/if}
+                    {if $_method.info.type != 'manual'}</a>{/if}
+
+                    <div class="wa-method-body">
+                        <div class="wa-payment-name">{$_method.name|default:"[`Unknown`]"|escape}</div>
+                        {if !empty($_method.description)}
+                            <div class="wa-description">{$_method.description}</div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        {/foreach}
+    </div>
+{else}
+    {if $checked_method}
+        <div>[`No suitable payment option is available for your order, sorry. Please contact the seller.`]</div>
+    {else}
+        <form id="prepayment-form" action="" method="POST" target="_top">
+            <input type="hidden" name="challenge" value="{$challenge|escape}">
+
+            {if $enable_auto_submit}
+                <i class="icon16 loading"></i>
+                <br /><br />
+                <script type="text/javascript">
+                    setTimeout(function () {
+                        document.getElementById('prepayment-form').submit();
+                    }, 100);
+                </script>
+            {/if}
+
+            <input type="submit" value="[`Перейти к оплате`]"{if $enable_auto_submit} style="display:none"{/if}>
+        </form>
+    {/if}
+{/if}
+
+</div>
+
+</body>
+</html>

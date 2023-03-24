@@ -1,25 +1,25 @@
 (function($) {
     $.stocks_log = {
-        
+
         /**
          * Jquery object
          */
         container: null,
-        
+
         /**
          * Object
          */
         options: {},
-        
+
         init: function(options) {
             this.options = options;
             this.container = options.container || $('#s-content');
-            
+
             if (this.options.lazy_loading) {
                 this.initLazyLoad(this.options.lazy_loading);
-            }            
+            }
         },
-        
+
         initLazyLoad: function(options) {
             var count = options.count;
             var offset = count;
@@ -56,7 +56,7 @@
                                 $(window).lazyLoad('stop');
                                 $('.lazyloading-progress').hide();
                             }
-                            
+
                             $('.lazyloading-progress-string', self.container).
                                     replaceWith(
                                         $('.lazyloading-progress-string', html)
@@ -65,18 +65,18 @@
                                     replaceWith(
                                         $('.lazyloading-chunk', html)
                                     );
-                                        
+
                             html.remove();
 
                         });
                     }
                 });
-                $('.lazyloading-link').die('click').live('click', function() {
+                $('.lazyloading-link').off('click').on('click', function() {
                     $(window).lazyLoad('force');
                     return false;
                 });
             }
         }
-        
+
     };
 })(jQuery);

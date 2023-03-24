@@ -1,0 +1,136 @@
+{strip}
+
+{$_title = _w("New product code")}
+{$_button_text = _w("Save")}
+{if !empty($code.id)}
+    {$_title = sprintf("[`Product code “%s”`]", $code.name|default:"")}
+{/if}
+{if !empty($_is_divider)}
+    {$_title = "[`Feature group heading`]"}
+{/if}
+
+{/strip}
+
+<div class="wa-dialog s-settings-code-edit-dialog" id="js-settings-code-edit-dialog">
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body">
+
+        <form action="" method="post">
+            {* HEADER *}
+            <header class="wa-dialog-header">
+                <h1 class="s-title">{$_title|escape}</h1>
+            </header>
+
+            {* CONTENT *}
+            <div class="wa-dialog-content">
+                <input type="hidden" name="id" value="{$code.id|default:""|escape}">
+
+                <div class="s-fields-wrapper">
+                    <div class="wa-table-box fixed space-10">
+                        <div class="s-column">
+                            {if !empty($code.logo) && $code_plugin_enabled}
+                                <div class="s-field-section-logo">
+                                    <img src="{$wa_url}{$code.logo}">
+                                </div>
+                            {/if}
+
+                            <div class="s-field-section">
+                                <label class="s-label">[`Name`]</label>
+                                <input class="s-field js-name-field" type="text" name="code[name]" value="{$code.name|default:""|escape}" {if $protected_code}readonly{else}required{/if}>
+                            </div>
+
+                            <div class="s-field-section">
+                                <label class="s-label">[`Identifier`]</label>
+                                <input class="s-field js-code-field" type="text" name="code[code]" value="{$code.code|default:""|escape}" {if $protected_code}readonly{else}required{/if}>
+                            </div>
+
+                            <div class="s-field-section js-type-field-section">
+                                <label class="s-label">[`Product types`]</label>
+
+                                <div class="s-radio-list">
+                                    {if $selected_type}
+                                        <div class="s-radio-wrapper is-active">
+                                            <label class="s-radio-label">
+                                                <input class="s-radio js-type-group-field" type="radio" name="code[all_types_is_checked]" value="{$selected_type.id}" checked>
+                                                <span class="s-text">{sprintf_wp('Use for product type “<strong>%s</strong>”', $selected_type.name|escape)}</span>
+                                            </label>
+                                        </div>
+                                    {/if}
+                                    <div class="s-radio-wrapper {if !$selected_type && !empty($all_types_is_checked)}is-active{/if}">
+                                        <label class="s-radio-label">
+                                            <input class="s-radio js-type-group-field" type="radio" name="code[all_types_is_checked]" value="all" {if !$selected_type && !empty($all_types_is_checked)}checked{/if}>
+                                            <span class="s-text{if !$selected_type} bold{/if}">[`Use for all product types`]</span>
+                                        </label>
+                                    </div>
+                                    <div class="s-radio-wrapper {if !$selected_type && empty($all_types_is_checked)}is-active{/if}">
+                                        <label class="s-radio-label">
+                                            <input class="s-radio js-type-group-field" type="radio" name="code[all_types_is_checked]" value="0" {if !$selected_type && empty($all_types_is_checked)}checked{/if}>
+                                            <span class="s-text">[`Use only for selected types`]</span>
+                                        </label>
+
+                                        {strip}
+                                        <div class="s-checkbox-list">
+                                            {$_all_is_checked = true}
+                                            {foreach $types as $_type}
+                                                {if empty($_type.is_checked)}
+                                                    {$_all_is_checked = false}
+                                                    {break}
+                                                {/if}
+                                            {/foreach}
+
+                                            <label class="s-checkbox-wrapper s-all-checkbox-wrapper">
+                                                <input class="s-checkbox js-all-types-field" type="checkbox" {if !empty($_all_is_checked)}checked{/if}>
+                                                <span class="s-text">[`Select all`]</span>
+                                            </label>
+
+                                            {foreach $types as $_type}
+                                                <label class="s-checkbox-wrapper">
+                                                    <input class="s-checkbox js-type-field" type="checkbox" name="types[{$_type.id}]" value="{$_type.id}" {if !empty($_type.is_checked)}checked{/if}>
+                                                    {shopHelper::getIcon($_type.icon)}
+                                                    <span class="s-text">{$_type.name|escape}</span>
+                                                </label>
+                                            {/foreach}
+                                        </div>
+                                        {/strip}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {* FOOTER *}
+            <footer class="wa-dialog-footer">
+                <div class="s-errors-place js-errors-place"></div>
+
+                <div class="wa-table-box middle">
+                    <div class="s-column">
+                        <button class="s-button button green js-submit-button" type="submit">{$_button_text|escape}</button>
+                        <span class="s-divider">[`or`]</span>
+                        <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+                    </div>
+                    <div class="s-column align-right">
+                        {*if !empty($code.id)}
+                            <a href="javascript:void(0);" class="s-delete-link js-code-delete"><i class="icon16 delete"></i> [`Delete`]</a>
+                        {/if*}
+                    </div>
+                </div>
+            </footer>
+            {$wa->csrf()}
+        </form>
+    </div>
+
+    <script>
+        ( function($) {
+            var $wrapper = $("#js-settings-code-edit-dialog").removeAttr("id"),
+                dialog = $wrapper.data("dialog");
+
+            dialog.options.scope.initCodeEditDialog({
+                $wrapper: $wrapper,
+                dialog: dialog,
+                code_id: {if !empty($code.id)}{$code.id|json_encode}{else}null{/if}
+            });
+        })(jQuery);
+    </script>
+</div>

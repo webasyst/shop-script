@@ -1,245 +1,315 @@
-<div class="blank s-settings-form">
-    <div class="block double-padded">
-        <h1 class="js-bread-crumbs">[`Shipping`]</h1>
-        <br/>
-        <div id="s-settings-shipping-params" class="block hr double-padded s-settings-shipping-params">
-            <a href="#/shipping/params/" class="inline-link js-action float-right"><i class="icon16 settings"></i><b><i>[`Settings`]</i></b></a>
-            <h2 class="s-order-weight-size">[`Order weight &amp; dimensions`]</h2>
+<div id="s-settings-shipping-params">
+    <h1 class="js-bread-crumbs">[`Shipping`]</h1>
 
-            <form method="post">
-                {foreach $shipping_params as $param => $param_data}
-                    {if !empty($param_data.states)}
-                        {foreach $param_data.states as $state=>$description}
-                        <p class="js-shipping-{$param|escape}" data-state="{$state|escape}"{if (empty($param_data.state)||($param_data.state neq $state))} style="display: none;" {/if}>{$description}</p>
-                        {/foreach}
-                    {/if}
-                {/foreach}
-                <div class="field-group" style="display: none;">
+    <div class="flexbox space-12 custom-mb-16">
+        <div class="wide">
+            <h4 class="h4-mobile">[`Order weight &amp; dimensions`]</h4>
+        </div>
+        <div>
+            <a href="#/shipping/params/" class="js-action button nowrap small rounded light-gray">
+                <i class="fas fa-cog text-blue"></i>
+                <span class="desktop-and-tablet-only">[`Settings`]</span>
+                <span class="only-mobile"></span>
+            </a>
+        </div>
+    </div>
+
+    <div class="alert outlined small custom-mt-16">
+        {foreach $shipping_params as $param => $param_data}
+        {if !empty($param_data.states)}
+        {foreach $param_data.states as $state=>$description}
+        <div class="custom-mt-4 js-shipping-{$param|escape}" data-state="{$state|escape}" {if (empty($param_data.state)||($param_data.state neq $state))}style="display: none;"{/if}>
+            {$description}
+        </div>
+        {/foreach}
+        {/if}
+        {/foreach}
+    </div>
+
+    <div class="fields">
+        <div class="fields-group js-fields-group" style="display:none;">
+            <form id="s-settings-shipping-params-form" method="post">
+                <div class="custom-mt-4">
                     {if !empty($shipping_params)}
-                        {foreach $shipping_params as $param => $param_data}
-                            <div class="field">
-                                <div class="name">{$param_data.name|default:$param|escape}</div>
-                                <div class="value">
-                                    {if !empty($param_data.readonly)}
-                                        {$param_data.readonly}
-                                        {else}
-                                    <select name="params[{$param|escape}]">
-                                        {foreach $param_data.options as $option_id=>$option_data}
-                                            <option value="{$option_id|escape}" title="{$option_data.title|default:''|escape}"{if isset($param_data['value'])&&($param_data['value'] == $option_id)} selected{/if}>{$option_data.name|default:$option_id|escape}</option>
-                                        {/foreach}
-                                    </select>
-                                    {/if}
-                                </div>
-                                {if !empty($param_data.description)}
-                                    <div class="value hint">{$param_data.description}</div>
-                                {/if}
+                    {foreach $shipping_params as $param => $param_data}
+                    <div class="field">
+                        <div class="name">{$param_data.name|default:$param|escape}</div>
+
+                        <div class="value">
+                            {if !empty($param_data.readonly)}
+                            {$param_data.readonly}
+                            {else}
+                            <div class="wa-select small">
+                                <select name="params[{$param|escape}]">
+                                    {foreach $param_data.options as $option_id=>$option_data}
+                                    <option value="{$option_id|escape}" title="{$option_data.title|default:''|escape}" {if
+                                        isset($param_data['value'])&&($param_data['value']==$option_id)} selected{/if}>
+                                        {$option_data.name|default:$option_id|escape}</option>
+                                    {/foreach}
+                                </select>
                             </div>
-                        {/foreach}
+                            {/if}
+
+                            {if !empty($param_data.description)}
+                            <div class="hint custom-mt-4">{$param_data.description}</div>
+                            {/if}
+                        </div>
+                    </div>
+                    {/foreach}
                     {/if}
-                </div>
-                <div class="field-group" style="display: none;">
                     <div class="field">
                         <div class="value submit">
-                            <div class="js-errors-place" style="margin-bottom: 10px;"></div>
-
-                            <input class="button green js-submit-button" type="submit" value="[`Save`]">
-                            <span class="js-form-status" style="display:none"><!-- message placeholder --></span>
+                            <div class="js-errors-place state-error">
+                            </div>
+                            <div class="js-form-status" style="display:none">
+                                <!-- message placeholder -->
+                            </div>
+                            <button type="submit" class="button green js-submit-button">
+                                [`Save`]
+                            </button>
                         </div>
                     </div>
                 </div>
             </form>
-
             <script>
-                ( function($) {
-                    var locales = {
-                        "locale" : {_w("You can use either one common feature, or several features for each of the dimensions. Please empty the fields that do not apply.")|json_encode}
-                    };
+            (function ($) {
+                const locales = {
+                    "locale": '{_w("You can use either one common feature, or several features for each of the dimensions. Please empty the fields that do not apply.")|json_encode}'
+                };
 
-                    var $section = $("#s-settings-shipping-params"),
-                        $submit_button = $section.find(".js-submit-button"),
-                        $select = $section.find("select[name='params[dimensions]']"),
-                        $fields = $section.find("select[name='params[height]'], select[name='params[width]'], select[name='params[length]']"),
-                        $errors_place = $section.find(".js-errors-place");
+                const $section = $("#s-settings-shipping-params");
+                const $submit_button = $section.find(".js-submit-button");
+                const $select = $section.find("select[name='params[dimensions]']");
+                const $fields = $section.find("select[name='params[height]'], select[name='params[width]'], select[name='params[length]']");
+                const $errors_place = $section.find(".js-errors-place");
 
-                    if (!$select.length || !$fields.length) { return false; }
+                if (!$select.length || !$fields.length) { return false; }
 
-                    $select.on("change", onChange);
-                    $fields.on("change", onChange);
+                $select.on("change", onChange);
+                $fields.on("change", onChange);
 
-                    function onChange(error_text) {
-                        var select_value = $.trim($select.val());
-                        var is_field_has_value = false;
+                function onChange(error_text) {
+                    const select_value = $.trim($select.val());
+                    let is_field_has_value = false;
 
-                        $fields.each( function() {
-                            var $field = $(this),
-                                value = $.trim($field.val());
+                    $fields.each(function () {
+                        const $field = $(this);
+                        const value = $.trim($field.val());
 
-                            if (value.length) {
-                                is_field_has_value = true;
-                                return false;
-                            }
-                        });
-
-                        if (is_field_has_value && select_value.length) {
-                            renderError(locales["locale"]);
-                        } else {
-                            renderError(null);
+                        if (value.length) {
+                            is_field_has_value = true;
+                            return false;
                         }
+                    });
+
+                    if (is_field_has_value && select_value.length) {
+                        renderError(locales["locale"]);
+                    } else {
+                        renderError(null);
+                    }
+                }
+
+                function renderError(text) {
+                    $errors_place.html("");
+
+                    if (text) {
+                        $errors_place.append($("<div class='state-error' />").text(text));
                     }
 
-                    function renderError(text) {
-                        $errors_place.html("");
+                    $submit_button.attr("disabled", !!text);
+                }
 
-                        if (text) {
-                            $errors_place.append( $("<div class='errormsg' />").text(text) );
-                        }
-
-                        $submit_button.attr("disabled", !!text);
-                    }
-
-                })(jQuery);
+            }) (jQuery);
             </script>
         </div>
+    </div>
+</div>
 
-        {if $cron_params.count}
-        <div id="s-settings-shipping-cron" class="block double-padded">
-            {if $cron_params.status==='ok'}
-                <p class="hint">
-                    <i class="icon10 {if $cron_params.status==='ok'}yes{else} exclamation{/if}"></i> {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Shipping-related information is automatically updated. Latest cron execution time: <strong>%s</strong>.`]"}
-                </p>
-            {else}
-                <p class="red bold small">
-                    <i class="icon10 {if $cron_params.status==='error'}no{else}exclamation{/if}"></i>
-                    [`Shipping-related information is not automatically updated, because cron is not properly configured.`]
-                    <br>
-                    <a id="cron-message-link" href="javascript:void(0)">[`How to set up?`]</a>
-                </p>
+<div id="s-settings-shipping-cron">
+    {if $cron_params.count}
+    <div class="custom-mt-40">
+        {if $cron_params.status==='ok'}
+        <div class="hint">
+            <i class="fas {if $cron_params.status==='ok'}fa-check-circle text-green{else} fa-exclamation-triangle text-red{/if}"></i>
+            {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Shipping-related information is automatically updated. Latest cron execution time: <strong>%s</strong>.`]"}
+        </div>
+        {else}
+        <div class="alert warning align-center-mobile small" style="line-height: 2rem;">
+            <i class="fas text-red {if $cron_params.status==='error'}fa-ban{else}fa-exclamation-triangle{/if}"></i>
+            [`Shipping-related information is not automatically updated, because cron is not properly configured.`]
+            <button id="cron-message-link" class="button smaller light-gray rounded">
+                <i class="fas fa-info-circle"></i>
+                [`How to set up?`]
+            </button>
+        </div>
 
-                {if $cron_params.time}
-                    <p class="hint">
-                        <i class="icon10 info"></i> {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Latest cron execution time: <strong>%s</strong>.`]"}
-                    </p>
-                {/if}
-
-
-                <div id="cron-message-dialog" style="display:none">
-                    <p>[`For shipping-related information to be automatically updated, a cron setup is required.`]
-                        {sprintf(
-                        '[`Set up cron with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
-                        '[`https://developers.webasyst.com/installation/tips/cron/`]'
-                        )}</p>
-                    <p><strong class="highlighted">{$cron_params.command}</strong></p>
-                    <p><strong class="highlighted">{_w('Recommended cron execution interval is %d hour.', 'Recommended cron execution interval is %d hours.', $cron_params.interval)}</strong></p>
-                </div>
-            {/if}
+        {if $cron_params.time}
+        <div class="hint custom-mt-4">
+            <i class="fas fa-info-circle"></i> {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Latest cron execution time: <strong>%s</strong>.`]"}
         </div>
         {/if}
 
-        <div id="s-settings-shipping-rounding" class="block double-padded hr s-settings-shipping-rounding">
-            <p>{sprintf_wp("Rounding of fractional shipping costs can be set up in %scurrency settings%s.", '<a href="#/currencies/">', '</a>')}</p>
+        <div id="cron-message-dialog" class="hidden">
+            <p>[`For shipping-related information to be automatically updated, a cron setup is required.`]
+                {sprintf(
+                '[`Set up cron with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
+                '[`https://developers.webasyst.com/installation/tips/cron/`]'
+                )}</p>
+            <p><strong class="highlighted">{$cron_params.command}</strong></p>
+            <p><strong class="highlighted">{_w('Recommended cron execution interval is %d hour.', 'Recommended cron execution interval is %d hours.', $cron_params.interval)}</strong></p>
         </div>
-
-
-
-        <div class="float-right">
-            <ul class="menu-h with-icons dropdown s-add-shipping-method" id="s-shipping-menu">
-                <li>
-                    <a href="#/shipping/" class="inline-link js-action"><i class="icon16 add"></i><b><i>[`Add shipping option`]</i></b><i class="icon16 darr"></i></a>
-                    <ul class="menu-v with-icons js-shipping-window-height">
-                        {foreach $plugins as $id => $plugin}
-                        <li>
-                            <a href="#/shipping/plugin/add/{$id}/">
-                            {if empty($plugin.icon.16)}{shopHelper::getIcon('ss shipping-bw')}{else}{shopHelper::getIcon($plugin.icon.16)}{/if}{$plugin.name|escape}
-                            <span class="hint">{strip_tags($plugin.description)}</span>
-                            </a>
-
-                        </li>
-                        {/foreach}
-                        <li class="bordered-top" style="padding-top: 10px; padding-bottom: 10px; margin-top: 7px; padding-left: 8px;">
-                            {if !empty($installer)}
-                                <a href="#/shipping/plugins/" style="text-align: center;">[`Browse shipping plugins...`]</a>
-                                <br>
-                            {/if}
-                            <span class="hint align-center">[`Multiple instances of every shipping option with custom settings can be created.`]</span>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-        <h2 id="shipping-methods-title">[`Shipping methods`]</h2>
-        <br/>
-
-        <table class="zebra" id="s-settings-shipping">
-
-            <tbody>
-            {foreach $instances as $id => $plugin}
-
-            <tr data-id="{$id}">
-                <td class="min-width"><i class="icon16 sort"></i></td>
-                <td class="min-width">
-                    {if empty($plugin.installed)}
-                        <i class="icon16 exclamation"></i>
-                    {else}
-                        {if !empty($plugin.logo)}
-                            <img src="{$plugin.logo}" class="s-payment-shipping-logo">
-                        {elseif !empty($plugin.img)}
-                            <img src="{$plugin.img}" class="s-payment-shipping-logo">
-                        {/if}
-                    {/if}
-                </td>
-                <td>
-                    <h3 class="large {if empty($plugin.status)} gray{/if} js-plugin-title">
-                        {$plugin.name|escape}
-                        {if empty($plugin.status)}([`disabled`]){/if}
-                        {if empty($plugin.installed)}
-                            <span class="red">[`deleted`]</span>
-                        {/if}
-                    </h3>
-                    {if empty($plugin.installed)}
-                        <span><i class="icon16 info"></i>
-                            {if $installer}
-                                {"#/shipping/plugins/"|string_format:'[`You can remove settings or install the <a href="%s" class="inline">plugin</a>.`]'}
-                            {else}
-                                [`You can remove settings or install the plugin.`]
-                            {/if}
-                        </span>
-                    {/if}
-                    <p class="hint">{strip_tags($plugin.description)}</p>
-                </td>
-                <td>
-                    <ul class="menu-h with-icons">
-                        <li><a href="#/shipping/plugin/setup/{$id}/" class="nowrap js-shipping-plugin-setup"><i class="icon16 settings"></i>[`Configure`]</a></li>
-                        <li>
-                            <a href="#" class="nowrap js-shipping-plugin-clone">
-                                <i class="icon16 split"></i>[`Create a copy`]
-                            </a>
-                        </li>
-                        <li><a href="#/shipping/plugin/delete/{$id}/" class="nowrap js-action js-confirm js-shipping-plugin-delete" data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]"><i class="icon16 delete"></i>[`Delete`]</a></li>
-                    </ul>
-                </td>
-
-            </tr>
-            {foreachelse}
-            <tr>
-                <td colspan="4">
-                    <em class="gray">[`No shipping options are defined.`]</em>
-                </td>
-            </tr>
-            {/foreach}
-            </tbody>
-        </table>
-
-
-
-        <div id="s-settings-shipping-setup" class="fields form"></div>
-
+        {/if}
     </div>
-    <div class="clear-both"></div>
-
+    {/if}
 </div>
 
-<script type="text/javascript" src="{$wa_app_static_url}js/settings/shipping.js?{$wa->version()}"></script>
-<script type="text/javascript">(function() { "use strict";
+<div id="s-settings-shipping-rounding" class="s-settings-shipping-rounding">
+    <div class="custom-mt-40 custom-mb-32 small">{sprintf_wp("Rounding of fractional shipping costs can be set up in %scurrency settings%s.", '<a href="#/currencies/">', '</a>')}</div>
+    <div class="flexbox middle vertical-mobile space-12">
+        <div class="wide">
+            <h4 id="shipping-methods-title" class="h4-mobile custom-mb-16-mobile">[`Shipping methods`]</h4>
+        </div>
+        <div class="dropdown" id="s-shipping-menu">
+            <button class="dropdown-toggle button nowrap small rounded light-gray">
+                <i class="fas fa-plus-circle text-green"></i>
+                [`Add shipping option`]
+            </button>
+
+            <div class="dropdown-body">
+                <ul class="menu">
+                    {foreach $plugins as $id => $plugin}
+                    <li>
+                        <a href="#/shipping/plugin/add/{$id}/">
+                            <span class="icon">
+                                {if empty($plugin.icon.16)}
+                                <i class="fas fa-shipping-fast"></i>
+                                {else}
+                                {shopHelper::getIcon($plugin.icon.16)}
+                                {/if}
+                            </span>
+
+                            <span>
+                                {$plugin.name|escape}
+
+                                <span class="hint flexbox custom-mt-4">{strip_tags($plugin.description)}</span>
+                            </span>
+                        </a>
+                    </li>
+                    {/foreach}
+
+                    <li class="bordered-top custom-p-8">
+                        {if !empty($installer)}
+                        <div class="align-center">
+                            <a href="#/shipping/plugins/">[`Browse shipping plugins...`]</a>
+                        </div>
+                        {/if}
+
+                        <div class="hint align-center custom-mt-4">[`Multiple instances of every shipping option with custom settings can be created.`]</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <script>
+            (function ($) {
+                $("#s-shipping-menu").waDropdown();
+            })(jQuery);
+        </script>
+    </div>
+</div>
+<div id="s-settings-shipping" class="fields">
+    <div class="fields-group custom-pl-8-mobile">
+        <table>
+            <tbody>
+                {foreach $instances as $id => $plugin}
+
+                <tr data-id="{$id}">
+                    <td class="min-width custom-pl-8-mobile custom-pr-4-mobile"><i class="fas fa-grip-vertical js-sort text-light-gray cursor-pointer"></i></td>
+                    <td class="min-width custom-p-4-mobile">
+                        {if empty($plugin.installed)}
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {else}
+                        {if !empty($plugin.logo)}
+                        <img src="{$plugin.logo}" class="s-payment-shipping-logo">
+                        {elseif !empty($plugin.img)}
+                        <img src="{$plugin.img}" class="s-payment-shipping-logo">
+                        {/if}
+                        {/if}
+                    </td>
+                    <td class="custom-p-4-mobile">
+                        <strong class="{if empty($plugin.status)}gray{/if} large js-plugin-title h6-mobile">
+                            {$plugin.name|escape}
+                            {if empty($plugin.status)}([`disabled`]){/if}
+                            {if empty($plugin.installed)}
+                            <span class="red">[`deleted`]</span>
+                            {/if}
+                        </strong>
+
+                        {if empty($plugin.installed)}
+                        <span><i class="fa fa-info-circle"></i>
+                            {if $installer}
+                            {"#/shipping/plugins/"|string_format:'[`You can remove settings or install the <a href="%s" class="inline">plugin</a>.`]'}
+                            {else}
+                            [`You can remove settings or install the plugin.`]
+                            {/if}
+                        </span>
+                        {/if}
+
+                        <div class="hint custom-mt-4">
+                            {$descr = strip_tags($plugin.description)}
+                            <div class="desktop-only">{$descr}</div>
+                            <div class="tablet-only" title="{$descr}">{$descr|truncate:50}</div>
+                        </div>
+                    </td>
+                    <td class="custom-p-4-mobile">
+                        <div class="flexbox vertical-mobile">
+                            <a href="#/shipping/plugin/setup/{$id}/"
+                                class="js-shipping-plugin-setup button custom-mb-4-mobile nowrap rounded light-gray smaller"
+                                style="width: min-content;" title="[`Configure`]">
+                                <i class="fas fa-cog text-blue"></i>
+                                <span class="desktop-only">[`Settings`]</span>
+                            </a>
+                            <div class="custom-mb-8-mobile dropdown secondary-actions">
+                                <button class="dropdown-toggle button smaller rounded light-gray custom-pl-0" type="button"
+                                    title="[`Actions`]">&nbsp;</button>
+                                <div class="dropdown-body right">
+                                    <ul class="menu">
+                                        <li>
+                                            <a href="#" class="js-shipping-plugin-clone" title="[`Create a copy`]">
+                                                <i class="fas fa-copy text-gray"></i>
+                                                <span>[`Create a copy`]</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="#/shipping/plugin/delete/{$id}/" class="js-action js-confirm js-shipping-plugin-delete"
+                                                data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]"
+                                                title="[`Delete`]" data-cancel="[`Cancel`]">
+                                                <i class="fas fa-trash-alt text-red"></i>
+                                                <span>[`Delete`]</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {foreachelse}
+                <tr>
+                    <td colspan="4">
+                        <em class="gray">[`No shipping options are defined.`]</em>
+                    </td>
+                </tr>
+                {/foreach}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="s-settings-shipping-setup" class="fields form"></div>
+
+<script src="{$wa_app_static_url}js/settings/shipping.js?{$wa->version()}"></script>
+<script>(function() {
     document.title = "[`Shipping`] — {$wa->accountName(false)|escape:javascript}";
     if (typeof(window.$) != 'undefined') {
         $.settings.shippingInit({
@@ -249,14 +319,14 @@
             }
         });
 
-        $('#cron-message-link').click(function() {
-            $('#cron-message-dialog').waDialog({
-                'height': '285px',
-                'width': '400px',
-                'buttons': $('<button class="button"></button>').text("[`Close`]").click(function() {
-                    $(this).trigger('close');
-                })
-            })
+        $('#cron-message-link').on('click', function() {
+            const text = $('#cron-message-dialog').html();
+
+            $.waDialog.alert({
+                text,
+                button_title: '[`Close`]',
+                button_class: 'light-gray',
+            });
         });
     }
 }());</script>

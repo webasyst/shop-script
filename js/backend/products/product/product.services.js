@@ -28,8 +28,6 @@
             that.vue_model = that.initVue();
             that.init();
 
-            console.log( that );
-
             function formatServices(services) {
                 var result = [];
 

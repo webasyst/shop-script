@@ -97,7 +97,7 @@
                         ).error(onError);
                     }
                 });
-                $('.lazyloading-link').die('click').live('click',function(){
+                $('.lazyloading-link').off('click').on('click',function(){
                     $(window).lazyLoad('force');
                     return false;
                 });
@@ -111,12 +111,11 @@
         },
 
         initDragndrop: function() {
-            this.container.find('td.s-stock-cell li.item').liveDraggable({
+            this.container.find('td.s-stock-cell .js-item').liveDraggable({
                 containment: this.container,
                 distance: 5,
-                cursor: 'move',
                 helper: function() {
-                    return $(this).clone().append('<i class="icon10 no-bw" style="margin-left: 0; margin-right: 0; display: none;"></i>');
+                    return $(this).clone().append('<i class="fas fa-times text-gray no-bw" style="margin-left: 0; margin-right: 0; display: none;"></i>');
                 },
                 refreshPositions: true,
                 start: function() {
@@ -170,6 +169,22 @@
                             sku_id: src_item_id[0],
                             from: src_stock_id,
                             to: dst_stock_id
+                        }, function() {
+                            var d = $(this).find('.dialog');
+
+                            d.on('afterSubmit', function(e, r) {
+                                var $list = $('.s-stocks-transfers');
+
+                                if ($list.data('empty')) {
+                                    $list.data('empty', 0);
+                                    $list.html(r.data.html);
+                                    $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', $list);
+                                } else {
+                                    var tmp = $('<div>').html(r.data.html);
+                                    var item = $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', tmp);
+                                    $list.find('tbody').prepend(item);
+                                }
+                            });
                         }
                     );
                 }

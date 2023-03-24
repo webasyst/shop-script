@@ -1,0 +1,24 @@
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/tutorial/tutorial.js"></script>
+
+<div class="s-tutorial">
+    <div class="sidebar right15px">
+        <div class="block s-nolevel2-sidebar"></div>
+    </div>
+
+    {include file="templates/actions-legacy/tutorial/include.TutorialSidebar.html" inline}
+
+    <div class="content left300px blank s-nolevel2-box right15px">
+        <div id="s-content">
+            [`Loading...`] <i class="icon16 loading"></i>
+        </div>
+        <div class="clear-both"></div>
+    </div>
+
+    <script>
+        ( function($) {
+            $( function() {
+                $.tutorial.init({ });
+            });
+        })(jQuery);
+    </script>
+</div>

@@ -76,6 +76,7 @@
             }
 
             this.initSearch();
+            this.initDropdown();
 
             // sync with app counters
             $(document).bind('wa.appcount', function(event, data) {
@@ -98,7 +99,9 @@
             });
 
             $(function () {
-                $("#maincontent").on('click', '.s-alert-close', function () {
+                $("#maincontent").on('click', '.s-alert-close', function (event) {
+                    event.preventDefault();
+
                     var alerts = $.storage.get('shop/alerts');
                     var $item = $(this).parent();
                     if (!alerts) {
@@ -110,11 +113,11 @@
                     });
                     $.storage.set('shop/alerts', alerts);
                     $item.remove();
-                    return false;
                 });
             });
 
             this.checkAlerts();
+            this.ordersNavDetach();
         },
 
         initSearch: function() {
@@ -213,6 +216,121 @@
                     });
                 }
             });
+        },
+
+        initDropdown: function() {
+            $('.js-orders-dropdown').waDropdown({
+                ready(dropdown) {
+                    const hash = window.location.hash;
+                    if (hash) {
+                        const search_hash = 'hash=search';
+                        let params = decodeURIComponent(hash)
+                            .replace(new RegExp(`#\\/orders\\/|${search_hash}\\/|\\/$`, 'g'), "")
+                            .split('&')
+                            .filter(Boolean);
+
+                        if (params.length) {
+                            const $orders_links = dropdown.$menu.find('.js-orders-link');
+
+                            if ($orders_links.length) {
+                                $orders_links.each(function () {
+                                    const $item = $(this);
+                                    if(params.some(item => item == $item.data('param'))) {
+                                        dropdown.$button.html($item.html());
+                                    }
+
+                                    if (params.some(item => decodeURIComponent($item.attr('href')).includes(item))) {
+                                        dropdown.$button.html($item.html());
+                                    }
+
+                                })
+                            }
+                        }
+
+                        $('.js-remove-filters-link').toggleClass('hidden', !hash.includes(search_hash));
+                    }
+
+                    const $selected_item = dropdown.$menu.find(`[href="${hash}"]`);
+                    if ($selected_item.length) {
+                        dropdown.$button.html($selected_item.html());
+                    }
+                },
+                items: ".menu > li > a",
+                change(event, target, dropdown) {
+                    let hash = window.location.hash;
+                    let param = $(target).data('param');
+                    const search_hash = 'hash=search'
+                    const sales_channels = ['storefront', 'sales_channel']
+
+                    // если хэш уже имеет замиксованные параметры и отсутствует явный параметр у выбранного фильтра
+                    if (hash.includes(search_hash) && !param) {
+                        param = decodeURIComponent($(target).attr('href').replace(/#\/orders\/|\/$/g, ''))
+                    }
+
+                    if (param) {
+                        // готовим массив параметров
+                        const params = decodeURIComponent(hash)
+                            .replace(new RegExp(`#\\/orders\\/|${search_hash}\\/|&id=\\d+|\\/$`, 'g'), "")
+                            .split('&')
+                            .filter(Boolean);
+
+                        // если среди параметров есть статусы заказов, то приводим их к нужному виду
+                        const state_id_param_key = params.findIndex(item => item.includes('state_id'));
+                        if(state_id_param_key >= 0) {
+                            params[state_id_param_key] = params[state_id_param_key]?.replaceAll('|', '||');
+                        }
+
+                        // оставляем в параметрах только один какой-то канал продаж
+                        const existed_sales_channel_key = params.findIndex(param => sales_channels.some(channel => param.includes(channel)));
+                        if (existed_sales_channel_key !== -1) {
+
+                            if (!params[existed_sales_channel_key].includes('params.')) {
+                                // если среди параметров есть каналы продаж, то приводим их к нужному виду
+                                params[existed_sales_channel_key] = params[existed_sales_channel_key].replace(new RegExp(`(${sales_channels.join('|')})=`, 'g'), 'params.$1=');
+
+                                // возвращаем отрезанный слэш к имени витрины
+                                if (params[existed_sales_channel_key].includes('storefront')) {
+                                    params[existed_sales_channel_key] = params[existed_sales_channel_key] + '/'
+                                }
+                            }
+
+                            if (sales_channels.some(channel => param.includes(channel))) {
+                                params[existed_sales_channel_key] = `params.${param}`;
+                            }
+                        }
+
+                        // если среди параметров есть существующий, но с другим значением, то обновляем значение
+                        const [_param, _value] = param.split('=');
+                        const existed_param_key = params.findIndex(item => item.includes(_param));
+                        if (existed_param_key !== -1) {
+                            params[existed_param_key] = _param + '=' + _value
+                        } else {
+                            params.push(param)
+                        }
+
+                        const encoded_params = encodeURIComponent(`/${params.join('&')}`);
+
+                        hash = '/orders/' + search_hash.concat(encoded_params);
+
+                        $.wa.setHash(hash);
+
+                        $('.js-remove-filters-link').toggleClass('hidden', false);
+                    } else {
+                        location.replace($(target).attr('href'));
+                    }
+
+                    dropdown.$button.html($(target).html());
+                }
+            });
+
+            $('.js-remove-filters-link').on('click', function () {
+                $('.js-orders-dropdown').find('.dropdown-toggle').each(function () {
+                    const text = $(this).data('text')
+                    if (text) {
+                        $(this).text(text);
+                    }
+                })
+            })
         },
 
         //
@@ -391,6 +509,7 @@
                     $.order_list.finit();
                 }
                 this.load('?module=orders&'+this.buildOrdersUrlComponent(params), function() {
+                    $(window).trigger('wa_loaded', [['table']]);
                     if ($.order_list) {
                         $.order_list.dispatch(params);
                     }
@@ -413,13 +532,13 @@
 
             this.load('?module=order&id='+encodeURIComponent(id)+'&'+this.buildOrdersUrlComponent(params), function() {
                 // back link at order content
-                var $back_link = $("#s-content").find('h1 a.back.order-list');
+                var $back_link = $("#s-content").find('#s-order-title a.back.order-list');
 
                 $back_link.show();
 
                 // list item at sidebar menu
                 var $menu_item = $("#s-all-orders");
-                if ($menu_item.length && $menu_item.hasClass("selected")) {
+                if ($menu_item.length && $menu_item.hasClass("shadowed")) {
                     var $link = $menu_item.find("a:first");
                     if ($link.length) {
                         $back_link.attr("href", $link.attr("href"));
@@ -448,6 +567,7 @@
 
         /** Helper to load data into main content area. */
         load: function (url, options, fn) {
+
             if (typeof options === 'function') {
                 fn = options;
                 options = {};
@@ -476,36 +596,33 @@
                 showOrdersViewToggle();
                 showOrdersSortMenu();
 
-
-                $('.level2').show();
-                $('#s-sidebar').width(200).show();
-
-
                 self.checkAlerts();
             });
 
             function showOrdersViewToggle() {
-                var $ordersViewToggle = $("#s-orders-views"),
-                    is_orders_page = $("#s-order, #s-orders").length;
+                const $ordersViewToggle = $('.js-order-view');
+                const is_orders_page = $("#s-order, #s-orders").length;
 
                 if ($ordersViewToggle.length) {
                     if (is_orders_page) {
-                        $ordersViewToggle.css("visibility", "visible");
+                        $ordersViewToggle.removeClass('hidden');
+                        //$('#s-order-nav').removeClass('hidden');
                     } else {
-                        $ordersViewToggle.css("visibility", "hidden");
+                        $ordersViewToggle.addClass('hidden');
+                        //$('#s-order-nav').addClass('hidden');
                     }
                 }
             }
 
             function showOrdersSortMenu() {
-                var $ordersSortMenu = $("#s-orders-sort"),
-                    is_orders_page = $("#s-order, #s-orders").length;
+                const $ordersSortMenu = $('.js-orders-sort');
+                const is_orders_page = $("#s-order, #s-orders").length;
 
                 if ($ordersSortMenu.length) {
                     if (is_orders_page) {
-                        $ordersSortMenu.css("visibility", "visible");
+                        $ordersSortMenu.removeClass('hidden');
                     } else {
-                        $ordersSortMenu.css("visibility", "hidden");
+                        $ordersSortMenu.addClass('hidden');
                     }
                 }
             }
@@ -520,6 +637,12 @@
                     $(this).show();
                 }
             });
+        },
+
+        ordersNavDetach() {
+            if (window.ordersNav === undefined) {
+                window.ordersNav = $('#s-order-nav').detach();
+            }
         }
     };
 })(jQuery);

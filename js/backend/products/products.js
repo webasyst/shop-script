@@ -120,6 +120,19 @@
                     $.waDialog({
                         html: that.templates["confirm_dialog"],
                         onOpen: function($wrapper, dialog) {
+
+                            // Show different content in confirmation dialog depending on
+                            // data-confirmation-type attribute on save button.
+                            var confirmation_type = $footer_save_button.data('confirmation-type');
+                            if (confirmation_type) {
+                                var $dialog_content_all = $wrapper.find('.dialog-content');
+                                var $dialog_content_match = $dialog_content_all.filter('.js-confirmation-type-'+confirmation_type);
+                                if ($dialog_content_match.length) {
+                                    $dialog_content_all.hide();
+                                    $dialog_content_match.removeClass('hidden').show();
+                                }
+                            }
+
                             $wrapper.on("click", ".js-leave-button", function(event) {
                                 event.preventDefault();
                                 is_success = true;

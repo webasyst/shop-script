@@ -39,11 +39,17 @@ class shopProdProductDuplicateController extends waJsonController
         }
 
         $this->duplicate($product_ids, $this->errors, $new_ids);
-        if (count($new_ids) > 1) {
-            $this->logAction('products_duplicate', count($new_ids) . '$' . implode(',', $new_ids));
+        $count_new_ids = count($new_ids);
+        if ($count_new_ids > 1) {
+            for ($offset = 0; $offset < $count_new_ids; $offset += 5000) {
+                $part_products = array_slice($new_ids, $offset, 5000);
+                $this->logAction('products_duplicate', count($part_products) . '$' . implode(',', $part_products));
+            }
         } elseif (isset($new_ids[0]) && is_numeric($new_ids[0])) {
             $this->logAction('product_duplicate', $new_ids[0]);
         }
+
+        $this->response['html'] = wa()->getView()->fetch('templates/actions/prod/main/dialogs/products.duplicate_products.html');
     }
 
     protected function duplicate($product_ids, &$errors, &$new_ids)

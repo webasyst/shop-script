@@ -1,0 +1,30 @@
+<!DOCTYPE html><html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    {$title=$wa->title()}
+    <title>{{$title|default:$wa->appName()}|cat:" — ":{$wa->accountName(false)}|escape}</title>
+
+    {$wa->css()}
+
+    <link href="{$wa_url}wa-content/css/jquery-ui/base/jquery.ui.autocomplete.css" rel="stylesheet" type="text/css" />
+    <link href="{$wa_url}wa-content/js/jquery-plugins/ibutton/jquery.ibutton.min.css" rel="stylesheet" type="text/css" />
+    <link href="{$wa_app_static_url}css-legacy/shop.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
+    <!-- link your CSS files here -->
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery/jquery-1.7.1.min.js"></script>
+
+    {block name="head"} {/block}
+
+    {$wa->js()}
+</head>
+<body>
+<div id="wa">
+
+    {$wa->header()}
+
+    <div id="wa-app">
+        {$content}
+    </div><!-- #wa-app -->
+
+</div><!-- #wa -->
+</body>
+</html>

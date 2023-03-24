@@ -1,21 +1,28 @@
-<div class="s-profit-block">
-    <h2 class="s-title">Congratulations, now your online store is ready to accept your first customers!</h2>
-
-    <h2>If you have questions</h2>
-
-    <ul>
-        <li><a href="https://www.shop-script.com/help/" target="_blank">Shop-Script knowledge base</a></li>
-        <li><a href="https://support.webasyst.com/" target="_blank">Users questions and answers</a></li>
-        <li><a href="https://www.webasyst.com/my/requests/my/" target="_blank">Pricing-related and pre-sale inquiries, and personal support requests.</a></li>
-    </ul>
-
+<div class="article wide">
+    <div class="article-body show-animation" style="opacity: 0;">
+        <div class="s-profit-block">
+            <h2 class="align-center">
+                <div class="align-center text-green custom-mb-16"><i class="fas fa-check-circle larger"></i></div>
+                Congratulations, now your online store is ready to accept your first customers!
+            </h2>
+            <div class="fields custom-mt-32">
+                <div class="fields-group">
+                    <h3>If you have questions</h3>
+                    <ul>
+                        <li><a href="https://www.shop-script.com/help/" target="_blank">Shop-Script knowledge base</a></li>
+                        <li><a href="https://support.webasyst.com/" target="_blank">Users questions and answers</a></li>
+                        <li><a href="https://www.webasyst.com/my/requests/my/" target="_blank">Pricing-related and pre-sale inquiries, and personal support requests.</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         (function ($) {
-            new TutorialSidebar({
-                $wrapper: $("#tutorial-actions"),
-                active_step: {$active|json_encode},
-                $app_url: {$wa_app_url|json_encode}
-            });
+            $('.show-animation')
+            .animate({
+                opacity: 1
+            }, 300 );
         })(jQuery);
     </script>
 </div>

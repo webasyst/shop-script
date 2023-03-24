@@ -14,7 +14,7 @@ if (typeof ($) != 'undefined') {
 
         shipping_options: {
             null: null,
-            loading: $_('Loading') + '...<i class="icon16 loading"><i>'
+            loading: $_('Loading') + '...<i class="fas fa-spinner fa-spin"><i>'
         },
 
         locales: null,
@@ -24,38 +24,65 @@ if (typeof ($) != 'undefined') {
          */
         shippingInit: function (options) {
             /* init settings */
-            var self = this;
+            const self = this;
+            const $form = $('#s-settings-shipping-params-form');
+
+            this.formChanged($form);
+
             $('#s-settings-content').on('click', 'a.js-action', function () {
                 return self.click($(this));
             });
 
-            $('#s-settings-shipping').sortable({
-                distance: 5,
-                opacity: 0.75,
-                items: '> tbody > tr:visible',
-                handle: '.sort',
-                cursor: 'move',
-                axis: 'y',
-                tolerance: 'pointer',
-                update: function (event, ui) {
-                    var $item = $(ui.item);
-                    var id = parseInt($item.data('id'), 10);
-                    var after_id = $item.prev().data('id');
-                    if (after_id === undefined) {
-                        after_id = 0;
-                    } else {
-                        after_id = parseInt(after_id, 10);
-                    }
-                    self.shippingSort(id, after_id, $(this));
+            this.updateDropdownSecondaryActions();
+
+            Sortable.create($('#s-settings-shipping tbody')[0], {
+              group: 'shipping-rows',
+              handle: '.js-sort',
+              animation: 100,
+              removeCloneOnHide: true,
+              onEnd: function (evt) {
+                const $item = $(evt.item);
+                const id = parseInt($item.data('id'), 10);
+                let after_id = $item.prev().data('id');
+
+                if (after_id === undefined) {
+                  after_id = 0;
+                } else {
+                  after_id = parseInt(after_id, 10);
                 }
+
+                self.shippingSort(id, after_id, () => {
+                    $item.swap(evt.oldIndex);
+                });
+              }
+            });
+
+            $form.on('submit', function () {
+              const $this = $(this);
+              return self.shippingParamsSave($this);
             });
 
             $('#s-settings-shipping-setup').on('submit', 'form', function () {
-                var $this = $(this);
+                const $this = $(this);
+
                 if ($this.hasClass('js-installer')) {
-                    return (!$this.hasClass('js-confirm') || confirm($this.data('confirm-text') || $this.attr('title') || $_('Are you sure?')));
+                    let confirmValue = false;
+
+                    $.waDialog.confirm({
+                        title: $el.attr('title'),
+                        text: $el.data('confirm-text'),
+                        success_button_title: $_('Are you sure?'),
+                        success_button_class: 'danger',
+                        cancel_button_title: $el.data('cancel') || $.wa.locale['cancel'] || 'Cancel',
+                        cancel_button_class: 'light-gray',
+                        onSuccess() {
+                            confirmValue = true;
+                        }
+                    });
+
+                    return (!$this.hasClass('js-confirm') || confirmValue);
                 } else {
-                    var event = self.shippingPluginSaveEvent($this);
+                    const event = self.shippingPluginSaveEvent($this);
 
                     if (event) {
                         return self.shippingPluginSave($this);
@@ -65,33 +92,33 @@ if (typeof ($) != 'undefined') {
                 }
             });
 
-            $('#s-settings-shipping-params').on('submit', 'form', function () {
-                var $this = $(this);
-                return self.shippingParamsSave($this);
-            });
-
             self.locales = options.locales;
             //init clone plugin
             self.shippingPluginClone();
+        },
 
-            self.shippingResizeSetupList();
+        updateDropdownSecondaryActions: function () {
+          $(".dropdown.secondary-actions").waDropdown({
+            hover: true,
+            items: ".menu > li > a",
+            update_title: false
+          });
         },
 
         shippingPluginSaveEvent: function ($form) {
-            var self = this,
-                result = true,
-                beforeSaveEvent = new $.Event('shop_save_shipping');
+            const self = this;
+            let result = true;
+            const beforeSaveEvent = new $.Event('shop_save_shipping');
 
             beforeSaveEvent.errors = [];
             $form.trigger(beforeSaveEvent);
 
             if (beforeSaveEvent.isDefaultPrevented()) {
-                var message = [[self.locales.save_error]];
+                let message = [[self.locales.save_error]];
 
                 if (beforeSaveEvent.errors.length > 0) {
                     message = beforeSaveEvent.errors;
                 }
-
 
                 self.shippingHelper.message('error', message);
                 return false;
@@ -101,14 +128,13 @@ if (typeof ($) != 'undefined') {
 
         shipping_data: {
             'null': null
-
         },
 
         /**
          * Disable section event handlers
          */
         shippingBlur: function () {
-            var $dialog = $('#s-settings-shipping-type-dialog');
+            const $dialog = $('#s-settings-shipping-type-dialog');
             $dialog.off('click', 'a.js-action');
             $dialog.remove();
             $('#s-settings-content').off('click', 'a.js-action');
@@ -120,49 +146,54 @@ if (typeof ($) != 'undefined') {
          * @param {String} tail
          */
         shippingAction: function (tail) {
-            var method = $.shop.getMethod(tail.split('/'), this, 'shipping');
+            const method = $.shop.getMethod(tail.split('/'), this, 'shipping');
+
             $.shop.trace('$.settings.shippingAction', [method, this.path, tail]);
+
             if (method.name) {
                 this[method.name].apply(this, method.params);
             } else {
-                var $content = $('#s-settings-content');
+                const $content = $('#s-settings-content');
+
                 $content.find('#s-settings-shipping-params, #s-settings-shipping-rounding,' +
                               '#s-shipping-menu, #s-settings-shipping, #s-settings-shipping-cron,' +
                               '#shipping-methods-title').show();
 
-
-                $content.find('#s-settings-shipping #s-settings-shipping-params div.field-group').slideUp();
+                $content.find('#s-settings-shipping-params div.js-fields-group').slideUp();
                 $('#s-settings-shipping-setup').html(this.shipping_options.loading).hide();
                 $content.find('h1.js-bread-crumbs:not(:first)').remove();
                 $content.find('h1:first').show();
             }
         },
 
-        shippingSort: function (id, after_id, list) {
+        shippingSort: function (id, after_id, callRevert) {
             $.post('?module=settings&action=shippingSort', {
                 'module_id': id,
                 'after_id': after_id
             }, function (response) {
                 $.shop.trace('$.settings.shippingSort result', response);
+
                 if (response.error) {
                     $.shop.error('Error occurred while sorting shipping plugins', 'error');
-                    list.sortable('cancel');
-                } else if (response.status != 'ok') {
+                    callRevert();
+                } else if (response.status !== 'ok') {
                     $.shop.error('Error occurred while sorting shipping plugins', response.errors);
-                    list.sortable('cancel');
+                    callRevert();
                 }
-            }, 'json').error(function (response) {
-                $.shop.trace('$.settings.shippingSort cancel', [list, response]);
-                list.sortable('cancel');
+            }, 'json').fail(function (response) {
+                $.shop.trace('$.settings.shippingSort cancel', [response]);
+                callRevert();
                 $.shop.error('Error occurred while sorting shipping plugins', 'error');
                 return false;
             });
         },
 
         shippingParams: function () {
-            var $content = $('#s-settings-content #s-settings-shipping-params');
-            $content.find('div.field-group').each(function (index, elem) {
-                var $elem = $(elem);
+            const $content = $('#s-settings-content #s-settings-shipping-params');
+
+            $content.find('div.js-fields-group').each(function (index, elem) {
+                const $elem = $(elem);
+
                 if ($elem.is(':visible')) {
                     $elem.slideUp();
                 } else {
@@ -175,45 +206,54 @@ if (typeof ($) != 'undefined') {
          * @param {jQuery} $form
          */
         shippingParamsSave: function ($form) {
-            var self = this;
-            var url = '?module=settings&action=shippingSave';
+            const self = this;
+
+            const url = '?module=settings&action=shippingSave';
+
             self.shippingHelper.message('submit', null, $form);
-            var $submit = $form.find(':submit').prop('disabled', true);
+
+            const $submit = $form.find(':submit').prop('disabled', true);
+
             $.ajax({
                 type: 'POST',
                 url: url,
                 data: $form.serialize(),
                 dataType: 'json',
                 success: function (data, textStatus, jqXHR) {
-                    if (data && (data.status == 'ok')) {
-                        var message = 'Saved';
-                        if (data.data && data.data.message) {
-                            message = data.data.message;
-                        }
-                        if (data.data.params) {
-                            var params = data.data.params;
-                            for (var param in params) {
-                                $('.js-shipping-' + param).each(
-                                    function () {
-                                        var $param = $(this);
-                                        if ($param.data('state') == params[param]) {
-                                            $param.show();
-                                        } else {
-                                            $param.hide();
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                        self.shippingHelper.message('success', message, $form);
-                        setTimeout(function () {
-                            $('#s-settings-content #s-settings-shipping-params div.field-group').slideUp();
-                        }, 1000);
-                    } else {
+                    if (data && (data.status !== 'ok')) {
                         self.shippingHelper.message('error', data.errors || [], $form);
+                        return;
                     }
+
+                    let message = 'Saved';
+
+                    if (data.data && data.data.message) {
+                        message = data.data.message;
+                    }
+                    if (data.data.params) {
+                        const params = data.data.params;
+
+                        for (let param in params) {
+                            $('.js-shipping-' + param).each(
+                                function () {
+                                    const $param = $(this);
+
+                                    if ($param.data('state') == params[param]) {
+                                        $param.show();
+                                    } else {
+                                        $param.hide();
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    self.shippingHelper.message('success', message, $form);
+                    setTimeout(function () {
+                        $('#s-settings-content #s-settings-shipping-params div.js-fields-group').slideUp();
+                    }, 1000);
                 },
-                error: function (jqXHR, errorText) {
+                fail: function (jqXHR, errorText) {
                     self.shippingHelper.message(
                         'error',
                         [[errorText]],
@@ -222,18 +262,20 @@ if (typeof ($) != 'undefined') {
 
                 },
                 complete: function () {
-                    $submit.prop('disabled', false);
+                  $submit.prop('disabled', false);
+                  $form.find(".js-submit-button").removeClass('yellow').addClass('green');
                 }
             });
             return false;
         },
 
         shippingPluginAdd: function (plugin_id, $el) {
-            $.wa.dropdownsClose();
             this.shippingPluginShow(plugin_id, function () {
-                var $title = $('#s-settings-content').find('h1.js-bread-crumbs:first');
+                const $title = $('#s-settings-content').find('h1.js-bread-crumbs:first');
+
                 $title.hide();
-                var $plugin_name = $('#s-settings-shipping-setup').find('.field-group:first h1.js-bread-crumbs:first');
+
+                const $plugin_name = $('#s-settings-shipping-setup').find('.fields-group:first h1.js-bread-crumbs:first');
                 $title.after($plugin_name);
                 $title.hide();
             });
@@ -247,8 +289,8 @@ if (typeof ($) != 'undefined') {
          */
         shippingPluginSetup: function (plugin_id, $el) {
             this.shippingPluginShow(plugin_id, function () {
-                var $title = $('#s-settings-content').find('h1.js-bread-crumbs:first');
-                var $plugin_name = $('#s-settings-shipping-setup').find('.field-group:first h1.js-bread-crumbs:first');
+                const $title = $('#s-settings-content').find('h1.js-bread-crumbs:first');
+                const $plugin_name = $('#s-settings-shipping-setup').find('.fields-group:first h1.js-bread-crumbs:first');
                 $title.after($plugin_name);
                 $title.hide();
             });
@@ -256,205 +298,154 @@ if (typeof ($) != 'undefined') {
         },
 
         shippingPluginShow: function (plugin_id, callback) {
-            var $content = $('#s-settings-content'),
-                that = this;
+            const self = this;
+            const $content = $('#s-settings-content');
             $content.find('#s-shipping-menu, #s-settings-shipping-params, #s-settings-shipping-rounding,' +
                           '#s-settings-shipping-cron, #shipping-methods-title').hide();
 
-            var $plugins = $content.find('#s-settings-shipping');
+            const $plugins = $content.find('#s-settings-shipping');
             $plugins.hide();
-            var url = '?module=settings&action=shippingSetup&plugin_id=' + plugin_id;
+
+            const url = '?module=settings&action=shippingSetup&plugin_id=' + plugin_id;
             $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url, function () {
                 if (typeof (callback) == 'function') {
                     callback();
-                    that.initElasticFooter();
                 }
+                self.formChanged($(this).find('form:first'));
             });
         },
 
         shippingPluginClone: function () {
-            var that = this,
-                $plugin_list = $('#s-settings-shipping');
+            const that = this;
+            const $plugin_list = $('#s-settings-shipping').find('table');
 
             $plugin_list.on('click', '.js-shipping-plugin-clone', function (e) {
                 e.preventDefault();
-                var $self = $(this),
-                    $tr = $self.closest('tr'),
-                    original_id = $tr.data('id');
+                const $self = $(this);
+                const $tr = $self.closest('tr');
+                const original_id = $tr.data('id');
 
-                $.post('?module=settings&action=systemPluginClone', {original_id: original_id, type: 'shipping'}).success(function (r) {
-                    if (r && r.data && r.data.plugin_id) {
-                        var id = r.data.plugin_id,
-                            $new_plugin = $tr.clone().attr('data-id', id),
-                            $title = $new_plugin.find('.js-plugin-title'),
-                            is_off = $title.hasClass('gray'),
-                            $setup = $new_plugin.find('.js-shipping-plugin-setup'),
-                            $delete = $new_plugin.find('.js-shipping-plugin-delete');
-
-                        //if plugin now off not need add text
-                        if (!is_off) {
-                            $title.addClass('gray').text($title.text() + '(' + that.locales['disabled'] + ')');
-                        }
-
-                        //change id in url
-                        $setup.attr('href', '#/shipping/plugin/setup/' + id + '/');
-                        $delete.attr('href', '#/shipping/plugin/delete/' + id + '/');
-
-                        //add new node
-                        $plugin_list.append($new_plugin);
+                $.post('?module=settings&action=systemPluginClone', {original_id: original_id, type: 'shipping'}).done(function (r) {
+                    if (!r && !r.data && !r.data.plugin_id) {
+                        return;
                     }
+
+                    const id = r.data.plugin_id;
+                    const $new_plugin = $tr.clone().attr('data-id', id);
+                    const $title = $new_plugin.find('.js-plugin-title');
+                    const is_off = $title.hasClass('gray');
+                    const $setup = $new_plugin.find('.js-shipping-plugin-setup');
+                    const $delete = $new_plugin.find('.js-shipping-plugin-delete');
+
+                    //if plugin now off not need add text
+                    if (!is_off) {
+                        $title.addClass('gray').text($title.text() + '(' + that.locales['disabled'] + ')');
+                    }
+
+                    //change id in url
+                    $setup.attr('href', '#/shipping/plugin/setup/' + id + '/');
+                    $delete.attr('href', '#/shipping/plugin/delete/' + id + '/');
+
+                    //add new node
+                    $plugin_list.append($new_plugin);
+                    $new_plugin[0].scrollIntoView({
+                        behavior: "smooth"
+                    });
+
+                    that.updateDropdownSecondaryActions();
                 });
             })
-        },
-
-        initElasticFooter: function () {
-            var that = this;
-
-            // DOM
-            var $window = $(window),
-                $wrapper = that.$container,
-                $header = $wrapper.find(".js-footer-block"),
-                $dummy = false,
-                is_set = false;
-
-            var active_class = "is-fixed-to-bottom";
-
-            var header_o, header_w, header_h;
-
-            clear();
-
-            $window.on("scroll", useWatcher);
-            $window.on("resize", onResize);
-
-            onScroll();
-
-            function useWatcher() {
-                var is_exist = $.contains(document, $header[0]);
-                if (is_exist) {
-                    onScroll();
-                } else {
-                    $window.off("scroll", useWatcher);
-                }
-            }
-
-            function onScroll() {
-                var scroll_top = $window.scrollTop(),
-                    use_scroll = header_o.top + header_h > scroll_top + $window.height();
-
-                if (use_scroll) {
-                    if (!is_set) {
-                        is_set = true;
-                        $dummy = $("<div />");
-
-                        $dummy.height(header_h).insertAfter($header);
-
-                        $header
-                            .css("left", header_o.left - 20) // Because parents are doing padding 20
-                            .width(header_w)
-                            .addClass(active_class);
-                    }
-
-                } else {
-                    clear();
-                }
-            }
-
-            function onResize() {
-                clear();
-                $window.trigger("scroll");
-            }
-
-            function clear() {
-                if ($dummy && $dummy.length) {
-                    $dummy.remove();
-                }
-                $dummy = false;
-
-                $header
-                    .removeAttr("style")
-                    .removeClass(active_class);
-
-                header_o = $header.offset();
-                header_w = $header.outerWidth() + 40; // Because parents are doing padding 20
-                header_h = $header.outerHeight();
-
-                is_set = false;
-            }
         },
 
         /**
          * @param {jQuery} $form
          */
         shippingPluginSave: function ($form) {
-            var self = this;
-            var url = '?module=settings&action=shippingSave';
+            const self = this;
+            const url = '?module=settings&action=shippingSave';
+
             self.shippingHelper.message('submit');
-            var $submit = $form.find(':submit').prop('disabled', true);
+            const $submit = $form.find(':submit').prop('disabled', true);
+
             $.ajax({
                 type: 'POST',
                 url: url,
                 data: $form.serialize(),
                 dataType: 'json',
                 success: function (data, textStatus, jqXHR) {
-                    if (data && (data.status == 'ok')) {
-                        var message = 'Saved';
-                        if (data.data && data.data.message) {
-                            message = data.data.message;
-                        }
-                        self.shippingHelper.message('success', message);
-                        setTimeout(function () {
-                            self.dispatch('#/shipping/', true);
-                        }, 500);
-                    } else {
+                    if (data && (data.status !== 'ok')) {
                         self.shippingHelper.message('error', data.errors || []);
+                        return;
                     }
+
+                    let message = 'Saved';
+
+                    if (data.data && data.data.message) {
+                        message = data.data.message;
+                    }
+
+                    self.shippingHelper.message('success', message);
+
+                    setTimeout(function () {
+                        self.dispatch('#/shipping/', true);
+                    }, 500);
                 },
-                error: function (jqXHR, errorText) {
+                fail: function (jqXHR, errorText) {
                     self.shippingHelper.message('error', [
                         [errorText]
                     ]);
                 },
-                complete: function () {
+                always: function () {
                     $submit.prop('disabled', false);
                 }
             });
+
             return false;
         },
 
         shippingPluginDelete: function (plugin_id) {
-            var url = '?module=settings&action=shippingDelete';
-            var self = this;
+            const url = '?module=settings&action=shippingDelete';
+            const self = this;
+
             $.post(url, {
                 'plugin_id': plugin_id
             }, function (data, textStatus, jqXHR) {
+                console.log(self)
                 self.dispatch('#/shipping/', true);
             });
 
         },
 
         shippingControlOptionAdd: function ($el) {
-            var parent_selector, container_selector;
-            var $parent, $container;
-            if (container_selector = $el.data('container')) {
+            let parent_selector;
+            let container_selector;
 
+            let $parent;
+            let $container;
+
+            if (container_selector = $el.data('container')) {
                 if (($container = $el.parents(container_selector)) && $container.length) {
                     if (parent_selector = $el.data('parent')) {
-
                         if (($parent = $container.find(parent_selector + ':last')) && $parent.length) {
-                            var $added = $parent.clone(false);
+                            const $added = $parent.clone(false);
+
                             $added.find(':input').each(function (i, input) {
-                                var type = $(this).attr('type');
-                                var name = $(this).attr('name');
-                                var matches;
+                                const type = $(this).attr('type');
+                                const name = $(this).attr('name');
+                                let matches;
+
                                 if (matches = name.match(/\[(\d+)\]/)) {
-                                    var id = parseInt(matches[1], 10) + 1;
+                                    const id = parseInt(matches[1], 10) + 1;
                                     $(this).attr('name', name.replace(/\[(\d+)\]/, '[' + id + ']'));
                                 }
+
                                 if ((type != 'text') && (type != 'textarea')) {
                                     return true;
                                 }
+
                                 this.value = this.defaultValue;
                             });
+
                             $.shop.trace('add', $added);
                             $parent.after($added);
                         }
@@ -464,9 +455,11 @@ if (typeof ($) != 'undefined') {
         },
 
         shippingControlOptionRemove: function ($el) {
-            var parent_selector = $el.data('parent');
+            const parent_selector = $el.data('parent');
+
             if (parent_selector) {
-                var $parent = $el.parents(parent_selector);
+                const $parent = $el.parents(parent_selector);
+
                 if ($parent.parent().find(parent_selector).length > 1) {
                     if ($parent.length) {
                         $parent.remove();
@@ -481,72 +474,74 @@ if (typeof ($) != 'undefined') {
 
         shippingPlugins: function () {
             $('#s-settings-content').find('#s-settings-shipping').hide();
-            var url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
+            const url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
             $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url);
-        },
-
-        /**
-         * Needed to ensure that the list of delivery services is always placed on the screen.
-         */
-        shippingResizeSetupList: function () {
-            $('.s-add-shipping-method').on('hover', function () {
-                var scrollHeight = Math.max(
-                    document.documentElement.scrollHeight,
-                    document.documentElement.offsetHeight,
-                    document.documentElement.clientHeight
-                ) - $('.s-add-shipping-method').offset().top - 35;
-                $('.js-shipping-window-height').css('max-height', scrollHeight);
-            })
         },
 
         shippingHelper: {
             parent: $.settings,
             timer: null,
             icon: {
-                submit: '<i style="vertical-align:middle" class="icon16 loading"></i>',
-                success: '<i style="vertical-align:middle" class="icon16 yes"></i>',
-                error: '<i style="vertical-align:middle" class="icon16 no"></i>'
+                submit: '<span class="loading"><i class="fas fa-spinner fa-spin text-gray"></i></span>',
+                success: '<span class="yes"><i class="fas fa-check-circle text-green"></i></span>',
+                error: '<span class="no"><i class="fas fa-ban text-red"></i></span>'
             },
-            message: function (status, message, $container) {
-                /* enable previos disabled inputs */
+          message: function (status, message, $container) {
+            /* enable previous disabled inputs */
+            $container = $container ? $container.find('.js-form-status:first') : $('#settings-shipping-form-status');
+            $container.empty().show();
+            const $parent = $container.parents('div.value');
+            $parent.removeClass('state-error status');
 
-                $container = $container ? $container.find('.js-form-status:first') : $('#settings-shipping-form-status');
-                $container.empty().show();
-                var $parent = $container.parents('div.value');
-                $parent.removeClass('errormsg successmsg status');
-
-                if (this.timer) {
-                    clearTimeout(this.timer);
-                }
-                var timeout = null;
-                $container.append(this.icon[status] || '');
-                switch (status) {
-                    case 'submit':
-                        $parent.addClass('status');
-                        break;
-                    case 'error':
-                        $parent.addClass('errormsg');
-                        for (var i = 0; i < message.length; i++) {
-                            $container.append(message[i][0]);
-                        }
-                        timeout = 20000;
-                        break;
-                    case 'success':
-                        if (message) {
-                            $parent.addClass('successmsg');
-                            $container.append(message);
-                        }
-                        timeout = 3000;
-                        break;
-                }
-                if (timeout) {
-                    this.timer = setTimeout(function () {
-                        $parent.removeClass('errormsg successmsg status');
-                        $container.empty().show();
-                    }, timeout);
-                }
+            if (this.timer) {
+              clearTimeout(this.timer);
             }
-        }
+
+            let timeout = null;
+
+            $container.append('<i class="custom-mr-4">'+this.icon[status]+'</i>' || '');
+
+            switch (status) {
+              case 'submit':
+                $parent.addClass('status');
+                break;
+              case 'error':
+                $parent.addClass('state-error');
+                for (var i = 0; i < message.length; i++) {
+                  $container.append(message[i][0]);
+                }
+                timeout = 20000;
+                break;
+              case 'success':
+                if (message) {
+                  $container.append(message);
+                }
+                timeout = 3000;
+                break;
+            }
+
+            if (timeout) {
+                this.timer = setTimeout(function () {
+                    $parent.removeClass('state-error status');
+                    $container.empty().show();
+                }, timeout);
+            }
+          }
+        },
+        formChanged: function($form) {
+            const $submit = $form.find('[type="submit"]');
+            const submitChanged = () => {
+                $submit.removeClass('green').addClass('yellow');
+            };
+
+            $(':input', $form).on('input', submitChanged);
+            $form.on('change', submitChanged);
+
+            $submit.one('click', function() {
+                $form.off('change input');
+                $submit.removeClass('yellow').addClass('green');
+            });
+        },
 
     });
 } else {

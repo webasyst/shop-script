@@ -38,7 +38,32 @@
     <div class="vue-component-loading-file">
         <div class="wa-progressbar-wrapper" v-bind:class="{ 'has-error' : !!errors.length }">
             <template v-if="!errors.length">
-                <div class="wa-progressbar" style="display: inline-block;"></div>
+                <!-- <div class="wa-progressbar" style="display: inline-block;"></div>
+                <div class="progressbar" id="progressbar-3" style="display inline-block;"> -->
+            <div class="progressbar" id="progressbar-3" style="display:inline-block;">
+                <script>
+                    $(function() {
+                        var $bar = $("#progressbar-3").waProgressbar({
+                                type: "circle",
+                                "stroke-width": 4.8
+                            }),
+                            instance = $bar.data("progressbar");
+
+                        run();
+
+                        function run() {
+                            if ($.contains(document, $bar[0])) {
+                                var percentage = ( instance.percentage >= 100 ? 0 : instance.percentage) + 5;
+                                instance.set({
+                                    percentage: percentage,
+                                    text: percentage + "%"
+                                });
+                                setTimeout(run, 500);
+                            }
+                        }
+                    });
+                </script>
+            </div>
             </template>
             <template v-else>
                 <div class="s-error-icon">
@@ -48,7 +73,7 @@
         </div>
         <div class="s-errors" v-if="errors.length">
             <template v-for="error in errors">
-                <div class="wa-error-text" v-text="error.text"></div>
+                <div class="state-error" v-text="error.text"></div>
             </template>
         </div>
     </div>
@@ -65,16 +90,14 @@
             $("#js-product-media-section-wrapper").data("ready", $.Deferred());
         })(jQuery);
     </script>
-
-    <!-- plugin hook: 'backend_prod_content.top' -->
-    {* @event backend_prod_content.%plugin_id%.top *}
-    {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.top)}{/foreach}{/if}
-
-    <div class="s-product-media-section js-product-media-section" style="visibility: hidden;">
+    <div class="s-product-media-section js-product-media-section article wider" style="visibility: hidden;">
+        <!-- plugin hook: 'backend_prod_content.top' -->
+        {* @event backend_prod_content.%plugin_id%.top *}
+        {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.top)}{/foreach}{/if}
         <div class="s-section-header">
             <div class="s-errors-place" id="js-errors-place" v-if="errors.global.length">
                 <template v-for="error in errors.global" v-bind:key="error.id">
-                    <div class="wa-message wa-small info flexbox space-8" v-bind:data-id="error.id">
+                    <div class="wa-message small info flexbox space-8" v-bind:data-id="error.id">
                         <div class="message-icon">
                             <i class="fas fa-info-circle"></i>
                         </div>
@@ -115,8 +138,8 @@
                                             <span class="s-name" v-text="video.model"></span>
                                         </a>
                                     </div>
-                                    <div>
-                                        <span class="color-red cursor-pointer"
+                                    <div class="custom-mt-8">
+                                        <span class="text-red cursor-pointer"
                                               title="{_w("Remove video")|escape}"
                                               v-on:click.prevent="deleteVideo">
                                             <span class="s-icon" v-show="video.request_xhr"><i class="fas fa-spinner fa-spin"></i></span>
@@ -132,13 +155,13 @@
                     <template v-else>
                         {strip}
                         <div class="inlinebox top space-16">
-                            <input class="size-long" type="text"
+                            <input class="size-long width-60 large" type="text"
                                    placeholder="{_w("Video URL on YouTube, Vimeo or Rutube")|escape}"
                                    v-bind:class="{ 'wa-error-field': !!errors['product_video_add'] }"
                                    v-on:input="removeError('product_video_add')"
                                    v-model="video.model">
 
-                            <button class="wa-button blue"
+                            <button class="button"
                                     v-bind:disabled="!video.model.length || video.request_xhr"
                                     v-on:click.prevent="setVideo">
                                 <span class="s-name">[`Add video`]</span>
@@ -148,7 +171,7 @@
                         {/strip}
 
                         <template v-if="errors['product_video_add']">
-                            <div class="wa-error-text" v-text="errors['product_video_add'].text"></div>
+                            <div class="state-error" v-text="errors['product_video_add'].text"></div>
                         </template>
 
                         <div class="s-description hint">[`URLs of videos copied at a certain viewing time are supported.`]</div>
@@ -162,7 +185,7 @@
                     <h2 class="s-title">[`Images`]</h2>
                 </div>
                 <div class="s-section-body">
-                    <div class="s-photos-form">
+                    <div class="box s-photos-form uploadbox">
                         <div class="s-drop-area js-drop-area box dragndrop"
                              v-bind:class="{ 'has-class': !!errors['file_add'] }"
                              v-on:dragover.prevent="onAreaOver($event)"
@@ -178,55 +201,56 @@
                         </div>
 
                         <template v-if="files_errors.length">
-                            <div class="wa-error-text" v-for="error in files_errors">{ { error.data.file_name } }</div>
-                            <div class="wa-error-text">{ { files_errors[0].text } }</div>
+                            <div class="state-error" v-for="error in files_errors">{ { error.data.file_name } }</div>
+                            <div class="state-error">{ { files_errors[0].text } }</div>
                         </template>
                     </div>
 
-                    <div class="s-photo-actions flexbox middle wrap space-20" v-if="photos.length">
+                    <div class="s-photo-actions flexbox middle wrap space-20 custom-mt-32" v-if="photos.length">
                         <div class="s-counter" v-if="selected_photos.length">
                             <span class="s-label">[`Selected`]</span>
-                            <span class="s-count bold color-black">{ { selected_photos.length } }</span>
+                            <span class="s-count bold text-black">{ { selected_photos.length } }</span>
                         </div>
 
                         <template v-if="product.normal_mode">
                             <template v-if="!(unused_photos.length > 0)">
-                                <button class="wa-button" type="button" disabled title="{_w("No images not selected in SKU variants.")|escape}">
-                                    <span class="s-icon icon top"><i class="fas fa-minus-square"></i></span>
+                                <button class="button light-gray rounded" type="button" disabled title="{_w("No images not selected in SKU variants.")|escape}">
+                                    <span class="s-icon icon top text-dark-gray"><i class="fas fa-minus-square"></i></span>
                                     <span class="s-name">{sprintf(_w("Not selected in SKU variants (%s)"), "{ { unused_photos.length } }")}</span>
                                 </button>
                             </template>
                             <template v-else-if="unused_photos.length !== unused_selected_photos.length">
-                                <button class="wa-button blue" type="button" v-on:click.prevent="selectUnusedPhotos">
-                                    <span class="s-icon icon top"><i class="fas fa-check-square"></i></span>
+                                <button class="button light-gray rounded" type="button" v-on:click.prevent="selectUnusedPhotos">
+                                    <span class="s-icon icon top text-blue"><i class="fas fa-check-square"></i></span>
                                     <span class="s-name">{sprintf(_w("Not selected in SKU variants (%s)"), "{ { unused_photos.length } }")}</span>
                                 </button>
                             </template>
                             <template v-else>
-                                <button class="wa-button green" type="button" v-on:click.prevent="unselectUnusedPhotos">
-                                    <span class="s-icon icon top"><i class="fas fa-minus-square"></i></span>
+                                <button class="button light-gray rounded green" type="button" v-on:click.prevent="unselectUnusedPhotos">
+                                    <span class="s-icon icon top text-dark-gray"><i class="fas fa-minus-square"></i></span>
                                     <span class="s-name">{sprintf(_w("Not selected in SKU variants (%s)"), "{ { unused_photos.length } }")}</span>
                                 </button>
                             </template>
                         </template>
 
                         <template v-if="selected_photos.length === photos.length">
-                            <button class="wa-button green" type="button" v-on:click.prevent="unselectPhotos">
+                            <button class="button light-gray rounded" type="button" v-on:click.prevent="unselectPhotos">
                                 <span class="s-icon icon top"><i class="fas fa-times"></i></span>
                                 <span class="s-name">[`Clear selection`]</span>
                             </button>
                         </template>
                         <template v-else>
-                            <button class="wa-button blue" type="button" v-on:click.prevent="selectPhotos">
+                            <button class="button light-gray rounded" type="button" v-on:click.prevent="selectPhotos">
+                                <div class="icon text-blue"><i class="fas fa-check-double"></i></div>
                                 <span class="s-name">[`Select all`]</span>
                             </button>
                         </template>
 
-                        <button class="wa-button red" type="button"
+                        <button class="button light-gray rounded" type="button"
                                 title="{_w("Select the images you want to delete")|escape}"
                                 v-bind:disabled="!selected_photos.length"
                                 v-on:click.prevent="deletePhotos(selected_photos)">
-                            <span class="s-icon icon top size-14">
+                            <span class="s-icon icon top size-14 text-red">
                                 <svg><use xlink:href='{$_sprite_url}#trash-alt'></use></svg>
                             </span>
                             <span class="s-name">[`Delete`]</span>
@@ -261,7 +285,7 @@
                                     </div>
                                 </div>
 
-                                <div class="s-description-wrapper flexbox space-12" v-bind:class="{ 'is-expanded': photo.expanded }">
+                                <div class="s-description-wrapper flexbox space-12 middle" v-bind:class="{ 'is-expanded': photo.expanded }">
                                     <div class="s-column-checkbox">
                                         <component-checkbox v-model="photo.is_checked" v-on:change="selectPhoto(photo)"></component-checkbox>
                                     </div>
@@ -277,9 +301,9 @@
                                                 v-bind:placeholder="'{_w("Add description...")|escape}'"></component-flex-textarea>
 
                                             <div class="s-buttons">
-                                                <button class="wa-button blue" v-on:click.prevent="changeDescription($event, photo)">[`Apply`]</button>
-                                                <button class="wa-button gray" v-on:click.prevent="revertDescription(photo)">
-                                                    <span class="s-icon"><i class="fas fa-times"></i></span>
+                                                <button class="button blue" v-on:click.prevent="changeDescription($event, photo)">[`Apply`]</button>
+                                                <button class="button light-gray" v-on:click.prevent="revertDescription(photo)">
+                                                    <span class="s-icon"><i class="fas fa-times text-gray"></i></span>
                                                 </button>
                                             </div>
                                         </div>
@@ -288,11 +312,11 @@
 
                                 <div class="s-counter-wrapper">
                                     <template v-if="photo.uses_count > 0">
-                                        <span class="s-label">[`Used:`]</span>
+                                        <span class="s-label text-green">[`Used:`]</span>
                                         <span class="s-count" v-text="photo.uses_count"></span>
                                     </template>
                                     <template v-else>
-                                        <span class="s-label">[`Not used`]</span>
+                                        <span class="s-label text-gray">[`Not used`]</span>
                                     </template>
                                 </div>
                             </div>
@@ -319,7 +343,7 @@
                 ]}
 
                 <div class="s-features-hidden-on-front-section">
-                    <div class="wa-message wa-small warn flexbox space-8">
+                    <div class="wa-message small warn flexbox space-8">
                         <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="message-text wide">
                             <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`]</span>
@@ -330,13 +354,12 @@
             {/if}
         {/capture}
 
-        {include file="./includes/footer.html" footer_content=$_footer_content inline}
+        <!-- plugin hook: 'backend_prod_content.bottom' -->
+        {* @event backend_prod_content.%plugin_id%.bottom *}
+        {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.bottom)}{/foreach}{/if}
+
+        {include file="./includes/footer.html" footer_content=$_footer_content confirmation_type="media" inline}
     </div>
-
-    <!-- plugin hook: 'backend_prod_content.bottom' -->
-    {* @event backend_prod_content.%plugin_id%.bottom *}
-    {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.bottom)}{/foreach}{/if}
-
     <script>
         ( function($) {
             var sources = [{

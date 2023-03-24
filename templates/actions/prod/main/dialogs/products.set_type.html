@@ -11,7 +11,7 @@
             <div class="dialog-header">
                 <h3>[`Change product type`]</h3>
                 <div class="s-description">[`Select the type to be set for selected products.`]</div>
-                <div class="wa-message wa-small gray flexbox space-8" style="margin: 1rem 0 0;">
+                <div class="wa-message small gray flexbox space-8" style="margin: 1rem 0 0;">
                     <div class="message-icon">
                         <i class="fas fa-info-circle"></i>
                     </div>
@@ -42,11 +42,11 @@
 
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked || !type">
+                <button class="button" type="button" v-on:click="save" v-bind:disabled="states.is_locked || !type">
                     <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name">[`Change`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

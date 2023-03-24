@@ -3,19 +3,20 @@
 {$_start_date = waRequest::request("start_date", null)}
 {$_finish_date = waRequest::request("finish_date", null)}
 
+<div class="article wider">
+<div class="article-body">
+
 {* PAGE *}
-<div class="s-costs-page block double-padded" id="js-costs-page">
+<div class="s-costs-page" id="js-costs-page">
     {* HEADER *}
     <header class="s-page-header">
 
-        <div class="s-table-box">
-            <div class="s-column">
-                <h1 class="s-title">[`Marketing costs`]</h1>
-            </div>
-            <div class="s-column middle align-right">
+        <div class="flexbox middle wrap">
+            <h1 class="s-title wide">[`Marketing costs`]</h1>
+            <div class="flexbox middle space-8">
 
                 {$_groupby = waRequest::request("groupby", "days")}
-                {$_timeframe = waRequest::request("timeframe", "90")}
+                {$_timeframe = waRequest::get("timeframe", "30")}
                 {$_from = waRequest::request("from", null)}
                 {$_to = waRequest::request("to", null)}
 
@@ -52,49 +53,60 @@
                     {$_active_time_filter = $_time_filters[$_timeframe]}
                 {/if}
 
-                <ul class="menu-h dropdown s-timeframe-filter js-timeframe-filter align-left" style="display: inline-block;">
-                    <li class="s-timeframe-custom js-timeframe-custom" style="{if $_active_time_filter.id !== "custom"}display: none{/if}">
-                        <form>
-                            [`from`]
 
-                            <label class="s-datepicker-wrapper">
-                                <input class="s-datepicker js-datepicker" type="text" value="{if !empty($_from)}{$_from|wa_date}{/if}" data-alt="input[name='from']">
-                                <input type="hidden" name="from" value="{$_from|default:""|escape}">
-                                <i class="icon16 calendar"></i>
-                            </label>
+                <div class="s-timeframe-custom js-timeframe-custom" style="{if $_active_time_filter.id !== "custom"}display: none{/if}">
+                    <form class="flexbox middle">
+                        [`from`]
 
-                            [`to`]
+                        <label class="s-datepicker-wrapper state-with-inner-icon right custom-ml-4 custom-mr-8">
+                            <input type="hidden" name="from" value="{$_from|default:""|escape}">
+                            <input class="s-datepicker js-datepicker" type="text" value="{if !empty($_from)}{$_from|wa_date}{/if}" data-alt="input[name='from']">
+                            <span class="icon"><i class="fas fa-calendar-alt"></i></span>
+                        </label>
 
-                            <label class="s-datepicker-wrapper">
-                                <input class="s-datepicker js-datepicker" type="text" value="{if !empty($_to)}{$_to|wa_date}{/if}" data-alt="input[name='to']">
-                                <input type="hidden" name="to" value="{$_to|default:""|escape}">
-                                <i class="icon16 calendar"></i>
-                            </label>
+                        [`to`]
 
+                        <label class="s-datepicker-wrapper state-with-inner-icon right custom-ml-4">
+                            <input type="hidden" name="to" value="{$_to|default:""|escape}">
+                            <input class="s-datepicker js-datepicker" type="text" value="{if !empty($_to)}{$_to|wa_date}{/if}" data-alt="input[name='to']">
+                            <span class="icon"><i class="fas fa-calendar-alt"></i></span>
+                        </label>
+
+                        <div class="wa-select">
                             <select name="groupby">
                                 <option value="days" {if $_groupby === "days"}selected{/if}>[`by day`]</option>
                                 <option value="months" {if $_groupby === "months"}selected{/if}>[`by month`]</option>
                             </select>
+                        </div>
 
-                            <button type="submit" class="js-use-custom-timeframe">[`Apply`]</button>
+                        <button type="submit" class="js-use-custom-timeframe">[`Apply`]</button>
 
-                            <input name="timeframe" value="custom" type="hidden">
-                        </form>
-                    </li>
-                    <li>
-                        <a href="javascript:void(0)" class="inline-link">
-                            <b><i class="js-active-name">{$_active_time_filter.name|escape}</i></b>
-                            <i class="icon10 darr"></i>
-                        </a>
-                        <ul class="menu-v without-icons right">
+                        <input name="timeframe" value="custom" type="hidden">
+                    </form>
+                </div>
+
+                <div class="dropdown js-timeframe-filter">
+                    <button class="dropdown-toggle button light-gray" type="button">{$_active_time_filter.name|escape}</button>
+                    <div class="dropdown-body right">
+                        <ul class="menu">
                             {foreach $_time_filters as $_filter}
                                 <li class="{if $_filter.id === $_active_time_filter.id}selected{/if}">
                                     <a class="js-set-timeframe" data-id="{$_filter.id|escape}" href="{$_filter.uri|escape}">{$_filter.name|escape}</a>
                                 </li>
                             {/foreach}
+                            </li>
                         </ul>
-                    </li>
-                </ul>
+                    </div>
+
+
+                    <script>
+                        ( function($) {
+                            $(".js-timeframe-filter").waDropdown({
+                                items: ".menu > li"
+                            });
+                        })(jQuery);
+                    </script>
+                </div>
             </div>
         </div>
     </header>
@@ -103,8 +115,8 @@
     <div class="s-page-body">
 
         {* CHART *}
-        <div class="s-graph-section">
-            <div class="s-graph-wrapper"></div>
+        <div class="s-graph-section fields" id="costs_graph">
+            <div class="s-graph-wrapper fields-group"></div>
             <div class="s-hint-wrapper"></div>
         </div>
 
@@ -112,15 +124,15 @@
         <div id="s-mcosts-editor-wrapper" style="display:none;"></div>
 
         {* ADD *}
-        <div class="clear-both block" style="margin:40px 0 0 0">
-            <a href="javascript:void(0)" id="s-new-expense-button" class="inline-link">
-                <i class="icon16 add"></i>
-                <b><i>[`Add expense`]</i></b>
-            </a>
+        <div class="custom-mt-40 custom-mb-12">
+            <button class="button light-gray rounded" id="s-new-expense-button">
+                <i class="fas fa-plus-circle text-green"></i>
+                [`Add expense`]
+            </button>
         </div>
 
         {* BOTTOM TABLE *}
-        <div class="block">
+        <div class="blank">
             {if count($expenses)}
                 <table class="zebra single-lined">
                     <tbody id="s-reports-marketing-costs-table">
@@ -136,7 +148,7 @@
             {/if}
         </div>
 
-        <div class="clear-both block">
+        <div class="box align-center">
             <a href="javascript:void(0)" id="load-more-link" {if $limit > count($expenses)} style="display:none"{/if}>[`Load more...`]</a>
         </div>
     </div>
@@ -187,4 +199,7 @@
             });
         })(jQuery);
     </script>
+</div>
+
+</div>
 </div>

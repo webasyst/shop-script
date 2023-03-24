@@ -38,7 +38,7 @@
             {* @event backend_prod_dialog.%plugin_id%.top *}
             {if !empty($backend_prod_dialog_event)}{foreach $backend_prod_dialog_event as $_}{ifset($_.top)}{/foreach}{/if}
 
-            <p class="color-red">
+            <p class="text-red">
                 {if $_is_sku}
                     {sprintf(
                         _w(
@@ -90,8 +90,8 @@
 
         </div>
         <div class="dialog-footer">
-            <button class="js-success-action wa-button red" type="button">[`Delete`]</button>
-            <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+            <button class="js-success-action button red" type="button">[`Delete`]</button>
+            <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
         </div>
     </div>
 </div>

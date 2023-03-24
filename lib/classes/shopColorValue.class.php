@@ -14,6 +14,7 @@
  * @property string $value Color name
  * @property int $code
  */
+#[\AllowDynamicProperties]
 class shopColorValue implements ArrayAccess
 {
     const RGB = 'rgb';
@@ -296,21 +297,44 @@ class shopColorValue implements ArrayAccess
         return $value;
     }
 
+    /**
+     * https://www.php.net/manual/ru/migration81.incompatible.php#migration81.incompatible.core.type-compatibility-internal
+     *
+     * @param $offset
+     * @return array|int|int[]|mixed|string|null
+     */
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->__get($offset);
     }
 
+    /**
+     * @param $offset
+     * @param $value
+     * @return void
+     */
+    #[ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         return $this->__set($offset, $value);
     }
 
+    /**
+     * @param $offset
+     * @return void
+     */
+    #[ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
 
     }
 
+    /**
+     * @param $offset
+     * @return bool
+     */
+    #[ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return true;

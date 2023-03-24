@@ -1,17 +1,9 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/tutorial/tutorial.js"></script>
 
-<div class="s-tutorial">
-    <div class="sidebar right15px">
-        <div class="block s-nolevel2-sidebar"></div>
-    </div>
-
-    {include file="templates/actions/tutorial/include.TutorialSidebar.html" inline}
-
-    <div class="content left300px blank s-nolevel2-box right15px">
-        <div id="s-content">
-            [`Loading...`] <i class="icon16 loading"></i>
+    <div class="content hide-scrollbar s-tutorial box contentbox" id="s-content">
+        <div class="flexbox height-100" >
+            <div class="spinner custom-p-32" style="align-self:center;margin-inline:auto;"></div>
         </div>
-        <div class="clear-both"></div>
     </div>
 
     <script>
@@ -21,4 +13,3 @@
             });
         })(jQuery);
     </script>
-</div>

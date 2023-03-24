@@ -67,7 +67,8 @@
                 } else {
                     $link = $("<link />", {
                         id: source.id,
-                        rel: "stylesheet"
+                        rel: "stylesheet",
+                        ...source.attrs
                     }).appendTo("head")
                         .data("promise", promise);
 
@@ -97,7 +98,10 @@
                     document.getElementsByTagName("head")[0].appendChild(script);
 
                     $script = $(script)
-                        .attr("id", source.id)
+                        .attr({
+                            "id": source.id,
+                            ...source.attrs
+                        })
                         .data("promise", promise);
 
                     $script
@@ -237,6 +241,10 @@
         init: function(options) {
             this.options = $.extend(this.options, options || {});
 
+            if (options.page === 'products') {
+                redirect();
+            }
+
             if (options["menu_floating"]) {
                 initFixedMenu();
 
@@ -298,6 +306,78 @@
                 function onResize() {
                     app_top = getAppTop();
                     onScroll();
+                }
+            }
+
+            function redirect() {
+                var $app_block = $('#wa-app'),
+                    changed_href = false,
+                    hash = parseHash(window.location.href),
+                    app_url = options.app_url;
+
+                if (hash.section === 'products') {
+                    if ($.isEmptyObject(hash.params) === true) {
+                        window.location.href = app_url + 'products/';
+                        changed_href = true;
+                    } else if (hash.params.hasOwnProperty('category_id')) {
+                        window.location.href = app_url + 'products/categories/';
+                        changed_href = true;
+                    } else if (hash.params.hasOwnProperty('set_id')) {
+                        window.location.href = app_url + 'products/sets/';
+                        changed_href = true;
+                    }
+                } else if (hash.section === 'product') {
+                    var split_tail = hash.tail.split('/');
+                    if (split_tail.length > 0 && Number(split_tail[0]) > 0) {
+                        var redirect_href = app_url + 'products/' + split_tail[0] + '/';
+                        if (split_tail.length === 1) {
+                            tab = $.storage.get('shop/product-profile/tab');
+                            if (tab === 'reviews') {
+                                redirect_href += tab + '/';
+                            } else if (tab === 'profile') {
+                                redirect_href += 'prices/';
+                            }
+                        } else if (split_tail.length === 2 && split_tail[1] === 'edit') {
+                            redirect_href += 'general/';
+                        } else if (split_tail.length === 3) {
+                            switch (split_tail[2]) {
+                                case 'descriptions':
+                                    redirect_href += 'seo/';
+                                    break;
+                                case 'images':
+                                    redirect_href += 'media/';
+                                    break;
+                                case 'features':
+                                    redirect_href += 'sku/';
+                                    break;
+                                case 'services':
+                                case 'related':
+                                case 'pages':
+                                    redirect_href += split_tail[2] + '/';
+                                    break;
+                            }
+                        }
+                        window.location.href = redirect_href;
+                        changed_href = true;
+                    }
+                }
+
+                if (changed_href === false) {
+                    $app_block.css('visibility', '');
+                }
+
+                function parseHash(path) {
+                    path = path.replace(/^.*#\//, '');
+                    var hash = {
+                        section: path.replace(/\/.*$/, '') || 'general',
+                        tail: path.replace(/^[^\/]+\//, '').replace(/[\w_\-]+=.*$/, '').replace(/\/$/, ''),
+                        params: path.match(/(^|\/)[\w_\-]+=/) ? $.shop.helper.parseParams(path.replace(/(^|^.*\/)([\w_\-]+=.*$)/, '$2').replace(/\/$/, '')) : {},
+                        raw: path
+                    };
+                    ['view', 'sort', 'order'].forEach(function(key) {
+                        delete hash.params[key];
+                    });
+                    return hash;
                 }
             }
         },
@@ -367,7 +447,7 @@
             if (always) {
                 xhr.always(always);
             }
-            xhr.success(function(r) {
+            xhr.done(function(r) {
                 if (r.status != 'ok') {
                     if (typeof error === 'function') {
                         if (error(r) !== false) {
@@ -383,13 +463,13 @@
                 }
             });
             if (typeof error === 'function') {
-                xhr.error(function(r) {
+                xhr.fail(function(r) {
                     if (error(r) !== false) {
                         default_error_handler(r);
                     }
                 });
             } else {
-                xhr.error(default_error_handler);
+                xhr.fail(default_error_handler);
             }
             return xhr;
         },
@@ -444,10 +524,10 @@
 
         updateAppCounter: function(count) {
             count = parseInt(count, 10) || '';
-            var counter = $('#wa-app-shop').find('.indicator');
+            var counter = $('#wa-app-shop').find('.badge');
             if (!counter.length) {
-                $('#wa-app-shop').find('a').append('<span class="indicator" style="display:none;"></span>');
-                counter = $('#wa-app-shop').find('.indicator');
+                $('#wa-app-shop').find('a').append('<span class="badge" style="display:none;"></span>');
+                counter = $('#wa-app-shop').find('.badge');
             }
             counter.text(count);
             if (count) {
@@ -634,177 +714,13 @@
             return { ns: ns, stop: stop };
         },
 
-        initElasticMenu: function(options) {
-
-            var ElasticMenu = function(options) {
-                var that = this;
-
-                // DOM
-                that.$wrapper = options["$wrapper"];
-                that.$moreWrapper = that.$wrapper.find("#s-hidden-list");
-                that.$items = that.$wrapper.find(".tabs > li");
-
-                // VARS
-
-                // DYNAMIC VARS
-                that.items = false;
-                that.staticItems = false;
-
-                // INIT
-                that.initClass();
-            };
-
-            ElasticMenu.prototype.initClass = function() {
-                var that = this;
-
-                // Set zIndex on menu
-                that.$wrapper.addClass("is-elastic");
-                //
-                that.setItemsData();
-                //
-                that.prepareMenu();
-                //
-                that.menuWatcher();
-                //
-                that.bindEvents();
-            };
-
-            ElasticMenu.prototype.bindEvents = function() {
-                var that = this,
-                    $window = $(window);
-
-                // Launch watcher after page loading
-                setTimeout( function() {
-                    $window.on("resize", onResize);
-                }, 2000);
-
-                function onResize() {
-                    if ($.contains(document, that.$wrapper[0])) {
-                        that.menuWatcher();
-                    } else {
-                        $window.off("resize", onResize);
-                    }
-                }
-            };
-
-            ElasticMenu.prototype.menuWatcher = function() {
-                var that = this,
-                    menu_width = parseInt( that.$wrapper.width() ),
-                    static_place_width = that.getEmptySpace(),
-                    empty_space = menu_width - static_place_width,
-                    is_someone_hidden = false;
-
-                for (var i = 0; i < that.items.length; i++) {
-                    var item = that.items[i],
-                        item_width = item.$item.outerWidth();
-
-                    if (empty_space - item_width > 0) {
-                        empty_space -= item_width;
-                        showItem( item );
-                    } else {
-                        hideItem( item );
-                        is_someone_hidden = true;
-                    }
-                }
-
-                if (is_someone_hidden) {
-                    that.$moreWrapper.show();
-                } else {
-                    that.$moreWrapper.hide();
-                }
-
-                function showItem( item ) {
-                    item.$item.show();
-                    item.$clone.hide();
-                    item.is_shown = true;
-                }
-
-                function hideItem() {
-                    item.$item.hide();
-                    item.$clone.show();
-                    item.is_shown = false;
-                }
-            };
-
-            ElasticMenu.prototype.setItemsData = function() {
-                var that = this,
-                    items = [],
-                    staticItems = [];
-
-                that.$items.each( function() {
-                    // DOM
-                    var $item = $(this);
-
-                    // CASES
-                    var is_right_menu_item = $item.hasClass("float-right"),
-                        is_store_button = $item.hasClass("s-openstorefront"),
-                        is_hidden_list = ($item[0] === that.$moreWrapper[0]);
-
-                    // SET STATIS PLACE
-                    if (is_right_menu_item || is_store_button || is_hidden_list) {
-                        staticItems.push($item);
-                    // PUSH
-                    } else {
-                        items.push({
-                            $item: $item,
-                            $clone: false, // dynamic var, $item at hidden list
-                            is_shown: true  // dynamic var, visible flag
-                        });
-                    }
-                });
-
-                that.items = items;
-                that.staticItems = staticItems;
-            };
-
-            ElasticMenu.prototype.prepareMenu = function() {
-                var that = this,
-                    $list = that.$moreWrapper.find(".menu-v"),
-                    selected_class = "selected";
-
-                for (var i = 0; i < that.items.length; i++) {
-                    var item = that.items[i],
-                        $clone = item.$item.clone();
-
-                    var is_selected = ( $clone.hasClass(selected_class) );
-
-                    $clone
-                        .removeAttr("id")
-                        .removeAttr("class");
-
-                    if (is_selected) {
-                        $clone.addClass(selected_class)
-                    }
-
-                    $list.append($clone);
-
-                    item.$clone = $clone;
-                }
-            };
-
-            ElasticMenu.prototype.getEmptySpace = function() {
-                var that = this,
-                    result = 0,
-                    correction = 50;
-
-                for (var i = 0; i < that.staticItems.length; i++) {
-                    var $item = that.staticItems[i];
-
-                    result += parseInt( $item.outerWidth( true ) );
-                }
-
-                return result + correction;
-            };
-
-            new ElasticMenu(options);
-        },
-
         alertError: function(error_msg, log_msg) {
-            $('#s-error-dialog').waDialog({
-                onLoad: function () {
-                    $(this).find('.f-text').html(error_msg);
-                }
+            $.waDialog.alert({
+                title: error_msg,
+                button_title: 'Ok',
+                button_class: 'warning',
             });
+
             if (log_msg) {
                 this.logError(log_msg);
             }
@@ -900,6 +816,14 @@
             setEventHandler: function ($scope, event, handler, selector) {
                 $.shop.trace('$.shop.helper.setEventHandler [' + event + ']', [$scope, selector]);
                 $scope.off(event, selector).on(event, selector, handler);
+            },
+
+            /**
+             * @returns {Boolean}
+             */
+            isMobile: function () {
+                var reg = new RegExp('Android|webOS|iPhone|iPad|iPod|BlackBerry','i');
+                return reg.test(navigator.userAgent);
             }
         },
 
@@ -1121,6 +1045,61 @@
             }
 
             return result;
+        },
+
+        /**
+         * @description Popup alert notifications with any info
+         * @param options
+         */
+        notification(options) {
+
+            const $appendTo = options.appendTo || document.body,
+                isCloseable = options.isCloseable ?? true,
+                alertTimeout = options.timeout || 0;
+            let $alertWrapper = $appendTo.querySelector('#s-notifications');
+
+            // Create notification
+            const $alert = document.createElement('div');
+            $alert.classList.add('alert', options.class || 'info');
+            $alert.innerHTML = options.content || '';
+
+            if(isCloseable){
+                const closeClass = options.closeClass || 'js-alert-error-close',
+                    $alertClose = document.createElement('a');
+
+                $alertClose.classList.add('alert-close', closeClass);
+                $alertClose.setAttribute('href', 'javascript:void(0)');
+                $alertClose.innerHTML = '<i class="fas fa-times"></i>';
+                $alert.insertAdjacentElement('afterbegin', $alertClose);
+                // Event listener for close notification
+                $alertClose.addEventListener('click', function() {
+                    this.closest('.alert').remove();
+                });
+            }
+
+            if(!$alertWrapper) {
+                // Create notification wrapper
+                $alertWrapper = document.createElement('div');
+                $alertWrapper.className = 'alert-fixed-box';
+                if (options.placement) {
+                    $alertWrapper.classList.add(options.placement);
+                }
+                if (options.size) {
+                    $alertWrapper.classList.add(options.size);
+                }
+                $alertWrapper.id = 't-notifications';
+                $appendTo.append($alertWrapper);
+            }
+
+            if (options.placement) {
+                $alertWrapper.prepend($alert);
+            }else{
+                $alertWrapper.append($alert);
+            }
+
+            if(alertTimeout > 0) {
+                setTimeout(() => $alert.remove(), alertTimeout)
+            }
         }
 
     };

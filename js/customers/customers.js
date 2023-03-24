@@ -40,100 +40,102 @@
                 hash: ''
             };
 
-            this.initSearch();
+            $(window).on('wa_loaded', () => this.initSearch())
+
         },
 
         /** Global customers search above content block */
         initSearch: function() {
-            var search_field = $('#s-customers-search');
-
-            var hash = $.customers.getHash();
-            var m = hash.match(/^(?:#\/)?search\/([\s\S]*)/);
-            if (m) {
-                m[1] = m[1].replace(/(\/)+$/, '');
-                m = m[1].match(/^(?:phone|email|name\|email|email\|name)\*=([\s\S]*)/);
+            const search_field = $('#s-customers-search');
+            if (search_field.length) {
+                const hash = $.customers.getHash();
+                let m = hash.match(/^(?:#\/)?search\/([\s\S]*)/);
                 if (m) {
-                    var val = m[1];
-                    try {
-                        val = decodeURIComponent(val);
-                    } catch (e) {}
-                    search_field.val(val);
-                }
-            }
-
-            var search = function() {
-                var q = this.value.trim();
-
-                var query = '';
-
-                if (q.match(/^\+*[0-9\s\-\(\)]+$/)) {
-                    try {
-                        q = encodeURIComponent(q);
-                    } catch (e) {
+                    m[1] = m[1].replace(/(\/)+$/, '');
+                    m = m[1].match(/^(?:phone|email|name\|email|email\|name)\*=([\s\S]*)/);
+                    if (m) {
+                        let val = m[1];
+                        try {
+                            val = decodeURIComponent(val);
+                        } catch (e) {}
+                        search_field.val(val);
                     }
-
-                    query = 'phone*=' + q;
-                } else if (q.indexOf('@') !== -1) {
-                    query = 'email*=' + q;
-                } else {
-                    query = 'email|name*=' + q;
                 }
-                location.hash = '#/search/' + query;
-                return false;
-            };
 
-            // Test if HTML5 search event is supported
-            var isSupported = ('onsearch' in search_field[0]); // works for everyone except firefox
-            if (!isSupported) {
-                // firefox testing
-                search_field[0].setAttribute('onsearch', 'return;');
-                isSupported = typeof search_field[0]['onsearch'] == 'function';
-            }
+                const search = (event) => {
+                    event.preventDefault();
 
-            // Use HTML5 search event if suppotred. Otherwise fallback to keydown.
-            if (isSupported) {
-                search_field.unbind('search').bind('search', search);
-            } else {
-                search_field.unbind('keydown').bind('keydown', function(event) {
-                    if (event.keyCode == 13 || event.keyCode == 10) {
-                        return search.call(this);
+                    let q = this.value.trim();
+                    let query = '';
+
+                    if (q.match(/^\+*[0-9\s\-\(\)]+$/)) {
+                        try {
+                            q = encodeURIComponent(q);
+                        } catch (e) {
+                        }
+
+                        query = 'phone*=' + q;
+                    } else if (q.indexOf('@') !== -1) {
+                        query = 'email*=' + q;
+                    } else {
+                        query = 'email|name*=' + q;
+                    }
+                    location.hash = '#/search/' + query;
+                };
+
+                // Test if HTML5 search event is supported
+                let isSupported = ('onsearch' in search_field[0]); // works for everyone except firefox
+                if (!isSupported) {
+                    // firefox testing
+                    search_field[0].setAttribute('onsearch', 'return;');
+                    isSupported = typeof search_field[0]['onsearch'] == 'function';
+                }
+
+                // Use HTML5 search event if suppotred. Otherwise fallback to keydown.
+                if (isSupported) {
+                    search_field.unbind('search').bind('search', search);
+                } else {
+                    search_field.unbind('keydown').bind('keydown', function(event) {
+                        if (event.keyCode == 13 || event.keyCode == 10) {
+                            return search.call(this);
+                        }
+                    });
+
+                }
+
+                // Use jQuery autocomplete to show suggestions.
+                search_field.autocomplete({
+                    source: '?action=autocomplete&type=customer',
+                    minLength: 3,
+                    delay: 300,
+                    select: function(event, ui) {
+                        if (ui.item.autocomplete_item_type === 'coupon') {
+                            $.wa.setHash('#/search/app.coupon=' + ui.item.id);
+                        } else if (ui.item.autocomplete_item_type === 'shipping') {
+                            $.wa.setHash('#/search/app.shipment_method=' + ui.item.id);
+                        } else if (ui.item.autocomplete_item_type === 'payment') {
+                            $.wa.setHash('#/search/app.payment_method=' + ui.item.id);
+                        } else if (ui.item.autocomplete_item_type === 'city') {
+                            $.wa.setHash('#/search/contact_info.address.city=' + ui.item.value);
+                        } else if (ui.item.autocomplete_item_type === 'region') {
+                            $.wa.setHash('#/search/contact_info.address.region=' + ui.item.value);
+                        } else if (ui.item.autocomplete_item_type === 'country') {
+                            $.wa.setHash('#/search/contact_info.address.country=' + ui.item.value);
+                        } else {
+                            $.wa.setHash('#/id/' + ui.item.id);
+                        }
+                        search_field.val('');
+                        return false;
+                    }
+                }).bind('keydown', function(e) {
+                    if (e.keyCode == 13) {
+                        var self = $(this);
+                        setTimeout(function() {
+                            self.autocomplete("close");
+                        }, 300);
                     }
                 });
-
             }
-
-            // Use jQuery autocomplete to show suggestions.
-            search_field.autocomplete({
-                source: '?action=autocomplete&type=customer',
-                minLength: 3,
-                delay: 300,
-                select: function(event, ui) {
-                    if (ui.item.autocomplete_item_type === 'coupon') {
-                        $.wa.setHash('#/search/app.coupon=' + ui.item.id);
-                    } else if (ui.item.autocomplete_item_type === 'shipping') {
-                        $.wa.setHash('#/search/app.shipment_method=' + ui.item.id);
-                    } else if (ui.item.autocomplete_item_type === 'payment') {
-                        $.wa.setHash('#/search/app.payment_method=' + ui.item.id);
-                    } else if (ui.item.autocomplete_item_type === 'city') {
-                        $.wa.setHash('#/search/contact_info.address.city=' + ui.item.value);
-                    } else if (ui.item.autocomplete_item_type === 'region') {
-                        $.wa.setHash('#/search/contact_info.address.region=' + ui.item.value);
-                    } else if (ui.item.autocomplete_item_type === 'country') {
-                        $.wa.setHash('#/search/contact_info.address.country=' + ui.item.value);
-                    } else {
-                        $.wa.setHash('#/id/' + ui.item.id);
-                    }
-                    search_field.val('');
-                    return false;
-                }
-            }).bind('keydown', function(e) {
-                if (e.keyCode == 13) {
-                    var self = $(this);
-                    setTimeout(function() {
-                        self.autocomplete("close");
-                    }, 300);
-                }
-            });
         },
 
         initLazyLoad: function(options) {
@@ -190,7 +192,7 @@
                         });
                     }
                 });
-                $('.lazyloading-link').die('click').live('click', function() {
+                $('.lazyloading-link').off('click').on('click', function() {
                     $(window).lazyLoad('force');
                     return false;
                 });
@@ -301,6 +303,23 @@
         },
 
         preExecute: function(actionName, attr) {
+            $('#s-sidebar').show();
+            const $skeleton = $('.skeleton').filter(`.js-action-${actionName}`);
+
+            if($skeleton.length) {
+                if ($skeleton.hasClass('js-sidebar-hide')) {
+                    $('#s-sidebar').hide();
+                }
+
+                $('#s-customers').addClass('hidden');
+                $skeleton.removeClass('hidden');
+            }
+
+            $(document).one('wa_loaded', () => {
+                $('#s-customers').removeClass('hidden');
+                $skeleton.addClass('hidden');
+            });
+
             this.highlightSidebar();
         },
 
@@ -309,7 +328,7 @@
         },
 
         defaultAction: function () {
-            this.allAction();
+            $.wa.setHash('#/all/');
         },
 
         //
@@ -319,7 +338,6 @@
         allAction: function(order) {
             order = this.getSortOrder(order);
             this.load(this.getUrl() + order);
-            $('#s-sidebar a[href="#/all/"]').parent().addClass('selected');
         },
 
         categoryAction: function(id, order) {
@@ -384,57 +402,60 @@
           * If no such <a> found, then the first partial match is highlighted.
           * Hashes are compared after this.cleanHash() applied to them. */
         highlightSidebar: function(hash) {
-            var currentHash = this.cleanHash(hash || window.location.hash);
-            if (currentHash.indexOf('search/') !== -1) {
-                $('#s-sidebar .selected').removeClass('selected');
-                $('#s-sidebar a[href="#/searchform/"]').closest('li').addClass('selected');
-                return;
-            }
-            var partialMatch = false;
-            var partialMatchLength = 2;
-            var match = false;
-            $('#s-sidebar a').each(function(k, v) {
-                v = $(v);
-                if (!v.attr('href')) {
+            $(document).on('wa_loaded', () => {
+                const currentHash = this.cleanHash(hash || window.location.hash);
+                if (currentHash.indexOf('search/') !== -1) {
+                    $('#s-sidebar .selected').removeClass('selected');
+                    $('#s-sidebar a[href="#/searchform/"]').closest('li').addClass('selected');
                     return;
                 }
-                var h = $.customers.cleanHash(v.attr('href'));
+                let partialMatch = false;
+                let partialMatchLength = 2;
+                let match = false;
+                $('#s-sidebar a').each(function(k, v) {
+                    v = $(v);
+                    if (!v.attr('href')) {
+                        return;
+                    }
+                    const h = $.customers.cleanHash(v.attr('href'));
 
-                // Perfect match?
-                if (h == currentHash) {
-                    match = v;
-                    return false;
+                    // Perfect match?
+                    if (h === currentHash) {
+                        match = v;
+                        return false;
+                    }
+
+                    // Partial match? (e.g. for urls that differ in paging only)
+                    if (h.length > partialMatchLength && currentHash.substr(0, h.length) === h) {
+                        partialMatch = v;
+                        partialMatchLength = h.length;
+                    }
+                });
+
+
+                if (!match && partialMatch) {
+                    match = partialMatch;
                 }
 
-                // Partial match? (e.g. for urls that differ in paging only)
-                if (h.length > partialMatchLength && currentHash.substr(0, h.length) === h) {
-                    partialMatch = v;
-                    partialMatchLength = h.length;
+                if (match) {
+                    $('#s-sidebar .selected').removeClass('selected');
+
+                    if (match.closest('li').length && !match.closest('.dropdown').length) {
+                        match.closest('li').addClass('selected');
+                        const $filterToggleButton = $('#s-customer-filters').find('.dropdown-toggle');
+                        const filterToggleButtonText = $filterToggleButton.data('default-text');
+                        $filterToggleButton.text(filterToggleButtonText);
+                    }
+
+                    // select active element in dropdown
+                    if (match.closest('.dropdown').length) {
+                        match.click();
+                    }
+                } else if (!hash && this.lastView && this.lastView.hash) {
+                    // When no match found, try to highlight based on last view
+                    this.highlightSidebar(this.lastView.hash);
                 }
             });
-
-
-            if (!match && partialMatch) {
-                match = partialMatch;
-            }
-
-            if (match) {
-                $('#s-sidebar .selected').removeClass('selected');
-
-                // Only highlight items that are inside <li>, but outside of dropdown menus
-                if (match.parents('li').length > 0 && match.parents('ul.dropdown').size() <= 0) {
-                    var p = match.parent();
-                    while(p.size() > 0 && p[0].tagName.toLowerCase() != 'li') {
-                        p = p.parent();
-                    }
-                    if (p.size() > 0) {
-                        p.addClass('selected');
-                    }
-                }
-            } else if (!hash && this.lastView && this.lastView.hash) {
-                // When no match found, try to highlight based on last view
-                this.highlightSidebar(this.lastView.hash);
-            }
         },
 
         /** Current hash */
@@ -490,13 +511,12 @@
                     // too late: user clicked something else.
                     return;
                 }
-                (options.content || $("#s-content")).removeClass('bordered-left').html(result);
+                (options.content || $("#s-content")).html(result);
                 if (typeof fn === 'function') {
                     fn.call(this);
                 }
+                $(document).trigger('wa_loaded');
                 $('html, body').animate({scrollTop:0}, 200);
-                $('.level2').show();
-                $('#s-sidebar').width(200).show();
             });
         },
 

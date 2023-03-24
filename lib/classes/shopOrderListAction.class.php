@@ -21,6 +21,8 @@ class shopOrderListAction extends waViewAction
 
     protected $orders;
 
+    protected $updated_orders;
+
     /**
      * @var shopOrdersCollection
      */
@@ -50,6 +52,16 @@ class shopOrderListAction extends waViewAction
             shopHelper::workupOrders($this->orders);
         }
         return $this->orders;
+    }
+
+    public function getUpdatedOrders()
+    {
+        if ($this->updated_orders === null) {
+            $this->updated_orders = $this->collection->getOrders("*,products,contact,params,courier");
+            self::extendContacts($this->updated_orders);
+            shopHelper::workupOrders($this->updated_orders);
+        }
+        return $this->updated_orders;
     }
 
     public function getTotalCount()
@@ -154,15 +166,25 @@ class shopOrderListAction extends waViewAction
                     $params['state_id'] = $state_id;
                 }
             }
+
+            $search = urldecode(waRequest::get('search', '', waRequest::TYPE_STRING_TRIM));
+            waLog::dump($search);
+            if ($search) {
+               $params['search/'] = $search;
+            }
             $contact_id = waRequest::get('contact_id', null, waRequest::TYPE_INT);
             if ($contact_id) {
                 $params['contact_id'] = $contact_id;
             }
-            $storefront = urldecode(waRequest::get('storefront', null, waRequest::TYPE_STRING_TRIM));
+            $courier_contact_id = waRequest::get('courier_contact_id', null, waRequest::TYPE_INT);
+            if ($courier_contact_id) {
+                $params['courier_contact_id'] = $courier_contact_id;
+            }
+            $storefront = urldecode(waRequest::get('storefront', '', waRequest::TYPE_STRING_TRIM));
             if ($storefront) {
                 $params['storefront'] = $storefront;
             }
-            $sales_channel = urldecode(waRequest::get('sales_channel', null, waRequest::TYPE_STRING_TRIM));
+            $sales_channel = urldecode(waRequest::get('sales_channel', '', waRequest::TYPE_STRING_TRIM));
             if ($sales_channel) {
                 $params['sales_channel'] = $sales_channel;
             }
@@ -289,7 +311,7 @@ class shopOrderListAction extends waViewAction
 
         if (!$sort_field) {
             $sort = $csm->getOne(wa()->getUser()->getId(), 'shop', 'order_list_sort');
-            $sort = explode('/', $sort, 2);
+            $sort = explode('/', (string) $sort, 2);
             $sort_field = (string) ifset($sort[0]);
             $sort_order = (string) ifset($sort[1]);
         }

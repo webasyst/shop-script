@@ -25,15 +25,15 @@
                     {if $_slide.color}color: {$_slide.color};{/if}
                     {if $_slide.image}background-image: url({$_slide.image});{/if}
                 ">
-                    <div class="s-slide-block">
+                    <div class="s-slide-block col w5">
                         <h3 class="s-header">{$_slide.title|escape|truncate:90}</h3>
 
                         {if !empty($_slide.body)}
-                            <p class="s-description" itemprop="description">{$_slide.body|escape}</p>
+                            <p class="s-description wa-mt-16" itemprop="description">{$_slide.body|escape}</p>
                         {/if}
 
                         {if !empty($_slide.countdown_datetime)}
-                            <div class="s-counter">
+                            <div class="s-counter wa-mt-24">
                                 <span class="js-promo-countdown" data-start="{date('Y-m-d H:i:s')}" data-end="{$_slide.countdown_datetime}"></span>
                             </div>
                         {/if}
@@ -58,42 +58,37 @@
 
                     <li class="s-slide-wrapper" itemscope itemtype="http://schema.org/Product">
                         <div class="s-slide-block" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                            <h3 class="s-header" itemprop="name">{$product.name}</h3>
-
-                            <div class="s-layout fixed is-adaptive">
-                                <div class="s-column">
+                            <div class="row gap32 cols2">
+                                <div class="col w5 wa-flex wa-flex-column justify-content-center">
+                                    <h3 class="s-header" itemprop="name">{$product.name}</h3>
                                     {if $product.summary}
-                                        <p class="s-description" itemprop="description">
+                                        <p class="s-description wa-mb-0 wa-mt-16" itemprop="description">
                                             {strip_tags($product.summary)|truncate:255}
                                         </p>
-                                    {/if}
-
-                                    {if !empty($product.price)}
-                                        <div class="s-price-wrapper">
-                                            {if $product.compare_price > 0}
-                                                <span class="s-compare-price compare-at-price nowrap">{shop_currency_html($product.compare_price)}</span>
-                                            {/if}
-                                            <span class="s-price price nowrap">{shop_currency_html($product.price)}</span>
-                                            <meta itemprop="price" content="{shop_currency($product.price, null, null, 0)}">
-                                            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
-                                        </div>
-                                    {/if}
-
-                                    {if !empty($product.summary)}
                                         <meta itemprop="description" content="{strip_tags($product.summary)}">
                                     {/if}
-                                </div>
-                                <div class="s-column">
 
-                                    <div class="s-image-wrapper">
-                                        <img src="{$_product_image_src}" alt="">
-
+                                    <div class="wa-flex align-items-center wa-mt-24">
                                         {$badge_html = $wa->shop->badgeHtml($product.badge)}
                                         {if !empty($badge_html)}
-                                            <div class="s-badge-wrapper">{$badge_html}</div>
+                                            <div class="s-badge-wrapper wa-mr-16">{$badge_html}</div>
+                                        {/if}
+                                        {if !empty($product.price)}
+                                            <div class="s-price-wrapper wa-mt-0">
+                                                <span class="s-price price nowrap">{shop_currency_html($product.price)}</span>
+                                                <meta itemprop="price" content="{shop_currency($product.price, null, null, 0)}">
+                                                <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+                                                {if $product.compare_price > 0}
+                                                    <span class="s-compare-price compare-at-price nowrap wa-ml-16">{shop_currency_html($product.compare_price)}</span>
+                                                {/if}
+                                            </div>
                                         {/if}
                                     </div>
-
+                                </div>
+                                <div class="col w7 wa-flex-column justify-content-center">
+                                    <div class="s-image-wrapper wa-mt-0 text-center">
+                                        <img src="{$_product_image_src}" alt="">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -114,7 +109,7 @@
             <ul class="s-slider-block" id="js-home-slider">
                 {foreach $promoproducts as $product}
 
-                    {$_product_image_src = $_slider_photos[$product.id]['url_'|cat:"0x320@2x"]}
+                    {$_product_image_src = $_slider_photos[$product.id]['url_'|cat:"0x320@2x"]|default:''}
                     {*{$_product_image_src = $wa->shop->productImgUrl($product, "0x320@2x")}*}
                     {$_name = $product.name|escape}
                     {if $product.summary}
@@ -123,34 +118,31 @@
 
                     <li class="s-slide-wrapper" itemscope itemtype="http://schema.org/Product" style="background-image: url({$_product_image_src});">
                         <div class="s-slide-block" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                            <h3 class="s-header" itemprop="name">{$product.name|escape}</h3>
-
-                            <div style="position: relative">
+                            <div class="col w5 wa-flex wa-flex-column justify-content-center">
+                                <h3 class="s-header" itemprop="name">{$product.name}</h3>
                                 {if $product.summary}
-                                    <p class="s-description" itemprop="description">
+                                    <p class="s-description wa-mb-0 wa-mt-16" itemprop="description">
                                         {strip_tags($product.summary)|truncate:255}
                                     </p>
-                                {/if}
-
-                                {if !empty($product.price)}
-                                    <div class="s-price-wrapper">
-                                        {if $product.compare_price > 0}
-                                            <span class="s-compare-price compare-at-price nowrap">{shop_currency_html($product.compare_price)}</span>
-                                        {/if}
-                                        <span class="s-price price nowrap">{shop_currency_html($product.price)}</span>
-                                        <meta itemprop="price" content="{shop_currency($product.price, null, null, 0)}">
-                                        <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
-                                    </div>
-                                {/if}
-
-                                {if !empty($product.summary)}
                                     <meta itemprop="description" content="{strip_tags($product.summary)}">
                                 {/if}
 
-                                {$badge_html = $wa->shop->badgeHtml($product.badge)}
-                                {if !empty($badge_html)}
-                                    <div class="s-badge-wrapper">{$badge_html}</div>
-                                {/if}
+                                <div class="wa-flex align-items-center wa-mt-24">
+                                    {$badge_html = $wa->shop->badgeHtml($product.badge)}
+                                    {if !empty($badge_html)}
+                                        <div class="s-badge-wrapper wa-mr-16">{$badge_html}</div>
+                                    {/if}
+                                    {if !empty($product.price)}
+                                        <div class="s-price-wrapper wa-mt-0">
+                                            <span class="s-price price nowrap">{shop_currency_html($product.price)}</span>
+                                            <meta itemprop="price" content="{shop_currency($product.price, null, null, 0)}">
+                                            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+                                            {if $product.compare_price > 0}
+                                                <span class="s-compare-price compare-at-price nowrap wa-ml-16">{shop_currency_html($product.compare_price)}</span>
+                                            {/if}
+                                        </div>
+                                    {/if}
+                                </div>
                             </div>
                         </div>
 
@@ -168,7 +160,7 @@
             if (!$slider.length) { return false; }
 
             // VARS
-            var href = "{$wa_active_theme_url}plugins/bxslider/jquery.bxslider.js?v{$wa_theme_version}";
+            var href = "{$wa_active_theme_url}bxslider/jquery.bxslider.min.js?v{$wa_theme_version}";
 
             // INIT
             initCountDown($slider);

@@ -1,0 +1,397 @@
+<script type="text/javascript" src="{$wa_url}wa-content/js/farbtastic/farbtastic.js"></script>
+<link rel="stylesheet" href="{$wa_url}wa-content/js/farbtastic/farbtastic.css" type="text/css" />
+
+<div id="s-product-buybuttons">
+    <div style="display: table; width: 100%;">
+        <div style="display: table-cell; vertical-align: top; width: 400px; padding: 0 1em 0 0;">
+            <div class="fields form">
+                <div class="field">
+                    <div class="name">[`Storefront`]</div>
+                    <div class="value no-shift">
+                        <select name="storefront" class="s-embed-param">
+                            {foreach $storefronts as $storefront}
+                                <option value="{$storefront.controller_url|escape}" data-domain="{$storefront.domain|escape}" data-url="{$storefront.product_url|escape}" data-static-url="{$storefront.static_url|escape}">{$storefront.root_url_decoded|escape}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Locale`]</div>
+                    <div class="value no-shift">
+                        <select name="locale" class="s-embed-param">
+                            {foreach $locales as $locale_id => $locale}
+                                <option value="{$locale_id}" {if $locale_id == $wa->user()->getLocale()}selected="selected"{/if}>{$locale.name|escape} ({$locale.region|escape})</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Button`]</div>
+                    <div class="value no-shift">
+                        <label><input class="s-embed-param" type="radio" name="goto" value="cart" checked="checked"> [`Add to cart`] <span class="hint">[`Customers will be able to collect multiple products in the cart before proceeding to checkout`]</span></label>
+                    </div>
+                    <div class="value no-shift">
+                        <label><input class="s-embed-param" type="radio" name="goto" value="checkout"> [`Buy`] <span class="hint">[`Customers will be promptly redirected the main checkout`]</span></label>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Font family`]</div>
+                    <div class="value no-shift">
+                        <select name="font_family" class="s-embed-param">
+                            <option value="Helvetica Neue,Arial,sans-serif" selected>Helvetica (Arial)</option>
+                            <option value="Trebuchet MS,sans-serif">Trebuchet MS</option>
+                            <option value="Verdana,sans-serif">Verdana</option>
+                            <option value="Georgia,serif">Georgia</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Widget width`]</div>
+                    <div class="value">
+                        <input class="short s-embed-param" type="text" name="width" value="512" placeholder="512">px
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Link color`]</div>
+                    <div class="value s-color-block">
+                        #<input type="text" name="links_color" value="006bd8" class="short s-color s-embed-param">
+                        <span class="s-color-replacer">
+                            <i class="icon16 color" style="background: #006bd8;"></i>
+                        </span>
+                        <div class="s-color-picker" style="display: none"></div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Text color`]</div>
+                    <div class="value s-color-block">
+                        #<input type="text" name="text_color" value="888888" class="short s-color s-embed-param">
+                        <span class="s-color-replacer">
+                            <i class="icon16 color" style="background: #888888;"></i>
+                        </span>
+                        <div class="s-color-picker" style="display: none"></div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Price color`]</div>
+                    <div class="value s-color-block">
+                        #<input type="text" name="price_color" value="ee1155" class="short s-color s-embed-param">
+                        <span class="s-color-replacer">
+                            <i class="icon16 color" style="background: #ee1155;"></i>
+                        </span>
+                        <div class="s-color-picker" style="display: none"></div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Background color`]</div>
+                    <div class="value s-color-block">
+                        #<input type="text" name="background_color" value="ffffff" class="short s-color s-embed-param">
+                        <span class="s-color-replacer">
+                            <i class="icon16 color" style="background: #ffffff;"></i>
+                        </span>
+                        <div class="s-color-picker" style="display: none"></div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Button color`]</div>
+                    <div class="value s-color-block">
+                        #<input type="text" name="button_color" value="ffcc00" class="short s-color s-embed-param">
+                        <span class="s-color-replacer">
+                            <i class="icon16 color" style="background: #ffcc00;"></i>
+                        </span>
+                        <div class="s-color-picker" style="display: none"></div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Product image`]</div>
+                    <div class="value no-shift">
+                        <input class="s-embed-param" type="checkbox" name="show_image" value="1" checked="checked">
+                    </div>
+                </div>
+            </div>
+            <div class="fields" style="width: 100%;">
+                <h5 class="heading">[`Widget code`]</h5>
+                <div class="field">
+                    <div class="value" style="margin-left: 0px;">
+                        <textarea class="s-product-embed-code" style="height: 300px; width: 300px;"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display: table-cell; vertical-align: top;">
+            <div class="s-preview-wrapper" style="position: relative;">
+                <div class="s-product-embed-preview" style="position: absolute; left: 0; top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    ( function($) {
+
+        function BuyButtonsPage(options) {
+            var that = this;
+
+            // DOM
+            that.$wrapper = options["$wrapper"];
+            that.$preview = that.$wrapper.find(".s-product-embed-preview");
+
+            // VARS
+            that.button_id = options["button_id"];
+            that.product_name = options["product_name"];
+            that.product_image = options["product_image"];
+            that.change_time = 1100;
+
+            // CLASS NAMES
+            that.waiting_class = "is-waiting";
+
+            // DYNAMIC VARS
+            that.changeTimeout = 0;
+
+            // INIT
+            that.initClass();
+        }
+
+        BuyButtonsPage.prototype.initClass = function() {
+            var that = this;
+
+            // Magic
+            that.$wrapper.closest('.s-product-form.buybuttons')
+                .addClass('ajax');
+
+            // Set default params
+            that.setDataFromStorage();
+
+            // Color picker
+            that.initColorPicker();
+
+            //
+            $.shop.changeListener(that.$wrapper, '.s-embed-param', function() {
+                that.generateEmbedHtml();
+            });
+
+            // Events
+            that.$wrapper.on("change", ".s-embed-param", function() {
+                that.generateEmbedHtml();
+            });
+
+            // First run
+            that.generateEmbedHtml();
+        };
+
+        BuyButtonsPage.prototype.initColorPicker = function() {
+            var that = this,
+                $colorBlocks = that.$wrapper.find(".s-color-block");
+
+            $colorBlocks.each( function() {
+                var $block = $(this),
+                    $input = $block.find(".s-color"),
+                    $picker = $block.find(".s-color-picker"),
+                    $replacer = $block.find(".s-color-replacer"),
+                    first = true;
+
+                // Init color picker
+                var farbtastic = $.farbtastic($picker, function(color) {
+
+                    $replacer.find('i').css('background', color);
+
+                    $input.val(color.slice(1));
+
+                    !first && that.generateEmbedHtml();
+
+                    first = false;
+                });
+
+                // Set data
+                var color = $input.val() || "";
+
+                farbtastic.setColor('#' + color);
+
+                // Event
+                $replacer.on("click", function() {
+                    $picker.slideToggle(200);
+                    return false;
+                });
+
+                $.shop.changeListener($input, function () {
+                    var color = $input.val() || '';
+                    farbtastic.setColor('#' + color);
+                });
+            });
+
+        };
+
+        BuyButtonsPage.prototype.setDataFromStorage = function() {
+            var that = this,
+                $embed = that.$wrapper.find('.s-embed-param'),
+                params = $.storage.get('shop/buybuttons/' + that.button_id);
+
+            if (!$.isPlainObject(params)) {
+                params = { };
+            }
+
+            $embed.each(function () {
+                var $field = $(this),
+                    name = $field.attr("name"),
+                    val = $field.val(),
+                    is_radio = ( $field.is(':radio') ),
+                    is_checkbox = ( $field.is(':checkbox') );
+
+                if (params[name] !== undefined) {
+                    if (is_radio) {
+                        $field.attr('checked', val == params[name]);
+                    } else if (is_checkbox && val == params[name][0]) {
+                        $field.attr('checked', params[name][1]);
+                    } else {
+                        $field.val(params[name]);
+                    }
+                }
+            });
+        };
+
+        BuyButtonsPage.prototype.generateEmbedHtml = function() {
+            var that = this,
+                params = [],
+                domain = '',
+                product_url = '',
+                storefront = '',
+                params_in_storage = { },
+                show_image = false,
+                width = 200,
+                app_static_url = "",
+                time = that.change_time;
+
+            if (that.changeTimeout) {
+                clearTimeout(that.changeTimeout);
+            }
+
+            that.$preview.addClass( that.waiting_class );
+
+            that.changeTimeout = setTimeout( function() {
+
+                that.$wrapper.find('.s-embed-param').each(function () {
+                    var el = $(this);
+                    if (el.is(':radio') && !el.is(':checked')) {
+                        return;
+                    }
+
+                    var name = el.attr('name');
+                    var val = el.val();
+
+                    if (name === 'storefront') {
+                        var $selected = el.find('option:selected');
+                        domain = $selected.data('domain');
+                        product_url = $selected.data('url');
+                        app_static_url = $selected.data("static-url");
+                        storefront = $selected.val();
+                    }
+
+                    if (el.is(':checkbox')) {
+                        params_in_storage[name] = [val, el.is(':checked')];
+                        if (name === 'show_image' && el.is(':checked')) {
+                            show_image = true;
+                        }
+                        if (el.is(':checked')) {
+                            params.push("data-" + (name.replace('_', '-')) + "='" + val + "'");
+                        }
+                    } else {
+                        params_in_storage[name] = val;
+                        if (name === 'storefront') {
+                            params.push("data-" + (name.replace('_', '-')) + "='" + ':storefront' + "'");
+                        } else {
+                            if (val) {
+                                params.push("data-" + (name.replace('_', '-')) + "='" + val + "'");
+                            }
+                        }
+                    }
+
+                    if ( name == "width" && val > 0 ) {
+                        width = val;
+                    }
+
+                });
+
+                app_static_url = app_static_url.replace(/http:/g, "").replace(/https:/g, "");
+
+                params.push("data-height=':height:'");
+
+                $.storage.set('shop/buybuttons/' + that.button_id, params_in_storage);
+
+                var html_tmpl =
+                    '<div class="webasyst-shop-script-product" data-id="' + that.button_id + '" :params>' +
+                    '<a href=":product_url" target="_blank">' +
+                    '<span>:product_name</span><br />' +
+                    ':product_image' +
+                    '</a>' +
+                    '&lt;script&gt; ( function(d,s,h,c) { var script = d.createElement(s), wrapper = d.getElementsByClassName(c)[0]; h += "?v=" + parseInt((new Date().getTime())/(1000*60*60*24)); script.async = 1; script.src = h; wrapper.appendChild(script); })(document,"script",":app_static_url:js/buybuttons.js", "webasyst-shop-script-product"); &lt;/script&gt;' +
+                    '</div>';
+
+                html_tmpl = html_tmpl
+                    .replace(':product_name', that.product_name)
+                    .replace(':product_image', (show_image && that.product_image) ? '<img src="' + that.product_image + '" style="width: ' + width + 'px;">' : "")
+                    .replace(':product_url', product_url);
+
+                var html = html_tmpl
+                    .replace(':params', params.join(' '))
+                    .replace(':app_static_url:', app_static_url)
+                    .replace(':storefront', storefront);
+
+                // Preview html is special. Preview doesn't know height of content, so it make measuring and then resizing iframe itself
+                // For this purpose we use storefront of current domain if we can
+                params.push('data-url="{$preview_controller}"');
+                var preview_html = html_tmpl
+                    .replace(':params', params.join(' '))
+                    .replace(':app_static_url:', '{$app_static_url}')
+                    .replace(':storefront', '{$app_storefront}');
+
+                var embed_block = that.$wrapper.find('.s-product-embed-code');
+                var prev_embed_code = embed_block.html();
+                if (prev_embed_code !== html) {
+                    embed_block.html(html);
+
+                    that.$preview.html(
+                        preview_html
+                            .replace(/&lt;/g, '<')
+                            .replace(/&gt;/g, '>')
+                    );
+
+                    that.$preview.one("height-is-set", function(event, height) {
+                        embed_block.html(html.replace(":height:", height));
+                    });
+
+                    setFrameHeight();
+                }
+
+                that.$preview.removeClass( that.waiting_class );
+            }, time);
+
+            function setFrameHeight() {
+                var $wrapper = that.$preview,
+                    $container = $wrapper.closest(".s-preview-wrapper");
+
+                $container.css("height", "auto");
+
+                frameTimeout();
+
+                function frameTimeout() {
+                    setTimeout( function() {
+                        var $frame = $wrapper.find("iframe");
+                        if (!$frame.length) {
+                            frameTimeout();
+                        } else {
+                            $container.height( $container.outerHeight() + $frame.outerHeight() );
+                            $wrapper.trigger("height-is-set", $frame.outerHeight());
+                        }
+                    }, 1000);
+                }
+            }
+        };
+
+        new BuyButtonsPage({
+            $wrapper: $("#s-product-buybuttons"),
+            button_id: "{$id}",
+            product_name: "{$name|escape|escape}",
+            product_image: {if $img_url}"{$img_url}"{else}false{/if}
+        });
+
+    })(jQuery)
+</script>

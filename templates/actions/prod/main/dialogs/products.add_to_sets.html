@@ -36,14 +36,14 @@
 
             <div class="s-icon-column">
                 <template v-if="item.is_group">
-                    <span class="s-icon icon size-14 shift-inherit color-gray-light" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></span>
+                    <span class="s-icon icon size-14 shift-inherit text-light-gray" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></span>
                 </template>
                 <template v-else-if="item.type === '1'">
-                    <span class="s-icon icon size-14 shift-inherit color-gray-light" v-bind:key="'fa-list-auto'"><svg><use xlink:href="{$_sprite_url}#list-auto"></use></svg></span>
+                    <span class="s-icon icon size-14 shift-inherit text-light-gray" v-bind:key="'fa-list-auto'"><svg><use xlink:href="{$_sprite_url}#list-auto"></use></svg></span>
                 </template>
                 <template v-else>
                     <label v-bind:for="'set['+item.set_id+'][checkbox]'">
-                        <span class="s-icon icon size-14 shift-inherit color-gray-light" v-bind:key="'fa-list'"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></span>
+                        <span class="s-icon icon size-14 shift-inherit text-light-gray" v-bind:key="'fa-list'"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></span>
                     </label>
                 </template>
             </div>
@@ -64,16 +64,16 @@
 {capture assign="_add_set_form"}
     <form class="s-add-new-form">
         <div class="flexbox middle space-4">
-            <input class="wa-small js-autofocus" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}"
+            <input class="small js-autofocus" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}"
                    v-on:input="onInput"
                    v-bind:class="{ 'wa-error-field' : !!errors['name_required'] }">
 
-            <button class="wa-button wa-small blue" type="button" v-on:click="save">
+            <button class="button smaller blue" type="button" v-on:click="save">
                 <span class="icon s-icon" v-if="states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                 <span class="icon s-icon" v-else v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
             </button>
 
-            <button class="wa-button wa-small top gray" type="button" v-on:click="cancel">
+            <button class="button smaller top gray" type="button" v-on:click="cancel">
                 <span class="icon"><i class="fas fa-times"></i></span>
             </button>
         </div>
@@ -127,7 +127,7 @@
                                 v-on:cancel="onFormCancel"
                                 v-on:success="onFormSuccess"></component-set-form>
 
-                            <button class="wa-button transparent-gray no-indent" v-else v-on:click="toggleForm(true)">
+                            <button class="button gray outlined no-indent small" v-else v-on:click="toggleForm(true)">
                                 <span class="s-icon"><i class="fas fa-plus-circle"></i></span>
                                 <span class="s-name">{_w("Create new set")|escape}</span>
                             </button>
@@ -140,11 +140,11 @@
 
             </div>
             <div class="dialog-footer">
-                <button class="wa-button blue" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
+                <button class="button" type="button" v-on:click="save" v-bind:disabled="states.is_locked">
                     <span class="s-icon icon size-14" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name">[`Add`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

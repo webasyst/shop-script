@@ -1,27 +1,27 @@
+{if !shopDiscounts::isEnabled('coupons')}
+<div class="alert warning">
+    <i class="fas fa-exclamation-triangle"></i>
+    {sprintf('[`Discounts by coupons are turned off. Enable discounts in your <a href="%s">store settings</a>.`]', "`$marketing_url`discounts/coupons/")}
+</div>
+{/if}
 <div class="s-coupon">
-    {if !shopDiscounts::isEnabled('coupons')}
-        <div class="block double-padded red bold">
-            <i class="icon10 exclamation"></i>
-            {sprintf('[`Discounts by coupons are turned off. Enable discounts in your <a href="%s">store settings</a>.`]', "`$marketing_url`discounts/coupons/")}
+    <div class="box s-coupon-border">
+        <div class="flexbox middle custom-mb-16">
+            <h1 class="custom-mb-0">
+                <span{if $coupon.id && !$is_enabled} class="gray strike"{/if}>{$coupon.code|escape}</span>
+                {if $coupon.id && !$is_enabled}<span class="hint custom-ml-8">[`Unavailable`]</span>{/if}
+            </h1>
+            {if $formatted_value}
+                <span class="custom-ml-auto s-coupon-value">{$formatted_value}</span>
+            {/if}
         </div>
-    {/if}
-
-    <div class="block double-padded s-coupon-border">
-        {if $formatted_value}
-            <div class="float-right s-coupon-value">{$formatted_value}</div>
-        {/if}
-
-        <h1>
-            {$coupon.code|escape}
-            {if $coupon.id && !$is_enabled}<span class="hint">[`Unavailable`]</span>{/if}
-        </h1>
 
         {if $coupon.id}
             <p class="small">[`Created`] {$coupon.create_datetime|wa_date:"humandate"}</p>
         {/if}
 
         <form action="{$wa_app_url}?module=marketingCouponSave" id="coupon-editor-form">
-            <div class="fields form">
+            <div class="fields">
                 <div class="field">
                     <div class="name">
                         [`Coupon code`]
@@ -34,27 +34,30 @@
                     <div class="name">
                         [`Coupon type`]
                     </div>
-                    <div class="value no-shift">
-                        <select name="coupon[type]">
-                            {foreach $types as $type_id => $type_name}
-                                <option value="{$type_id|escape}"{if $type_id == $coupon.type} selected{/if}>{$type_name|escape}</option>
-                            {/foreach}
-                        </select>
+                    <div class="value">
+                        <div class="flexbox middle">
+                            <div class="wa-select">
+                                <select name="coupon[type]" class="not-styled">
+                                    {foreach $types as $type_id => $type_name}
+                                        <option value="{$type_id|escape}"{if $type_id == $coupon.type} selected{/if}>{$type_name|escape}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
+                            <div id="value-input-wrapper">
+                                <input type="text" class="number shortest bold" name="coupon[value]" value="{$coupon.value|escape}">
+                                <span>%</span>
+                            </div>
+                        </div>
+                        <p class="small" id="free-shipping-message">[`Discount will be calculated automatically to match the order shipping cost.`]</p>
                     </div>
-                    <div class="value bold" id="value-input-wrapper">
-                        <input type="text" class="numerical short bold" name="coupon[value]" value="{$coupon.value|escape}">
-                        <span>%</span>
-                    </div>
-                    <div class="value" id="free-shipping-message">
-                        <p class="small">[`Discount will be calculated automatically to match the order shipping cost.`]</p>
-                    </div>
+
                 </div>
                 <div class="field">
                     <div class="name">
                         [`Max number of usage`]
                     </div>
                     <div class="value">
-                        <input type="text" placeholder="&#8734;" class="numerical" name="coupon[limit]" value="{$coupon.limit}">
+                        <input type="number" placeholder="&#8734;" class="number shorter" name="coupon[limit]" value="{$coupon.limit}">
                         <p class="hint">[`Enter the maximum number of times this coupon can be used. Leave empty for no limits.`]</p>
                     </div>
                 </div>
@@ -63,8 +66,10 @@
                         [`Expire date`]
                     </div>
                     <div class="value">
-                        <input type="text" class="numerical" name="coupon[expire_datetime]" value="{substr($coupon.expire_datetime, 0, 10)}">
-                        <a href="javascript:void(0)"><i class="icon16 calendar"></i></a>
+                        <label class="s-datepicker-wrapper state-with-inner-icon right">
+                            <input type="text" class="numerical s-datepicker" name="coupon[expire_datetime]" value="{substr((string)$coupon.expire_datetime, 0, 10)}">
+                            <span class="icon"><i class="fas fa-calendar-alt"></i></span>
+                        </label>
                         <p class="hint">[`Leave empty for no expiration date.`]</p>
                     </div>
                 </div>
@@ -73,7 +78,7 @@
                         [`Link to promo description`]
                     </div>
                     <div class="value">
-                        <input type="text" class="" name="coupon[url]" value="{$coupon.url|escape}" placeholder="https://">
+                        <input type="text" class="long" name="coupon[url]" value="{$coupon.url|escape}" placeholder="https://">
                     </div>
                 </div>
                 <div class="field">
@@ -90,13 +95,12 @@
 
                 <div class="field">
                     <div class="value submit">
-                        {if $coupon.id}
-                            <div class="block float-right">
-                                <a href="javascript:void(0)" class="no-underline" id="delete-coupon-link"><i class="icon16 delete"></i>[`Delete this coupon`]</a>
-                            </div>
-                        {/if}
-
-                        <input type="submit" class="button green js-submit-button" value="[`Save`]">
+                        <div class="flexbox middle">
+                            <input type="submit" class="button green js-submit-button" value="[`Save`]">
+                            {if $coupon.id}
+                                <a href="javascript:void(0)" class="button red custom-ml-auto outlined" id="delete-coupon-link"><i class="fas fa-trash-alt"></i> [`Delete this coupon`]</a>
+                            {/if}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -105,17 +109,15 @@
                 <input name="coupon[id]" type="hidden" value="{$coupon.id|escape}">
             {/if}
         </form>
-
-        <div class="clear-left"></div>
     </div>
 </div>
 
 {if $coupon.id}
-    <div class="block double-padded">
-        <h2>[`Usage`]</h2>
+    <div class="s-block transparent custom-mt-16 small">
+        <h4>[`Usage`]</h4>
         {if $orders}
             <p>{_w("This coupon was used for <strong>%d order</strong>.", "This coupon was used for <strong>%d orders</strong>.", count($orders))}</p>
-            <table class="zebra">
+            <table class="zebra blank">
                 {foreach $orders as $o}
                     <tr>
                         <td>
@@ -149,4 +151,3 @@
         {/if}
     </div>
 {/if}
-

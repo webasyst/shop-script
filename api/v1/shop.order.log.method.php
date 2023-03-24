@@ -10,6 +10,7 @@ class shopOrderLogMethod extends shopApiMethod
         $log_model = new shopOrderLogModel();
         $log = $log_model->getLog($id);
         $root_url = rtrim(wa()->getRootUrl(true), '/');
+        $host_url = wa()->getConfig()->getHostUrl();
         $use_gravatar = wa('shop')->getConfig()->getGeneralSettings('use_gravatar');
         $gravatar_default = wa('shop')->getConfig()->getGeneralSettings('gravatar_default');
         $contact_data = array();
@@ -46,7 +47,7 @@ class shopOrderLogMethod extends shopApiMethod
                 if (empty($l['contact_photo']) && $use_gravatar && $email) {
                     $l['photo_url_40'] = shopHelper::getGravatar($email, 40, $gravatar_default, true);
                 } elseif (!empty($l['contact_photo'])) {
-                    $l['photo_url_40'] = $root_url.waContact::getPhotoUrl($l['contact_id'], $l['contact_photo'], 40, 40, 'person', 1);
+                    $l['photo_url_40'] = $host_url.waContact::getPhotoUrl($l['contact_id'], $l['contact_photo'], 40, 40, 'person', 1);
                 }
             }
         }

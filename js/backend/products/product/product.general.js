@@ -155,8 +155,6 @@
                     });
                 }
             }
-
-            console.log( that );
         };
 
         Section.prototype.init = function() {
@@ -691,7 +689,7 @@
                                 disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
                             };
                         },
-                        template: '<div class="switch"><input type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled"></div>',
+                        template: '<div class="switch"><input v-bind:id="$attrs.input_id" type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled"></div>',
                         delimiters: ['{ { ', ' } }'],
                         mounted: function() {
                             var self = this;
@@ -2558,10 +2556,12 @@
 
             function onTypeChange(type_id) {
                 if (!confirmed && active_type_id === "html" && type_id !== active_type_id) {
-                    if (confirm(that.locales["modification_wysiwyg_message"])) {
+                    $.showModificationWysiwygConfirm().done(function () {
                         changeType(type_id);
                         confirmed = true;
-                    }
+                    }).fail(function () {
+                        $section.find('.js-editor-type-toggle [data-id="html"]').trigger('click');
+                    });
                 } else {
                     changeType(type_id);
                 }

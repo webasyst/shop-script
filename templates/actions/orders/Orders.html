@@ -1,108 +1,163 @@
 {if empty($orders)}
-    <div class="block double-padded align-center blank">
-            <br><br><br><br>
-            <span class="gray large">[`There are no orders in this view.`]</span>
-            <div class="clear-left"></div>
+{if $view == 'split'}
+<div class="sidebar blank width-23rem bordered-right" id="s-orders">
+    <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
+    <div class="sidebar-body"></div>
+</div>
+{/if}
+    <div class="content contentbox box blank width-100 js-no-orders" style="height: calc(100vh - 5.5rem - 56px); display: grid; place-items:center">
+        <div class="align-center">
+            <i class="fas fa-shopping-cart text-light-gray" style="font-size: 10rem; margin-right: 1.5rem;"></i>
+            <p class="gray large">[`There are no orders in this view.`]</p>
         </div>
     </div>
 {else}
-
-<div class="{if $view != 'table'}sidebar left300px bordered-left{/if}" id="s-orders">
-    <div class="">
+<div class="{if $view != 'table' && $view != 'kanban'}sidebar blank width-adaptive-widest bordered-right wide-mobile ahead-little{else}width-100{/if} overflow-visible" id="s-orders">
+    {if $view == 'split'}
+        <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
+    {/if}
+    <div{if $view != 'table' && $view != 'kanban'} class="sidebar-body s-orders-body"{/if}>
         {if $view == 'split'}
-            <ul class="zebra s-orders" id="order-list">
+            <ul class="list s-orders" id="order-list">
             </ul>
             {capture name="template-order-list-split"}
                 {literal}
                 {% var orders = o.orders; %}
                 {% for (var i = 0, n = orders.length; i < n; i += 1) { %}
                     {% var order = orders[i]; %}
-                    <li class="order s-order-status-pending{% if (order.unsettled==='1') { %} s-unsettled{% } %}" data-order-id="{%#order.id%}">
-                        <a href="#/orders/{/literal}{if $params_str}{$params_str}&{/if}{literal}id={%#order.id%}/">
-                            {% if (!$.isEmptyObject(order.contact)) { %}
-                                <div class="profile image50px">
-                                    <div class="image">
-                                        <img src="{%#order.contact.photo_50x50%}" class="userpic">
-                                    </div>
-                                    <div class="details nowrap">
-                                        {% include('template-order-list-split-details', { order: order }); %}
-                                    </div>
-                                </div>
+                    <li class="item order s-order-status-pending{% if (order.unsettled==='1') { %} s-unsettled{% } %} width-100-mobile" data-order-id="{%#order.id%}" data-order-state="{%#order.state_id%}">
+
+                        {% if (!$.isEmptyObject(order.contact)) { %}
+                            <a class="image" href="#/orders/{/literal}{if $params_str}{$params_str}&{/if}{literal}id={%#order.id%}/">
+                                <img src="{%#order.contact.photo_50x50%}" class="userpic userpic-48">
+                            </a>
+                            {% var state_color = '#ссс'; %}
+                            {% var state_name = ''; %}
+                            {% var paid_state_name = ''; %}
+                            {% if (order.state_id in o.states) { %}
+                                {% state_color = o.states[order.state_id].options.style.color; %}
+                                {% state_name = o.states[order.state_id].name; %}
+                                {% paid_state_name = o.states.paid.name; %}
                             {% } %}
-                        </a>
+                            <a class="details" href="#/orders/{/literal}{if $params_str}{$params_str}&{/if}{literal}id={%#order.id%}/">
+                                {% include('template-order-list-split-details', { order: order, state_color: state_color, state_name: state_name, paid_state_name: paid_state_name }); %}
+                            </a>
+                        {% } %}
+
                     </li>
                 {% } %}
                 {/literal}
             {/capture}
             {capture name="template-order-list-split-details"}
-                {literal}{%#o.order.status%}
-                    <span class="float-right small" style="{%#o.order.style%}">{%#o.order.total_str%}</span>
+                {literal}
+                    <div class="tablebox small">
+                        <div><strong class="badge uppercase small nowrap" style="background-color: {%#o.state_color%}">{%#o.state_name%}</strong></div>
+                        <span class="count align-right">
+                            {% if (o.order.paid_date) { %}
+                            <span class="text-green custom-ml-4 cursor-pointer" data-wa-tooltip-content="[`Paid`] {% if (o.order.paid_datetime_str) { %}{%#o.order.paid_datetime_str%}{% } else { %}{%#o.order.paid_date_str%}{% } %}" data-wa-tooltip-placement="left">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
+                            {% } %}
+                            <strong class="black semibold">{%#o.order.total_str%}</strong>
+                        </span>
+                    </div>
 
-                    <i class="{%#o.order.icon%}"></i><span {% if (o.order.state_id == 'new') { %}class="highlighted"{% } %} style="{%#o.order.style%}">{%#o.order.id_str%}</span>
-
-                    <p>
+                    <p class="small custom-mb-4">
+                        <span class="semibold custom-mr-4">{%#o.order.id_str%}</span>
                         {% if (o.order.contact.name) { %}
-                            <span class="small black">{%#o.order.contact.name%}</span><br>
-                        {% } else { %}
-                            <span class="hint">[`(no name)`]</span><br>
+                            <span class="opacity-80">{%#o.order.contact.name%}</span>
                         {% } %}
-                        <span class="hint">{%#o.order.create_datetime_str%}</span>
+                    </p>
+                    <p class="hint">
+                        <span class="gray">[`Created`] {%#o.order.create_datetime_str%}</span>
+                        {% if (o.order.paid_date) { %}
+                            <br><span class="gray">[`Paid`] {% if (o.order.paid_datetime_str) { %}{%#o.order.paid_datetime_str%}{% } else { %}{%#o.order.paid_date_str%}{% } %}</span>
+                        {% } %}
                     </p>
                 {/literal}
             {/capture}
         {elseif $view == 'table'}
-
-            <div class="s-orders-selection-menu" style="display: none;" id="s-orders-selection-menu">
-                <div class="table-layout">
-                    <div class="column-item s-checkbox-column">
+            <div class="dropdown js-selection-dropdown" id="s-orders-selection-menu" style="display: none;">
+                <label>
+                    <span class="wa-checkbox">
                         <input type="checkbox" name="" class="s-order-list-select-all">
-                    </div>
-                    <div class="column-item">
-                        <ul class="menu-h with-icons dropdown">
-                            <li>
-                                <a class="inline-link nowrap" style="display:inline;">
-                                    <b><i><strong>[`With selected`]</strong></i></b>
-                                    <i class="icon10 darr"></i>
-                                    <i class="icon16 loading js-selection-menu-loading" style="display: none"></i>
-                                </a>
-                                <ul class="menu-v wf-actions">
-                                    {foreach $actions as $a_id => $a}
+                        <span>
+                            <span class="icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </span>
+                    </span>
+                </label>
+                <a href="#" class="dropdown-toggle button small nobutton" data-sort="">
+                    [`With selected`]
+                    <i class="fas fa-spin fa-spinner loading js-selection-menu-loading" style="display: none"></i>
+                </a>
 
-                                        {$_available_for_states = $a.available_for_states|default:[]}
-                                        {$_available_for_states_str = $a.available_for_states|join:','}
+                <div class="dropdown-body right" style="">
+                    <ul class="menu wf-actions">
+                        {foreach $actions as $a_id => $a}
 
-                                        <li class="s-disabled s-wf-action-item js-wf-action-item" data-action-id="{$a_id}" data-available-for-states="{$_available_for_states_str|escape}">
-                                            <a href="javascript:void(0);" data-action-id="{$a_id}">{$a['name']}</a>
-                                        </li>
-                                    {/foreach}
-                                </ul>
+                            {$_available_for_states = $a.available_for_states|default:[]}
+                            {$_available_for_states_str = $a.available_for_states|join:','}
+
+                            <li class="disabled s-wf-action-item js-wf-action-item" data-action-id="{$a_id}" data-available-for-states="{$_available_for_states_str|escape}">
+                                <a href="javascript:void(0);" data-action-id="{$a_id}">{$a['name']}</a>
                             </li>
-                        </ul>
-                    </div>
+                        {/foreach}
+                    </ul>
                 </div>
             </div>
 
-            <table class="zebra single-lined padded" id="order-list">
+            <div id="skeleton_table">
+                {include './skeleton/table.html' no_sidebar=true inline}
+            </div>
+            <table class="zebra single-lined s-order-table custom-mt-0" id="order-list" data-skeleton="#skeleton_table">
                 <tbody></tbody>
             </table>
 
             {capture name="template-order-list-table"}
                 {include file='./include.template_order_list_table.html' inline}
             {/capture}
+        {elseif $view == 'kanban'}
+            <div id="skeleton_kanban">
+                {include './skeleton/kanban.html' select='kanban' no_sidebar=true inline}
+            </div>
+            <div class="s-kanban-wrapper" id="order-list" data-skeleton="#skeleton_kanban"></div>
+
+            {capture name="template-order-list-kanban"}
+                {* TODO "|| true" must be remove in prod*}
+                {if waLicensing::check('shop')->hasPremiumLicense() || true}
+                    {include file='./include.template_order_list_kanban.html' inline}
+                {else}
+                    <div class="box flexbox">
+                        <span class="alert info custom-mx-auto">[`Непозволительно роскошная фича`]</span>
+                    </div>
+                {/if}
+            {/capture}
         {/if}
 
-        <div class="lazyloading-wrapper">
-            <div class="lazyloading-progress-string">{_w('%d order','%d orders', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
-             <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more orders`]</a>
+        {if $view != 'kanban'}
+        <div class="lazyloading-wrapper small {if $view == 'table'}custom-ml-16{/if}">
+            <div class="lazyloading-progress-string custom-mb-16">{_w('%d order','%d orders', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
+            {if $count < $total_count}
+                <div class="custom-mb-24">
+                    <a href="javascript:void(0);" class="lazyloading-link">[`Show more orders`]</a>
+                </div>
+            {/if}
             <span class="lazyloading-progress" style="display:none">
-                <i class="icon16 loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d order', '%d orders', min($total_count - $count, $count))}...</span>
+                <i class="fas fa-spinner fa-spin"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d order', '%d orders', min($total_count - $count, $count))}...</span>
             </span>
         </div>
-        <div class="clear-left"></div>
+        {/if}
     </div>
 </div>
-<div class="content {if $view != 'table'}left300px{/if}" id="s-order" {if $view == 'table'}style="display:none;"{/if}></div>
 
+{if $view == 'split'}
+<div class="width-100 desktop-and-tablet-only" id="skeleton_split">
+    {include './skeleton/split.html' no_sidebar=true inline}
+</div>
+{/if}
+<div class="content desktop-and-tablet-only" id="s-order" {if $view == 'table' || $view == 'kanban'}style="display:none;"{/if} {if $view == 'split'}data-skeleton="#skeleton_split"{/if}></div>
 {capture name="template-order-list-printforms-menu-items"}
     {literal}
         {% var printform, printform_iterator = $.shop.iterator(o.printforms); %}
@@ -111,7 +166,14 @@
             {% while (printform = printform_iterator.next()) { %}
                 <li class="s-printform-item">
                     <label>
-                        <input type="checkbox" checked="true" data-id="{%#printform_iterator.key()%}" value="{%#printform.url%}">
+                        <span class="wa-checkbox">
+                            <input type="checkbox" checked="true" data-id="{%#printform_iterator.key()%}" value="{%#printform.url%}">
+                            <span>
+                                <span class="icon">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </span>
+                        </span>
                         <span {% if (!printform.all) { %}style="opacity: 0.5;"{% } %}>
                             {%=printform.name%}
                             {% if (printform.owner_name) { %}
@@ -142,6 +204,17 @@
 
 {/if}
 
+{capture assign="_drawer_order"}
+<div class="drawer drawer-order mobile-only">
+    <div class="drawer-background"></div>
+    <div class="drawer-body width-100-mobile" style="max-width: 100%;box-shadow: none;">
+        <div class="drawer-block" style="padding:0;">
+            <div class="drawer-content"></div>
+        </div>
+    </div>
+</div>
+{/capture}
+
 <script>
 ( function($) {
     $.order_list.init({
@@ -153,9 +226,9 @@
         orders: {json_encode($orders)},
         total_count: {$total_count},
         all_order_state_ids: {$all_order_state_ids|json_encode},
-        count: {$count},
+        count: {if $view == 'kanban'}0{else}{$count}{/if},
         lazy_loading: {
-            auto: true
+            auto: {if $view == 'kanban'}false{else}true{/if}
         },
         update_process: {
             timeout: {$timeout}
@@ -164,7 +237,26 @@
         state_names: {json_encode($state_names)},
         counters: {json_encode($counters)},
         $selectionMenu: $("#s-orders-selection-menu"),
-        sort: {$sort|json_encode}
+        sort: {$sort|json_encode},
+        locale: {
+            'error': "[`An error occurred`]"
+        },
+        drawer_order: '{$_drawer_order|strip}'
     });
+
+    $('#skeleton_{$view}').skeletonLoader({
+        content: '[data-skeleton="#skeleton_{$view}"]',
+        delay: 10,
+        show: true,
+        deleteSkeleton: false
+    });
+
 })(jQuery);
+
+
+$(window).off('wa_loaded').on('wa_loaded', function (e, view) {
+    if (view.includes('{$view}')) {
+        $.skeletonLoader.hide();
+    }
+});
 </script>

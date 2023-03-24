@@ -10,8 +10,8 @@
                 <p v-if="!categories_count && !products_count">[`Confirm the category deletion.`]</p>
 
                 <div class="s-options-section">
-                    <div class="wa-fields">
-                        <div class="wa-field" v-if="categories_count">
+                    <div class="fields">
+                        <div class="field" v-if="categories_count">
                             <div class="name unshifted size-small">
                                 <span class="s-label">[`Deletion of subcategories`]</span>
                             </div>
@@ -22,11 +22,11 @@
                                     </div>
                                     <div class="s-text-wrapper">
                                         <template v-if="remove_categories">
-                                            <div class="s-title color-black">{_w("Delete subcategories")}</div>
+                                            <div class="s-title">{_w("Delete subcategories")}</div>
                                             <div class="s-description hint">[`All subcategories will be deleted regardless of their nesting level.`]</div>
                                         </template>
                                         <template v-else>
-                                            <div class="s-title color-black">{_w("Do not delete subcategories")}</div>
+                                            <div class="s-title">{_w("Do not delete subcategories")}</div>
                                             <div class="s-description hint">[`Subcategories will be moved one level up.`]</div>
                                         </template>
                                     </div>
@@ -34,7 +34,7 @@
                             </div>
                         </div>
 
-                        <div class="wa-field" v-if="products_count">
+                        <div class="field" v-if="products_count">
                             <div class="name unshifted size-small">
                                 <span class="s-label">[`Products deletion`]</span>
                             </div>
@@ -45,11 +45,11 @@
                                     </div>
                                     <div class="s-text-wrapper">
                                         <template v-if="remove_products">
-                                            <div class="s-title color-black">{sprintf(_w("Delete products (%s)"), "{ { products_count } }")}</div>
+                                            <div class="s-title">{sprintf(_w("Delete products (%s)"), "{ { products_count } }")}</div>
                                             <div class="s-description hint">[`All products added to the category you are about to delete will also be deleted without the ability restore.`]</div>
                                         </template>
                                         <template v-else>
-                                            <div class="s-title color-black">[`Don’t delete products`]</div>
+                                            <div class="s-title">[`Don’t delete products`]</div>
                                             <div class="s-description hint">[`No products directly added to the category are about to delete will be deleted. Only their links to this category will be deleted.`]</div>
                                         </template>
                                     </div>
@@ -61,11 +61,11 @@
 
             </div>
             <div class="dialog-footer">
-                <button class="wa-button red" type="button" v-on:click.prevent="removeCategory"v-bind:disabled="locked">
+                <button class="button red" type="button" v-on:click.prevent="removeCategory"v-bind:disabled="locked">
                     <span class="s-icon icon size-14" v-if="locked"><i class="fas fa-spinner fa-spin"></i></span>
                     <span class="s-name">[`Delete`]</span>
                 </button>
-                <button class="js-dialog-close wa-button gray-light" type="button">[`Cancel`]</button>
+                <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
         </div>
     </div>

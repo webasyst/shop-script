@@ -132,7 +132,11 @@ class shopTransferSkusController extends waController
                     $sku['disabled'] = true;
                     $stock_name = ifset($sku['stock_name'], '');
                     $stock_name = $stock_name ? $stock_name : ifset($sku['stock_id'], '');
-                    $stock_message = ' <i class="icon10 status-red"></i><span class="small s-stock-warning-none">' . sprintf(_w('Not in stock on %s'), $stock_name) . '</span> ';
+                    $icon_class = 'icon10 status-red';
+                    if(wa()->whichUI() == '2.0') {
+                        $icon_class = 'fas fa-circle text-red';
+                    }
+                    $stock_message = ' <i class="'.$icon_class.'"></i><span class="small s-stock-warning-none">' . sprintf(_w('Not in stock on %s'), $stock_name) . '</span> ';
                 } else {
                     $stock_message = ' ' . shopHelper::getStockCountIcon($stock_count, $stock_id, true) . ' ';
                 }

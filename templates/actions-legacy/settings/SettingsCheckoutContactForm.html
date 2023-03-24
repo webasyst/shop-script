@@ -1,0 +1,506 @@
+<div id="s-checkout-contact-form-wrapper">
+
+{*
+ * Non-address fields form
+ *}
+<div class="field">
+    <div class="name">[`Misc fields`]</div>
+    <div class="value no-shift">
+        <table id="main-field-list" class="field-list zebra"><tbody>
+            {foreach $fields as $fid => $f}
+                {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid=$fid f=$f css_class='field-row editor-off'}
+            {/foreach}
+
+            {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid='%FID%' f=null css_class='hidden field-row template editor-on just-added'}
+
+            <tr class="white add-field">
+                <td class="min-width">&nbsp;</td>
+                <td class="min-width"><a class="add-field" href="#"><i class="icon16 add"></i></a></td>
+                <td>
+                    <a href="javascript:void(0)" class="add-field inline-link"><b><i>[`Add field`]</i></b></a>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+</div>
+
+{*
+ * Address subfields settings
+ *}
+<div class="field">
+    <div class="name">[`Address fields`]</div>
+    <div class="value no-shift">
+        <input type="hidden" name="options[address][_disabled]" value="">
+        <input type="hidden" name="options[address][localized_names]" value="[`Address`]">
+        <table id="address-subfields-list" class="field-list zebra" data-field-parent="address" data-field-prefix="options[address][fields]">
+            {foreach $address->getParameter('fields') as $f}
+                {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid=$f->getId() f=$f parent='address' css_class='field-row editor-off'}
+            {/foreach}
+
+            {wa_action app="shop" module="settings" action="checkoutContactFormRow" fid='%FID%' f=null parent='address' css_class='hidden field-row template editor-on just-added'}
+
+            <tr class="white add-field">
+                <td class="min-width">&nbsp;</td>
+                <td class="min-width"><a class="add-field" href="#"><i class="icon16 add"></i></a></td>
+                <td>
+                    <a href="javascript:void(0)" class="add-field inline-link"><b><i>[`Add field`]</i></b></a>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+{*
+ * Shipping and billing address settings
+ *}
+{foreach $shipbill_address as $addr}
+    <div class="field">
+        <div class="name">{$addr.name}</div>
+        <div class="value no-shift s-ibutton-checkbox">
+            <input type="hidden" name="options[{$addr.id}][_disabled]" value="1">
+            <ul class="menu-h">
+                <li><span class="gray" id="s-{$addr.short_id}-addr-disabled-label">[`Disabled`]</span></li>
+                <li>
+                    <input type="checkbox" id="s-{$addr.short_id}-addr-status" name="options[{$addr.id}][_disabled]" value=""{if !$addr.f->getParameter('_disabled')} checked{/if}>
+                </li>
+                <li><span id="s-{$addr.short_id}-addr-enabled-label">[`Enabled`]</span></li>
+            </ul>
+            {if $addr.short_id == 'ship'}
+                <p class="hint italic">[`When shipping address form is disabled (hidden) on the “Contact info” step, address will be automatically prompted on the “Shipping” checkout step.`]</p>
+            {/if}
+        </div>
+        <div class="value"{if $addr.f->getParameter('_disabled')} style="display:none"{/if}>
+            <input type="text" name="options[{$addr.id}][localized_names]" value="{$addr.f->getName()|escape}">
+        </div>
+        <div class="value no-shift"{if $addr.f->getParameter('_disabled')} style="display:none"{/if}>
+            <p class="small">
+                [`If enabled, customer will be prompted to fill in address fields directly on the “Contact info” checkout step.`]
+                {if $addr.short_id == 'ship'}[`In case shipping method and address were prompted prior to the contact info, only missing address fields will be requested.`]{/if}
+                <a href="javascript:void(0)" class="customize-fields-link inline-link"><b><i>[`Hide certain fields`]</i></b></a></p>
+            <table class="{if !$addr.show_custom_settings} hidden{/if} zebra shipbill-subfields">
+                {foreach $addr.subfields as $sf}
+                    <tr><td><label>
+                        <input type="checkbox" name="options[{$addr.id}][fields][{$sf.id}]" value="1"{if $sf.enabled} checked{/if}>
+                        <span>{$sf.name}</span>
+                    </label></td></tr>
+                {/foreach}
+            </table>
+        </div>
+    </div>
+{/foreach}
+
+{*
+ * Personal data processing settings
+ *}
+    <div class="field" id="service-agreement-settings-wrapper">
+        <div class="name">[`Personal data processing`]</div>
+        <div class="value">
+            <label>
+                <input type="radio" name="config[service_agreement]" value=""{if empty($service_agreement.setting)} checked{/if}>
+                [`Do not require consent to personal data protection policy`]
+            </label>
+        </div>
+        <div class="value">
+            {$link_tag = sprintf('<a href="%s" target="_blank">', _w('---INSERT A LINK HERE!---'))}
+            <label data-default-text="{sprintf_wp('By submitting this form I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                <input type="radio" name="config[service_agreement]" value="notice"{if ifset($service_agreement.setting) == 'notice'} checked{/if}>
+                [`Show only notice and link to policy`]
+            </label>
+        </div>
+        <div class="value">
+            <label data-default-text="{sprintf_wp('I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                <input type="radio" name="config[service_agreement]" value="checkbox"{if ifset($service_agreement.setting) == 'checkbox'} checked{/if}>
+                [`Show mandatory checkbox, notice, and link`]
+            </label>
+        </div>
+        <div class="hidden value text-editor">
+            <input type="checkbox" style="vertical-align:top;margin:0px 2px 90px 2px;float:left;" checked disabled>
+            <textarea name="config[service_agreement_hint]">{$service_agreement.text|escape}</textarea>
+            <br>
+            <span class="hint"><a href="javascript:void(0)" class="inline-link generalte-example-link"><b><i>[`Restore original text`]</i></b></a></span>
+        </div>
+    </div>
+
+</div>{* #s-checkout-contact-form-wrapper *}
+
+<script>(function() { "use strict";
+    var form = $("#checkout-step-contactinfo-form"),
+        wrapper = $("#s-checkout-contact-form-wrapper"),
+        $button = form.find(":submit"),
+        buttonEditClass = "form-is-not-save";
+
+    var markAsChanged = function() {
+        // Add Active Button Class
+        $button
+            .removeClass("green")
+            .addClass("yellow")
+            .addClass(buttonEditClass); // flag class
+
+        // Trigger event
+        $(window).scroll();
+    };
+
+    ( function( $button ) {
+        var storage = {
+            fixedClass: "s-fixed-save-button-wrapper",
+            $field: $button.closest(".field"),
+            getButtonScrollTop: function( $button ) {
+                var that = this.getButtonScrollTop;
+                if (!that.data) {
+                    that.data = $button.offset().top
+                }
+                return that.data;
+            }
+        };
+
+        var toggleFixedButton = function() {
+            var button_is_exist = $(document).find($button).length;
+            if (button_is_exist) {
+                if ($button.hasClass(buttonEditClass) ) {
+                    var displayHeight = parseInt($(window).height()),
+                            currentScroll = parseInt($(window).scrollTop()),
+                            buttonHeight = parseInt($button.outerHeight()),
+                            buttonTop = parseInt(storage.getButtonScrollTop($button)),
+                            delta = parseInt(buttonTop + buttonHeight - displayHeight);
+
+                    if (delta <= currentScroll) {
+                        storage.$field.removeClass(storage.fixedClass);
+                    } else {
+                        storage.$field.addClass(storage.fixedClass);
+                    }
+                }
+            } else {
+                // Remove Event
+                $(window).off("scroll", toggleFixedButton);
+            }
+        };
+
+        // Event
+        $(window).on("scroll", toggleFixedButton);
+
+    })( $button );
+
+    wrapper.on('change', ':checkbox', markAsChanged);
+    form.off('keyup.name', ':text[name="name"]').on('keyup.name', ':text[name="name"]', markAsChanged);
+
+    // Form validation
+    form.off('submit.inner').on('submit.inner', function(e) {
+        form.find('.errormsg').remove();
+        form.find('.error').removeClass('error');
+        var valid = true;
+        $('[name$="[localized_names]"]').each(function() {
+            var self = $(this);
+            if (!self.val() && self.parents('.template').length <= 0) {
+                if (self.closest('tr').find('[name$="[_disabled]"]:checked').length) {
+                    valid = false;
+                    self.addClass('error').parent().append($('<em class="errormsg"></em>').text("[`This field is required.`]"));
+                }
+            }
+        });
+
+        if (!valid) {
+            form.find(':submit').before($('<p class="errormsg"></p>').text("[`Please correct errors.`]"));
+            e.validation_failed = true;
+        }
+
+        return false;
+    });
+
+    //
+    // Controller for form fields and address subfields editors.
+    //
+    (function() {
+        // Counter to ensure unique names for new fields
+        var max_field = 1;
+
+        // When user changes 'disabled/enabled' checkbox, toggle classes on <tr>
+        // This hides parts of the form depending on checkbox status.
+        (function () {
+            var f;
+            wrapper.on('change', ':checkbox[name$="[_disabled]"]', f = function() {
+                var cb = $(this);
+                var tr = cb.closest('tr');
+                if (cb.is(':checked')) {
+                    tr.addClass('field-enabled').removeClass('field-disabled');
+                } else {
+                    tr.removeClass('field-enabled').addClass('field-disabled');
+                }
+            }).find(':checkbox[name$="[_disabled]"]').each(f);
+        })();
+
+        // Links to set up default value for disabled fields
+        wrapper.on('click', '.setup-default-value-link', function() {
+            $(this).hide().siblings(':hidden').val('1').parent().find('.default-value-editor').show();
+        });
+
+        // Links to add new field
+        wrapper.on('click', 'table.field-list > tbody > tr.add-field a.add-field', function() {
+            // Clone row template
+            var table = $(this).closest('table');
+            var tmpl = table.find('tbody > .field-row.template');
+            var tr = tmpl.clone().insertBefore(tmpl).removeClass('template').removeClass('hidden');
+
+            // Replace field id placeholder with generated field id
+            var fid = '__'+max_field;
+            max_field++;
+            tr.find('[name]').each(function() {
+                var self = $(this);
+                self.attr('name', self.attr('name').replace(/%FID%/g, fid));
+            });
+            tr.data('fieldId', fid);
+            tr.find('select.type-selector').change();
+            markAsChanged();
+            return false;
+        });
+
+        // Load appropriate settings block when user changes field type
+        wrapper.on('change', 'select.type-selector', function() {
+            var select = $(this);
+            var tr = select.closest('tr');
+            var table = tr.closest('table');
+            var adv_settings_block = tr.find('.field-advanced-settings').html('<i class="icon16 loading"></i>');
+            $.post('?module=settings&action=checkoutContactFormEditor', {
+                ftype: select.val(),
+                fid: tr.data('fieldId'),
+                parent: table.data('fieldParent') || '',
+                prefix: table.data('fieldPrefix')
+            }, function(r) {
+                adv_settings_block.html(r);
+            });
+        });
+
+        // Links to edit field
+        wrapper.on('click', 'table.field-list .edit', function() {
+            $(this).parents('tr').addClass('editor-on').removeClass('editor-off');
+            markAsChanged();
+            return false;
+        });
+
+        // Links to delete field
+        wrapper.on('click', '.delete-outer', function() {
+            var tr = $(this).closest('tr');
+            if (tr.hasClass('just-added')) {
+                tr.remove();
+                return false;
+            }
+            if (!confirm("[`This will remove field and all its data from all existing contacts. Are you sure?`]")) {
+                return false;
+            }
+
+            var name = tr.find('input:hidden[name$="[_disabled]"]').attr('name').replace("[_disabled]", "[_deleted]");
+            wrapper.append($('<input type="hidden" name="" value="1">').attr('name', name));
+            tr.children().children(':not(label)').remove();
+            tr.find('label').addClass('gray').addClass('strike');
+            markAsChanged();
+            return false;
+        });
+
+        // Drag-and-drop for form field rows
+        wrapper.find('table.field-list > tbody').sortable({
+            items : ".field-row",
+            handle : "i.sort-outer"
+        });
+    })();
+
+    //
+    // UI logic about alternative checking name(s) field(s)
+    //
+    (function () {
+
+        // Query selector for checkbox of name field
+        var name_qs = '.field-row[data-field-id="name"] :checkbox:first';
+
+        // Query selector for checkboxes of alternative name fields
+        var alt_names_qs = [
+            '.field-row[data-field-id="firstname"] :checkbox:first',
+            '.field-row[data-field-id="middlename"] :checkbox:first',
+            '.field-row[data-field-id="lastname"] :checkbox:first'
+        ].join(',');
+
+        var isChecked = function(qs) {
+            var checked = false;
+            wrapper.find(qs).each(function () {
+                checked = checked || $(this).is(':checked');
+            });
+            return checked;
+        };
+
+        var onClick = function() {
+            var field_id = $(this).closest('.field-row').data('fieldId'),
+                disabled = null,
+                other_qs = null,
+                $other = null;
+
+            if (field_id === 'name') {
+                other_qs = alt_names_qs;
+                disabled = isChecked(name_qs);
+            } else {
+                other_qs = name_qs;
+                disabled = isChecked(alt_names_qs);
+            }
+
+            $other = wrapper.find(other_qs);
+
+            // if checked name - disable and un-check alt-name(s)
+            // if checked alt-name(s) - disable and un-check name
+
+            $other.attr('disabled', disabled);
+            if (disabled) {
+                $other.attr('checked', false);
+            }
+
+        };
+
+        wrapper.on('click', name_qs + ',' + alt_names_qs, onClick);
+
+        var name_is_checked = isChecked(name_qs),
+            alt_name_is_checked = isChecked(alt_names_qs);
+
+        if (name_is_checked && !alt_name_is_checked) {
+            onClick.call(wrapper.find(name_qs).get(0));
+        } else if (alt_name_is_checked && !name_is_checked) {
+            onClick.call(wrapper.find(alt_name_is_checked).get(0));
+        }
+
+    })();
+
+    //
+    // Controller for shipping and billing address blocks
+    //
+    (function() {
+        var ibuttons = $('#s-ship-addr-status, #s-bill-addr-status');
+        var wrappers = ibuttons.closest('.field');
+
+        // iButtons enable/disable corresponding addresses
+        ibuttons.iButton( { labelOn : "", labelOff : "", className: 'mini', resizeHandle: false, resizeContainer: false } ).change(function() {
+            markAsChanged();
+            var self = $(this);
+            if ($(this).is(':checked')) {
+                self.parents('.value').siblings('.value').show(200);
+            } else {
+                self.parents('.value').siblings('.value').hide(200);
+            }
+        });
+
+        // "Customize fields" link shows and hides fields list
+        wrappers.on('click', '.customize-fields-link', function() {
+            $(this).closest('.field').find('table.zebra').toggle(200);
+        });
+
+        // Helper to change local checkbox status depending on global subfield status
+        var ensureCheckboxStatus = function(subfield_id, cb, enabled_cb, required_cb) {
+            if (!subfield_id) {
+                if (cb) {
+                    subfield_id = (cb.attr('name')||'').match(/\[([^\]]+)\]$/);
+                    subfield_id = subfield_id && subfield_id[1];
+                }
+                if (!subfield_id) {
+                    return;
+                }
+            }
+            if (!cb) {
+                cb = wrappers.find('input:checkbox[name$="][fields]['+subfield_id+']"]');
+            }
+            if (!cb || !cb.length) {
+                return;
+            }
+            if (cb.length > 1) {
+                cb.each(function() {
+                    ensureCheckboxStatus(subfield_id, $(this), enabled_cb, required_cb);
+                });
+                return;
+            }
+            if (!enabled_cb) {
+                enabled_cb = $('#address-subfields-list input:checkbox[name="options[address][fields]['+subfield_id+'][_disabled]"]');
+            }
+            if (!required_cb) {
+                required_cb = $('#address-subfields-list input:checkbox[name="options[address][fields]['+subfield_id+'][required]"]');
+            }
+
+            // Disabled subfields: do not show checkbox
+            if (enabled_cb && enabled_cb.length && enabled_cb.is(':checked')) {
+                var tr = cb.closest('tr');
+                if (!tr.is(':visible')) {
+                    tr.parent().is(':visible') && cb.prop('checked', true);
+                    tr.show();
+                }
+            } else {
+                cb.prop('checked', false).closest('tr').hide();
+            }
+
+            // Required subfields: show checked disabled checkbox
+            if (required_cb && required_cb.length && required_cb.is(':checked')) {
+                cb.attr('checked', true).attr('disabled', true);
+            } else {
+                cb.attr('disabled', false);
+            }
+
+            // Unchecked boxes are greyed and striked over
+            if (cb.is(':checked')) {
+                cb.siblings('span').removeClass('grey strike');
+            } else {
+                cb.siblings('span').addClass('grey strike');
+            }
+        };
+
+        // When user changes local checkboxes, change greyed-striked status
+        var f;
+        wrappers.on('change', 'table.shipbill-subfields input:checkbox', f = function() {
+            ensureCheckboxStatus(null, $(this));
+        }).find('tr input:checkbox').each(f);
+
+        // When user enables/disables address subfield in global address settings,
+        // show/hide it in shipping and billing settings.
+        $('#address-subfields-list').on('change', 'input:checkbox', f = function() {
+            var checkbox = $(this);
+            var parts = (checkbox.attr('name')||'').match(/options\[address\]\[fields\]\[([^\]]+)\]\[([^\]]+)\]/);
+            if (parts && parts[1] && parts[2]) {
+                if (parts[2] == '_disabled') {
+                    ensureCheckboxStatus(parts[1], null, checkbox);
+                } else if (parts[2] == 'required') {
+                    ensureCheckboxStatus(parts[1], null, null, checkbox);
+                }
+            }
+        }).find('input:checkbox').each(f);
+    })();
+
+    //
+    // Service agreement settings wrapper
+    //
+    (function() {
+        var $wrapper = $('#service-agreement-settings-wrapper');
+        var $checkbox = $wrapper.find(':checkbox');
+        var $textarea = $wrapper.find('textarea');
+        var previous_default_text = null;
+
+        $wrapper.on('change', ':radio', function() {
+            if (!$textarea.val() || previous_default_text == $textarea.val()) {
+                setDefaultText();
+            }
+
+            switch(this.value) {
+                case 'notice':
+                    $checkbox.hide().closest('.value').show();
+                    break;
+                case 'checkbox':
+                    $checkbox.show().closest('.value').show();
+                    break;
+                default:
+                    $checkbox.closest('.value').hide();
+                    break;
+            }
+        }).find(':radio:checked').change();
+
+        $wrapper.on('mousedown', '.generalte-example-link', function(e) {
+            setDefaultText();
+            $textarea.focus();
+            return false;
+        });
+
+        function setDefaultText() {
+            previous_default_text = $wrapper.find(':radio:checked').closest('label').data('default-text') || '';
+            $textarea.val(previous_default_text);
+        }
+    }());
+
+})();</script>

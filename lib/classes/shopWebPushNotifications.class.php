@@ -60,4 +60,47 @@ class shopWebPushNotifications
 
         return $success;
     }
+
+    /**
+     * @param array $event_data
+     * @param string $notification_text
+     * @param array $shop_user_ids
+     * @param array $push_data
+     * @return bool
+     * @throws waException
+     */
+    public function sendByContactId($event_data, $notification_text, $shop_user_ids, $push_data)
+    {
+        /**
+         * Send push notification from shop
+         *
+         * @param array $event_data
+         * @param string $notification_text
+         *
+         * @event web_push_send
+         */
+        $event_params = [
+            'data'              => &$event_data,
+            'notification_text' => &$notification_text,
+        ];
+        wa('shop')->event('web_push_send', $event_params);
+
+        $success = true;
+
+        try {
+            $push = wa()->getPush();
+            if (!$push->isEnabled()) {
+                return false;
+            }
+            $push->sendByContact($shop_user_ids, $push_data);
+        } catch (Exception $ex) {
+            if (wa()->getConfig()->isDebug()) {
+                $result = $ex->getMessage();
+                waLog::log('Unable to send PUSH notifications: '.$result, 'shop/webpush.log');
+            }
+            $success = false;
+        }
+
+        return $success;
+    }
 }

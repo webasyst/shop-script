@@ -1,0 +1,199 @@
+<style>
+    .fade {
+        opacity: 0;
+        -webkit-transition: opacity 0.15s linear;
+        -moz-transition: opacity 0.15s linear;
+        -o-transition: opacity 0.15s linear;
+        transition: opacity 0.15s linear;
+    }
+    .fade.in {
+        opacity: 1;
+    }
+</style>
+
+<div class="dialog width500px height400px s-drop-files-here-zone" id="s-image-uploader">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <div id="s-upload-step1">
+                    <div id="s-upload-imagelist">
+                        <ul class="zebra files"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <div id="s-upload-step1-buttons" class="fileupload-buttonbar">
+                    <div class="block float-right" style="padding-top: 13px;">
+                        <a href="#" class="hint cancel">[`Stop upload`]</a>
+                    </div>
+                    <div class="block">
+                        <div class="progressbar blue small width300px float-left">
+                            <div class="progressbar-outer">
+                                <div class="progressbar-inner fileupload-progressbar" id="s-upload-progressbar"></div>
+                            </div>
+                        </div>
+                        <div class="float-left" style="margin-top: 5px;" id="s-upload-filescount"></div>
+                        <div id="s-upload-error" style="display:none" class="block half-padded errormsg">
+                            [`Files uploaded with errors`]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="template-group-container" type="text/html">
+{literal}
+<tr data-group-id="{%=''+o.id%}" data-product-id="0">
+<td class="images"><ul class="thumbs li100px s-product-image-crops"></ul></td>
+<td class="min-width">&rarr;</td>
+<td class="product">
+    <input type="hidden" name="product[{%=''+o.id%}][id]"  class="s-product-id">
+    <input type="text" name="product[{%=''+o.id%}][name]"  class="s-product-name" placeholder="[`Product name`]">
+    <input type="text" name="product[{%=''+o.id%}][price]" class="s-product-price short numerical" placeholder="0">
+    <span class="s-product-price"></span>{/literal}
+    <span class="s-product-currency">{$currency}</span>
+</td>
+<td class="min-width"><a href="#" class="s-group-delete"><i class="icon16 delete"></i></a></td>
+</tr>
+</script>
+
+<script id="template-preload" type="text/html">
+{literal}
+{% for (var i=0, file; file=o.files[i]; i++) { %}
+    <li class="template-preload fade">
+        <div class="preview">
+            <span class="fade"></span>
+        </div>
+        <div class="hint">
+            <span class="name"><span>{%=file.name%}</span></span>
+        </div>
+        <div class="error" {% if (!file.error) { %}style="display:none;"{% } %}>
+            {%=file.error%}
+        </div>
+    </li>
+{% } %}
+{/literal}
+</script>
+
+<script id="template-upload" type="text/html">
+{literal}
+    {% for (var i=0, files=o.files, l=files.length, file=files[0]; i<l; file=files[++i]) { %}
+    <li class="template-upload">
+        <div class="s-upload-oneimage-progress">
+            <div class="s-image-filename">
+                {%=file.name%}
+                <span class="hint">{%=o.formatFileSize(file.size)%}</span>
+            </div>
+            <span class="start"></span><span class="cancel"></span>
+        </div>
+        &nbsp;
+    </li>
+    {% } %}
+{/literal}
+</script>
+
+<script id="template-download" type="text/html">
+{literal}
+    {% for (var i=0, files=o.files, l=files.length, file=files[0]; i<l; file=files[++i]) { %}
+    <li class="template-upload {% if (file.error) { %}error{% } %}">
+        {% if (file.error) { %}
+            <div class="s-upload-oneimage-progress" style="width:100%">
+                <div class="s-image-filename">
+                    <b>{%=file.name%}</b>
+                    {% if (typeof file.error === 'object' && file.error instanceof SyntaxError) { %}
+                        {% if (file.responseText) { %}
+                            {%#file.responseText%}
+                        {% } else { %}
+                            {%=$_('Failed to upload. Most probably, there is not enough memory to create thumbnails.')%}.
+                        {% } %}
+                    {% } else { %}
+                        {%=file.error%}
+                    {% } %}
+                </div>
+            </div>
+        {% } else { %}
+            <div class="s-upload-oneimage-progress" style="width:100%">
+                <div class="s-image-filename">
+                    {%=file.name%} <span class="hint">{%=o.formatFileSize(file.size)%}</span>
+                </div>
+            </div>
+        {% } %}
+        &nbsp;
+    </li>
+    {% } %}
+{/literal}
+</script>
+
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/images/jquery.ui.widget.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/tmpl.min.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/images/load-image.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/images/canvas-to-blob.js"></script>
+
+<script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/images/jquery.fileupload-fp.js"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/images/jquery.fileupload-ui.js"></script>
+
+
+<script type="text/javascript">
+$(function() {
+
+    // Support css-transition. Used by fileupload-ui
+    $.support.transition = (function () {
+        var transitionEnd = (function () {
+          var el = document.createElement('transition')
+            , transEndEventNames = {
+                 'WebkitTransition' : 'webkitTransitionEnd'
+              ,  'MozTransition'    : 'transitionend'
+              ,  'OTransition'      : 'oTransitionEnd otransitionend'
+              ,  'transition'       : 'transitionend'
+              }
+            , name;
+          for (name in transEndEventNames){
+            if (el.style[name] !== undefined) {
+              return transEndEventNames[name]
+            }
+          }
+        }());
+        return transitionEnd && {
+          end: transitionEnd
+        }
+      })();
+
+    // Updated version of $.Widget factory require _destroy methods
+    if ($.type($.ui.autocomplete.prototype._destroy) === 'undefined') {
+        $.extend($.ui.autocomplete.prototype, {
+            _destroy: function() {
+
+            }
+        });
+    }
+    // Updated version of $.Widget factory require _destroy methods
+    if ($.type($.ui.sortable.prototype._destroy) === 'undefined') {
+        $.extend($.ui.sortable.prototype, {
+            _destroy: function() {
+
+            }
+        });
+    }
+
+    var fileupload = $('#fileupload');
+    fileupload.fileupload({
+        maxFileSize: {waRequest::getUploadMaxFilesize()},
+        acceptFileTypes: /(\.|\/)(gif|jpe?g|png|webp)$/i,
+        previewSourceFileTypes: /^image\/(gif|jpeg|png|webp)$/,
+        process: [
+            {
+                action: 'load',
+                fileTypes: /^image\/(gif|jpeg|png|webp)$/,
+                maxFileSize: {waRequest::getUploadMaxFilesize()}
+            }
+        ]
+    });
+});
+</script>
+

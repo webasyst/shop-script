@@ -5,64 +5,58 @@
         })(jQuery);
     </script>
 
-    <div class="s-page-table-box">
-        <div class="sidebar left200px">
-            {$sidebar_html}
-        </div>
+    <div class="flexbox">
+        {$sidebar_html}
+        <div class="content s-content-section js-content-section custom-ml-8">
+            {* HEADER *}
+            <div class="s-section-header">
 
-        <div class="content left200px bordered-left blank">
-
-            <div class="s-content-section js-content-section">
-                {* HEADER *}
-                <div class="s-section-header">
-
-                    <div class="wa-table-box space-10 middle">
-                        <div class="s-column">
-                            {* TITLE *}
-                            <h1 class="s-title">{$title|escape}</h1>
-                        </div>
-                        <div class="s-column align-right">
-                            {strip}
-                            {if empty($is_filter_page)}
-                                <div class="s-type-actions">
-                                    <a class="s-action inline-link js-type-edit" href="javascript:void(0);">
-                                        <i class="icon16 edit"></i>
-                                        <b><i>[`Edit`]</i></b>
+                <div class="flexbox middle wrap">
+                    {* TITLE *}
+                    <h1 class="s-title custom-mr-16 wide">{$title|escape}</h1>
+                    {strip}
+                        {if empty($is_filter_page)}
+                            <div class="s-type-actions">
+                                <a class="s-action js-type-edit button small rounded light-gray" href="javascript:void(0);" title="[`Edit`]">
+                                    <i class="fas fa-pencil-alt text-blue"></i>
+                                </a>
+                                {if $can_be_delete}
+                                    <a class="s-action js-type-delete button small rounded light-gray" href="javascript:void(0);" title="[`Delete`]">
+                                        <i class="fas fa-trash-alt text-red"></i>
                                     </a>
-                                    {if $can_be_delete}
-                                        <a class="s-action inline-link js-type-delete" href="javascript:void(0);">
-                                            <i class="icon16 delete"></i>
-                                            <b><i>[`Delete`]</i></b>
-                                        </a>
-                                    {else}
-                                        <span title="[`You cannot delete the only existing product type.`]">
-                                            <i class="icon16 delete-bw"></i>
-                                            <i>[`Delete`]</i>
-                                        </span>
-                                    {/if}
-                                </div>
-                            {/if}
-                            {/strip}
-                        </div>
-                    </div>
-
-                    {* SEARCH *}
-                    <div class="s-search-section">
-                        <i class="s-icon icon16 ss search-bw"></i>
-                        <input class="s-field js-search-field" type="text" name="search" placeholder="{_w('Feature search')|escape}" autocomplete="off">
-                    </div>
+                                {else}
+                                    <span title="[`You cannot delete the only existing product type.`]">
+                                    <i class="fas fa-trash-alt text-light-gray custom-mr-4"></i>
+                                    [`Delete`]
+                                </span>
+                                {/if}
+                            </div>
+                        {/if}
+                    {/strip}
                 </div>
 
-                {* BODY *}
-                <div class="s-section-body">
+                {* SEARCH *}
+                <div class="s-search-section flexbox state-with-inner-icon left">
+                    <input class="js-search-field full-width" type="text" name="search" placeholder="{_w('Feature search')|escape}" autocomplete="off">
+                    <span class="icon"><i class="fas fa-search"></i></span>
+                </div>
+            </div>
 
-                    {if isset($codes)}
-                    <section class="s-features-section">
-                        <h5 class="s-section-title heading">
-                            <span class="s-title">[`Product codes`]</span>
-                            <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Product codes are completed on the order page for each ordered item. They can be used to store trade item numbers, software license numbers or unique serial numbers.`]</span></span>
-                            <span class="s-icon js-code-add"><i class="icon16 add"></i></span>
-                        </h5>
+        {* BODY *}
+        <div class="fields">
+            <section class="s-features-section">
+                {if isset($codes)}
+                    <div class="s-section-title-wrapper">
+                        <div class="s-section-title">
+                            <h4 class="s-title h4">[`Product codes`]</h4>
+                            <span class="s-title-help shop-tooltip"><i class="fas fa-info-circle smaller"></i><span>[`Product codes are completed on the order page for each ordered item. They can be used to store trade item numbers, software license numbers or unique serial numbers.`]</span></span>
+                        </div>
+                        <button class="js-code-add button small rounded light-gray">
+                            <i class="fas fa-plus-circle text-green"></i>
+                            [`Add product code`]
+                        </button>
+                    </div>
+                    <div class="fields-group custom-mt-0">
                         {if !empty($codes)}
                             {$_title = _w('To delete this product code, disable or delete the corresponding plugin.')}
                             {$_disabled = "is-disabled"}
@@ -71,12 +65,12 @@
                                 {foreach $codes as $_code}
                                     <div class="s-feature-wrapper js-code-wrapper" data-id="{$_code.id|escape}" data-code="{$_code.code|escape}">
                                         <div class="s-feature-block">
-                                            <div class="s-column-actions">
+                                            <div class="s-column-img">
                                                 {strip}
                                                     {if !empty($_code.icon) && $_code.code_plugin_enabled}
                                                         <img src="{$wa_url}{$_code.icon}">
                                                     {else}
-                                                        <i class="icon16 ss parameter"></i>
+                                                        <i class="fas fa-qrcode"></i>
                                                     {/if}
                                                 {/strip}
                                             </div>
@@ -92,12 +86,38 @@
                                             </div>
                                             <div class="s-column-actions">
                                                 {strip}
-                                                    <div class="s-actions-list align-right">
-                                                        <a class="s-action js-code-edit" href="javascript:void({$_code.id|escape});" title="[`Edit`]"><i class="icon16 edit"></i></a>
-                                                        <a class="s-action js-code-copy" href="javascript:void(0);" title="[`Duplicate`]"><i class="icon16 notebooks"></i></a>
-                                                        <a class="s-action {if $_code.protected_code}js-code-undeletable{else}js-code-delete{/if}" href="javascript:void(0);" title="{if $_code.protected_code}{$_title}{else}[`Delete`]{/if}">
-                                                            <i class="icon16 {if $_code.protected_code}delete-bw{else}delete{/if}"></i>
-                                                        </a>
+                                                    <div class="s-actions-list align-right custom-p-4-mobile">
+                                                        <div class="flexbox vertical-mobile">
+                                                            <a href="javascript:void({$_code.id|escape});"
+                                                                class="js-code-edit button custom-mb-4-mobile nowrap rounded light-gray smaller"
+                                                                style="width: min-content;"
+                                                                title="[`Edit`]">
+                                                                <i class="fas fa-pencil-alt text-blue"></i>
+                                                                <span class="desktop-only"></span>
+                                                            </a>
+                                                            <div class="custom-mb-8-mobile dropdown secondary-actions">
+                                                                <button class="dropdown-toggle button smaller rounded light-gray custom-pl-0" type="button"
+                                                                    title="[`Actions`]">&nbsp;</button>
+                                                                <div class="dropdown-body right">
+                                                                    <ul class="menu">
+                                                                        <li>
+                                                                            <a href="javascript:void(0);" class="js-code-copy" title="[`Duplicate`]">
+                                                                                <i class="fas fa-copy text-blue"></i>
+                                                                                <span>[`Duplicate`]</span>
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a href="javascript:void(0);" class="js-action {if $_code.protected_code}js-code-undeletable{else}js-code-delete{/if}"
+                                                                                data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]"
+                                                                                title="{if $_code.protected_code}{$_title}{else}[`Delete`]{/if}" data-cancel="[`Cancel`]">
+                                                                                <i class="fas fa-trash-alt{if $_code.protected_code} text-light-gray{else} text-red{/if}"></i>
+                                                                                <span>[`Delete`]</span>
+                                                                            </a>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 {/strip}
                                             </div>
@@ -116,47 +136,58 @@
                                 {/if}
                             </div>
                         {/if}
-                    </section>
-                    {/if}
 
-                    <section class="s-features-section">
-                        <h5 class="s-section-title heading">
-                            <span class="s-title">[`Features`]</span>
-                            <span class="shop-tooltip"><i class="icon10 info"></i><span>{if wa_is_int($type_url_id)}[`Features are displayed on storefront product pages in the order set up for this product type.`]<br><br>[`To change features’ sort order, drag &amp; drop them to desired locations within the list.`]{else}[`To change features’ sort order, select a product type.`]{/if}</span></span>
-                            {if $type_url_id != 'builtin'}
-                                <ul class="menu-h dropdown">
-                                    <li>
-                                        <a class="inline-link s-visible-link" href="javascript:void(0);">
-                                            <i class="icon16 add"></i>
+                    </div>
+                </section>
+            {/if}
+            <section class="s-features-section">
+                <div class="s-section-title-wrapper">
+                    <div class="s-section-title">
+                        <h4 class="s-title h4">[`Features`]</h4>
+                        <span class="s-title-help shop-tooltip"><i class="fas fa-info-circle smaller"></i><span>{if wa_is_int($type_url_id)}[`Features are displayed on storefront product pages in the order set up for this product type.`]<br><br>[`To change features’ sort order, drag &amp; drop them to desired locations within the list.`]{else}[`To change features’ sort order, select a product type.`]{/if}</span></span>
+                    </div>
+                    {if $type_url_id != 'builtin'}
+                    <div class="dropdown js-features">
+                        <button class="dropdown-toggle custom-pr-24 button small rounded light-gray">
+                            <i class="fas fa-plus-circle text-green"></i>
+                            [`Add feature`]
+                        </button>
+                        <div class="dropdown-body right">
+                            <ul class="menu">
+                                <li>
+                                    <a class="js-feature-add-new"
+                                        href="javascript:void(0);"
+                                        data-type-id="{$type_url_id|default:""|escape}">
+                                        <span class="s-name">[`New feature`]</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="js-feature-add-divider"
+                                        href="javascript:void(0);"
+                                        data-type-id="{$type_url_id|default:""|escape}"
+                                        data-mode="divider">
+                                        <span class="s-name">[`Feature group heading`]</span>
+                                    </a>
+                                </li>
+                                {if empty($is_filter_page)}
+                                    <li class="with-border">
+                                        <a class="js-feature-add-existing" href="javascript:void(0);">
+                                            <span class="s-name">[`Feature or heading from&nbsp;other product types`]</span>
                                         </a>
-                                        <ul class="menu-v without-icons" style="max-width: none; width: 250px;">
-                                            <li>
-                                                <a class="js-feature-add-new"
-                                                   href="javascript:void(0);"
-                                                   data-type-id="{$type_url_id|default:""|escape}">
-                                                    <span class="s-name">[`New feature`]</span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="js-feature-add-divider"
-                                                   href="javascript:void(0);"
-                                                   data-type-id="{$type_url_id|default:""|escape}"
-                                                   data-mode="divider">
-                                                    <span class="s-name">[`Feature group heading`]</span>
-                                                </a>
-                                            </li>
-                                            {if empty($is_filter_page)}
-                                                <li class="with-border">
-                                                    <a class="js-feature-add-existing" href="javascript:void(0);">
-                                                        <span class="s-name">[`Feature or heading from&nbsp;other product types`]</span>
-                                                    </a>
-                                                </li>
-                                            {/if}
-                                        </ul>
                                     </li>
-                                </ul>
-                            {/if}
-                        </h5>
+                                {/if}
+                            </ul>
+
+                        </div>
+                        <script>
+                            ( function($) {
+                                $(".js-features").waDropdown();
+                            })(jQuery);
+                        </script>
+                    </div>
+                    {/if}
+                </div>
+                <div class="fields-group custom-mt-0">
 
                         {if !empty($features)}
                             <div class="s-features-list js-features-list">
@@ -193,9 +224,15 @@
                                                 {strip}
                                                 <div class="s-actions-list">
                                                     {if empty($is_filter_page)}
-                                                        <a class="s-action js-feature-sort-toggle" href="javascript:void(0);" title="[`Drag to change features’ sort order`]"><i class="icon16 sort"></i></a>
+                                                        <a class="s-action js-feature-sort-toggle" href="javascript:void(0);" title="[`Drag to change features’ sort order`]">
+                                                            <i class="fas fa-grip-vertical js-sort text-light-gray cursor-pointer"></i>
+                                                        </a>
                                                     {/if}
-                                                    <a class="s-action js-feature-visibility-toggle" href="javascript:void(0);" title="[`Show on website`]"><i class="icon16 {if $_is_visible}visibility-on{else}ss visibility{/if}"></i></a>
+                                                    <a class="s-action js-feature-visibility-toggle" href="javascript:void(0);" title="[`Show on website`]">
+                                                        <i class="fas fa-eye{if !$_is_visible} hidden{/if}"></i>
+                                                        <i class="fas fa-eye-slash{if $_is_visible} hidden{/if} text-light-gray"></i>
+                                                        <i class="fas fa-spin fa-spinner hidden"></i>
+                                                    </a>
                                                     {if empty($_is_divider)}
                                                         {if $_feature.builtin}
                                                             {if $_feature.code === 'weight'}
@@ -205,9 +242,11 @@
                                                             {else}
                                                                 {$builtin_title = _w('You cannot disable the editing of this feature’s values in product SKUs’ properties, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode.')}
                                                             {/if}
-                                                            <a class="s-action js-feature-sku-toggle-always" href="javascript:void(0);" title="{$builtin_title}"><i class="icon16 hierarchical"></i></a>
+                                                            <a class="s-action js-feature-sku-toggle-always" href="javascript:void(0);" title="{$builtin_title}"><i class="fas fa-sitemap"></i></a>
                                                         {else}
-                                                            <a class="s-action js-feature-sku-toggle" href="javascript:void(0);" title="[`Enables editing of feature values for product SKUs`]"><i class="icon16 {if $_sku_enabled}hierarchical{else}hierarchical-off{/if}"></i></a>
+                                                            <a class="s-action js-feature-sku-toggle" href="javascript:void(0);" title="[`Enables editing of feature values for product SKUs`]">
+                                                                <i class="fas fa-sitemap{if !$_sku_enabled} text-light-gray{/if}"></i>
+                                                            </a>
                                                         {/if}
                                                     {/if}
                                                 </div>
@@ -230,19 +269,52 @@
 
                                             </div>
                                             <div class="s-column-actions">
-
-                                                {strip}
-                                                <div class="s-actions-list align-right">
-                                                    <a class="s-action js-feature-edit" href="javascript:void(0);" data-id="{$_feature.id|escape}" data-code="{$_feature.code|escape}" title="[`Edit`]"><i class="icon16 edit"></i></a>
-                                                    <a class="s-action js-feature-copy" href="javascript:void(0);" title="[`Duplicate`]"><i class="icon16 notebooks"></i></a>
-                                                    {if $_feature.builtin}
-                                                        <a class="s-action js-feature-undeletable" href="javascript:void(0);" title="[`This feature is special and cannot be deleted. You can only remove it from certain product types where you don’t need it.`]"><i class="icon16 delete-bw"></i></a>
-                                                    {else}
-                                                        <a class="s-action js-feature-delete" href="javascript:void(0);" title="[`Delete`]"><i class="icon16 delete"></i></a>
-                                                    {/if}
+                                            {strip}
+                                                <div class="s-actions-list align-right custom-p-4-mobile">
+                                                    <div class="flexbox vertical-mobile">
+                                                        <a href="javascript:void(0);"
+                                                            class="js-feature-edit button custom-mb-4-mobile nowrap rounded light-gray smaller"
+                                                            style="width: min-content;"
+                                                            title="[`Edit`]"
+                                                            data-id="{$_feature.id|escape}"
+                                                            data-code="{$_feature.code|escape}">
+                                                            <i class="fas fa-pencil-alt text-blue"></i>
+                                                            <span class="desktop-only"></span>
+                                                        </a>
+                                                        <div class="custom-mb-8-mobile dropdown secondary-actions">
+                                                            <button class="dropdown-toggle button smaller rounded light-gray custom-pl-0" type="button"
+                                                                title="[`Actions`]">&nbsp;</button>
+                                                            <div class="dropdown-body right">
+                                                                <ul class="menu">
+                                                                    <li>
+                                                                        <a href="javascript:void(0);" class="js-feature-copy" title="[`Duplicate`]">
+                                                                            <i class="fas fa-copy text-blue"></i>
+                                                                            <span>[`Duplicate`]</span>
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        {if $_feature.builtin}
+                                                                        <a href="javascript:void(0);" class="js-feature-undeletable"
+                                                                            data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]"
+                                                                            title="[`This feature is special and cannot be deleted. You can only remove it from certain product types where you don’t need it.`]" data-cancel="[`Cancel`]">
+                                                                            <i class="fas fa-trash-alt text-light-gray"></i>
+                                                                            <span>[`Delete`]</span>
+                                                                        </a>
+                                                                        {else}
+                                                                        <a href="javascript:void(0);" class="js-feature-delete"
+                                                                            data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]"
+                                                                            title="[`Delete`]" data-cancel="[`Cancel`]">
+                                                                            <i class="fas fa-trash-alt text-red"></i>
+                                                                            <span>[`Delete`]</span>
+                                                                        </a>
+                                                                        {/if}
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                {/strip}
-
+                                            {/strip}
                                             </div>
                                         </div>
                                     </div>
@@ -261,8 +333,8 @@
                                 {/if}
                             </div>
                         {/if}
-                    </section>
-                </div>
+                    </div>
+                </section>
             </div>
         </div>
     </div>
@@ -273,18 +345,9 @@
 
     <script>
         ( function($) {
-
             document.title = {_w('Product types & features')|json_encode} + ' — ' + {$wa->accountName()|json_encode};
 
             var sources = [{
-                id: "wa-dialog-css",
-                type: "css",
-                uri: "{$wa_url}wa-content/js/dialog/dialog.css?v={$wa->version(true)}"
-            }, {
-                id: "wa-dialog-js",
-                type: "js",
-                uri: "{$wa_url}wa-content/js/dialog/dialog.js?v={$wa->version(true)}"
-            }, {
                 id: "wa-features-settings-css",
                 type: "css",
                 uri: "{$wa_app_static_url}css/backend/settings/features.css?v={$wa->version()}"

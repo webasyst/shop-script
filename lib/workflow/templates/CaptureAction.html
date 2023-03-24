@@ -60,7 +60,7 @@
             {strip}
 
                 {capture assign="_warning_message"}
-                    <div class="s-message yellow"><i class="icon16 exclamation"></i>[`Money will be captured via the payment gateway.`]</div>
+                    <div class="s-message yellow"><i class="fas fa-exclamation-triangle"></i>[`Money will be captured via the payment gateway.`]</div>
                 {/capture}
                 <div class="s-messages-place">
                     {$_warning_message}
@@ -133,7 +133,9 @@
                                         {else}
                                             <label for="id-product-checkbox-{$item@iteration}">{$item.name|escape}</label>
                                         {/if}
-                                        <span class="gray">{if $_is_service}[`deleted service`]{else}[`deleted product`]{/if}</span>
+                                        {if !empty($item.product_id) || !empty($item.sku_id)
+                                            <span class="gray">{if $_is_service}[`deleted service`]{else}[`deleted product`]{/if}</span>
+                                        {/if}
                                     {else}
                                         {if $_is_service}
                                             {$item.name|escape}
@@ -144,7 +146,7 @@
 
                                     {if empty($item.deleted) && $item.type == 'product' && isset($item.current_product_name) && $item.current_product_name|escape != $item.name|escape}
                                         <div class="s-product-previous-name">
-                                            <i class="icon16 exclamation"></i>
+                                            <i class="fas fa-exclamation-triangle"></i>
                                             <span class="gray">[`Current name`]: {$item.current_product_name|escape}</span>
                                         </div>
                                     {/if}
@@ -261,7 +263,7 @@
     {if !empty($uncorrected_capture_plugins)}
         {capture assign="_uncorrected_capture_plugins_message"}
             <div class="s-message red">
-                <i class="icon16 exclamation-red"></i>Проверьте, поддерживается ли это действие плагином, который используется в вашем магазине для фискализации чеков.
+                <i class="fas fa-exclamation-triangle"></i>Проверьте, поддерживается ли это действие плагином, который используется в вашем магазине для фискализации чеков.
                 <br><br>
                 Если действие не поддерживается, выполните его также вручную в личном кабинете сервиса фискализации. Если вы не знаете, как это сделать, то не выполняйте это действие с заказом.
                 <br><br>

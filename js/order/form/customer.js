@@ -258,7 +258,7 @@ var ShopBackendOrderEditorCustomerForm = ( function($) {
                 }
 
                 fillInputByTerm(term);
-                
+
                 that.$customer_id.val(0);
                 that.activate();
 

@@ -5,22 +5,21 @@
     {if !count($orders)}
         <p class="gray">{sprintf('[`%s did not purchase anything yet.`]', $contact.name|escape)}</p>
     {else}
-        <table class="zebra double-padded s-customer-orders single-lined" id="s-order-list">
+        <table class="zebra s-customer-orders single-lined" id="s-order-list">
             {foreach $orders as $o}
                 <tr>
                     <td class="nowrap">
                         <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                           style="{$o.style|escape}"
                            data-order-id="{$o.id}"
                            data-state-id="{$o.state_id}"
                            class="s-order-link"
                         >
-                            <i class="{$o.icon}"></i>{$wa->shop->orderId($o.id)}
+                            <span class="badge smaller nowrap uppercase" style="background-color: {$o.state_color|escape};">{$o.state_name}</span>
+                            <span class="custom-ml-8 semibold">{$wa->shop->orderId($o.id)}</span>
                         </a>
                     </td>
-                    <td class="nowrap">
+                    <td class="nowrap custom-pl-4">
                         <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                           style="{$o.style|escape}"
                            data-order-id="{$o.id}"
                            data-state-id="{$o.state_id}"
                            class="s-order-link"
@@ -29,10 +28,10 @@
                     <td>
                         <div>
                             <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                               style="{$o.style|escape}"
                                data-order-id="{$o.id}"
                                data-state-id="{$o.state_id}"
                                class="s-order-link"
+                               title="{$o.shipping_name}"
                             >
                                 {if $o.shipping_name}
                                     {$o.shipping_name}
@@ -46,10 +45,10 @@
                     <td>
                         <div>
                             <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                               style="{$o.style|escape}"
                                data-order-id="{$o.id}"
                                data-state-id="{$o.state_id}"
                                class="s-order-link"
+                               title="{$o.payment_name}"
                             >
                                 {if $o.payment_name}
                                     {$o.payment_name}
@@ -62,7 +61,6 @@
                     </td>
                     <td class="bold nowrap align-right">
                         <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                           style="{$o.style|escape}"
                            data-order-id="{$o.id}"
                            data-state-id="{$o.state_id}"
                            class="s-order-link"

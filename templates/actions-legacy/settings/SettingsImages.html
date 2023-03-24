@@ -1,0 +1,298 @@
+{if isset($saved) && $saved}
+    <div class="block double-padded s-message-success bordered-bottom">
+        <i class="icon16 yes"></i>[`Settings updated`]
+    </div>
+{/if}
+
+<div class="block double-padded blank s-settings-form">
+    <h1 style="margin-bottom: 1em;">[`Images`]</h1>
+    <div id="s-settings-block">
+        <form action="?module=settings&action=images" method="post" id="s-settings-form">
+            <div class="fields form">
+                <h6 class="heading">[`Thumbnails`]</h6>
+                <div class="field-group">
+                    <div class="field" id="s-thumbnail-size">
+                        <div class="name">
+                            [`Thumbnails to be created when image is uploaded`]
+                        </div>
+                        <div class="value">
+                            {if !empty($settings.image_sizes)}
+                            <div id="s-saved-size">
+                                <ul class="zebra">
+                                {foreach $settings.image_sizes as $set_type => $sizes_set}
+                                    {foreach $sizes_set as $key => $size_item}
+                                        <li>
+                                            {foreach $size_item as $type => $size}
+                                                {if $type == 'crop'}
+                                                    [`Square crop`]: <strong>{$size}x{$size} [`px`]</strong>
+                                                {else if $type == 'max'}
+                                                    [`Max`] ( [`Width`], [`Height`] ) = <strong>{$size} [`px`]</strong>
+                                                {else if $type == 'width'}
+                                                    [`Width`] = <strong>{$size} [`px`]</strong>, [`Height`] = [`auto`]
+                                                {else if $type == 'height'}
+                                                    [`Width`] = [`auto`], [`Height`] = <strong>{$size} [`px`]</strong>
+                                                {else if $type == 'rectangle'}
+                                                    [`Width`] = <strong>{$size[0]} [`px`]</strong>, [`Height`] = <strong>{$size[1]} [`px`]</strong>
+                                                {/if}
+                                            {/foreach}
+                                            {if $set_type == 'custom'}
+                                                <a href="javascript:void(0)" class="s-delete-action hint inline-link" data-key="{$key}"><b><i>[`delete`]</i></b></a>
+                                            {/if}
+                                        </li>
+                                    {/foreach}
+                                {/foreach}
+                                </ul>
+                            </div>
+                            {/if}
+                        </div>
+                        <div class="s-size-set block" id="s-size-set" style="display:none">
+                            <div class="value no-shift js-size-option">
+                                <label class="s-label-with-check">
+                                    <input class="js-radio" type="radio" name="size_type[0]" value="max">
+                                    [`Max`] ( [`Width`], [`Height`] ) = <strong><span class="star">*</span></strong><input type="text" name="size[0]" value="" size="4" class="small-int short numerical js-input" style="display:none;" disabled>[`px`]
+                                </label>
+                            </div>
+                            <div class="value js-size-option">
+                                <label class="s-label-with-check">
+                                    <input class="js-radio" type="radio" name="size_type[0]" value="width">
+                                    [`Width`] = <strong><span class="star">*</span></strong><input type="text" name="size[0]" value="" size="4" class="small-int short numerical js-input" style="display:none;" disabled>[`px`], [`Height`] = <span class="gray">[`auto`]</span>
+                                </label>
+                            </div>
+                            <div class="value js-size-option">
+                                <label class="s-label-with-check">
+                                    <input class="js-radio" type="radio" name="size_type[0]" value="height">
+                                    [`Width`] = <span class="gray">[`auto`]</span>, [`Height`] = <strong><span class="star">*</span></strong><input type="text" name="size[0]" value="" size="4" class="small-int short numerical js-input" style="display:none;" disabled>[`px`]
+                                </label>
+                            </div>
+                            <div class="value js-size-option">
+                                <label class="s-label-with-check">
+                                    <input class="js-radio" type="radio" name="size_type[0]" value="crop">
+                                    [`Square crop`]: [`Size`] = <strong><span class="star">*</span></strong><input type="text" name="size[0]" value="" size="4" class="small-int short numerical js-input" style="display:none;" disabled>[`px`]
+                                </label>
+                            </div>
+                            <div class="value js-size-option">
+                                <label class="s-label-with-check">
+                                    <input class="js-radio" type="radio" name="size_type[0]" value="rectangle">
+                                    [`Rectangular crop`]: [`Width`] = <strong><span class="star">*</span></strong><input type="text" name="width[0]" value="" class="small-int short numerical js-input" style="display:none;" disabled>[`px`], [`Height`] = <strong><span class="star">*</span></strong><input type="text" name="height[0]" value="" size="4" class="small-int short numerical js-input" style="display:none;" disabled>[`px`]
+                                </label>
+                            </div>
+                        </div>
+                        <div class="value block">
+                            <a id="s-add-action" href="javascript:void(0);" class="small inline-link"><i class="icon10 add"></i><b><i>[`Add`]</i></b></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`Custom-sized thumbnails`]
+                        </div>
+                        <div class="value no-shift">
+                            <label>
+                                <input type="checkbox" name="image_thumbs_on_demand" id="s-thumbs_on_demand" value="1" {if !empty($settings.image_thumbs_on_demand)}checked{/if}> [`Allow on demand generation of custom-sized thumbnails`]<br>
+                                <span class="hint">[`If enabled, frontend design theme can request generation of custom-sized image thumbnails on fly (any custom size can be requested in addition to the listed above, including cropped versions)`]</span>
+                            </label>
+                        </div>
+                        <div class="value" id="s-max-size" {if !$settings.image_thumbs_on_demand}style="display:none;"{/if}>
+                            [`Max thumbnail size`]<br>
+                            <input type="text" name="image_max_size" value="{$settings.image_max_size}" size="4" class="small-int"> [`px`]<br>
+                            <span class="hint">[`Limits the maximum thumbnail size that can be created on demand. Must be no less than 970 px.`]</span>
+                        </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`Sharpen`]
+                        </div>
+                        <div class="value no-shift">
+                            <label><input type="checkbox" name="image_sharpen" value="1" {if !empty($settings.image_sharpen)}checked{/if}> [`Apply sharpening filter when creating thumbnails (recommended)`]</label>
+                        </div>
+
+                    </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Thumbnail quality`]
+                        </div>
+                        <div class="value">
+                            <input type="input" name="image_save_quality" value="{if !empty($settings.image_save_quality)}{str_replace(',', '.', $settings.image_save_quality)}{/if}"><br>
+                            <span class="hint">[`JPEG, WEBP compression quality for photo thumbnails. From 0 (min quality, min file size) to 100 (max quality, max file size). 90 is recommended.`]</span>
+                        </div>
+
+                    </div>
+
+                    <div class="field">
+                        <div class="name">
+                            [`Thumbnail filenames`]
+                        </div>
+                        <div class="value no-shift">
+                            <label>
+                                <input id="s-image-filename" type="checkbox" name="image_filename" value="1" {if !empty($settings.image_filename)}checked{/if}>
+                                [`Keep original filenames`]
+                            </label>
+                            <br>
+                            <span class="hint">[`When enabled, thumbnails’ file names are derived from the name of an original image file you upload.`]<br>
+                            [`When disabled, thumbnails’ file names are generated only with the use of numbers denoting thumbnail dimensions.`]</span>
+                            <p id="s-image-filename-hint" class="small"{if empty($settings.image_filename)} style="display: none"{/if}><br><em style="background-color: #ffa;">{sprintf('[`If you enable this setting for the first time, it is <strong>strongly recommended</strong> to 1) Re-generate all product image thumbnails (use the link below) right after this setting has been changed, and 2) Update your store theme product.html template with the <a href="%s" target="_blank">new product thumbnail display code</a>.`]', '[`https://www.shop-script.com/help/4750/shopscript610-design-theme-changes/`]')}</em></p>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="heading">@2x</h6>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`@2x image thumbnail generation`]
+                        </div>
+                        <div class="value no-shift">
+                            <label><input type="checkbox" name="enable_2x" value="1"{if !empty($settings.enable_2x)} checked{/if}> [`Automatic @2x image thumbnail generation (recommended)`]</label>
+                            <br>
+                            <span class="hint">[`Enabling this option will allow automatic creation of image thumbnails on-fly for devices with high pixel density displays, e.g. Retina displays. Generating bigger images require more memory resources for image generation, requires more disk space for storing images, but significantly improves user experience on devices with high-end displays`]</span>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="name">
+                            [`Thumbnail quality @2x`]
+                        </div>
+                        <div class="value">
+                            <input type="input" name="image_save_quality_2x" value="{if !empty($settings.image_save_quality_2x)}{str_replace(',', '.', $settings.image_save_quality_2x)}{/if}"><br>
+                            <span class="hint">[`JPEG, WEBP compression quality for photo thumbnails. From 0 (min quality, min file size) to 100 (max quality, max file size). 70 is recommended.`]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="heading">[`Originals`]</h6>
+                <div class="field-group">
+                    <div class="field">
+                        <div class="name">
+                            [`Originals`]
+                        </div>
+                        <div class="value no-shift">
+                            <label><input type="checkbox" name="image_save_original" value="1" {if !empty($settings.image_save_original)}checked{/if}> [`Backup image originals`]</label>
+                            <br>
+                            <span class="hint">[`When enabled, every uploaded image file is automatically backed up and stored independently from image full size version, which is modified when you edit it, e.g. rotate, apply watermarks or image visual effects. Originals are never updated. Pros: you have backups of all uploaded images. Cons: almost twice more disk space is required for storing original images than for storing only full size versions and thumbnails.`]</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <div class="value submit">
+                            <input type="submit" name="save" class="button green" value="[`Save`]" style="margin-right: 8px;">
+                            {if isset($saved) && $saved}
+                                <span id="s-save-notice"><i class="icon16 yes" style="vertical-align: middle;"></i> [`Settings updated`]</span>
+                                <script>
+                                ( function($) {
+                                    var $block = $("#s-save-notice");
+                                    setTimeout( function() {
+                                        if ( $.contains(document, $block[0])) {
+                                            $block.remove();
+                                        }
+                                    }, 2000);
+                                })(jQuery);
+                                </script>
+                            {/if}
+                        </div>
+                        <div class="value no-shift" id="submit-message" style="display:none;">
+                            <p class="small"><em class="highlighted">[`Updated settings will be applied only to newly created thumbnails. To apply updated settings to all existing product thumbnails, start thumbnail re-generation process.`]</em></p>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="value">
+                            <hr>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div></div>
+                        <div class="value">
+                            <a class="inline-link" href="#" id="s-regenerate-thumbs">[`Re-generate all product image thumbnails`]</a><br>
+                            {if $has_required_files === false}
+                                <div class="errormsg">[`Image thumbnails cannot be generated because required system files are missing in <em>wa-data/public/shop/products/</em> directory.`]</div>
+                            {/if}
+                            <span class="hint">[`Re-generating all public product image thumbnails allows you to save some disk space on server and to optimize images after thumbnail generation settings such as sharpening and JPEG compression quality were changed. Depending on the number of products, the entire process may take from few seconds to few minutes or even hours for very large product databases.`]</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            {$wa->csrf()}
+        </form>
+    </div>
+</div>
+
+{* dialogs section *}
+
+<div class="dialog large" id="s-regenerate-thumbs-dialog">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=imagesRegenerate">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Re-generate product image thumbnails`]</h1>
+                <p>[`This will start the process of deleting all existing product thumbnails and re-generating them from full-size versions according to latest thumbnail generation settings such as sharpening and JPEG compression quality. Depending on the number of products, re-generation may take some time to complete and may free some disk space on your server.`]</p>
+                <p class="small"><i class="icon10 exclamation"></i> <em>[`While thumbnails are re-generated, your storefront visitors should see no difference in your storefront functioning, and there should be no broken images, because new thumbnails are created by Webasyst automatically upon user request. However, since creating new thumbnails consume server resources, your server may experience above-average load while new thumbnails are created. The overload depends on the number of requests on thumbnails generation, i.e. on your storefront traffic. It is recommended to perform thumbnail re-generation when your storefront traffic is at its lowest.`]</em></p>
+
+                <h5 class="heading">[`Optional settings`]</h5>
+
+                <br>
+
+                <div>
+                    <label><input type="checkbox" name="create_thumbnails" value="1"> [`Automatically create thumbnails of predefined custom sizes`]</label>
+                    <br>
+                    <span class="hint">[`Enable to get thumbnails of all available sizes created at once. It is recommended if automatic image thumbnail generation is disabled in image settings.`]<br>
+                        [`If you leave this option disabled, thumbnails will be automatically created later, at the first request of an image on the website, if automatic image thumbnail generation is enabled.`]</span>
+                </div>
+
+                <div style="padding-left: 24px;margin-top: 14px;">
+                    <label><input type="checkbox" name="with_2x" value="1" disabled> [`Create @2x image thumbnails`]</label>
+                    <br>
+                    <span class="hint">[`@2x thumbnails require more disk space than ordinary ones. Ensure that you have sufficient space to store all image files.`]</span>
+                </div>
+
+                <br>
+
+                <div>
+                    <label><input type="checkbox" name="restore_originals" value="1"> [`Restore product full-size images from originally uploaded versions (backups)`]</label>
+                    <br>
+                    <span class="hint">[`Enable this to flush all source full-size images and re-generate them from backups. All plugin customizations to source images will be re-applied. Source images without backups will be skipped.`]</span>
+                </div>
+
+                <div id="s-regenerate-progressbar" style="display:none; margin-top: 20px;">
+
+                    <div class="progressbar blue float-left" style="display: none; width: 70%;">
+                        <div class="progressbar-outer">
+                            <div class="progressbar-inner" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
+                    <div class="clear"></div>
+                    <span class="progressbar-description">0.000%</span>
+                    <em class="hint">[`Please don’t close your browser window until re-generation is over.`]</em>
+                    <br clear="left" />
+                    <em class="errormsg"></em>
+                </div>
+
+                <div id="s-regenerate-report" style="display: none; margin-top: 20px;">
+                </div>
+
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button green" type="submit" value="[`Start re-generation process`]">
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
+<script type="text/javascript" src="{$wa_app_static_url}js-legacy/settings/images.js?{$wa->version()}"></script>
+<script type="text/javascript">
+document.title = '{"[`Product images`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+if(typeof($)!='undefined') {
+    $.settings.imagesInit();
+}
+</script>

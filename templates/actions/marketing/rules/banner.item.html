@@ -18,7 +18,15 @@
                 </div>
 
                 {* Control for upload a new image *}
-                <input class="js-image-field" type="file" accept=".gif,.jpg,.jpeg,.png,.webp">
+                <div class="js-image-field-wrapper">
+                    <div class="upload">
+                        <label class="link">
+                            <i class="fas fa-file-upload"></i>
+                            <span>Выберите файл</span>
+                            <input class="js-image-field" autocomplete="off" type="file" accept=".gif,.jpg,.jpeg,.png,.webp">
+                        </label>
+                    </div>
+                </div>
 
                 {* Field for transferring an already uploaded image *}
                 {* If the new image will not be uploaded, we will use the data from this field *}
@@ -28,6 +36,12 @@
                 {* Field for transferring the name of the image, loaded into the flat directory in the cache *}
                 <input class="js-image-filename-field" type="hidden" data-name="[image_filename]" value="">
 
+                <script>
+                    ( function($) {
+                        $(".js-image-field-wrapper").waUpload()
+                    })(jQuery);
+                </script>
+
             </div>
         </div>
 
@@ -35,7 +49,7 @@
             <div class="name">[`Title`]</div>
             <div class="value">
 
-                <input type="text" data-name="[title]" value="{$banner.title|default:''|escape}">
+                <input class="long" type="text" data-name="[title]" value="{$banner.title|default:''|escape}">
 
             </div>
         </div>
@@ -50,24 +64,24 @@
         <div class="field">
             <div class="name">[`Link`]</div>
             <div class="value">
-                <input type="text" data-name="[link]" value="{$banner.link|default:""|escape}" required>
+                <input class="long" type="text" data-name="[link]" value="{$banner.link|default:""|escape}" required>
             </div>
         </div>
 
         <div class="field">
             <div class="name">[`Text color`]</div>
-            <div class="value">
-                <input type="text" data-name="[color]" value="{$banner.color|escape|default:'#ffffff'}" class="short">
-                <i class="icon16 color"></i>
+            <div class="value s-color-picker">
+                <input type="text" data-name="[color]" value="{$banner.color|escape|default:'#ffffff'}" class="shorter">
+                <div class="icon"><i class="fas fa-circle"></i></div>
                 <div class="js-colorpicker"></div>
             </div>
         </div>
 
         <div class="field">
             <div class="name">[`Background color`]</div>
-            <div class="value">
-                <input type="text" data-name="[background_color]" value="{$banner.background_color|escape|default:'#aaaaaa'}" class="short">
-                <i class="icon16 color"></i>
+            <div class="value s-color-picker">
+                <input type="text" data-name="[background_color]" value="{$banner.background_color|escape|default:'#aaaaaa'}" class="shorter">
+                <div class="icon"><i class="fas fa-circle"></i></div>
                 <div class="js-colorpicker"></div>
                 <p class="hint">[`Image background color`]</p>
             </div>
@@ -80,7 +94,14 @@
                 <div class="s-countdown-section js-countdown-section {if !empty($banner.countdown_datetime)}is-extended{/if}">
                     <div class="s-visible">
                         <label>
-                            <input class="js-countdown-toggle" type="checkbox" {if !empty($banner.countdown_datetime)}checked{/if}>
+                            <span class="wa-checkbox">
+                                <input class="js-countdown-toggle" type="checkbox" {if !empty($banner.countdown_datetime)}checked{/if}>
+                                <span>
+                                    <span class="icon">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </span>
+                            </span>
                             <span class="s-toggle-text">[`Turn on`]</span>
                         </label>
 
@@ -99,7 +120,7 @@
                             {$_time_minutes = $banner.countdown_datetime|wa_datetime:"i"}
                         {/if}
 
-                        <div class="line">
+                        <div class="flexbox middle">
                             <label class="s-datepicker-wrapper">
                                 <input class="s-datepicker js-datepicker" type="text" value="{$_date_view}" data-alt=".js-date" required {if empty($banner.countdown_datetime)}disabled{/if}>
                                 <input class="js-date" type="hidden" data-name="[countdown_datetime][date]" value="{$_date}"{if empty($banner.countdown_datetime)} disabled{/if}>

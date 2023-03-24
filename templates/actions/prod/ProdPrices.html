@@ -100,12 +100,12 @@
                 <div class="s-column-title flexbox middle space-4 {if $formatted_product["normal_mode"]}cursor-pointer{/if}"
                      {if $formatted_product["normal_mode"]}v-on:click.prevent="pricesToggle"{/if}>
                     {if $formatted_product["normal_mode"]}
-                        <span class="s-icon">
-                            <span class="icon size-20" v-if="!prices_model.is_extended" v-bind:key="'right'"><i class="fas fa-chevron-right"></i></span>
+                        <span class="s-icon custom-mt-32">
                             <span class="icon size-20" v-if="prices_model.is_extended" v-bind:key="'down'"><i class="fas fa-chevron-down"></i></span>
+                            <span class="icon size-20" v-else v-bind:key="'right'"><i class="fas fa-chevron-right"></i></span>
                         </span>
                     {/if}
-                    <div class="s-title">[`Prices & availability`]</div>
+                    <h4 class="s-title">[`Prices & availability`]</h4>
                 </div>
                 <div class="s-column-filters wide" v-if="prices_model.is_extended">
                     <div class="s-filters-list">
@@ -115,7 +115,7 @@
                                 <component-dropdown
                                     v-bind:items="filters[filter_name]['options']"
                                     v-bind:active_item_id="active_filter_id"
-                                    v-bind:button_class="'wa-small transparent'"
+                                    v-bind:button_class="'small white rounded'"
                                     v-bind:body_class="'right'"
                                     v-on:change="onChangeFilter(filter_name, $event)"></component-dropdown>
                             </div>
@@ -133,7 +133,7 @@
 {$_components["component-prices-section"] = $_component_prices_section|strip}
 
 {capture assign="_component_price_table"}
-    <div class="vue-component-price-table">
+    <div class="vue-component-price-table small">
         <div class="s-table-header">
             <div class="s-table-row">
                 <div class="s-table-column s-column-name">
@@ -179,7 +179,7 @@
                                     <div class="flexbox">
                                         <div class="s-modification-icon s-modification-percentage"
                                              v-if="show_percentage(sku.modifications) && sku_mod.promos">
-                                            <button class="wa-button no-indent transparent"
+                                            <button class="button no-indent outlined"
                                                     v-bind:data-tooltip-id="promo_tooltip(sku_mod)"
                                                     v-bind:style="{ 'visibility' : (Object.keys(sku_mod.promos).length ? '' : 'hidden' ) }"
                                                     v-on:click.prevent="scrollToPromo(sku_mod)">
@@ -188,26 +188,26 @@
                                             </button>
                                         </div>
                                         <div class="s-modification-icon s-modification-status">
-                                            <button class="wa-button no-indent transparent"
+                                            <div class="text-gray"
                                                     v-bind:data-tooltip-id="(sku_mod.status ? 'prices-tooltip-1' : 'prices-tooltip-2')">
-                                                <span class="s-icon color-blue"
+                                                <span class="icon s-icon baseline text-blue"
                                                       v-if="sku_mod.status"
                                                       v-bind:key="'eye'"><i class="fas fa-eye"></i></span>
-                                                <span class="s-icon color-gray-light"
+                                                <span class="icon s-icon baseline text-light-gray"
                                                       v-if="!sku_mod.status"
                                                       v-bind:key="'eye-slash'"><i class="fas fa-eye-slash"></i></span>
-                                                </button>
+                                                </div>
                                         </div>
                                         <div class="s-modification-icon s-modification-available">
-                                            <button class="wa-button no-indent transparent"
+                                            <div class="text-gray"
                                                     v-bind:data-tooltip-id="(sku_mod.available ? 'prices-tooltip-3' : 'prices-tooltip-4')">
-                                                <span class="s-icon icon top size-18 color-green-dark"
+                                                <span class="s-icon icon top size-18 text-green"
                                                       v-if="sku_mod.available"
                                                       v-bind:key="'cart'"><svg><use xlink:href='{$_sprite_url}#cart'></use></svg></span>
-                                                <span class="s-icon icon top size-18 color-gray-light"
+                                                <span class="s-icon icon top size-18 text-light-gray"
                                                       v-if="!sku_mod.available"
                                                       v-bind:key="'cart-slash'"><svg><use xlink:href='{$_sprite_url}#cart-slash'></use></svg></span>
-                                            </button>
+                                            </div>
                                         </div>
                                         <div class="s-modification-name wide">
                                             <template v-if="product.normal_mode">
@@ -260,10 +260,10 @@
                     <span class="s-icon icon color-yellow" data-tooltip-id="prices-tooltip-8"
                           v-if="promo.status === 'stopped'"
                           v-bind:key="'pause'"><i class="fas fa-pause-circle"></i></span>
-                    <span class="s-icon icon color-gray" data-tooltip-id="prices-tooltip-9"
+                    <span class="s-icon icon text-gray" data-tooltip-id="prices-tooltip-9"
                           v-else-if="promo.status === 'scheduled'"
                           v-bind:key="'clock'"><i class="fas fa-clock"></i></span>
-                    <span class="s-icon icon color-green-dark" data-tooltip-id="prices-tooltip-7"
+                    <span class="s-icon icon text-green" data-tooltip-id="prices-tooltip-7"
                           v-else
                           v-bind:key="'play'"><i class="fas fa-play-circle"></i></span>
                 </div>
@@ -323,7 +323,7 @@
                                         <component-dropdown
                                             v-bind:items="filters[filter_name]['options']"
                                             v-bind:active_item_id="active_filter_id"
-                                            v-bind:button_class="'wa-small transparent'"
+                                            v-bind:button_class="'small white rounded'"
                                             v-bind:body_class="'right'"
                                             v-on:change="onChangeFilter(filter_name, $event)"></component-dropdown>
                                     </div>
@@ -348,15 +348,15 @@
         <div class="s-stocks-section">
             <div class="s-visible-part">
 
-                <div class="wa-fields vertical">
-                    <div class="wa-field">
+                <div class="fields vertical">
+                    <div class="field">
                         <div class="value">
                             <div class="flexbox">
                                 <div class="s-field-wrapper wide">
-                                    <div class="s-icon left" v-bind:class="{ 'color-green-dark' : sku_mod.stocks_data.indicator > 0, 'color-orange' : sku_mod.stocks_data.indicator == 0, 'color-red' : sku_mod.stocks_data.indicator < 0 }">
+                                    <div class="s-icon left" v-bind:class="{ 'text-green' : sku_mod.stocks_data.indicator > 0, 'text-orange' : sku_mod.stocks_data.indicator == 0, 'text-red' : sku_mod.stocks_data.indicator < 0 }">
                                         <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
                                     </div>
-                                    <input class="wa-small s-field full-width is-number" type="text"
+                                    <input class="small s-field full-width is-number" type="text"
                                            placeholder="∞"
                                            readonly="readonly"
                                            v-model="sku_mod.count"
@@ -397,7 +397,7 @@
                                                 <div class="s-icon left" v-bind:class="stock_icon_class(sku_mod_stocks[stock.id], stock)">
                                                     <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
                                                 </div>
-                                                <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
+                                                <input class="small s-field full-width is-number" type="text" placeholder="∞"
                                                        v-model="sku_mod_stocks[stock.id]"
                                                        v-bind:readonly="stock.is_virtual || !can_edit"
                                                        v-bind:style="{ 'opacity' : stock.is_virtual ? '.5' : ''}"
@@ -417,7 +417,7 @@
                         <div class="s-stocks-list" v-else>
 
                             <div class="s-field-wrapper">
-                                <input class="wa-small s-field full-width is-number" type="text" placeholder="∞"
+                                <input class="small s-field full-width is-number" type="text" placeholder="∞"
                                        v-model="values.sku_mod_count"
                                        v-on:input="validate($event, 'number-negative', values, 'sku_mod_count');">
                             </div>
@@ -426,7 +426,7 @@
                     </div>
                     <div class="s-section-footer"
                          v-if="can_edit">
-                        <button class="wa-button wa-small" type="button"
+                        <button class="button green small" type="button"
                                 v-bind:class="{ 'yellow' : states.is_changed }"
                                 v-bind:disabled="states.is_locked"
                                 v-on:click.prevent="saveStocksChanges">
@@ -434,9 +434,8 @@
                             <span class="s-icon" v-if="states.is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                             <span class="s-name">[`Save`]</span>
                         </button>
-                        <button class="wa-button wa-small gray-light" type="button"
-                                v-on:click.prevent="toggleStocks(false)">
-                            <span class="s-icon"><i class="fas fa-times"></i></span></button>
+                        <button class="button small light-gray" type="button"
+                                v-on:click.prevent="toggleStocks(false)">[`Close`]</button>
                     </div>
                 </div>
             </div>
@@ -447,7 +446,7 @@
 
 {capture assign="_component_dropdown"}
     <div class="dropdown">
-        <button class="dropdown-toggle wa-button" type="button"
+        <button class="dropdown-toggle button" type="button"
                 v-bind:class="button_class">{ { active_item.name } }</button>
         <div class="dropdown-body"
              v-bind:class="body_class"
@@ -465,7 +464,7 @@
 {* PAGE *}
 <div id="js-product-prices-section-wrapper">
     {* VUE *}
-    <div class="article s-product-prices-section js-product-prices-section" style="visibility: hidden;">
+    <div class="article wider s-product-prices-section js-product-prices-section" style="visibility: hidden;">
         {* BODY *}
 
         <!-- plugin hook: 'backend_prod_content.top' -->
@@ -476,7 +475,7 @@
             {* GLOBAL ERRORS *}
             <div class="s-errors-place" v-if="errors_global.length">
                 <template v-for="error in errors_global">
-                    <div class="wa-message wa-small info flexbox space-8"
+                    <div class="wa-message small info flexbox space-8"
                          v-bind:data-id="error.id"
                          v-bind:key="error.id">
                         <div class="message-icon"><i class="fas fa-info-circle"></i></div>
@@ -494,27 +493,27 @@
                     <h4 class="s-title">[`Availability`]</h4>
                 </div>
                 <div class="s-section-body">
-                    <div class="s-status-message wa-message wa-small gray">
+                    <div class="s-status-message wa-message small gray">
                         {if $product.status === "1"}
                             <div class="s-title flexbox space-8 middle">
-                                <div class="message-icon"><i class="fas fa-check color-green-dark"></i></div>
+                                <div class="message-icon"><i class="fas fa-check text-green"></i></div>
                                 <div class="message-text wide">[`Published`]</div>
                             </div>
-                            <div class="s-description">[`The product is visible in listings in the storefront but its availability for ordering depends on its individual SKUs’ & variants’ properties.`]</div>
+                            <div class="hint">[`The product is visible in listings in the storefront but its availability for ordering depends on its individual SKUs’ & variants’ properties.`]</div>
 
                         {elseif $product.status === "0"}
                             <div class="s-title flexbox space-8 middle">
-                                <div class="message-icon"><i class="fas fa-times color-yellow"></i></div>
+                                <div class="message-icon"><i class="fas fa-times text-yellow"></i></div>
                                 <div class="message-text wide">[`Hidden`]</div>
                             </div>
-                            <div class="s-description">[`The product is not shown among other products in the storefront, is not available for purchase, and can be viewed at its direct URL only.`]</div>
+                            <div class="hint">[`The product is not shown among other products in the storefront, is not available for purchase, and can be viewed at its direct URL only.`]</div>
 
                         {elseif $product.status === "-1"}
                             <div class="s-title flexbox space-8 middle">
-                                <div class="message-icon"><i class="fas fa-times color-red"></i></div>
+                                <div class="message-icon"><i class="fas fa-times text-red"></i></div>
                                 <div class="message-text wide">[`Unpublished`]</div>
                             </div>
-                            <div class="s-description">
+                            <div class="hint">
                                 {sprintf(
                                     _w('The product is not visible among other products in the storefront, is not available for purchase, cannot be viewed at its direct URL, and is excluded from the %sSitemap file%s.'),
                                     '<a class="nowrap bold" href="javascript:void(0);">',
@@ -591,12 +590,12 @@
                         <div class="s-column-title flexbox middle space-4 {if $formatted_product["normal_mode"] && !empty($promos_model.promos)}cursor-pointer{/if}"
                             {if $formatted_product["normal_mode"] && !empty($promos_model.promos)}v-on:click.prevent="promosToggle"{/if}>
                             {if $formatted_product["normal_mode"] && !empty($promos_model.promos)}
-                                <span class="s-icon">
-                                    <span class="icon size-20" v-if="!promos_model.is_extended" v-bind:key="'right'"><i class="fas fa-chevron-right"></i></span>
+                                <span class="s-icon custom-mt-32">
                                     <span class="icon size-20" v-if="promos_model.is_extended" v-bind:key="'down'"><i class="fas fa-chevron-down"></i></span>
+                                    <span class="icon size-20" v-else v-bind:key="'right'"><i class="fas fa-chevron-right"></i></span>
                                 </span>
                             {/if}
-                            <div class="s-title">[`Promos`]</div>
+                            <h4 class="s-title">[`Promos`]</h4>
                         </div>
                         <div class="s-column-filters wide" v-if="promos_model.promos.length && promos_model.is_extended">
                             <div class="s-filters-list">
@@ -606,7 +605,7 @@
                                         <component-dropdown
                                             v-bind:items="filters[filter_name]['options']"
                                             v-bind:active_item_id="active_filter_id"
-                                            v-bind:button_class="'wa-small transparent'"
+                                            v-bind:button_class="'small white rounded'"
                                             v-on:change="onChangeFilter(filter_name, $event)"></component-dropdown>
                                     </div>
                                 </template>

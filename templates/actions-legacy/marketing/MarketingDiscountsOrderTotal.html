@@ -1,0 +1,131 @@
+{* PAGE *}
+<div class="s-discounts-page block double-padded" id="js-discounts-page">
+
+    {* BODY *}
+    <div class="s-page-body">
+        <div class="s-table-box space-20">
+
+            {* SIDEBAR *}
+            <div class="sidebar s-page-sidebar left200px">
+                {$discounts_sidebar}
+            </div>
+
+            {* CONTENT *}
+            <div class="content s-page-content left200px">
+                {* HEADER *}
+                <header class="s-page-header">
+                    <h1 class="s-title">[`By order total`]</h1>
+                </header>
+
+                <div class="s-discounts-order-total-section">
+                    <form action="" id="s-discounts-order-total-form">
+                        <div class="fields form">
+                            <div class="field-group">
+                                <input type="hidden" name="dummy" value="1">
+                                <div class="field">
+                                    <div class="name">[`Status`]</div>
+                                    <div class="value no-shift s-ibutton-checkbox">
+                                        <ul class="menu-h">
+                                            <li><span class="gray" id="s-discount-type-disabled-label">[`Disabled`]</span></li>
+                                            <li>
+                                                <input type="checkbox" id="s-discount-type-status" name="enabled" value="1"{if $enabled} checked{/if}>
+                                            </li>
+                                            <li><span id="s-discount-type-enabled-label">[`Enabled`]</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group"{if !$enabled} style="display:none"{/if}>
+                                <div class="field">
+                                    <div class="name">[`Discount`]</div>
+                                    <div class="value">
+                                        <table class="zebra">
+                                            <thead>
+                                                <tr>
+                                                    <th>&nbsp;</th>
+                                                    <th>[`Order total`], {$def_cur_sym}</th>
+                                                    <th>&nbsp;</th>
+                                                    <th>[`Discount`], %</th>
+                                                    <th>&nbsp;</th>
+                                                </tr>
+                                            </thead>
+                                            <tfoot>
+                                                <tr class="white">
+                                                    <td></td>
+                                                    <td colspan="4">
+                                                        <a href="javascript:void(0)" class="inline-link js-add-template">
+                                                            <i class="icon16 add"></i><b><i>[`Add rate`]</i></b>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                            <tbody>
+                                                <tr class="{if !empty($rates)}hidden {/if}gray">
+                                                    <td></td>
+                                                    <td colspan="4">[`No discount rules are defined yet.`]</td>
+                                                </tr>
+
+                                                {$rates[] = ['sum' => '', 'discount' => '']}
+                                                {$_pattern = '^\d*\.?\d*$'}
+
+                                                {foreach $rates as $r}
+                                                    <tr class="rate-row{if $r@last} hidden template{/if}">
+                                                        <td>&gt;</td>
+                                                        <td><input type="text" name="rate_sum[]" value="{$r.sum}" pattern="{$_pattern}" {if !$r@last}required{/if}></td>
+                                                        <td>→</td>
+                                                        <td><input type="text" name="rate_discount[]" value="{$r.discount}" placeholder="0-100" pattern="{$_pattern}" {if !$r@last}required{/if}></td>
+                                                        <td><a href="javascript:void(0)"><i class="icon16 delete"></i></a></td>
+                                                    </tr>
+                                                {/foreach}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group"{if !$enabled} style="display:none"{/if}>
+                                <div class="field">
+                                    <div class="value submit">
+                                        <input class="button green js-submit-button" type="submit" value="[`Save`]">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="clear-left"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+            $.shop.marketing.setTitle({_w("By order total")|json_encode});
+
+            var sources = [{
+                id: "wa-shop-marketing-discounts-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/backend/marketing/discounts.js?v={$wa->version()}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                var page = $.shop.marketing.init.discountsPage({
+                    $wrapper: $("#js-discounts-page"),
+                    urls: {
+                        "discounts_enable": "{$wa_app_url}marketing/?module=marketingDiscountsEnable",
+                        "save": "{$wa_app_url}marketing/?module=marketingDiscountsOrderTotalSave"
+                    },
+                    locales: {
+                        "incorrect_1": {_w("Must be a value from 0 to 100")|json_encode},
+                        "incorrect_2": {_w("Must be a positive value or zero")|json_encode}
+                    }
+                });
+
+                page.initOrderTotal();
+            });
+
+        })(jQuery);
+    </script>
+</div>

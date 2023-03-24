@@ -3,108 +3,6 @@
  * Controller for Features Settings Page.
  * */
 var ShopFeatureSettingsPage = ( function($) { "use strict";
-
-    // COMPONENTS
-
-    var Switch = ( function($) {
-
-        Switch = function(options) {
-            var that = this;
-
-            // DOM
-            that.$wrapper = options["$wrapper"];
-            that.$toggle = $("<span class=\"switch-toggle\" />").appendTo(that.$wrapper);
-            that.$field = that.$wrapper.find("input:checkbox:first");
-
-            // VARS
-            that.on = {
-                ready: (typeof options["ready"] === "function" ? options["ready"] : function() {}),
-                change: (typeof options["change"] === "function" ? options["change"] : function() {})
-            };
-
-            // DYNAMIC VARS
-            that.is_active = (that.$field.length ? that.$field.is(":checked") : false);
-            that.is_active = (typeof options["active"] === "boolean" ? options["active"] : that.is_active);
-
-            that.is_disabled = (that.$field.length ? that.$field.is(":disabled") : false);
-            that.is_disabled = (typeof options["disabled"] === "boolean" ? options["disabled"] : that.is_disabled);
-
-            // INIT
-            that.init();
-        };
-
-        Switch.prototype.init = function() {
-            var that = this;
-
-            that.set(that.is_active, false);
-            that.disable(that.is_disabled);
-
-            that.$wrapper.data("switch", that).trigger("ready", [that]);
-            that.on.ready(that);
-
-            that.$wrapper.on("click", function(event) {
-                event.preventDefault();
-                if (!that.is_disabled) {
-                    that.set(!that.is_active);
-                }
-            });
-        };
-
-        /**
-         * @param {Boolean} active
-         * @param {Boolean?} trigger_change
-         * */
-        Switch.prototype.set = function(active, trigger_change) {
-            var that = this,
-                active_class = "is-active";
-
-            trigger_change = (typeof trigger_change === "boolean" ? trigger_change : true);
-
-            if (active) {
-                that.$wrapper.addClass(active_class);
-            } else {
-                that.$wrapper.removeClass(active_class);
-            }
-
-            if (that.$field.length) {
-                that.$field.attr("checked", active);
-            }
-
-            if (trigger_change) {
-                if (that.$field.length) {
-                    that.$field.trigger("change", [active, that]);
-                } else {
-                    that.$wrapper.trigger("change", [active, that]);
-                }
-
-                that.on.change(active, that);
-            }
-
-            that.is_active = active;
-
-            return that.is_active;
-        };
-
-        /**
-         * @param {Boolean} disable
-         * */
-        Switch.prototype.disable = function(disable) {
-            var that = this,
-                disabled_class = "is-disabled";
-
-            if (disable) {
-                that.$wrapper.addClass(disabled_class);
-            } else {
-                that.$wrapper.removeClass(disabled_class);
-            }
-
-            that.is_disabled = disable;
-        };
-
-        return Switch;
-
-    })($);
-
     // SECTIONS
 
     /**
@@ -480,6 +378,12 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             that.initTypeActions();
             that.initSearch();
             that.initSortable();
+
+            $(".dropdown.secondary-actions").waDropdown({
+              hover: true,
+              items: ".menu > li > a",
+              update_title: false
+            });
         };
 
         Content.prototype.initTypeActions = function() {
@@ -679,7 +583,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
             function visibilityToggle($link) {
                 var $feature = $link.closest(".js-feature-wrapper"),
-                    $icon = $link.find(".icon16"),
+                    $icon = $link.find("svg:not(.fa-spinner)"),
+                    $loading = $link.find("svg.fa-spinner"),
                     feature_id = $feature.data("id"),
                     is_locked = !!$feature.data("visibility-locked"),
                     is_enabled = !!$feature.data("visibility-enabled");
@@ -688,8 +593,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                 if (!is_locked) {
                     $feature.data("visibility-locked", true);
-
-                    var $loading = $("<i class=\"icon16 loading\" />").insertAfter( $icon.hide() );
+                    $icon.hide();
+                    $loading.removeClass('hidden');
 
                     var href = that.urls["toggle"],
                         data = {
@@ -701,11 +606,6 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                     if (that.type_id) { data["type_id"] = that.type_id; }
 
                     $.post(href, data, "json")
-                        .always( function() {
-                            $loading.remove();
-                            $icon.show();
-                            $feature.data("visibility-locked", "");
-                        })
                         .done( function() {
                             $feature
                                 .attr("data-visibility-enabled", (is_enabled ? 0 : 1) )
@@ -713,11 +613,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                             if (is_enabled) { $feature.addClass(disabled_class) }
                             else { $feature.removeClass(disabled_class) }
-
-                            $icon
-                                .removeClass(is_enabled ? "visibility-on" : "ss visibility")
-                                .addClass(!is_enabled ? "visibility-on" : "ss visibility");
-                        });
+                            $icon.toggleClass('hidden')
+                        })
+                        .always( function() {
+                            $link.find("svg.fa-spinner").hide();
+                            $icon.show();
+                            $feature.data("visibility-locked", "");
+                    });
                 }
             }
 
@@ -730,12 +632,12 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
             that.$wrapper.on("click", ".js-feature-sku-toggle-always", function(event) {
                 event.preventDefault();
-                alert($(this).attr('title'));
+                MessageDialog($(this).attr('title'));
             });
 
             function skuToggle($link) {
                 var $feature = $link.closest(".js-feature-wrapper"),
-                    $icon = $link.find(".icon16"),
+                    $icon = $link.find("svg"),
                     feature_id = $feature.data("id"),
                     is_locked = !!$feature.data("sku-locked"),
                     is_enabled = !!$feature.data("sku-enabled");
@@ -743,7 +645,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 if (!is_locked) {
                     $feature.data("sku-locked", true);
 
-                    var $loading = $("<i class=\"icon16 loading\" />").insertAfter( $icon.hide() );
+                    var $loading = $("<i class=\"fas fa-spin fa-spinner\" />").insertAfter( $icon.hide() );
 
                     var data = {
                             param: "sku",
@@ -758,13 +660,14 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         if (result === "ok") {
                             // Remember new state of the toggle if it changed
                             $feature.data("sku-enabled", (is_enabled ? '' : '1'));
+                            $icon.toggleClass('text-light-gray', is_enabled);
                             $icon
                                 .removeClass(is_enabled ? "hierarchical" : "hierarchical-off")
                                 .addClass(!is_enabled ? "hierarchical" : "hierarchical-off");
                         }
 
                         // Remove loading indicator and unlock feature row
-                        $loading.remove();
+                        $link.find("svg.fa-spin").remove();
                         $icon.show();
                         $feature.data("sku-locked", "");
                     });
@@ -853,7 +756,9 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
             that.$wrapper.on("click", ".js-feature-undeletable, .js-code-undeletable", function(event) {
                 event.preventDefault();
-                alert($(this).attr('title'));
+                var $name = $(this).closest('.s-feature-block').find('.js-search-place');
+                var text = `${$name.find('.s-name').text()} (${$name.find('.s-code').text()})`;
+                MessageDialog(text, $(this).attr('title'));
             });
 
             function showFeatureDeleteDialog($link) {
@@ -1151,14 +1056,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             var xhr = null;
 
             $features_list.sortable({
-                distance: 5,
-                opacity: 0.75,
-                containment: "parent",
-                items: "> .js-feature-wrapper",
-                handle: ".js-feature-sort-toggle",
-                cursor: "move",
-                tolerance: "pointer",
-                update: function(event, ui) {
+                animation: 150,
+                onEnd() {
                     var feature_ids = $features_list.find(".js-feature-wrapper").map( function() {
                         return $(this).data("id");
                     }).get();
@@ -1246,6 +1145,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
             // DOM
             that.$wrapper = options["$wrapper"];
+            that.currentSource = null;
 
             // CONST
             that.scope = options["scope"];
@@ -1266,8 +1166,6 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             // INIT
             that.vue_model = that.initFractional();
             that.init();
-
-            console.log( that );
 
             function formatFractional(fractional) {
                 if (fractional.stock_base_ratio.value === 0) { fractional.stock_base_ratio.value = ""; }
@@ -1312,6 +1210,17 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             var $section = that.$wrapper.find(".js-fractional-section");
             if (!$section.length) { return null; }
 
+            function updateWaTooltip() {
+                setTimeout(function() {
+                    console.log('updateWaTooltip');
+                    $(".wa-tooltip").waTooltip({
+                        allowHTML: true,
+                        delay: 300,
+                        interactive: true
+                    });
+                });
+            }
+
             return new Vue({
                 el: $section[0],
                 data: {
@@ -1327,6 +1236,10 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                             self.title = null;
 
+                            if (title_data) {
+                                title_data = '<div style="white-space:break-spaces;">' + title_data +  '</div>';
+                            }
+
                             return {
                                 checked: (typeof this.value === "boolean" ? this.value : false),
                                 disabled: (typeof this.disabled === "boolean" ? this.disabled : false),
@@ -1338,13 +1251,12 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         delimiters: ['{ { ', ' } }'],
                         mounted: function() {
                             var self = this,
-                                $switch = $(self.$el).find(".wa-switch");
+                                $switch = $(self.$el).find(".switch");
 
-                            new Switch({
-                                $wrapper: $switch,
+                            $switch.waSwitch({
                                 change: function(active, wa_switch) {
                                     self.$emit("change", active);
-                                    self.$emit("input", active);
+                                    // self.$emit("input", active);
                                 }
                             });
                         }
@@ -1443,6 +1355,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         }
 
                         return result;
+                    },
+                    is_fractional_order_multiplicity_factor: function () {
+                        if (!this.fractional.order_multiplicity_factor.value) {
+                            this.updateWaTooltip();
+                        }
+
+                        return this.fractional.order_multiplicity_factor.value;
                     }
                 },
                 methods: {
@@ -1825,6 +1744,9 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         }
 
                         return result;
+                    },
+                    updateWaTooltip: function () {
+                        updateWaTooltip();
                     }
                 },
                 delimiters: ['{ { ', ' } }'],
@@ -1840,6 +1762,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                     }
 
                     that.validate(self);
+
+                    this.updateWaTooltip();
                 }
             });
         }
@@ -1904,6 +1828,14 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                     return result;
                 }
             }
+
+            var $all_icons_check = $('.js-type-icons-list :input');
+
+            $all_icons_check.filter('[checked]').parents('li').addClass('selected');
+
+            $all_icons_check.on('change', function () {
+              $(this).parents('li').addClass('selected').siblings().removeClass('selected');
+            })
         };
 
         Dialog.prototype.initToggle = function() {
@@ -1912,12 +1844,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
             if (!$section.length) { return false; }
 
-            $section.on("change", ".s-field", function() {
-                toggleContent($(this).val());
-            });
-
             function toggleContent(active_content_id) {
-                that.$wrapper.find(".s-fields-wrapper .field-group").each( function() {
+                that.$wrapper.find(".s-fields-wrapper [data-content-id]").each( function() {
                     var $content = $(this),
                         content_id = $content.data("content-id");
 
@@ -1930,6 +1858,19 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                 that.dialog.resize();
             }
+
+            setTimeout(function () {
+              $("#toggle-tabs").waToggle({
+                ready: function (toggle) {
+                  that.currentSource = toggle.$active.data('section');
+                  toggleContent(that.currentSource);
+                },
+                change: function (event, target, toggle) {
+                  that.currentSource = toggle.$active.data('section');
+                  toggleContent(that.currentSource);
+                }
+              })
+            })
         };
 
         Dialog.prototype.initSubmit = function() {
@@ -1978,6 +1919,9 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 $.each(data, function(index, item) {
                     result.data.push(item);
                 });
+                if (that.currentSource) {
+                  result.data.push({ "name": "source", "value": that.currentSource });
+                }
 
                 return result;
             }
@@ -2018,10 +1962,10 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             function request(data) {
                 if (!is_locked) {
                     is_locked = true;
-                    $submit_button.attr("disabled", true).append("<i class=\"icon16 loading\" />");
+                    $submit_button.attr("disabled", true).append('<i class="fas fa-spinner wa-animation-spin speed-1000"/>');
 
                     var href = that.urls["type_save"];
-
+                    console.log('request:data', data);
                     $.post(href, data, "json")
                         .always( function() {
                             is_locked = false;
@@ -2044,7 +1988,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                                     });
 
                                 } else {
-                                    alert($_('Product type adding error.'));
+                                  MessageDialog($_('Product type adding error.'));
                                 }
 
                             } else {
@@ -2261,8 +2205,6 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             // INIT
             that.vue_model = that.initVue();
             that.init();
-
-            console.log( that );
         };
 
         Dialog.prototype.init = function() {
@@ -2840,7 +2782,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 var $feature = $(feature_html).appendTo($features_list);
 
                 if (!content_is_visible) {
-                    $features_list.closest(".wa-dialog-content").show();
+                    $features_list.closest(".dialog-content").show();
                     content_is_visible = true;
                 }
 
@@ -3526,6 +3468,26 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
     })($);
 
+    var MessageDialog = function (title, message = '') {
+      const template = $(`<div>
+        <div class="dialog">
+          <div class="dialog-background"></div>
+          <div class="wa-dialog-body dialog-body">
+              <a href="javascript:void(0)" class="dialog-close js-close-dialog"><i class="fas fa-times"></i></a>
+              <header class="dialog-header"><h1 class="js-dialog-header">${title}</h1></header>
+              <div class="dialog-content js-dialog-content">${message}</div>
+              <footer class="dialog-footer">
+                  <button class="js-close-dialog button light-gray">${$_('Close')}</button>
+              </footer>
+          </div>
+        </div>
+      </div>`);
+
+      $.waDialog({
+          html: template.html()
+      });
+    }
+
     // PAGE
 
     var Page = function(options) {
@@ -3552,7 +3514,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
         var that = this,
             $window = $(window);
 
-        that.setHeight();
+        //that.setHeight();
         that.initContent();
 
         that.$wrapper

@@ -6,11 +6,21 @@ class shopRightConfig extends waRightConfig
     const RIGHT_EDIT = 1;
     const RIGHT_FULL = 2;
 
+    const RIGHT_ORDERS_NONE = 0;
+    const RIGHT_ORDERS_COURIER = 1;
+    const RIGHT_ORDERS_FULL = 100;
+
     public function init()
     {
-        $this->addItem('orders', _w('Can manage orders'));
+        $this->addItem('orders', _w('Can manage orders'), 'select', [
+            'options' => [
+                self::RIGHT_ORDERS_NONE => _w('No access'),
+                self::RIGHT_ORDERS_COURIER => _w('Courier'),
+                self::RIGHT_ORDERS_FULL => _w('Full access'),
+            ],
+        ]);
         $this->addItem('customers', _w('Can manage customers'));
-        $this->addItem('settings', _w('Can manage settings'));
+        $this->addItem('products', _w('Can manage products'));
         $this->addItem('services', _w('Can manage services'));
         $this->addItem('setscategories', _w('Can manage product sets, categories'));
         $this->addItem('importexport', _w('Can import and export data'));
@@ -19,10 +29,11 @@ class shopRightConfig extends waRightConfig
         $this->addItem('reports', _w('Can view reports'));
         $this->addItem('pages', _ws('Can edit pages'));
         $this->addItem('design', _ws('Can edit design'));
+        $this->addItem('settings', _w('Can manage settings'));
 
         $type_model = new shopTypeModel();
         $types = $type_model->getNames();
-        $this->addItem('type', _w('Can manage products'), 'selectlist', array(
+        $this->addItem('type', _w('Product types'), 'selectlist', array(
             'items'    => $types,
             'position' => 'right',
             'options'  => array(
@@ -55,7 +66,7 @@ class shopRightConfig extends waRightConfig
                 } else {
                     $action_name = $action_id;
                 }
-                
+
                 $items[$action_id] = $action_name;
             }
         }

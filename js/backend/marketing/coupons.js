@@ -56,6 +56,44 @@
                 });
             }
 
+            // Form validation
+            var isValid = function() {
+                $form.find('.state-error-hint').remove();
+                $form.find('.state-error').removeClass('state-error');
+
+                var valid = true;
+                var code_field = $('[name="coupon[code]"]');
+                if (!code_field.val()) {
+                    valid = false;
+                    code_field.addClass('state-error').after($('<em class="state-error-hint custom-ml-4"></em>').text(that.locales["required"]));
+                }
+
+                var discount_value = 0;
+                var discount_input = $('[name="coupon[value]"]');
+                if ($('[name="coupon[type]"]').val() === '%') {
+                    discount_value = parseInt(discount_input.val(), 10);
+                    if (isNaN(discount_value) || discount_value < 0 || discount_value > 100) {
+                        valid = false;
+                        discount_input.addClass('state-error').nextAll().after($('<em class="state-error-hint custom-ml-4"></em>').text(that.locales["incorrect_1"]));
+                    }
+                }
+
+                // URL validation
+                var $url_field = $('[name="coupon[url]"]');
+                var url_val    = $url_field.val().trim();
+                if (url_val !== '') {
+                    if (url_val.length > 2048) {
+                        valid = false;
+                        $url_field.addClass('state-error').after($('<em class="state-error-hint custom-ml-4"></em>').text(that.locales['url_max_len']));
+                    } else if (/https?:\/\/[^\s]*\.[^\s]*/.exec(url_val) === null) {
+                        valid = false;
+                        $url_field.addClass('state-error').after($('<em class="state-error-hint custom-ml-4"></em>').text(that.locales['url_no_valid']));
+                    }
+                }
+
+                return valid;
+            };
+
             // When user changes type, change how value input looks
             $('select[name="coupon[type]"]').change(function() {
                 var select = $(this);
@@ -75,7 +113,32 @@
                     }
                     $form.find('.js-product-selector-field').show();
                 }
+
+                isValid();
             }).change();
+
+            // TODO: migrate to lib
+            function debounce(callback, timeout = 0, atStartRun = false) {
+                if (typeof callback !== "function") {
+                    return true;
+                }
+
+                let timer = null;
+
+                return () => {
+                    if (atStartRun && null === timer) {
+                        callback();
+                    }
+
+                    if (timer) {
+                        clearTimeout(timer);
+                    }
+
+                    timer = setTimeout(callback, timeout);
+                }
+            }
+
+            ('[name="coupon[code]"]', $form).on('input', debounce(isValid, 250));
 
             // Datepicker
             var datetime_input = $('input[name="coupon[expire_datetime]"]');
@@ -93,44 +156,6 @@
             }
 
             initSubmit();
-
-            // Form validation
-            var isValid = function() {
-                $form.find('.errormsg').remove();
-                $form.find('.error').removeClass('error');
-
-                var valid = true;
-                var code_field = $('[name="coupon[code]"]');
-                if (!code_field.val()) {
-                    valid = false;
-                    code_field.addClass('error').after($('<em class="errormsg"></em>').text(that.locales["required"]));
-                }
-
-                var discount_value = 0;
-                var discount_input = $('[name="coupon[value]"]');
-                if ($('[name="coupon[type]"]').val() === '%') {
-                    discount_value = parseInt(discount_input.val(), 10);
-                    if (isNaN(discount_value) || discount_value < 0 || discount_value > 100) {
-                        valid = false;
-                        discount_input.addClass('error').nextAll().after($('<em class="errormsg"></em>').text(that.locales["incorrect_1"]));
-                    }
-                }
-
-                // URL validation
-                var $url_field = $('[name="coupon[url]"]');
-                var url_val    = $url_field.val().trim();
-                if (url_val !== '') {
-                    if (url_val.length > 2048) {
-                        valid = false;
-                        $url_field.addClass('error').after($('<em class="errormsg"></em>').text(that.locales['url_max_len']));
-                    } else if (/https?:\/\/[^\s]*\.[^\s]*/.exec(url_val) === null) {
-                        valid = false;
-                        $url_field.addClass('error').after($('<em class="errormsg"></em>').text(that.locales['url_no_valid']));
-                    }
-                }
-
-                return valid;
-            };
 
             function initSubmit() {
                 var is_locked = false;
@@ -157,9 +182,13 @@
                             }
                         }
 
+                        var class_swing = 'wa-animation-swing';
+                        $submit_button.removeClass(class_swing);
+                        var $icon = $submit_button.after('<span><i class="fas fa-spinner wa-animation-spin"></i></span>').next();
                         $.post($form.attr('action'), form_data)
                             .always( function() {
                                 $submit_button.attr('disabled', false);
+                                $icon.remove();
                                 is_locked = false;
                             })
                             .done( function(response) {
@@ -170,7 +199,11 @@
                                     $.shop.marketing.content.load(href);
                                 } else if (response.errors) {
                                     renderErrors(response.errors);
+                                    $submit_button.addClass(class_swing);
                                 }
+
+                            }).fail(function () {
+                                $submit_button.addClass(class_swing);
                             });
                     }
                 });
@@ -183,10 +216,16 @@
                 if (code) {
                     $form.on("click", "#delete-coupon-link", function(event) {
                         event.preventDefault();
-                        if (!confirm(that.locales["delete"].replace('%s', code))) {
-                            return;
-                        }
-                        deleteCoupon();
+                        $.waDialog.confirm({
+                            title: that.locales["delete"].replace('%s', code),
+                            success_button_title: $_('Delete'),
+                            success_button_class: 'danger',
+                            cancel_button_title: $_('Cancel'),
+                            cancel_button_class: 'light-gray',
+                            onSuccess: function($dialog, dialog_instance) {
+                                deleteCoupon();
+                            }
+                        });
                     });
                 }
 
@@ -231,8 +270,8 @@
                 });
 
                 function renderError(error) {
-                    var $error = $("<div class=\"errormsg\" />").text(error.text);
-                    var error_class = "error";
+                    var $error = $("<div class=\"state-error-hint\" />").text(error.text);
+                    var error_class = "state-error";
 
                     if (error.$field) {
                         var $field = error.$field;
@@ -251,6 +290,28 @@
                         $field.off("change", removeFieldError);
                     }
                 }
+            }
+
+            formChanged($form);
+
+            function formChanged($form) {
+                const $submit = $form.find('[type="submit"]');
+                let is_changed = false;
+
+                const submitChanged = () => {
+                    if (is_changed) return true;
+
+                    $submit.removeClass('green').addClass('yellow');
+                    is_changed = true;
+                };
+
+                $form.on('change', submitChanged);
+                $(':input:not(:submit)', $form).on('input', submitChanged);
+
+                $submit.on('click', function() {
+                    $submit.removeClass('yellow').addClass('green');
+                    is_changed = false;
+                });
             }
         };
 

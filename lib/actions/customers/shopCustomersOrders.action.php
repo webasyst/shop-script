@@ -136,6 +136,20 @@ class shopCustomersOrdersAction extends waViewAction
         return $this->orders;
     }
 
+    protected function getStateNames()
+    {
+        $workflow = new shopWorkflow();
+        $available_states = $workflow->getAvailableStates();
+
+        $state_names = [];
+        foreach ($available_states as $state_id => $state) {
+            $state_names[$state_id]['name'] = waLocale::fromArray($state['name']);
+            $state_names[$state_id]['color'] = $state['options']['style']['color'];
+        }
+
+        return $state_names;
+    }
+
     /**
      * @return float
      * @throws waException
@@ -154,7 +168,13 @@ class shopCustomersOrdersAction extends waViewAction
     protected function workupOrders(&$orders)
     {
         shopHelper::workupOrders($orders);
+        $state_names = $this->getStateNames();
+
         foreach ($orders as &$order) {
+            if (isset($order['state_id'])) {
+                $order['state_name'] = $state_names[$order['state_id']]['name'];
+                $order['state_color'] = $state_names[$order['state_id']]['color'];
+            }
             $order['total_formatted'] = waCurrency::format('%{h}', $order['total'], $order['currency']);
             $order['shipping_name'] = ifset($order['params']['shipping_name'], '');
             $order['payment_name'] = ifset($order['params']['payment_name'], '');

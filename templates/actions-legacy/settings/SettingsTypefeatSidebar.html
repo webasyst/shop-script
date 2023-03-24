@@ -1,0 +1,142 @@
+<div class="s-sidebar-section js-sidebar-section" id="js-features-settings-sidebar">
+    {* HEADER *}
+    <div class="s-section-header">
+        {* LIST *}
+        <ul class="menu-v with-icons">
+            <li class="js-type-wrapper">
+                <a href="{$wa_app_url}?action=settings#/typefeat/">
+                    <span class="s-icon"><i class="icon16 funnel"></i></span>
+                    <span class="s-name">[`All features`]</span>
+                    <span class="s-counter js-counter">{$count_all_features}</span>
+                </a>
+            </li>
+            <li class="js-type-wrapper" data-id="all_existing">
+                <a href="{$wa_app_url}?action=settings#/typefeat/all_existing/">
+                    <span class="s-icon"><i class="icon16 funnel"></i></span>
+                    <span class="s-name">[`Available for all product types`]</span>
+                    <span class="s-counter js-counter">{$count_features_all_types}</span>
+                </a>
+            </li>
+            <li class="js-type-wrapper" data-id="empty">
+                <a href="{$wa_app_url}?action=settings#/typefeat/empty/">
+                    <span class="s-icon"><i class="icon16 funnel"></i></span>
+                    <span class="s-name">[`Not available for any product type`]</span>
+                    <span class="s-counter js-counter">{$count_features_no_types}</span>
+                </a>
+            </li>
+            <li class="js-type-wrapper" data-id="builtin">
+                <a href="{$wa_app_url}?action=settings#/typefeat/builtin/">
+                    <span class="s-icon"><i class="icon16 funnel"></i></span>
+                    <span class="s-name">[`System features list`]</span>
+                    <span class="s-counter js-counter">{$count_features_builtin}</span>
+                </a>
+            </li>
+        </ul>
+
+        {* TYPES *}
+        <div class="s-types-section">
+            <div class="wa-table-box space-5">
+                <div class="s-column">
+                    <h5 class="heading">
+                        <span class="s-title">[`Product types`]</span>
+                        <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Each product type; e.g., “TVs”, “Phones”, or “Clocks”, can have its own set of features. You can select for the storefront which product types should be visible to customers. Separate access rights to product types can be set up for store backend users and user groups.`]</span></span>
+                    </h5>
+                </div>
+                <div class="s-column align-right">
+                    <span class="s-icon js-type-add" title="[`New product type`]"><i class="icon16 add"></i></span>
+                </div>
+            </div>
+        </div>
+
+        {* SEARCH *}
+        {if count($types) > 5}
+            <div class="s-search-section">
+                <div class="wa-table-box middle space-5">
+                    <div class="s-column">
+                        <span class="s-icon js-run-search"><i class="icon16 ss search-bw"></i></span>
+                    </div>
+                    <div class="s-column">
+                        <input class="s-search-field js-search-field" type="text" name="search" placeholder="{_w('Type a product type name')|escape}">
+                    </div>
+                </div>
+            </div>
+        {/if}
+    </div>
+
+    {* BODY *}
+    <div class="s-section-body">
+        {* LIST *}
+        <ul class="s-types-list menu-v with-icons js-types-list">
+            {foreach $types as $_type}
+                {if empty($_type.id)}{continue}{/if}
+
+                <li class="s-type-wrapper js-type-wrapper" data-id="{$_type.id|escape}">
+                    <a class="s-type-block" href="{$wa_app_url}?action=settings#/typefeat/{$_type.id}/">
+                        <span class="s-icon">{shopHelper::getIcon($_type.icon)}</span>
+                        <span class="s-name js-name">{$_type.name|default:""|escape}</span>
+                        <span class="s-counter">{$_type.features_count|default:""}</span>
+                    </a>
+
+                    <div class="s-type-actions">
+                        <ul class="menu-h dropdown">
+                            <li>
+                                <a class="s-visible-link" href="javascript:void(0);">
+                                    <span class="s-dotted-icon"><i class="s-dot"></i><i class="s-dot"></i><i class="s-dot"></i></span>
+                                </a>
+                                <ul class="menu-v with-icons right">
+                                    <li>
+                                        <a class="js-type-edit" href="javascript:void(0);">
+                                            <span class="s-icon"><i class="icon16 edit"></i></span>
+                                            <span class="s-name">[`Edit`]</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="js-type-copy" href="javascript:void(0);">
+                                            <span class="s-icon"><i class="icon16 notebooks"></i></span>
+                                            <span class="s-name">[`Duplicate`]</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        {if count($types) === 2}
+                                            <a class="disabled" href="javascript:void(0);" title="[`You cannot delete the only existing product type.`]">
+                                                <span class="s-icon"><i class="icon16 delete-bw"></i></span>
+                                                <span class="s-name">[`Delete`]</span>
+                                            </a>
+                                        {else}
+                                            <a class="js-type-delete" href="javascript:void(0);">
+                                                <span class="s-icon"><i class="icon16 delete"></i></span>
+                                                <span class="s-name">[`Delete`]</span>
+                                            </a>
+                                        {/if}
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            {/foreach}
+        </ul>
+    </div>
+
+    <script>
+        ( function($) {
+            var $sidebar = $("#js-features-settings-sidebar"),
+                $page = $("#js-features-settings-page");
+
+            var ready_promise = $page.data("ready").promise();
+            ready_promise.then( function(controller) {
+                controller.initSidebar({
+                    $wrapper: $sidebar,
+                    urls: {
+                        "app_url": {$wa_app_url|json_encode},
+                        "type_edit": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=typeEdit",
+                        "type_copy": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=typeDuplicate",
+                        "type_delete": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=typeDeleteDialog",
+                        "type_save": {$wa_app_url|json_encode} + "?module=settings&action=typefeatTypeSave",
+                        "type_delete_controller": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=typeDelete"
+                    }
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

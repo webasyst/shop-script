@@ -1,0 +1,148 @@
+{strip}
+
+{if empty($shop_order_render_field_function)}
+
+{function name="shop_order_render_field" _field=[]}
+    {$_wrapper_classes = []}
+    {if !empty($_field.width)}
+        {if $_field.width == shopCheckoutConfig::FIELD_WIDTH_MINI}
+            {$_wrapper_classes[] = "size-mini"}
+
+        {elseif $_field.width == shopCheckoutConfig::FIELD_WIDTH_SMALL}
+            {$_wrapper_classes[] = "size-small"}
+
+        {elseif $_field.width == shopCheckoutConfig::FIELD_WIDTH_MEDIUM}
+            {$_wrapper_classes[] = "size-medium"}
+
+        {elseif $_field.width == shopCheckoutConfig::FIELD_WIDTH_LARGE}
+            {$_wrapper_classes[] = "size-large"}
+        {/if}
+    {else}
+        {$_wrapper_classes[] = "size-medium"}
+    {/if}
+
+    {capture assign="_label"}
+        {if !empty($_field.required)}
+            <span class="wa-tooltip is-inline top" data-title="[`Required field`]">
+                {$_field.label|escape}
+                <span class="wa-required"></span>
+            </span>
+        {else}
+            {$_field.label|escape}
+        {/if}
+    {/capture}
+
+    {if $_field.type == "input" && $_field.content_type == "date"}
+        <div class="wa-field-wrapper {$_wrapper_classes|join:" "}">
+            <div class="wa-label">{$_label}</div>
+            <input class="wa-input wa-date js-datepicker" type="text"
+                autocomplete="false"
+                data-alt=".js-alt-date"
+                {if $_field.id === "birthday"}data-type="birthday"{/if}
+                {*placeholder="{$_field.label|escape}"*}
+                value="{if !empty($_field.value)}{$_field.value|wa_date}{/if}"
+                {if !empty($_field.required)}required{/if}
+            >
+            <input class="js-alt-date" type="hidden" name="{$_field.name|escape}" value="{$_field.value|default:""|escape}">
+        </div>
+
+    {elseif $_field.type == "input"}
+        {$_field_class = ""}
+        {$_field_type = "text"}
+
+        {if !empty($_field.content_type)}
+            {if $_field.content_type == "email"}
+                {$_field_class = "wa-email"}
+                {$_field_type = "email"}
+
+            {elseif $_field.content_type == "phone"}
+                {$_field_class = "wa-phone"}
+                {$_field_type = "tel"}
+                {$_field_placeholder = "[`+1-222-333-4455`]"}
+
+            {elseif $_field.content_type == "url"}
+                {$_field_class = "wa-url"}
+                {$_field_type = "url"}
+
+            {elseif $_field.content_type == "number"}
+                {$_field_class = "wa-number"}
+                {$_field_type = "number"}
+            {/if}
+        {/if}
+
+        <div class="wa-field-wrapper {$_wrapper_classes|join:" "}">
+            <div class="wa-label">{$_label}</div>
+            <input class="wa-input {$_field_class}" autocomplete="false" name="{$_field.name|escape}" type="{$_field_type|escape}" value="{$_field.value|default:""|escape}" {if !empty($_field.affects_rate)}data-affects-rate="true"{/if} {if !empty($_field.required)}required{/if} {if !empty($_field_placeholder)}placeholder="{$_field_placeholder}"{/if}>
+        </div>
+
+    {* SELECT *}
+    {elseif $_field.type == "select"}
+        <div class="wa-field-wrapper {$_wrapper_classes|join:" "}">
+            <div class="wa-label">{$_label}</div>
+            <select class="wa-select" name="{$_field.name|escape}" {if !empty($_field.required)}required{/if}>
+                {if empty($_field.required) && empty($_field.value)}
+                    <option value="" selected disabled></option>
+                {/if}
+
+                {foreach $_field.options as $_option}
+                    {$_is_active = ($_option.value == $_field.value)}
+
+                    <option value="{$_option.value|escape}" {if !empty($_is_active)}selected{/if}>{$_option.label|escape}</option>
+                {/foreach}
+            </select>
+        </div>
+
+    {* RADIO *}
+    {elseif $_field.type == "radio"}
+        <div class="wa-field-wrapper size-large">
+            <div class="wa-label">{$_label}</div>
+
+            {if empty($_field.value) && !empty($_field.required)}
+                {if !empty($_field.options)}
+                    {$_first = reset($_field.options)}
+                    {$_field.value = $_first.value}
+                {/if}
+            {/if}
+
+            {foreach $_field.options as $_option}
+                {$_is_active = ($_option.value == $_field.value)}
+                <div class="wa-radio-wrapper">
+                    <label>
+                        <input class="wa-radio" type="radio" name="{$_field.name|escape}" value="{$_option.value|escape}" {if !empty($_is_active)}checked{/if} {if !empty($_field.required)}required{/if}>
+                        <span class="wa-text">{$_option.label|escape}</span>
+                    </label>
+                </div>
+            {/foreach}
+        </div>
+
+    {* CHECKBOX *}
+    {elseif $_field.type == "checkbox"}
+        {$_is_active = ($_field.value == 1)}
+
+        <div class="wa-field-wrapper size-large">
+            <input type="hidden" name="{$_field.name|escape}" value="0">
+            <label class="wa-checkbox-wrapper">
+                <input class="wa-checkbox" type="checkbox" name="{$_field.name|escape}" value="1" {if !empty($_is_active)}checked{/if} {if !empty($_field.required)}required{/if}>
+                <span class="wa-text">{$_label}</span>
+            </label>
+        </div>
+
+    {elseif $_field.type == "textarea"}
+        <div class="wa-field-wrapper size-large">
+            <div class="wa-label">{$_label}</div>
+            <textarea class="wa-textarea" name="{$_field.name|escape}" {if !empty($_field.required)}required{/if}>{$_field.value|escape}</textarea>
+        </div>
+
+    {elseif $_field.type == "checkbox"}
+        <input type="hidden" name="{$_field.name|escape}" value="{$_option.value|escape}">
+
+    {else}
+        {$_field.type}
+    {/if}
+{/function}
+
+{$shop_order_render_field_function = true}
+
+{/if}
+
+{/strip}

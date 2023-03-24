@@ -1,0 +1,152 @@
+<div class="s-coupon">
+    {if !shopDiscounts::isEnabled('coupons')}
+        <div class="block double-padded red bold">
+            <i class="icon10 exclamation"></i>
+            {sprintf('[`Discounts by coupons are turned off. Enable discounts in your <a href="%s">store settings</a>.`]', "`$marketing_url`discounts/coupons/")}
+        </div>
+    {/if}
+
+    <div class="block double-padded s-coupon-border">
+        {if $formatted_value}
+            <div class="float-right s-coupon-value">{$formatted_value}</div>
+        {/if}
+
+        <h1>
+            {$coupon.code|escape}
+            {if $coupon.id && !$is_enabled}<span class="hint">[`Unavailable`]</span>{/if}
+        </h1>
+
+        {if $coupon.id}
+            <p class="small">[`Created`] {$coupon.create_datetime|wa_date:"humandate"}</p>
+        {/if}
+
+        <form action="{$wa_app_url}?module=marketingCouponSave" id="coupon-editor-form">
+            <div class="fields form">
+                <div class="field">
+                    <div class="name">
+                        [`Coupon code`]
+                    </div>
+                    <div class="value">
+                        <input type="text" class="large bold" name="coupon[code]" value="{$coupon.code|escape}" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Coupon type`]
+                    </div>
+                    <div class="value no-shift">
+                        <select name="coupon[type]">
+                            {foreach $types as $type_id => $type_name}
+                                <option value="{$type_id|escape}"{if $type_id == $coupon.type} selected{/if}>{$type_name|escape}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div class="value bold" id="value-input-wrapper">
+                        <input type="text" class="numerical short bold" name="coupon[value]" value="{$coupon.value|escape}">
+                        <span>%</span>
+                    </div>
+                    <div class="value" id="free-shipping-message">
+                        <p class="small">[`Discount will be calculated automatically to match the order shipping cost.`]</p>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Max number of usage`]
+                    </div>
+                    <div class="value">
+                        <input type="text" placeholder="&#8734;" class="numerical" name="coupon[limit]" value="{$coupon.limit}">
+                        <p class="hint">[`Enter the maximum number of times this coupon can be used. Leave empty for no limits.`]</p>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Expire date`]
+                    </div>
+                    <div class="value">
+                        <input type="text" class="numerical" name="coupon[expire_datetime]" value="{substr((string)$coupon.expire_datetime, 0, 10)}">
+                        <a href="javascript:void(0)"><i class="icon16 calendar"></i></a>
+                        <p class="hint">[`Leave empty for no expiration date.`]</p>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Link to promo description`]
+                    </div>
+                    <div class="value">
+                        <input type="text" class="" name="coupon[url]" value="{$coupon.url|escape}" placeholder="https://">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Comment`]
+                    </div>
+                    <div class="value">
+                        <textarea name="coupon[comment]">{ifset($coupon.comment)|escape}</textarea>
+                        <p class="hint">[`Optional comment for your convenience. Will never be shown to customers.`]</p>
+                    </div>
+                </div>
+
+                {include file="./MarketingCouponsProductSelector.html" hash=$coupon.products_hash types=$product_types sets=$product_sets}
+
+                <div class="field">
+                    <div class="value submit">
+                        {if $coupon.id}
+                            <div class="block float-right">
+                                <a href="javascript:void(0)" class="no-underline" id="delete-coupon-link"><i class="icon16 delete"></i>[`Delete this coupon`]</a>
+                            </div>
+                        {/if}
+
+                        <input type="submit" class="button green js-submit-button" value="[`Save`]">
+                    </div>
+                </div>
+            </div>
+
+            {if !empty($coupon.id)}
+                <input name="coupon[id]" type="hidden" value="{$coupon.id|escape}">
+            {/if}
+        </form>
+
+        <div class="clear-left"></div>
+    </div>
+</div>
+
+{if $coupon.id}
+    <div class="block double-padded">
+        <h2>[`Usage`]</h2>
+        {if $orders}
+            <p>{_w("This coupon was used for <strong>%d order</strong>.", "This coupon was used for <strong>%d orders</strong>.", count($orders))}</p>
+            <table class="zebra">
+                {foreach $orders as $o}
+                    <tr>
+                        <td>
+                            <a href="{$wa_app_url}?action=orders#/order/{$o.id}/state_id={$o.state_id}/" style="{$o.style|escape}">
+                                <i class="{$o.icon}"></i>
+                                {$wa->shop->orderId($o.id)}
+                            </a>
+                        </td>
+                        <td>{if $o.coupon_discount_percent > 0}{ifset($o.coupon_discount_formatted)} <span class="hint">{$o.coupon_discount_percent}%</span>{else}&nbsp;{/if}</td>
+                        <td>
+                            <span class="float-right gray">{$o.create_datetime|wa_date:"humandate"}</span>
+                        </td>
+                    </tr>
+                {/foreach}
+                {if $overall_discount>0}
+                <tr>
+                    <td>
+                        <br>
+                        [`Overall discount`]
+                    </td>
+                    <td>
+                        <br>
+                        <strong>{$overall_discount_formatted}</strong>
+                    </td>
+                    <td></td>
+                </tr>
+                {/if}
+            </table>
+        {else}
+             <p>[`This coupon was not used for any orders yet.`]</p>
+        {/if}
+    </div>
+{/if}
+

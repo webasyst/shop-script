@@ -1,0 +1,83 @@
+{$need_other_values = $need_other_values|default:false}
+
+{if $top}
+
+    {$customers_rights = $wa->userRights('customers')}
+    {$_has_hidden_fields = false}
+
+    <div class="s-customer-fields-section" id="js-customer-fields-section">
+        <ul class="menu-v with-icons compact s-customer-top-field-list">
+            {foreach $top as $top_field}
+                <li class="s-customer-top-field-default-value-item">
+                    {if $top_field.id !== 'im'}
+                        <i class="icon16 {$top_field.id}{if $top_field.default_value.is_confirmed}-confirmed ss{/if}" {if $top_field.default_value.is_confirmed}title="[`Confirmed`]"{/if}></i>
+                    {/if}
+
+                    {$top_field.default_value.formatted}
+
+                    {if $top_field.id == 'email' && !empty($similar_contacts.email.count)}
+                        <span class="similar hint">
+                            <span class="similar-hull">
+                                {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer found with the same email address', '%d more customers found with the same email address', $similar_contacts.email.count)}{if $customers_rights}</a>{/if}
+                            </span>
+                            <span class="similar-short" title="[`Number of customers with the same email address`]">
+                                {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{$similar_contacts.email.count}{if $customers_rights}</a>{/if}
+                            </span>
+                         </span>
+
+                    {elseif $top_field.id == 'phone' && !empty($similar_contacts.phone.count)}
+                        <span class="similar hint">
+                            <span class="similar-hull">
+                                {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{_w('%d more customer found with the same phone number', '%d more customers found with the same phone number', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if}
+                            </span>
+                            <span class="similar-short" title="[`Number of customers with the same phone number`]">
+                                {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="icon10 exclamation"></i>{$similar_contacts.phone.count}{if $customers_rights}</a>{/if}
+                            </span>
+                        </span>
+                    {/if}
+                </li>
+            {/foreach}
+
+            {if $need_other_values}
+                {foreach $top as $top_field}
+                    {foreach $top_field.other_values as $value}
+                        {if empty($_has_hidden_fields)}{$_has_hidden_fields = true}{/if}
+
+                        <li class="s-customer-top-field-other-value-item" style="display: none;">
+
+                            {if $top_field.id !== 'im'}
+                                <i class="icon16 {$top_field.id}{if $value.is_confirmed}-confirmed ss{/if}" {if $value.is_confirmed}title="[`Confirmed`]"{/if} />
+                            {/if}
+
+                            {$value.formatted}
+                        </li>
+                    {/foreach}
+                {/foreach}
+            {/if}
+        </ul>
+
+        {if !empty($_has_hidden_fields)}
+            <div class="s-fields-toggle">
+                <a class="inline-link js-toggle-button" href="javascript:void(0);">
+                    <i class="svg-icon size-10 arrow-toggle" style="padding: 0 7px 0 5px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 5">
+                            <polyline style="fill:none; stroke: currentColor; stroke-linecap:round; stroke-linejoin:round;" points="0.5 0.5 4.5 4.5 8.5 0.5"/>
+                        </svg>
+                    </i>
+                    <b><i>[`More contact information`]</i></b>
+                </a>
+
+                <script>
+                    ( function($) {
+                        var $wrapper = $("#js-customer-fields-section").removeAttr("id");
+                        $wrapper.on("click", ".js-toggle-button", function(event) {
+                            event.preventDefault();
+                            $(this).closest(".s-fields-toggle").hide();
+                            $wrapper.find(".s-customer-top-field-other-value-item").show();
+                        });
+                    })(jQuery);
+                </script>
+            </div>
+        {/if}
+    </div>
+{/if}

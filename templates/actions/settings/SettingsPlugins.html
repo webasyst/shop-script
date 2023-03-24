@@ -1,0 +1,18 @@
+dfgd<div class="s-settings-plugins-page" id="js-plugins-page" style="visibility: hidden"></div>
+<script>
+    ( function($) {
+
+        const sources = [{
+            id: "wa-settings-plugins-css",
+            type: "css",
+            uri: "{$wa_app_static_url}css/backend/settings/plugins.css?v={$wa->version()}"
+        }];
+
+        $.shop.loadSources(sources).then( function() {
+            $("#js-plugins-page").css("visibility", "");
+        }, function() {
+            alert("Page Loading Error");
+        });
+
+    })(jQuery);
+</script>

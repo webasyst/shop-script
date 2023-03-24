@@ -1,0 +1,25 @@
+<div class="wa-dialog s-settings-feature-delete-dialog">
+    <div class="wa-dialog-background"></div>
+    <div class="wa-dialog-body">
+        <header class="wa-dialog-header">
+            <h1 class="s-title">{sprintf("[`Deletion of feature “%s”`]", $feature.name|escape)}</h1>
+        </header>
+        <div class="wa-dialog-content">
+            {if !empty($notice_html)}
+                <p>{$notice_html}</p>
+            {/if}
+            {if $can_delete_feature}
+                <p>[`Are you sure to delete this feature?`]</p>
+            {/if}
+        </div>
+        <div class="wa-dialog-footer">
+            {if $can_delete_feature}
+                <button class="s-button button red js-submit-button" type="submit">[`Delete`]</button>
+                <span class="s-divider">[`or`]</span>
+                <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+            {else}
+                <button class="s-button button grey js-close-dialog" type="submit">[`Close`]</button>
+            {/if}
+        </div>
+    </div>
+</div>

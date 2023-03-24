@@ -1,36 +1,38 @@
 {$convert_text = "[`Prices of <strong>%d products</strong> are defined in the currency you are about to delete. Select the currency which all these prices will be converted into`]"}
 {$convert_text = $convert_text|replace:"%d":$product_count}
-<div class="dialog width400px height150px" id="s-settings-delete-currency">
+<div class="dialog" id="s-settings-delete-currency">
     <div class="dialog-background"></div>
-    <form method="post" action="?module=settings&action=currencyDelete">
-    <div class="dialog-window">
-        <div class="dialog-content">
-            <div class="dialog-content-indent">
-                <h1>[`Delete currency`] 
+
+    <div class="dialog-body">
+        <form method="post" action="?module=settings&action=currencyDelete">
+            <header class="dialog-header">
+                <h1>[`Delete currency`]
                     <span class="hint">{$currency.title} ({$currency.code})</span>
                 </h1>
+            </header>
+
+            <main class="dialog-content">
                 {if $product_count > 0}
-                    <p>
-                        {$convert_text}:
+                    {$convert_text}:
+                    <div class="wa-select">
                         <select name="to">
                             {foreach $currencies as $c}
-                                {if $c.code != $currency.code}
-                                    <option value="{$c.code}">{$c.code}</option>
-                                {/if}
+                            {if $c.code != $currency.code}
+                            <option value="{$c.code}">{$c.code}</option>
+                            {/if}
                             {/foreach}
                         </select>
-                    </p>
+                    </div>
                 {else}
-                    <p>[`You don’t have products priced in this currency. The currency can be safely deleted.`]</p>
+                <div>[`You don’t have products priced in this currency. The currency can be safely deleted.`]</div>
                 {/if}
-            </div>
-        </div>
-        <div class="dialog-buttons">
-            <div class="dialog-buttons-gradient">
+            </main>
+
+            <footer class="dialog-footer">
                 {$wa->csrf()}
-                <input class="button red" type="submit" value="[`Delete`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
-            </div>
-        </div>
+                <button type="button" class="button red js-confirm-delete">[`Delete`]</button>
+                <button type="button" class="button light-gray js-dialog-close">[`Cancel`]</button>
+            </footer>
+        </form>
     </div>
-    </form>
 </div>

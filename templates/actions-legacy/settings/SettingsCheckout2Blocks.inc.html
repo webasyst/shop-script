@@ -1,0 +1,1088 @@
+{* Other helpers *}
+{function renderScheduleExtraWorkday day=[]}
+    <tr class="js-day-wrapper worked">
+        <td>
+            <label>
+                <input data-name="date" class="s-date js-datepicker" autocomplete="off" value="{$day.date|default:null|wa_date|escape}" />
+                <i class="icon16 calendar"></i>
+            </label>
+        </td>
+        <td>
+            [`from`]
+            <input data-name="start_work" class="s-time" type="text" autocomplete="off" value="{$day.start_work|default:null|escape}" placeholder="00:00" />
+            [`to`]
+            <input data-name="end_work" class="s-time" type="text" autocomplete="off" value="{$day.end_work|default:null|escape}" placeholder="23:59" />
+        </td>
+        <td class="align-center">
+            [`to`]
+            <input data-name="end_processing" class="s-time" type="text" autocomplete="off" value="{$day.end_processing|default:null|escape}" placeholder="14:00" />
+        </td>
+        <td>
+            <i class="icon16 no s-remove js-remove"></i>
+        </td>
+    </tr>
+{/function}
+{function renderScheduleWeekend date=''}
+    <tr class="js-day-wrapper">
+        <td>
+            <label>
+                <input class="s-date js-datepicker js-extra-weekend" autocomplete="off" value="{$date|wa_date|escape}" />
+                <i class="icon16 calendar"></i>
+            </label>
+        </td>
+        <td>
+            <i class="icon16 no s-remove js-remove"></i>
+        </td>
+    </tr>
+{/function}
+{function fieldLocalizedType field=null}
+    {strip}
+        {if $field instanceof waContactBranchField}
+            {$field_types['Branch']}
+        {elseif $field instanceof waContactStringField && $field->getParameter('input_height') > 1}
+            {$field_types['Text']}
+        {else}
+            {ifempty($field_types[$field->getType()], $field->getType())}
+        {/if}
+    {/strip}
+{/function}
+
+{function renderContactFieldsEditor _fields=[] _type='contact'}
+    {foreach $_fields as $_field_id => $_field}
+        {if $_type == 'address'}
+            {$_f = $address_fields[$_field_id]}
+            {$_format_f = ifempty($format_address_fields[$_field_id])}
+        {else}
+            {$_f = $contact_fields[$_field_id]}
+            {$_format_f = ifempty($format_contact_fields[$_field_id])}
+        {/if}
+
+        {* ignore special tech fields *}
+        {if $_field_id === 'company_contact_id'}
+            {continue}
+        {/if}
+
+        <tr class="js-field" data-id="{$_field_id|escape}">
+            {* Sort, used and name *}
+            <td>
+                <i class="icon16 sort"></i>
+                <label>
+                    <input type="checkbox" data-name="used"{if $_field.used} checked{/if} title="[`Use field`]" />
+                    {$_f->getName(null, true)}
+                    <i class="hint">{$_field_id} — {fieldLocalizedType field=$_f}</i>
+                </label>
+            </td>
+            {* Required *}
+            <td>
+                <label>
+                    <input type="checkbox" data-name="required"{if $_field.required} checked{/if} />
+                    <i class="small">[`Required`]</i>
+                </label>
+            </td>
+            {* Width *}
+            <td class="js-field-width">
+                {if !empty($_format_f.type) && $_format_f.type == 'input'}
+                    <label>
+                        <i class="small">[`Field width`]</i>
+                        <select data-name="width">
+                            {foreach $field_width_variants as $_id => $_variant}
+                                <option value="{$_id|escape}"{if $_field.width === $_id} selected{/if}>{$_variant.name|escape}</option>
+                            {/foreach}
+                        </select>
+                    </label>
+                {/if}
+            </td>
+        </tr>
+    {/foreach}
+{/function}
+
+{function renderShippingLocation _location=[]}
+<tr class="js-location">
+    {* Sort / used *}
+    <td style="min-width: 38px; width: 38px;">
+        <i class="icon16 sort"></i>
+        <input type="checkbox" data-name="enabled" {if empty($_location) || !empty($_location.enabled)}checked{/if} title="[`Use shipping area`]" />
+    </td>
+    {* Name *}
+    <td title="[`Shipping area name`]">
+        <span class="js-preview">{$_location.name|default:null|escape}</span>
+        <input class="s-editor js-editor" type="text" autocomplete="off" data-name="name" value="{$_location.name|default:null|escape}" placeholder="[`Shipping area name`]" style="display: none;" />
+    </td>
+    {* Country *}
+    <td title="[`Country`]">
+        <span class="js-preview">{$countries[$_location.country|default:null].name|default:null|escape}</span>
+        <select class="js-location-country s-editor js-editor" data-name="country" style="display: none;">
+            <option value="">[`Select a country`]</option>
+            {foreach $countries as $_country_id => $_country}
+                <option value="{$_country_id|escape}" title="{$_country.name|escape}"{if $_location.country|default:null === $_country_id} selected{/if}>{$_country.name|escape|truncate:30:'...'}</option>
+            {/foreach}
+        </select>
+    </td>
+    {* Region *}
+    <td title="[`Region`]">
+        <span class="js-preview">
+            {if isset($_location.region)}
+                {foreach $regions as $_region}
+                    {if $_location.country|default:null == $_region.country_iso3 && $_location.region === $_region.code}
+                        {$_region.name|escape|truncate:30:'...'}
+                    {/if}
+                {/foreach}
+            {/if}
+        </span>
+        <select class="js-location-region s-editor js-editor" data-name="region" style="display: none;">
+            <option value="">[`Select a region`]</option>
+            {foreach $regions as $_region}
+                <option value="{$_region.code|escape}" title="{$_region.name|escape}" data-country="{$_region.country_iso3|escape}"{if $_location.country|default:null == $_region.country_iso3 && $_location.region|default:null === $_region.code} selected{/if}>{$_region.name|escape|truncate:30:'...'}</option>
+            {/foreach}
+        </select>
+    </td>
+    {* City *}
+    <td title="[`Locality`]">
+        <span class="js-preview">{$_location.city|default:null|escape}</span>
+        <input class="js-location-city s-editor js-editor" type="text" data-name="city" value="{$_location.city|default:null|escape}" autocomplete="off" placeholder="[`Locality`]" style="display: none;" />
+    </td>
+    {* Edit / Remove *}
+    <td class="align-right" style="min-width: 42px;max-width: 42px;">
+        <i class="icon16 edit js-edit-location" title="[`Edit`]"></i><i class="icon16 no js-delete-location" title="[`Delete`]"></i>
+    </td>
+</tr>
+{/function}
+
+{function renderShippingNoLocations}
+<tr class="js-no-locations no-border">
+    <td style="text-align: center;">[`No shipping areas added`]</td>
+</tr>
+{/function}
+
+{* This template included in SettingsCheckout2.html *}
+{* Design block *}
+{function design_block settings=[]}
+<div class="s-checkout-field-group field-group">
+    <div class="fields js-block-wrapper" data-block="design">
+        {* Default design style *}
+        <div class="field">
+            <div class="name">[`Enable default design`]</div>
+            <div class="value">
+                <input type="hidden" name="data[design][custom]" value="0" />
+                <input class="js-design-toggle" type="checkbox" name="data[design][custom]" value="1"{if $settings.custom} checked{/if} />
+            </div>
+            <div class="value js-design-values"{if !$settings.custom} style="display: none"{/if}>
+                {* Logo *}
+                {$_logo = $settings.logo|default:null|escape}
+                <div class="field">
+                    <div class="name">
+                        <label for="design_logo">[`Logo`]</label>
+                    </div>
+                    <div class="value input js-logo-wrapper">
+                        <input type="file" class="js-design-logo" data-block-name="design-logo" />
+                        <input type="hidden" class="js-design-logo-field" name="data[design][logo]" value="{$settings.logo|default:null|escape}" />
+                        <i class="icon16 loading" style="display: none;"></i>
+                        <div class="s-design-logo-preview-wrapper js-design-logo-preview-wrapper"{if empty($settings.logo)} style="display: none;"{/if}>
+                            <div>
+                                <img class="s-design-logo-preview transparent-sprite js-design-logo-preview" src="{if $_logo}{$logo_url|escape}/{$_logo}{/if}">
+                            </div>
+                            <a href="javascript:void(0);" class="inline-link hint js-delete-design-logo"><b><i>[`Delete logo`]</i></b></a>
+                        </div>
+                    </div>
+                </div>
+
+                {* Business scope *}
+                <div class="field">
+                    <div class="name">
+                        <label for="design_business_scope">[`Business scope`]</label>
+                    </div>
+                    <div class="value input">
+                        <input id="design_business_scope" type="text" name="data[design][business_scope]" value="{$settings.business_scope|escape}" autocomplete="off" />
+                    </div>
+                </div>
+
+                {* Phone *}
+                <div class="field">
+                    <div class="name">
+                        <label for="design_phone">[`Phone`]</label>
+                    </div>
+                    <div class="value input">
+                        <input id="design_phone" type="text" name="data[design][phone]" value="{$settings.phone|escape}" autocomplete="off" />
+                    </div>
+                </div>
+
+                {* Phone hint *}
+                <div class="field">
+                    <div class="name">
+                        <label for="design_phone_hint">[`Phone number hint`]</label>
+                    </div>
+                    <div class="value input">
+                        <input id="design_phone_hint" type="text" name="data[design][phone_hint]" value="{$settings.phone_hint|escape}" autocomplete="off" />
+                    </div>
+                </div>
+
+                {* Address *}
+                <div class="field">
+                    <div class="name">
+                        <label for="design_address">[`Address`]</label>
+                    </div>
+                    <div class="value input">
+                        <input id="design_address" type="text" name="data[design][address]" value="{$settings.address|escape}" autocomplete="off" />
+                    </div>
+                </div>
+
+                {* Working hours *}
+                <div class="field">
+                    <div class="name">
+                        <label for="design_working_hours">[`Business hours`]</label>
+                    </div>
+                    <div class="value input">
+                        <input id="design_working_hours" type="text" name="data[design][working_hours]" value="{$settings.working_hours|escape}" autocomplete="off" />
+                    </div>
+                </div>
+
+                {* Order background *}
+                <div class="field">
+                    <div class="name">
+                        <label for="design_order_background">[`Checkout page background color`]</label>
+                    </div>
+                    <div class="value input">
+                        <input id="design_order_background" class="s-color-input js-color-input" type="text" name="data[design][order_background]" value="{$settings.order_background|escape}" autocomplete="off" />
+                    </div>
+                </div>
+
+                {* Layout background *}
+                <div class="field">
+                    <div class="name">
+                        <label for="design_layout_background">[`Header &amp; footer background color`]</label>
+                    </div>
+                    <div class="value input">
+                        <input id="design_layout_background" class="s-color-input js-color-input" type="text" name="data[design][layout_background]" value="{$settings.layout_background|escape}" autocomplete="off" />
+                    </div>
+                </div>
+
+                {* Custom css *}
+                <div class="field">
+                    <div class="name">
+                        <label for="design_custom_css">[`Custom CSS styles`]</label>
+                    </div>
+                    <div class="value">
+                        <textarea id="design_custom_css" name="data[design][custom_css]">{$settings.custom_css|escape}</textarea>
+                        <div class="hint" style="margin-top: 10px;">
+                            [`Entered CSS code will be added inside <code>&lt;style&gt; ... &lt;/style&gt;</code> tags in <code>&lt;head&gt;</code> block only on checkout page.`]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/function}
+
+{* Cart block *}
+{function cart_block settings=[]}
+<div class="s-checkout-field-group field-group">
+    {* Block name *}
+    <div class="field">
+        <div class="name">[`Block name`]</div>
+        <div class="value input">
+            <input type="text" name="data[cart][block_name]" value="{$settings.block_name|escape}" autocomplete="off" />
+        </div>
+    </div>
+
+    {* Empty cart text *}
+    <div class="field">
+        <div class="name">[`Empty cart text`]</div>
+        <div class="value input">
+            <input type="text" name="data[cart][empty_text]" value="{$settings.empty_text|escape}" autocomplete="off" />
+        </div>
+    </div>
+
+    {* Change sku *}
+    <div class="field">
+        <div class="name">[`SKU selection`]</div>
+        <div class="value">
+            <label>
+                <input type="hidden" name="data[cart][change_sku]" value="0" />
+                <input type="checkbox" name="data[cart][change_sku]"{if $settings.change_sku} checked{/if} />
+                [`Allow customers to select other product SKUs in the shopping cart`]
+            </label>
+            <div class="hint block-padded">[`For example, to change product properties such as color or size`]</div>
+        </div>
+    </div>
+
+    {* Item discount *}
+    <div class="field">
+        <div class="name">[`Discount information per product`]</div>
+        <div class="value radio">
+            {foreach $cart_discount_item_variants as $_id => $_variant}
+                <div class="s-checkout-radio-variant">
+                    <label>
+                        <input type="radio" name="data[cart][discount_item]" value="{$_id|escape}"{if $settings.discount_item === $_id} checked{/if} />
+                        {$_variant.name|escape}
+                        {if isset($_variant.description)}
+                            <p class="hint">{$_variant.description}</p>
+                        {/if}
+                    </label>
+                </div>
+            {/foreach}
+        </div>
+    </div>
+
+    {* General discount *}
+    <div class="field">
+        <div class="name">[`Total discount information`]</div>
+        <div class="value radio">
+            {foreach $cart_discount_general_variants as $_id => $_variant}
+                <div class="s-checkout-radio-variant">
+                    <label>
+                        <input type="radio" name="data[cart][discount_general]" value="{$_id|escape}"{if $settings.discount_general === $_id} checked{/if} />
+                        {$_variant.name|escape}
+                    </label>
+                </div>
+            {/foreach}
+        </div>
+    </div>
+
+    {* Show weight *}
+    <div class="field">
+        <div class="name">
+            <label for="data[cart][show_weight]">[`Show order items’ and total order weight`]</label>
+        </div>
+        <div class="value">
+            <label>
+                <input type="hidden" name="data[cart][show_weight]" value="0" />
+                <input type="checkbox" name="data[cart][show_weight]" id="data[cart][show_weight]" {if $settings.show_weight}checked{/if} />
+            </label>
+        </div>
+    </div>
+
+</div>
+{/function}
+
+{* Recommendations block *}
+{function recommendations_block settings=[]}
+<div class="s-checkout-field-group field-group">
+    <div style="margin-top: 10px;">
+        <a href="{$wa_app_url}marketing/recommendations/" target="_blank">[`Configure recommendations (cross-selling)`] <i class="icon16 new-window"></i></a>
+   	</div>
+    {* Block name *}
+    <div class="field">
+        <div class="name">[`Block name`]</div>
+        <div class="value input">
+            <input type="text" name="data[recommendations][block_name]" value="{$settings.block_name|escape}" autocomplete="off" />
+        </div>
+    </div>
+</div>
+{/function}
+
+{* Order block *}
+{function order_block settings=[]}
+
+<div class="s-checkout-field-group field-group">
+    {* Block name *}
+    <div class="field">
+        <div class="name">
+            <label for="order_block_name">[`Block name`]</label>
+        </div>
+        <div class="value input">
+            <input id="order_block_name" type="text" name="data[order][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
+        </div>
+    </div>
+
+    {* Schedule mode *}
+    {$_schedule = $checkout_config.schedule}
+    <div class="field">
+        <div class="name s-table-field-name bold">[`Store working schedule`]</div>
+        <div class="value s-table-field-value radio js-schedule-block">
+            {foreach $schedule_mode_variants as $_id => $_variant}
+                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
+                    <label>
+                        <input class="js-schedule-mode-variant" type="radio" name="data[schedule][mode]" value="{$_id|escape}"{if $_schedule.mode === $_id} checked{/if} />
+                        {$_variant.name|escape}
+                    </label>
+                    <div class="s-variant-params block-padded js-variant-params">
+                        <div class="hint" style="margin: 10px 0;">{$_variant.description}</div>
+                        {* CUSTOM MODE PARAMS *}
+                        {if shopCheckoutConfig::SCHEDULE_MODE_CUSTOM === $_id}
+                            <div class="s-settings-schedule-content js-custom-schedule"{if $_schedule.mode !== shopCheckoutConfig::SCHEDULE_MODE_CUSTOM} style="display: none;" {/if}>
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name">[`Timezone`]</div>
+                                    <div class="value">
+                                        <select name="data[schedule][timezone]">
+                                            {foreach $timezones as $timezone_id => $info}
+                                                <option value="{$timezone_id}" title="{$info}"{if $timezone_id == $_schedule.timezone} selected{/if}>{$info|truncate:37:'...'}</option>
+                                            {/foreach}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name s-table-field-name">[`Order processing schedule`]</div>
+                                    <div class="value  s-table-field-value js-week-wrapper">
+                                        <table class="zebra s-week" data-block-name="week" style="max-width: 600px; border: 1px solid #fff;">
+                                            <thead class="header">
+                                            <tr>
+                                                <th>[`Day of the week`]</th>
+                                                <th>[`Open`]</th>
+                                                <th>[`Business hours`]</th>
+                                                <th>[`New orders for processing`]</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {foreach $_schedule.week as $_day_id => $_day_params}
+                                                {$_work = $_day_params.work}
+                                                <tr class="s-day js-day-wrapper{if $_work} worked{/if}">
+                                                    <td class="s-day-name"><label for="day_{$_day_id}">{$_day_params.name|escape}</label></td>
+                                                    <td class="align-center"><input id="day_{$_day_id}" class="js-work" type="checkbox" name="data[schedule][week][{$_day_id}][work]"{if $_work} checked{/if}/></td>
+                                                    <td class="align-center">
+                                                        [`from`]
+                                                        <input class="s-time js-time" type="text" autocomplete="off" name="data[schedule][week][{$_day_id}][start_work]"{if !$_work} disabled{/if} value="{if $_work}{$_day_params.start_work|escape}{/if}"{if $_work} placeholder="00:00"{/if} data-placeholder="00:00" />
+                                                        [`to`]
+                                                        <input class="s-time js-time" type="text" autocomplete="off" name="data[schedule][week][{$_day_id}][end_work]"{if !$_work} disabled{/if} value="{if $_work}{$_day_params.end_work|escape}{/if}"{if $_work} placeholder="23:59"{/if} data-placeholder="23:59" />
+                                                    </td>
+                                                    <td class="align-center">
+                                                        [`to`]
+                                                        <input class="s-time js-time" type="text" autocomplete="off" name="data[schedule][week][{$_day_id}][end_processing]"{if !$_work} disabled{/if} value="{if $_work}{$_day_params.end_processing|escape}{/if}"{if $_work} placeholder="14:00"{/if} data-placeholder="14:00" />
+                                                    </td>
+                                                </tr>
+                                            {/foreach}
+                                            </tbody>
+                                        </table>
+
+                                        <div class="hint" style="margin: 10px 0 0; max-width: 570px;">{sprintf('[`Values of “%s” and “%s” fields can be used to calculate the estimated shipping time.`]', '[`Business hours`]', '[`New orders for processing`]')}</div>
+                                        <div class="hint" style="margin: 10px 0 0; max-width: 570px;">{sprintf('[`Values in “%s” column denote the last hour of a workday before which orders are accepted for processing on the same day. Orders accepted after that hour are processed on the next workday.`]', '[`New orders for processing`]')}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name">
+                                        <label for="processing_time">[`Business hours required to process an order`]</label>
+                                    </div>
+                                    <div class="value">
+                                        <input id="processing_time" class="s-time" type="text" autocomplete="off" name="data[schedule][processing_time]" value="{$_schedule.processing_time|default:0|escape}" />
+
+                                        <div class="hint" style="margin: 10px 0 5px; max-width: 570px;">[`Is used to calculate estimated order shipping time. Specified period of time is added to the order creation time and is taken into account to transfer order processing to the next day, if an order is placed shortly before the end of a workday or later. Additional order picking time can be specified in individual shipping methods’ settings.`]</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name s-table-field-name">[`Extra workdays`]</div>
+                                    <div class="value s-table-field-value js-extra-workdays-wrapper">
+                                        <table class="zebra" style="max-width: 494px;">
+                                            <thead class="header"{if empty($_schedule.extra_workdays)} style="display: none;"{/if}>
+                                            <tr>
+                                                <th>[`Date`]</th>
+                                                <th>[`Business hours`]</th>
+                                                <th>[`New orders for processing`]</th>
+                                                <th></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="js-days-list">
+                                            {foreach $_schedule.extra_workdays as $_id => $_day}
+                                                {renderScheduleExtraWorkday day=$_day}
+                                            {/foreach}
+                                            </tbody>
+                                        </table>
+                                        <a href="javascript:void(0);" class="inline-link js-add-day" style="margin-top: 10px; display: inline-block;">
+                                            <i class="icon16 add"></i>
+                                            <b><i>[`Add day`]</i></b>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="field-group">
+                                <div class="field">
+                                    <div class="name s-table-field-name">[`Extra days off`]</div>
+                                    <div class="value s-table-field-value js-extra-weekends-wrapper">
+                                        <table class="zebra" style="max-width: 160px;">
+                                            <tbody class="js-days-list">
+                                            {foreach $_schedule.extra_weekends as $_id => $_date}
+                                                {renderScheduleWeekend date=$_date}
+                                            {/foreach}
+                                            </tbody>
+                                        </table>
+                                        <a href="javascript:void(0);" class="inline-link js-add-day" style="margin-top: 10px; display: inline-block;">
+                                            <i class="icon16 add"></i>
+                                            <b><i>[`Add day`]</i></b>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+            {/foreach}
+        </div>
+    </div>
+</div>
+{/function}
+
+{* Customer block *}
+{function customer_block settings=[]}
+<div class="s-checkout-field-group field-group">
+    {* Block name *}
+    <div class="field">
+        <div class="name">
+            <label for="customer_block_name">[`Block name`]</label>
+        </div>
+        <div class="value input">
+            <input id="customer_block_name" type="text" name="data[customer][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
+        </div>
+    </div>
+
+    {* Offer login *}
+    <div class="field">
+        <div class="name">
+            <label for="customer_offer_login">[`Login offer text`]</label>
+        </div>
+        <div class="value">
+            <textarea id="customer_offer_login" name="data[customer][offer_login]">{$settings.offer_login|escape}</textarea>
+        </div>
+    </div>
+
+    {* Offer login *}
+    <div class="field">
+        <div class="name">
+            <label for="customer_offer_logout">[`Logout offer text`]</label>
+        </div>
+        <div class="value">
+            <textarea id="customer_offer_logout" name="data[customer][offer_logout]">{$settings.offer_logout|escape}</textarea>
+        </div>
+    </div>
+
+    {* Customer type *}
+    <div class="field">
+        <div class="name s-table-field-name bold">[`Customer types`]</div>
+        <div class="value s-table-field-value radio js-customer-type-wrapper">
+            {foreach $customer_type_variants as $_id => $_variant}
+                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
+                    <label>
+                        <input class="js-customer-type-variant" type="radio" name="data[customer][type]" value="{$_id|escape}"{if $settings.type === $_id} checked{/if} />
+                        {$_variant.name|escape}
+                    </label>
+                    <div class="s-variant-params block-padded js-variant-params"></div>
+                </div>
+            {/foreach}
+
+            <div class="js-person-company-settings">
+                <div class="field">
+                    <div class="name">
+                        <label for="customer_person_mode_name">[`Person mode name`]</label>
+                    </div>
+                    <div class="value input">
+                        <input type="text" id="customer_person_mode_name" name="data[customer][person_mode_name]" value="{$settings.person_mode_name|escape}" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        <label for="customer_company_mode_name">[`Company mode name`]</label>
+                    </div>
+                    <div class="value input">
+                        <input type="text" id="customer_company_mode_name" name="data[customer][company_mode_name]" value="{$settings.company_mode_name|escape}" autocomplete="off" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="js-company-settings">
+                <div class="field">
+                    <div class="name">
+                        <label for="customer_company_hint">[`Hint text for companies`]</label>
+                    </div>
+                    <div class="value">
+                        <textarea id="customer_company_hint" name="data[customer][company_hint]">{$settings.company_hint|escape}</textarea>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        <label for="customer_company_terms">[`Companies service terms text`]</label>
+                    </div>
+                    <div class="value">
+                        <textarea id="customer_company_terms" name="data[customer][company_terms]">{$settings.company_terms|escape}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="js-fields-editor" style="margin: 10px 0 20px 0;" data-type="person">
+                <div class="heading bold js-contact-type" style="margin: 10px 0;">[`Persons:`]</div>
+                <table class="zebra s-sort-table js-sort-table">
+                    <tbody>
+                        {renderContactFieldsEditor _fields=$settings.fields_person}
+                    </tbody>
+                </table>
+                <div class="hint" style="margin: 10px 0;">
+                    <i class="icon10 edit"></i>
+                    {sprintf(_w('<a href="%s" target="_blank">Edit contact fields</a> <i class="icon10 new-window"></i> in Settings app.'), "`$wa_backend_url`webasyst/settings/field/")}
+                </div>
+            </div>
+            <div class="js-fields-editor" style="margin: 10px 0 20px 0;" data-type="company">
+                <div class="heading bold js-contact-type" style="margin: 10px 0;">[`Companies:`]</div>
+                <table class="zebra s-sort-table js-sort-table">
+                    <tbody>
+                        {renderContactFieldsEditor _fields=$settings.fields_company}
+                    </tbody>
+                </table>
+                <div class="hint" style="margin: 10px 0;">
+                    <i class="icon10 edit"></i>
+                    {sprintf(_w('<a href="%s" target="_blank">Edit contact fields</a> <i class="icon10 new-window"></i> in Settings app.'), "`$wa_backend_url`webasyst/settings/field/")}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {* Service greement *}
+    <div class="field">
+        <div class="name">
+            <label for="shipping_service_agreement">
+                [`Personal data processing`]
+            </label>
+        </div>
+        <div class="value radio js-customer-service-agreement-wrapper">
+            {foreach $customer_service_agreement_variants as $_id => $_variant}
+                <div class="s-checkout-radio-variant js-variant" data-id="{$_id}"{if !empty($_variant.default_text)} data-default-text="{$_variant.default_text|escape}"{/if}>
+                    <label>
+                        <input type="radio" class="js-customer-service-agreement-variant"  name="data[customer][service_agreement]" value="{$_id|escape}"{if $settings.service_agreement === $_id} checked{/if} />
+                        {$_variant.name|escape}
+                    </label>
+                    <div class="s-variant-params js-variant-params"></div>
+                </div>
+            {/foreach}
+            <input type="checkbox" class="js-fake-checkbox" style="vertical-align: top; margin: 0 2px 90px; float: left; " checked="" disabled="">
+            <div class="js-customer-service-agreement-edtior">
+                <textarea class="js-customer-service-agreement-hint" name="data[customer][service_agreement_hint]">{$settings.service_agreement_hint|escape}</textarea>
+                <div class="hint">
+                    <a href="javascript:void(0)" class="inline-link js-generate-example"><b><i>[`Restore original text`]</i></b></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/function}
+
+{* Shipping block *}
+{function shipping_block settings=[]}
+    <div class="s-checkout-field-group field-group">
+        <div style="margin-top: 10px;">{sprintf(_w('<a href="%s" target="_blank">Add and configure shipping methods <i class="icon16 new-window"></i></a>'), '?action=settings#/shipping/')}</div>
+        {* Block name *}
+        <div class="field">
+            <div class="name">
+                <label for="shipping_block_name">[`Block name`]</label>
+            </div>
+            <div class="value input">
+                <input id="shipping_block_name" type="text" name="data[shipping][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
+            </div>
+        </div>
+
+        {* Courier name *}
+        <div class="field">
+            <div class="name">
+                <label for="shipping_courier_name">[`“Courier” shipping type title`]</label>
+            </div>
+            <div class="value input">
+                <input id="shipping_courier_name" type="text" name="data[shipping][courier_name]" autocomplete="off" value="{$settings.courier_name|escape}" />
+            </div>
+        </div>
+
+        {* Pickuppoint name *}
+        <div class="field">
+            <div class="name">
+                <label for="shipping_pickuppoint_name">[`“Pickup” shipping type title`]</label>
+            </div>
+            <div class="value input">
+                <input id="shipping_pickuppoint_name" type="text" name="data[shipping][pickuppoint_name]" autocomplete="off" value="{$settings.pickuppoint_name|escape}" />
+            </div>
+        </div>
+
+        {* Post name *}
+        <div class="field">
+            <div class="name">
+                <label for="shipping_post_name">[`“Post” shipping type title`]</label>
+            </div>
+            <div class="value input">
+                <input id="shipping_post_name" type="text" name="data[shipping][post_name]" autocomplete="off" value="{$settings.post_name|escape}" />
+            </div>
+        </div>
+
+        {* Plugin timeout *}
+        <div class="field">
+            <div class="name">
+                <label for="shipping_plugin_timeout">[`Shipping plugins response waiting time`]</label>
+            </div>
+            <div class="value input">
+                <input id="shipping_plugin_timeout" class="s-input-seconds" type="text" name="data[shipping][plugin_timeout]" autocomplete="off" value="{$settings.plugin_timeout|escape}" />
+                <label for="shipping_plugin_timeout">[`sec`]</label>
+                <div class="hint" style="margin-top: 10px;">
+                    [`Shipping options provided by plugins which process external requests longer than specified will not be available for choice.`]
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">
+                <label for="shipping_auto_use_timeout">[`Shipping options update timeout after locality or ZIP code update`]</label>
+            </div>
+            <div class="value input">
+                <input id="shipping_auto_use_timeout" class="s-input-seconds" type="text" name="data[shipping][auto_use_timeout]" autocomplete="off" value="{$settings.auto_use_timeout|default:0|escape}" />
+                <label for="shipping_auto_use_timeout">[`sec`]</label>
+                <div class="hint" style="margin-top: 10px;">
+                    [`The update of available shipping options will be started automatically after the specified timeout once a customer has finished to enter a locality name or a ZIP code. It is advisable to use a value of 3 seconds or greater to ensure smooth checkout process.<br>If 0 is specified, then the update of shipping options will be started only once a customer interacts with other page elements; e.g., clicks anywhere else on the checkout page.`]
+                </div>
+            </div>
+        </div>
+
+        {* Checkout mode *}
+        <div class="field">
+            <div class="name s-table-field-name bold">[`Shipping area selection`]</div>
+            <div class="value s-table-field-value radio js-shipping-mode-wrapper">
+                {foreach $shipping_mode_variants as $_id => $_variant}
+                    <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
+                        <label>
+                            <input class="js-shipping-mode-variant" type="radio" name="data[shipping][mode]" value="{$_id|escape}"{if $settings.mode === $_id} checked{/if} />
+                            <span class="s-name">{$_variant.name|escape}</span>
+                            {if !empty($_variant.description)}
+                                <div class="s-description hint" style="margin: 10px 0 20px 18px;">{$_variant.description}</div>
+                            {/if}
+                        </label>
+                        <div class="s-variant-params block-padded js-variant-params"{if $settings.mode !== $_id} style="display: none;"{/if}>
+                            {* DEFAULT MODE PARAMS *}
+                            {if shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT === $_id}
+                                {* Fixed delivery area *}
+                                <div class="field">
+                                    <div class="name">[`Limit shipping area`]</div>
+                                    <div class="value">
+                                        <label>
+                                            [`Country`]
+                                            <select name="data[shipping][fixed_delivery_area][country]" class="js-fix-delivery-country">
+                                                <option value="">[`Select a country`]</option>
+                                                {foreach $countries as $_country_id => $_country}
+                                                    <option value="{$_country_id}" title="{$_country.name|escape}"{if $settings.fixed_delivery_area.country === $_country_id} selected{/if}>{$_country.name|escape|truncate:27:'...'}</option>
+                                                {/foreach}
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="value">
+                                        <label>
+                                            [`Regions`]
+                                            <select name="data[shipping][fixed_delivery_area][region]" class="js-fix-delivery-region">
+                                                <option value="">[`Select a region`]</option>
+                                                {foreach $regions as $_region}
+                                                    <option value="{$_region.code|escape}" title="{$_region.name|escape}" data-country="{$_region.country_iso3|escape}"{if $settings.fixed_delivery_area.country == $_region.country_iso3 && $settings.fixed_delivery_area.region === $_region.code} selected{/if}>{$_region.name|escape|truncate:30:'...'}</option>
+                                                {/foreach}
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="value">
+                                        <div class="hint" style="margin-top: 10px;">
+                                            [`Selected country and region will be visible to customers but not available for changing.`]<br>
+                                            [`To hide selected country and region fields from customers, switch to “Minimal” mode and set up a single shipping area with a country and region selected in its settings.`]
+                                        </div>
+                                    </div>
+                                    <div class="value">
+                                        <label>
+                                            [`Locality`]
+                                            <input name="data[shipping][fixed_delivery_area][city]" class="js-fix-delivery-city" type="text" value="{$settings.fixed_delivery_area.city|escape}" autocomplete="off" />
+                                        </label>
+                                    </div>
+                                </div>
+
+                            {* MINIMAL MODE PARAMS *}
+                            {else}
+                                <div class="hint" style="margin: 10px 0;">[`Use a fixed list of <strong>shipping areas</strong> if you deliver orders to a limited list of locations. Customers can quickly select a location from a list without having to select a country and region first.`]</div>
+                                <div class="hint" style="margin: 10px 0;">[`A <strong>country is required</strong> to be selected in shipping area properties. If a region or a city name are not specified, they will be requested from a customer.`]</div>
+                                <div class="hint" style="margin: 10px 0;">[`If <strong>no shipping areas have been set up</strong>, customers will have to select a country and a region, and to enter a city name to view available shipping options.`]</div>
+                                <div class="hint" style="margin: 10px 0;">[`If you set up <strong>only one shipping area</strong>, with <strong>country</strong>, <strong>region</strong>, and <strong>city</strong> specified, then customers will see at once all shipping options available for that area only, without an option to change location. If you do not complete the region or locality fields in the single available shipping area’s properties, then only those empty fields will be visible during checkout.`]</div>
+
+                                <table class="zebra s-locations-table s-sort-table js-sort-table js-locations-table">
+                                    <tbody>
+                                    {foreach $settings.locations_list as $_location}
+                                        {renderShippingLocation _location=$_location}
+                                        {foreachelse}
+                                        {renderShippingNoLocations}
+                                    {/foreach}
+                                    </tbody>
+                                </table>
+                                <div style="margin-top: 10px;">
+                                    <a href="javascript:void(0);" class="inline-link js-add-location">
+                                        <i class="icon16 add"></i>
+                                        <b><i>[`Add shipping area`]</i></b>
+                                    </a>
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
+                {/foreach}
+            </div>
+        </div>
+
+        {* Pickup map *}
+        <div class="field">
+            <div class="name s-table-field-name bold">[`Shipping option selection`]</div>
+            <div class="value s-table-field-value radio js-map-mode-wrapper">
+                {foreach $shipping_show_pickuppoint_map_variants as $_map_variant_id => $_map_variant}
+                    {$_is_active = false}
+                    {if $settings.show_pickuppoint_map === $_map_variant_id}{$_is_active = true}{/if}
+
+                    <div class="s-checkout-radio-variant js-variant" data-id="{$_map_variant_id|escape}">
+                        <label>
+                            <input class="s-radio js-radio" type="radio" name="data[shipping][show_pickuppoint_map]" value="{$_map_variant_id|escape}"{if !empty($_is_active)} checked{/if}>
+                            <span class="s-name">{$_map_variant.name|escape}</span>
+                        </label>
+
+                        {if !empty($_map_variant.description)}
+                            <div class="s-variant-params block-padded js-variant-params"{if empty($_is_active)} style="display: none;"{/if}>
+                                <p class="s-description hint">{$_map_variant.description}</p>
+                            </div>
+                        {/if}
+                    </div>
+                {/foreach}
+
+                <div class="s-variant-params block-padded">
+                    <div class="hint">[`A small map with one pickup point will be shown by a click on an address in the pickup point selection dialog.`]</div>
+                </div>
+            </div>
+        </div>
+
+        {* Adress fields *}
+        <div class="field">
+            <div class="name s-table-field-name bold">[`Address fields`]</div>
+            <div class="value s-table-field-value js-fields-editor" data-type="address">
+
+                {* Ask zip *}
+                <div class="field" style="margin-top: 0;">
+                    <div class="name">
+                        [`ZIP code`]
+                    </div>
+                    <div class="value">
+                        <label>
+                            <input type="hidden" name="data[shipping][ask_zip]" value="0" />
+                            <input class="js-shipping-ask-zip" type="checkbox" name="data[shipping][ask_zip]"{if $settings.ask_zip} checked{/if} />
+                            [`Request ZIP code with the locality name`]
+                        </label>
+                    </div>
+                    <div class="clear"></div>
+                </div>
+
+                <table class="zebra s-sort-table js-sort-table">
+                    <tbody>
+                        {* Fake Fields. They are required because there are separate settings for them. *}
+                        <tr>
+                            <td>
+                                <i style="display: inline-block; width: 16px; height: 16px; margin: -0.1em 0.25em 0 0;"></i>
+                                <label>
+                                    <input type="checkbox" title="[`Use field`]" checked disabled>
+                                    {$system_address_field_names.country|escape}
+                                    <i class="hint">[`country`] — [`Text (input)`]</i>
+                                </label>
+                            </td>
+                            <td>
+                                <label>
+                                    <input type="checkbox" checked disabled>
+                                    <i class="small">[`Required`]</i>
+                                </label>
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i style="display: inline-block; width: 16px; height: 16px; margin: -0.1em 0.25em 0 0;"></i>
+                                <label>
+                                    <input type="checkbox" title="[`Use field`]" checked disabled>
+                                    {$system_address_field_names.region|escape}
+                                    <i class="hint">[`region`] — [`Text (input)`]</i>
+                                </label>
+                            </td>
+                            <td>
+                                <label>
+                                    <input type="checkbox" checked disabled>
+                                    <i class="small">[`Required`]</i>
+                                </label>
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <i style="display: inline-block; width: 16px; height: 16px; margin: -0.1em 0.25em 0 0;"></i>
+                                <label>
+                                    <input type="checkbox" title="[`Use field`]" checked disabled>
+                                    {$system_address_field_names.city|escape}
+                                    <i class="hint">[`locality`] — [`Text (input)`]</i>
+                                </label>
+                            </td>
+                            <td>
+                                <label>
+                                    <input type="checkbox" checked disabled>
+                                    <i class="small">[`Required`]</i>
+                                </label>
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+                        {renderContactFieldsEditor _fields=$settings.address_fields _type='address'}
+                    </tbody>
+                </table>
+                <div class="hint" style="margin-top: 10px;">
+                    <i class="icon10 edit"></i>
+                    {sprintf(_w('<a href="%s" target="_blank">Edit address fields</a> <i class="icon10 new-window"></i> in Settings app.'), "`$wa_backend_url`webasyst/settings/field/")}<br><br>
+                    [`Address fields provided by shipping plugins will be displayed before custom fields that you may add.`]
+                    <br><br>
+                    [`Disable address fields which are not required for all shipping options. Shipping plugins will add required address fields during checkout, if necessary. Plugin fields’ size is defined by the selected “Field width” values.`]
+                </div>
+            </div>
+        </div>
+
+        {* Service greement *}
+        <div class="field">
+            <div class="name">
+                <label for="shipping_service_agreement">
+                    [`Personal data processing`]
+                </label>
+            </div>
+            <div class="value js-shipping-service-agreement-wrapper">
+                <label>
+                    <input type="hidden" name="data[shipping][service_agreement]" value="0" />
+                    <input class="js-shipping-service-agreement" id="shipping_service_agreement" type="checkbox" name="data[shipping][service_agreement]"{if $settings.service_agreement} checked{/if} />
+                    [`Show notice`]
+                </label>
+                <textarea class="block-padded js-shipping-service-agreement-hint"{if !$settings.service_agreement} style="display: none;"{/if} name="data[shipping][service_agreement_hint]">{$settings.service_agreement_hint|escape}</textarea>
+            </div>
+        </div>
+    </div>
+{/function}
+
+{* Payment block *}
+{function payment_block settings=[]}
+<div class="s-checkout-field-group field-group">
+    <div style="margin-top: 10px;">{sprintf(_w('<a href="%s" target="_blank">Add and configure payment methods <i class="icon16 new-window"></i></a>'), '?action=settings#/payment/')}</div>
+    {* Block name *}
+    <div class="field">
+        <div class="name">
+            <label for="payment_block_name">[`Block name`]</label>
+        </div>
+        <div class="value input">
+            <input id="payment_block_name" type="text" name="data[payment][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
+        </div>
+    </div>
+</div>
+{/function}
+
+{* Confirmation block *}
+{function confirmation_block settings=[]}
+<div class="s-checkout-field-group field-group">
+    {* Auto submit *}
+    <div class="field">
+        <div class="name">
+            <label for="confirmation_auto_submit">[`Auto-redirect to payment`]</label>
+        </div>
+        <div class="value">
+            <label>
+                <input type="hidden" name="data[confirmation][auto_submit]" value="0" />
+                <input id="confirmation_auto_submit" type="checkbox" name="data[confirmation][auto_submit]"{if $settings.auto_submit} checked{/if} />
+                [`Redirect a customer to the payment page`]
+            </label>
+        </div>
+    </div>
+
+    {* Order comment *}
+    <div class="field">
+        <div class="name">
+            <label for="confirmation_order_comment">[`Comment to the order`]</label>
+        </div>
+        <div class="value">
+            <label>
+                <input type="hidden" name="data[confirmation][order_comment]" value="0" />
+                <input id="confirmation_order_comment" type="checkbox" name="data[confirmation][order_comment]"{if $settings.order_comment} checked{/if} />
+                [`Allow customers to leave a comment to an order`]
+            </label>
+        </div>
+    </div>
+
+    {* Terms *}
+    <div class="field">
+        <div class="name">
+            <label for="confirmation_terms">[`Terms of service`]</label>
+            <div class="hint">HTML</div>
+        </div>
+        <div class="value js-confirmation-terms-wrapper">
+            <label>
+                <input type="hidden" name="data[confirmation][terms]" value="0" />
+                <input id="confirmation_terms" class="js-confirmation-terms" type="checkbox" name="data[confirmation][terms]"{if $settings.terms} checked{/if} />
+                [`Show`]
+            </label>
+            <div class="js-confirmation-terms-text-wrapper"{if !$settings.terms} style="display: none;"{/if}>
+                <div>
+                    <textarea class="block-padded js-confirmation-terms-text" name="data[confirmation][terms_text]">{$settings.terms_text|escape}</textarea>
+                </div>
+                <div>
+                    <a href="javascript:void(0);" class="js-confirmation-terms-generate hint inline-link block-padded"><b><i>[`Generate sample policy`]</i></b></a>
+                </div>
+                <div class="hint block-padded">
+                    [`Enter your terms of service, refund conditions, and other legal information for customers to read and to agree to during checkout.`]
+                    [`If this field is completed, customers will see a link to the conditions and a checkbox to confirm their consent before checkout completion.`]
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {* Order without auth *}
+    <div class="field s-checkout-auth-with-code">
+        <div class="name">[`Customer profiles updating &amp; auto-signup`]</div>
+        <div class="value radio js-order-without-auth-wrapper">
+            {foreach $confirmation_order_without_auth_variants as $_id => $_variant}
+                <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
+                    <label>
+                        <input class="js-order-without-auth-variant" type="radio" name="data[confirmation][order_without_auth]" value="{$_id|escape}"{if $settings.order_without_auth === $_id} checked{/if} />
+                        {$_variant.name|escape}
+                        {if isset($_variant.description)}
+                            <div class="hint block-padded">{$_variant.description}</div>
+                        {/if}
+                    </label>
+                    <div class="s-variant-params js-variant-params"></div>
+                </div>
+            {/foreach}
+
+            <p class="hint">{sprintf('[`<a href="%s" target="_blank">How to choose the correct option for this setting</a>.`]', '[`https://www.shop-script.com/help/29297/in-cart-checkout/#customer-profiles-updating`]')} <a href="[`https://www.shop-script.com/help/29297/in-cart-checkout/#customer-profiles-updating`]" target="_blank"><i class="icon16 new-window"></i></a></p>
+        </div>
+    </div>
+
+    {* Recode timeout *}
+    <div class="field">
+        <div class="name">
+            <label for="confirmation_recode_timeout">[`You can request a code again in`]</label>
+        </div>
+        <div class="value input">
+            <input id="confirmation_recode_timeout" class="s-input-seconds" type="text" name="data[confirmation][recode_timeout]" autocomplete="off" value="{$settings.recode_timeout|escape}" />
+            <label for="confirmation_recode_timeout">[`sec`]</label>
+            <div class="hint" style="margin-top: 10px;">
+                [`After this timeout, a customer will be able to re-request a confirmation code by email or SMS when logging in to confirm checkout completion.`]
+            </div>
+        </div>
+    </div>
+
+    {* Thank you header *}
+    <div class="field">
+        <div class="name">
+            <label for="confirmation_thankyou_header">[`“Thank you” page title`]</label>
+        </div>
+        <div class="value">
+            <input id="confirmation_thankyou_header" type="text" name="data[confirmation][thankyou_header]" autocomplete="off" value="{$settings.thankyou_header|escape}" />
+        </div>
+    </div>
+
+    {* Thank you header *}
+    <div class="field">
+        <div class="name">
+            <label for="confirmation_thankyou_content">[`“Thank you” page text`]</label>
+            <div class="hint">HTML</div>
+        </div>
+        <div class="value">
+            <textarea id="confirmation_thankyou_content" name="data[confirmation][thankyou_content]">{$settings.thankyou_content|escape}</textarea>
+        </div>
+    </div>
+</div>
+{/function}

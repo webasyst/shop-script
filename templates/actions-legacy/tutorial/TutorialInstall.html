@@ -1,0 +1,19 @@
+<h1>Congratulations!</h1>
+
+<p>Shop-Script has been successfully installed and pre-configured.</p>
+
+<p>URLs to remember:</p>
+
+<ul>
+    <li><strong>{$wa->domainUrl()|cat:$wa_backend_url}</strong> — the URL to log into your online store admin backend (which you are viewing right now)</li>
+    <li>
+        <a href="{$wa->getUrl('shop/frontend')}" class="bold" target="_blank">{$wa->getUrl('shop/frontend', [], true)}</a> <i class="icon10 new-window" style="margin-top:0.4em;"></i> — the URL of your online storefront
+        <br><br>
+        <div class="s-storefront-preview">
+            <iframe src="{$wa->getUrl('shop/frontend')}" scrolling="no" seamless="seamless"></iframe>
+            <div class="s-preview-mask"></div>
+        </div>
+        <br><br>
+        <p><em>Use <a href="{$wa->domainUrl()|cat:$wa_backend_url}site/">Site app</a> to link as many custom .COM domain names to your storefront as you want.</em></p>
+    </li>
+</ul>

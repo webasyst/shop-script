@@ -1,0 +1,331 @@
+<div class="s-features-settings-page is-not-ready" id="js-features-settings-page" style="visibility: hidden;">
+    <script>
+        ( function($) {
+            $("#js-features-settings-page").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    <div class="s-page-table-box">
+        <div class="sidebar left200px">
+            {$sidebar_html}
+        </div>
+
+        <div class="content left200px bordered-left blank">
+
+            <div class="s-content-section js-content-section">
+                {* HEADER *}
+                <div class="s-section-header">
+
+                    <div class="wa-table-box space-10 middle">
+                        <div class="s-column">
+                            {* TITLE *}
+                            <h1 class="s-title">{$title|escape}</h1>
+                        </div>
+                        <div class="s-column align-right">
+                            {strip}
+                            {if empty($is_filter_page)}
+                                <div class="s-type-actions">
+                                    <a class="s-action inline-link js-type-edit" href="javascript:void(0);">
+                                        <i class="icon16 edit"></i>
+                                        <b><i>[`Edit`]</i></b>
+                                    </a>
+                                    {if $can_be_delete}
+                                        <a class="s-action inline-link js-type-delete" href="javascript:void(0);">
+                                            <i class="icon16 delete"></i>
+                                            <b><i>[`Delete`]</i></b>
+                                        </a>
+                                    {else}
+                                        <span title="[`You cannot delete the only existing product type.`]">
+                                            <i class="icon16 delete-bw"></i>
+                                            <i>[`Delete`]</i>
+                                        </span>
+                                    {/if}
+                                </div>
+                            {/if}
+                            {/strip}
+                        </div>
+                    </div>
+
+                    {* SEARCH *}
+                    <div class="s-search-section">
+                        <i class="s-icon icon16 ss search-bw"></i>
+                        <input class="s-field js-search-field" type="text" name="search" placeholder="{_w('Feature search')|escape}" autocomplete="off">
+                    </div>
+                </div>
+
+                {* BODY *}
+                <div class="s-section-body">
+
+                    {if isset($codes)}
+                    <section class="s-features-section">
+                        <h5 class="s-section-title heading">
+                            <span class="s-title">[`Product codes`]</span>
+                            <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Product codes are completed on the order page for each ordered item. They can be used to store trade item numbers, software license numbers or unique serial numbers.`]</span></span>
+                            <span class="s-icon js-code-add"><i class="icon16 add"></i></span>
+                        </h5>
+                        {if !empty($codes)}
+                            {$_title = _w('To delete this product code, disable or delete the corresponding plugin.')}
+                            {$_disabled = "is-disabled"}
+                            <div class="s-features-list s-codes-list js-codes-list">
+                                <div class="s-empty-search js-empty-search">[`No product codes matching the search criteria`]</div>
+                                {foreach $codes as $_code}
+                                    <div class="s-feature-wrapper js-code-wrapper" data-id="{$_code.id|escape}" data-code="{$_code.code|escape}">
+                                        <div class="s-feature-block">
+                                            <div class="s-column-actions">
+                                                {strip}
+                                                    {if !empty($_code.icon) && $_code.code_plugin_enabled}
+                                                        <img src="{$wa_url}{$_code.icon}">
+                                                    {else}
+                                                        <i class="icon16 ss parameter"></i>
+                                                    {/if}
+                                                {/strip}
+                                            </div>
+                                            <div class="s-column-name">
+                                                {strip}
+                                                    <div class="js-search-place">
+                                                        <div class="s-name-wrapper">
+                                                            <span class="s-name">{$_code.name|escape}</span>
+                                                        </div>
+                                                        <div class="s-code">{$_code.code|escape}</div>
+                                                    </div>
+                                                {/strip}
+                                            </div>
+                                            <div class="s-column-actions">
+                                                {strip}
+                                                    <div class="s-actions-list align-right">
+                                                        <a class="s-action js-code-edit" href="javascript:void({$_code.id|escape});" title="[`Edit`]"><i class="icon16 edit"></i></a>
+                                                        <a class="s-action js-code-copy" href="javascript:void(0);" title="[`Duplicate`]"><i class="icon16 notebooks"></i></a>
+                                                        <a class="s-action {if $_code.protected_code}js-code-undeletable{else}js-code-delete{/if}" href="javascript:void(0);" title="{if $_code.protected_code}{$_title}{else}[`Delete`]{/if}">
+                                                            <i class="icon16 {if $_code.protected_code}delete-bw{else}delete{/if}"></i>
+                                                        </a>
+                                                    </div>
+                                                {/strip}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {/foreach}
+                            </div>
+                        {else}
+                            <div class="s-message-empty">
+                                {if $type_url_id == 'empty'}
+                                    [`There are no product codes that are not available for any product type.`]
+                                {elseif $type_url_id == 'all_existing'}
+                                    [`There are no product codes available for all product types.`]
+                                {else}
+                                    [`No product codes.`]
+                                {/if}
+                            </div>
+                        {/if}
+                    </section>
+                    {/if}
+
+                    <section class="s-features-section">
+                        <h5 class="s-section-title heading">
+                            <span class="s-title">[`Features`]</span>
+                            <span class="shop-tooltip"><i class="icon10 info"></i><span>{if wa_is_int($type_url_id)}[`Features are displayed on storefront product pages in the order set up for this product type.`]<br><br>[`To change features’ sort order, drag &amp; drop them to desired locations within the list.`]{else}[`To change features’ sort order, select a product type.`]{/if}</span></span>
+                            {if $type_url_id != 'builtin'}
+                                <ul class="menu-h dropdown">
+                                    <li>
+                                        <a class="inline-link s-visible-link" href="javascript:void(0);">
+                                            <i class="icon16 add"></i>
+                                        </a>
+                                        <ul class="menu-v without-icons" style="max-width: none; width: 250px;">
+                                            <li>
+                                                <a class="js-feature-add-new"
+                                                   href="javascript:void(0);"
+                                                   data-type-id="{$type_url_id|default:""|escape}">
+                                                    <span class="s-name">[`New feature`]</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="js-feature-add-divider"
+                                                   href="javascript:void(0);"
+                                                   data-type-id="{$type_url_id|default:""|escape}"
+                                                   data-mode="divider">
+                                                    <span class="s-name">[`Feature group heading`]</span>
+                                                </a>
+                                            </li>
+                                            {if empty($is_filter_page)}
+                                                <li class="with-border">
+                                                    <a class="js-feature-add-existing" href="javascript:void(0);">
+                                                        <span class="s-name">[`Feature or heading from&nbsp;other product types`]</span>
+                                                    </a>
+                                                </li>
+                                            {/if}
+                                        </ul>
+                                    </li>
+                                </ul>
+                            {/if}
+                        </h5>
+
+                        {if !empty($features)}
+                            <div class="s-features-list js-features-list">
+                                <div class="s-empty-search js-empty-search">[`No features matching the search criteria`]</div>
+                                {foreach $features as $_feature}
+                                    {$_classes = []}
+                                    {$_is_visible = true}
+                                    {if empty($_feature.visible_in_frontend)}
+                                        {$_classes[] = "is-disabled"}
+                                        {$_is_visible = false}
+                                    {/if}
+
+                                    {$_sku_enabled = false}
+                                    {if !empty($_feature.available_for_sku)}
+                                        {$_sku_enabled = true}
+                                    {/if}
+
+                                    {$_is_divider = false}
+                                    {if !empty($_feature.type)}
+                                        {if $_feature.type === "divider"}
+                                            {$_is_divider = true}
+                                            {$_classes[] = "is-divider"}
+                                        {else}
+                                            {$_classes[] = "is-custom-feature"}
+                                        {/if}
+                                    {else}
+                                        {$_classes[] = "is-feature"}
+                                    {/if}
+
+                                    <div class="s-feature-wrapper js-feature-wrapper {$_classes|join:" "}" data-id="{$_feature.id|escape}" data-code="{$_feature.code|escape}" data-visibility-enabled="{if $_is_visible}1{/if}" data-sku-enabled="{if $_sku_enabled}1{/if}">
+                                        <div class="s-feature-block">
+                                            <div class="s-column-actions">
+
+                                                {strip}
+                                                <div class="s-actions-list">
+                                                    {if empty($is_filter_page)}
+                                                        <a class="s-action js-feature-sort-toggle" href="javascript:void(0);" title="[`Drag to change features’ sort order`]"><i class="icon16 sort"></i></a>
+                                                    {/if}
+                                                    <a class="s-action js-feature-visibility-toggle" href="javascript:void(0);" title="[`Show on website`]"><i class="icon16 {if $_is_visible}visibility-on{else}ss visibility{/if}"></i></a>
+                                                    {if empty($_is_divider)}
+                                                        {if $_feature.builtin}
+                                                            {if $_feature.code === 'weight'}
+                                                                {$builtin_title = _w('“Weight” is a special feature, which must always be available for editing in product SKUs’ properties.')}
+                                                            {elseif $_feature.code === 'gtin'}
+                                                                {$builtin_title = _w('“GTIN (Global Trade Item Number)” is a special feature, which must always be available for editing in product SKUs’ properties.')}
+                                                            {else}
+                                                                {$builtin_title = _w('You cannot disable the editing of this feature’s values in product SKUs’ properties, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode.')}
+                                                            {/if}
+                                                            <a class="s-action js-feature-sku-toggle-always" href="javascript:void(0);" title="{$builtin_title}"><i class="icon16 hierarchical"></i></a>
+                                                        {else}
+                                                            <a class="s-action js-feature-sku-toggle" href="javascript:void(0);" title="[`Enables editing of feature values for product SKUs`]"><i class="icon16 {if $_sku_enabled}hierarchical{else}hierarchical-off{/if}"></i></a>
+                                                        {/if}
+                                                    {/if}
+                                                </div>
+                                                {/strip}
+
+                                            </div>
+                                            <div class="s-column-name">
+
+                                                {strip}
+                                                <div class="js-search-place">
+                                                    <div class="s-name-wrapper">
+                                                        <span class="s-name">{$_feature.name|escape}</span>
+                                                        {if !empty($_is_divider)}
+                                                            <span class="s-description">[`Feature group heading`]</span>
+                                                        {/if}
+                                                    </div>
+                                                    <div class="s-code">{$_feature.code|escape}</div>
+                                                </div>
+                                                {/strip}
+
+                                            </div>
+                                            <div class="s-column-actions">
+
+                                                {strip}
+                                                <div class="s-actions-list align-right">
+                                                    <a class="s-action js-feature-edit" href="javascript:void(0);" data-id="{$_feature.id|escape}" data-code="{$_feature.code|escape}" title="[`Edit`]"><i class="icon16 edit"></i></a>
+                                                    <a class="s-action js-feature-copy" href="javascript:void(0);" title="[`Duplicate`]"><i class="icon16 notebooks"></i></a>
+                                                    {if $_feature.builtin}
+                                                        <a class="s-action js-feature-undeletable" href="javascript:void(0);" title="[`This feature is special and cannot be deleted. You can only remove it from certain product types where you don’t need it.`]"><i class="icon16 delete-bw"></i></a>
+                                                    {else}
+                                                        <a class="s-action js-feature-delete" href="javascript:void(0);" title="[`Delete`]"><i class="icon16 delete"></i></a>
+                                                    {/if}
+                                                </div>
+                                                {/strip}
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                {/foreach}
+                            </div>
+                        {else}
+                            <div class="s-message-empty">
+                                {if $too_many_features}
+                                    [`There are too many features to show in this list. Please select a product type on the left to view its features.`]
+                                {elseif $type_url_id == 'empty'}
+                                    [`There are no features that are not available for any product type.`]
+                                {elseif $type_url_id == 'all_existing'}
+                                    [`There are no features available for all product types.`]
+                                {else}
+                                    [`No features.`]
+                                {/if}
+                            </div>
+                        {/if}
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {shopSettingsTypefeatFeatureWidgetAction::widget([
+        "selection" => ".js-feature-add-new, .js-feature-add-divider, .js-feature-edit"
+    ])}
+
+    <script>
+        ( function($) {
+
+            document.title = {_w('Product types & features')|json_encode} + ' — ' + {$wa->accountName()|json_encode};
+
+            var sources = [{
+                id: "wa-dialog-css",
+                type: "css",
+                uri: "{$wa_url}wa-content/js/dialog/dialog.css?v={$wa->version(true)}"
+            }, {
+                id: "wa-dialog-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/dialog/dialog.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-features-settings-css",
+                type: "css",
+                uri: "{$wa_app_static_url}css-legacy/backend/settings/features.css?v={$wa->version()}"
+            }, {
+                id: "vue-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/backend/settings/features/vue/vue.min.js?v={$wa->version()}"
+            }, {
+                id: "wa-features-settings-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/backend/settings/features/features.js?v={$wa->version()}"
+            }];
+
+            $.shop.loadSources(sources).then(init, function() {
+                alert("Page Loading Error");
+            });
+
+            function init() {
+                window.shop_feature_settings_page = new ShopFeatureSettingsPage({
+                    $wrapper: $("#js-features-settings-page").removeClass("is-not-ready").removeAttr("style"),
+                    type_id: {if !empty($type_url_id)}{$type_url_id|json_encode}{else}null{/if},
+                    urls: {
+                        "transliterate": {$wa_app_url|json_encode} + "?module=backend&action=transliterate",
+                        "reload": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=list",
+                        "toggle": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=toggle",
+                        "feature_edit": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=featureEdit",
+                        "feature_delete": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=featureDelete",
+                        "feature_delete_dialog": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=featureDeleteDialog",
+                        "feature_add_existing": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=featureAddExisting",
+                        "feature_copy": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=featureDuplicate",
+                        "feature_save": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=featureSave",
+                        "feature_sort": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=featureSort",
+                        "code_edit": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=codeEdit",
+                        "code_delete": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=codeDelete",
+                        "code_delete_dialog": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=codeDeleteDialog",
+                        "code_copy": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=codeDuplicate",
+                        "code_save": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=codeSave"
+                    }
+                });
+            }
+
+        })(jQuery);
+    </script>
+</div>

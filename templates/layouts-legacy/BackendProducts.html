@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="{if $wa->locale()}{$wa->locale()}{else}en{/if}">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>{$wa->title()|default:$wa->appName()|escape} — {$wa->accountName()}</title>
+
+    {* META *}
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {* Принудительно включаем светлую тему *}
+    <script>localStorage.setItem("wa_theme_user_mode", "light");</script>
+
+    {* CSS *}
+    {$wa->css()}
+    <link href="{$wa_app_static_url}css-legacy/backend/products/wa2/wa2.css?v{$wa->version()}" rel="stylesheet" />
+    {* коррекция общего интерфейса раздела под разные версии wa-ui *}
+    <link href="{$wa_app_static_url}css-legacy/backend/products/ui/ui.css?v={$wa->version(true)}" rel="stylesheet" />
+    {* раздел редактора товара *}
+    <link href="{$wa_app_static_url}css-legacy/backend/products/product/product.css?v={$wa->version(true)}" rel="stylesheet" />
+
+    {* JS *}
+    <script src="{$wa_url}wa-content/js/jquery/jquery-1.11.1.min.js"></script>
+
+    <script src="{$wa_app_static_url}js-legacy/backend/products/wa2.js?v{$wa->version()}"></script>
+
+    <script src="{$wa_app_static_url}js-legacy/backend/products/products.js?v{$wa->version()}"></script>
+    <script src="{$wa_url}wa-content/js/fontawesome/fontawesome-all.min.js?v={$wa->version(true)}"></script>
+
+    {* JQUERY UI custom build. Contains autocomplete and datepicker. Must be here for Mozilla support *}
+    <script src="{$wa_app_static_url}js-legacy/backend/products/product/jquery-ui/jquery-ui.min.js?v={$wa->version()}"></script>
+    <link href="{$wa_app_static_url}js-legacy/backend/products/product/jquery-ui/jquery-ui.css?v={$wa->version()}" rel="stylesheet">
+    {if substr($wa->locale(), 0, 2) !== "en"}
+        <script src="{$wa_url}wa-content/js/jquery-ui/i18n/jquery.ui.datepicker-{$wa->locale()}.js"></script>
+    {/if}
+    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js"></script>
+
+    {$wa->js()}
+
+    <script>
+        ( function($) {
+            $.wa_shop_products.lang = "{substr($wa->locale(), 0, 2)}";
+            $.wa_shop_products.date_format = {waDateTime::getFormatJS('date')|json_encode};
+            $.wa_shop_products.app_url = "{$wa_app_url|escape}";
+            $.wa_shop_products.section_url = "{$wa_app_url|escape}products/";
+            $.wa.title.pattern = "%s — {$wa->accountName()|escape}";
+        })(jQuery);
+    </script>
+
+    {* Диалон уведомления об удалённом продукте *}
+    {capture assign="_dialog_deleted_product"}
+        <div class="wa-dialog s-deleted-product-dialog" id="js-deleted-product-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-body">
+                <div class="dialog-header">
+                    <h2>[`The product has been deleted.`]</h2>
+                </div>
+                <div class="dialog-footer">
+                    <button class="js-dialog-close wa-button gray" type="button">[`Close`]</button>
+                </div>
+            </div>
+        </div>
+    {/capture}
+
+    <script>
+        ( function($) {
+            var template = {$_dialog_deleted_product|json_encode};
+            $.wa_shop_products.showDeletedProductDialog = function() {
+                var url = "{$wa_app_url}products/";
+                $.waDialog({
+                    html: template,
+                    onClose: function() {
+                        $.wa_shop_products.router.load(url);
+                    }
+                });
+            }
+        })(jQuery);
+    </script>
+
+    <!-- plugin hook: 'backend_prod_layout.head' -->
+    {* @event backend_prod_layout.%plugin_id%.head *}
+    {if !empty($backend_prod_layout_event)}{foreach $backend_prod_layout_event as $_}{ifset($_.head)}{/foreach}{/if}
+</head>
+
+<body>
+<div id="wa">
+    {* HEADER *}
+    {$wa->header()}
+
+    <!-- plugin hook: 'backend_prod_layout.top' -->
+    {* @event backend_prod_layout.%plugin_id%.top *}
+    {if !empty($backend_prod_layout_event)}{foreach $backend_prod_layout_event as $_}{ifset($_.top)}{/foreach}{/if}
+
+    {* APP *}
+    <div class="s-app-wrapper" id="wa-app">
+        {$content}
+    </div>
+
+    {capture assign="_confirm_dialog"}
+        <div class="wa-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-body">
+                <div class="dialog-header">
+                    <h2>[`Save modified data before leaving?`]</h2>
+                </div>
+                <div class="dialog-content">
+                    <p>[`Your changes will be lost if you do not save them.`]</p>
+                </div>
+                <div class="dialog-footer">
+                    <button class="js-save-button wa-button yellow" type="button">[`Save`]</button>
+                    <button class="js-leave-button wa-button gray" type="button">[`Leave without saving`]</button>
+                    <button class="js-dialog-close wa-button blue" type="button">[`Stay`]</button>
+                </div>
+            </div>
+        </div>
+    {/capture}
+
+    <!-- plugin hook: 'backend_prod_layout.bottom' -->
+    {* @event backend_prod_layout.%plugin_id%.bottom *}
+    {if !empty($backend_prod_layout_event)}{foreach $backend_prod_layout_event as $_}{ifset($_.bottom)}{/foreach}{/if}
+
+    <script>
+        ( function($) {
+
+            var sections = {
+                "products": {
+                    id: "products",
+                    content_selector: "#js-products-page-content"
+                },
+                "product": {
+                    id: "product",
+                    content_selector: ".s-product-page .js-page-content"
+                }
+            }
+
+            var routes = {
+                "/products/"              : sections["products"],
+                "/products/categories/"   : sections["products"],
+                "/products/sets/"         : sections["products"],
+                "/products/tags/"         : sections["products"],
+                "/products/reviews/"      : sections["products"],
+                "/products/stocks/"       : sections["products"],
+                "/products/new/"          : sections["product"],
+                "/products/\\d+/"         : sections["product"],
+                "/products/\\d+/general/" : sections["product"],
+                "/products/\\d+/sku/"     : sections["product"],
+                "/products/\\d+/media/"   : sections["product"],
+                "/products/\\d+/seo/"     : sections["product"],
+                "/products/\\d+/services/": sections["product"],
+                "/products/\\d+/related/" : sections["product"],
+                "/products/\\d+/pages/"   : sections["product"],
+                "/products/\\d+/reviews/" : sections["product"],
+                "/products/\\d+/prices/"  : sections["product"]
+            }
+
+            $.wa_shop_products.init.initContentRouter({
+                $wrapper: $("#wa-app"),
+                main_url: {$wa_app_url|json_encode},
+                sections: sections,
+                routes: routes,
+                onClick: function(node, url) {
+                    var $link = $(node);
+                    if ($link.hasClass("js-disable-router") || $link.data("router-disable")) {
+                        return false;
+                    }
+                },
+                templates: {
+                    confirm_dialog: {$_confirm_dialog|strip|trim|json_encode}
+                }
+            });
+
+        })(jQuery);
+    </script>
+</div>
+</body>
+</html>

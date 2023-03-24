@@ -51,6 +51,14 @@ class shopOrderAction extends waViewAction
 
         $order_model = new shopOrderModel();
         $order_data_array = $_order->dataArray();
+
+        $order_data_array['payment_url'] = null;
+        //if (!empty($order_data_array['params']['payment_id'])) {
+            $order_data_array['payment_url'] = $link_template = wa()->getRouting()->getUrl('shop/frontend/paymentLink', [
+                'hash' => $_order->getPaymentLinkHash(),
+            ], true);
+        //}
+
         $order_items = $this->extendOrderItems($order_data_array);
         $order_data_array['contact'] = $_order->contact_essentials;
         if (!empty($order_data_array['contact']['name'])) {
@@ -81,6 +89,7 @@ class shopOrderAction extends waViewAction
             'customer'                   => $_order->shop_customer,
             'customer_contact'           => $_order->contact,
             'customer_essentials'        => $_order->contact_essentials,
+            'order_icon'                 => $this->getIcon($_order),
             'main_contact_info'          => $main_contact_info,
             'similar_contacts'           => $this->getSimilarContacts($_order->contact),
             'currency'                   => $config->getCurrency(),
@@ -187,21 +196,11 @@ class shopOrderAction extends waViewAction
 
     protected function formatSalesChannel($params)
     {
-        if (empty($params['sales_channel']) || $params['sales_channel'] == 'other:') {
+        if (!isset($params['sales_channel']) || $params['sales_channel'] == 'other:') {
             return _w('Unknown channel');
-        } elseif ($params['sales_channel'] == 'backend:') {
-            return _w('Backend');
-        } elseif ($params['sales_channel'] == 'buy_button:') {
-            return _w('Buy button');
-        } elseif (substr($params['sales_channel'], 0, 11) == 'storefront:') {
-            return _w('Storefront');
-        } else {
-            $result = array(
-                $params['sales_channel'] => $params['sales_channel'],
-            );
-            wa('shop')->event('backend_reports_channels', $result);
-            return ifempty($result[$params['sales_channel']], $params['sales_channel']);
         }
+        $channels = shopSalesChannels::describeChannels([$params['sales_channel']]);
+        return ifset($channels, shopSalesChannels::canonicId($params['sales_channel']), 'name', $params['sales_channel']);
     }
 
     public function getParams($str = false)
@@ -398,5 +397,32 @@ class shopOrderAction extends waViewAction
         }
         $model = new shopProductStocksModel();
         return $model->getBySkuId($sku_ids);
+    }
+
+    /**
+     * @param shopOrder $order
+     * @return string
+     */
+    public function getIcon($order)
+    {
+        try {
+            $photo = $order->contact->get('photo');
+        } catch (Exception $e) {
+            $photo = '';
+        }
+        if (!empty($photo)) {
+            $host_url = wa()->getConfig()->getHostUrl();
+            return $host_url.waContact::getPhotoUrl($order->contact->getId(), $photo);
+        } else {
+            $order_params = $order->params;
+            $channel_id = ifset($order_params, 'sales_channel', null);
+            if (!empty($channel_id)) {
+                $channel_id = shopSalesChannels::canonicId($channel_id);
+                $sales_channels = shopSalesChannels::describeChannels();
+                $sales_channel = ifset($sales_channels, $channel_id, shopSalesChannels::getDefaultChannel());
+
+                return $sales_channel['icon_url'];
+            }
+        }
     }
 }

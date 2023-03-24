@@ -1,0 +1,328 @@
+<link type="text/css" rel="stylesheet" href="{$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.css?{$wa->version(true)}">
+
+{wa_js file="js-legacy/product/product.min.js"}
+    {$wa_app_static_url}js-legacy/tmpl.min.js
+    {$wa_app_static_url}js-legacy/lazy.load.js
+    {$wa_app_static_url}js-legacy/live.dragndrop.js
+    {$wa_app_static_url}js-legacy/inline.editable.widget.js
+    {$wa_app_static_url}js-legacy/photo.stream.slider.js
+    {$wa_app_static_url}js-legacy/product/dragndrop.js
+    {$wa_app_static_url}js-legacy/backend/categories_tree.js
+    {$wa_app_static_url}js-legacy/product/sidebar.js
+    {$wa_app_static_url}js-legacy/products.js
+    {$wa_app_static_url}js-legacy/product/product.js
+    {$wa_app_static_url}js-legacy/rate.widget.js
+    {$wa_app_static_url}js-legacy/product/reviews.js
+    {$wa_app_static_url}js-legacy/product/images.js
+    {$wa_app_static_url}js-legacy/product/stocks.js
+    {$wa_app_static_url}js-legacy/product/stocks_log.js
+    {$wa_app_static_url}js-legacy/stocks_log.js
+    {$wa_app_static_url}js-legacy/product/orders.js
+    {$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.min.js
+    {$wa_app_static_url}js-legacy/product/list.js
+
+    {$wa_app_static_url}js-legacy/set/products.set.js
+
+    {*Create category*}
+    {$wa_app_static_url}js-legacy/category/products.category.js
+{/wa_js}
+<script type="text/javascript" src="{$wa_url}wa-content/js/ace/ace.js?{$wa->version(true)}"></script>
+
+<link type="text/css" rel="stylesheet" href="{$wa_url}wa-content/js/redactor/2/redactor.css?v{$wa->version(true)}">
+<script src="{$wa_url}wa-content/js/redactor/2/redactor.min.js?v{$wa->version(true)}"></script>
+{if $lang!='en'}<script src="{$wa_url}wa-content/js/redactor/2/{$lang}.js?v{$wa->version(true)}"></script>{/if}
+<script src="{$wa_url}wa-content/js/jquery-wa/editor2.js?v{$wa->version(true)}"></script>
+
+<script src="{$wa_url}wa-apps/shop/js-legacy/charts/d3.min.js?v{$wa->version()}"></script>
+<script src="{$wa_url}wa-apps/shop/js-legacy/charts/d3chart-sales.js?{$wa->version()}"></script>
+<script src="{$wa_url}wa-apps/shop/js-legacy/charts/d3chart-pie.js?{$wa->version()}"></script>
+
+<link href="{$wa_app_static_url}css-legacy/backend/products/reviews/reviews.css?v={$wa->version()}" rel="stylesheet">
+
+{$view = $wa->get('view')|default:$default_view}
+<div class="sidebar left{$sidebar_width}px" id="s-sidebar">
+    <!-- top -->
+    <div class="block">
+        <ul class="menu-v with-icons">
+            {if $products_rights}
+            <li class="bottom-padded">
+                <a href="{shopHelper::getBackendEditorUrl('new')}" class="bold">
+                    <i class="icon16 add"></i>[`New product`]
+                </a>
+            </li>
+            {/if}
+            <li id="s-all-products">
+                <a href="#/products/" class="s-product-list">
+                    <span class="count">{$count_all}</span>
+                    <i class="icon16 folders"></i>[`All products`]
+                </a>
+            </li>
+            {if $wa->user()->getRights('shop', 'setscategories')}
+                <li id="s-promos">
+                    <a href="{$wa_app_url}marketing/" class="s-promo-list">
+                        <span class="count">{$count_promos|default:""}</span>
+                        <i class="icon16 ss promo"></i>[`Promos`]
+                    </a>
+                </li>
+            {/if}
+            <li id="s-all-reviews">
+                <a href="#/reviews/">
+                    <span class="count">{$count_reviews.all}</span>
+                    <i class="icon16 ss comments"></i>[`Reviews`]
+                    <strong class="small highlighted count-new">{if $count_reviews.new}+{$count_reviews.new}{/if}</strong>
+                </a>
+
+                <script>
+                    ( function($) {
+                        var $document = $(document),
+                            $wrapper = $("#s-all-reviews"),
+                            $counter = $wrapper.find(".count-new");
+
+                        var current_value = 0;
+
+                        $document.on("update_reviews_counter", watcher);
+                        function watcher(event, data) {
+                            var is_exist = $.contains(document, $wrapper[0]);
+                            if (is_exist) {
+                                var value = 0;
+                                if (data.new) { value = data.new; }
+                                if (data.moderation) { value = data.moderation; }
+                                if (current_value) {
+                                    if (data.reduce) { value = current_value - data.reduce; }
+                                }
+
+                                updateCounter(value);
+                            } else {
+                                $document.off("update_reviews_counter", watcher);
+                            }
+                        }
+
+                        function updateCounter(value) {
+                            value = ( value ? "+" + value : 0);
+                            $counter.text(value);
+
+                            if (value) {
+                                $counter.show();
+                            } else {
+                                $counter.hide();
+                            }
+
+                            current_value = value;
+                        }
+                    })(jQuery);
+                </script>
+            </li>
+            {if $wa->userRights('services')}
+            <li id="s-services">
+                <a href="#/services/">
+                    <span class="count">{$count_services}</span>
+                    <i class="icon16 ss service"></i>[`Services`]
+                </a>
+            </li>
+            {/if}
+            <li id="s-product-stocks-info">
+                <a href="#/stocks/">
+                    <i class="icon16 status-yellow"></i>[`Stock`]
+                </a>
+            </li>
+
+            <!-- plugin hook: 'backend_products.sidebar_top_li' -->
+            {* @event backend_products.%plugin_id%.sidebar_top_li *}
+            {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+
+        </ul>
+    </div>
+
+    <!-- plugin hook: 'backend_products.sidebar_section' -->
+    {* @event backend_products.%plugin_id%.sidebar_section *}
+    {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
+
+    <!-- categories -->
+    <div class="block drop-target" id="s-category-list-block">
+
+        {if $wa->userRights('setscategories')}
+        <span class="count">
+            <a href="#"><i title="[`New category`]" class="icon16 add s-new-list" id="s-new-category"></i></a>
+        </span>
+        {/if}
+        <h5 class="heading">
+            <i class="icon16 loading" style="float:right; display:none;"></i>
+            <i class="icon16 {if $categories->isExpanded()}darr{else}rarr{/if} collapse-handler-ajax" id="s-category-list-handler"></i>[`Categories`]{if $wa->userRights('setscategories') && $categories->count()} <i class="icon16 ss sort-bw" id="s-forcesort-by-name" title="[`Sort by alphabet`]"></i>{/if}
+        </h5>
+
+        <div class="hierarchical s-collection-list" id="s-category-list"
+            {if !$categories->isExpanded()}style="display:none;"{/if}
+        >
+            {include './include.categories.html' categories=$categories->getList() inline}
+            <div class="block s-empty-list" {if $categories->count()}style="display:none;"{/if}>
+                <p class="hint align-center">
+                    {if $wa->userRights('setscategories')}
+                        [`Create a product category using the green icon above.`]
+                    {else}
+                        [`No categories available.`]
+                    {/if}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- sets -->
+    <div class="block drop-target" id="s-set-list-block">
+        {if $wa->userRights('setscategories')}
+        <span class="count">
+            <a href="#"><i title="[`New set`]" class="icon16 add s-new-list" id="s-new-set"></i></a>
+        </span>
+        {/if}
+        <h5 class="heading">
+            <i class="icon16 darr collapse-handler" id="s-set-list-handler"></i>[`Sets`]
+        </h5>
+        <div class="s-collection-list" id="s-set-list">
+
+            {if !empty($sets)}
+
+                <ul class="menu-v with-icons">
+                    <li class="drag-newposition" data-type="set"></li>
+                    {foreach $sets as $set}
+                        {* @see js-template "template-sidebar-list-item" *}
+                        <li class="{if $wa->userRights('setscategories')}dr{/if} {if $set.type == shopSetModel::TYPE_DYNAMIC}dynamic{/if}" id="set-{$set.id}" data-type="set">
+                            <span class="counters">
+                                <span class="count">{$set.count}</span>
+                            </span>
+                            <a href="#/products/set_id={$set.id}">{strip}
+                                <i class="icon16 {if $set.type == shopSetModel::TYPE_DYNAMIC}funnel{else}ss set{/if}"></i>
+                                <span class="name">{$set.name|escape}</span>
+                                <span class="hint id"> {$set.id|escape}</span>
+                                <strong class="small highlighted count-new"></strong>
+                            {/strip}</a>
+                        </li>
+                        <li class="drag-newposition" data-type="set"></li>
+                    {/foreach}
+                </ul>
+
+            {/if}
+
+            <div class="block s-empty-list" {if !empty($sets)}style="display:none;"{/if}>
+                <p class="hint align-center">[`Product sets are used for embedding products into storefront info pages and design templates.`]</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- types -->
+    <div class="block">
+        {if $wa->userRights('settings')}
+            <span class="count">
+                <a href="?action=settings#/typefeat/"><i title="[`Manage product types`]" class="icon16 settings"></i></a>
+            </span>
+        {/if}
+        <h5 class="heading">
+            <i class="icon16 {if $types ===false}rarr{else}darr{/if} collapse-handler" id="s-type-list-handler"></i>[`Product types`]
+        </h5>
+         {if ($types ===false)}
+         <div class="s-collection-list" id="s-type-list-placeholder" data-url="?module=products&amp;action=loadTypes">
+             <!-- types list placeholder -->
+         </div>
+         {else}
+             {include "./../products/ProductsLoadTypes.html" inline}
+         {/if}
+    </div>
+    <!-- tags -->
+    <div class="block" {if !isset($cloud)}style="display:none;"{/if}>
+        <h5 class="heading">
+            <i class="icon16 darr collapse-handler" id="tag-cloud-handler"></i>[`Tags`]
+        </h5>
+        <div id="s-tag-cloud">
+            {if $cloud == 'search'}
+                <div class="block">
+                    <input id="s-products-all-tags" value="" data-default="" class="ui-autocomplete-input" autocomplete="off" role="textbox" aria-autocomplete="list" aria-haspopup="true">
+                    <br>
+                    <span class="hint" style="margin: 1em 0;">{sprintf(_w('There are more than %u tags.'), $max_tags)}<br>
+                        [`Start typing in search field to find a tag.`]</span>
+                </div>
+            {else}
+                <ul class="tags">
+                    <li class="block align-center">
+                        {foreach $cloud as $tag}
+                            <a href="#/products/tag={$tag.uri_name}/" style="font-size: {$tag.size}%; opacity: {$tag.opacity}" data-id="{$tag.id}" class="s-product-list">{$tag.name|escape}</a>
+                        {/foreach}
+                    </li>
+                </ul>
+            {/if}
+        </div>
+    </div>
+
+    <!-- sidebar width control -->
+    <div id="s-category-list-widen-arrows" class="block s-sidebar-width-control">
+        <a href="#" class="arrow left">&larr;</a>
+        <a href="#" class="arrow right">&rarr;</a>
+    </div>
+
+</div>
+
+<div class="content left{$sidebar_width}px blank" id="s-content">
+    <div class="block double-padded">
+    [`Loading`] <i class="icon16 loading"></i>
+    </div>
+</div>
+
+<div class="dialog width400px height200px" id="s-products-sort-categories">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=products&action=sortCategories">
+        <div class="dialog-window">
+            <div class="dialog-content">
+                <div class="dialog-content-indent">
+                    <h1>[`Sort by alphabet`]</h1>
+                    <input type="hidden" name="field" value="name">
+                    <p>[`The entire category tree will be sorted by alphabet (category nesting will remain unchanged).`]</p>
+                </div>
+            </div>
+            <div class="dialog-buttons">
+                <div class="dialog-buttons-gradient">
+                    <input type="submit" value="[`Sort the entire tree`]" class="button blue">
+                    [`or`] <a class="cancel" href="#">[`close`]</a>
+                </div>
+            </div>
+            {$wa->csrf()}
+        </div>
+    </form>
+</div>
+
+
+<script id="template-sidebar-list-item" type="text/html">
+{literal}
+{% var icons = { category: ['folder', 'funnel'], set: ['ss set', 'funnel'] }; %}
+{% var dynamic = {/literal}'{shopCategoryModel::TYPE_DYNAMIC}'{literal}; %}
+<li class="drag-newposition" data-type="{%#o.type%}"><\/li>
+<li class="dr {% if (o.item.type == dynamic) { %}dynamic{% } %}" id="{%#o.type%}-{%#o.item.id%}" data-type="{%#o.type%}">
+    <span class="counters">
+        <span class="count">{%#''+(o.item.count || 0)%}<\/span>
+        {% if (o.type == 'category') { %}
+            <span class="count subtree" style="display:none;">{%#'' + (o.item.total_count || 0)%}<\/span>
+        {% } %}
+    </span>
+    <a href="#/products/{%#o.type%}_id={%#o.item.id%}&view={/literal}{$view}{literal}">
+         <i class="icon16
+            {% if (o.item.type == dynamic) { %}
+                {%#icons[o.type][1]%}
+            {% } else { %}
+                {%#icons[o.type][0]%}
+            {% } %}"
+         ><\/i><span class="name">{%#o.item.name%}<\/span>
+         {% if (o.type == 'set') { %}
+             <span class="hint id">{%#o.item.id%}</span>
+         {% } %}
+         <strong class="small highlighted count-new"><\/strong>
+             {% if (o.type == 'category') { %}
+             <span class="hint routes"><\/span>
+             <span class="count"><i class="icon10 add s-new-list"><\/i><\/span>
+         {% } %}
+    <\/a>
+<\/li>
+{/literal}
+</script>
+
+<script type="text/javascript">$(function() {
+    $.products.init({
+        view: '{$default_view}'
+    });
+});</script>

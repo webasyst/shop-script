@@ -126,11 +126,13 @@
             <div class="s-actions">
                 {if !empty($_render_delete_actions)}
                     <a class="s-action js-delete-product" href="javascript:void(0);" title="{_w("Delete")|escape}">
-                        <i class="icon16 close"></i>
+                        <i class="fas fa-times-circle text-red large"></i>
                     </a>
                 {else}
                     <span class="s-toggle-wrapper" title="{if empty($_sku_enabled)}{$_locales["disabled_product"]|escape}{/if}">
-                        <input class="js-sku-toggle-checkbox js-ibutton" type="checkbox" {if !empty($_sku_enabled)}checked{/if}>
+                        <span class="switch js-switch small">
+                            <input class="js-sku-toggle-checkbox" type="checkbox" {if !empty($_sku_enabled)}checked{/if}>
+                        </span>
                     </span>
                 {/if}
             </div>

@@ -16,7 +16,7 @@
     {* end shipping plugin form *}
 
 
-    [`Tracking number`]: <input name="tracking_number" placeholder="[`Optional`]" value="{$tracking_number|default:''|escape}">
+    [`Tracking number`]: <input type="text" class="long bold" name="tracking_number" placeholder="[`Optional`]" value="{$tracking_number|default:''|escape}">
 
     <br><br>
     [`Courier shipping`]:
@@ -51,14 +51,28 @@
         {/if}
             <a href="javascript:void(0)" class="small inline-link use-customer-delivery-time-link"><b>[`apply`]</b></a>
     {/if}
-    {if $couriers}
-        <br><br>
+    {if $couriers || $contacts || $contacts_as_courier}
+    <div class="custom-mt-20">
         <label>[`Courier`]:
         <select name="courier_id">
             <option value="0">[`None`]</option>
-            {foreach $couriers as $c}
-                <option value="{$c.id|escape}"{if $c.id == $selected_courier_id} selected{/if}>{$c.name|escape}</option>
-            {/foreach}
+            {if $couriers || $contacts_as_courier}
+                <optgroup label="[`Couriers`]">
+                    {foreach $contacts_as_courier as $c}
+                        <option value="-{$c.id|escape}"{if -$c.id == $selected_courier_id} selected{/if}>{$c.name|escape}</option>
+                    {/foreach}
+                    {foreach $couriers as $c}
+                        <option value="{$c.id|escape}"{if $c.id == $selected_courier_id} selected{/if}>{$c.name|escape}</option>
+                    {/foreach}
+                </optgroup>
+            {/if}
+            {if $contacts}
+                <optgroup label="[`Webasyst users`]">
+                    {foreach $contacts as $c}
+                        <option value="-{$c.id|escape}"{if -$c.id == $selected_courier_id} selected{/if}>{$c.name|escape}</option>
+                    {/foreach}
+                </optgroup>
+            {/if}
         </select>
         </label>
         {if $other_couriers_exist && $storefront}
@@ -67,6 +81,7 @@
         {foreach $couriers as $c}{if $c.note}
             <span class="hint" data-courier-id="{$c.id|escape}" style="display:none"><br><br>{$c.note|escape}</span>
         {/if}{/foreach}
+    </div>
     {/if}
 
     {if !$couriers && $other_couriers_exist && $storefront}
@@ -74,25 +89,23 @@
         <span class="hint">{sprintf_wp('Set up couriers for storefront %s to be able assign orders to them.', "<strong>{$storefront}</strong>")}</span>
     {/if}
 
+    <div class="custom-my-16">
     {if !empty($plugins_html)}
         {foreach $plugins_html as $plugin_id => $html}
             <!-- {$plugin_id} -->
             {$html}
         {/foreach}
     {/if}
-
-    <br><br>
+    </div>
 
     {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
     <footer class="js-form-footer-actions">
-        <input class="js-submit-button" type="submit" value="[`Save`]">
-        [`or`]
-        <a class="cancel inline-link js-cancel-button" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+        <input class="js-submit-button button green" type="submit" value="[`Save`]">
+        <a class="cancel button light-gray js-cancel-button" href="javascript:void(0);">[`Cancel`]</a>
     </footer>
 </form>
 
 <script type="text/javascript">(function() { "use strict";
-
 
     var show_couriers = {if $couriers}1{else}0{/if};
     var datepicker_format = {waDateTime::getFormatJS('date')|json_encode};
@@ -125,11 +138,11 @@
             altFormat: "yy-mm-dd",
             changeMonth : true,
             changeYear : true,
-            shortYearCutoff: 2,
+            shortYearCutoff: 1,
             showOtherMonths: true,
             selectOtherMonths: true,
-            numberOfMonths: 2,
-            stepMonths: 2
+            numberOfMonths: 1,
+            stepMonths: 1
         }).datepicker('setDate', date).datepicker('widget').hide();
 
         $datepicker_text_input.on('change', function () {
@@ -164,8 +177,8 @@
     $form.submit(function () {
 
         // Reset validation
-        $form.find('.error').removeClass('error');
-        $form.find('.errormsg').remove();
+        $form.find('.state-error').removeClass('state-error');
+        $form.find('.state-error-hint').remove();
         var validation_passed = true;
 
         // Make sure time interval is sane
@@ -174,11 +187,11 @@
         if (time_from || time_to) {
             var valid_time_regex = /^((\d\d)|(\d)):\d\d$/;
             if (!time_from.match(valid_time_regex)) {
-                $time_from_input.addClass('error');
+                $time_from_input.addClass('state-error');
                 validation_passed = false;
             }
             if (!time_to.match(valid_time_regex)) {
-                $time_to_input.addClass('error');
+                $time_to_input.addClass('state-error');
                 validation_passed = false;
             }
             if (validation_passed) {
@@ -188,8 +201,8 @@
                 time_to = time_to[0]*60 + time_to[1]*1;
                 if (time_from > time_to) {
                     if (!confirm(wrong_time_warning_msg)) {
-                        $time_from_input.addClass('error');
-                        $time_to_input.addClass('error');
+                        $time_from_input.addClass('state-error');
+                        $time_to_input.addClass('state-error');
                         validation_passed = false;
                     }
                 }

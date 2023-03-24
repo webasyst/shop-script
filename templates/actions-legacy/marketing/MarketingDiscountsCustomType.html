@@ -1,0 +1,41 @@
+{* PAGE *}
+<div class="s-discounts-page block double-padded" id="js-discounts-page">
+
+    {* BODY *}
+    <div class="s-page-body">
+        <div class="s-table-box space-20">
+
+            {* SIDEBAR *}
+            <div class="sidebar s-page-sidebar left200px">
+                {$discounts_sidebar}
+            </div>
+
+            {* CONTENT *}
+            <div class="content s-page-content js-page-content left200px">
+
+                [`Loading...`] <i class="icon16 loading"></i>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+            $.shop.marketing.setTitle({_w("Coupons")|json_encode});
+
+            var sources = [{
+                id: "wa-shop-marketing-discounts-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/backend/marketing/discounts.js?v={$wa->version()}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                var page = $.shop.marketing.init.discountsPage({
+                    $wrapper: $("#js-discounts-page"),
+                    custom_type: {if !empty($custom_type)}{$custom_type|json_encode}{else}null{/if}
+                });
+            });
+
+        })(jQuery);
+    </script>
+</div>

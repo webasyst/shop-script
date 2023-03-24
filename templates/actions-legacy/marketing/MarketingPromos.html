@@ -1,0 +1,571 @@
+{strip}
+
+{if empty($status)}
+    {$_title = _w("Marketing")}
+{elseif $status === shopPromoModel::STATUS_ACTIVE}
+    {$_title = _w("Active promos")}
+{elseif $status === shopPromoModel::STATUS_PLANNED}
+    {$_title = _w("Scheduled promos")}
+{elseif $status === shopPromoModel::STATUS_COMPLETED}
+    {$_title = _w("Completed promos")}
+{/if}
+
+{$wa->title($_title)}
+
+{$_active_sort = [
+    "field" => ifset($sort, "field", "start_datetime"),
+    "direction" => ifset($sort, "direction", "desc"),
+    "page" => ifset($page, 1)
+]}
+
+{function name="_render_sort_uri" _data=[]}
+    {$_is_active = ($_data["field"] === $_active_sort["field"])}
+    {$_params = []}
+
+    {$_params["status"] = "completed"}
+
+    {$_page = 1}
+    {$_params["page"] = $_page}
+
+    {$_field = $_data["field"]}
+    {$_params["sort[field]"] = $_field}
+
+    {$_direction = "desc"}
+    {if !empty($_is_active) && $_active_sort["direction"] === "desc"}
+        {$_direction = "asc"}
+    {/if}
+    {$_params["sort[direction]"] = $_direction}
+
+    {$marketing_url}?{$_params|http_build_query}
+{/function}
+
+{function name="_render_sort_icon" _data=[]}
+    {$_is_active = ($_data["field"] === $_active_sort["field"])}
+    {if !empty($_is_active)}
+        {$_icon_class = "down"}
+        {if $_active_sort["direction"] === "asc"}
+            {$_icon_class = "up"}
+        {/if}
+
+        <span class="s-sorter {$_icon_class|escape}"></span>
+    {/if}
+{/function}
+
+{/strip}
+
+{function name="_render_promo" _promo=[]}
+    {$_promo_classes = []}
+    {if !empty($_promo.enabled)}
+        {$_promo_classes[] = "is-active"}
+    {elseif !empty($_promo.is_planned)}
+        {$_promo_classes[] = "is-planned"}
+    {else}
+        {$_promo_classes[] = "is-paused"}
+    {/if}
+
+    {if empty($_promo.image)}
+        {$_promo_classes[] = "without-image"}
+    {/if}
+
+    <div class="s-promo-wrapper {" "|implode:$_promo_classes}" id="s-promo-{$_promo.id|escape}" data-id="{$_promo.id|escape}">
+        <div class="s-promo-block">
+
+            <div class="s-promo-header">
+                <h5 class="s-title">
+                    <a href="{$marketing_url}promo/{$_promo.id|escape}/" title="{$_promo.name|escape}">{$_promo.name|default:"{_w('<no name>')}"|escape}</a>
+                </h5>
+
+                {$roi_value = ifset($promos_stats, $_promo.id, 'roi', null)}
+                {if !empty($promos_stats[$_promo.id]['paid_for_itself'])}
+                    {$roi_class = 'green'}
+                {else}
+                    {$roi_class = 'red'}
+                {/if}
+
+                <div class="s-indicators-section">
+                    <div class="s-indicator-wrapper">
+                        <div class="s-label">[`Orders`]</div>
+                        <div class="s-value">{ifset($promos_stats, $_promo.id, 'orders_count', 0)}</div>
+                    </div>
+                    <div class="s-indicator-wrapper">
+                        <div class="s-label">[`Sales`]</div>
+                        <div class="s-value green">{shop_currency_html(ifset($promos_stats, $_promo.id, 'sales', 0))}</div>
+                    </div>
+                    <div class="s-indicator-wrapper">
+                        <div class="s-label">[`ROI`]</div>
+                        <div class="s-value {$roi_class}">
+                            {if $roi_value !== null}
+                                {$roi_value}%
+                            {else}
+                                &mdash;
+                            {/if}
+                        </div>
+                    </div>
+                    <div class="s-indicator-wrapper is-chart">
+                        <div class="s-chart-wrapper js-chart-wrapper">
+                            <div class="s-chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="s-promo-body">
+                <div class="s-image-section">
+                    <div class="s-image-wrapper" style="{if !empty($_promo.image)}background-image: url({$_promo.image|escape});{else}background-color: {shopPromoBannerHelper::getColorById($_promo.id)};{/if}"></div>
+                    <div class="s-rules-wrapper">
+                        {foreach ifset($promos_markers, $_promo.id, []) as $marker}
+                            <div class="s-rule-wrapper" data-type="{$marker.type|escape}">
+                                <div class="s-rule" title="{$marker.name|escape}">
+                                    <i class="icon16 {$marker.css_class|escape}"></i>
+                                </div>
+                            </div>
+                        {/foreach}
+                    </div>
+                </div>
+
+                {$_bar_states = [
+                    "active" => [
+                        "id" => "active",
+                        "wrapper_class" => "is-active",
+                        "point_class" => "pointer js-pause-promo",
+                        "icon_class" => "play"
+                    ],
+                    "pause" => [
+                        "id" => "pause",
+                        "wrapper_class" => "is-stopped",
+                        "point_class" => "pointer js-play-promo",
+                        "icon_class" => "ss pause"
+                    ],
+                    "complete" => [
+                        "id" => "complete",
+                        "wrapper_class" => "is-completed",
+                        "icon_class" => "clock"
+                    ]
+                ]}
+
+                {if empty($_promo.enabled)}
+                    {$_bar_state = $_bar_states.pause}
+                {elseif !empty($_promo.is_planned)}
+                    {$_bar_state = $_bar_states.complete}
+                {else}
+                    {$_bar_state = $_bar_states.active}
+                {/if}
+
+                {$_percent = ifset($_promo, 'period_percent', 0)}
+                {$_lift = (15 * 100/320)}
+                {if $_percent > 100 - $_lift}
+                    {$_percent = 100 - $_lift}
+                {elseif $_percent < $_lift}
+                    {$_percent = $_lift}
+                {/if}
+
+                <div class="s-bar-section {$_bar_state.wrapper_class|escape}">
+                    <div class="s-bar-wrapper">
+                        <span class="s-bar" style="width: {$_percent|escape}%;">
+                            <span class="s-point right {$_bar_state.point_class|default:""|escape}">
+                                <i class="icon16 {$_bar_state.icon_class|escape}"></i>
+                            </span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="s-promo-footer">
+                <div class="s-table-box fixed">
+                    <div class="s-column">
+                        <div class="s-date-wrapper">
+                            {if !empty($_promo.start_datetime)}
+                                [`from`] <span class="s-date">{$_promo.start_datetime|wa_datetime:'humandate'}</span>
+                            {else}
+                                &nbsp;
+                            {/if}
+                        </div>
+                    </div>
+
+                    <div class="s-column align-right">
+                        <div class="s-date-wrapper">
+                            {if !empty($_promo.finish_datetime)}
+                                [`to`] <span class="s-date">{$_promo.finish_datetime|wa_datetime:'humandate'}</span>
+                            {else}
+                                &nbsp;
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script>
+            ( function($) { "use strict";
+
+                var ready_promise = $("#js-promos-page").data("ready");
+                ready_promise.then( function(controller) {
+                    controller.initPromo({
+                        $wrapper: $("#s-promo-{$_promo.id|escape}"),
+                        chart_data: [{
+                            id: 'sales',
+                            data: {ifset($promos_charts, $_promo.id, [])|json_encode}
+                        }]
+                    });
+                });
+
+            })(jQuery);
+        </script>
+    </div>
+{/function}
+
+{* PAGE *}
+<div class="s-promos-page block double-padded" id="js-promos-page">
+    <script>
+        ( function($) {
+            $("#js-promos-page").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    {* HEADER *}
+    <header class="s-page-header">
+        <div class="s-table-box">
+            <div class="s-column">
+                <h1 class="s-title">[`Promos on website`]</h1>
+            </div>
+            <div class="s-column middle align-right">
+
+                {strip}
+                <ul class="menu-h dropdown">
+                    {foreach $additional_html.action_link as $_html}
+                        {$_html}
+                    {/foreach}
+                    <li>
+                        <a class="inline-link" href="javascript:void(0);">
+                            <b><i class="s-text">
+                                {if !empty($unattached_active)}
+                                    [`No storefronts`]
+                                {elseif !empty($active_storefront)}
+                                    {waIdna::dec($active_storefront)}
+                                {else}
+                                    [`All storefronts`] ({count($storefronts)})
+                                {/if}
+                            </i></b>&nbsp;<i class="icon10 darr"></i>
+                        </a>
+                        <ul class="menu-v without-icons right">
+                            <li class="{if empty($active_storefront) && empty($unattached_active)}selected{/if}">
+                                <a class="s-ellipsis" href="{$marketing_url}{if $status}?status={$status}{/if}" title="[`All storefronts`]">[`All storefronts`]</a>
+                            </li>
+                            {if !empty($show_unatt_storefronts) || !empty($unattached_active)}
+                                <li class="{if !empty($unattached_active)}selected{/if}">
+                                    <a class="s-ellipsis" href="{$marketing_url}?storefront=_unattached_{if $status}&status={$status}{/if}" title="[`No storefronts`]">[`No storefronts`]</a>
+                                </li>
+                            {/if}
+
+                            {foreach $storefronts as $_storefront}
+                                {$_is_active = false}
+                                {if !empty($active_storefront) && $active_storefront === $_storefront}
+                                    {$_is_active = true}
+                                {/if}
+
+                                <li class="{if !empty($_is_active)}selected{/if}">
+                                    <a class="s-ellipsis" href="{$marketing_url}?storefront={$_storefront|urlencode}{if $status}&status={$status}{/if}" title="{$_storefront|escape}">{waIdna::dec($_storefront)}</a>
+                                </li>
+                            {/foreach}
+                        </ul>
+                    </li>
+                </ul>
+                {/strip}
+
+            </div>
+        </div>
+    </header>
+
+    {* BODY *}
+    <div class="s-page-body">
+
+        {if empty($status) || $status === shopPromoModel::STATUS_ACTIVE}
+            {* ACTUAL *}
+            <div class="s-promos-section">
+                <div class="s-section-header">
+                    <h3 class="s-title">[`Active promos`]</h3>
+                </div>
+
+                {if !empty($active_storefront)}
+                    <p class="gray">[`Change the sort order of active promos by using drag&amp;drop.`]</p>
+                {else}
+                    <p class="gray">[`Select a storefront to change active promos’ sort order.`]</p>
+                {/if}
+
+                {if !empty($active_promos)}
+                    <div class="s-promos-list js-active-promos-list">
+                        {foreach $active_promos as $_promo}
+                            {_render_promo _promo=$_promo}
+                        {/foreach}
+                    </div>
+                {else}
+                    <p>[`No active promos.`]</p>
+                {/if}
+            </div>
+        {/if}
+
+        {if empty($status) || $status === shopPromoModel::STATUS_PLANNED}
+            {* PLANNED *}
+            <div class="s-promos-section">
+                <div class="s-section-header">
+                    <h3 class="s-title">[`Scheduled promos`]</h3>
+                </div>
+
+                {if !empty($planned_promos)}
+                    <div class="s-promos-list">
+                        {foreach $planned_promos as $_promo}
+                            {$_promo.is_planned = 1}
+                            {_render_promo _promo=$_promo}
+                        {/foreach}
+                    </div>
+                {else}
+                    <p>[`No scheduled promos.`]</p>
+                {/if}
+            </div>
+        {/if}
+
+        {if empty($status) || $status === shopPromoModel::STATUS_COMPLETED}
+            {* COMPLETED *}
+            <div class="s-promos-section s-completed-section">
+                <div class="s-section-header">
+                    <div class="s-table-box fixed middle">
+                        <div class="s-column">
+                            <h3 class="s-title">[`Completed promos`]</h3>
+                            <a href="{$wa_app_url}?action=reports">[`Complete report`] <i class="icon10 new-window" style="vertical-align: .3em;"></i></a>
+                        </div>
+                    </div>
+                </div>
+                {if !empty($completed_promos)}
+                    <table class="s-promo-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <a class="s-sort-toggle" href="{_render_sort_uri _data=["field" => "name"]}">
+                                        [`Promo name`]{_render_sort_icon _data=["field" => "name"]}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a class="s-sort-toggle" href="{_render_sort_uri _data=["field" => "start_datetime"]}">
+                                        [`Beginning`]{_render_sort_icon _data=["field" => "start_datetime"]}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a class="s-sort-toggle" href="{_render_sort_uri _data=["field" => "finish_datetime"]}">
+                                        [`End`]{_render_sort_icon _data=["field" => "finish_datetime"]}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a class="s-sort-toggle" href="{_render_sort_uri _data=["field" => "orders_count"]}">
+                                        [`Orders`]{_render_sort_icon _data=["field" => "orders_count"]}
+                                    </a>
+                                </th>
+                                <th>[`Sales`]</th>
+                                <th>[`ROI`]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {foreach $completed_promos as $_promo}
+                                <tr class="s-promo-wrapper">
+                                    <td>
+
+                                        <div class="s-table-box inline">
+                                            <div class="s-column">
+                                                <a class="s-image-wrapper" href="{$marketing_url}promo/{$_promo.id|escape}/" style='background-image: url("{$_promo.image|escape}");' title="{$_promo.name|escape}">
+                                                    <img src="{$_promo.image|escape}" alt="">
+                                                </a>
+                                            </div>
+                                            <div class="s-column">
+                                                <div class="s-name-wrapper">
+                                                    <a href="{$marketing_url}promo/{$_promo.id|escape}/" title="{$_promo.name|default:''|escape}">{$_promo.name|default:''|escape}</a>
+                                                </div>
+
+                                                <div class="s-rules-wrapper">
+                                                    {foreach ifset($promos_markers, $_promo.id, []) as $marker}
+                                                        <div class="s-rule-wrapper">
+                                                            <div class="s-rule" title="{$marker.name|escape}">
+                                                                <i class="icon16 {$marker.css_class|escape}"></i>
+                                                            </div>
+                                                        </div>
+                                                    {/foreach}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </td>
+                                    <td class="s-column-start">
+                                        <span class="s-date">
+                                            {if !empty($_promo.start_datetime)}
+                                                {$_promo.start_datetime|wa_date}
+                                            {elseif !empty($_promo.create_datetime)}
+                                                {$_promo.create_datetime|wa_date}
+                                            {else}
+                                                &mdash;
+                                            {/if}
+                                        </span>
+                                    </td>
+                                    <td class="s-column-end">
+                                        <span class="s-date">
+                                            {if !empty($_promo.finish_datetime)}
+                                                {$_promo.finish_datetime|wa_date}
+                                            {else}
+                                                &mdash;
+                                            {/if}
+                                        </span>
+                                    </td>
+                                    <td class="s-column-orders">
+                                        <span class="s-orders">{ifset($promos_stats, $_promo.id, 'orders_count', 0)}</span>
+                                    </td>
+                                    <td class="s-column-selling">
+                                        <span class="s-price green">{shop_currency_html(ifset($promos_stats, $_promo.id, 'sales', 0))}</span>
+                                    </td>
+                                    <td class="s-column-roi">
+                                        {$roi_value = ifset($promos_stats, $_promo.id, 'roi', null)}
+                                        {if !empty($promos_stats[$_promo.id]['paid_for_itself'])}
+                                            {$roi_class = 'green'}
+                                        {else}
+                                            {$roi_class = 'red'}
+                                        {/if}
+                                        <span class="s-roi {$roi_class}">
+                                            {if $roi_value !== null}
+                                                {$roi_value}%
+                                            {else}
+                                                &mdash;
+                                            {/if}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {/foreach}
+                        </tbody>
+
+                    </table>
+
+                    {$_url_params = ''}
+                    {$_get_params = waRequest::get()}
+                    {$_get_params['status'] = 'completed'}
+                    {foreach $_get_params as $_k => $_v}
+                        {if $_k != '_' && $_k != 'page' && $_v}
+                            {if is_array($_v)}
+                                {$_param = [$_k => $_v]}
+                                {$_url_params = "`$_url_params`&`$_param|http_build_query`"}
+                            {else}
+                                {$_url_params = "`$_url_params`&`$_k`=`$_v`"}
+                            {/if}
+                        {/if}
+                    {/foreach}
+                    {$_url_params = substr($_url_params, 1)}
+                    {$wa->shop->pager($total_completed_promos|default:0, $page, $_url_params)}
+                {else}
+                    <p>[`No completed promos.`]</p>
+                {/if}
+            </div>
+        {/if}
+
+        {foreach $additional_html.bottom as $_html}
+            {$_html}
+        {/foreach}
+    </div>
+
+    {capture assign="_promo_pause_template_dialog"}
+        <div class="dialog width500px height250px s-promo-status-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-window">
+                <div class="dialog-content">
+                    <div class="dialog-content-indent">
+                        <h2 class="s-title">[`Pause promo`]</h2>
+                        <p class="s-description">[`Promo <span class="bold">“%promo_name%”</span> will be paused.`]</p>
+                        <p class="s-hint">[`Operation of all tools enabled for this promo will be discontinued—special product prices will be replaced by their ordinary prices, UTM tags will no longer be used to register incoming customer traffic, orders will not be counted by applied coupons, etc.`]</p>
+                    </div>
+                </div>
+                <div class="dialog-buttons">
+                    <div class="dialog-buttons-gradient">
+                        <a class="js-submit button green" href="javascript:void(0);">[`Pause this promo`]</a>
+                        [`or`]
+                        <a class="js-cancel" href="javascript:void(0);">[`cancel`]</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/capture}
+
+    {capture assign="_promo_play_template_dialog"}
+        <div class="dialog width500px height200px s-promo-status-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-window">
+                <div class="dialog-content">
+                    <div class="dialog-content-indent">
+                        <h2 class="s-title">[`Resume promo`]</h2>
+                        <p class="s-description">[`Promo <span class="bold">“%promo_name%”</span> will be resumed.`]</p>
+                    </div>
+                </div>
+                <div class="dialog-buttons">
+                    <div class="dialog-buttons-gradient">
+                        <a class="js-submit button green" href="javascript:void(0);">[`Resume this promo`]</a>
+                        [`or`]
+                        <a class="js-cancel" href="javascript:void(0);">[`cancel`]</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/capture}
+
+    {capture assign="_sort_notice_dialog"}
+        <div class="dialog width500px height200px s-sort-notice-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-window">
+                <div class="dialog-content">
+                    <div class="dialog-content-indent">
+                        <h2 class="s-title">[`Promos cannot be sorted`]</h2>
+                        <p class="s-description">[`Select a storefront to change active promos’ sort order.`]</p>
+                    </div>
+                </div>
+                <div class="dialog-buttons">
+                    <div class="dialog-buttons-gradient">
+                        <a class="button gray js-cancel" href="javascript:void(0);">[`Close`]</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/capture}
+
+    <script>
+        ( function($) {
+
+            $.shop.marketing.setTitle({$_title|json_encode});
+
+            var sources = [{
+                id: "wa-shop-marketing-promos-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/backend/marketing/promos.js?v={$wa->version()}"
+            },{
+                id: "wa-content-d3-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/d3/d3.min.js?v={$wa->version(true)}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                $.shop.marketing.init.promosPage({
+                    $wrapper: $("#js-promos-page"),
+                    sort_enabled: {if !empty($active_storefront)}true{else}false{/if},
+                    templates: {
+                        pause: {$_promo_pause_template_dialog|json_encode},
+                        play: {$_promo_play_template_dialog|json_encode},
+                        sort_notice_dialog: {$_sort_notice_dialog|json_encode}
+                    },
+                    urls: {
+                        sort: "{$wa_app_url}?module=marketingPromo&action=sort&storefront="+{ifset($active_storefront)|urlencode|json_encode},
+                        status: "{$wa_app_url}?module=marketingPromoEnabled"
+                    }
+                });
+            });
+
+            {if !empty($status)}
+                setTimeout( function() {
+                    var uri = "{$marketing_url}?status={$status|escape}";
+                    $.shop.marketing.sidebar.setActive(uri);
+                }, 4);
+            {/if}
+
+        })(jQuery);
+    </script>
+</div>

@@ -6,18 +6,19 @@
             var that = this;
 
             // DOM
-            that.$wrapper = options["$wrapper"];
+            that.$wrapper = options["$wrapper"],
+            that.$nearest_products_wrapper = that.$wrapper.find(".js-nearest-products");
 
             // CONST
             that.urls = options["urls"];
             that.templates = options["templates"];
+            that.context = options["context"];
 
             that.sidebar = that.initSidebar();
             that.product_uri = options["product_uri"];
             that.product_id = options["product_id"];
 
             // DYNAMIC VARS
-            console.log( that );
 
             // INIT
             that.init();
@@ -37,7 +38,9 @@
                 $product_name.text(product_name);
             });
         };
-
+        /**
+         * @deprecated
+         */
         Page.prototype.initCallback = function() {
             var that = this;
 
@@ -113,7 +116,8 @@
                 });
 
                 function addCallback() {
-                    var href = that.urls["callback_submit"],
+                    // TODO change url
+                    var href = '', //that.urls["callback_submit"],
                         data = $dialog.find(":input").serializeArray();
 
                     return $.post(href, data, "json");
@@ -125,12 +129,32 @@
             var that = this;
 
             return $.wa_shop_products.init.initProductSidebar({
-                $wrapper: that.$wrapper.find(".js-page-sidebar")
+                $wrapper: that.$wrapper.find(".js-page-sidebar"),
+                $nearest_products_wrapper: that.$nearest_products_wrapper,
+                context: that.context
             });
         };
 
         Page.prototype.initStickyFooter = function($footer) {
-            var that = this;
+            var that = this,
+                $close_button = $footer.find('.js-product-close-button');
+
+            if (that.context.another_section_url.length) {
+                $close_button.attr('href', that.context.another_section_url);
+            } else if (that.context.presentation > 0) {
+                var context = {
+                    presentation: that.context.presentation,
+                };
+                if (that.context.page > 0) {
+                    context.page = that.context.page;
+
+                    $close_button.on('click', function () {
+                        sessionStorage.setItem("shop_products_table_scroll_page", that.context.page);
+                        sessionStorage.setItem("shop_products_table_scroll_product_id", that.product_id);
+                    });
+                }
+                $close_button.attr('href', $close_button.attr('href') + '?' + $.param(context));
+            }
 
             var $window = $(window),
                 $observer = $("<div />");

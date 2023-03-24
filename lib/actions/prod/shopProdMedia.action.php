@@ -25,7 +25,6 @@ class shopProdMediaAction extends waViewAction
         $frontend_urls = shopProdGeneralAction::getFrontendUrls($product)[0];
 
         $backend_prod_content_event = $this->throwEvent($product);
-        shopHelper::setChapter();
 
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,

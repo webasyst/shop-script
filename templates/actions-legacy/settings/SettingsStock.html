@@ -1,0 +1,432 @@
+
+{function stock_editor_form stock=null substocks=null}
+    <div class="fields form width100px" style="margin-top: -10px;">
+      <div class="field-group">
+        {strip}{if !empty($stock.id)}
+            {if $substocks !== null}
+                {$input_var = 'vedit'}
+            {else}
+                {$input_var = 'edit'}
+            {/if}
+            {$disabled = ' disabled="disabled"'}
+            <input type="hidden" name="{$input_var}[id][]" value="{$stock.id}"{$disabled}>
+        {else}
+            {if $substocks !== null}
+                {$input_var = 'vadd'}
+            {else}
+                {$input_var = 'add'}
+            {/if}
+            {$disabled = ''}
+        {/if}{/strip}
+        <div class="field">
+            <div class="name">[`Name`]</div>
+            <div class="value">
+                <input type="text" data-name="name" name="{$input_var}[name][]" value="{ifset($stock.name, "[`New stock`]")|escape}" class="bold"{$disabled}>
+                <span class="errormsg" style="display:none"></span>
+            </div>
+            {if $substocks === null && empty($stock.id) && count($stocks) < 1}
+                <div class="value no-shift">
+                    <label class="s-inventory-stock">
+                        <input type="checkbox" name="{$input_var}[inventory][]" checked="checked" value="1">[`Assign all inventory to this stock`]
+                    </label>
+                </div>
+            {/if}
+            <div class="value no-shift s-ibutton-checkbox">
+                <label>
+                    <input type="checkbox" name="{$input_var}[public][]" value="{if !empty($stock.id)}{$stock.id}{else}1{/if}" class="i-button-mini is-public-checkbox"{if empty($stock.id) || !empty($stock.public)} checked{/if}{$disabled}>
+                    [`Visible to customers`]
+                </label>
+            </div>
+            <div class="value no-shift storefonts-checklist {if empty($stock.public)} hidden{/if}">
+                <em class="hidden gray">(coming soon: limit visibility by storefront)</em>
+            </div>
+        </div>
+        <div class="field">
+            <div class="name">[`Indicator`]</div>
+            <div class="value">
+                <i class="icon10 status-yellow" style="margin-top: 0.4em;"></i><span> ≤ <input class="short" data-name="low_count" type="text" name="{$input_var}[low_count][]" value="{ifset($stock.low_count, shopStockModel::LOW_DEFAULT)}"{$disabled}> <span class="hint">[`Low`]</span>
+                <span class="errormsg" style="display:none"></span>
+            </div>
+            <div class="value">
+                <i class="icon10 status-red" style="margin-top: 0.4em;"></i><span> ≤ <input class="short" data-name="critical_count" type="text" name="{$input_var}[critical_count][]" value="{ifset($stock.critical_count, shopStockModel::CRITICAL_DEFAULT)}"{$disabled}>
+                <span class="hint">[`Critical`]</span>
+                <span class="errormsg" style="display:none"></span>
+            </div>
+        </div>
+      </div>
+      {if $substocks !== null}
+        <div class="field-group">
+            <div class="field">
+                <div class="name">[`Stocks and priority`]</div>
+                <div class="sortable substocks-wrapper">
+                {foreach array_keys(array_flip($substocks) + $stocks) as $sid}{if !empty($stocks[$sid]) && empty($stocks[$sid].substocks)}
+                    {$s = $stocks[$sid]}
+                    <div class="value no-shift substock-checkbox-wrapper">
+                        <i class="icon16 sort substocks-handle"></i>
+                        <label>
+                            <input type="checkbox" data-stock-id="{$s.id}"{if in_array($s.id, $substocks)} checked{/if}>
+                            {$s.name|escape}
+                        </label>
+                    </div>
+                {/if}{/foreach}
+                    <div class="value errormsg" style="display:none">
+                        [`Virtual stock must include at least one real stock.`]
+                    </div>
+                    <div class="value no-shift">
+                        <p class="hint">{sprintf('[`Virtual stock is a group of real stocks. The order of real stocks defines the priority for product stock update when order is placed. This is handy for grouping real stocks and points of sale which are located within the same geographical region, and defining rules for automated product stock updates. <a href="%s" target="_blank">Help</a> <i class="icon10 new-window"></i>`]', '[`https://www.shop-script.com/help/12062/stocks/`]')}</p>
+                    </div>
+                </div>
+                <input type="hidden" name="{$input_var}[substocks][]" value="{join(',', $substocks)}" class="substocks"{$disabled}>
+            </div>
+        </div>
+      {/if}
+    </div>
+{/function}
+
+<script src="{$wa_app_static_url}js-legacy/settings/stocks.js?{$wa->version()}"></script>
+<div class="blank block double-padded s-settings-form">
+    <h1 style="margin-bottom: 0.75em;">[`Stocks`]</h1>
+    <p>[`Inventory tracking is performed by stocks (warehouses) listed below. Yellow and red indicators are used to visually display low and critical stock levels in both backend and storefront.`]</p>
+    <form action="?module=settings&action=saveStock" method="post" id="s-settings-stocks-form">
+        <input type="hidden" name="stocks_order" value="">
+        <div class="block bottom-padded">
+            <ul class="menu-h">
+                <li><a href="#/stock/add/" class="inline-link bold" id="s-settings-add-stock">
+                    <i class="icon16 add"></i><b><i><strong>[`Add stock`]</strong></i></b>
+                </a></li>
+                {if $stocks}
+                    <li><a href="#/stock/add/" class="inline-link" id="s-settings-add-virtualstock">
+                        <i class="icon16 add"></i><b><i><em>[`Add virtual stock`]</em></i></b>
+                    </a></li>
+                {/if}
+            </ul>
+        </div>
+
+        <table class="s-big-table" id="s-settings-stocks">
+            <tbody>
+            {foreach $stocks as $stock}
+            <tr data-{if isset($stock.substocks)}virtualstock-{/if}id="{$stock.id}" class="s-stock">
+                <td class="min-width s-stock-sort-handle">
+                    <a style="display: inline;" href="javascript: void(0)"><i class="icon16 sort stock-rows-handle"></i></a>
+                </td>
+                <td class="hide-when-editable">
+                    <h3 class="value{if !$stock.public} gray{/if}{if isset($stock.substocks)} italic{/if}">{$stock.name|escape} {if !$stock.public}<i class="icon16 ss visibility" title="[`Not visible to customers`]" style="margin-top: 0.2em; opacity: 0.7;"></i>{/if}</h3>
+                </td>
+                <td class="short hide-when-editable">
+                    <span class="value s-count"><i class="icon10 status-yellow"></i> ≤ <span>{$stock.low_count}</span></span>
+                </td>
+                <td class="short hide-when-editable">
+                    <span class="value s-count"><i class="icon10 status-red"></i><span> ≤ {$stock.critical_count}</span></span>
+                </td>
+                <td class="short hide-when-editable">
+                    <a href="#/stock/edit/{$stock.id}/" title="[`Edit`]" class="inline inline-link nowrap s-edit-stock"><i class="icon16 edit"></i><b><i>[`Edit`]</i></b></a>
+                </td>
+                <td class="short hidden show-when-editable" colspan="4">
+                    {stock_editor_form stock=$stock substocks=ifset($stock.substocks)}
+                </td>
+                <td class="min-width">
+                    <a href="javascript:void(0)" title="[`Delete`]" class="inline nowrap no-underline s-delete-stock"><i class="icon16 delete"></i>[`Delete`]</a>
+                </td>
+            </tr>
+            {/foreach}
+
+            <!-- new stocks to appear here when "Add stock" is clicked -->
+            {capture "new_stock"}{strip}
+            <tr data-id="" class="new-stock">
+                <td class="min-width s-stock-sort-handle">
+                    <a style="display: inline;" href="javascript: void(0)"><i class="icon16 sort stock-rows-handle"></i></a>
+                </td>
+                <td colspan="4">{stock_editor_form}</td>
+                <td class="min-width valign-top">
+                    <a href="javascript:void(0)" title="[`Delete`]" class="inline nowrap no-underline s-delete-stock"><i class="icon16 delete"></i>[`Delete`]</a>
+                </td>
+            </tr>
+            {/strip}{/capture}
+            {capture "new_virtualstock"}{strip}
+            <tr data-virtualstock-id="" class="new-stock">
+                <td class="min-width s-stock-sort-handle">
+                    <a style="display: inline;" href="javascript: void(0)"><i class="icon16 sort stock-rows-handle"></i></a>
+                </td>
+                <td colspan="4">{stock_editor_form substocks=[]}</td>
+                <td class="min-width valign-top">
+                    <a href="javascript:void(0)" title="[`Delete`]" class="inline nowrap no-underline s-delete-stock"><i class="icon16 delete"></i>[`Delete`]</a>
+                </td>
+            </tr>
+            {/strip}{/capture}
+            </tbody>
+        </table>
+
+        <div class="fields form">
+            <div class="field">
+                <div class="name">
+                    [`Update stock`]
+                </div>
+                <div class="value">
+                    <select name="stock_counting_action">
+                        <option value="create" {if $stock_counting_action =='create'}selected="selected"{/if}>[`Order was placed`]</option>
+                        <option value="processing" {if $stock_counting_action =='processing'}selected="selected"{/if}>[`Order was confirmed and accepted for processing`]</option>
+                        <option value="none" {if $stock_counting_action =='none'}selected="selected"{/if}>[`Not updated by order actions`]</option>
+                    </select>
+                    <p class="hint">[`Product stock levels will be updated (reduced) when this action is performed to the order.`]<br>
+                    [`With option “Not updated by order actions”, products’ stock level is supposed to be updated only during data exchange with accounting software, which is used to manage product stock updates.`]</p>
+                </div>
+            </div>
+            <div class="field">
+                <div class="name">
+                    [`Ordering`]
+                </div>
+                <div class="value no-shift">
+                    <label>
+                        <input type="radio" name="ignore_stock_count" value="0"{if !$wa->shop->settings('ignore_stock_count')} checked="true"{/if}>
+                        [`Maximum number of items that can be added to shopping cart is limited by stock level`]
+                        <select name="limit_main_stock">
+                            <option {if !$wa->shop->settings('limit_main_stock')}selected{/if} value="">[`Limited by the total sum on all stocks`]</option>
+                            <option {if $wa->shop->settings('limit_main_stock')}selected{/if} value="1">[`Limited by the main stock of the particular storefront only`]</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="value no-shift">
+                    <label><input type="radio" name="ignore_stock_count" value="1"{if $wa->shop->settings('ignore_stock_count')} checked="true"{/if}> [`Ordering is not limited by stock levels`]
+                    <span class="hint">[`Out-of-stock products can be added to cart and ordered`]</span>
+                    </label>
+                </div>
+            </div>
+
+            <input type="submit" name="save" class="button green" value="[`Save`]">
+            <span class="hidden s-msg-after-button"><i class="icon16 yes after-submit"></i></span>
+
+        </div>
+    </form>
+</div>
+
+{*
+ * Stock rules form
+ *}
+
+{*
+ * Helper to draw condition editor for rules
+ *}
+{function rule_condition_editor_form conditions=null}
+    {if $conditions}
+        {foreach $conditions as $rule}
+
+            {str_replace(['%%RULE_ID%%', '%%RULE_TYPE%%', '%%RULE_DATA%%'], [
+                $rule.id,
+                $rule.rule_type,
+                $rule.rule_data
+            ], $smarty.capture.new_condition)}
+
+        {/foreach}
+    {/if}
+
+    <select class="add-condition-selector">
+        <option value="">[`Add condition...`]</option>
+        {foreach $rule_condition_types as $ct}
+            <option value="{$ct.id|escape}">{$ct.name|escape}</option>
+        {/foreach}
+    </select>
+{/function}
+
+{*
+ * HTML for new rule condition (before plugins have chance to alter its form)
+ *}
+
+{capture "new_condition"}
+    <div class="stock-rule-condition condition-type-%%RULE_TYPE%%" data-rule-id="%%RULE_ID%%">
+        <div class="float-right">
+            <a href="javascript:void(0)" title="[`Delete`]" class="inline nowrap no-underline s-delete-condition"><i class="icon16 delete"></i></a>
+        </div>
+        <input type="hidden" name="rules[%%RULE_ID%%][rule_type]" value="%%RULE_TYPE%%">
+        <input type="hidden" name="rules[%%RULE_ID%%][rule_data]" value="%%RULE_DATA%%">
+    </div>
+{/capture}
+
+{* Helper to draw rulegroup rows *}
+{function rulegroup group=null}
+    <tr class="s-stock-rule">
+        <td class="min-width s-stock-sort-handle">
+            <a style="display: inline;" href="javascript: void(0)"><i class="icon16 sort"></i></a>
+        </td>
+        <td>
+            {if $group}
+                {rule_condition_editor_form conditions=$group.conditions}
+            {else}
+                {rule_condition_editor_form}
+            {/if}
+        </td>
+        <td class="min-width"><i class="icon16 move"></i></td>
+        <td>
+            <select class="stock-selector">
+                {if $group && empty($stocks[$group.parent_stock_id])}
+                    <option value="{$group.parent_stock_id|escape}" selected>Deleted stock_id={$group.parent_stock_id|escape}</option>
+                {/if}
+                {foreach $stocks as $stock_id => $s}
+                    <option value="{$stock_id|escape}"{if $group && $group.parent_stock_id == $stock_id} selected{/if}>{$s.name|escape}</option>
+                {/foreach}
+            </select>
+            {*
+            <div class="hint" style="margin-top:20px;display:none;">
+                [`Real stock linking:`]<br>
+                {foreach $stocks as $stock_id => $s}{if !empty($s.substocks)}
+                    <select class="hidden substock-selector" data-stock-id="{$stock_id|escape}">
+                        <option value="">[`Link items to most suitable stock according to availability`]</option>
+                        {foreach $s.substocks as $substock_id}{if !empty($stocks[$substock_id])}
+                            {$substock = $stocks[$substock_id]}
+                            <option value="{$substock.id|escape}"{if $group && $group.substock_id == $substock_id} selected{/if}>{sprintf('[`Always link to %s`]',$substock.name|escape)}</option>
+                        {/if}{/foreach}
+                    </select>
+                {/if}{/foreach}
+            </div>
+            *}
+        </td>
+        <td class="min-width">
+            <a href="javascript:void(0)" title="[`Delete`]" class="inline nowrap no-underline s-delete-rule"><i class="icon16 delete"></i></a>
+        </td>
+    </tr>
+{/function}
+
+{$_show_rules = false}
+{if !empty($rule_groups) || (!empty($stocks) && $stocks|count > 1)}
+    {$_show_rules = true}
+{/if}
+
+<div class="blank block double-padded {if !$_show_rules}hidden{/if}">
+    <h1 style="margin-bottom: 0.75em;">[`Stock linking rules`]</h1>
+    <p>[`When order is placed, ordered items will be automatically linked with a stock according to the rules defined below. E.g. different stocks may be preferred depending on selected shipping option or particular customer location. When no matching stock rule were found, ordered items will be linked to the current storefront default stock.`]</p>
+    <div class="block bottom-padded">
+        <a href="javascript:void(0)" class="inline-link bold" id="s-settings-add-rule">
+            <i class="icon16 add"></i><b><i><strong>[`Add rule`]</strong></i></b>
+        </a>
+    </div>
+    <form action="?module=settings&action=saveStockRules" method="post" id="s-settings-stock-rules-form">
+        <table class="s-big-table zebra">
+            <thead>
+                <tr class="white">
+                    <th class="min-width"></th>
+                    <th class="grey" style="">[`Condition`]</th>
+                    <th class="min-width"></th>
+                    <th class="grey" style="padding:20px 15px 15px;text-align:left;">[`Stock`]</th>
+                    <th class="min-width"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {foreach $rule_groups as $group}
+                    {rulegroup group=$group}
+                {/foreach}
+                {capture "new_rule"}{strip}
+                    {rulegroup}
+                {/strip}{/capture}
+                {foreach $storefront_rule_groups as $row}
+                    <tr class="s-stock-rule disabled">
+                        <td class="min-width"></td>
+                        <td>[`Storefront`] {waIdna::dec($row.storefront)|escape}</td>
+                        <td class="min-width"><i class="icon16 move"></i></td>
+                        <td>{$row.stock_name|escape}</td>
+                        <td class="min-width"></td>
+                    </tr>
+                {/foreach}
+            </tbody>
+        </table>
+        <br><br>
+
+        <input type="submit" name="save" class="button green" value="[`Save`]">
+        <span class="hidden s-msg-after-button"><i class="icon16 yes after-submit"></i></span>
+    </form>
+</div>
+
+{*
+ * dialogs section
+ *}
+
+<div class="dialog width400px height150px" id="s-settings-delete-last-stock">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=stockDelete">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Delete stock`]</h1>
+                [`All products available on this stock will be saved on the balance of corresponding SKUs.`]
+                <input type="hidden" name="delete_stock" value="0" checked>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Delete`]">
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
+<div class="dialog width400px height200px" id="s-settings-delete-stock">
+    <div class="dialog-background"></div>
+    <form method="post" action="?module=settings&action=stockDelete">
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h1>[`Delete stock`]</h1>
+                <ul class="menu-v">
+                    <li>
+                        <label>
+                        <input type="radio" name="delete_stock" value="0" checked>
+                        [`Delete stock and write off products`] <span class="hint">[`All rest products belonging to this stock will be written-off after stock deleting`]</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                        <input type="radio" name="delete_stock" value="1">
+                        [`Delete stock and transfer products`] <span class="hint">[`All products available on this stock will be transferred to another stock.`]</span>
+                        </label>
+                    </li>
+                    <li>
+                        <label>
+                            <select name="dst_stock" disabled="disabled">
+                                {foreach $stocks as $stock}{if empty($s.substocks)}
+                                    <option value="{$stock.id}">{$stock.name|escape}</option>
+                                {/if}{/foreach}
+                            </select>
+                        </label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                {$wa->csrf()}
+                <input class="button red" type="submit" value="[`Delete`]"> [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    </form>
+</div>
+
+<script>
+document.title = "[`Stocks`] — " + {json_encode($wa->accountName(false))};
+$.settings.stocksInit({
+    validate_errors: {
+        number: "[`Value must be a positive number`]",
+        no_less: "[`This value must be no less than next field count`]",
+        no_greater: "[`This value must be no greater than previous field count`]",
+        empty: "[`Empty value`]"
+    },
+    new_rule: {json_encode($smarty.capture.new_rule)},
+    new_stock: {json_encode($smarty.capture.new_stock)},
+    new_virtualstock: {json_encode($smarty.capture.new_virtualstock)}
+});
+$.settings.stockRulesInit(
+    {json_encode(trim($smarty.capture.new_rule))},
+    {json_encode(trim($smarty.capture.new_condition))},
+    "[`At least one condition is required`]"
+);
+</script>
+
+<div class="hidden">
+{foreach $plugins_html as $html}
+<div>{$html}</div>
+{/foreach}
+</div>
+
+<script>setTimeout($.settings.stockConditionsInit, 30);</script>
+

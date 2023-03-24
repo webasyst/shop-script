@@ -20,8 +20,6 @@
 
             // INIT
             that.init();
-
-            console.log( that );
         }
 
         Main.prototype.init = function() {

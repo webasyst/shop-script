@@ -3,10 +3,14 @@
     var Sidebar = ( function($) {
 
         Sidebar = function(options) {
-            var that = this;
+            const that = this;
 
             // DOM
+            that.$document = $(document);
+            that.$app = $('#wa-app');
             that.$wrapper = options["$wrapper"];
+            that.$sidebarSub = that.$app.find('.js-marketing-submenu');
+            that.$sidebarMainLink = that.$app.find('.js-marketing-main-link');
 
             // CONST
             that.urls = options["urls"];
@@ -21,106 +25,119 @@
         };
 
         Sidebar.prototype.init = function() {
-            var that = this,
-                $document = $(document);
+            const that = this;
 
             that.setActive();
 
-            $document.on("wa_loaded", onLoadWatcher);
+            that.$document.on("wa_loaded", onLoadWatcher);
+
+            that.toggleSubmenu();
+
             function onLoadWatcher() {
-                var is_exist = $.contains(document, that.$wrapper[0]);
+                const is_exist = $.contains(document, that.$wrapper[0]);
+
                 if (is_exist) {
                     that.setActive();
                 } else {
-                    $document.off("wa_loaded", onLoadWatcher);
+                    that.$document.off("wa_loaded", onLoadWatcher);
                 }
             }
 
             that.initAutoReload();
+            that.initDropdown();
 
             /**
              * @description So it is necessary for compatibility with the promo page
              *  */
-            $document.on("click", "li > a", clickWatcher);
-            function clickWatcher() {
-                var is_exist = $.contains(document, that.$wrapper[0]),
-                    is_sidebar = $.contains(that.$wrapper[0], this);
+            that.$app.on("click", "li > a", clickWatcher);
 
-                if (is_exist) {
-                    if (is_sidebar) {
-                        var $link = $(this);
-                        that.setItem($link.closest("li"));
-                        var $name = $link.find(".s-name");
-                        if ($name.length) {
-                            $.shop.marketing.setTitle($name.text());
-                        }
-                    }
-                } else {
-                    $document.off("click", "li > a", clickWatcher);
+            function clickWatcher() {
+                const is_exist = $.contains(document, that.$wrapper[0]);
+                const is_subnav = $.contains(that.$wrapper[0], this);
+
+                if (!is_exist) {
+                    that.$document.off("click", "li > a", clickWatcher);
+
+                    return;
                 }
+
+                if (is_subnav) {
+                    const $link = $(this);
+                    const $name = $link.find(".s-name");
+
+                    that.$wrapper.find('.selected').removeClass('selected');
+                    if (!$link.closest('.js-marketing-category-dropdown').length) {
+                        that.$optionsDropdown.find('.dropdown-toggle').text(that.$dropdownDefaultText)
+                    }
+                    that.setItem($link.closest("li"));
+
+                    if ($name.length) {
+                        $.shop.marketing.setTitle($name.text());
+                    }
+
+                    that.$sidebarSub.find('.selected').removeClass('selected');
+                } else {
+                    const $link = $(this).closest('li');
+                    $link.closest('.sidebar').find('.selected').removeClass('selected');
+                    $link.addClass('selected');
+                }
+
+                that.toggleSubmenu();
             }
         };
+
+        Sidebar.prototype.toggleSubmenu = function() {
+            const that = this;
+
+            const isActiveSubmenuItem = that.$sidebarSub.find('.selected').length;
+            if (isActiveSubmenuItem) {
+                that.$wrapper.hide();
+                that.$sidebarMainLink.removeClass('selected');
+            } else {
+                that.$wrapper.show();
+            }
+        }
 
         /**
          * @param {Object} $item
          * */
         Sidebar.prototype.setItem = function($item) {
-            var that = this,
-                active_menu_class = "selected";
+            const that = this;
+            const active_menu_class = "selected";
 
-            if (that.$active_menu_item) {
-                if (that.$active_menu_item[0] === $item[0]) {
-                    return false;
-                }
-                that.$active_menu_item.removeClass(active_menu_class);
-            }
-
-            that.$active_menu_item = $item.addClass(active_menu_class);
+            that.$active_menu_item = $item.addClass(active_menu_class).siblings().removeClass(active_menu_class);
         };
 
         /**
          * @param {String?} uri
          * */
         Sidebar.prototype.setActive = function(uri) {
-            var that = this,
-                $link;
+            const that = this;
+            let $link;
 
             if (uri) {
-                $link = that.$wrapper.find('a[href="' + uri + '"]:first');
+                $link = that.$app.find('a[href="' + uri + '"]');
+
                 if ($link.length) {
                     that.setItem($link.closest("li"));
                 }
 
-            } else {
-                var $links = that.$wrapper.find("a[href^='" + that.urls["app_url"] + "']"),
-                    relative_path = location.pathname + location.search,
-                    location_string = location.pathname,
-                    max_length = 0,
-                    link_index = 0;
-
-                $links.each(function (index) {
-                    var $link = $(this),
-                        href = $link.attr("href"),
-                        href_length = href.length;
-
-                    var is_absolute_coincidence = (href === relative_path);
-                    if (is_absolute_coincidence) {
-                        link_index = index;
-                        return false;
-
-                    } else if (location_string.indexOf(href) >= 0) {
-                        if (href_length > max_length) {
-                            max_length = href_length;
-                            link_index = index;
-                        }
-                    }
-                });
-
-                if (link_index || link_index === 0) {
-                    $link = $links.eq(link_index);
-                    that.setItem($link.closest("li"));
-                }
+                return;
             }
+
+            const $links = that.$app.find("a[href^='" + that.urls["app_url"] + "']");
+            const relative_path = location.pathname + location.search;
+
+            $links.each(function (index) {
+                const $link = $(this);
+                const href = $link.attr("href");
+
+                const is_absolute_coincidence = (href === relative_path);
+                if (is_absolute_coincidence) {
+                    that.setItem($link.closest("li"));
+                    return;
+                }
+            });
         };
 
         Sidebar.prototype.reload = function() {
@@ -149,6 +166,24 @@
                     that.reload();
                 }
             }, reload_time);
+        };
+
+        Sidebar.prototype.initDropdown = function() {
+            const that = this;
+
+            that.$optionsDropdown = this.$wrapper.find('.js-marketing-category-dropdown').waDropdown({
+                items: '.menu > li > a',
+                ready(dropdown) {
+                    that.$dropdownDefaultText = dropdown.$button.data('default-text');
+
+                    const activeItem = dropdown.$menu.find('.selected');
+
+                    if (activeItem.length) {
+                        const titleHtml = dropdown.$menu.find('.selected a').html();
+                        dropdown.setTitle(titleHtml);
+                    }
+                }
+            });
         };
 
         return Sidebar;

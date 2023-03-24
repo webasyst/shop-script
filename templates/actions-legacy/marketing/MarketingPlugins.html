@@ -1,0 +1,23 @@
+<div class="s-plugins-page block" id="js-plugins-page">
+
+    <div class="s-installer-wrapper js-installer-wrapper"></div>
+
+    <script>
+        ( function($) { "use strict";
+            $.shop.marketing.setTitle({_w("Plugins")|json_encode});
+
+            var sources = [{
+                id: "wa-shop-marketing-plugins-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js-legacy/backend/marketing/plugins.js?v={$wa->version()}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                $.shop.marketing.init.pluginsPage({
+                    $wrapper: $("#js-plugins-page"),
+                    installer_url: {$installer_url|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

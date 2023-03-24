@@ -1,0 +1,23 @@
+<div class="s-edit-rule-wrapper">
+    {if empty($rule_type)}
+        [`Please specify a tool type.`]
+
+    {elseif $rule_type === "banner"}
+        {include file="./rules/banner.html" inline}
+
+    {elseif $rule_type === "custom_price"}
+        {include file="./rules/custom_price.html" inline}
+
+    {elseif $rule_type === "utm"}
+        {include file="./rules/utm.html" inline}
+
+    {elseif $rule_type === "coupon"}
+        {include file="./rules/coupon.html" inline}
+
+    {elseif !empty($html)}
+        {$html}
+
+    {else}
+        <span class="gray">[`Unknown tool type.`]</span>
+    {/if}
+</div>

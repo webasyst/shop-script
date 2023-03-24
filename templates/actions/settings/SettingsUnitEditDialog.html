@@ -9,18 +9,18 @@
 
 {/strip}
 
-<div class="wa-dialog s-settings-unit-dialog s-settings-unit-edit-dialog" id="js-settings-unit-edit-dialog">
-    <div class="wa-dialog-background"></div>
-    <div class="wa-dialog-body">
+<div class="dialog s-settings-unit-dialog s-settings-unit-edit-dialog" id="js-settings-unit-edit-dialog">
+    <div class="dialog-background"></div>
+    <div class="wa-dialog-body dialog-body">
 
         <form action="" method="post">
             {* HEADER *}
-            <header class="wa-dialog-header">
+            <header class="dialog-header">
                 <h1 class="s-title">{$_title|escape}</h1>
             </header>
 
             {* CONTENT *}
-            <div class="wa-dialog-content">
+            <div class="dialog-content">
                 <input type="hidden" name="id" value="{$unit.id|default:""|escape}">
 
                 <div class="s-fields-wrapper">
@@ -65,25 +65,30 @@
                                        placeholder="{$unit.short_name|default:""|escape}">
                             </div>
 
-                            <div class="s-message-wrapper">
-                                <span class="s-icon"><i class="icon16 info"></i></span>
-                                <p>{sprintf(_w("In the “%s” field value, you may need to use various special characters. Frequently used characters are provided in the table below—just copy a desired character and paste into the settings field. A more detailed list of special characters is available in the <a href=\"%s\">help article</a>."), _w('Name for storefront'), "https://support.webasyst.ru/40538/special-characters/")}</p>
-                                <p>[`Characters:`]</p>
-                                <ul class="s-symbols-list">
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">¹</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">²</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">³</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">¼</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">½</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">¾</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">‘</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">’</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">´</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">«</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">»</span></li>
-                                    <li class="s-symbol-wrapper"><span class="s-symbol">˜</span></li>
-                                </ul>
-
+                            <div class="s-message-wrapper alert">
+                                <div class="flexbox space-8">
+                                    <span class="icon"><i class="fas fa-info-circle"></i></span>
+                                    <div class="wide">
+                                        <div class="small">
+                                            <p>{sprintf(_w("In the “%s” field value, you may need to use various special characters. Frequently used characters are provided in the table below—just copy a desired character and paste into the settings field. A more detailed list of special characters is available in the <a href=\"%s\">help article</a>."), _w('Name for storefront'), "https://support.webasyst.ru/40538/special-characters/")}</p>
+                                            <p>[`Characters:`]</p>
+                                        </div>
+                                        <ul class="chips custom-mt-8">
+                                            <li><span class="chip">¹</span></li>
+                                            <li><span class="chip">²</span></li>
+                                            <li><span class="chip">³</span></li>
+                                            <li><span class="chip">¼</span></li>
+                                            <li><span class="chip">½</span></li>
+                                            <li><span class="chip">¾</span></li>
+                                            <li><span class="chip">‘</span></li>
+                                            <li><span class="chip">’</span></li>
+                                            <li><span class="chip">´</span></li>
+                                            <li><span class="chip">«</span></li>
+                                            <li><span class="chip">»</span></li>
+                                            <li><span class="chip">˜</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -91,14 +96,13 @@
             </div>
 
             {* FOOTER *}
-            <footer class="wa-dialog-footer">
+            <footer class="dialog-footer">
                 <div class="s-errors-place js-errors-place"></div>
 
                 <div class="wa-table-box middle">
                     <div class="s-column">
-                        <button class="s-button button green js-submit-button" type="submit">{$_button_text|escape}</button>
-                        <span class="s-divider">[`or`]</span>
-                        <a href="javascript:void(0);" class="js-close-dialog">[`cancel`]</a>
+                        <button class="button green js-submit-button" type="submit">{$_button_text|escape}</button>
+                        <button class="button js-close-dialog light-gray">[`Cancel`]</button>
                     </div>
                 </div>
             </footer>

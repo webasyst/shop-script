@@ -2,9 +2,9 @@
 
 {$subpages = $wa->shop->pages($page.id)}
 {if $subpages}
-    <ul class="sub-links">
+    <ul class="sub-links wa-flex wa-flex-wrap">
         {foreach $subpages as $p}
-            <li><a href="{$p.url}">{$p.name}</a></li>
+            <li><a class="button bg-gray" href="{$p.url}">{$p.name}</a></li>
         {/foreach}
     </ul>
 {/if}
