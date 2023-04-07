@@ -8,13 +8,17 @@
 
             <div class="dropdown-body">
                 <ul class="menu">
-                    {foreach $additional_html.action_link as $_html}
-                        {$_html}
-                    {/foreach}
+                    {if !empty($additional_html)}
+                        {foreach $additional_html.action_link as $_html}
+                            {$_html}
+                        {/foreach}
+                    {/if}
 
-                    <li class="{if empty($active_storefront) && empty($unattached_active)}selected{/if}">
-                        <a href="{$marketing_url}{if $status}?status={$status}{/if}" title="[`All storefronts`]">[`All storefronts`]</a>
-                    </li>
+                    {if !empty($marketing_url)}
+                        <li class="{if empty($active_storefront) && empty($unattached_active)}selected{/if}">
+                            <a href="{$marketing_url}{if $status}?status={$status}{/if}" title="[`All storefronts`]">[`All storefronts`]</a>
+                        </li>
+                    {/if}
 
                     {if !empty($show_unatt_storefronts) || !empty($unattached_active)}
                         <li class="{if !empty($unattached_active)}selected{/if}">
@@ -22,16 +26,18 @@
                         </li>
                     {/if}
 
-                    {foreach $storefronts as $_storefront}
-                        {$_is_active = false}
-                        {if !empty($active_storefront) && $active_storefront === $_storefront}
-                            {$_is_active = true}
-                        {/if}
+                    {if !empty($storefronts)}
+                        {foreach $storefronts as $_storefront}
+                            {$_is_active = false}
+                            {if !empty($active_storefront) && $active_storefront === $_storefront}
+                                {$_is_active = true}
+                            {/if}
 
-                        <li class="{if !empty($_is_active)}selected{/if}">
-                            <a href="{$marketing_url}?storefront={$_storefront|urlencode}{if $status}&status={$status}{/if}" title="{$_storefront|escape}">{waIdna::dec($_storefront)}</a>
-                        </li>
-                    {/foreach}
+                            <li class="{if !empty($_is_active)}selected{/if}">
+                                <a href="{$marketing_url}?storefront={$_storefront|urlencode}{if $status}&status={$status}{/if}" title="{$_storefront|escape}">{waIdna::dec($_storefront)}</a>
+                            </li>
+                        {/foreach}
+                    {/if}
                 </ul>
             </div>
         </div>

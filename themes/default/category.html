@@ -47,6 +47,41 @@
     </ul>
 {/if}
 
+{function filters_form_skeleton_items count=2 height='370px'}
+    {for $i=1 to $count}
+    <li class="skeleton-line wa-flex wa-flex-column col w3" style="height: {$height}; padding: 1.5rem 1.5rem 0.5rem;background: #fff;border-radius: 15px;">
+        <div class="skeleton-line" style="height: 45%;width: 100%"></div>
+        <div>
+            <span class="skeleton-line" style="height: 2rem;width: 70%"></span>
+        </div>
+
+        <div class="skeleton-line wa-mt-16" style="height: 0.9rem;width: 70%"></div>
+        <div class="wa-flex wa-flex-wrap justify-content-between">
+            <div class="skeleton-line" style="height: 0.5rem;width: 60%"></div>
+            <div class="skeleton-line" style="height: 0.5rem;width: 35%"></div>
+            <div class="skeleton-line" style="height: 0.5rem;width: 30%"></div>
+            <div class="skeleton-line" style="height: 0.5rem;width: 60%"></div>
+        </div>
+        <div class="wa-flex" style="margin: auto 0 0;">
+            <div class="skeleton-line" style="height: 2.7rem;width: 60%;border-radius: 100px;"></div>
+            <div class="wa-ml-16 wa-flex align-items-end wa-mb-8">
+                <div class="skeleton-line" style="height: 0.5rem;width: 4px;"></div>
+                <div class="skeleton-line" style="height: 1.4rem;width: 4px;margin-left: 3px;"></div>
+                <div class="skeleton-line" style="height: 0.9rem;width: 4px;margin-left: 3px;"></div>
+            </div>
+        </div>
+    </li>
+    {/for}
+{/function}
+
+{capture assign="_filters_form_skeleton"}
+<div class="skeleton">
+    <ul class="row cols4 cols2-mobile cols3-tablet gap20" style="padding: 0;margin: 0;">
+        {filters_form_skeleton_items count=5}
+    </ul>
+</div>
+{/capture}
+
 <div class="row gap20{if !empty($filters)} cols2 cols1-mobile cols1-tablet{/if}">
     <!-- filtering by product features -->
     {if !empty($filters)}
@@ -62,13 +97,13 @@
                 <div class="filters-toggle-wrapper">
                     <a class="filters-toggle-link" id="filters-toggle-link" href="javascript:void(0);" data-show-text="[`Show Filters`]" data-hide-text="[`Hide Filters`]">[`Show Filters`]</a>
                 </div>
-                <form class="filters-form-wrapper" method="get" action="{$wa->currentUrl(0,1)}" data-loading="{$wa_parent_theme_url}img/loading16.gif">
+                <form class="filters-form-wrapper" method="get" action="{$wa->currentUrl(0,1)}" data-loading='{$_filters_form_skeleton|strip}'>
                     {foreach $filters as $fid => $filter}
                         <div class="filter-param">
                             {if $fid == 'price'}
                                 {$c = $wa->shop->currency(true)}
                                 <h5>[`Price`]</h5>
-                                <div class="slider">
+                                <div class="slider nowrap">
                                     [`from`] <input type="text" class="min" name="price_min" {if $wa->get('price_min')}value="{(int)$wa->get('price_min')}"{/if} placeholder="{floor($filter.min)}">
                                     [`to`] <input type="text" class="max" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="{ceil($filter.max)}"> {$c.sign}
                                 </div>
@@ -132,7 +167,7 @@
                                     </div>
                                 {elseif isset($filter.min)}
                                     {$_v = $wa->get($filter.code)}
-                                    <div class="slider">
+                                    <div class="slider nowrap">
                                         [`from`] <input type="text" class="min" name="{$filter.code}[min]" placeholder="{$filter.min}" {if !empty($_v.min)}value="{$_v.min}"{/if}>
                                         [`to`] <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max}"{/if}>
                                         {if !empty($filter.unit)}

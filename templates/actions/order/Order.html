@@ -267,6 +267,8 @@
 
                                         <hr class="custom-mb-16">
 
+                                        <a href="[`https://www.shop-script.com/help/44627/payment-by-link/`]" target="_blank" class="h6 gray">[`Payment link`] <i class="fas fa-info-circle"></i></a>
+
                                         <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre>
                                         <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs"></i></a>
                                         <button class="button smaller nowrap js-copy-btn" data-copy-target="#js-payment-url" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]">[`Copy link`]</button>
@@ -281,6 +283,9 @@
                     <!-- order content -->
 
                     <table id="s-order-items" class="s-order-items-table s-order-readable">
+                        {$has_granted_calc_profit = $wa->user()->getRights('shop', 'products') && $wa->user()->getRights('shop', 'orders')}
+                        {$sum_purchase_price = 0}
+                        {$sum_unaccounted_purchase = 0}
                         {if $order.items}
                             <thead>
                                 <tr>
@@ -303,6 +308,10 @@
                                     {else}
                                         {$link_edit = "?action=products#/services/{$item.service_id}/"}
                                     {/if}
+
+                                    {$sum_purchase_price = $sum_purchase_price + $item.purchase_price * $item.quantity}
+                                    {$do_calc_profit = $item.purchase_price > 0}
+                                    {if !$do_calc_profit}{$sum_unaccounted_purchase = $sum_unaccounted_purchase + $item.price * $item.quantity}{/if}
                                     <tr class="s-product-wrapper {if $item.type == 'service'}is-product small{/if}" data-id="{$item.id}" aria-label="">
                                         <td class="min-width custom-mx-auto-mobile">
                                             {if $item.type != 'service'}
@@ -397,7 +406,13 @@
                                                 <span class="s-unit">{$item.stock_unit.name_short}</span>
                                             {/if}
                                         </td>
-                                        <td aria-label="[`Total`]" class="align-right nowrap"{if $item.total_discount > 0} title="{sprintf_wp("Total discount for this order item: %s.", wa_currency($item.total_discount, $order.currency))|escape}"{/if}>{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
+                                        <td aria-label="[`Total`]" class="align-right nowrap">
+                                            <div{if $item.total_discount > 0} title="{sprintf_wp("Total discount for this order item: %s.", wa_currency($item.total_discount, $order.currency))|escape}"{/if}>{wa_currency_html($item.price * $item.quantity, $order.currency)}</div>
+                                            {if $has_granted_calc_profit && $do_calc_profit}
+                                                {$percent_profit = (($item.price - $item.purchase_price)/$item.price*100)|round}
+                                                <div class="bold smaller text-{if $item.price - $item.purchase_price >= 0}green{else}red{/if}" title="[`Estimated profit`]">{if $item.price - $item.purchase_price >= 0}+{else}&minus;{/if} {wa_currency_html(abs(($item.price - $item.purchase_price) * $item.quantity), $order.currency)} ({if $item.quantity > 0}{$percent_profit}{else}0{/if}%)</div>
+                                            {/if}
+                                        </td>
                                     </tr>
                                     {$subtotal = $subtotal + $item.price*$item.quantity}
                                 {/foreach}
@@ -450,7 +465,13 @@
                             <tr class="bold larger">
                                 <td colspan="2"></td>
                                 <td class="align-right">[`Total`]</td>
-                                <td class="align-right nowrap">{wa_currency_html($order.total, $order.currency)}</td>
+                                <td class="align-right nowrap">
+                                    <div>{wa_currency_html($order.total, $order.currency)}</div>
+                                    {if $has_granted_calc_profit && $sum_purchase_price}
+                                        {$total_percent_profit = (($order.total - $order.shipping - $sum_unaccounted_purchase - $sum_purchase_price)/$order.total*100)|round}
+                                        <div class="bold smaller text-{if $total_percent_profit >= 0}green{else}red{/if}" title="[`Estimated profit`]">{if $total_percent_profit >= 0}+{else}&minus;{/if} {wa_currency_html(abs($order.total - $order.shipping - $sum_unaccounted_purchase - $sum_purchase_price), $order.currency)} ({$total_percent_profit}%)</div>
+                                    {/if}
+                                </td>
                             </tr>
                         </tfoot>
                     </table>

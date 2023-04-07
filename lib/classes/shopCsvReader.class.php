@@ -830,6 +830,7 @@ HTML;
                 $primary = reset($ids);
                 foreach ($ids as $_id) {
                     $headers[$_id] = array(
+                        'id'      => $_id,
                         'name'    => $id,
                         'title'   => $column,
                         'primary' => ($primary == $_id),
@@ -862,10 +863,22 @@ HTML;
                 $header['title'] = '&nbsp;';
             }
             $rows[1] .= '<td class="s-csv-header">'.$header['title'].'</td>';
-            if ($header['primary']) {
-                $params_target = $params;
-                self::findSimilar($params_target, $header['title'], array('similar' => false));
-                $header['value'] = $params_target['value'];
+            $params_target = $params;
+            self::findSimilar($params_target, $header['title'], array('similar' => false));
+            $header['value'] = $params_target['value'];
+            $is_multicolumn_feature = mb_strpos($header['value'], 'features:') === 0 && mb_strpos($header['name'], ':') > 0;
+            if ($header['primary'] || $is_multicolumn_feature) {
+                if ($is_multicolumn_feature) {
+                    $column_id = $header['id'];
+                    if (isset($this->header[$header['name']])) {
+                        unset($this->header[$header['name']]);
+                    }
+                    if (!isset($this->header[$header['id']])) {
+                        $this->header[$header['id']] = $header['title'];
+                    }
+                } else {
+                    $column_id = $header['name'];
+                }
                 if ($header['value'] >= 0) {
                     if (strpos($header['value'], 'features:') === 0 && $params_target['control_wrapper'] == $default_control_wrapper) {
                         $_group_title = "same-feature";
@@ -875,13 +888,13 @@ HTML;
                         $new_attributes = '<td class="js-same-feature" data-group-name="' . $_group_title . '">';
                         $params_target['control_wrapper'] = str_replace('<td>', $new_attributes, $default_control_wrapper);
                     }
-                    $map[$header['value']] = $header['name'];
+                    $map[$header['value']] = $column_id;
                 }
 
                 if (!empty($params_target['options']['autocomplete'])) {
                     //TODO
                 }
-                $controls[0] .= waHtmlControl::getControl(waHtmlControl::SELECT, $header['name'], $params_target);
+                $controls[0] .= waHtmlControl::getControl(waHtmlControl::SELECT, $column_id, $params_target);
             } else {
                 $controls[0] .= "<td>&nbsp;</td>";
             }

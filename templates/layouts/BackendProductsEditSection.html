@@ -105,7 +105,7 @@
                 });
             });
 
-            $.wa.title.set("{$product.name|default:_w("New product")|escape}");
+            $.wa.title.set({$product.name|default:_w('New product')|json_encode});
 
             $('.s-button-back').on('click', function (event) {
                 event.preventDefault();

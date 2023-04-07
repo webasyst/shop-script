@@ -22,7 +22,7 @@
                 </div>
             </td>
             <td>
-                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{%#order.contact.name%}</a><i class="shortener"></i></div>
+                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{% if (order.contact.name) { %}{%#order.contact.name%}{% } else { %}[`(no name)`]{% } %}</a><i class="shortener"></i></div>
             </td>
             <td class="nowrap align-right">
                 <div>

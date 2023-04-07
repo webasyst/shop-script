@@ -204,7 +204,7 @@
                     <div class="field">
                         <div class="name">[`Name`]</div>
                         <div class="value">
-                            <input type="text" name="promo[name]" value="{$promo.name|default:''|escape}">
+                            <input class="long" type="text" name="promo[name]" value="{$promo.name|default:''|escape}">
 
                             {if !empty($promo.id)}
                                 <div class="s-ident-wrapper">
@@ -238,19 +238,19 @@
 
                             <div class="s-status-section js-status-section {if empty($_is_active)}is-disabled{/if}">
                                 <input class="s-checkbox" type="checkbox" name="promo[enabled]" value="1" {if !empty($_is_active)}checked{/if}>
-                                <div class="s-visible">
-                                    <div class="button smaller rounded green outlined">
+                                <div class="s-visible tablebox middle">
+                                    <span class="text-green" style="width: 13%;">
                                         <i class="fas fa-{$_status_icon_class|escape} custom-mr-8"></i>
                                         <span class="s-title">{$_status_title|escape}</span>
-                                    </div>
-                                    <a class="inline-link js-stop-status" href="javascript:void(0);">[`Stop`]</a>
+                                    </span>
+                                    <button type="button" class="button light-gray rounded js-stop-status">[`Stop`]</button>
                                 </div>
-                                <div class="s-hidden">
-                                    <div class="button smaller rounded red outlined">
+                                <div class="s-hidden tablebox middle">
+                                    <span class="text-red" style="width: 13%;">
                                         <i class="fas fa-pause custom-mr-8"></i>
                                         <span class="s-title">[`Stopped`]</span>
-                                    </div>
-                                    <a class="inline-link js-restore-status" href="javascript:void(0);">[`Resume`]</a>
+                                    </span>
+                                    <button type="button" class="button light-gray rounded js-restore-status">[`Resume`]</button>
                                 </div>
                             </div>
                             {/strip}
@@ -273,8 +273,8 @@
 
                                 <label class="s-datepicker-wrapper state-with-inner-icon right">
                                     <input class="s-datepicker js-datepicker js-start-date" type="text" value="{$_date_view}" data-alt="input[name='promo[start_date]']">
+                                    <span class="icon"><i class="fas fa-calendar-alt"></i></span>
                                     <input type="hidden" name="promo[start_date]" value="{$_date}">
-                                    <span class="icon"><i class="fas fa-calendar"></i></span>
                                 </label>
 
                                 <label class="s-time-wrapper">
@@ -308,8 +308,8 @@
 
                                 <label class="s-datepicker-wrapper state-with-inner-icon right">
                                     <input class="s-datepicker js-datepicker js-finish-date" type="text" value="{$_date_view}" data-alt="input[name='promo[finish_date]']">
+                                    <span class="icon"><i class="fas fa-calendar-alt"></i></span>
                                     <input type="hidden" name="promo[finish_date]" value="{$_date}">
-                                    <span class="icon"><i class="fas fa-calendar"></i></span>
                                 </label>
 
                                 <label class="s-time-wrapper">
@@ -372,7 +372,7 @@
                                                 <span class="s-text">[`Use only in selected storefronts`]</span>
                                             </label>
 
-                                            <ul class="menu chips js-storefront-list {if !$some_storefronts}hidden{/if}">
+                                            <ul class="chips small js-storefront-list {if !$some_storefronts}hidden{/if}">
                                                 <li>
                                                     <label class="chip s-checkbox-wrapper s-all-checkbox-wrapper">
                                                         <span class="wa-checkbox">
@@ -414,7 +414,7 @@
                         </div>
                     </div>
                 </div>
-                {if !empty($additional_html)}
+                {if $has_additional_html}
                 <div class="fields-group">
                     {foreach $additional_html.info_section as $_html}
                         {$_html}

@@ -35,5 +35,6 @@ return array(
         'name' => _wd('shop', 'Clothes & footwear'),
         'url' => 'https://bazaen.webasyst.cloud/wa-data/public/aa4a141a107d28a7bd4b106451e77c50/dump.zip',
         'locale' => 'en_US',
+        'icon' => 'fas fa-tshirt text-green'
     ),
 );

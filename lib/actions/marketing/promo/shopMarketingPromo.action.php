@@ -88,6 +88,14 @@ class shopMarketingPromoAction extends shopMarketingViewAction
             'rule_types'     => &$available_rule_types,
         ]));
 
+        $has_additional_html = false;
+        foreach ($additional_html as $item) {
+            if ($item) {
+                $has_additional_html = true;
+                break;
+            }
+        }
+
         $this->view->assign(array(
             'promo'                   => $promo,
             'storefronts'             => $storefronts,
@@ -98,6 +106,7 @@ class shopMarketingPromoAction extends shopMarketingViewAction
             'overall_totals'          => $overall_totals,
             'promo_totals'            => $promo_totals,
             'chart_data'              => $chart_data,
+            'has_additional_html'     => $has_additional_html,
             'additional_html'         => $additional_html,
         ));
     }

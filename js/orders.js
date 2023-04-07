@@ -75,6 +75,7 @@
                 $.wa.setHash(hash);
             }
 
+            this.initVisibilitySecondaryFilters();
             this.initSearch();
             this.initDropdown();
 
@@ -118,6 +119,29 @@
 
             this.checkAlerts();
             this.ordersNavDetach();
+        },
+
+        initVisibilitySecondaryFilters: function() {
+            const storage_key = 'shop/orders/split/secondary_filtres';
+            const toggleSecondaryFilters = (state) => {
+                const $filters_wrapper = $('.js-order-nav-block-secondary');
+
+                if (state) {
+                    $filters_wrapper.show(100);
+                } else {
+                    $filters_wrapper.hide(100);
+                }
+            }
+
+            const state = $.storage.get(storage_key);
+            toggleSecondaryFilters(state);
+
+            $(document).on('click', '#js-orders-show-secondary-filters', function() {
+                const new_state = !($.storage.get(storage_key));
+
+                $.storage.set(storage_key, new_state);
+                toggleSecondaryFilters(new_state);
+            });
         },
 
         initSearch: function() {
@@ -220,6 +244,8 @@
 
         initDropdown: function() {
             $('.js-orders-dropdown').waDropdown({
+                hover: false,
+                items: ".menu > li > a",
                 ready(dropdown) {
                     const hash = window.location.hash;
                     if (hash) {
@@ -255,7 +281,6 @@
                         dropdown.$button.html($selected_item.html());
                     }
                 },
-                items: ".menu > li > a",
                 change(event, target, dropdown) {
                     let hash = window.location.hash;
                     let param = $(target).data('param');
@@ -593,26 +618,10 @@
                     $window.trigger("scroll");
                 }, 250);
 
-                showOrdersViewToggle();
                 showOrdersSortMenu();
 
                 self.checkAlerts();
             });
-
-            function showOrdersViewToggle() {
-                const $ordersViewToggle = $('.js-order-view');
-                const is_orders_page = $("#s-order, #s-orders").length;
-
-                if ($ordersViewToggle.length) {
-                    if (is_orders_page) {
-                        $ordersViewToggle.removeClass('hidden');
-                        //$('#s-order-nav').removeClass('hidden');
-                    } else {
-                        $ordersViewToggle.addClass('hidden');
-                        //$('#s-order-nav').addClass('hidden');
-                    }
-                }
-            }
 
             function showOrdersSortMenu() {
                 const $ordersSortMenu = $('.js-orders-sort');

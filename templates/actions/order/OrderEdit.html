@@ -69,7 +69,7 @@
 
 {function name="service_item"}
     {$multi_variants = count($service.variants) > 1}
-    <li class="custom-my-8 nowrap">
+    <li class="custom-my-8">
         {if !empty($service.item)}
             {if !empty($service.fake)}
                 <label>
@@ -102,7 +102,7 @@
                 {if !$multi_variants}
                     <input type="hidden" name="variant[edit][{$index}][{$service_id}]" value="{$service.variant_id}">
                 {else}
-                    <div class="wa-select">
+                    <div class="wa-select custom-mt-4">
                         <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant"
                                 {if $service.item.service_variant_id === null}disabled="disabled"{/if}>
                             {foreach $service.variants as $variant_id => $variant}
@@ -117,13 +117,13 @@
                     </div>
                {/if}
             {/if}
-            <span class="s-orders-service-price-wrapper">
+            <span class="s-orders-service-price-wrapper nowrap">
                 <input type="text"
                         name="price[edit][item][{$index}][{$service.item.id}]" value="{$service.item.price}"
                         data-currency="{$service.currency}"
                         data-price="{$service.item.price}"
                         {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
-                        class="number shorter s-orders-service-price">{$currency}
+                        class="number shorter s-orders-service-price custom-mt-4">{$currency}
             </span>
         {else}
             <label>
@@ -141,7 +141,7 @@
                 <strong>{$service.variants[$service.variant_id].price_html}</strong>
                 <input type="hidden" name="variant[edit][{$index}][{$service_id}]" value="{$service.variant_id}">
             {else}
-                <div class="wa-select">
+                <div class="wa-select custom-mt-4">
                     <select name="variant[edit][{$index}][{$service_id}]" class="s-orders-service-variant">
                         {foreach $service.variants as $variant_id => $variant}
                             <option value="{$variant.id}"
@@ -154,13 +154,13 @@
                     </select>
                 </div>
             {/if}
-            <span class="s-orders-service-price-wrapper">
+            <span class="s-orders-service-price-wrapper nowrap">
                 <input type="text"
                     name="price[edit][new][{$index}][{$service_id}]" value="{$service.price}"
                     data-currency="{$service.currency}"
                     data-price="{$service.price}"
                     {if $service.currency == '%'}data-percent-price="{$service.percent_price}"{/if}
-                    class="number shorter s-orders-service-price">{$currency}
+                    class="number shorter s-orders-service-price custom-mt-4">{$currency}
             </span>
         {/if}
         <br/>
@@ -254,20 +254,25 @@
                                 <input type="radio" name="sku[edit][{$product.item.id}]" value="{$sku_id}"
                                     {if $product.item.sku_id == $sku_id}checked="checked"{/if}>
                                 {$sku.name|escape}
-                                {if $sku.sku}<span class="gray">{$sku.sku|escape}</span>{/if}
-                                <strong>{$sku.price_html}</strong>
-                                    {if !empty($sku.compare_price) && $sku.compare_price > 0}
-                                        <span class="hint compare-price">(<span style="text-decoration: line-through">{shop_currency_html((float)$sku.compare_price,$product.currency,$order.currency)}</span>)</span>
-                                    {/if}
-                                <span class="s-orders-stock-icon-aggregate">
+                                <span class="nowrap">
+                                    {if $sku.sku}<span class="gray">{$sku.sku|escape}</span>{/if}
+                                    <strong>{$sku.price_html}</strong>
+                                        {if !empty($sku.compare_price) && $sku.compare_price > 0}
+                                            <span class="hint compare-price">(<span style="text-decoration: line-through">{shop_currency_html((float)$sku.compare_price,$product.currency,$order.currency)}</span>)</span>
+                                        {/if}
+                                        <span class="s-orders-stock-icon valign-middle" style="display:none;"></span>
+                                </span>
+                                <span class="s-orders-stock-icon-aggregate valign-middle">
                                     {$sku.icon}
                                 </span>
-                                <span class="s-orders-stock-icon" style="display:none;"></span>
-                                <div class="s-orders-sku-stock-place">
-                                    {if $product.item.sku_id == $sku_id && !empty($sku.stock)}
-                                        {sku_stocks_select sku=$sku item=$product.item stocks=$stocks}
-                                    {/if}
-                                </div>
+                                <span class="s-orders-sku-stock-place-wrapper flexbox middle space-4">
+
+                                    <div class="s-orders-sku-stock-place">
+                                        {if $product.item.sku_id == $sku_id && !empty($sku.stock)}
+                                            {sku_stocks_select sku=$sku item=$product.item stocks=$stocks}
+                                        {/if}
+                                    </div>
+                                </span>
                             </label>
                         </li>
                         {/foreach}
@@ -466,7 +471,7 @@
                 <tr>
                     <td class="min-width"></td>
                     <td class="align-right" colspan="2">
-                        <div class="s-order-aux-box">
+                        <div class="s-order-aux-box nowrap">
                             [`Shipping`]
                             {if !empty($order.shipping_id)}
                                 {$_shipping_id=$order.shipping_id}
@@ -477,7 +482,7 @@
                             {$_json_encode_options = 0}
                             {if defined('JSON_UNESCAPED_UNICODE')}{$_json_encode_options = constant('JSON_UNESCAPED_UNICODE')}{/if}
                             <div class="wa-select">
-                                <select id="shipping_methods" name="shipping_id" style="max-width: 250px;">
+                                <select id="shipping_methods" name="shipping_id">
                                     <option value=""></option>
                                     {foreach $shipping_methods as $m_id => $m}
                                         <option {if $_shipping_id === $m_id}
@@ -523,10 +528,10 @@
                 <tr>
                     <td class="min-width"></td>
                     <td class="align-right nowrap" colspan="2">
-                        <div class="s-order-aux-box">
+                        <div class="s-order-aux-box nowrap">
                         [`Payment`]
                         <div class="wa-select">
-                            <select id="payment_methods" name="payment_id" style="max-width: 250px;">
+                            <select id="payment_methods" name="payment_id">
                                 <option value=""></option>
                                 {foreach $payment_methods as $m}
                                     <option {if !empty($order.params.payment_id) && $order.params.payment_id == $m.id}selected="true"{/if} value="{$m.id}">{$m.name|truncate:80|escape}</option>
@@ -545,7 +550,7 @@
                 <tr>
                     <td class="min-width"></td>
                     <td class="align-right" colspan="2">
-                        <i class="fas fa-info-circle text-gray" style="display:none;" id="discount-tooltip-icon"></i>
+                        <span style="display:none;" id="discount-tooltip-icon"><i class="fas fa-info-circle text-gray"></i></span>
                         [`Discount`]
 
                         <span class="gray js-no-coupon-text" {if !empty($order.coupon)}style="display: none"{/if}>[`No coupon`]</span>

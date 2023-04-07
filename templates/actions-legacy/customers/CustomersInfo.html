@@ -179,7 +179,7 @@
             {/if}
 
             <ul class="tabs">
-                <li class="s-aff-bonus-total"><strong class="large bold">{if $customer.affiliate_bonus>=0}+{/if}{$customer.affiliate_bonus|wa_format_number:false}</strong></li>
+                <li class="s-aff-bonus-total"><strong class="large bold">{if $customer && $customer.affiliate_bonus>=0}+{/if}{$customer.affiliate_bonus|default:'0'|wa_format_number:false}</strong></li>
                 <li class="no-tab"><a href="javascript:void(0)" id="add-credit" class="inline-link"><i class="icon16 ss chart-up"></i><b><i>[`Add credit`]</i></b></a></li>
                 <li class="no-tab"><a href="javascript:void(0)" id="add-payment" class="inline-link"><i class="icon16 ss chart-down"></i><b><i>[`Add payout`]</i></b></a></li>
             </ul>

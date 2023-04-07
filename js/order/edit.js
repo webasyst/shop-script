@@ -387,6 +387,10 @@ $.order_edit = {
             // }
         });
 
+        $('#productless-subtotal').on('change', function() {
+            $.order_edit.updateTotal();
+        });
+
 
         this.container.off('keydown', '.s-orders-quantity').on('keydown', '.s-orders-quantity', function () {
             var self = $(this);

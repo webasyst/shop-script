@@ -235,9 +235,18 @@
                                     }, function(response) {
                                         dialog.$block.find(':input').attr('disabled', false);
                                         dialog.$block.find('.s-msg-after-button').hide();
+
+                                        // for test the html
+                                        if (response && response.status === 'test') {
+                                            const w = window.open();
+                                            w.document.open();
+                                            w.document.write(response.html);
+                                            return;
+                                        }
+
                                         dialog.$block.find('.before-send').hide();
                                         dialog.$block.find('.after-send').show();
-                                        if(response.status ==='ok') {
+                                        if (response.status ==='ok') {
                                             dialog.$block.find('.after-send .state-error').hide();
                                             dialog.$block.find('.after-send .state-success').show();
                                         } else {

@@ -1064,7 +1064,7 @@ SQL;
             if ($c['parent_id'] && $c['id'] != $id && !isset($cats[$c['parent_id']])) {
                 unset($cats[$c_id]);
             } else {
-                $cats[$c_id]['url'] = str_replace('%CATEGORY_URL%', isset($route['url_type']) && $route['url_type'] == 1 ? $c['url'] : $c['full_url'], $url);
+                $cats[$c_id]['url'] = str_replace('%CATEGORY_URL%', isset($route['url_type']) && $route['url_type'] == 1 ? (string)$c['url'] : (string)$c['full_url'], $url);
                 $cats[$c_id]['name'] = htmlspecialchars($cats[$c_id]['name']);
             }
         }

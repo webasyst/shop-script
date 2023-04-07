@@ -5,7 +5,7 @@
     {$customers_rights = $wa->userRights('customers')}
     {$_has_hidden_fields = false}
 
-    <div class="s-customer-fields-section small" id="js-customer-fields-section">
+    <div class="s-customer-fields-section small break-words" id="js-customer-fields-section">
         <ul class="unstyled s-customer-top-field-list">
             {foreach $top as $top_field}
                 <li class="s-customer-top-field-default-value-item flexbox middle space-8">
@@ -16,7 +16,7 @@
                     {if $top_field.id == 'phone'}
                         {$_formatted_phone_value = $top_field.default_value.value|regex_replace:'/^(8|(\+)?7)/':'+7'}
                         <span>{$top_field.default_value.formatted}</span>
-                        <div class="dropdown js-messengers">
+                        <div class="dropdown js-messengers nowrap">
                             <span class="dropdown-toggle badge button-light-gray rounded">[`Message`]</span>
                             <div class="dropdown-body">
                                 <ul class="menu">

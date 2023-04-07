@@ -1486,6 +1486,9 @@ msgstr "Удалить контакт"
 msgid "Contact info"
 msgstr "Контактная информация"
 
+msgid "(deleted contact %s)"
+msgstr "(контакт удален %s)"
+
 msgid "Affiliate bonus"
 msgstr "Партнерский бонус"
 
@@ -3565,6 +3568,9 @@ msgstr "Заполните списки значений поля «%s» в за
 msgid "https://www.shop-script.com/help/46/conditional-contact-fields/"
 msgstr "https://support.webasyst.ru/shop-script/7/conditional-contact-fields/"
 
+msgid "https://www.shop-script.com/help/44627/payment-by-link/"
+msgstr "https://support.webasyst.ru/shop-script/44607/payment-link/"
+
 msgid "Get help"
 msgstr "Помощь"
 
@@ -3606,6 +3612,9 @@ msgstr "Зарегистрированные покупатели получаю
 
 msgid "Oops! %s is not available for purchase at the moment. Please remove this product from your shopping cart to proceed."
 msgstr "Извините, но товар «%s» недоступен для покупки в данный момент. Пожалуйста, удалите этот товар из корзины для того, чтобы оформить заказ."
+
+msgid "Payment link"
+msgstr "Ссылка на оплату"
 
 msgid "Your payment has been successfully accepted. We will process your order and contact you shortly."
 msgstr "Оплата успешно принята. Мы обработаем ваш заказ и свяжемся с вами в ближайшее время."
@@ -12948,3 +12957,4 @@ msgstr "Текущее время в часовом поясе, в которо�
 
 msgid "Kanban"
 msgstr "Канбан"
+

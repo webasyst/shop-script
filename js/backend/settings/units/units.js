@@ -575,8 +575,8 @@
                 return result;
 
                 function renderError(error, $error_wrapper) {
-                    var $error = $("<div class=\"s-error errormsg\" />").text(error.text);
-                    var error_class = "error";
+                    var $error = $("<div class=\"s-error state-error-hint\" />").text(error.text);
+                    var error_class = "state-error";
 
                     if (error.$field) {
                         var $field = error.$field;
@@ -631,7 +631,7 @@
                 }
 
                 function animateUI() {
-                    var $loading = $("<i class=\"icon16 loading\" />"),
+                    var $loading = $(`<span class="custom-mr-4">${that.scope.loading}</span>`),
                         locked_class = "is-locked",
                         is_displayed = false;
 
@@ -644,7 +644,7 @@
                         that.$wrapper.addClass(locked_class);
                         $submit_button.attr("disabled", true);
                         if (!is_displayed) {
-                            $loading.appendTo($submit_button);
+                            $loading.insertAfter($submit_button);
                             is_displayed = true;
                         }
                     }
@@ -697,7 +697,7 @@
                 if (!is_locked) {
                     is_locked = true;
                     $button.attr("disabled", true);
-                    var $loading = $("<i class=\"icon16 loading\" />").appendTo($button);
+                    var $loading = $(`<span class="custom-mr-4">${that.scope.loading}</span>`).insertAfter($button);
 
                     deleteRequest()
                         .always( function() {
@@ -710,7 +710,7 @@
                                 // text
                                 var $content = that.$wrapper.find(".wa-dialog-content").html("");
                                 $.each(errors, function(i, error) {
-                                    var $error = $("<div>", { class: "wa-error errormsg" }).html(error.text);
+                                    var $error = $("<div>", { class: "wa-error state-error-hint" }).html(error.text);
                                     $content.append($error);
                                 });
                                 // button
@@ -772,6 +772,7 @@
             that.tooltips = options["tooltips"];
             that.locales = options["locales"];
             that.urls = options["urls"];
+            that.loading = options["loading"];
 
             // VUE
             that.unit_search = (typeof options["unit_search"] === "string" ? options["unit_search"] : "");
@@ -815,20 +816,20 @@
         * */
         Page.prototype.initVue = function(callback) {
             var that = this;
-
             var $vue_section = that.$content;
 
-            return new Vue({
-                el: $vue_section[0],
-                data: {
-                    fractional: that.fractional,
-                    units: that.units,
-                    unit_search: that.unit_search,
-                    states: that.states,
-                    errors: {
-                        fractional: [],
-                        stock_units: [],
-                        base_units: []
+            const app = Vue.createApp({
+                data() {
+                    return {
+                        fractional: that.fractional,
+                        units: that.units,
+                        unit_search: that.unit_search,
+                        states: that.states,
+                        errors: {
+                            fractional: [],
+                            stock_units: [],
+                            base_units: []
+                        }
                     }
                 },
                 delimiters: ['{ { ', ' } }'],
@@ -839,12 +840,11 @@
                         delimiters: ['{ { ', ' } }'],
                         components: {
                             "component-switch": {
-                                props: ["value", "disabled"],
-                                data: function() {
-                                    return {
-                                        disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
-                                    };
+                                props: {
+                                    modelValue: Boolean,
+                                    disabled: false
                                 },
+                                emits: ["update:modelValue", "change"],
                                 template: that.components["component_switch"],
                                 delimiters: ['{ { ', ' } }'],
                                 mounted: function() {
@@ -853,10 +853,15 @@
 
                                     $wrapper.find('.switch').waSwitch({
                                         change: function(active) {
-                                            self.$emit("input", active);
+                                            self.$emit("update:modelValue", active);
                                             self.$emit("change", active);
                                         }
                                     });
+                                },
+                                computed: {
+                                    prop_disabled() {
+                                        return (typeof this.disabled === "boolean" ? this.disabled : false);
+                                    }
                                 }
                             }
                         },
@@ -864,125 +869,132 @@
                             unitEdit: function(event, unit) {
                                 var self = this;
 
-                                if (!that.states.locked) {
-                                    that.states.locked = true;
-
-                                    var $target = $(event.currentTarget),
-                                        $icon = $target.find(".icon16").hide(),
-                                        $loading = $("<i class=\"icon16 loading\" />").prependTo($target);
-
-                                    var href = that.urls["unit_edit_dialog"],
-                                        data = { id: unit.id };
-
-                                    $.post(href, data)
-                                        .always( function () {
-                                            $loading.remove();
-                                            $icon.show();
-                                            that.states.locked = false;
-                                        })
-                                        .done( function(html) {
-                                            var dialog = $.waDialog({
-                                                html: html,
-                                                options: {
-                                                    onSuccess: function(unit_data) {
-                                                        unit["name"] = unit_data["name"];
-                                                        unit["okei_code"] = unit_data["okei_code"];
-                                                        unit["short_name"] = unit_data["short_name"];
-                                                        unit["storefront_name"] = unit_data["storefront_name"];
-                                                    },
-                                                    initUnitEditDialog: function(options) {
-                                                        options.scope = that;
-                                                        return new UnitEditDialog(options);
-                                                    }
-                                                }
-                                            });
-                                        });
+                                if (self.$root.states.locked) {
+                                    return;
                                 }
+
+                                self.$root.states.locked = true;
+
+                                var $target = $(event.currentTarget),
+                                    $icon = $target.find(".icon").hide(),
+                                    $loading = $(that.loading).prependTo($target);
+
+                                var href = that.urls["unit_edit_dialog"],
+                                    data = { id: unit.id };
+
+                                $.post(href, data)
+                                    .always( function () {
+                                        $loading.remove();
+                                        $icon.show();
+                                        self.$root.states.locked = false;
+                                    })
+                                    .done( function(html) {
+                                        var dialog = $.waDialog({
+                                            html: html,
+                                            options: {
+                                                onSuccess: function(unit_data) {
+                                                    unit["name"] = unit_data["name"];
+                                                    unit["okei_code"] = unit_data["okei_code"];
+                                                    unit["short_name"] = unit_data["short_name"];
+                                                    unit["storefront_name"] = unit_data["storefront_name"];
+                                                },
+                                                initUnitEditDialog: function(options) {
+                                                    options.scope = that;
+                                                    return new UnitEditDialog(options);
+                                                }
+                                            }
+                                        });
+                                    });
                             },
                             unitDelete: function(event, unit) {
                                 var self = this;
 
-                                if (!that.states.locked) {
-                                    that.states.locked = true;
-
-                                    var $target = $(event.currentTarget),
-                                        $icon = $target.find(".icon16").hide(),
-                                        $loading = $("<i class=\"icon16 loading\" />").prependTo($target);
-
-                                    var href = that.urls["unit_delete_dialog"],
-                                        data = { id: unit.id };
-
-                                    $.post(href, data)
-                                        .always( function () {
-                                            $loading.remove();
-                                            $icon.show();
-                                            that.states.locked = false;
-                                        })
-                                        .done( function(html) {
-                                            $.waDialog({
-                                                html: html,
-                                                onOpen: function($dialog, dialog) {
-                                                    new UnitDeleteDialog({
-                                                        $wrapper: $dialog,
-                                                        dialog: dialog,
-                                                        scope: that,
-                                                        unit_id: unit.id
-                                                    });
-                                                },
-                                                options: {
-                                                    onLocked: function () {
-                                                        unit.states.locked = true;
-                                                    },
-                                                    onSuccess: function(unit_data) {
-                                                        var index = that.units.indexOf(unit);
-                                                        that.units.splice(index, 1);
-                                                    }
-                                                }
-                                            });
-                                        });
+                                if (self.$root.states.locked) {
+                                    return;
                                 }
-                            },
-                            unitStatusChange: function(unit) {
-                                var href = that.urls["unit_status"],
-                                    status = (unit.states.active ? "1" : "0"),
-                                    data = { unit_id: unit.id, status: status };
 
-                                if (!unit.states.status_loading) {
-                                    unit.states.status_loading = true;
+                                self.$root.states.locked = true;
 
-                                    request(href, data)
-                                        .always( function() {
-                                            unit.states.status_loading = false;
-                                        })
-                                        .done( function(response) {
-                                            if (response.status === "ok") {
-                                                unit.status = status;
-                                                that.units.splice(that.units.indexOf(unit), 1);
-                                                if (status === "0") {
+                                var $target = $(event.currentTarget),
+                                    $icon = $target.find(".icon").hide(),
+                                    $loading = $(that.loading).prependTo($target);
 
-                                                    var index = null;
-                                                    $.each(that.units, function(i, _unit) {
-                                                        if (_unit.id > unit.id) {
-                                                            index = i;
-                                                            return false;
-                                                        }
-                                                    });
-                                                    if (index) {
-                                                        that.units.splice(index, 0, unit);
-                                                    } else {
-                                                        that.units.unshift(unit);
-                                                    }
-                                                } else {
-                                                    that.units.push(unit);
+                                var href = that.urls["unit_delete_dialog"],
+                                    data = { id: unit.id };
+
+                                $.post(href, data)
+                                    .always( function () {
+                                        $loading.remove();
+                                        $icon.show();
+                                        self.$root.states.locked = false;
+                                    })
+                                    .done( function(html) {
+                                        $.waDialog({
+                                            html: html,
+                                            onOpen: function($dialog, dialog) {
+                                                new UnitDeleteDialog({
+                                                    $wrapper: $dialog,
+                                                    dialog: dialog,
+                                                    scope: that,
+                                                    unit_id: unit.id
+                                                });
+                                            },
+                                            options: {
+                                                onLocked: function () {
+                                                    unit.states.locked = true;
+                                                },
+                                                onSuccess: function(unit_data) {
+                                                    var index = self.$root.units.indexOf(unit);
+                                                    self.$root.units.splice(index, 1);
                                                 }
-
-                                            } else if (response.errors) {
-                                                alert("Error: unit status");
-                                                unit.states.locked = true;
-                                                console.log(response.errors);
                                             }
                                         });
+                                    });
+                            },
+                            unitStatusChange: function(unit) {
+                                if (unit.states.status_loading) {
+                                    return;
                                 }
+
+                                var href = that.urls["unit_status"],
+                                    status = (unit.states.active ? "1" : "0"),
+                                    data = { unit_id: unit.id, status: status },
+                                    self = this;
+
+                                unit.states.status_loading = true;
+
+                                request(href, data)
+                                    .always( function() {
+                                        unit.states.status_loading = false;
+                                    })
+                                    .done( function(response) {
+                                        if (response.status === "ok") {
+                                            self.$root.units.splice(self.$root.units.indexOf(unit), 1);
+                                            unit.status = status;
+                                            if (status === "0") {
+
+                                                var index = null;
+                                                $.each(self.$root.units, function(i, _unit) {
+                                                    if (_unit.id > unit.id) {
+                                                        index = i;
+                                                        return false;
+                                                    }
+                                                });
+                                                if (index) {
+                                                    self.$root.units.splice(index, 0, unit);
+                                                } else {
+                                                    self.$root.units.unshift(unit);
+                                                }
+                                            } else {
+                                                self.$root.units.push(unit);
+                                            }
+
+                                        } else if (response.errors) {
+                                            alert("Error: unit status");
+                                            unit.states.locked = true;
+                                            console.log(response.errors);
+                                        }
+                                    });
 
                                 function request(href, data) {
                                     return $.post(href, data, "json");
@@ -1018,42 +1030,43 @@
                     unitAdd: function(event) {
                         var self = this;
 
-                        if (!self.states.locked) {
-                            self.states.locked = true;
-
-                            var $target = $(event.currentTarget),
-                                $icon = $target.find(".icon16").hide(),
-                                $loading = $("<i class=\"icon16 loading\" />").prependTo($target);
-
-                            var href = that.urls["unit_edit_dialog"],
-                                data = {};
-
-                            $.post(href, data)
-                                .always( function () {
-                                    $loading.remove();
-                                    $icon.show();
-                                    self.states.locked = false;
-                                })
-                                .done( function(html) {
-                                    var dialog = $.waDialog({
-                                        html: html,
-                                        options: {
-                                            onSuccess: function(unit_data) {
-                                                var new_unit = formatUnit(unit_data);
-                                                that.units.push(new_unit);
-                                                new_unit.states.highlight = true;
-                                                setTimeout( function() {
-                                                    new_unit.states.highlight = false;
-                                                }, 2000);
-                                            },
-                                            initUnitEditDialog: function(options) {
-                                                options.scope = that;
-                                                return new UnitEditDialog(options);
-                                            }
-                                        }
-                                    });
-                                });
+                        if (self.states.locked) {
+                            return;
                         }
+                        self.states.locked = true;
+
+                        var $target = $(event.currentTarget),
+                            $icon = $target.find(".icon").hide(),
+                            $loading = $(that.loading).prependTo($target);
+
+                        var href = that.urls["unit_edit_dialog"],
+                            data = {};
+
+                        $.post(href, data)
+                            .always( function () {
+                                $loading.remove();
+                                $icon.show();
+                                self.states.locked = false;
+                            })
+                            .done( function(html) {
+                                var dialog = $.waDialog({
+                                    html: html,
+                                    options: {
+                                        onSuccess: function(unit_data) {
+                                            var new_unit = formatUnit(unit_data);
+                                            self.units.push(new_unit);
+                                            new_unit.states.highlight = true;
+                                            setTimeout( function() {
+                                                new_unit.states.highlight = false;
+                                            }, 2000);
+                                        },
+                                        initUnitEditDialog: function(options) {
+                                            options.scope = that;
+                                            return new UnitEditDialog(options);
+                                        }
+                                    }
+                                });
+                            });
                     },
                     searchUnits: function () {
                         var self = this;
@@ -1178,7 +1191,9 @@
                     var self = this;
                     if (typeof callback === "function") { callback(self); }
                 }
-            });
+            }).mount($vue_section[0]);
+
+            return app;
         };
 
         Page.prototype.init = function(vue_model) {
@@ -1205,7 +1220,7 @@
                 is_changed = false,
                 timer = 0;
 
-            var $wrapper = $(vue_model.$el),
+            var $wrapper = $(vue_model.$el.parentElement),
                 units = vue_model.units;
 
             $wrapper.on("dragstart", ".js-unit-move-toggle", function(event) {

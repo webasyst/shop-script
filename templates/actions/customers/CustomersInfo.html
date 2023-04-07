@@ -1,8 +1,8 @@
 <div class="flexbox space-12">
     <h1 class="wide">
         <a href="?action=customers" class="back"><i class="fas fa-arrow-circle-left"></i></a>
-        {$contact.name|escape}
-
+        {$contact_name = $contact.name|escape|default:'[`(no name)`]'}
+        {$contact_name}
         <!-- plugin hook: 'backend_customer.name_suffix' -->
         {* @event backend_customer.%plugin_id%.name_suffix *}
         {if !empty($backend_customer)}{foreach $backend_customer as $_}{ifset($_.name_suffix)}{/foreach}{/if}
@@ -58,12 +58,12 @@
             {if !empty($contact['password'])}
                 [`Permanent user account`]
                 <p class="hint">
-                    {sprintf('[`%s has personal account on your site.`]', $contact.name|escape)}
+                    {sprintf('[`%s has personal account on your site.`]', $contact_name)}
                     [`Last login`]: <strong>{$contact.last_login_datetime|wa_datetime:"humandatetime"|default:'[`Never`]'}</strong>
                 </p>
             {else}
                 [`No permanent user account`]
-                <p class="hint">{sprintf('[`%s did not sign up for personal account on your site yet.`]', $contact.name|escape)}</p>
+                <p class="hint">{sprintf('[`%s did not sign up for personal account on your site yet.`]', $contact_name)}</p>
             {/if}
         </div>
     </div>
@@ -130,7 +130,7 @@
                         </ul>
                     </div>
                 {else}
-                    <p class="gray small">{sprintf('[`%s did not post any product reviews yet.`]', $contact.name|escape)}</p>
+                    <p class="gray small">{sprintf('[`%s did not post any product reviews yet.`]', $contact_name)}</p>
                 {/if}
             </div>
 
@@ -139,13 +139,13 @@
 
                 {if !count($affiliate_history)}
                     <p class="gray small">
-                        {sprintf('[`%s has no affiliate history yet.`]', $contact.name|escape)}
+                        {sprintf('[`%s has no affiliate history yet.`]', $contact_name)}
                     </p>
                 {/if}
 
                 <ul class="tabs">
                     <li class="s-aff-bonus-total">
-                        <strong class="large bold box">{if $customer.affiliate_bonus>=0}+{/if}{$customer.affiliate_bonus|wa_format_number:false}</strong>
+                        <strong class="large bold box">{if $customer && $customer.affiliate_bonus>=0}+{/if}{$customer.affiliate_bonus|default:'0'|wa_format_number:false}</strong>
                     </li>
                     <li class="no-tab"><a href="javascript:void(0)" id="add-credit"><i class="fas fa-plus text-green fa-xs"></i> [`Add credit`]</a></li>
                     <li class="no-tab"><a href="javascript:void(0)" id="add-payment"><i class="fas fa-minus text-red fa-xs"></i> [`Add payout`]</a></li>
@@ -365,7 +365,7 @@
         var add_payment_link = $('#add-payment');
         var amount_hint = wrapper.find('.amount-hint');
 
-        document.title = '{$contact.name|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+        document.title = '{$contact_name|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
 
         // Changing the field makes hint with amount in default currency appear
         var h;

@@ -204,10 +204,10 @@
     <div class="vue-component-switch" v-bind:class="{ 'is-locked': disabled }">
         <div class="switch-with-text">
             <span class="switch smaller">
-                <input type="checkbox" :id="'switch-'+$attrs.label_id" v-model="value" v-bind:disabled="disabled">
+                <input type="checkbox" v-bind:id="'switch-'+$attrs.label_id" v-model="modelValue" v-bind:disabled="prop_disabled">
             </span>
             <label :for="'switch-'+$attrs.label_id" data-active-text="{_w("On")|escape}" data-inactive-text="{_w("Off")|escape}">
-                { { value ? "{_w("On")|escape}" : "{_w("Off")|escape}" } }
+                { { modelValue ? "{_w("On")|escape}" : "{_w("Off")|escape}" } }
             </label>
         </div>
     </div>
@@ -226,65 +226,66 @@
         <th class="s-column-actions">[`Actions`]</th>
     </thead>
     <tbody>
-        <template v-for="unit in units">
-            <tr class="s-table-item s-unit-wrapper"
-                v-bind:class="{ 'is-highlighted' : unit.states.highlight, 'is-moving' : unit.states.move }"
-                v-bind:key="unit.id"
-                v-bind:data-id="unit.id">
-                <td v-if="sort">
-                    <div class="s-actions-list">
-                        <template v-if="!unit.states.move_loading">
-                            <div class="s-action js-unit-move-toggle cursor-move" draggable="true" data-tooltip-id="">
-                                <div class="icon text-gray"><i class="fas fa-grip-vertical"></i></div>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <div class="s-action"><i class="fas fa-spinner fa-spin text-gray" style="margin: 0;"></i></div>
-                        </template>
-                    </div>
-                </td>
-                <td>
+        <tr v-for="unit in units"
+            class="s-table-item s-unit-wrapper"
+            v-bind:class="{ 'is-highlighted' : unit.states.highlight, 'is-moving' : unit.states.move }"
+            v-bind:key="unit.id"
+            v-bind:data-id="unit.id">
+            <td v-if="sort">
+                <div class="s-actions-list">
+                    <template v-if="!unit.states.move_loading">
+                        <div class="s-action js-unit-move-toggle cursor-move" draggable="true" data-tooltip-id="">
+                            <div class="icon text-gray"><i class="fas fa-grip-vertical"></i></div>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="s-action"><i class="fas fa-spinner fa-spin text-gray" style="margin: 0;"></i></div>
+                    </template>
+                </div>
+            </td>
+            <td>
+                <div class="flexbox middle space-4">
                     <component-switch
-                        v-model="unit.states.active"
-                        v-bind:disabled="unit.states.locked"
-                        v-bind:class="{ 'is-loading' : unit.states.status_loading }"
-                        v-bind:data-tooltip-id="(unit.states.locked ? 'unit_status_locked' : '')"
-                        v-bind:label_id="unit.id"
-                        v-on:change="unitStatusChange(unit)"></component-switch>
-                    <span class="" v-if="unit.states.status_loading"><i class="fas fa-spinner fa-spin text-gray" style="margin: 0;"></i></span>
-                </td>
-                <td>{ { unit.okei_code } }</td>
-                <td>{ { unit.name } }</td>
-                <td>{ { unit.short_name } }</td>
-                <td>{ { unit.storefront_name ? unit.storefront_name : unit.short_name } }</td>
-                <td>
-                    {strip}
-                    <div class="s-actions-list align-center">
-                        <template v-if="unit.builtin === '2'">
-                            <a class="s-action is-locked" href="javascript:void(0);" title="[`This is a special unit that cannot be changed.`]">
-                                <div class="icon text-light-gray"><i class="fas fa-edit"></i></div>
-                            </a>
-                        </template>
-                        <template v-else>
-                            <a class="s-action" href="javascript:void();" data-tooltip-id="unit_edit" v-on:click.prevent="unitEdit($event, unit)">
-                                <div class="icon text-blue"><i class="fas fa-edit"></i></div>
-                            </a>
-                        </template>
-                        <template v-if="unit.states.locked || unit.states.builtin">
-                            <a class="s-action is-locked" href="javascript:void(0);" data-tooltip-id="unit_delete_locked">
-                                <div class="icon text-light-gray"><i class="fas fa-trash-alt"></i></div>
-                            </a>
-                        </template>
-                        <template v-else>
-                            <a class="s-action" href="javascript:void(0);" data-tooltip-id="unit_delete" v-on:click.prevent="unitDelete($event, unit)">
-                                <div class="icon text-red"><i class="fas fa-trash-alt"></i></div>
-                            </a>
-                        </template>
-                    </div>
-                    {/strip}
-                </td>
-            </tr>
-        </template>
+                    v-model="unit.states.active"
+                    v-bind:disabled="unit.states.locked"
+                    v-bind:class="{ 'is-loading' : unit.states.status_loading }"
+                    v-bind:data-tooltip-id="(unit.states.locked ? 'unit_status_locked' : '')"
+                    v-bind:label_id="unit.id"
+                    v-on:change="unitStatusChange(unit)"></component-switch>
+                    <span v-if="unit.states.status_loading"><i class="fas fa-spinner fa-spin text-gray" style="margin: 0;"></i></span>
+                </div>
+            </td>
+            <td>{ { unit.okei_code } }</td>
+            <td>{ { unit.name } }</td>
+            <td>{ { unit.short_name } }</td>
+            <td>{ { unit.storefront_name ? unit.storefront_name : unit.short_name } }</td>
+            <td>
+                {strip}
+                <div class="s-actions-list align-center">
+                    <template v-if="unit.builtin === '2'">
+                        <a class="s-action is-locked" href="javascript:void(0);" title="[`This is a special unit that cannot be changed.`]">
+                            <div class="icon text-light-gray"><i class="fas fa-edit"></i></div>
+                        </a>
+                    </template>
+                    <template v-else>
+                        <a class="s-action" href="javascript:void();" data-tooltip-id="unit_edit" @click.prevent="unitEdit($event, unit)">
+                            <div class="icon text-blue"><i class="fas fa-edit"></i></div>
+                        </a>
+                    </template>
+                    <template v-if="unit.states.locked || unit.states.builtin">
+                        <a class="s-action is-locked" href="javascript:void(0);" data-tooltip-id="unit_delete_locked">
+                            <div class="icon text-light-gray"><i class="fas fa-trash-alt"></i></div>
+                        </a>
+                    </template>
+                    <template v-else>
+                        <a class="s-action" href="javascript:void(0);" data-tooltip-id="unit_delete" @click.prevent="unitDelete($event, unit)">
+                            <div class="icon text-red"><i class="fas fa-trash-alt"></i></div>
+                        </a>
+                    </template>
+                </div>
+                {/strip}
+            </td>
+        </tr>
     </tbody>
 </table>
 {/capture}{strip}
@@ -431,8 +432,8 @@
 
 {/strip}
 
-<div class="s-unit-settings-page double-padded" id="js-unit-settings-page" style="visibility: hidden;">
-    <div class="s-page-content-section js-page-content-section">
+<div class="s-unit-settings-page" id="js-unit-settings-page" style="visibility: hidden;">
+    <div class="s-page-content-section js-page-content-section" id="js-app-unit-content-section">
         {* HEADER *}
         <div class="s-section-header">
             <h1 class="s-title">{$_page_title}</h1>
@@ -441,9 +442,9 @@
                     <div class="flexbox space-8">
                         <span class="s-icon"><i class="fas fa-info-circle"></i></span>
                         <div class="wide">
-                            <span class="cursor-pointer select-none" v-on:click="states.help_display = !states.help_display">[`Description of available settings options`]</span>
+                            <span class="cursor-pointer select-none" @click="states.help_display = !states.help_display">[`Description of available settings options`]</span>
                             <div class="small custom-mt-4 semibold">
-                                <a href="javascript:void(0);" class="cursor-pointer select-none" v-on:click="states.help_display = !states.help_display">
+                                <a href="javascript:void(0);" class="cursor-pointer select-none" @click="states.help_display = !states.help_display">
                                     <template v-if="states.help_display">[`Collapse`]</template>
                                     <template v-else>[`Expand`]</template>
                                 </a>
@@ -559,7 +560,7 @@
                         {* END *}
                         <div class="s-section-wrapper">
                             <div class="small custom-mt-4 semibold">
-                                <a href="javascript:void(0);" class="cursor-pointer select-none" v-on:click="closeHelp">[`Collapse`]</a>
+                                <a href="javascript:void(0);" class="cursor-pointer select-none" @click="closeHelp">[`Collapse`]</a>
                             </div>
                         </div>
                     </div>
@@ -578,10 +579,10 @@
                                 <div class="name">[`Products adding to the shopping cart`]</div>
                                 <div class="value">
                                     <div class="s-radio-group"
-                                         v-bind:class="{ 'is-locked' : states.change_type }"
-                                         v-on:change="onFractionalChange">
+                                        v-bind:class="{ 'is-locked' : states.change_type }"
+                                        v-on:change="onFractionalChange">
                                         <div class="s-radio-wrapper">
-                                            <label v-bind:data-tooltip-id="(fractional.locked ? 'fractional_locked' : '')">
+                                            <label :data-tooltip-id="(fractional.locked ? 'fractional_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="0"
                                                        v-model="fractional.enabled"
@@ -592,14 +593,14 @@
                                             </label>
                                         </div>
                                         <div class="s-radio-wrapper">
-                                            <label v-bind:data-tooltip-id="(fractional.locked ? 'fractional_locked' : '')">
+                                            <label :data-tooltip-id="(fractional.locked ? 'fractional_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="1"
                                                         v-model="fractional.enabled"
                                                         v-bind:disabled="fractional.locked">
                                                     <span></span>
                                                 </span>
-                                                <span>[`Fractional quantities, with the option to set up an arbitrary add-to-cart step, a minimum orderable quantity, and a quantity adjustment value for “+/-” buttons.`]</span>
+                                                 [`Fractional quantities, with the option to set up an arbitrary add-to-cart step, a minimum orderable quantity, and a quantity adjustment value for “+/-” buttons.`]
                                             </label>
                                             <div class="hint">[`Exact values must be saved in product types’ settings.`]</div>
                                         </div>
@@ -609,10 +610,11 @@
                                         <i class="fas fa-spinner fa-spin"></i> [`Saving`]
                                     </div>
 
-                                    <template v-if="errors.fractional.length" v-for="error in errors.fractional">
-                                        <div class="wa-error-text"
-                                             v-text="error.text"
-                                             v-bind:key="error.id"></div>
+                                    <template v-if="errors.fractional.length" >
+                                        <template v-for="error in errors.fractional" :key="error.id">
+                                            <div class="state-error-hint"
+                                                 v-text="error.text"></div>
+                                        </template>
                                     </template>
                                 </div>
                             </div>
@@ -620,10 +622,10 @@
                                 <div class="name">[`Product stock quantity unit`]</div>
                                 <div class="value">
                                     <div class="s-radio-group"
-                                         v-bind:class="{ 'is-locked' : states.change_stock_units }"
-                                         v-on:change="onStockUnitsChange">
+                                        v-bind:class="{ 'is-locked' : states.change_stock_units }"
+                                        v-on:change="onStockUnitsChange">
                                         <div class="s-radio-wrapper">
-                                            <label v-bind:data-tooltip-id="(fractional.stock_units.locked ? 'stock_units_locked' : '')">
+                                            <label :data-tooltip-id="(fractional.stock_units.locked ? 'stock_units_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="0"
                                                         v-model="fractional.stock_units.enabled"
@@ -635,7 +637,7 @@
                                             <div class="hint">[`Product quantity is stored and displayed in the storefront in pieces.`]</div>
                                         </div>
                                         <div class="s-radio-wrapper">
-                                            <label v-bind:data-tooltip-id="(fractional.stock_units.locked ? 'stock_units_locked' : '')">
+                                            <label :data-tooltip-id="(fractional.stock_units.locked ? 'stock_units_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="1"
                                                         v-model="fractional.stock_units.enabled"
@@ -661,7 +663,7 @@
                                          v-if="fractional.stock_units.enabled === '1'"
                                          v-on:change="onBaseUnitsChange">
                                         <div class="s-radio-wrapper">
-                                            <label v-bind:data-tooltip-id="(fractional.base_units.locked ? 'base_units_locked' : '')">
+                                            <label :data-tooltip-id="(fractional.base_units.locked ? 'base_units_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="0"
                                                         v-model="fractional.base_units.enabled"
@@ -672,7 +674,7 @@
                                             </label>
                                         </div>
                                         <div class="s-radio-wrapper">
-                                            <label v-bind:data-tooltip-id="(fractional.base_units.locked ? 'base_units_locked' : '')">
+                                            <label :data-tooltip-id="(fractional.base_units.locked ? 'base_units_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="1"
                                                         v-model="fractional.base_units.enabled"
@@ -720,17 +722,14 @@
                     {* ACTIVE UNITS TABLE *}
                     <div class="fields">
                         <div v-if="active_units.length" class="fields-group">
-                            <template>
-                                <component-units-table
-                                    v-bind:class="'s-active-units-table'"
-                                    v-bind:sort="true"
-                                    v-bind:units="active_units"></component-units-table>
-                            </template>
+                            <component-units-table
+                                v-bind:class="'s-active-units-table'"
+                                v-bind:sort="true"
+                                v-bind:units="active_units"></component-units-table>
                         </div>
                         <div class="s-add-wrapper">
-                            <button type="button" class="button light-gray rounded small" v-on:click="unitAdd">
-                                <span class="icon text-green"><i class="fas fa-plus-circle"></i></span>
-                                <span>[`Add quantity unit`]</span>
+                            <button type="button" class="button light-gray rounded small" @click="unitAdd">
+                                <i class="icon fas fa-plus-circle text-green"></i> [`Add quantity unit`]
                             </button>
                         </div>
                         {* INACTIVE UNITS TABLE *}
@@ -772,7 +771,7 @@
             var sources = [{
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/vue/vue.min.js?v={$wa->version()}"
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
             }, {
                 id: "wa-units-settings-css",
                 type: "css",
@@ -789,6 +788,7 @@
 
             function init() {
                 window.initShopUnitSettingsPage({
+                    loading: '<span><i class="fas fa-spinner fa-spin text-gray loading"></span>',
                     $wrapper: $("#js-unit-settings-page"),
                     components: {$_components|json_encode},
                     templates: {$_templates|json_encode},

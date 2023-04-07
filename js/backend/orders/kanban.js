@@ -34,7 +34,7 @@ var Kanban = (($) => {
             $.getJSON(this.buildLoadListUrl(this.lastOrderId))
                 .done(response => {
                     if (response.data.count) {
-                        response.data.orders.forEach(order => this.$listFooter.before(this.orderTmpl(order)));
+                        response.data.orders.forEach(order => this.$listFooter.before(Column.orderTmpl(order)));
                     }
 
                     this.listLength = this.$list.find("[data-order-id]").length;
@@ -45,7 +45,7 @@ var Kanban = (($) => {
                 });
         }
 
-        orderTmpl(order) {
+        static orderTmpl(order) {
             return `<div data-order-id="${order.id}" class="order_ s-kanban__list__body__item custom-p-8 custom-mb-8 blank">
                     <div class="flexbox">
                         <div class="s-kanban-item-title custom-mr-8">
@@ -85,41 +85,6 @@ var Kanban = (($) => {
             return url.replace(/\s+/g, '');
         }
     }
-
-    const updateOrders = () => {
-
-        function buildUpdateListUrl(id, lt, counters) {
-            // Получить текущую дату и время
-            const currentDate = new Date();
-
-            // Вычесть интервал обновления
-            currentDate.setTime(currentDate.getTime() - timeout);
-
-            // Год, месяц и день в нужном формате
-            const year = currentDate.getFullYear();
-            const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
-            const day = ('0' + currentDate.getDate()).slice(-2);
-
-            // Часы, минуты и секунды в нужном формате
-            const hours = ('0' + currentDate.getHours()).slice(-2);
-            const minutes = ('0' + currentDate.getMinutes()).slice(-2);
-            const seconds = ('0' + currentDate.getSeconds()).slice(-2);
-
-            // Строка в нужном формате
-            const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-
-            const url = `?module=orders
-                    &action=loadList
-                    &state_id=${this.statusId}
-                    &id=${id}${(lt ? '&lt=1' : '')}${(counters ? '&counters=1' : '')}
-                    &search=update_datetime>=${formattedDate}
-                    &view=kanban
-                    &sort[0]=0
-                    &sort[1]=desc`;
-
-            return url.replace(/\s+/g, '');
-        }
-    };
 
     const addLazyLoad = (cols) => {
         cols.each((i, list) => new Column(list).observe());

@@ -116,7 +116,7 @@
                             [`Thumbnail quality`]
                         </div>
                         <div class="value">
-                            <input type="input" name="image_save_quality" value="{if !empty($settings.image_save_quality)}{str_replace(',', '.', $settings.image_save_quality)}{/if}"><br>
+                            <input type="input" name="image_save_quality" value="{if isset($settings.image_save_quality) && $settings.image_save_quality !== ''}{str_replace(',', '.', $settings.image_save_quality)}{/if}"><br>
                             <span class="hint">[`JPEG, WEBP compression quality for photo thumbnails. From 0 (min quality, min file size) to 100 (max quality, max file size). 90 is recommended.`]</span>
                         </div>
 
@@ -156,7 +156,7 @@
                             [`Thumbnail quality @2x`]
                         </div>
                         <div class="value">
-                            <input type="input" name="image_save_quality_2x" value="{if !empty($settings.image_save_quality_2x)}{str_replace(',', '.', $settings.image_save_quality_2x)}{/if}"><br>
+                            <input type="input" name="image_save_quality_2x" value="{if isset($settings.image_save_quality_2x) && $settings.image_save_quality_2x !== ''}{str_replace(',', '.', $settings.image_save_quality_2x)}{/if}"><br>
                             <span class="hint">[`JPEG, WEBP compression quality for photo thumbnails. From 0 (min quality, min file size) to 100 (max quality, max file size). 70 is recommended.`]</span>
                         </div>
                     </div>

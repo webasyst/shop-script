@@ -41,22 +41,22 @@ class shopFrontendPaymentLinkAction extends waViewAction
 
         $methods = [];
         $payment_id = waRequest::get('payment_id', null, waRequest::TYPE_INT);
-        $checked_method = empty($payment_id) && waRequest::post('challenge', null, waRequest::TYPE_STRING_TRIM)
-             && $payment_form_html === null && empty($order['params']['payment_id']);
-        if ($checked_method) {
+        $show_methods = waRequest::post('challenge', null, waRequest::TYPE_STRING_TRIM) && empty($payment_form_html);
+        if ($show_methods) {
             $methods = $this->getMethods($order);
         }
-        if ($payment_id && $payment_form_html !== null && empty($order['params']['payment_id'])) {
+        if ($payment_id && $payment_form_html && empty($order['params']['payment_id'])) {
             $order_params_model = new shopOrderParamsModel();
             $order_params_model->set($order['id'], array_merge($order['params'], ['payment_id' => $payment_id]));
         }
 
         $this->view->assign([
+            'order' => $order,
             'methods' => $methods,
             'challenge' => $challenge,
             'payment_form_html' => $payment_form_html,
             'enable_auto_submit' => !$this_is_a_bot,
-            'checked_method' => $checked_method
+            'show_methods' => $show_methods
         ]);
     }
 

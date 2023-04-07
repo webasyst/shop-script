@@ -49,7 +49,7 @@
                     <div class="s-section-title-wrapper">
                         <div class="s-section-title">
                             <h4 class="s-title h4">[`Product codes`]</h4>
-                            <span class="s-title-help shop-tooltip"><i class="fas fa-info-circle smaller"></i><span>[`Product codes are completed on the order page for each ordered item. They can be used to store trade item numbers, software license numbers or unique serial numbers.`]</span></span>
+                            &nbsp;<span class="wa-tooltip" data-wa-tooltip-content="[`Product codes are completed on the order page for each ordered item. They can be used to store trade item numbers, software license numbers or unique serial numbers.`]"><i class="fas fa-info-circle fa-xs text-dark-gray"></i></span>
                         </div>
                         <button class="js-code-add button small rounded light-gray">
                             <i class="fas fa-plus-circle text-green"></i>
@@ -144,7 +144,7 @@
                 <div class="s-section-title-wrapper">
                     <div class="s-section-title">
                         <h4 class="s-title h4">[`Features`]</h4>
-                        <span class="s-title-help shop-tooltip"><i class="fas fa-info-circle smaller"></i><span>{if wa_is_int($type_url_id)}[`Features are displayed on storefront product pages in the order set up for this product type.`]<br><br>[`To change features’ sort order, drag &amp; drop them to desired locations within the list.`]{else}[`To change features’ sort order, select a product type.`]{/if}</span></span>
+                        &nbsp;<span class="wa-tooltip" data-wa-tooltip-content="{if wa_is_int($type_url_id)}[`Features are displayed on storefront product pages in the order set up for this product type.`]<br><br>[`To change features’ sort order, drag &amp; drop them to desired locations within the list.`]{else}[`To change features’ sort order, select a product type.`]{/if}"><i class="fas fa-info-circle fa-xs text-dark-gray"></i></span>
                     </div>
                     {if $type_url_id != 'builtin'}
                     <div class="dropdown js-features">
@@ -354,7 +354,7 @@
             }, {
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/settings/features/vue/vue.min.js?v={$wa->version()}"
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
             }, {
                 id: "wa-features-settings-js",
                 type: "js",
@@ -387,8 +387,16 @@
                         "code_save": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=codeSave"
                     }
                 });
+                window.shop_feature_settings_page.loading = '<span class="icon custom-ml-4 loading"><i class="fas fa-spinner wa-animation-spin"></span>';
             }
 
+            $(".wa-tooltip").waTooltip({
+                class: 'break-words small',
+                placement: 'bottom',
+                allowHTML: true,
+                delay: 300,
+                interactive: true
+            });
         })(jQuery);
     </script>
 </div>

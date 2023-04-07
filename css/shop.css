@@ -293,10 +293,10 @@ ul.s-orders.list > .item .highlighted, ul.s-orders.list > .item .highlighted > *
 .s-order-comment { white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; border-radius: 0.75rem; overflow: hidden; padding:  }
 .s-order-comment-edit textarea { display: block; width: 100%; height: 8em; margin: 5px 0 15px; }
 
-#tooltip { position: absolute; z-index: 3000; border: 1px solid orange; background-color: #ffe; padding: 5px; }
+#tooltip { position: absolute; z-index: 3000; border: 1px solid var(--alert-border-color); background-color: var(--alert-background-color); padding: 5px; }
 #tooltip h3, #tooltip div { margin: 0; }
 #order-edit-form .ui-autocomplete li { white-space: nowrap; }
-.ui-helper-hidden-accessible { position: absolute; left: -99999999px; }
+.ui-helper-hidden-accessible { position: absolute; left: -9999999px; }
 
 .s-order-paid-checkmark { float: right; font-size: 1.5rem; color: var(--green); }
 
@@ -1042,12 +1042,6 @@ table#s-customers-report-table.mode-profit .toggled.profit { display: table-cell
 
 .s-prediction { color: pink; margin-right: 3px; }
 
-/* a/b tests */
-
-.s-abtest { background: var(--background-color-editable); border-radius: 2px; padding: 5px; }
-.s-abtest-border { border: 1px solid #e3e3d7; border-radius: 2px; }
-.s-abtest i.icon10 { margin-top: 8px; }
-
 /* checkout funnel */
 
 .s-checkoutflow td { vertical-align: top; padding: 0 1em; }
@@ -1330,6 +1324,23 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .s-sublist-title {padding: 5px 0 0 30px;}
 .s-sublist {padding-left: 30px; margin-bottom: 0;}
 
+/* Datepicker */
+#ui-datepicker-div { width: 280px; }
+#ui-datepicker-div .ui-datepicker-header { margin: 10px; }
+#ui-datepicker-div .ui-datepicker-header .ui-datepicker-prev { left: 0; top: 1px; }
+#ui-datepicker-div .ui-datepicker-header .ui-datepicker-next { right: 0; top: 1px; }
+#ui-datepicker-div .ui-datepicker-header .ui-datepicker-prev-hover,
+#ui-datepicker-div .ui-datepicker-header .ui-datepicker-next-hover { top: 1px; }
+#ui-datepicker-div .ui-datepicker-header .ui-datepicker-prev span,
+#ui-datepicker-div .ui-datepicker-header .ui-datepicker-next span { background-repeat: no-repeat; font-size: 0; }
+#ui-datepicker-div .ui-icon { height: 16px; width: 16px; }
+#ui-datepicker-div .ui-datepicker-prev:hover, #ui-datepicker-div .ui-datepicker-next:hover { background: var(--background-color-input); }
+.state-with-inner-icon input.s-datepicker { width: 8.1em; }
+input.s-datepicker { width: 6.1em; }
+
+/* Colorpicker */
+.s-color-picker svg { border: 1px solid #33333375; border-radius: 50%; }
+
 
 /* ICONS
 -------- */
@@ -1384,23 +1395,6 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 
     .s-table-transparent tr td { background: transparent; border: none; }
     .s-table-transparent tr:hover td { background: transparent; } */
-
-/* Datepicker */
-    /* #ui-datepicker-div { width: 280px; }
-    #ui-datepicker-div .ui-datepicker-header { margin: 10px; }
-    #ui-datepicker-div .ui-datepicker-header .ui-datepicker-prev { left: 0; top: 1px; }
-    #ui-datepicker-div .ui-datepicker-header .ui-datepicker-next { right: 0; top: 1px; }
-    #ui-datepicker-div .ui-datepicker-header .ui-datepicker-prev-hover,
-    #ui-datepicker-div .ui-datepicker-header .ui-datepicker-next-hover { top: 1px; }
-    #ui-datepicker-div .ui-datepicker-header .ui-datepicker-prev span,
-    #ui-datepicker-div .ui-datepicker-header .ui-datepicker-next span { background-repeat: no-repeat; font-size: 0; }
-    #ui-datepicker-div .ui-icon { height: 16px; width: 16px; }
-    #ui-datepicker-div .ui-datepicker-prev:hover, #ui-datepicker-div .ui-datepicker-next:hover { background: var(--background-color-input); }
-    .state-with-inner-icon input.s-datepicker { width: 8.1em; }
-    input.s-datepicker { width: 6.1em; } */
-
-/* Colorpicker */
-    /* .s-color-picker svg { border: 1px solid #33333375; border-radius: 50%; } */
 
 /*
     .icon16.ss.new { background-position:0 -32px; }
@@ -1629,12 +1623,12 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 
 @media screen and (max-width: 1400px) {
   /* Order new/edit */
-  .s-order-items-edit-wrapper { max-width: calc(100vw - 29rem); }
+  .s-order-items-edit-wrapper { max-width: calc(100vw - 30rem); }
   .sidebar-pinned .s-order-items-edit-wrapper { max-width: calc(100vw - 38rem); }
   .s-order-items-edit.s-order-items-table tbody tr td:not(:first-child) { padding: 0.5rem }
   .s-order-items-edit.s-order-items-table .s-order-product-sku-info { display: flex; align-items: center; flex-wrap: wrap; }
   .s-order-items-edit.s-order-items-table .s-orders-sku-stock-place { margin-right: 10%; margin-left: 2px; }
-  .s-order-items-edit.s-order-items-table .s-orders-service-price-wrapper { display: flex; align-items: center; margin-top: 0.35rem; justify-content: flex-start; }
+  .s-order-items-edit.s-order-items-table .s-orders-service-price-wrapper { display: flex; align-items: center; }
   .s-order-items-edit.s-order-items-table .s-orders-quantity { width: 3rem; }
 
 }
@@ -1864,3 +1858,7 @@ and (orientation : portrait) {
 *:not(.wa-select) > select:not(.not-styled) { padding: 0.1875em 2.25em 0.1875em 0.375em; line-height: 1.5em; border: 0.125em solid var(--border-color-input); color: var(--text-color-input); appearance: none; outline: none; box-sizing: border-box; background-color: var(--background-color-input); background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 177 94' fill='none'%3e%3cpath fill='%23aab' d='M88.5 94L0.598419 0.25L176.402 0.25L88.5 94Z'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.6rem center; background-size: 0.75em; border-radius: 0.25em; transition: 0.1s;}
 
 [type=checkbox]:disabled, [type=radio]:disabled, select:disabled { pointer-events: none; filter: none; opacity: .5;}
+
+em.errormsg { font-style: normal; }
+.errormsg { font-size: 81.25%; font-weight: 500; color: var(--red); }
+input.error, textarea.error, select.error { border-color: var(--red) !important; }

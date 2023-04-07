@@ -112,7 +112,7 @@ class shopTransferListAction extends waViewAction
 
     public function getOrder()
     {
-        $order = $this->getParameter('order');
+        $order = $this->getParameter('order', '');
         $order = strtolower($order);
         return $order === 'desc' ? 'desc' : '';
     }

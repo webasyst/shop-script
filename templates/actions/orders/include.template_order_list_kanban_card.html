@@ -1,0 +1,45 @@
+{literal}
+<div data-order-id="{%#o.order.id%}" data-state-id="{%#o.state%}" class="order_ s-kanban__list__body__item custom-p-12 custom-mb-8 blank{% if (o.isUpdated) { %} wa-animation-swing{% } %}">
+    <div class="flexbox">
+        <div class="s-kanban-item-title custom-mr-8">
+            <span class="userpic userpic48{% if (o.order.state_id == 'new') { %} highlighted {% } %} bold" title="">
+                <img src="{%=o.order.order_icon%}" alt="">
+            </span>
+        </div>
+        <div class="s-kanban-item-body wide">
+            <p class="flexbox full-width custom-mb-4">
+                <span>
+                    <span class="badge uppercase text-white nowrap small custom-mr-8" style="background-color: {%=o.state_color%}">{%=o.state_name%}</span>
+                </span>
+                <span class="nowrap semibold">
+                    {%if (o.order.paid_date_str) { %}
+                        <span class="text-green custom-ml-4 cursor-pointer" data-wa-tooltip-content="[`Paid`] {%=o.order.paid_datetime_str %}" data-wa-tooltip-placement="left">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                    {% } %}
+                    {%#o.order.total_str%}
+                </span>
+            </p>
+            <p class="custom-mt-0 custom-mb-8" style="line-height: 1.2;">
+                <a href="?action=orders#/order/{%=o.order.id%}/" class="semibold custom-mr-4">{%=o.order.id_str%}</a>
+                <span class="opacity-80">{% if (o.order.contact.name) { %}{%=o.order.contact.name%}{% } else { %}[`(no name)`]{% } %}</span>
+            </p>
+            <p class="hint custom-mt-4">
+                [`Created`] {%=o.order.create_datetime_str%}
+                {%if (o.order.paid_date_str) { %}
+                <br>[`Paid`] {%=o.order.paid_datetime_str %}
+                {% } %}
+            </p>
+        </div>
+    </div>
+
+    <div class="flexbox vertical s-kanban-item-body wide bordered-top custom-mt-8 custom-pt-12 small gray">
+        <span><i class="fas fa-truck custom-mr-4"></i> {%#o.order.shipping_name%}</span>
+        {%if (o.order.courier_name) { %}
+        <span><i class="fas fa-walking custom-mr-4"></i> {%=o.order.courier_name%} {%=o.order.shipping_interval || '' %}</span>
+        {% } %}
+        <span><i class="fas fa-credit-card custom-mr-4"></i> {%#o.order.payment_name%}</span>
+        <!-- TODO add plugin hook here -->
+    </div>
+</div>
+{/literal}

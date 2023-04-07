@@ -13,9 +13,11 @@
                     <div class="s-content-section" v-if="confirm_values.enabled">
                         <div class="s-section-header">
                             <div class="s-title">[`Enabled parameters`]</div>
-                            <div class="wa-message info flexbox space-8">
-                                <div class="message-icon"><i class="icon16 info"></i></div>
-                                <div class="message-text wide">[`For enabled parameters, select values that must be applied to existing products.`]</div>
+                            <div class="alert info small">
+                                <div class="flexbox space-4">
+                                    <span class="message-icon"><i class="fas fa-info-circle"></i></span>
+                                    <span class="message-text">[`For enabled parameters, select values that must be applied to existing products.`]</span>
+                                </div>
                             </div>
                         </div>
                         <div class="s-section-body">
@@ -145,9 +147,11 @@
                     <div class="s-content-section" v-if="confirm_values.disabled">
                         <div class="s-section-header">
                             <div class="s-title">[`Disabled parameters`]</div>
-                            <div class="wa-message error flexbox space-8">
-                                <div class="message-icon"><i class="icon16 exclamation"></i></div>
-                                <div class="message-text wide">[`For disabled parameters, base values will be applied to products’ properties.`]</div>
+                            <div class="alert warning small">
+                                <div class="flexbox space-4">
+                                    <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                    <div class="message-text wide">[`For disabled parameters, base values will be applied to products’ properties.`]</div>
+                                </div>
                             </div>
                         </div>
                         <div class="s-section-body">

@@ -556,7 +556,7 @@ class shopConfig extends waAppConfig
     public function getSaveQuality($for2x = false)
     {
         $quality = $this->getOption('image_save_quality'.($for2x ? '_2x' : ''));
-        if (!$quality) {
+        if ($quality === '') {
             $quality = $for2x ? 70 : 90;
         }
         return $quality;

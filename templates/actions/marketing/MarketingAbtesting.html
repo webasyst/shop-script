@@ -11,7 +11,7 @@
         {foreach $tests as $t}
             <li{if $t.id == $test.id} class="selected"{/if}>
                 <a href="{$marketing_url}abtesting/{$t.id}/">
-                    <i class="fas fa-split"></i><span>{$t.name|escape}</span>
+                    <i class="fas fa-spell-check"></i><span>{$t.name|escape}</span>
                 </a>
             </li>
         {/foreach}
@@ -38,7 +38,7 @@
         <h1 class="s-title">[`A/B tests`]</h1>
     </header>
     <form action="{$wa_app_url}?module=reports&action=abtesting" id="s-reports-abtesting-form">
-        <div class="s-abtest">
+        <div class="s-abtest s-block">
             <div class="box s-abtest-border">
                 <input type="hidden" name="id" value="{$test.id|default:new}">
                 {if $test.id}
@@ -67,7 +67,7 @@
                 <div class="fields">
                     <div class="fields-group">
                         <div class="field">
-                            <div class="name">[`Name`]</div>
+                            <div class="name custom-pt-4">[`Name`]</div>
                             <div class="value">
                                 <input type="text" class="large" name="test[name]" value="{$test.name|escape}" required>
                             </div>
@@ -75,14 +75,14 @@
                         {if $test.id}
                             <div class="field">
                                 <div class="name">[`Test ID`]</div>
-                                <div class="value no-shift">
+                                <div class="value">
                                     <strong class="large">{$test.id}</strong>
                                 </div>
                             </div>
                             <div class="field">
                                 <div class="name">[`Created`]</div>
-                                <div class="value no-shift gray">
-                                    {$test.create_datetime|wa_date:humandatetime}
+                                <div class="value">
+                                    <div class="gray">{$test.create_datetime|wa_date:humandatetime}</div>
                                 </div>
                             </div>
                         {/if}
@@ -98,7 +98,7 @@
                                         <input type="text" name="variants[{$v.id|escape}][name]" value="{$v.name|escape}">
                                         <input type="hidden" name="variants[{$v.id|escape}][code]" value="{$v.code|escape}">
                                     {/if}
-                                    <a href="javascript:void(0)" class="remove-variant-link"><i class="icon10 close"></i></a>
+                                    <a href="javascript:void(0)" class="remove-variant-link"><i class="fas fa-times text-gray close"></i></a>
                                 </div>
                             </div>
                         {/foreach}
@@ -115,17 +115,17 @@
                         <div class="name">[`New version`]</div>
                         <div class="value">
                             <input type="text" name="new_variants[]" value="">
-                            <a href="javascript:void(0)" class="remove-variant-link"><i class="fas fa-times smaller"></i></a>
+                            <a href="javascript:void(0)" class="remove-variant-link"><i class="fas fa-times small text-gray"></i></a>
                         </div>
                     </div>
 
-                    <div class="field">
+                    <div class="field custom-mt-24 custom-mb-8">
                         <div class="value submit">
                             {if $test.id && empty($errors)}
-                                <input type="submit" class="button" value="[`Save`]" style="display:none;">
-                                <button id="get-code-button" class="button gray">[`Get code`]</button>
+                                <input type="submit" class="button green" value="[`Save`]" style="display:none;">
+                                <button id="get-code-button" class="button">[`Get code`]</button>
                             {else}
-                                <input type="submit" class="button" value="[`Save`]">
+                                <input type="submit" class="button green" value="[`Save`]">
                             {/if}
                         </div>
                     </div>
@@ -147,11 +147,14 @@
             <h3 class="dialog-header">[`A/B test Smarty code`]</h3>
             <div class="dialog-content">
                 <p>[`Embed the following code to any template file or page, and add your custom content you want to split-test:`]</p>
-                <div id="smarty-code-block" style="min-height:230px;">{$smarty_code|escape}</div>
-                <br><br>
-                <p><em>[`The results of A/B test will be available on the main sales reports page as soon as you get at least one paid orders after embedding this test code.`]</em></p>
+                <div id="smarty-code-block" class="custom-mb-16" style="min-height:230px;">{$smarty_code|escape}</div>
+                <div class="alert custom-m-0 small">
+                    [`The results of A/B test will be available on the main sales reports page as soon as you get at least one paid orders after embedding this test code.`]
+                </div>
             </div>
             <footer class="dialog-footer">
+                <input type="hidden" value="{$smarty_code|escape}" id="smarty-code-text">
+                <button class="button nowrap js-copy-code" data-title-copied="[`Copied`]" data-initial-title="[`Copy`]">[`Copy`]</button>
                 <button class="js-close-dialog button light-gray">[`Close`]</button>
             </footer>
         </div>

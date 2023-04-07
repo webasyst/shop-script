@@ -20,6 +20,7 @@ class shopOrderAddInvoiceMethod extends shopApiMethod
             $currency = wa('shop')->getConfig()->getCurrency();
         }
 
+        $comment = $this->post('comment');
         $order = [
             'contact' => $contact_id === null ? 0 : $contact,
             'items' => [[
@@ -32,12 +33,11 @@ class shopOrderAddInvoiceMethod extends shopApiMethod
                 'sku_name' => '',
                 'currency' => $currency,
                 'price' => $this->post('total', true),
-                'name' => wa('shop')->getConfig()->getOrderNoproductItemName(),
+                'name' => mb_strlen(trim($comment)) ? mb_substr(trim($comment), 0, 255) : wa('shop')->getConfig()->getOrderNoproductItemName(),
             ]],
             'currency' => $currency,
             'shipping' => 0,
             'discount' => 0,
-            'comment' => ifempty(ref($this->post('comment')), ''),
             'params' => [
                 'storefront' => wa()->getConfig()->getDomain(),
                 'ip' => waRequest::getIp(),

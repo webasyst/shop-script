@@ -25,6 +25,19 @@ class shopCustomersAffiliateController extends waJsonController
             }
         }
 
+        /**
+         * @event backend_affiliate_bonus_edit
+         *
+         * @param string $params['contact_id']
+         * @param string $params['amount']
+         * @param string $params['comment']
+         */
+        wa('shop')->event('backend_affiliate_bonus_edit', ref([
+            'contact_id' => &$contact_id,
+            'amount' => &$amount,
+            'comment' => &$comment,
+        ]));
+
         $atm = new shopAffiliateTransactionModel();
         $atm->applyBonus($contact_id, $amount, null, ifempty($comment),
             $amount > 0 ? shopAffiliateTransactionModel::TYPE_DEPOSIT : shopAffiliateTransactionModel::TYPE_WITHDRAWAL);

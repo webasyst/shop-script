@@ -66,7 +66,11 @@
                 if (variant_count > 2) {
                     $(this).closest('.field').remove();
                 } else {
-                    alert(that.locales["count_error"]);
+                    $.waDialog.alert({
+                        title: that.locales["count_error"],
+                        button_title: $_("OK"),
+                        button_class: 'yellow',
+                    });
                 }
             });
 
@@ -110,6 +114,24 @@
                         editor.setFontSize(13);
                         editor.setHighlightActiveLine(false);
                         editor.setReadOnly(true);
+
+                        $smarty_code.on('click', '.js-copy-code', function() {
+                            const $this = $(this)
+                                initial_title = $this.data('initial-title')
+                                title_copied = $this.data('title-copied');
+
+                            $this.html(`<i class="fas fa-check"></i> ${title_copied}`)
+                                .attr('disabled', true)
+                                .addClass('green');
+
+                            $.wa.copyToClipboard($('#smarty-code-text').val());
+
+                            setTimeout(() => {
+                                $this.text(initial_title)
+                                    .removeClass('green')
+                                    .attr('disabled', false);
+                            }, 1000);
+                        });
                     }
                 });
                 return false;
@@ -121,21 +143,29 @@
             // Deletion link
             $('#delete-link').on("click", function() {
                 var id = $form.find('input[name="id"]').val();
-                if (id && confirm(that.locales["delete_confirmation"])) {
-
-                    var href = that.urls["delete"],
-                        data = {
-                            "id": id
-                        };
-
-                    $.post(href, data, function(response) {
-                        if (response.status === "ok") {
-                            $.shop.marketing.content.load( that.urls["root"] );
-                        } else if (response.errors) {
-                            renderErrors(response.errors);
-                        }
-                    }, "json");
+                if (!id) {
+                    return;
                 }
+
+                $.waDialog.confirm({
+                    title: that.locales["delete_confirmation"],
+                    success_button_title: $_('Delete'),
+                    success_button_class: 'danger',
+                    cancel_button_title: $_('Cancel'),
+                    cancel_button_class: 'light-gray',
+                    onSuccess: function() {
+                        var href = that.urls["delete"],
+                            data = { "id": id };
+
+                        $.post(href, data, function(response) {
+                            if (response.status === "ok") {
+                                $.shop.marketing.content.load( that.urls["root"] );
+                            } else if (response.errors) {
+                                renderErrors(response.errors);
+                            }
+                        }, "json");
+                    }
+                });
             });
 
             // Save when user submits the form

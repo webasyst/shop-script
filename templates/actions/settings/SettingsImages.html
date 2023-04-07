@@ -183,7 +183,7 @@
                         </div>
 
                         <div class="value">
-                            <input type="number" name="image_save_quality" class="small shortest" value="{if !empty($settings.image_save_quality)}{str_replace(',', '.', $settings.image_save_quality)}{/if}">
+                            <input type="number" name="image_save_quality" class="small shortest" value="{if isset($settings.image_save_quality) && $settings.image_save_quality !== ''}{str_replace(',', '.', $settings.image_save_quality)}{/if}">
 
                             <div class="hint custom-mt-4">[`JPEG compression quality for photo thumbnails. From 0 (min quality, min file size) to 100 (max quality, max file size). 90 is recommended.`]</div>
                         </div>
@@ -247,7 +247,7 @@
                         </div>
 
                         <div class="value">
-                            <input type="number" name="image_save_quality_2x" class="small shortest" value="{if !empty($settings.image_save_quality_2x)}{str_replace(',', '.', $settings.image_save_quality_2x)}{/if}">
+                            <input type="number" name="image_save_quality_2x" class="small shortest" value="{if isset($settings.image_save_quality_2x) && $settings.image_save_quality_2x !== ''}{str_replace(',', '.', $settings.image_save_quality_2x)}{/if}">
 
                             <div class="hint custom-mt-4">[`JPEG, WEBP compression quality for photo thumbnails. From 0 (min quality, min file size) to 100 (max quality, max file size). 70 is recommended.`]</div>
                         </div>

@@ -1,19 +1,15 @@
 {strip}
 
-{$_background_color = "#eeeeee"}
-{$_products_bg = "#ffffff"}
-{$_bonus_background = "#ffffcc"}
-{$_button_background = "#fcd630"}
-{$_main_border_color = "#cccccc"}
-{$_border_color = "#dddddd"}
+{$_background_color = "#f3f5fa"}
+{$_bonus_background = "#fea"}
+{$_border_color = "rgba(0, 20, 80, 0.1)"}
 
 <table cellspacing="0" border="0" cellpadding="0" width="100%" bgcolor="{$_background_color}" style="
-font-family:Helvetica,Arial,sans-serif;
+font-family:'Segoe UI',Helvetica,Arial,sans-serif;
 letter-spacing:normal;
 text-indent:0;
 text-transform:none;
 word-spacing:0;
-background-color:rgb(232,232,232);
 border-collapse:collapse
 ">
     <tr>
@@ -21,8 +17,7 @@ border-collapse:collapse
             <table width="600" border="0" align="center" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="
                 width: 600px !important;
                 background-color:#fff;
-                border:1px solid {$_main_border_color};
-                border-radius: 4px;
+                border-radius: 12px;
                 margin:auto;
                 overflow: hidden;
                 ">
@@ -35,7 +30,7 @@ border-collapse:collapse
                             <tr>
                                 <td>
                                     <font style="font-weight: bold; font-size: 20px; margin: 0 12px 0 0;"><b>{$order.id}</b></font>
-                                    <font style="color: #888">{$order.create_datetime|wa_date:'humandate'}</font>
+                                    <font style="color: #89a">{$order.create_datetime|wa_date:'humandate'}</font>
                                 </td>
                                 <td style="text-align: right;">
                                     <font style="{if !empty($order.style)}{$order.style}{/if}">{$status}</font>
@@ -54,14 +49,14 @@ border-collapse:collapse
                             <tr>
                                 <td>
                                     <p style="
-                            color:rgb(48,48,48);
+                            color: #444;
                             font-style:normal;
                             font-variant:normal;
                             font-weight:normal;
                             font-size:14px;
                             line-height:16px;
                             font-family:Helvetica,Arial,sans-serif;
-                            margin: 20px 0 0;
+                            margin: 20px 0;
                             text-align:center;
                             ">%17%</p>
                                 </td>
@@ -87,12 +82,12 @@ border-collapse:collapse
                     <td style="padding: 24px 0 36px 0;">
                         <h3 style="margin: 0;">%contact_info%</h3>
                         {if strlen($wa->shop->settings("email"))}
-                            <p style="margin: 10px 0 0;">
+                            <p style="margin: 10px 0 0;color:#444;">
                                 [`Email`]: <a href="mailto:{$wa->shop->settings("email")}">{$wa->shop->settings("email")}</a>
                             </p>
                         {/if}
                         {if strlen($wa->shop->settings("phone"))}
-                            <p style="margin: 10px 0 0;">
+                            <p style="margin: 10px 0 0;color:#444;">
                                 [`Phone`]: {$wa->shop->settings("phone")}
                             </p>
                         {/if}
@@ -112,7 +107,7 @@ border-collapse:collapse
                 font-size:13px;
                 line-height:16px;
                 font-family:Arial,sans-serif,Helvetica;
-                color:rgb(147,154,164);
+                color:#89a;
                 margin: 20px 0 0;
                 ">
                             &copy;&nbsp;{date("Y")}&nbsp;{$wa->shop->settings("name")}<br>
@@ -127,4 +122,3 @@ border-collapse:collapse
 </table>
 
 {/strip}
-

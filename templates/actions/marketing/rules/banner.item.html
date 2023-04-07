@@ -121,8 +121,9 @@
                         {/if}
 
                         <div class="flexbox middle">
-                            <label class="s-datepicker-wrapper">
+                            <label class="s-datepicker-wrapper state-with-inner-icon right">
                                 <input class="s-datepicker js-datepicker" type="text" value="{$_date_view}" data-alt=".js-date" required {if empty($banner.countdown_datetime)}disabled{/if}>
+                                <span class="icon"><i class="fas fa-calendar-alt"></i></span>
                                 <input class="js-date" type="hidden" data-name="[countdown_datetime][date]" value="{$_date}"{if empty($banner.countdown_datetime)} disabled{/if}>
                             </label>
                             <label class="s-time-wrapper">

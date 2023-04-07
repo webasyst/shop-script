@@ -213,10 +213,24 @@ class shopCsvProductrunController extends waLongActionController
 
             $header = $this->reader->header();
 
+            $exploded = false;
             foreach ($map as $id => &$target) {
                 if (preg_match('@^f\+:(.+)$@', $target, $matches)) {
                     if ($this->data['rights']) {
                         $id = preg_replace('@\D.*$@', '', $id);
+                        if (!isset($header[$id]) && !$exploded) {
+                            $exploded = true;
+                            foreach ($header as $i => $name) {
+                                if (is_string($i) && mb_strpos($i, ':') > 0) {
+                                    $ids = array_map('intval', explode(':', $i));
+                                    foreach ($ids as $_id) {
+                                        if (!isset($header[$_id])) {
+                                            $header[$_id] = $name;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         $feature = array(
                             'name'       => ifset($header[$id], 'csv feature'),
                             'type'       => shopFeatureModel::TYPE_VARCHAR,
@@ -3240,7 +3254,35 @@ SQL;
                     'import_line_number' => _w('ID of the invalid row in the import file'),
                     'error_message' => _w('Error description'),
                 ];
-                $map += $this->reader->header();
+                if (!isset($this->data['header'])) {
+                    $header = $this->reader->header();
+                    foreach ($header as $i => $name) {
+                        if (is_string($i) && mb_strpos($i, ':') > 0) {
+                            $ids = array_map('intval', explode(':', $i));
+                            $mapping = $this->reader->data_mapping;
+                            foreach ($ids as $_id) {
+                                if (!isset($header[$_id])) {
+                                    foreach ($mapping as $code => $num) {
+                                        if ($num == $_id && is_string($code) && mb_strpos($code, 'features:') === 0) {
+                                            unset($header[$i]);
+                                            $header[$_id] = $name;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    uksort($header, function ($a, $b) {
+                        $a = intval($a);
+                        $b = intval($b);
+                        if ($a == $b) {
+                            return 0;
+                        }
+                        return ($a < $b) ? -1 : 1;
+                    });
+                    $this->data['header'] = $header;
+                }
+                $map += $this->data['header'];
                 $error_writer->setMap($map);
             } else {
                 $error_writer = unserialize($this->data['error_file'][$type]);
@@ -3326,7 +3368,7 @@ SQL;
 
     private function getImageName($file)
     {
-        $name = preg_replace('@[^a-zA-Zа-яёА-ЯЁ0-9\._\-]+@u', '', basename(urldecode($file)));
+        $name = preg_replace('@[^a-zA-Zа-яёА-ЯЁ0-9\._\-]+@u', '', basename(preg_replace('@([^?]+)((\?.*)?)@', '$1', urldecode($file))));
         $ext = pathinfo(urldecode($file), PATHINFO_EXTENSION);
         if (empty($ext) || !in_array($ext, array('jpeg', 'jpg', 'png', 'gif'))) {
             $image = $this->getImage($file);

@@ -5,6 +5,7 @@ class shopStocksBalanceAction extends waViewAction
     protected $options = array(
         'count_is_not_null' => true
     );
+    protected $product_model;
 
     public function __construct($params = null) {
         parent::__construct($params);

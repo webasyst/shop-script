@@ -39,7 +39,7 @@ class shopCustomersInfoAction extends waViewAction
 
         $primary_currency = $config->getCurrency();
 
-        if (abs($customer['total_spent'] - $total_paid_sum) > 1) {
+        if ($customer && abs($customer['total_spent'] - $total_paid_sum) > 1) {
             $scm->recalcTotalSpent($id);
         }
 

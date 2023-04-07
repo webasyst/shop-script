@@ -25,7 +25,7 @@ class shopBackendLayout extends waLayout
         }
 
         $contact_settings_model = new waContactSettingsModel();
-        $sidebar_menu_state = (int)$contact_settings_model->getOne(wa()->getUser()->getId(), 'shop', 'sidebar_menu_state');
+        $sidebar_menu_state = $contact_settings_model->getOne(wa()->getUser()->getId(), 'shop', 'sidebar_menu_state');
 
         $order_model = new shopOrderModel();
         $this->view->assign(array(
@@ -36,7 +36,7 @@ class shopBackendLayout extends waLayout
             'tutorial_progress' => $tutorial_progress,
             'tutorial_visible'  => $tutorial_visible,
             'embedded_version'  => $this->embedded_version,
-            'sidebar_menu_state'  => $sidebar_menu_state,
+            'sidebar_menu_state' => $sidebar_menu_state === null ? 1 : (int)$sidebar_menu_state,
         ));
     }
 

@@ -1,19 +1,17 @@
 {strip}
 
-{$_background_color = "#eeeeee"}
+{$_background_color = "#f3f5fa"}
 {$_products_bg = "#ffffff"}
-{$_bonus_background = "#ffffcc"}
-{$_button_background = "#fcd630"}
-{$_main_border_color = "#cccccc"}
-{$_border_color = "#dddddd"}
+{$_bonus_background = "#fea"}
+{$_button_background = "#f3c200"}
+{$_border_color = "rgba(0, 20, 80, 0.1)"}
 
 <table cellspacing="0" border="0" cellpadding="0" width="100%" bgcolor="{$_background_color}" style="
-        font-family:Helvetica,Arial,sans-serif;
+        font-family:'Segoe UI',Helvetica,Arial,sans-serif;
         letter-spacing:normal;
         text-indent:0;
         text-transform:none;
         word-spacing:0;
-        background-color:rgb(232,232,232);
         border-collapse:collapse
     ">
     <tr>
@@ -21,8 +19,7 @@
             <table width="600" border="0" align="center" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="
                 width: 600px !important;
                 background-color:#fff;
-                border:1px solid {$_main_border_color};
-                border-radius: 4px;
+                border-radius: 12px;
                 margin:auto;
                 overflow: hidden;
                 ">
@@ -35,7 +32,7 @@
                             <tr>
                                 <td>
                                     <font style="font-weight: bold; font-size: 20px; margin: 0 12px 0 0;"><b>{$order.id}</b></font>
-                                    <font style="color: #888">{$order.create_datetime|wa_date:'humandate'}</font>
+                                    <font style="color: #89a">{$order.create_datetime|wa_date:'humandate'}</font>
                                 </td>
                                 <td style="text-align: right;">
                                     <font style="{if !empty($order.style)}{$order.style}{/if}">{$status}</font>
@@ -54,7 +51,7 @@
                             <tr>
                                 <td>
                                     <p style="
-                                        color:rgb(48,48,48);
+                                        color:#444;
                                         font-style:normal;
                                         font-variant:normal;
                                         font-weight:normal;
@@ -66,18 +63,19 @@
                                         ">%17%</p>
                                     <p align="center" style="margin: 20px 0;">
                                         <a href="{$order_url}" style="
+                                        display: block;
                                         text-decoration:none;
                                         font-style:normal;
                                         font-variant:normal;
-                                        font-weight:normal;font-size:17px;line-height:40px;font-family:Helvetica,Arial,sans-serif;color:rgb(48,48,48);display:block;
-                                        width:225px;
+                                        font-size:16px;line-height:40px;font-family:Helvetica,Arial,sans-serif;
+                                        color:#000;font-weight:normal;width:180px;
                                         background: {$_button_background};
-                                        border-radius: 4px;
+                                        border-radius: 10px;
                                         " target="_blank">[`Order status`]</a>
                                     </p>
                                     {if !empty($order.params.auth_pin)}
                                         <p style="
-                                            color:rgb(48,48,48);
+                                            color:#444;
                                             font-style:normal;
                                             font-variant:normal;
                                             font-weight:normal;
@@ -109,12 +107,14 @@
                                 {$_border_style = "border: 0;"}
                                 {$_is_service = ($item.type == "service")}
                                 {if $item@index > 0}
-                                    {$_border_style = "border: solid `{$_border_color}`; border-width: 1px 0  0;"}
+                                    {$_border_style = "border: solid {$_border_color}; border-width: 1px 0 0;"}
                                 {/if}
                                 <tr>
                                     <td width="40" style="padding: 8px 4px 8px 0; {$_border_style}">
                                         {if !$_is_service && !empty($item.product.image.crop_url)}
                                             <img src="{$item.product.image.crop_url}" alt="" style="width: 48px; height: 48px; vertical-align: middle;">
+                                        {else}
+                                            <img src="{$wa_app_static_url}img/image-dummy-small.png" style="width: 48px; height: 48px;">
                                         {/if}
                                     </td>
                                     <td style="padding: 8px 0 8px 4px; {$_border_style}">
@@ -123,26 +123,26 @@
                                             font-variant:normal;
                                             font-weight:normal;
                                             font-size: {if $_is_service}12{else}14{/if}px;
-                                            line-height:16px;
-                                            font-family:Helvetica,Arial,sans-serif;
+                                            line-height:18px;
                                             ">
                                             {if !$_is_service}
-                                                <a href="{$item.product.frontend_url|default:'javascript:void(0);'}">
-                                                    <font style="text-decoration: underline;">{if $_is_service}+&nbsp;{/if}{$item.name|escape}</font>
-                                                    {if !empty($item.sku_code)} <font style="color: #aaaaaa; font-size: 0.8em;">{$item.sku_code|escape}</font>{/if}
+                                                <a href="{$item.product.frontend_url|default:'javascript:void(0);'}" style="text-decoration: none;" {if !empty($item.product.frontend_url)}target="_blank"{/if}>
+                                                    <font>{if $_is_service}+&nbsp;{/if}{$item.name|escape}</font>
+                                                    {if !empty($item.sku_code)} <font style="color: #89a; font-size: 0.8em;">{$item.sku_code|escape}</font>{/if}
                                                 </a>
                                             {else}
                                                 {if $_is_service}+&nbsp;{/if}{$item.name|escape}
-                                                {if !empty($item.sku_code)} <font style="color: #aaaaaa; font-size: 0.8em;">{$item.sku_code|escape}</font>{/if}
+                                                {if !empty($item.sku_code)} <font style="color: #89a; font-size: 0.8em;">{$item.sku_code|escape}</font>{/if}
                                             {/if}
                                             {if !empty($item.download_link)}<a href="{$item.download_link}"><strong>%3%</strong></a>{/if}
                                         </p>
                                     </td>
                                     <td style="padding: 8px 4px 8px 4px; white-space: nowrap; text-align: right; {$_border_style}">
-                                        <font style="color:#aaa;">{wa_currency($item.price, $order.currency)}&nbsp;&times;</font>&nbsp;{$item.quantity}
+                                        <font style="color:#89a;">{wa_currency($item.price, $order.currency)}&nbsp;&times;</font>&nbsp;
+                                        <span style="color:#444">{$item.quantity}</span>
                                     </td>
                                     <td style="padding: 8px 0 8px 8px; white-space: nowrap; text-align: right; {$_border_style}">
-                                        <font style="font-weight: bold;">{wa_currency($item.price * $item.quantity, $order.currency)}</font>
+                                        <font style="font-weight: bold;color: #444;">{wa_currency($item.price * $item.quantity, $order.currency)}</font>
                                     </td>
                                 </tr>
                                 {$subtotal = $subtotal + $item.price * $item.quantity}
@@ -154,7 +154,7 @@
                 <tr>
                     <td></td>
                     <td style="padding: 20px 0; border-bottom: 1px solid {$_border_color}">
-                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; text-align: right;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; text-align: right;color: #444;">
                             <tr>
                                 <td style="padding: 8px 0;">%4%</td>
                                 <td style="white-space: nowrap; width: 20%; padding: 8px 0 8px 8px;">{wa_currency($subtotal, $order.currency)}</td>
@@ -181,7 +181,7 @@
                                     <td style="white-space: nowrap; padding: 8px 0 8px 8px;">{wa_currency($order.tax, $order.currency)}</td>
                                 </tr>
                             {/if}
-                            <tr>
+                            <tr style="color:#222;">
                                 <td style="padding: 8px 0;">
                                     <h3 style="font-size:18px;margin:0;">%2%</h3>
                                 </td>
@@ -200,12 +200,12 @@
                     </td>
                     <td style="border: 0; padding: 16px 0 0;">
                         {if strlen($customer->get('email', 'default'))}
-                            <p style="margin: 10px 0 0;">
+                            <p style="margin: 10px 0 0;color: #444;">
                                 [`Email`]: {$customer->get('email', 'default')|escape}
                             </p>
                         {/if}
                         {if strlen($customer->get('phone', 'default'))}
-                            <p style="margin: 10px 0 0;">
+                            <p style="margin: 10px 0 0;color: #444;">
                                 [`Phone`]: {$customer->get('phone', 'default')|escape}
                             </p>
                         {/if}
@@ -219,7 +219,7 @@
                         </td>
                         <td style="border: 0; padding: 16px 0 0;">
                             <h3>%14%</h3>
-                            <p style="margin: 10px 0 0;">
+                            <p style="margin: 10px 0 0;color: #444;">
                                 <pre style="white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;">{$order.comment|escape}</pre>
                             </p>
                         </td>
@@ -231,11 +231,11 @@
                     <td style="border: 0;">
                     </td>
                     <td style="border: 0; padding: 16px 0;">
-                        <b>
+                        <b style="color:#222;">
                             {if !empty($order.params.shipping_name)}
-                                <font style="color: #aaa;">%11%&nbsp;—</font>&nbsp;{$order.params.shipping_name}
+                                <font style="color: #9ab;">%11%&nbsp;—</font>&nbsp;{$order.params.shipping_name}
                             {else}
-                                <font style="color: #aaa;">%11%</font>
+                                <font style="color: #9ab;">%11%</font>
                             {/if}
                         </b>
                         <p style="margin: 10px 0 0;">
@@ -249,14 +249,14 @@
                     <td style="border: 0;">
                     </td>
                     <td style="border: 0; padding: 16px 0;">
-                        <b>
+                        <b style="color:#222;">
                             {if !empty($order.params.payment_name)}
-                                <font style="color: #aaa;">%12%&nbsp;—</font>&nbsp;{$order.params.payment_name}
+                                <font style="color: #9ab;">%12%&nbsp;—</font>&nbsp;{$order.params.payment_name}
                             {else}
-                                <font style="color: #aaa;">%12%</font>
+                                <font style="color: #9ab;">%12%</font>
                             {/if}
                         </b>
-                        <p style="margin: 10px 0 0;">{$customer.name|escape}<br>{$billing_address}</p>
+                        <p style="margin: 10px 0 0;color: #444;">{$customer.name|escape}<br>{$billing_address}</p>
                     </td>
                     <td style="border: 0;">
                     </td>
@@ -275,11 +275,11 @@
                                     line-height:16px;
                                     font-family:Helvetica,Arial,sans-serif;
                                     margin: 0;
-                                    color:rgb(48,48,48);
+                                    color:#000;
                                         ">
                                     <b>{sprintf("[`This order will add +%s points to your affiliate bonus.`]", round($add_affiliate_bonus, 2))}</b>
                                 </p>
-                                <p style="margin: 16px 0 0;">
+                                <p style="margin: 16px 0 0;color:#444;">
                                 {if $signup_url}
                                     [`Registered customers apply for affiliate bonuses and discounts on future orders.`]
 &nbsp;<a href="{$signup_url}" target="_blank">[`Create permanent user account`]</a>
@@ -309,7 +309,7 @@
                             font-size:13px;
                             line-height:16px;
                             font-family:Arial,sans-serif,Helvetica;
-                            color:rgb(147,154,164);
+                            color: #89a;
                             margin: 20px 0 0;
                             ">
                             &copy;&nbsp;{date("Y")}&nbsp;{$wa->shop->settings("name")}<br>

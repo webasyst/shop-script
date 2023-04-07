@@ -915,13 +915,14 @@ class shopOrdersCollection
                 }
             }
             unset($c);
+
             foreach ($data as &$o) {
                 if (isset($contacts[$o['contact_id']])) {
                     $o['contact'] = $contacts[$o['contact_id']];
                 } else {
                     $o['contact'] = array(
                         'id'    => $o['contact_id'],
-                        'name'  => empty($o['contact_id']) ? '' : 'deleted contact id='.$o['contact_id'],
+                        'name'  => empty($o['contact_id']) ? '' : sprintf_wp('(deleted contact %s)', $o['contact_id']),
                         'photo' => '',
                     );
                 }

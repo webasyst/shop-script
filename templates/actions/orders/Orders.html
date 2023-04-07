@@ -1,18 +1,18 @@
 {if empty($orders)}
-{if $view == 'split'}
-<div class="sidebar blank width-23rem bordered-right" id="s-orders">
-    <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
-    <div class="sidebar-body"></div>
-</div>
-{/if}
-    <div class="content contentbox box blank width-100 js-no-orders" style="height: calc(100vh - 5.5rem - 56px); display: grid; place-items:center">
+    {if $view == 'split'}
+    <div class="sidebar blank width-adaptive-widest wide-mobile ahead-little bordered-right overflow-visible" id="s-orders">
+        <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
+        <div class="sidebar-body"></div>
+    </div>
+    {/if}
+    <div class="content contentbox box blank width-100 js-no-orders desktop-and-tablet-only" style="height: calc(100vh - 5.5rem - 56px); display: grid; place-items:center">
         <div class="align-center">
             <i class="fas fa-shopping-cart text-light-gray" style="font-size: 10rem; margin-right: 1.5rem;"></i>
             <p class="gray large">[`There are no orders in this view.`]</p>
         </div>
     </div>
 {else}
-<div class="{if $view != 'table' && $view != 'kanban'}sidebar blank width-adaptive-widest bordered-right wide-mobile ahead-little{else}width-100{/if} overflow-visible" id="s-orders">
+<div class="{if $view != 'table' && $view != 'kanban'}sidebar flexbox blank width-adaptive-widest bordered-right wide-mobile ahead-little{else}width-100{/if} overflow-visible" id="s-orders">
     {if $view == 'split'}
         <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
     {/if}
@@ -25,7 +25,7 @@
                 {% var orders = o.orders; %}
                 {% for (var i = 0, n = orders.length; i < n; i += 1) { %}
                     {% var order = orders[i]; %}
-                    <li class="item order s-order-status-pending{% if (order.unsettled==='1') { %} s-unsettled{% } %} width-100-mobile" data-order-id="{%#order.id%}" data-order-state="{%#order.state_id%}">
+                    <li class="item order s-order-status-pending{% if (order.unsettled==='1') { %} s-unsettled{% } %} width-100-mobile" data-order-id="{%#order.id%}" data-state-id="{%#order.state_id%}">
 
                         {% if (!$.isEmptyObject(order.contact)) { %}
                             <a class="image" href="#/orders/{/literal}{if $params_str}{$params_str}&{/if}{literal}id={%#order.id%}/">
@@ -66,6 +66,8 @@
                         <span class="semibold custom-mr-4">{%#o.order.id_str%}</span>
                         {% if (o.order.contact.name) { %}
                             <span class="opacity-80">{%#o.order.contact.name%}</span>
+                        {% } else { %}
+                            <span class="opacity-80">[`(no name)`]</span>
                         {% } %}
                     </p>
                     <p class="hint">
@@ -119,25 +121,39 @@
                 {include file='./include.template_order_list_table.html' inline}
             {/capture}
         {elseif $view == 'kanban'}
-            <div id="skeleton_kanban">
-                {include './skeleton/kanban.html' select='kanban' no_sidebar=true inline}
-            </div>
-            <div class="s-kanban-wrapper" id="order-list" data-skeleton="#skeleton_kanban"></div>
+            {* TODO "|| true" must be remove in prod*}
+            {if waLicensing::check('shop')->hasPremiumLicense() || true}
+                <link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
+                <script src="{$wa_app_static_url}js/backend/orders/kanban.js?v={$wa->version(true)}"></script>
+                <script>
+                    Kanban.init({
+                        filter_params: {json_encode($params)},
+                        filter_params_str: '{$params_str}',
+                    })
+                </script>
 
-            {capture name="template-order-list-kanban"}
-                {* TODO "|| true" must be remove in prod*}
-                {if waLicensing::check('shop')->hasPremiumLicense() || true}
+                <div id="skeleton_kanban">
+                    {include './skeleton/kanban.html' select='kanban' no_sidebar=true inline}
+                </div>
+                <div class="s-kanban flexbox js-fix-max-width">
+                    <div class="flexbox fixed space-12 width-100" id="order-list" data-skeleton="#skeleton_kanban"></div>
+                </div>
+
+                {capture name="template-order-list-kanban"}
                     {include file='./include.template_order_list_kanban.html' inline}
-                {else}
-                    <div class="box flexbox">
-                        <span class="alert info custom-mx-auto">[`Непозволительно роскошная фича`]</span>
-                    </div>
-                {/if}
-            {/capture}
+                {/capture}
+                {capture name="template-order-list-kanban-card"}
+                    {include file='./include.template_order_list_kanban_card.html' inline}
+                {/capture}
+            {else}
+                <div class="box flexbox">
+                    <span class="alert info custom-mx-auto">[`Непозволительно роскошная фича`]</span>
+                </div>
+            {/if}
         {/if}
 
         {if $view != 'kanban'}
-        <div class="lazyloading-wrapper small {if $view == 'table'}custom-ml-16{/if}">
+        <div class="lazyloading-wrapper small {if $view == 'table'}custom-ml-16{else}custom-mb-24{/if}">
             <div class="lazyloading-progress-string custom-mb-16">{_w('%d order','%d orders', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
             {if $count < $total_count}
                 <div class="custom-mb-24">
@@ -217,6 +233,13 @@
 
 <script>
 ( function($) {
+    const state_icons = {};
+    {if $state_names}
+        {foreach $state_names as $state_id => $state_name}
+            state_icons.{$state_id} = '{$wa->shop->convertIcon({$state_name.options.icon})}'
+        {/foreach}
+    {/if}
+
     $.order_list.init({
         id: {if $view != 'table' && !empty($order.id)}{$order.id}{else}0{/if},
         view: '{$view}',
@@ -226,16 +249,19 @@
         orders: {json_encode($orders)},
         total_count: {$total_count},
         all_order_state_ids: {$all_order_state_ids|json_encode},
-        count: {if $view == 'kanban'}0{else}{$count}{/if},
+        count: {$count},
         lazy_loading: {
             auto: {if $view == 'kanban'}false{else}true{/if}
         },
         update_process: {
-            timeout: {$timeout}
+            timeout: {$timeout},
+            last_update_datetime: {$last_update_datetime|json_encode}
         },
         title_suffix: '{' — '|cat:{$wa->accountName(false)}|escape:'javascript'}',
         state_names: {json_encode($state_names)},
+        state_icons,
         counters: {json_encode($counters)},
+        state_counters: {json_encode($state_counters)},
         $selectionMenu: $("#s-orders-selection-menu"),
         sort: {$sort|json_encode},
         locale: {

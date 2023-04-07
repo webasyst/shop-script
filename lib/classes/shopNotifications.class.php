@@ -621,6 +621,13 @@ SQL;
         $subject = $view->fetch('string:'.$n['subject']);
         $body = $view->fetch('string:'.$n['body']);
 
+        // Uncomment for test on the frontend
+        /*header('Content-Type: application/json;');
+        exit(json_encode([
+            "status" => "test",
+            "html" => $body
+        ]));*/
+
         $message = new waMailMessage($subject, $body);
         $message->setTo($to);
         if ($n['to'] == 'admin') {

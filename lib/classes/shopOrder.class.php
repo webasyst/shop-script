@@ -1197,8 +1197,9 @@ class shopOrder implements ArrayAccess
 
         // Validation for customer form
         if ($customer_id !== null) {
+            $env = ifset($this->options, 'environment', wa()->getEnv());
             $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation', '', 'shop');
-            if (!$customer_validation_disabled) {
+            if (!$customer_validation_disabled && $env === 'backend') {
                 $form = $this->customerForm();
                 $contact = new waContact($customer_id);
                 if ($form && !$form->isValid($contact)) {

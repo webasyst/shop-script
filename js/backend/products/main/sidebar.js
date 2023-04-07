@@ -180,9 +180,6 @@ let initMainWaSidebar;
                 var $link = that.$wrapper.find('a[href="' + uri + '"]:first');
                 if ($link.length) {
                     that.setItem($link.closest("li"));
-                    if (console && console.log) {
-                        console.log('setSidebarLink:uri', uri);
-                    }
 
                     return true;
                 }
@@ -192,9 +189,6 @@ let initMainWaSidebar;
 
             // one more try
             if (!isSettedLink(uri)) {
-                if (console && console.log) {
-                    console.log('setSidebarLink:uri:more than one try');
-                }
                 var moreTry = function(uri) {
                     if (count_check === max_check || uri.indexOf('#/') !== -1) {
                         return;
@@ -229,9 +223,6 @@ let initMainWaSidebar;
                     count_check += 1;
 
                     if (isSettedLink(new_uri)) {
-                        if (console && console.log) {
-                            console.log('isSettedLink:new_uri', {count_check});
-                        }
                         count_check = max_check;
                     } else {
                         moreTry(new_uri);

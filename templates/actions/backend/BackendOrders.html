@@ -42,7 +42,7 @@
     <div class="s-order-nav-block flexbox">
 
         <!-- VIEW -->
-        <div class="s-order-nav-view s-order-view-toggle hidden js-order-view wide">
+        <div class="s-order-nav-view s-order-view-toggle js-order-view wide">
             <ul class="chips custom-my-0" id="s-orders-views">
                 <li data-view="split" class="rounded transparent custom-mx-0">
                     <a href="#" title="[`List`]"><i class="fas fa-user-circle"></i></a>
@@ -64,6 +64,7 @@
 
         <!-- ADD -->
         <div class="s-order-nav-view custom-mt-4 custom-ml-8">
+            <button class="custom-mr-16 button nobutton light-gray circle" id="js-orders-show-secondary-filters"><i class="fas fa-search text-gray"></i></button>
             <a class="rounded button small nowrap s-order-nav-plus-button" href="#/orders/new/" title="[`New order`]">
                 <i class="fas fa-plus"></i>
                 <span class="s-order-nav-plus-button-label">[`New order`]</span>
@@ -166,7 +167,7 @@
     </div>
 
     <!-- SECONDAY FILTERS -->
-    <div class="s-order-nav-block s-order-nav-block-chips">
+    <div class="s-order-nav-block s-order-nav-block-chips js-order-nav-block-secondary" style="display: none;">
     <ul class="chips small custom-m-0">
         {if !empty($couriers)}
             <li class="dropdown js-orders-dropdown">
@@ -222,7 +223,7 @@
         {if !empty($payments)}
             <li class="dropdown js-orders-dropdown">
                 <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Payment`]">[`Payment`]</button>
-                <div class="dropdown-body right">
+                <div class="dropdown-body">
                     <ul class="menu">
                         {foreach $payments as $payment}
                             <li>
@@ -257,7 +258,7 @@
     </ul>
     </div>
 
-    <div class="s-order-nav-block s-order-nav-block-aux space-12 wide flexbox">
+    <div class="s-order-nav-block s-order-nav-block-aux space-12 wide flexbox js-order-nav-block-secondary" style="display: none;">
 
         <!-- SEARCH -->
         <div class="s-sidebar-search-form js-sidebar-search-form custom-mt-4">

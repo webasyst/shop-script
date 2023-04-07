@@ -4,13 +4,13 @@
 {capture assign="customers_list"}
     {foreach $customers as $c}
         <tr class="s-customer" data-customer-id="{$c.id}">
-            <td class="min-width valign-top s-userpic">
+            <td class="min-width valign-top s-userpic custom-mt-24-mobile">
                 <a href="#/id/{$c.id}"><img src="{$c.photo|escape}" class="userpic"></a>
             </td>
-            <td class="align-left">
-                <h3 class="large name nowrap wrap-mobile custom-mb-4">
-                    <a href="#/id/{$c.id}" class="flexbox middle space-4">
-                        <span>{$c.name|escape}</span>
+            <td class="align-left s-name">
+                <h3 class="large name custom-mb-4">
+                    <a href="#/id/{$c.id}">
+                        <span>{$c.name|default:'[`(no name)`]'|escape}</span>
                         {foreach $c.categories as $cc}
                             {if $cc.icon}
                                 <span class="icon text-gray">{$wa->shop->getIcon($cc.icon)}</span>

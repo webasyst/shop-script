@@ -76,10 +76,10 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                     is_locked = true;
 
                     var $type = $link.closest(".s-type-wrapper"),
-                        $icon = $link.find(".icon16"),
+                        $icon = $link.find("[data-icon]"),
                         type_id = $type.data("id");
 
-                    var $loading = $("<i class=\"icon16 loading\" />").insertAfter( $icon.hide() );
+                    var $loading = $(that.scope.content.loading).insertAfter( $icon.hide() );
 
                     $.post(that.urls["type_copy"], { id: type_id }, "json")
                         .fail( function() {
@@ -394,8 +394,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 event.preventDefault();
 
                 var $link = $(this),
-                    $icon = $link.find(".icon16"),
-                    $loading = $("<i class=\"icon16 loading\" />").insertAfter($icon.hide());
+                    $icon = $link.find("[data-icon]"),
+                    $loading = $(window.shop_feature_settings_page.loading).insertAfter($icon.hide());
 
                 if (!is_locked) {
                     is_locked = true;
@@ -411,8 +411,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 event.preventDefault();
 
                 var $link = $(this),
-                    $icon = $link.find(".icon16"),
-                    $loading = $("<i class=\"icon16 loading\" />").insertAfter($icon.hide());
+                    $icon = $link.find("[data-icon]"),
+                    $loading = $(window.shop_feature_settings_page.loading).insertAfter($icon.hide());
 
                 if (!is_locked) {
                     is_locked = true;
@@ -809,7 +809,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
             function showFeatureEditDialog($link) {
                 var $feature = $link.closest(".js-feature-wrapper"),
-                    $icon = $link.find(".icon16"),
+                    $icon = $link.find("[data-icon]"),
                     feature_code = $feature.data("code"),
                     feature_id = $feature.data("id");
 
@@ -817,7 +817,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 if (!is_locked) {
                     $feature.data("locked", true);
 
-                    var $loading = $("<i class=\"icon16 loading\" />").insertAfter( $icon.hide() );
+                    var $loading = $(window.shop_feature_settings_page.loading).insertAfter( $icon.hide() );
 
                     $link
                         // always
@@ -930,15 +930,14 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
             function showCodeEditDialog($link) {
                 var $feature = $link.closest(".js-code-wrapper"),
-                    $icon = $link.find(".icon16"),
+                    $icon = $link.find("[data-icon]"),
                     code_code = $feature.data("code"),
                     code_id = $feature.data("id");
 
                 var is_locked = !!$feature.data("locked");
                 if (!is_locked) {
                     $feature.data("locked", true);
-
-                    var $loading = $("<i class=\"icon16 loading\" />").insertAfter( $icon.hide() );
+                    var $loading = $(window.shop_feature_settings_page.loading).insertAfter( $icon.hide() );
 
                     var href = that.urls["code_edit"],
                         data = { id: code_id, code: code_code };
@@ -1212,8 +1211,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
             function updateWaTooltip() {
                 setTimeout(function() {
-                    console.log('updateWaTooltip');
-                    $(".wa-tooltip").waTooltip({
+                    $(".wa-tooltip", $section).waTooltip({
                         allowHTML: true,
                         delay: 300,
                         interactive: true
@@ -1221,30 +1219,43 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 });
             }
 
-            return new Vue({
-                el: $section[0],
-                data: {
-                    fractional: that.fractional,
-                    errors: that.errors
+            return Vue.createApp({
+                data() {
+                    return {
+                        fractional: that.fractional,
+                        errors: that.errors
+                    }
                 },
                 components: {
                     "component-switch": {
-                        props: ["value", "disabled", "title", "class_switch"],
+                        props: {
+                            modelValue: {
+                                type: Boolean,
+                                default: false
+                            },
+                            disabled: {
+                                type: Boolean,
+                                default: false
+                            },
+                            title: {
+                                type: String,
+                                default: null
+                            },
+                            class_switch: {
+                                type: String,
+                                default: null
+                            }
+                        },
+                        emits: ["change"],
                         data: function() {
-                            var self = this,
-                                title_data = (typeof self.title === "string" ? self.title : null);
-
-                            self.title = null;
+                            var title_data = this.title;
 
                             if (title_data) {
                                 title_data = '<div style="white-space:break-spaces;">' + title_data +  '</div>';
                             }
 
                             return {
-                                checked: (typeof this.value === "boolean" ? this.value : false),
-                                disabled: (typeof this.disabled === "boolean" ? this.disabled : false),
-                                class_switch: (typeof this.class_switch === "string" ? this.class_switch : null),
-                                title_data: title_data
+                                title_data
                             };
                         },
                         template: that.templates["component-switch"],
@@ -1256,9 +1267,11 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                             $switch.waSwitch({
                                 change: function(active, wa_switch) {
                                     self.$emit("change", active);
-                                    // self.$emit("input", active);
                                 }
                             });
+                        },
+                        computed: {
+                            prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); }
                         }
                     }
                 },
@@ -1486,52 +1499,38 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         self.checkOrderCountMin();
                     },
                     onChangeOrderCountStepEditable: function() {
-                        var self = this;
-                        self.checkOrderCountStep();
+                        this.checkOrderCountStep();
                     },
                     onChangeOrderCountMinEditable: function() {
-                        var self = this;
-                        self.checkOrderCountMin();
+                        this.checkOrderCountMin();
                     },
 
                     onChangeStockUnit: function() {
-                        var self = this;
-                        self.checkUnits();
+                        this.checkUnits();
                     },
                     onChangeBaseUnit: function() {
-                        var self = this;
-                        self.checkUnits();
+                        this.checkUnits();
                     },
                     onInputCountDenominator: function() {
-                        var self = this;
-
-                        self.checkCountDenominator();
-                        self.checkOrderCountStep();
-                        self.checkOrderCountMin();
+                        this.checkCountDenominator();
+                        this.checkOrderCountStep();
+                        this.checkOrderCountMin();
                     },
                     onChangeCountDenominator: function() {
-                        var self = this;
-
-                        self.fractional.order_multiplicity_factor.value = "" + self.validate('float', self.fractional.order_multiplicity_factor.value);
-                        self.onInputCountDenominator();
+                        this.fractional.order_multiplicity_factor.value = "" + this.validate('float', this.fractional.order_multiplicity_factor.value);
+                        this.onInputCountDenominator();
                     },
                     onChangeStockBaseRatio: function() {
-                        var self = this;
-
-                        self.fractional.stock_base_ratio.value = "" + self.validate('float', self.fractional.stock_base_ratio.value);
-                        self.checkStockBaseRatio();
+                        this.fractional.stock_base_ratio.value = "" + this.validate('float', this.fractional.stock_base_ratio.value);
+                        this.checkStockBaseRatio();
                     },
                     onChangeOrderCountStepValue: function() {
-                        var self = this;
-
-                        self.fractional.order_count_step.value = "" + self.validate('float', self.fractional.order_count_step.value);
-                        self.checkOrderCountStep();
+                        this.fractional.order_count_step.value = "" + this.validate('float', this.fractional.order_count_step.value);
+                        this.checkOrderCountStep();
                     },
                     onChangeOrderCountMinValue: function() {
-                        var self = this;
-
-                        self.fractional.order_count_min.value = "" + self.validate('float', self.fractional.order_count_min.value);
-                        self.checkOrderCountMin();
+                        this.fractional.order_count_min.value = "" + this.validate('float', this.fractional.order_count_min.value);
+                        this.checkOrderCountMin();
                     },
 
                     checkUnits: function() {
@@ -1543,13 +1542,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         if (self.fractional.stock_unit.status && self.fractional.stock_unit.enabled && self.fractional.base_unit.status && self.fractional.base_unit.enabled) {
                             var case_1 = (self.fractional.stock_unit.value && self.fractional.base_unit.value && self.fractional.stock_unit.value === self.fractional.base_unit.value);
                             if (case_1) {
-                                self.$set(self.errors, error_id, { id: error_id, text: that.locales["units_unique_error"] });
+                                self.errors[error_id] = { id: error_id, text: that.locales["units_unique_error"] };
                                 result = "units_error";
                             } else {
-                                self.$delete(self.errors, error_id);
+                                delete self.errors[error_id];
                             }
                         } else {
-                            self.$delete(self.errors, error_id);
+                            delete self.errors[error_id];
                         }
 
                         return result;
@@ -1568,13 +1567,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                                 //case_2 = (!self.fractional.stock_base_ratio.value && !self.fractional.base_unit.editable);
 
                             if (case_1) {
-                                self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_base_ratio_required"] });
+                                self.errors[error_id] = { id: error_id, text: that.locales["stock_base_ratio_required"] };
                                 result = "stock_base_ratio_error";
                             } else {
-                                self.$delete(self.errors, error_id);
+                                delete self.errors[error_id];
                             }
                         } else {
-                            self.$delete(self.errors, error_id);
+                            delete self.errors[error_id];
                         }
 
                         return result;
@@ -1591,13 +1590,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         if (self.fractional.order_multiplicity_factor.status && self.fractional.order_multiplicity_factor.enabled) {
                             var case_1 = (!self.fractional.order_multiplicity_factor.value || !checkValue(self.fractional.order_multiplicity_factor.value));
                             if (case_1) {
-                                self.$set(self.errors, error_id, { id: error_id, text: that.locales[error_id] });
+                                self.errors[error_id] = { id: error_id, text: that.locales[error_id] };
                                 result = error_id;
                             } else {
-                                self.$delete(self.errors, error_id);
+                                delete self.errors[error_id];
                             }
                         } else {
-                            self.$delete(self.errors, error_id);
+                            delete self.errors[error_id];
                         }
 
                         return result;
@@ -1630,13 +1629,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         if (self.fractional.order_count_step.status && self.fractional.order_count_step.enabled && self.fractional.order_multiplicity_factor.value) {
                             var case_1 = (!self.fractional.order_count_step.value || !self.checkValue(self.fractional.order_count_step.value));
                             if (case_1) {
-                                self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_step_error"] });
+                                self.errors[error_id] = { id: error_id, text: that.locales["order_count_step_error"] };
                                 result = "order_count_step_error";
                             } else {
-                                self.$delete(self.errors, error_id);
+                                delete self.errors[error_id];
                             }
                         } else {
-                            self.$delete(self.errors, error_id);
+                            delete self.errors[error_id];
                         }
 
                         return result;
@@ -1653,13 +1652,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         if (self.fractional.order_count_min.status && self.fractional.order_count_min.enabled && self.fractional.order_multiplicity_factor.value) {
                             var case_1 = (!self.fractional.order_count_min.value || !self.checkValue(self.fractional.order_count_min.value));
                             if (case_1) {
-                                self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_min_error"] });
+                                self.errors[error_id] = { id: error_id, text: that.locales["order_count_min_error"] };
                                 result = "order_count_min_error";
                             } else {
-                                self.$delete(self.errors, error_id);
+                                delete self.errors[error_id];
                             }
                         } else {
-                            self.$delete(self.errors, error_id);
+                            delete self.errors[error_id];
                         }
 
                         return result;
@@ -1751,8 +1750,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 },
                 delimiters: ['{ { ', ' } }'],
                 mounted: function() {
-                    var self = this,
-                        $section = $(self.$el);
+                    var self = this;
 
                     if (self.fractional.stock_unit.enabled && self.fractional.stock_unit.value && self.fractional.stock_unit.value !== "0") {
                         that.$wrapper.find('[name="stock_unit_id"] > option[value="0"]').hide();
@@ -1765,7 +1763,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                     this.updateWaTooltip();
                 }
-            });
+            }).mount($section[0]);
         }
 
         Dialog.prototype.initFrontList = function() {
@@ -1962,10 +1960,9 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             function request(data) {
                 if (!is_locked) {
                     is_locked = true;
-                    $submit_button.attr("disabled", true).append('<i class="fas fa-spinner wa-animation-spin speed-1000"/>');
+                    $submit_button.attr("disabled", true).append(window.shop_feature_settings_page.loading);
 
                     var href = that.urls["type_save"];
-                    console.log('request:data', data);
                     $.post(href, data, "json")
                         .always( function() {
                             is_locked = false;
@@ -1974,7 +1971,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         .done( function(response) {
                             if (response.status === "ok") {
                                 if (response.data && response.data.id) {
-                                    $submit_button.attr("disabled", true).append("<i class=\"icon16 loading\" />");
+                                    $submit_button.attr("disabled", true).append(window.shop_feature_settings_page.loading);
 
                                     $.settings.forceHash("/typefeat/" + response.data.id + "/");
 
@@ -2214,19 +2211,18 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
         };
 
         Dialog.prototype.initVue = function() {
-            var that= this;
+            var that = this;
 
             var $section = that.$wrapper.find(".js-vue-section");
             if (!$section.length) { return false; }
 
-            return new Vue({
-                el: $section[0],
-                data: {
-                    fractional: getFractional(that.dialog.options.confirm_values),
-                    confirm_values: that.dialog.options.confirm_values,
-                    errors: that.errors
-                },
-                components: {
+            return Vue.createApp({
+                data() {
+                    return {
+                        fractional: getFractional(that.dialog.options.confirm_values),
+                        confirm_values: that.dialog.options.confirm_values,
+                        errors: that.errors
+                    }
                 },
                 computed: {
                     selected_stock_unit: function () {
@@ -2264,43 +2260,31 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 },
                 methods: {
                     onChangeStockUnit: function() {
-                        var self = this;
-                        self.checkUnits();
+                        this.checkUnits();
                     },
                     onChangeBaseUnit: function() {
-                        var self = this;
-                        self.checkUnits();
+                        this.checkUnits();
                     },
                     onInputCountDenominator: function() {
-                        var self = this;
-
-                        self.checkCountDenominator();
-                        self.checkOrderCountStep();
-                        self.checkOrderCountMin();
+                        this.checkCountDenominator();
+                        this.checkOrderCountStep();
+                        this.checkOrderCountMin();
                     },
                     onChangeCountDenominator: function() {
-                        var self = this;
-
-                        self.fractional.order_multiplicity_factor.migrate = "" + self.validate('float', self.fractional.order_multiplicity_factor.migrate);
-                        self.onInputCountDenominator();
+                        this.fractional.order_multiplicity_factor.migrate = "" + this.validate('float', this.fractional.order_multiplicity_factor.migrate);
+                        this.onInputCountDenominator();
                     },
                     onChangeStockBaseRatio: function() {
-                        var self = this;
-
-                        self.fractional.stock_base_ratio.migrate = "" + self.validate('float', self.fractional.stock_base_ratio.migrate);
-                        self.checkStockBaseRatio();
+                        this.fractional.stock_base_ratio.migrate = "" + this.validate('float', this.fractional.stock_base_ratio.migrate);
+                        this.checkStockBaseRatio();
                     },
                     onChangeOrderCountStep: function() {
-                        var self = this;
-
-                        self.fractional.order_count_step.migrate = "" + self.validate('float', self.fractional.order_count_step.migrate);
-                        self.checkOrderCountStep();
+                        this.fractional.order_count_step.migrate = "" + this.validate('float', this.fractional.order_count_step.migrate);
+                        this.checkOrderCountStep();
                     },
                     onChangeOrderCountMin: function() {
-                        var self = this;
-
-                        self.fractional.order_count_min.migrate = "" + self.validate('float', self.fractional.order_count_min.migrate);
-                        self.checkOrderCountMin();
+                        this.fractional.order_count_min.migrate = "" + this.validate('float', this.fractional.order_count_min.migrate);
+                        this.checkOrderCountMin();
                     },
 
                     checkUnits: function() {
@@ -2312,13 +2296,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         if (self.fractional.stock_unit.status && self.fractional.stock_unit.enabled && self.fractional.base_unit.status && self.fractional.base_unit.enabled) {
                             var case_1 = (self.fractional.stock_unit.migrate && self.fractional.base_unit.migrate && self.fractional.stock_unit.migrate === self.fractional.base_unit.migrate);
                             if (case_1) {
-                                self.$set(self.errors, error_id, { id: error_id, text: that.locales["units_unique_error"] });
+                                self.errors[error_id] = { id: error_id, text: that.locales["units_unique_error"] };
                                 result = "units_error";
                             } else {
-                                self.$delete(self.errors, error_id);
+                                delete self.errors[error_id];
                             }
                         } else {
-                            self.$delete(self.errors, error_id);
+                            delete self.errors[error_id];
                         }
 
                         return result;
@@ -2334,10 +2318,10 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                         var case_1 = (!self.fractional.stock_base_ratio.migrate || !(parseFloat(self.fractional.stock_base_ratio.migrate) > 0));
                         if (case_1) {
-                            self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_base_ratio_required"] });
+                            self.errors[error_id] = { id: error_id, text: that.locales["stock_base_ratio_required"] };
                             result = "stock_base_ratio_required";
                         } else {
-                            self.$delete(self.errors, error_id);
+                            delete self.errors[error_id];
                         }
 
                         return result;
@@ -2354,13 +2338,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                         if (self.fractional.order_multiplicity_factor.status && self.fractional.order_multiplicity_factor.enabled) {
                             var case_1 = (!self.fractional.order_multiplicity_factor.migrate || !checkValue(self.fractional.order_multiplicity_factor.migrate));
                             if (case_1) {
-                                self.$set(self.errors, error_id, { id: error_id, text: that.locales[error_id] });
+                                self.errors[error_id] = { id: error_id, text: that.locales[error_id] };
                                 result = error_id;
                             } else {
-                                self.$delete(self.errors, error_id);
+                                delete self.errors[error_id];
                             }
                         } else {
-                            self.$delete(self.errors, error_id);
+                            delete self.errors[error_id];
                         }
 
                         return result;
@@ -2392,10 +2376,10 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                         var case_1 = (!self.fractional.order_count_step.migrate || !self.checkValue(self.fractional.order_count_step.migrate));
                         if (self.fractional.order_count_step.enabled && case_1) {
-                            self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_step_error"] });
+                            self.errors[error_id] = { id: error_id, text: that.locales["order_count_step_error"] };
                             result = "order_count_step_error";
                         } else {
-                            self.$delete(self.errors, error_id);
+                            delete self.errors[error_id];
                         }
 
                         return result;
@@ -2411,10 +2395,10 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                         var case_1 = (!self.fractional.order_count_min.migrate || !self.checkValue(self.fractional.order_count_min.migrate));
                         if (self.fractional.order_count_min.enabled && case_1) {
-                            self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_min_error"] });
+                            self.errors[error_id] = { id: error_id, text: that.locales["order_count_min_error"] };
                             result = "order_count_min_error";
                         } else {
-                            self.$delete(self.errors, error_id);
+                            delete self.errors[error_id];
                         }
 
                         return result;
@@ -2444,12 +2428,9 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 },
                 delimiters: ['{ { ', ' } }'],
                 mounted: function() {
-                    var self = this,
-                        $section = $(self.$el);
-
-                    that.validate(self);
+                    that.validate(this);
                 }
-            });
+            }).mount($section[0]);
 
             function getFractional(confirm_values) {
                 var fractional = clone(that.fractional);
@@ -2493,7 +2474,8 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                     }
 
                     is_locked = true;
-                    $submit_button.attr("disabled", true).append("<i class=\"icon16 loading\" />");
+
+                    $submit_button.attr("disabled", true).append(window.shop_feature_settings_page.loading);
 
                     onSubmit()
                         .always(function () {
@@ -2616,7 +2598,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
 
                 if (!is_locked) {
                     is_locked = true;
-                    $submit_button.attr("disabled", true).append("<i class=\"icon16 loading\" />");
+                    $submit_button.attr("disabled", true).append(window.shop_feature_settings_page.loading);
 
                     var href = that.urls["type_delete_controller"],
                         data = {
@@ -2632,7 +2614,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                             if (response.status === "ok") {
                                 $.settings.forceHash("/typefeat/");
 
-                                $submit_button.attr("disabled", true).append("<i class=\"icon16 loading\" />");
+                                $submit_button.attr("disabled", true).append(window.shop_feature_settings_page.loading);
 
                                 that.scope.scope.reload()
                                     .fail( function() {
@@ -2949,7 +2931,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 }
 
                 function animateUI() {
-                    var $loading = $("<i class=\"icon16 loading\" />"),
+                    var $loading = $(window.shop_feature_settings_page.loading),
                         locked_class = "is-locked",
                         is_displayed = false;
 
@@ -3029,7 +3011,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 if (!is_locked) {
                     is_locked = true;
                     $button.attr("disabled", true);
-                    var $loading = $("<i class=\"icon16 loading\" />").appendTo($button);
+                    var $loading = $(window.shop_feature_settings_page.loading).appendTo($button);
 
                     deleteRequest()
                         .always( function() {
@@ -3188,7 +3170,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 var name = $.trim($name_field.val());
 
                 if (!$loading) {
-                    $loading = $("<i class=\"icon16 loading\" />").insertAfter($code_field);
+                    $loading = $(window.shop_feature_settings_page.loading).insertAfter($code_field);
                 }
 
                 getCodeName(name)
@@ -3374,7 +3356,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 }
 
                 function animateUI() {
-                    var $loading = $("<i class=\"icon16 loading\" />"),
+                    var $loading = $(window.shop_feature_settings_page.loading),
                         locked_class = "is-locked",
                         is_displayed = false;
 
@@ -3442,7 +3424,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                 if (!is_locked) {
                     is_locked = true;
                     $button.attr("disabled", true);
-                    var $loading = $("<i class=\"icon16 loading\" />").appendTo($button);
+                    var $loading = $(window.shop_feature_settings_page.loading).appendTo($button);
 
                     deleteRequest()
                         .always( function() {

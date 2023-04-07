@@ -46,15 +46,20 @@ ul.bxslider {
 	width: 100%;
 }
 /* LOADER */
+.bx-wrapper .bx-loading-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  z-index: 2000;
+}
 .bx-wrapper .bx-loading {
-	min-height: 50px;
-	background: url('../img/loading32.gif') center center no-repeat #ffffff;
-	height: 100%;
-	width: 100%;
-	position: absolute;
-	top: 0;
-	left: 0;
-	z-index: 2000;
+  background: url(../img/svg/spinner-solid.svg?v2) no-repeat 100% 100%;
+  background-size: contain;
+  width: 48px;
+  height: 48px;
+  -webkit-animation: rotating 1s linear infinite;
+  animation: rotating 1s linear infinite;
 }
 /* PAGER */
 .bx-wrapper .bx-pager {

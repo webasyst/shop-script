@@ -168,7 +168,6 @@ class shopOrderListAction extends waViewAction
             }
 
             $search = urldecode(waRequest::get('search', '', waRequest::TYPE_STRING_TRIM));
-            waLog::dump($search);
             if ($search) {
                $params['search/'] = $search;
             }

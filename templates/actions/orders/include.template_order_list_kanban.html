@@ -1,78 +1,42 @@
-<link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
-<script src="{$wa_app_static_url}js/backend/orders/kanban.js?v={$wa->version(true)}"></script>
-<script>
-    Kanban.init({
-        filter_params: {json_encode($params)},
-        filter_params_str: '{$params_str}',
-    })
-</script>
+{literal}
+    {%
+        const states = o.states;
+        const orders = o.orders;
+        const state_icons = o.state_icons;
+        const state_counters = o.state_counters;
+    %}
 
-<div class="s-kanban flexbox js-fix-max-width">
-    <div class="flexbox fixed space-12 width-100">
-        {foreach $state_names as $state_id => $state}
+    {% for (state in states) { %}
+
+        {%
+            const state_icon = state_icons[state] || '';
+            const state_counter = state_counters[state] || '0';
+            const state_color = states[state]['options']['style']['color'] || '#fff';
+            const state_fontWeight = states[state]['options']['style']['font-weight'] || 'normal';
+            const state_name = states[state]['name'];
+        %}
         <div class="s-kanban__list">
             <div class="flexbox middle custom-p-12">
                 <div class="wide">
-                    <span class="s-status-wrapper large nowrap" style="color:{$state['options']['style']['color']|default:'#fff'};font-weight:{$state['options']['style']['font-weight']|default:'normal'}"><i class="{$wa->shop->convertIcon($state['options']['icon'])}"></i> {$state['name']|escape}</span>
+                    <span class="s-status-wrapper large nowrap" style="color:{%=state_color%};font-weight:{%=state_fontWeight%}">
+                        <i class="{%=state_icon%}"></i> {%=states[state]['name']%}
+                    </span>
                 </div>
                 <div>
-                    <span class="s-kanban__list__count gray bold">{$state_counters[$state_id]|default:0}</span>
+                    <span class="s-kanban__list__count gray bold" data-status-id="{%#state%}">{%=state_counter%}</span>
                 </div>
             </div>
-            <div data-kanban-list-status-id="{$state_id}" data-kanban-list-total="{$state_counters[$state_id]|default:0}" class="s-kanban__list__body hide-scrollbar custom-px-12">
-            {foreach $orders as $order}
-                {if $order.state_id != $state_id}{continue}{/if}
-                <div data-order-id="{$order.id}" class="order_ s-kanban__list__body__item custom-p-12 custom-mb-8 blank">
-                    <div class="flexbox">
-                        <div class="s-kanban-item-title custom-mr-8">
-                            <span class="userpic userpic48{if $order.state_id == 'new'} highlighted{/if} bold" title="">
-                                <img src="{$order.order_icon}" alt="">
-                            </span>
-                        </div>
-                        <div class="s-kanban-item-body wide">
-                            <p class="flexbox full-width custom-mb-4">
-                                <span>
-                                    <span class="badge uppercase text-white nowrap small custom-mr-8" style="background-color: {$state.options.style.color|escape}">{$state['name']|escape}</span>
-                                </span>
-                                <span class="nowrap semibold">
-                                    {if !empty($order.paid_date_str)}
-                                        <span class="text-green custom-ml-4 cursor-pointer" data-wa-tooltip-content="[`Paid`] {$order.paid_datetime_str|default:$order.paid_date_str}" data-wa-tooltip-placement="left">
-                                            <i class="fas fa-check-circle"></i>
-                                        </span>
-                                    {/if}
-                                    {$order.total_str}
-                                </span>
-                            </p>
-                            <p class="custom-mt-0 custom-mb-8" style="line-height: 1.2;">
-                                <a href="?action=orders#/order/{$order.id}/" class="semibold custom-mr-4">{$order.id_str}</a>
-                                <span class="opacity-80">{$order.contact.name}</span>
-                            </p>
-                            <p class="hint custom-mt-4">
-                                [`Created`] {$order.create_datetime_str}
-                                {if !empty($order.paid_date_str)}
-                                    <br>[`Paid`] {$order.paid_datetime_str|default:$order.paid_date_str}
-                                {/if}
-                            </p>
-                        </div>
-                    </div>
-
-
-                    <div class="flexbox vertical s-kanban-item-body wide bordered-top custom-mt-8 custom-pt-12 small gray">
-                        <span><i class="fas fa-truck custom-mr-4"></i> {$order.shipping_name}</span>
-                        {if !empty($order.courier_name)}
-                            <span><i class="fas fa-walking custom-mr-4"></i> {$order.courier_name} {$order.shipping_interval|default:''}</span>
-                        {/if}
-                        <span><i class="fas fa-credit-card custom-mr-4"></i> {$order.payment_name}</span>
-                        <!-- TODO add plugin hook here -->
-                    </div>
-                </div>
-            {/foreach}
+            <div data-kanban-list-status-id="{%#state%}" data-kanban-list-total="{%#state_counter%}" class="s-kanban__list__body hide-scrollbar custom-px-12">
+                {% for (order of orders) { %}
+                    {% if (order.state_id == state) { %}
+                        {% include('template-order-list-kanban-card', { state_name, state, order, state_color });  %}
+                    {% } %}
+                {% } %}
                 <div class="s-kanban__list__body__footer">
                     <div class="spinner custom-p-8 js-kanban-spinner" style="display: none;"></div>
                 </div>
             </div>
             <div class="s-kanban__list__fade"></div>
         </div>
-    {/foreach}
-    </div>
-</div>
+    {% } %}
+{/literal}

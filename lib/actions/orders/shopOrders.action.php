@@ -58,20 +58,18 @@ class shopOrdersAction extends shopOrderListAction {
                     ];
                 }
             }
+        }
 
+        foreach ($available_states as $state_id => $state) {
+            $state_names[$state_id]['name'] = waLocale::fromArray($state['name']);
+            $state_names[$state_id]['options'] = $state['options'];
 
-            foreach ($available_states as $state_id => $state) {
-                $state_names[$state_id]['name'] = waLocale::fromArray($state['name']);
-                $state_names[$state_id]['options'] = $state['options'];
-
-                if (isset($state['available_actions']) && is_array($state['available_actions'])) {
-                    foreach ($state['available_actions'] as $action_id) {
-                        if (isset($actions[$action_id])) {
-                            $actions[$action_id]['available_for_states'][] = $state_id; // for this state this action is available
-                        }
+            if (isset($state['available_actions']) && is_array($state['available_actions'])) {
+                foreach ($state['available_actions'] as $action_id) {
+                    if (isset($actions[$action_id])) {
+                        $actions[$action_id]['available_for_states'][] = $state_id; // for this state this action is available
                     }
                 }
-
             }
         }
 
@@ -120,22 +118,23 @@ class shopOrdersAction extends shopOrderListAction {
         }
 
         $this->assign([
-            'orders'              => array_values($orders),
-            'total_count'         => $this->getTotalCount(),
-            'count'               => count($orders),
-            'order'               => $this->getOrder($orders),
-            'currency'            => $config->getCurrency(),
-            'state_names'         => $state_names,
-            'plugin_hash'         => waRequest::get('hash', '', waRequest::TYPE_STRING_TRIM),
-            'params'              => $this->getFilterParams(),
-            'params_str'          => $this->getFilterParams(true),
-            'view'                => $view,
-            'timeout'             => $config->getOption('orders_update_list'),
-            'actions'             => $actions,
-            'counters'            => $counters,
-            'sort'                => $this->getSort(),
-            'all_order_state_ids' => $all_order_state_ids,
-            'state_counters'      => $state_counters,
+            'orders'               => array_values($orders),
+            'total_count'          => $this->getTotalCount(),
+            'count'                => count($orders),
+            'order'                => $this->getOrder($orders),
+            'currency'             => $config->getCurrency(),
+            'state_names'          => $state_names,
+            'plugin_hash'          => waRequest::get('hash', '', waRequest::TYPE_STRING_TRIM),
+            'params'               => $this->getFilterParams(),
+            'params_str'           => $this->getFilterParams(true),
+            'view'                 => $view,
+            'timeout'              => $config->getOption('orders_update_list'),
+            'actions'              => $actions,
+            'counters'             => $counters,
+            'sort'                 => $this->getSort(),
+            'all_order_state_ids'  => $all_order_state_ids,
+            'state_counters'       => $state_counters,
+            'last_update_datetime' => max(array_column($orders, 'update_datetime')),
         ]);
     }
 

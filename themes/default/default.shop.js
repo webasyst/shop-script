@@ -192,7 +192,7 @@ $(document).ready(function () {
             var url = location.pathname + ( params.length ? "?" + params.join('&') : "");
 
             $(window).lazyLoad && $(window).lazyLoad('sleep');
-            $('#product-list').html('<img src="' + f.data('loading') + '">');
+            $('#product-list').html(f.data('loading'));
             $.get(url, function(html) {
                 var tmp = $('<div></div>').html(html);
                 $('#product-list').html(tmp.find('#product-list').html());
@@ -396,7 +396,7 @@ $(document).ready(function () {
                     var product_list = $('#product-list .product-list');
                     var loading = paging.parent().find('.loading').parent();
                     if (!loading.length) {
-                        loading = $('<div><i class="icon16 loading"></i>'+loading_str+'</div>').insertBefore(paging);
+                        loading = $('<div class="wa-flex align-items-center wa-mb-8"><i class="icon16 loading"></i><span>'+loading_str+'</span></div>').insertBefore(paging);
                     }
 
                     loading.show();

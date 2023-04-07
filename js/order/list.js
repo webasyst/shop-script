@@ -173,57 +173,8 @@
                             return;
                         }
 
-                        console.log('hashchange');
                         $('.js-close-drawer', $order).trigger('click');
                     });
-
-
-
-                    // let disable_back_history = true;
-                    // const html = $.order_list.drawer_order;
-                    // const $html = $(html);
-                    // const $order = $('#s-order');
-
-                    // $order.find('.back.order-list')
-                    //         .addClass('js-close-drawer mobile-only')
-                    //         .show();
-
-                    // $('.drawer-content', $html).html($order.html());
-
-                    // const hashchange = function() {
-                    //     if (disable_back_history) {
-                    //         return;
-                    //     }
-
-                    //     const $drawer_order = $('.drawer-order');
-                    //     if($drawer_order.length) {
-                    //         $('.js-close-drawer', $drawer_order).trigger('click');
-                    //         setTimeout(() => removeDrawerOrder(), 250);
-                    //     }
-                    // };
-
-                    // const drawer = $.waDrawer({
-                    //     $wrapper: $html,
-                    //     lock_body_scroll: false,
-                    //     direction: "right",
-                    //     onOpen: function() {
-                    //         $(window).on('hashchange', hashchange);
-                    //         setTimeout(function() {
-                    //             disable_back_history = false;
-                    //         });
-                    //     },
-                    //     onClose: function() {
-                    //         $(window).off('hashchange', hashchange);
-                    //         let order_list_hash = window.location.hash;
-                    //         if (id == $.order_list.params.id) {
-                    //             $.wa.setHash(order_list_hash.replace(regexpId, ''));
-                    //         }
-
-                    //         disable_back_history = true;
-                    //     }
-                    // });
-                    // drawer.animation_time = 250;
-                    // console.log(drawer);
                 }
 
                 this.container.off().on('orderMobile', function(e, id) {
@@ -234,7 +185,7 @@
                         && $.order_list.id
                     ) {
                         $.order_list.touched = false;
-                        console.log('orderMobile', id);
+
                         openOrder(id);
                     }
                 })
@@ -280,20 +231,14 @@
                     // template-order-list-table
                     // template-order-list-split
                     // template-order-list-kanban
-                    if (this.options.view == 'kanban') {
-                        // kanban does not use JS templating, append HTML as is
-                        this.container.html(
-                            $('#template-order-list-kanban')[0].innerHTML
-                                .replace(/<\\\//g, '</')
-                        );
-                    } else {
-                        this.container.append(
-                            tmpl('template-order-list-' + this.options.view, {
-                                    orders: options.orders,
-                                    states: options.state_names || {}
-                                }, true
-                            ));
-                    }
+                    this.container.append(
+                        tmpl('template-order-list-' + this.options.view, {
+                                orders: options.orders,
+                                states: options.state_names || {},
+                                state_counters: options.state_counters  || {},
+                                state_icons: options.state_icons  || {},
+                            }, true
+                        ));
                     this.container.trigger('append_order_list', [options.orders]);
                 } catch (e) {
                     $.shop.notification({
@@ -318,7 +263,7 @@
                 this.updateCounters(options.counters);
             }
 
-            if (options.update_process && options.count) {
+            if (options.update_process) {
                 this.updateProcess('run', options.update_process);
             }
 
@@ -368,7 +313,6 @@
                 intersectionObserver = new IntersectionObserver((entries) => {
                     if (entries[0].intersectionRatio <= 0) return;
 
-                    console && console.log('observe:load');
                     if (count < total_count) {
                         fetch();
                     }
@@ -383,7 +327,6 @@
                 var last_li = self.container.find('.order:last');
                 var id = parseInt(last_li.attr('data-order-id'), 10);
                 if (!id) {
-                    console.log("Unknown last item");
                     return;
                 }
 
@@ -397,6 +340,8 @@
                                     tmpl('template-order-list-' + self.options.view, {
                                             orders: r.data.orders,
                                             states: self.options.state_names || {},
+                                            state_counters: self.options.state_counters  || {},
+                                            state_icons: self.options.state_icons  || {},
                                             check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
                                         }
                                     ));
@@ -783,6 +728,7 @@
             // prevent binding events twice, cause menu item located in layout block and it isn't updated when inner content changed
             if (!dropdownData) {
                 $dropdown.waDropdown({
+                    hover: false,
                     items: '.menu > li > a',
                     ready(dropdown) {
                         dropdownData = dropdown;
@@ -1267,44 +1213,53 @@
          *
          */
         updateCounters: function (counters) {
-            var sidebar = this.sidebar;
-            if (!sidebar) {
-                sidebar = $('#s-sidebar');
-            }
-            var ext_new_counter = $('#s-pending-orders .small');
-            for (var name in counters) {
-                if (counters.hasOwnProperty(name)) {
-                    var cntrs = counters[name];
-                    for (var id in cntrs) {
-                        if (cntrs.hasOwnProperty(id)) {
-                            var item;
-                            if (name == 'common_counters') {
-                                item = $('#s-' + id + '-orders .count');
-                            } else {
-                                if (name === 'storefront_counters') {
-                                    item = sidebar.find('li[data-' + name.replace('_counters', '') + '="' + id + '"] .count');
+            if (this.options.view === 'kanban') {
+                const $counter_wrapper = $('.s-kanban__list__count');
+                for (const counter in counters.state_counters) {
+                    if (counters.state_counters.hasOwnProperty(counter)) {
+                        $counter_wrapper.filter(`[data-status-id="${counter}"]`).text(counters.state_counters[counter])
+                    }
+                }
+            }else {
+                var sidebar = this.sidebar;
+                if (!sidebar) {
+                    sidebar = $('#s-sidebar');
+                }
+                var ext_new_counter = $('#s-pending-orders .small');
+                for (var name in counters) {
+                    if (counters.hasOwnProperty(name)) {
+                        var cntrs = counters[name];
+                        for (var id in cntrs) {
+                            if (cntrs.hasOwnProperty(id)) {
+                                var item;
+                                if (name == 'common_counters') {
+                                    item = $('#s-' + id + '-orders .count');
                                 } else {
-                                    item = sidebar.find('li[data-' + name.replace('_counters', '') + '-id=' + id + '] .count');
+                                    if (name === 'storefront_counters') {
+                                        item = sidebar.find('li[data-' + name.replace('_counters', '') + '="' + id + '"] .count');
+                                    } else {
+                                        item = sidebar.find('li[data-' + name.replace('_counters', '') + '-id=' + id + '] .count');
+                                    }
                                 }
-                            }
-                            var prev_cnt = parseInt(item.text(), 10) || 0;
-                            var cnt = 0;
-                            cntrs[id] = '' + cntrs[id];
-                            if (cntrs[id].substr(0, 1) == '+') {
-                                cnt = prev_cnt + (parseInt(cntrs[id].substr(1), 10) || 0);
-                                item.text(cnt);
-                            } else if (cntrs[id].substr(0, 1) == '-') {
-                                cnt = prev_cnt - (parseInt(cntrs[id].substr(1), 10) || 0);
-                                cnt = cnt < 0 ? 0 : cnt;
-                                item.text(cnt);
-                            } else {
-                                cnt = parseInt(cntrs[id], 10) || 0;
-                                item.text(cnt);
-                            }
-                            if (id == 'new') {
-                                ext_new_counter.text(cnt ? '+' + cnt : '');
-                                $.shop.updateAppCounter(cnt);
-                                this.updateTitle(this.options.title_suffix, parseInt(cnt, 10));
+                                var prev_cnt = parseInt(item.text(), 10) || 0;
+                                var cnt = 0;
+                                cntrs[id] = '' + cntrs[id];
+                                if (cntrs[id].substr(0, 1) == '+') {
+                                    cnt = prev_cnt + (parseInt(cntrs[id].substr(1), 10) || 0);
+                                    item.text(cnt);
+                                } else if (cntrs[id].substr(0, 1) == '-') {
+                                    cnt = prev_cnt - (parseInt(cntrs[id].substr(1), 10) || 0);
+                                    cnt = cnt < 0 ? 0 : cnt;
+                                    item.text(cnt);
+                                } else {
+                                    cnt = parseInt(cntrs[id], 10) || 0;
+                                    item.text(cnt);
+                                }
+                                if (id == 'new') {
+                                    ext_new_counter.text(cnt ? '+' + cnt : '');
+                                    $.shop.updateAppCounter(cnt);
+                                    this.updateTitle(this.options.title_suffix, parseInt(cnt, 10));
+                                }
                             }
                         }
                     }
@@ -1313,10 +1268,6 @@
         },
 
         updateListItems: function (data) {
-            if (this.options.view === 'kanban') {
-                return; // not used for kanban
-            }
-
             var self = this;
             var tmpl_name = 'template-order-list-' + this.options.view;
             if (document.getElementById(tmpl_name)) {
@@ -1328,6 +1279,8 @@
                 var rendered = $('<div></div>').append(tmpl(tmpl_name, {
                     orders: data,
                     states: self.options.state_names,
+                    state_counters: self.options.state_counters  || {},
+                    state_icons: self.options.state_icons  || {},
                     check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
                 }));
                 var context = $('.order', container);
@@ -1424,13 +1377,13 @@
          * @param {String} order_update_datetime (load list updated orders). Default: falsy
          * @returns {String}
          */
-        buildLoadListUrl: function (id, lt, counters, order_update_datetime = '') {
+        buildLoadListUrl: function (id, lt, counters, order_update_datetime = null) {
             return '?module=orders&action=loadList&id=' + id +
                 (this.filter_params_str ? '&' + this.filter_params_str : '') +
                 (lt ? '&lt=1' : '') +
                 (counters ? '&counters=1' : '') +
                 (this.options.view ? '&view=' + this.options.view : '') +
-                ((order_update_datetime != '') ? '&search=update_datetime>=' + order_update_datetime : '') +
+                ((order_update_datetime) ? '&search=update_datetime>=' + order_update_datetime : '') +
                 ('&sort[0]=' + this.sort[0] + '&sort[1]=' + this.sort[1]);
         },
 
@@ -1438,6 +1391,7 @@
             status = status || 'run';
             options = options || {};
             timeout = options.timeout || 60000;
+
             var self = this;
             var killProcess = function () {
                 if (self.timer_id !== null) {
@@ -1455,12 +1409,14 @@
                 var process = function (success, error) {
                     var first_li = self.container.find('.order:first');
                     var id = parseInt(first_li.attr('data-order-id'), 10) || 0;
+                    const formattedDate = updatedDatetime(options.last_update_datetime);
 
-                    process_order_update(id);
-
-                    return $.getJSON(self.buildLoadListUrl(id, true, true),
+                    return $.getJSON(self.buildLoadListUrl(id, true, true, formattedDate),
                         function (r) {
                             if (r.status == 'ok') {
+
+                                order_update(r);
+
                                 if (!$.isEmptyObject(r.data.counters)) {
                                     self.updateCounters(r.data.counters);
                                 }
@@ -1471,6 +1427,8 @@
                                             tmpl('template-order-list-' + self.options.view, {
                                                     orders: r.data.orders,
                                                     states: self.options.state_names || {},
+                                                    state_counters: self.options.state_counters  || {},
+                                                    state_icons: self.options.state_icons  || {},
                                                     check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
                                                 }
                                             ));
@@ -1510,106 +1468,120 @@
                     });
                 };
 
-                var process_order_update = function (id) {
-                    // Получить текущую дату и время
-                    const currentDate = new Date();
+                var order_update = response => {
+                    if (!$.isEmptyObject(response.data.updated_orders)) {
+                        try {
+                            const updated_date = [];
+                            for (const order of response.data.updated_orders) {
+                                const orderElem = self.container.find(`[data-order-id=${order.id}]`);
+                                const isSelectedOrder = orderElem.hasClass('selected');
 
-                    // Вычесть интервал обновления
-                    currentDate.setTime(currentDate.getTime() - timeout);
+                                if (orderElem.length) {
+                                    const oldStateId = orderElem.data('state-id');
+                                    const newStateId = order.state_id;
+                                    const hash = decodeURIComponent(window.location.hash);
+                                    const stateIdRegex = /state_id=([\w|]+)/;
+                                    const hashStateIds = stateIdRegex.exec(hash)?.[1]?.replace(/\|{1,2}/g, ',')?.split(',') || [];
+                                    const updateOrderList = (isSelected) => {
+                                        const tmplParams = {
+                                            states: self.options.state_names || {},
+                                        };
 
-                    // Год, месяц и день в нужном формате
-                    const year = currentDate.getFullYear();
-                    const month = ('0' + (currentDate.getMonth() + 1)).slice(-2);
-                    const day = ('0' + currentDate.getDate()).slice(-2);
+                                        let kanban_card_suffix = '';
 
-                    // Часы, минуты и секунды в нужном формате
-                    const hours = ('0' + currentDate.getHours()).slice(-2);
-                    const minutes = ('0' + currentDate.getMinutes()).slice(-2);
-                    const seconds = ('0' + currentDate.getSeconds()).slice(-2);
+                                        if (self.options.view === 'kanban') {
+                                            kanban_card_suffix = '-card';
 
-                    // Строка в нужном формате
-                    const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                                            order.order_icon = order.contact.photo_50x50
+                                            tmplParams.order = order;
+                                            tmplParams.state = newStateId;
+                                            tmplParams.state_name = tmplParams.states[tmplParams.state]?.name;
+                                            tmplParams.state_color = tmplParams.states[tmplParams.state]?.options.style.color || '#fff';
+                                            tmplParams.isUpdated = true;
+                                        } else {
+                                            tmplParams.orders = [order];
+                                            tmplParams.state_counters = self.options.state_counters || {};
+                                            tmplParams.state_icons = self.options.state_icons || {};
+                                            tmplParams.check_all = self.options.view == 'table' ? self.select_all_input.attr('checked') : false;
+                                        }
 
-                    return $.getJSON(self.buildLoadListUrl(id, false, false, formattedDate),
-                        function (r) {
-                            if (r.status == 'ok') {
+                                        orderElem
+                                            .after(tmpl(`template-order-list-${self.options.view}${kanban_card_suffix}`, tmplParams))
+                                            .remove();
+                                        if (isSelected) {
+                                            self.loadOrder(order.id);
+                                        }
+                                    };
 
-                                if (r.data?.updated_orders.length) {
-                                    try {
-                                        for (const order of r.data.updated_orders) {
-                                            const orderElem = self.container.find(`[data-order-id=${order.id}]`);
-                                            const isSelectedOrder = orderElem.hasClass('selected');
-
-                                            if (orderElem.length) {
-                                                const oldStateId = orderElem.data('order-state');
-                                                const newStateId = order.state_id;
-                                                const hash = decodeURIComponent(window.location.hash);
-                                                const stateIdRegex = /state_id=([\w|]+)/;
-                                                const hashStateIds = stateIdRegex.exec(hash)?.[1]?.replace(/\|{1,2}/g, ',')?.split(',') || [];
-
-                                                const updateOrderList = (isSelected) => {
-                                                    const tmplParams = {
-                                                        orders: [order],
-                                                        states: self.options.state_names || {},
-                                                        check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false,
-                                                    };
-                                                    orderElem.after(tmpl(`template-order-list-${self.options.view}`, tmplParams)).remove();
-                                                    if (isSelected) {
-                                                        self.loadOrder(order.id);
-                                                    }
-                                                };
-
-                                                const shouldUpdateOrderList = () => {
-                                                    if (oldStateId !== newStateId) {
-                                                        if (hashStateIds.some(param => newStateId.includes(param))) {
-                                                            return true;
-                                                        } else {
-                                                            const nextOrder = orderElem.next();
-                                                            if (nextOrder.length) {
-                                                                self.loadOrder(nextOrder.data('order-id'));
-                                                            }
-                                                            orderElem.remove();
-                                                            return false;
-                                                        }
-                                                    } else {
-                                                        return true;
-                                                    }
-                                                };
-
-                                                if (shouldUpdateOrderList()) {
-                                                    updateOrderList(isSelectedOrder);
-                                                } else {
-                                                    orderElem.remove();
+                                    const shouldUpdateOrderList = () => {
+                                        if (oldStateId !== newStateId) {
+                                            if (hashStateIds.some(param => newStateId.includes(param)) || this.options.view === 'kanban') {
+                                                return true;
+                                            } else {
+                                                const nextOrder = orderElem.next();
+                                                if (nextOrder.length) {
+                                                    self.loadOrder(nextOrder.data('order-id'));
                                                 }
+                                                orderElem.remove();
+                                                return false;
                                             }
+                                        } else {
+                                            return true;
                                         }
-                                        self.container.trigger('append_order_list', [r.data.updated_orders]);
-                                    } catch (e) {
-                                        if (console) {
-                                            console.log('Error: ' + e.message);
+                                    };
+
+                                    if (shouldUpdateOrderList()) {
+                                        updateOrderList(isSelectedOrder);
+
+                                        if (oldStateId !== newStateId) {
+                                            const updatedCard = self.container.find(`[data-order-id="${order.id}"]`);
+                                            const targetColumn = self.container.find(`[data-kanban-list-status-id="${newStateId}"]`);
+
+                                            updatedCard.slideToggle('normal', function () {
+                                                $(this).prependTo(targetColumn).slideToggle('normal');
+                                            })
                                         }
-                                        return;
+                                    } else {
+                                        orderElem.remove();
                                     }
-                                }
-                            } else {
-                                if (console) {
-                                    console.log('Error when loading updated orders: ' + r.errors);
+
+                                    updated_date.push(order.update_datetime);
                                 }
                             }
-                        }
-                    ).error(function (r) {
-                        if (console) {
-                            if (r && r.errors) {
-                                console.log('Error when loading updated orders: ' + r.errors);
-                            } else {
-                                console.log(['Error when loading updated orders', r]);
+
+                            updatedDatetime(updated_date.sort()[updated_date.length-1]);
+
+                            self.container.trigger('append_order_list', [response.data.updated_orders]);
+                        } catch (e) {
+                            if (console) {
+                                console.log('Error: ' + e.message);
                             }
                         }
-                        if (typeof error === 'function') {
-                            error();
-                        }
-                    });
+                    }
                 };
+
+                var updatedDatetime = last_update_datetime => {
+                    if (!last_update_datetime) {
+                        const now = new Date();
+                        now.setDate(now.getDate() - 1);
+                        last_update_datetime = format(now);
+                    }
+
+                    function format(date) {
+                        return date.toISOString().replace('T', ' ').substring(0, 19);
+                    }
+
+                    // создаем дату без учета сдвига зоны
+                    const currentDate = new Date(`${last_update_datetime}Z`);
+                    const formatted = format(currentDate);
+
+                    // устанавливаем время последнего обновления увеличенное на интервал обновления
+                    currentDate.setTime(currentDate.getTime() + timeout);
+                    options.last_update_datetime = format(currentDate);
+
+                    // возвращаем время последнего обновления
+                    return formatted;
+                }
 
                 var runProcess = function () {
                     self.timer_id = setTimeout(function () {

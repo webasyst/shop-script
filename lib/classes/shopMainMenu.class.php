@@ -89,18 +89,22 @@ class shopMainMenu
                     ],
                     [
                         "name" => _w("Discounts"),
+                        "userRights" => ['setup_marketing'],
                         "url" => "{$wa_app_url}marketing/discounts/"
                     ],
                     [
                         "name" => _w("Follow-ups"),
+                        "userRights" => ['setup_marketing'],
                         "url" => "{$wa_app_url}marketing/followups/"
                     ],
                     [
                         "name" => _w("Recommendations"),
+                        "userRights" => ['setup_marketing'],
                         "url" => "{$wa_app_url}marketing/recommendations/"
                     ],
                     [
                         "name" => _w("Affiliate program"),
+                        "userRights" => ['setup_marketing'],
                         "url" => "{$wa_app_url}marketing/affiliate/"
                     ]
                 ]

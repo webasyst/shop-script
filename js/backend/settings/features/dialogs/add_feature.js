@@ -785,7 +785,7 @@
                 }
 
                 function animateUI() {
-                    var $loading = $("<i class=\"icon16 loading\" />"),
+                    var $loading = $('<span class="icon custom-ml-4 loading"><i class="fas fa-spinner wa-animation-spin"></span>'),
                         locked_class = "is-locked",
                         is_displayed = false;
 

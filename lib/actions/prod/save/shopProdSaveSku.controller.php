@@ -281,6 +281,9 @@ class shopProdSaveSkuController extends waJsonController
                         // When SKU has only one modification, and name specified by hand,
                         // we do not need to append feature values to SKU name.
                         if ($count_mods_by_sku[$sku_index] <= 1) {
+                            if (isset($product_data['params']['multiple_sku']) && empty($product_data['params']['multiple_sku'])) {
+                                $sku_data['name'] = '';
+                            }
                             continue;
                         }
 

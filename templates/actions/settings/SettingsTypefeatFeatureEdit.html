@@ -357,23 +357,23 @@
 
     {strip}
     {capture assign="_kind_warning_message"}
-        <div class="s-warning-message">
-            <i class="icon10 exclamation"></i>&nbsp;
+        <div class="alert warning">
+            <i class="fas fa-exclamation-triangle"></i>&nbsp;
             <span class="s-text">[`When the feature type is changed, its values for all products are automatically converted to the new type.`]</span>
-            <span class="shop-tooltip right"><i class="icon10 info"></i><span style="width: 300px;">[`In cases when a feature value cannot be correctly converted to a new data type, such a value may be lost. For instance, when you change the feature type from text to numbers, then text values containing only numbers, such as “100” or “200”, will be converted to corresponding numbers 100 and 200, and all values which have no numerical representation, such as “yes”, “no”, “red”, etc., will be lost and converted to number 0. There will be no option to restore such lost values.`]</span></span>
+            <span class="shop-tooltip right"><i class="fas fa-info-circle"></i><span style="width: 300px;">[`In cases when a feature value cannot be correctly converted to a new data type, such a value may be lost. For instance, when you change the feature type from text to numbers, then text values containing only numbers, such as “100” or “200”, will be converted to corresponding numbers 100 and 200, and all values which have no numerical representation, such as “yes”, “no”, “red”, etc., will be lost and converted to number 0. There will be no option to restore such lost values.`]</span></span>
         </div>
     {/capture}
 
     {capture assign="_skus_warning_message"}{if $can_disable_sku && $sku_values_count > 0}
-        <div class="s-warning-message">
-            <i class="icon10 exclamation"></i>&nbsp;
+        <div class="alert warning">
+            <i class="fas fa-exclamation-triangle"></i>&nbsp;
             <span class="s-text">{_w(
                 'If you disable the availability of this feature in product SKUs’ properties, this will delete all its values from %d SKU.',
                 'If you disable the availability of this feature in product SKUs’ properties, this will delete all its values from %d SKUs.',
                 $sku_values_count
             )}</span>
             &nbsp;
-            <span class="shop-tooltip right"><i class="icon10 info"></i><span style="width: 300px;">[`Deleted will be only feature values stored in <strong>SKUs’</strong> properties. Values stored in <strong>products’</strong> properties will not be affected.`]</span></span>
+            <span class="shop-tooltip right"><i class="fas fa-info-circle"></i><span style="width: 300px;">[`Deleted will be only feature values stored in <strong>SKUs’</strong> properties. Values stored in <strong>products’</strong> properties will not be affected.`]</span></span>
         </div>
     {/if}{/capture}
     {/strip}

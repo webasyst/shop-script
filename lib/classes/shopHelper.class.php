@@ -823,7 +823,8 @@ class shopHelper
         }
 
         if ($default !== 'custom') {
-            $url = '//www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
+            // $url = '//www.gravatar.com/avatar/'.md5(strtolower(trim($email)))."?size=$size&default=$default";
+            $url = '/wa-content/img/userpic.svg';
         }
 
         if ($full_protocol) {

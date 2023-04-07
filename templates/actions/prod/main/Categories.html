@@ -373,9 +373,6 @@
 {* ШАБЛОНЫ *}
 {$_templates = []}
 
-{capture assign="_dialog_category_delete"}{include file="./dialogs/categories.category.delete.html" inline}{/capture}
-{$_templates["dialog-category-delete"] = $_dialog_category_delete|strip}
-
 {capture assign="_dialog_category_clone"}{include file="./dialogs/categories.category.clone.html" inline}{/capture}
 {$_templates["dialog-category-clone"] = $_dialog_category_clone|strip}
 

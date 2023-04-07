@@ -77,7 +77,7 @@
                 <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
                     <input type="hidden" name="product_id" value="{$p.id}">
                     <div class="wa-flex align-items-center">
-                        <button type="submit">{$add2cart_label}</button>
+                        <button type="submit" class="addtocart-btn">{$add2cart_label}</button>
                         <i class="adding2cart"></i>
                         {if !empty($theme_settings.compare_products)}<a data-product="{$p.id}" class="compare" href="#" title="[`Compare`]">
                             <svg class="compare compare-from-list{if $wa->shop->inComparison($p.id)} active{/if}" width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" version="1.1" preserveAspectRatio="xMinYMin">

@@ -34,15 +34,16 @@
         </ul>
 
         {* TYPES *}
-        <h5 class="heading custom-mt-16 custom-mb-8">
-            <span class="nowrap custom-mr-4">[`Product types`]</span>
-            <span>
-                <span class="shop-tooltip"><i class="fas fa-info-circle fa-xs"></i><span>[`Each product type; e.g., “TVs”, “Phones”, or “Clocks”, can have its own set of features. You can select for the storefront which product types should be visible to customers. Separate access rights to product types can be set up for store backend users and user groups.`]</span></span>
-            </span>
-            <span class="count action js-type-add text-green cursor-pointer" title="[`New product type`]">
+        <div class="custom-mt-16 custom-mb-8 custom-px-8 flexbox middle">
+            <h5 class="heading custom-m-0 custom-pl-12">
+                <span class="nowrap custom-mr-4">[`Product types`]</span>
+            </h5>
+            <span class="wa-tooltip" data-wa-tooltip-content="[`Each product type; e.g., “TVs”, “Phones”, or “Clocks”, can have its own set of features. You can select for the storefront which product types should be visible to customers. Separate access rights to product types can be set up for store backend users and user groups.`]"><i class="fas fa-info-circle text-dark-gray"></i></span>
+            <span class="count action js-type-add text-green cursor-pointer custom-ml-auto" title="[`New product type`]">
                 <i class="fas fa-plus-circle"></i>
             </span>
-        </h5>
+        </div>
+
 
         {* SEARCH *}
         {if count($types) > 5}

@@ -745,7 +745,8 @@ html.is-order-page .container {
   line-height: 16px;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-quantity .wa-quantity-cart-section input {
-  width: 2.25em;
+  width: 4em;
+  text-align: center;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-quantity .wa-product-fractional-prices {
   margin-right: 0;
