@@ -56,7 +56,7 @@
 <div class="s-item-wrapper" v-bind:class="item_class" v-bind:key="item.value" v-if="item.states.display">
     <div class="s-item-table">
         <div class="s-column s-column-enable">
-            <component-switch v-bind:value="item.states.enabled" v-on:change="onToggleSwitch"></component-switch>
+            <component-switch v-bind:model-value="item.states.enabled" v-on:change="onToggleSwitch"></component-switch>
         </div>
         <div class="s-column s-column-name">
             <span class="s-color icon color shift-3 size-12" v-if="item.code" v-bind:style="{ 'background-color' : item.code }"></span>
@@ -108,13 +108,14 @@
                         <div class="s-fields-wrapper flexbox space-12">
                             <template v-for="(option, index) in item_data.options">
                                 <div class="s-field-wrapper with-divider" v-bind:class="{ 'is-price' : format === 'price' }">
-                                    <component-input class="s-field small" v-model="option.value"
-                                                     v-bind:class="{ 'wa-error-field': errors['value_error_' + index] }"
+                                    <component-input class="s-field small"
+                                                     v-model="option.value"
+                                                     v-bind:class="{ 'state-error': errors['value_error_' + index] }"
                                                      v-bind:validate="validate"
                                                      v-bind:format="format"></component-input>
                                     <span class="s-currency" v-if="item_data.currency" v-html="item_data.currency.sign_html"></span>
 
-                                    <div class="state-error" v-if="errors['value_error_' + index]">
+                                    <div class="state-error-hint" v-if="errors['value_error_' + index]">
                                         {_w("Invalid value")|escape}
                                         <span class="s-tooltip-icon" data-tooltip-id="price-error"><i class="fas fa-question-circle text-red"></i></span>
                                     </div>

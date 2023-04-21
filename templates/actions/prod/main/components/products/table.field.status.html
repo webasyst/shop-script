@@ -46,10 +46,10 @@
 
                     <div class="s-url-section" v-if="column_data.redirect.type === 'url'">
                         <input class="small wide full-width" type="text" placeholder="http://yoursite.com/category/product-name"
-                               v-bind:class="{ 'wa-error-field' : states.show_errors && errors['url_error'] }"
+                               v-bind:class="{ 'state-error' : states.show_errors && errors['url_error'] }"
                                v-model="column_data.redirect.url">
 
-                        <div class="state-error" v-if="states.show_errors && errors['url_error']">{ { errors['url_error'].text } }</div>
+                        <div class="state-error-hint" v-if="states.show_errors && errors['url_error']">{ { errors['url_error'].text } }</div>
                     </div>
 
                     <div class="s-codes-section" v-if="column_data.redirect.type !== '404'">

@@ -76,21 +76,28 @@
             // VARS
             var states = {};
 
-            var vue_model = new Vue({
-                el: $view_section[0],
-                data: {
-                    errors        : that.errors,
-                    errors_global : that.errors_global,
-                    product       : that.product,
-                    reviews       : that.reviews,
-                    pagination    : that.pagination,
-                    filters       : that.filters,
-                    active_filters: that.active_filters,
-                    states        : states
+            var vue_model = Vue.createApp({
+                data() {
+                    return {
+                        errors        : that.errors,
+                        errors_global : that.errors_global,
+                        product       : that.product,
+                        reviews       : that.reviews,
+                        pagination    : that.pagination,
+                        filters       : that.filters,
+                        active_filters: that.active_filters,
+                        states        : states
+                    }
                 },
                 components: {
                     "component-dropdown": {
-                        props: ["items", "active_item_id", "button_class", "body_width", "body_class"],
+                        props: {
+                            items: { type: Array, default: [] },
+                            active_item_id: { type: String },
+                            button_class: { type: String, default: "" },
+                            body_width: { type: String, default: "" },
+                            body_class: { type: String, default: "" }
+                        },
                         data: function() {
                             var self = this;
 
@@ -103,9 +110,6 @@
                             }
 
                             return {
-                                button_class: (typeof self.button_class === "string" ? self.button_class : ""),
-                                body_width: (typeof self.body_width === "string" ? self.body_width : ""),
-                                body_class: (typeof self.body_class === "string" ? self.body_class : ""),
                                 active_item: active_item
                             }
                         },
@@ -179,21 +183,17 @@
                                     self.$emit("change", page_number);
                                 }
                             }
-                        },
-                        mounted: function() {
-                            var self = this;
                         }
                     },
                     "component-review": {
                         name: "component-review",
-                        props: ["review"],
-                        data: function() {
-                            var self = this;
+                        props: { review: { type: Object, requred: true, default: () => {} } },
+                        data() {
                             return {
                                 states: {
                                     reload_key: 0,
                                     is_locked: false,
-                                    is_deleted: (self.review.status === that.review_states["deleted"]),
+                                    is_deleted: (this.review.status === that.review_states["deleted"]),
                                     is_wait: false
                                 }
                             };
@@ -202,13 +202,14 @@
                         delimiters: ['{ { ', ' } }'],
                         components: {
                             "component-flex-textarea": {
-                                props: ["value", "placeholder"],
+                                props: ["modelValue", "placeholder"],
+                                emits: ["update:modelValue", "blur", "ready"],
                                 data: function() {
                                     return {
                                         offset: 0
                                     };
                                 },
-                                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)" v-on:blur="$emit(\'blur\', $event.target.value)"></textarea>',
+                                template: `<textarea v-bind:placeholder="placeholder" v-bind:value="modelValue" v-on:input="$emit('update:modelValue', $event.target.value)" v-on:blur="$emit('blur', $event.target.value)"></textarea>`,
                                 delimiters: ['{ { ', ' } }'],
                                 updated: function() {
                                     var self = this;
@@ -232,31 +233,38 @@
                                 }
                             },
                             "component-switch": {
-                                props: ["value", "disabled", "onChange"],
-                                data: function() {
+                                props: {
+                                    modelValue: {
+                                        type: Boolean,
+                                        default: false
+                                    },
+                                    disabled: {
+                                        type: Boolean,
+                                        default: false
+                                    },
+                                    onChange: Function
+                                },
+                                emits: ["change"],
+                                template: '<div class="switch wa-small"><input type="checkbox" v-bind:checked="modelValue" v-bind:disabled="prop_disabled"></div>',
+                                delimiters: ['{ { ', ' } }'],
+                                data() {
                                     return {
-                                        checked: (typeof this.value === "boolean" ? this.value : false),
-                                        disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
+                                        prop_disabled: this.disabled
                                     };
                                 },
-                                template: '<div class="switch wa-small"><input type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled"></div>',
-                                delimiters: ['{ { ', ' } }'],
                                 mounted: function() {
                                     var self = this;
 
                                     $(self.$el).waSwitch({
-                                        change: function(active, wa_switch) {
-                                            self.$emit("change", active);
-                                            self.$emit("input", active);
-
-                                            if (typeof self.onChange === "function" && !self.disabled) {
-                                                self.disabled = true;
-                                                wa_switch.disable(self.disabled);
+                                        change: function(active, wa_switch, e) {
+                                            if (typeof self.onChange === "function" && !self.prop_disabled) {
+                                                self.prop_disabled = true;
+                                                wa_switch.disable(self.prop_disabled);
 
                                                 self.onChange(active)
                                                     .done( function() {
-                                                        self.disabled = false;
-                                                        wa_switch.disable(self.disabled);
+                                                        self.prop_disabled = false;
+                                                        wa_switch.disable(self.prop_disabled);
                                                     });
                                             }
                                         }
@@ -265,6 +273,13 @@
                             }
                         },
                         methods: {
+                            htmlToText: function(html) {
+                                if (typeof html !== "string") {
+                                    return '';
+                                }
+
+                                return html.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                            },
                             reviewDelete: function() {
                                 var self = this;
 
@@ -305,6 +320,7 @@
                                             self.states.is_deleted = false;
                                             self.review.disabled = false;
                                             self.review.status = response.data.status;
+                                            self.review.status_model = response.data.status_model;
                                             self.states.reload_key += 1;
                                         });
                                 }
@@ -342,8 +358,7 @@
                                     onOpen: function($dialog, dialog) {
                                         var $section = $dialog.find(".js-vue-node-wrapper");
 
-                                        new Vue({
-                                            el: $section[0],
+                                        Vue.createApp({
                                             delimiters: ['{ { ', ' } }'],
                                             created: function() {
                                                 $section.css("visibility", "");
@@ -351,7 +366,7 @@
                                             mounted: function() {
                                                 dialog.resize();
                                             }
-                                        });
+                                        }).mount($section[0]);
 
                                         $dialog.on("click", ".js-success-action", function(event) {
                                             event.preventDefault();
@@ -478,9 +493,6 @@
                                     return $.post(that.urls["add"], data, "json");
                                 }
                             }
-                        },
-                        mounted: function() {
-                            var self = this;
                         }
                     }
                 },
@@ -551,11 +563,11 @@
                     $view_section.css("visibility", "");
                 },
                 mounted: function() {
-                    var self = this;
-
                     that.$wrapper.trigger("section_mounted", ["reviews", that]);
                 }
             });
+
+            vue_model.mount($view_section[0]);
 
             return vue_model;
         };

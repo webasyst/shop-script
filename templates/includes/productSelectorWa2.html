@@ -14,14 +14,27 @@
         <div class="flexbox custom-mt-16">
             <ul class="unstyled custom-mr-16">
                 <li>
-                    <label class="black"><input type="radio" value="" name="hash"{if empty($hash.type)} checked="checked"{/if}> {_wd('shop',"All products")}</label>
+                    <label class="black">
+                        <span class="wa-radio">
+                            <input type="radio" value="" name="hash"{if empty($hash.type)} checked="checked"{/if}>
+                            <span></span>
+                        </span>
+                        {_wd('shop',"All products")}
+                    </label>
                 </li>
                 <li>
-                    <label class="black"><input type="radio" value="id" name="hash"{if $hash.type eq 'id'} checked="checked"{/if}>
-                        <input type="hidden" value="{$hash.product_ids|default:''}" name="product_ids"> <span data-text="{_wd('shop',"Selected products (%d)")|escape}">{if $hash.type eq 'id'}{$hash.count|string_format:"{_wd('shop',"Selected products (%d)")}"}{else}{'0'|string_format:"{_wd('shop',"Selected products (%d)")|escape}"}{/if}</span></label>
+                    <label class="flexbox middle space-4">
+                        <input type="radio" value="id" name="hash"{if $hash.type eq 'id'} checked="checked"{/if} class="custom-m-0">
+                        <input type="hidden" value="{$hash.product_ids|default:''}" name="product_ids">
+                        <span data-text="{_wd('shop',"Selected products (%d)")|escape}">{if $hash.type eq 'id'}{$hash.count|string_format:"{_wd('shop',"Selected products (%d)")}"}{else}{'0'|string_format:"{_wd('shop',"Selected products (%d)")|escape}"}{/if}</span>
+                    </label>
                 </li>
                 <li{if $hash.type neq 'category' && empty($hash.data.categories)} style="display: none;"{/if}>
-                    <label class="black"><input type="radio" value="category" name="hash"{if $hash.type eq 'category'} checked="checked"{/if}>
+                    <label class="black">
+                        <span class="wa-radio">
+                            <input type="radio" value="category" name="hash"{if $hash.type eq 'category'} checked="checked"{/if}>
+                            <span></span>
+                        </span>
                         <input type="hidden" value="{$hash.category_ids|default:''}" name="category_ids">
                         <span data-text="{_wd('shop','Categories')|escape}">{_wd('shop','Categories')|escape}</span>
                         {*
@@ -36,15 +49,30 @@
                     </label>
                 </li>
                 <li>
-                    <label class="black"><input type="radio" value="set" name="hash"{if $hash.type eq 'set'} checked="checked"{/if}> {_wd('shop',"Sets")}</label>
+                    <label class="black">
+                        <span class="wa-radio">
+                            <input type="radio" value="set" name="hash"{if $hash.type eq 'set'} checked="checked"{/if}>
+                            <span></span>
+                        </span>
+                        {_wd('shop',"Sets")}
+                    </label>
                 </li>
                 <li>
-                    <label class="black"><input type="radio" value="type" name="hash"{if $hash.type eq 'type'} checked="checked"{/if}> {_wd('shop',"Product types")}</label>
+                    <label class="black">
+                        <span class="wa-radio">
+                            <input type="radio" value="type" name="hash"{if $hash.type eq 'type'} checked="checked"{/if}>
+                            <span></span>
+                        </span>
+                        {_wd('shop',"Product types")}
+                    </label>
                 </li>
                 {if $hash.type == 'custom'}
                     <li>
                         <label class="black">
-                            <input type="radio" value="{$hash.hash|default:''}" name="hash" checked="checked">
+                            <span class="wa-radio">
+                                <input type="radio" value="{$hash.hash|default:''}" name="hash" checked="checked">
+                                <span></span>
+                            </span>
                             {$hash.count|string_format:"{_wd('shop',"Products collection (%d)")}"}
                         </label>
                     </li>
@@ -62,14 +90,17 @@
                     <ul class="unstyled">
                         {foreach $sets as $set}
                             <li class="flexbox middle">
-                                    <div class="icon text-gray custom-pr-4"><i class="fas fa-{if $set.type == shopSetModel::TYPE_DYNAMIC}filter{else}bars{/if}"></i></div>
+                                <div class="icon text-gray custom-pr-8"><i class="fas fa-{if $set.type == shopSetModel::TYPE_DYNAMIC}filter{else}bars{/if}"></i></div>
 
-                                    <label title="{$set.id|escape}">
+                                <label title="{$set.id|escape}">
+                                    <span class="wa-radio">
                                         <input type="radio" name="set_id" value="{$set.id}"{if ($set@first && empty($hash.set_id))||($hash.set_id eq $set.id)} checked="checked"{/if}>
-                                        {$set.name|escape}
-                                    </label>
+                                        <span></span>
+                                    </span>
+                                    {$set.name|escape}
+                                </label>
 
-                                    <span class="count custom-ml-8">{$set.count}</span>
+                                <span class="count hint custom-ml-8">{$set.count}</span>
                             </li>
                         {/foreach}
                     </ul>
@@ -79,21 +110,23 @@
             <div class="js-hash-values js-hash-type" style="width: 400px;">
                 <div class="bordered-left" style="padding-left: 20px; min-height: 130px;">
                     <ul class="unstyled">
-                        {strip}
-                            {foreach $types as $type}{if $type.count}
-                                <li class="flexbox middle">
-                                    {if !empty($type.icon)}
-                                        <div class="icon text-gray custom-pr-8">{$wa->shop->getIcon($type.icon)}</div>
-                                    {else}
-                                        <i class="icon" style="visibility: hidden;"></i>
-                                    {/if}
-                                    <label>
-                                        <input type="radio" name="type_id" value="{$type.id}" {if ($type@first && empty($hash.type_id))||($hash.type_id eq $type.id)} checked="checked"{/if}> {$type.name|escape}
-                                    </label>
-                                    <span class="count">{$type.count}</span>
-                                </li>
-                            {/if}{/foreach}
-                        {/strip}
+                        {foreach $types as $type}{if $type.count}
+                            <li class="flexbox middle">
+                                {if !empty($type.icon)}
+                                    <div class="icon text-gray custom-pr-8">{$wa->shop->getIcon($type.icon)}</div>
+                                {else}
+                                    <i class="icon" style="visibility: hidden;"></i>
+                                {/if}
+                                <label>
+                                    <span class="wa-radio">
+                                        <input type="radio" name="type_id" value="{$type.id}" {if ($type@first && empty($hash.type_id))||($hash.type_id eq $type.id)} checked="checked"{/if}>
+                                        <span></span>
+                                    </span>
+                                    {$type.name|escape}
+                                </label>
+                                <span class="count hint custom-ml-4">{$type.count}</span>
+                            </li>
+                        {/if}{/foreach}
                     </ul>
                     {if !empty($hints.type)}<br/><span class="small">{$hints.type}</span>{/if}
                 </div>
@@ -102,11 +135,11 @@
                 <div class="bordered-left" style="padding-left: 20px; min-height: 130px;">
                     {if $hash.type eq 'id'}
                         <ul class="unstyled">
-                            <li><a href="{$wa_app_url}?action=products#/products/hash={"id/`$hash.product_ids`"|escape:'url'}" target="_blank" class="inline-link">{_wd('shop','%d product','%d products',$hash.count)|escape}<i class="fas fa-external-link-alt smaller"></i></a></li>
+                            <li><a href="{$wa_app_url}?action=products#/products/hash={"id/`$hash.product_ids`"|escape:'url'}" target="_blank" class="inline-link">{_wd('shop','%d product','%d products', $hash.count)|escape} <i class="fas fa-external-link-alt small"></i></a></li>
                         </ul>
                         {if !empty($hints.id)}<br/><span class="small">{$hints.id}</span>{/if}
                     {else}
-                        <h5><div class="icon baseline custom-mr-4 smaller text-yellow"><i class="fas fa-exclamation-triangle"></i></div><strong>[`No products are selected.`]</strong></h5>
+                        <h5><div class="icon baseline custom-mr-4 small"><i class="fas fa-exclamation-triangle"></i></div><strong>[`No products are selected.`]</strong></h5>
                         <div>[`Select products and execute a corresponding action using the menu on the right in “Products” section.`]</div>
                     {/if}
                 </div>
@@ -114,9 +147,9 @@
 
             {if !empty($hash.data.categories) || !empty($hints.category)}
                 <div class="js-hash-values js-hash-category" style="width: 400px;">
-                    <div class="bordered-left" style="padding-left: 20px;">
+                    <div class="bordered-left custom-pl-20">
                         {if !empty($hash.data.categories)}
-                            {wa_print_tree tree=$hash.data.categories elem='<label><span class="icon text-gray custom-pr-4"><i class="fas fa-:icon"></i></span><input type="radio" name="category_ids" data-selected=":selected" value=":id"/> :name</label>' class="unstyled"}
+                            {wa_print_tree tree=$hash.data.categories elem='<label><span class="icon text-gray custom-mr-8"><i class=":icon"></i></span><span class="wa-radio"><input type="radio" name="category_ids" data-selected=":selected" value=":id"/><span></span></span> :name</label>' class="unstyled"}
                         {/if}
                         {if !empty($hints.category)}<br/><span class="gray">{$hints.category}</span>{/if}
                     </div>

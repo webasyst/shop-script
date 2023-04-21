@@ -273,10 +273,12 @@ class shopImportexportHelper
         if (!empty($params['categories']) || true) {
             $model = new shopCategoryModel();
             $categories = $model->getTree(null, 0, true);
+            $icon_folder = wa()->whichUI() == '1.3' ? 'folder' : 'fas fa-folder';
+            $icon_funnel = wa()->whichUI() == '1.3' ? 'funnel' : 'fas fa-filter';
 
             $map = array();
             foreach ($categories as &$category) {
-                $category['icon'] = ($category['type'] == shopCategoryModel::TYPE_STATIC) ? 'folder' : 'funnel';
+                $category['icon'] = ($category['type'] == shopCategoryModel::TYPE_STATIC) ? $icon_folder : $icon_funnel;
                 $map[$category['id']] = &$category;
             }
             unset($category);
@@ -290,7 +292,7 @@ class shopImportexportHelper
             $category_id = array_diff($category_id, array_keys($categories));
             foreach ($model->getById($category_id) as $category) {
                 $category['name'] = htmlspecialchars($category['name'], ENT_NOQUOTES, 'utf-8');
-                $category['icon'] = ($category['type'] == shopCategoryModel::TYPE_STATIC) ? 'folder' : 'funnel';
+                $category['icon'] = ($category['type'] == shopCategoryModel::TYPE_STATIC) ? $icon_folder : $icon_funnel;
                 $map[$category['id']] = &$category;
                 if (isset($map[$category['parent_id']])) {
                     if (!isset($map['childs'])) {
@@ -304,7 +306,7 @@ class shopImportexportHelper
                         $path_category['childs'][$category['id']] = &$category;
                         unset($category);
                         $category = $path_category;
-                        $category['icon'] = ($category['type'] == shopCategoryModel::TYPE_STATIC) ? 'folder' : 'funnel';
+                        $category['icon'] = ($category['type'] == shopCategoryModel::TYPE_STATIC) ? $icon_folder : $icon_funnel;
                         $map[$category['id']] = &$category;
 
                         if (isset($map[$category['parent_id']])) {

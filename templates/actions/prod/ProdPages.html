@@ -48,12 +48,12 @@
 <div id="js-product-pages-section-wrapper">
     {* VUE *}
     <div class="article wider s-product-pages-section js-product-pages-section" style="visibility: hidden;">
-        {* HEADER *}
 
         <!-- plugin hook: 'backend_prod_content.top' -->
         {* @event backend_prod_content.%plugin_id%.top *}
         {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.top)}{/foreach}{/if}
 
+        {* HEADER *}
         <div class="s-section-header">
             <h4>[`Subpages`]</h4>
             <p>[`Subpages enable you to add more useful content to product pages such as user manuals, photo galleries, user reviews, etc.`]</p>
@@ -84,58 +84,57 @@
                     <button class="button light-gray rounded small" type="button"
                             v-on:click.prevent="createPage">
                         <span class="s-icon text-green"><i class="fas fa-plus-circle"></i></span>
-                        <span class="s-name bold">[`New page`]</span>
+                        <span class="s-name bold"> [`New page`]</span>
                     </button>
                 </div>
-                <div class="fields" v-if="pages.length">
-                    <div class="fields-group blank">
+                <template v-if="pages.length">
+                    <div class="blank">
                         <div class="s-pages-list">
-                            <template v-for="page in pages">
-                                <div class="s-page-wrapper"
-                                     v-bind:key="page.id"
-                                     v-bind:class="{ 'is-moving' : page.is_moving }"
-                                     v-bind:data-id="page.id">
-                                    <div class="s-column-move-actions nowrap" v-bind:style="{ 'opacity': (is_locked || page.is_locked) ? .5 : '' }">
-                                        <div class="s-toggle-move" draggable="true" v-bind:class="{ 'cursor-move js-page-move-toggle' : !is_locked }">
-                                            <i class="icon baseline shift-2"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
-                                        </div>
-                                    </div>
-                                    <div class="s-column-name wide">
-                                        <span class="s-name" v-bind:class="{ 'is-draft' : !page.status }">{ { page.name } }</span>
-                                    </div>
-                                    <div class="s-column-status nowrap">
-                                        <span class="s-status" v-if="page.status">[s`Published`]</span>
-                                        <span class="s-status is-draft" v-else>[s`Draft`]</span>
-                                    </div>
-                                    <div class="s-column-url nowrap">
-                                        {if !empty($frontend_urls)}
-                                            {$_front = reset($frontend_urls)}
-                                            <a class="s-url" v-bind:href="'{$_front.url|escape}' + page.url + '/' + (page.status ? '' : '?preview={$preview_hash}')" target="_blank">../{ { page.url } }/&nbsp;<i class="fas fa-external-link-square-alt"></i></a>
-                                        {else}
-                                            <span class="s-url">{ { page.url } }</span>
-                                        {/if}
-                                    </div>
-                                    <div class="s-column-actions nowrap"
-                                         v-bind:style="{ 'opacity': (is_locked || page.is_locked) ? .5 : '' }">
-                                        <button class="nowrap button light-gray rounded smaller" type="button"
-                                                v-bind:disabled="is_locked || page.is_locked"
-                                                v-on:click.prevent="editPage(page)">
-                                            <span class="s-icon text-blue"><i class="fas fa-pen"></i></span>
-                                            <span class="s-name">[`Edit`]</span>
-                                        </button>
-                                        <button class="nowrap button light-gray rounded smaller" type="button"
-                                                title="[`Delete`]"
-                                                v-bind:disabled="is_locked || page.is_locked"
-                                                v-on:click.prevent="deletePage(page)">
-                                            <span class="s-icon text-red"><i class="fas fa-trash-alt"></i></span>
-                                            <span class="s-name"></span>
-                                        </button>
+                            <div v-for="page in pages"
+                                v-bind:key="page.id"
+                                class="s-page-wrapper"
+                                v-bind:class="{ 'is-moving' : page.is_moving }"
+                                v-bind:data-id="page.id">
+                                <div class="s-column-move-actions nowrap" v-bind:style="{ 'opacity': (is_locked || page.is_locked) ? .5 : '' }">
+                                    <div class="s-toggle-move" draggable="true" v-bind:class="{ 'cursor-move js-page-move-toggle' : !is_locked }">
+                                        <i class="icon baseline shift-2"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
                                     </div>
                                 </div>
-                            </template>
+                                <div class="s-column-name wide">
+                                    <span class="s-name" v-bind:class="{ 'is-draft' : !page.status }">{ { page.name } }</span>
+                                </div>
+                                <div class="s-column-status nowrap">
+                                    <span class="s-status" v-if="page.status">[s`Published`]</span>
+                                    <span class="s-status is-draft" v-else>[s`Draft`]</span>
+                                </div>
+                                <div class="s-column-url nowrap">
+                                    {if !empty($frontend_urls)}
+                                        {$_front = reset($frontend_urls)}
+                                        <a class="s-url" v-bind:href="'{$_front.url|escape}' + page.url + '/' + (page.status ? '' : '?preview={$preview_hash}')" target="_blank">../{ { page.url } }/&nbsp;<i class="fas fa-external-link-square-alt"></i></a>
+                                    {else}
+                                        <span class="s-url">{ { page.url } }</span>
+                                    {/if}
+                                </div>
+                                <div class="s-column-actions nowrap"
+                                    v-bind:style="{ 'opacity': (is_locked || page.is_locked) ? .5 : '' }">
+                                    <button class="nowrap button nobutton light-gray rounded smaller" type="button"
+                                            v-bind:disabled="is_locked || page.is_locked"
+                                            v-on:click.prevent="editPage(page)">
+                                        <span class="s-icon text-blue"><i class="fas fa-pen"></i></span>
+                                        <span class="s-name"> [`Edit`]</span>
+                                    </button>
+                                    <button class="nowrap button nobutton light-gray rounded smaller" type="button"
+                                            title="[`Delete`]"
+                                            v-bind:disabled="is_locked || page.is_locked"
+                                            v-on:click.prevent="deletePage(page)">
+                                        <span class="s-icon text-red"><i class="fas fa-trash-alt"></i></span>
+                                        <span class="s-name"></span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </template>
                 <p class="hint" v-else>[`Add new pages, and they will appear in the list.`]</p>
             </div>
         </div>
@@ -145,7 +144,6 @@
 
         {* FEATURES HIDDEN ON FRONT *}
         {capture assign="_footer_content"}
-
             {if $show_sku_warning}
                 {$_tooltips["product-sku-features-hidden-on-front"] = [
                 "id" => "product-sku-features-hidden-on-front",
@@ -154,9 +152,9 @@
 
                 <div class="s-features-hidden-on-front-section">
                     <div class="wa-message small warn flexbox space-8">
-                        <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="message-icon"><i class="fas fa-exclamation-triangle text-yellow"></i></div>
                         <div class="message-text wide">
-                            <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`]</span>
+                            <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`] </span>
                             <span class="s-icon" data-tooltip-id="product-sku-features-hidden-on-front"><i class="fas fa-question-circle  gray"></i></span>
                         </div>
                     </div>
@@ -174,7 +172,7 @@
             var sources = [{
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
             }, {
                 id: "ace-js",
                 type: "js",

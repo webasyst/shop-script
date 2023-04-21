@@ -101,6 +101,7 @@ class shopSalesModel extends waModel
         // Make sure data is prepared in table
         empty($options['ensured']) && $this->ensurePeriod($type, $date_start, $date_end, $options);
 
+        $hash_sql = $this->getWhereByField('hash', $hash);
         $date_sql = self::getDateSql('ss.`date`', $date_start, $date_end);
         $sql = "SELECT {$group_by_name_select_sql}
                     {$date_col} AS `date`,
@@ -113,14 +114,14 @@ class shopSalesModel extends waModel
                     SUM(tax) AS tax,
                     SUM(cost) AS cost
                 FROM {$this->table} AS ss
-                WHERE hash=?
+                WHERE {$hash_sql}
                     AND {$date_sql}
                     {$type_sql}
                     {$filter_sql}
                 GROUP BY {$date_col}{$group_by_name_sql}
                 ORDER BY `date`";
 
-        $db_result = $this->query($sql, $hash);
+        $db_result = $this->query($sql);
         if (!empty($options['group_by_name'])) {
             $sales_by_name_date = [];
             foreach($db_result as $row) {
@@ -244,6 +245,7 @@ class shopSalesModel extends waModel
 
         $filter_sql = $this->getWhereByField($filter);
         $filter_sql = $filter_sql ? ' AND ' . $filter_sql : '';
+        $hash_sql = $this->getWhereByField('hash', $hash);
 
         // Using derived query because otherwise
         // ORDER BY would not work for some columns (average_order)
@@ -259,16 +261,14 @@ class shopSalesModel extends waModel
                         SUM(tax) AS tax,
                         SUM(cost) AS cost
                     FROM {$this->table}
-                    WHERE hash=:hash
+                    WHERE {$hash_sql}
                         AND {$date_sql}
                         {$filter_sql}
                     GROUP BY name) AS t
                 ORDER BY ".$this->getOrderBy(ifset($options['order']))."
                 LIMIT ".ifset($options['start'], 0).", ".ifset($options['limit'], wa('shop')->getConfig()->getOption('statrows_per_page'));
 
-        $rows = $this->query($sql, array(
-            'hash' => $hash
-        ));
+        $rows = $this->query($sql);
 
         $total_rows = $this->query("SELECT FOUND_ROWS()")->fetchField();
         $result = array();

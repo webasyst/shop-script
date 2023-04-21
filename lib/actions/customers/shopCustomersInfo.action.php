@@ -20,6 +20,11 @@ class shopCustomersInfoAction extends waViewAction
             throw $e;
         }
 
+        if (!$customer) {
+            $customer = $scm->getEmptyRow();
+            $customer['contact_id'] = $id;
+        }
+
         $contact_categories = $this->getContactCategories($id);
 
         $top = shopCustomer::getCustomerTopFields($contact);

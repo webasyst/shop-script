@@ -4,6 +4,7 @@
 
         function Page(options) {
             let that = this;
+            const { reactive } = Vue;
 
             // DOM
             that.$wrapper = options["$wrapper"];
@@ -15,22 +16,23 @@
             that.locales    = options["locales"];
             that.urls       = options["urls"];
 
+
             // VUE VARS
-            that.sets = {};
-            that.groups = {};
-            that.model = getModel(options["model"]);
+            that.sets = reactive({});
+            that.groups = reactive({});
+            that.model = reactive(getModel(options["model"]));
             that.rule_options = options["rule_options"];
             that.sort_options = options["sort_options"];
-            that.header_columns = options["header_columns"];
+            that.header_columns = reactive(options["header_columns"]);
             that.header_columns_object = $.wa.construct(that.header_columns, "id");
 
-            that.states = {
+            that.states = reactive({
                 sort_locked: false,
                 move_locked: false,
                 add_set_locked: false,
                 add_group_locked: false,
                 count_locked: true
-            };
+            });
 
             // INIT
             that.vue_model = that.initVue();
@@ -78,99 +80,84 @@
 
             let $vue_section = that.$wrapper.find("#js-vue-section");
 
-            Vue.component("component-checkbox", {
-                props: ["value", "label", "disabled", "field_id"],
-                data: function() {
-                    var self = this;
-                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
-                    return {
-                        tag: (self.label !== false ? "label" : "span"),
-                        id: (typeof self.field_id === "string" ? self.field_id : "")
-                    }
-                },
-                template: that.components["component-checkbox"],
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    onChange: function(event) {
-                        var self = this;
-                        self.$emit("input", self.value);
-                        self.$emit("change", self.value);
-                    }
-                }
-            });
+            if (typeof $.vue_app === "object" && typeof $.vue_app.unmount === "function") {
+                $.vue_app.unmount();
+            }
 
-            Vue.component("component-radio", {
-                props: ["value", "name", "val", "label", "disabled"],
-                data: function() {
-                    let self = this;
-                    return {
-                        tag: (self.label !== false ? "label" : "span"),
-                        val: (typeof self.val === "string" ? self.value : ""),
-                        name: (typeof self.name === "string" ? self.name : ""),
-                        disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
-                    }
-                },
-                template: that.components["component-radio"],
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    onChange: function(event) {
-                        let self = this;
-                        self.$emit("input", self.value);
-                        self.$emit("change", self.value);
-                    }
-                }
-            });
-
-            Vue.component("component-dropdown-set-sorting", {
-                props: ["value", "options", "button_class", "disabled"],
-                data: function () {
-                    let self = this;
-                    return {
-                        button_class: (typeof self.button_class !== "undefined" ? self.button_class : ""),
-                        disabled: (typeof self.disabled !== "undefined" ? self.disabled : false),
-                        items: (typeof self.options !== "undefined" ? self.options : that.sort_options)
-                    };
-                },
-                template: that.components["component-dropdown-set-sorting"],
-                delimiters: ['{ { ', ' } }'],
-                computed: {
-                    active_item: function() {
-                        let self = this,
-                            active_item = self.items[0];
-
-                        if (typeof self.value === "string") {
-                            let filter_item_search = self.items.filter(function (item) {
-                                return (item.value === self.value);
-                            });
-                            active_item = (filter_item_search.length ? filter_item_search[0] : active_item);
+            that.vue_components = {
+                "component-radio": {
+                    props: ["modelValue", "name", "value", "label", "disabled"],
+                    emits: ["update:modelValue", "change"],
+                    template: that.components["component-radio"],
+                    delimiters: ['{ { ', ' } }'],
+                    computed: {
+                        tag() { return (this.label !== false ? "label" : "span") },
+                        prop_name() { return (typeof this.name === "string" ? this.name : "") },
+                        prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false) },
+                        checked() { return this.modelValue === this.value }
+                    },
+                    methods: {
+                        onChange: function() {
+                            this.$emit("update:modelValue", this.value);
+                            this.$emit("change", this.value);
                         }
-
-                        return active_item;
                     }
                 },
-                methods: {
-                    change: function(item) {
+
+                "component-dropdown-set-sorting": {
+                    props: ["modelValue", "options", "button_class", "disabled"],
+                    emits: ["update:modelValue", "change"],
+                    data: function () {
                         let self = this;
-                        self.$emit("input", item.value);
-                        self.$emit("change", item.value);
-                        self.dropdown.hide();
+                        return {
+                            items: (typeof self.options !== "undefined" ? self.options : that.sort_options)
+                        };
+                    },
+                    template: that.components["component-dropdown-set-sorting"],
+                    delimiters: ['{ { ', ' } }'],
+                    computed: {
+                        prop_button_class() { return (typeof this.button_class !== "undefined" ? this.button_class : "") },
+                        prop_disabled() { return (typeof this.disabled !== "undefined" ? this.disabled : false) },
+                        active_item: function() {
+                            let self = this,
+                                active_item = self.items[0];
+
+                            if (typeof self.modelValue === "string") {
+                                let filter_item_search = self.items.filter(function (item) {
+                                    return (item.value === self.modelValue);
+                                });
+                                active_item = (filter_item_search.length ? filter_item_search[0] : active_item);
+                            }
+
+                            return active_item;
+                        }
+                    },
+                    methods: {
+                        change: function(item) {
+                            let self = this;
+                            self.$emit("update:modelValue", item.value);
+                            self.$emit("change", item.value);
+                            self.dropdown.hide();
+                        }
+                    },
+                    mounted: function () {
+                        let self = this;
+
+                        self.dropdown = $(self.$el).waDropdown({ hover : false }).waDropdown("dropdown");
                     }
-                },
-                mounted: function () {
-                    let self = this;
-
-                    self.dropdown = $(self.$el).waDropdown({ hover : false }).waDropdown("dropdown");
                 }
-            });
+            }
 
-            return new Vue({
-                el: $vue_section[0],
-                data: {
-                    model : that.model,
-                    states: that.states
+            $.vue_app = Vue.createApp({
+                data() {
+                    return {
+                        model : that.model,
+                        states: that.states
+                    }
                 },
                 components: {
                     "component-dropdown-sets-sorting": {
+                        emits: ["change"],
                         template: that.components["component-dropdown-sets-sorting"],
                         delimiters: ['{ { ', ' } }'],
                         methods: {
@@ -189,7 +176,6 @@
                     },
                     "component-search-sets": {
                         data: function() {
-                            let self = this;
                             return {
                                 search_string: "",
                                 position: 0,
@@ -309,9 +295,8 @@
                     },
                     "component-sets": {
                         props: ["model"],
+                        emits: ["column_change_width"],
                         data: function() {
-                            var self = this;
-
                             var storage_name = "wa_shop_sets_columns",
                                 storage = getStorage();
 
@@ -339,9 +324,13 @@
                         delimiters: ['{ { ', ' } }'],
                         components: {
                             "component-sets-header-column": {
-                                props: ["column"],
+                                props: {
+                                    column: {
+                                        type: Object,
+                                        default: () => {}
+                                    }
+                                },
                                 data: function() {
-                                    var self = this;
                                     return {
                                         states: {
                                             locked: false,
@@ -410,7 +399,6 @@
                                 name: "component-model-item",
                                 props: ["item"],
                                 data: function() {
-                                    let self = this;
                                     return {
                                         root_states: that.states,
                                         states: {
@@ -427,6 +415,9 @@
                                 components: {
                                     "component-set-sorting": {
                                         props: ["set"],
+                                        template: that.components["component-set-sorting"],
+                                        delimiters: ['{ { ', ' } }'],
+                                        components: { "component-dropdown-set-sorting": that.vue_components["component-dropdown-set-sorting"] },
                                         data: function() {
                                             let self = this,
                                                 disabled = false;
@@ -456,8 +447,6 @@
                                                 return result;
                                             }
                                         },
-                                        template: that.components["component-set-sorting"],
-                                        delimiters: ['{ { ', ' } }'],
                                         methods: {
                                             setup: function() {
                                                 let self = this;
@@ -503,9 +492,6 @@
                                                     return deferred.promise();
                                                 }
                                             }
-                                        },
-                                        mounted: function () {
-                                            let self = this;
                                         }
                                     }
                                 },
@@ -749,10 +735,11 @@
                                                 function initDialog($dialog, dialog) {
                                                     var $vue_section = $dialog.find(".js-vue-section");
 
-                                                    new Vue({
-                                                        el: $vue_section[0],
-                                                        data: {
-                                                            set: self.item,
+                                                    Vue.createApp({
+                                                        data() {
+                                                            return {
+                                                                set: self.item,
+                                                            }
                                                         },
                                                         delimiters: ['{ { ', ' } }'],
                                                         computed: {},
@@ -765,7 +752,7 @@
                                                         created: function () {
                                                             $vue_section.css("visibility", "");
                                                         }
-                                                    });
+                                                    }).mount($vue_section[0]);
                                                 }
 
                                                 return deferred.promise();
@@ -924,6 +911,8 @@
                     that.init();
                 }
             });
+
+            return $.vue_app.mount($vue_section[0]);
         };
 
         Page.prototype.formatModelItem = function(item) {
@@ -968,35 +957,35 @@
 
             let $vue_section = $dialog.find(".js-vue-section");
 
-            dialog.vue_model = new Vue({
-                el: $vue_section[0],
+            dialog.vue_model = Vue.createApp({
                 delimiters: ['{ { ', ' } }'],
-                data: {
-                    set: formatSet(set),
-                    init_set: null,
-                    states: {
-                        locked: false,
-                        transliterate_xhr: null,
-                        transliterate_timer: null
-                    },
-                    errors: {}
+                data() {
+                    return {
+                        set: formatSet(set),
+                        init_set: null,
+                        states: {
+                            locked: false,
+                            transliterate_xhr: null,
+                            transliterate_timer: null
+                        },
+                        errors: {}
+                    }
                 },
                 components: {
+                    "component-radio": that.vue_components["component-radio"],
                     "component-datepicker": {
-                        props: ["value", "disabled", "name"],
-                        data: function() {
-                            let self = this;
-                            return {
-                                name: (typeof self.name === "string" ? self.name : ""),
-                                disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
-                            };
-                        },
+                        props: ["modelValue", "disabled", "name"],
+                        emits: ["update:modelValue", "change"],
                         template: that.components["component-datepicker"],
                         delimiters: ['{ { ', ' } }'],
+                        computed: {
+                            prop_name() { return (typeof this.name === "string" ? this.name : "") },
+                            prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false) }
+                        },
                         mounted: function() {
                             let self = this;
 
-                            if (self.disabled) { return false; }
+                            if (self.prop_disabled) { return false; }
 
                             $(self.$el).find(".js-date-picker").each( function(i, field) {
                                 let $field = $(field),
@@ -1020,8 +1009,8 @@
                                     }
                                 });
 
-                                if (self.value) {
-                                    let date = formatDate(self.value);
+                                if (self.modelValue) {
+                                    let date = self.formatDate(self.modelValue);
                                     $field.datepicker( "setDate", date);
                                 }
 
@@ -1029,27 +1018,28 @@
                                     let field_value = $field.val();
                                     if (!field_value) { $alt_field.val(""); }
                                     let value = $alt_field.val();
-                                    self.$emit("input", value);
+                                    self.$emit("update:modelValue", value);
                                     self.$emit("change");
                                 });
+                            })
+                        },
+                        methods: {
+                            formatDate(date_string) {
+                                if (typeof date_string !== "string") { return null; }
 
-                                function formatDate(date_string) {
-                                    if (typeof date_string !== "string") { return null; }
+                                let date_array = date_string.split("-"),
+                                    year = date_array[0],
+                                    mount = date_array[1] - 1,
+                                    day = date_array[2];
 
-                                    let date_array = date_string.split("-"),
-                                        year = date_array[0],
-                                        mount = date_array[1] - 1,
-                                        day = date_array[2];
-
-                                    return new Date(year, mount, day);
-                                }
-                            });
+                                return new Date(year, mount, day);
+                            }
                         }
                     },
                     "component-dropdown-rules": {
-                        props: ["value"],
+                        props: ["modelValue"],
+                        emits: ["update:modelValue", "change"],
                         data: function() {
-                            let self = this;
                             return { items: that.rule_options };
                         },
                         template: components["component-dropdown-rules"],
@@ -1058,9 +1048,10 @@
                             active_item: function() {
                                 let self = this,
                                     active_item = self.items[0];
-                                if (typeof self.value === "string") {
+
+                                if (typeof self.modelValue === "string") {
                                     let filter_item_search = self.items.filter(function (item) {
-                                        return (item.value === self.value);
+                                        return (item.value === self.modelValue);
                                     });
                                     active_item = (filter_item_search.length ? filter_item_search[0] : active_item);
                                 }
@@ -1071,43 +1062,44 @@
                         methods: {
                             change: function(item) {
                                 let self = this;
-                                self.$emit("input", item.value);
+                                self.$emit("update:modelValue", item.value);
                                 self.$emit("change", item.value);
                                 self.dropdown.hide();
                             }
                         },
                         mounted: function() {
-                            let self = this;
-                            self.dropdown = $(self.$el).waDropdown({ hover : false }).waDropdown("dropdown");
+                            this.dropdown = $(this.$el).waDropdown({ hover : false }).waDropdown("dropdown");
                         }
                     },
                     "component-flex-textarea": {
-                        props: ["value", "placeholder", "cancel", "focus", "rows"],
+                        props: ["modelValue", "placeholder", "cancel", "focus", "rows"],
+                        emits: ["update:modelValue", "change", "ready", "cancel", "blur", "focus"],
                         data: function() {
-                            var self = this;
-                            self.focus = (typeof self.focus === "boolean" ? self.focus : false);
-                            self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
-                            self.rows = (typeof self.rows === "string" ? self.rows : "");
                             return {
                                 offset: 0,
-                                $textarea: null,
+                                textarea: null,
                                 start_value: null
                             };
                         },
-                        template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:blur="onBlur" v-on:focus="onFocus"></textarea>',
+                        template: `<textarea v-bind:placeholder="placeholder" v-bind:value="modelValue" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:blur="onBlur" v-on:focus="onFocus"></textarea>`,
                         delimiters: ['{ { ', ' } }'],
+                        computed: {
+                            prop_focus() { return (typeof this.focus === "boolean" ? this.focus : false); },
+                            prop_cancel() { return (typeof this.cancel === "boolean" ? this.cancel : false); },
+                            prop_rows() { return (typeof this.rows === "string" ? this.rows : ""); }
+                        },
                         methods: {
                             onInput: function($event) {
                                 var self = this;
                                 self.update();
-                                self.$emit('input', $event.target.value);
+                                self.$emit('update:modelValue', $event.target.value);
                             },
                             onBlur: function($event) {
                                 var self = this,
                                     value = $event.target.value;
 
                                 if (value === self.start_value) {
-                                    if (self.cancel) { self.$emit("cancel"); }
+                                    if (self.prop_cancel) { self.$emit("cancel"); }
                                 } else {
                                     self.$emit("change", value);
                                 }
@@ -1120,59 +1112,59 @@
                             },
                             onEsc: function($event) {
                                 var self = this;
-                                if (self.cancel) {
+                                if (self.prop_cancel) {
                                     $event.target.value = self.value = self.start_value;
-                                    self.$emit('input', self.value);
-                                    self.$textarea.trigger("blur");
+                                    self.$emit('update:modelValue', self.value);
+                                    self.textarea.trigger("blur");
                                 }
                             },
                             update: function() {
                                 var self = this;
-                                var $textarea = $(self.$el);
+                                var textarea = $(self.$el);
 
-                                $textarea
+                                textarea
                                     .css("overflow", "hidden")
                                     .css("min-height", 0);
-                                var scroll_h = $textarea[0].scrollHeight + self.offset;
-                                $textarea
+                                var scroll_h = textarea[0].scrollHeight + self.offset;
+                                textarea
                                     .css("min-height", scroll_h + "px")
                                     .css("overflow", "");
-                                if (self.rows === '1') {
-                                    $textarea.css("white-space", "nowrap");
+                                if (self.prop_rows === '1') {
+                                    textarea.css("white-space", "nowrap");
                                 }
                             }
                         },
                         mounted: function() {
                             var self = this,
-                                $textarea = self.$textarea = $(self.$el);
+                                textarea = self.textarea = $(self.$el);
 
                             setTimeout(function() {
-                                self.offset = $textarea[0].offsetHeight - $textarea[0].clientHeight;
+                                self.offset = textarea[0].offsetHeight - textarea[0].clientHeight;
                                 self.update();
-                                $textarea.trigger("focus");
+                                textarea.trigger("focus");
                                 self.$emit("ready", self.$el.value);
                             }, 0);
                         }
                     },
                     "component-dropdown-set-edit-sorting": {
-                        props: ["value", "disabled"],
-                        data: function () {
-                            let self = this;
-                            return {
-                                button_class: "",
-                                disabled: false
-                            };
-                        },
+                        props: ["modelValue", "disabled"],
+                        emits: ["update:modelValue", "change"],
                         template: that.components["component-dropdown-set-sorting"],
                         delimiters: ['{ { ', ' } }'],
+                        data() {
+                            return {
+                                button_class: ""
+                            }
+                        },
                         computed: {
+                            prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false) },
                             active_item: function() {
                                 let self = this,
                                     active_item = self.items[0];
 
-                                if (typeof self.value === "string") {
+                                if (typeof self.modelValue === "string") {
                                     let filter_item_search = self.items.filter(function (item) {
-                                        return (item.value === self.value);
+                                        return (item.value === self.modelValue);
                                     });
                                     active_item = (filter_item_search.length ? filter_item_search[0] : active_item);
                                 }
@@ -1182,7 +1174,7 @@
                             items: function() {
                                 let self = this, result;
 
-                                if (!self.disabled) {
+                                if (!self.prop_disabled) {
                                     result = that.sort_options.filter( function(option) {
                                         return (!!option.value.length);
                                     });
@@ -1198,7 +1190,7 @@
                         methods: {
                             change: function(item) {
                                 let self = this;
-                                self.$emit("input", item.value);
+                                self.$emit("update:modelValue", item.value);
                                 self.$emit("change", item.value);
                                 self.dropdown.hide();
                             }
@@ -1211,6 +1203,10 @@
                     },
                 },
                 computed: {
+                    refresh_key: function() {
+                        // for reloading component
+                        return JSON.stringify(this.set);
+                    },
                     use_transliterate: function() {
                         const self = this;
                         return self.set.id === null || !(self.set.id.length > 0);
@@ -1229,6 +1225,26 @@
                     }
                 },
                 watch: {
+                    "set.date_start": function(newVal, oldVal) {
+                        if (!newVal || !this.set.date_end) {
+                            return;
+                        }
+
+                        if (new Date(newVal) > new Date(this.set.date_end)) {
+                            this.set.date_start = this.set.date_end;
+                            this.set.date_end = newVal;
+                        }
+                    },
+                    "set.date_end": function(newVal, oldVal) {
+                        if (!newVal || !this.set.date_start) {
+                            return;
+                        }
+
+                        if (new Date(newVal) < new Date(this.set.date_start)) {
+                            this.set.date_end = this.set.date_start;
+                            this.set.date_start = newVal;
+                        }
+                    },
                     "set.type": function() {
                         let self = this;
                         self.$nextTick( function() {
@@ -1239,34 +1255,34 @@
                         const self = this;
 
                         if (!value.length) {
-                            self.$set(self.errors, "set_name", {
+                            self.errors["set_name"] = {
                                 id: "set_name",
                                 text: that.locales["error_set_name_empty"]
-                            });
+                            };
                         } else if (value.length > 255) {
-                            self.$set(self.errors, "set_name", {
+                            self.errors["set_name"] = {
                                 id: "set_name",
                                 text: that.locales["error_set_name"]
-                            });
+                            };
                         } else {
-                            self.$delete(self.errors, "set_name");
+                            delete self.errors["set_name"];
                         }
                     },
                     "set.id": function(value) {
                         const self = this;
 
                         if (!value.length) {
-                            self.$set(self.errors, "set_id", {
+                            self.errors["set_id"] = {
                                 id: "set_id",
                                 text: that.locales["error_set_id_empty"]
-                            });
+                            };
                         } else if (value.length > 64) {
-                            self.$set(self.errors, "set_id", {
+                            self.errors["set_id"] = {
                                 id: "set_id",
                                 text: that.locales["error_set_id"]
-                            });
+                            };
                         } else {
-                            self.$delete(self.errors, "set_id");
+                            delete self.errors["set_id"];
                         }
                     }
                 },
@@ -1285,19 +1301,19 @@
                     onBlurName: function() {
                         var self = this;
                         if (!self.set.name.length && !self.errors["set_name"]) {
-                            self.$set(self.errors, "set_name", {
+                            self.errors["set_name"] = {
                                 id  : "set_name",
                                 text: that.locales["error_set_name_empty"]
-                            });
+                            };
                         }
                     },
                     onBlurId: function() {
                         var self = this;
                         if (!self.set.id.length && !self.errors["set_id"]) {
-                            self.$set(self.errors, "set_id", {
+                            self.errors["set_id"] = {
                                 id  : "set_id",
                                 text: that.locales["error_set_id_empty"]
-                            });
+                            };
                         }
                     },
                     getIdByName: function(time) {
@@ -1339,10 +1355,10 @@
                                 })
                                 .fail( function(errors) {
                                     if (errors.length && errors[0].id === "id_in_use") {
-                                        self.$set(self.errors, "set_id", {
+                                        self.errors["set_id"] = {
                                             id: "set_id",
                                             text: errors[0].text
-                                        });
+                                        };
                                     }
                                 })
                                 .done( function(set) {
@@ -1387,7 +1403,7 @@
 
                     self.resizeDialog();
                 }
-            });
+            }).mount($vue_section[0]);
 
             console.log( dialog );
 
@@ -1509,8 +1525,6 @@
                 off();
             }
 
-            //
-
             function moveItem($drop_item) {
                 let drop_item = getItem($drop_item),
                     move_item = drag_data.move_item,
@@ -1526,15 +1540,12 @@
                 } else {
                     set(move_item, drop_item, drag_data.before);
 
-                    move_item.states.move_locked = true;
-                    moveRequest(move_item)
-                        .always( function() {
-                            move_item.states.move_locked = false;
-                        });
+                    moveRequest(move_item);
+                    onDragEnd();
                 }
 
                 function set(move_item, drop_item, before) {
-                    let index;
+                    let new_index;
 
                     // Удаляем item из модели
                     remove(move_item);
@@ -1544,8 +1555,8 @@
                         // если кидаем на верхнюю часть, то вставляем перед группой
                         if (before) {
                             move_item.group_id = null;
-                            index = that.model.indexOf(drop_item);
-                            that.model.splice(index, 0, move_item);
+                            new_index = that.model.indexOf(drop_item);
+                            that.model.splice(new_index, 0, move_item);
                         // если кидаем на нижнуюю часть, то вставляем внутрь группы
                         } else {
                             move_item.group_id = drop_item.group_id;
@@ -1558,9 +1569,9 @@
                             move_item.group_id = null;
                         }
                         let target_array = that.model;
-                        index = target_array.indexOf(drop_item);
-                        index += (before ? 0 : 1);
-                        target_array.splice(index, 0, move_item);
+                        new_index = target_array.indexOf(drop_item);
+                        new_index += (before ? 0 : 1);
+                        target_array.splice(new_index, 0, move_item);
                     }
 
                     function remove(move_item) {
@@ -1641,8 +1652,6 @@
                     return result;
                 }
             }
-
-            //
 
             function getItem($item) {
                 let result = null;

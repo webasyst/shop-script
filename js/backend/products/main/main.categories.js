@@ -4,6 +4,7 @@
 
         function Page(options) {
             var that = this;
+            const { reactive } = Vue;
 
             // DOM
             that.$wrapper = options["$wrapper"];
@@ -18,17 +19,17 @@
             // CONST
             that.category_sort_variants = options["category_sort_variants"];
             that.category_types         = options["category_types"];
-            that.header_columns         = options["header_columns"];
+            that.header_columns         = reactive(options["header_columns"]);
 
             // VUE VARS
-            that.categories = formatCategories(options["categories"]);
+            that.categories = reactive(formatCategories(options["categories"]));
             that.categories_object = getCategoriesObject(that.categories);
-            that.storefronts = options["storefronts"];
-            that.states = {
+            that.storefronts = reactive(options["storefronts"]);
+            that.states = reactive({
                 move_locked: false,
                 create_locked: false,
                 count_locked: true
-            };
+            });
 
             // INIT
             that.vue_model = that.initVue();
@@ -83,365 +84,393 @@
         Page.prototype.initVue = function() {
             var that = this;
 
+            if (typeof $.vue_app === "object" && typeof $.vue_app.unmount === "function") {
+                $.vue_app.unmount();
+            }
+
             var $vue_section = that.$wrapper.find("#js-vue-section");
 
-            /**
-             * @description Date Picker
-             * */
-            Vue.component("component-date-picker", {
-                props: ["value", "readonly", "field_class"],
-                data: function() {
-                    var self = this;
-                    self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
-                    return {};
-                },
-                template: that.components["component-date-picker"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
+            that.vue_components = {
+                "component-date-picker": {
+                    props: ["modelValue", "readonly", "field_class"],
+                    emits: ["update:modelValue", "change"],
+                    template: that.components["component-date-picker"],
+                    delimiters: ['{ { ', ' } }'],
+                    computed: {
+                        prop_readonly() { return (typeof this.readonly === "boolean" ? this.readonly : false); }
+                    },
+                    mounted: function() {
+                        var self = this;
 
-                    $(self.$el).find(".js-date-picker").each( function(i, field) {
-                        var $field = $(field),
-                            $alt_field = $field.parent().find("input[type='hidden']");
+                        $(self.$el).find(".js-date-picker").each( function(i, field) {
+                            var $field = $(field),
+                                $alt_field = $field.parent().find("input[type='hidden']");
 
-                        $field.datepicker({
-                            altField: $alt_field,
-                            altFormat: "yy-mm-dd",
-                            changeMonth: true,
-                            changeYear: true,
-                            beforeShow:function(field, instance){
-                                var $calendar = $(instance.dpDiv[0]);
-                                var index = 2001;
-                                setTimeout( function() {
-                                    $calendar.css("z-index", index);
-                                }, 10);
-                            },
-                            onClose: function(field, instance) {
-                                var $calendar = $(instance.dpDiv[0]);
-                                $calendar.css("z-index", "");
+                            $field.datepicker({
+                                altField: $alt_field,
+                                altFormat: "yy-mm-dd",
+                                changeMonth: true,
+                                changeYear: true,
+                                beforeShow:function(field, instance){
+                                    var $calendar = $(instance.dpDiv[0]);
+                                    var index = 2001;
+                                    setTimeout( function() {
+                                        $calendar.css("z-index", index);
+                                    }, 10);
+                                },
+                                onClose: function(field, instance) {
+                                    var $calendar = $(instance.dpDiv[0]);
+                                    $calendar.css("z-index", "");
+                                }
+                            });
+
+                            if (self.modelValue) {
+                                var date = formatDate(self.modelValue);
+                                $field.datepicker( "setDate", date);
+                            }
+
+                            $field.on("change", function() {
+                                var field_value = $field.val();
+                                if (!field_value) { $alt_field.val(""); }
+                                var value = $alt_field.val();
+                                self.$emit("update:modelValue", value);
+                                self.$emit("change");
+                            });
+
+                            function formatDate(date_string) {
+                                if (typeof date_string !== "string") { return null; }
+
+                                var date_array = date_string.split("-"),
+                                    year = date_array[0],
+                                    mount = date_array[1] - 1,
+                                    day = date_array[2];
+
+                                return new Date(year, mount, day);
                             }
                         });
-
-                        if (self.value) {
-                            var date = formatDate(self.value);
-                            $field.datepicker( "setDate", date);
-                        }
-
-                        $field.on("change", function() {
-                            var field_value = $field.val();
-                            if (!field_value) { $alt_field.val(""); }
-                            var value = $alt_field.val();
-                            self.$emit("input", value);
-                            self.$emit("change");
-                        });
-
-                        function formatDate(date_string) {
-                            if (typeof date_string !== "string") { return null; }
-
-                            var date_array = date_string.split("-"),
-                                year = date_array[0],
-                                mount = date_array[1] - 1,
-                                day = date_array[2];
-
-                            return new Date(year, mount, day);
-                        }
-                    });
-                }
-            });
-
-            /**
-             * @description Input
-             * */
-            Vue.component("component-input", {
-                props: ["value", "placeholder", "readonly", "required", "cancel", "focus", "validate", "fraction_size", "format"],
-                data: function() {
-                    var self = this;
-                    self.focus = (typeof self.focus === "boolean" ? self.focus : false);
-                    self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
-                    self.required = (typeof self.required === "boolean" ? self.required : false);
-                    self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
-                    self.format = (typeof self.format === "string" ? self.format : "text");
-                    return {
-                        $input: null,
-                        start_value: null
-                    };
-                },
-                template: '<input type="text" v-bind:class="field_class" v-bind:placeholder="placeholder" v-bind:value="value" v-bind:readonly="readonly" v-on:focus="onFocus" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:keydown.enter="onEnter" v-on:blur="onBlur">',
-                delimiters: ['{ { ', ' } }'],
-                computed: {
-                    field_class: function() {
-                        var self = this,
-                            result = [];
-
-                        if (self.required && !self.value.length) {
-                            result.push("wa-error-field");
-                        }
-                        if (self.format === "number") {
-                            result.push("is-number");
-                        }
-
-                        return result.join(" ");
                     }
                 },
-                methods: {
-                    onInput: function($event) {
-                        var self = this;
 
-                        if (self.validate) {
-                            var options = {};
-                            if (self.fraction_size > 0) { options.fraction_size = self.fraction_size; }
-
-                            $event.target.value = self.value = $.wa.validate(self.validate, $event.target.value, options);
-                        }
-
-                        self.$emit('input', $event.target.value);
+                "component-input": {
+                    props: ["modelValue", "placeholder", "readonly", "required", "cancel", "focus", "validate", "fraction_size", "format"],
+                    emits: ["update:modelValue", "change", "focus", "blur", "cancel", "ready"],
+                    template: `<input type="text" v-bind:class="field_class"
+                                    v-bind:placeholder="placeholder"
+                                    v-bind:value="modelValue"
+                                    v-bind:readonly="prop_readonly"
+                                    v-on:focus="onFocus"
+                                    v-on:input="onInput"
+                                    v-on:keydown.esc="onEsc"
+                                    v-on:keydown.enter="onEnter"
+                                    v-on:blur="onBlur">`,
+                    data: function() {
+                        return {
+                            $input: null,
+                            start_value: null
+                        };
                     },
-                    onFocus: function($event) {
-                        var self = this;
-                        self.start_value = $event.target.value;
-                        self.$emit("focus");
-                    },
-                    onBlur: function($event) {
-                        var self = this,
-                            value = $event.target.value;
+                    computed: {
+                        prop_readonly() { return (typeof this.readonly === "boolean" ? this.readonly : false); },
+                        prop_required() { return (typeof this.required === "boolean" ? this.required : false); },
+                        prop_cancel() { return (typeof this.cancel === "boolean" ? this.cancel : false); },
+                        prop_focus() { return (typeof this.focus === "boolean" ? this.focus : false); },
+                        prop_format() { return (typeof this.format === "string" ? this.format : "text"); },
+                        field_class: function() {
+                            var self = this,
+                                result = [];
 
-                        if (value === self.start_value) {
-                            if (self.cancel) { self.$emit("cancel"); }
-                        } else {
-                            self.onChange(value);
-                        }
+                            if (self.prop_required && !self.modelValue.length) {
+                                result.push("state-error");
+                            }
+                            if (self.prop_format === "number" || self.prop_format === "number-negative") {
+                                result.push("is-number");
+                            }
 
-                        self.$emit("blur", value);
-                    },
-                    onEsc: function($event) {
-                        var self = this;
-                        if (self.cancel) {
-                            $event.target.value = self.value = self.start_value;
-                            self.$emit('input', self.value);
-                            self.$input.trigger("blur");
+                            return result.join(" ");
                         }
                     },
-                    onEnter: function($event) {
-                        var self = this;
-                        self.$input.trigger("blur");
-                    },
-                    onChange: function(value) {
-                        var self = this;
-                        if (!self.required || self.value.length) {
-                            self.$emit("change", value);
-                        }
-                    }
-                },
-                mounted: function() {
-                    var self = this,
-                        $input = self.$input = $(self.$el);
+                    methods: {
+                        onInput: function($event) {
+                            var self = this;
 
-                    self.$emit("ready", self.$el.value);
+                            if (self.validate) {
+                                var options = {};
+                                if (self.fraction_size > 0) { options.fraction_size = self.fraction_size; }
 
-                    if (self.focus) {
-                        $input.trigger("focus");
-                    }
-                }
-            });
+                                $event.target.value = $.wa.validate(self.validate, $event.target.value, options);
+                            }
 
-            Vue.component("component-checkbox", {
-                props: ["value", "label", "disabled", "field_id"],
-                data: function() {
-                    var self = this;
-                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
-                    return {
-                        tag: (self.label !== false ? "label" : "span"),
-                        id: (typeof self.field_id === "string" ? self.field_id : "")
-                    }
-                },
-                template: that.components["component-checkbox"],
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    onChange: function(event) {
-                        var self = this;
-                        self.$emit("input", self.value);
-                        self.$emit("change", self.value);
-                    }
-                }
-            });
-
-            Vue.component("component-radio", {
-                props: ["value", "name", "val", "label", "disabled"],
-                data: function() {
-                    let self = this;
-                    return {
-                        tag: (self.label !== false ? "label" : "span"),
-                        val: (typeof self.val === "string" ? self.value : ""),
-                        name: (typeof self.name === "string" ? self.name : ""),
-                        disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
-                    }
-                },
-                template: that.components["component-radio"],
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    onChange: function(event) {
-                        let self = this;
-                        self.$emit("input", self.value);
-                        self.$emit("change", self.value);
-                    }
-                }
-            });
-
-            Vue.component("component-dropdown", {
-                props: ["value", "options", "disabled", "button_class", "body_width", "body_class", "empty_option"],
-                data: function() {
-                    var self = this;
-
-                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
-                    self.body_width = (typeof self.body_width === "string" ? self.body_width : "");
-                    self.body_class = (typeof self.body_class === "string" ? self.body_class : "");
-                    self.button_class = (typeof self.button_class === "string" ? self.button_class : "");
-                    self.empty_option = (typeof self.empty_option !== "undefined" ? self.empty_option : false);
-
-                    return {
-                        states: { is_changed: false }
-                    }
-                },
-                template: that.components["component-dropdown"],
-                delimiters: ['{ { ', ' } }'],
-                computed: {
-                    active_option: function() {
-                        let self = this,
-                            active_option = null;
-
-                        if (self.value) {
-                            var filter_search = self.options.filter( function(option) {
-                                return (option.value === self.value);
-                            });
-                            active_option = (filter_search.length ? filter_search[0] : active_option);
-                        } else if (!self.empty_option) {
-                            active_option = self.options[0];
-                        }
-
-                        return active_option;
-                    },
-                    formatted_options: function() {
-                        var self = this,
-                            result = [];
-
-                        if (self.empty_option) {
-                            result.push({
-                                name: (typeof self.empty_option === "string" ? self.empty_option : ""),
-                                value: ""
-                            });
-                        }
-
-                        $.each(self.options, function(i, option) {
-                            result.push(option);
-                        });
-
-                        return result;
-                    }
-                },
-                methods: {
-                    change: function(option) {
-                        let self = this;
-
-                        if (option.disabled) { return false; }
-
-                        if (self.active_option !== option) {
-                            self.$emit("input", option.value);
-                            self.$emit("change", option.value);
-                        }
-                        self.dropdown.hide();
-                    }
-                },
-                mounted: function() {
-                    let self = this;
-
-                    if (self.disabled) { return false; }
-
-                    self.dropdown = $(self.$el).waDropdown({
-                        hover : false,
-                        open: function() {
+                            self.$emit('update:modelValue', $event.target.value);
+                        },
+                        onFocus: function($event) {
+                            var self = this;
+                            self.start_value = $event.target.value;
                             self.$emit("focus");
                         },
-                        close: function() {
-                            self.$emit("blur");
+                        onBlur: function($event) {
+                            var self = this,
+                                value = $event.target.value;
+
+                            if (value === self.start_value) {
+                                if (self.prop_cancel) { self.$emit("cancel"); }
+                            } else {
+                                self.onChange(value);
+                            }
+
+                            self.$emit("blur", value);
+                        },
+                        onEsc: function($event) {
+                            var self = this;
+                            if (self.prop_cancel) {
+                                $event.target.value = self.start_value;
+                                self.$emit('update:modelValue', $event.target.value);
+                                self.$input.trigger("blur");
+                            }
+                        },
+                        onEnter: function($event) {
+                            var self = this;
+                            self.$input.trigger("blur");
+                        },
+                        onChange: function(value) {
+                            var self = this;
+                            if (!self.prop_required || self.modelValue.length) {
+                                self.$emit("change", value);
+                            }
                         }
-                    }).waDropdown("dropdown");
-                }
-            });
-
-            Vue.component("component-switch", {
-                props: ["value", "disabled"],
-                data: function() {
-                    return {
-                        active: (typeof this.value === "boolean" ? this.value : false),
-                        disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
-                    };
-                },
-                template: '<div class="switch small"></div>',
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    $.waSwitch({
-                        $wrapper: $(self.$el),
-                        active: self.active,
-                        disabled: self.disabled,
-                        change: function(active, wa_switch) {
-                            self.$emit("input", active);
-                            self.$emit("change", active);
-                        }
-                    });
-                }
-            });
-
-            Vue.component("component-textarea", {
-                props: ["value", "placeholder", "readonly", "cancel", "focus", "rows"],
-                data: function() {
-                    var self = this;
-                    self.focus = (typeof self.focus === "boolean" ? self.focus : false);
-                    self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
-                    self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
-                    self.rows = (typeof self.rows === "string" ? self.rows : "");
-                    return {
-                        offset: 0,
-                        $textarea: null,
-                        start_value: null
-                    };
-                },
-                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-bind:readonly="readonly" v-on:focus="onFocus" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:blur="onBlur"></textarea>',
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    onInput: function($event) {
-                        var self = this;
-                        self.update();
-                        self.$emit('input', $event.target.value);
                     },
-                    onFocus: function($event) {
-                        var self = this;
-                        self.start_value = $event.target.value;
-                        self.$emit("focus");
-                    },
-                    onBlur: function($event) {
+                    mounted: function() {
                         var self = this,
-                            value = $event.target.value;
+                            $input = self.$input = $(self.$el);
 
-                        if (value === self.start_value) {
-                            if (self.cancel) { self.$emit("cancel"); }
-                        } else {
-                            self.$emit("change", value);
+                        self.$emit("ready", self.$el.value);
+
+                        if (self.prop_focus) {
+                            $input.trigger("focus");
                         }
-                        self.$emit("blur", value);
-                    },
-                    onEsc: function($event) {
+                    }
+                },
+
+                "component-checkbox": {
+                    props: ["modelValue", "label", "disabled", "field_id"],
+                    emits: ["update:modelValue", "change"],
+                    data: function() {
                         var self = this;
-                        if (self.cancel) {
-                            $event.target.value = self.value = self.start_value;
-                            self.$emit('input', self.value);
-                            self.$textarea.trigger("blur");
+                        return {
+                            tag: (self.label !== false ? "label" : "span"),
+                            id: (typeof self.field_id === "string" ? self.field_id : "")
                         }
                     },
-                    update: function() {
+                    computed: {
+                        prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); }
+                    },
+                    template: that.components["component-checkbox"],
+                    delimiters: ['{ { ', ' } }'],
+                    methods: {
+                        onChange: function(event) {
+                            var self = this;
+                            var val = event.target.checked;
+                            self.$emit("update:modelValue", val);
+                            self.$emit("change", val);
+                        }
+                    }
+                },
+
+                "component-radio": {
+                    props: ["modelValue", "name", "val", "label", "disabled"],
+                    emits: ["update:modelValue", "change"],
+                    data: function() {
+                        let self = this;
+                        return {
+                            tag: (self.label !== false ? "label" : "span"),
+                            value: (typeof self.val === "string" ? self.val : "")
+                        }
+                    },
+                    computed: {
+                        prop_name() { return (typeof this.name === "string" ? this.name : ""); },
+                        prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); },
+                        checked() { return this.modelValue === this.value }
+                    },
+                    template: that.components["component-radio"],
+                    delimiters: ['{ { ', ' } }'],
+                    methods: {
+                        onChange: function(event) {
+                            self.$emit("update:modelValue", this.value);
+                            self.$emit("change", this.value);
+                        }
+                    }
+                },
+
+                "component-dropdown": {
+                    props: ["modelValue", "options", "disabled", "button_class", "body_width", "body_class", "empty_option"],
+                    emits: ["update:modelValue", "change", "focus", "blur"],
+                    data: function() {
+                        return {
+                            states: { is_changed: false }
+                        }
+                    },
+                    template: that.components["component-dropdown"],
+                    delimiters: ['{ { ', ' } }'],
+                    computed: {
+                        prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); },
+                        prop_body_width() { return (typeof this.body_width === "string" ? this.body_width : ""); },
+                        prop_body_class() { return (typeof this.body_class === "string" ? this.body_class : ""); },
+                        prop_button_class() { return (typeof this.button_class === "string" ? this.button_class : ""); },
+                        prop_empty_option() { return (typeof this.empty_option !== "undefined" ? this.empty_option : false); },
+                        active_option: function() {
+                            let self = this,
+                                active_option = null;
+
+                            if (self.modelValue) {
+                                var filter_search = self.options.filter( function(option) {
+                                    return (option.value === self.modelValue);
+                                });
+                                active_option = (filter_search.length ? filter_search[0] : active_option);
+                            } else if (!self.prop_empty_option) {
+                                active_option = self.options[0];
+                            }
+
+                            return active_option;
+                        },
+                        formatted_options: function() {
+                            var self = this,
+                                result = [];
+
+                            if (self.prop_empty_option) {
+                                result.push({
+                                    name: (typeof self.prop_empty_option === "string" ? self.prop_empty_option : ""),
+                                    value: ""
+                                });
+                            }
+
+                            $.each(self.options, function(i, option) {
+                                result.push(option);
+                            });
+
+                            return result;
+                        }
+                    },
+                    methods: {
+                        change: function(option) {
+                            let self = this;
+
+                            if (option.prop_disabled) { return false; }
+
+                            if (self.active_option !== option) {
+                                self.$emit("update:modelValue", option.value);
+                                self.$emit("change", option.value);
+                            }
+                            self.dropdown.hide();
+                        }
+                    },
+                    mounted: function() {
+                        let self = this;
+
+                        if (self.prop_disabled) { return false; }
+
+                        self.dropdown = $(self.$el).waDropdown({
+                            hover : false,
+                            open: function() {
+                                self.$emit("focus");
+                            },
+                            close: function() {
+                                self.$emit("blur");
+                            }
+                        }).waDropdown("dropdown");
+                    }
+                },
+
+                "component-switch": {
+                    props: ["modelValue", "disabled"],
+                    emits: ["update:modelValue", "change"],
+                    template: '<div class="switch small"></div>',
+                    delimiters: ['{ { ', ' } }'],
+                    mounted: function() {
                         var self = this;
-                        var $textarea = $(self.$el);
+
+                        $.waSwitch({
+                            $wrapper: $(self.$el),
+                            active: !!self.modelValue,
+                            disabled: !!self.disabled,
+                            change: function(active, wa_switch) {
+                                self.$emit("update:modelValue", active);
+                                self.$emit("change", active);
+                            }
+                        });
+                    }
+                },
+
+                "component-textarea": {
+                    props: ["modelValue", "placeholder", "readonly", "cancel", "focus", "rows"],
+                    emits: ["update:modelValue", "change", "focus", "blur", "cancel", "ready"],
+                    data: function() {
+                        return {
+                            offset: 0,
+                            $textarea: null,
+                            start_value: null
+                        };
+                    },
+                    computed: {
+                        prop_readonly() { return (typeof this.readonly === "boolean" ? this.readonly : false) },
+                        prop_focus() { return (typeof this.focus === "boolean" ? this.focus : false) },
+                        prop_cancel() { return (typeof this.cancel === "boolean" ? this.cancel : false) },
+                    },
+                    template: `<textarea v-bind:placeholder="placeholder"
+                                    v-bind:value="modelValue"
+                                    v-bind:readonly="prop_readonly"
+                                    v-on:focus="onFocus"
+                                    v-on:input="onInput"
+                                    v-on:keydown.esc="onEsc"
+                                    v-on:blur="onBlur"
+                                ></textarea>`,
+                    delimiters: ['{ { ', ' } }'],
+                    methods: {
+                        onInput: function($event) {
+                            var self = this;
+                            self.update();
+                            self.$emit('update:modelValue', $event.target.value);
+                        },
+                        onFocus: function($event) {
+                            var self = this;
+                            self.start_value = $event.target.value;
+                            self.$emit("focus");
+                        },
+                        onBlur: function($event) {
+                            var self = this,
+                                value = $event.target.value;
+
+                            if (value === self.start_value) {
+                                if (self.prop_cancel) { self.$emit("cancel"); }
+                            } else {
+                                self.$emit("change", value);
+                            }
+                            self.$emit("blur", value);
+                        },
+                        onEsc: function($event) {
+                            var self = this;
+                            if (self.prop_cancel) {
+                                $event.target.value = self.start_value;
+                                self.$emit('update:modelValue', $event.target.value);
+                                self.$textarea.trigger("blur");
+                            }
+                        },
+                        update: function() {
+                            var self = this;
+                            var $textarea = $(self.$el);
+
+                            $textarea
+                                .css("overflow", "hidden")
+                                .css("min-height", 0);
+                            var scroll_h = $textarea[0].scrollHeight + self.offset;
+                            $textarea
+                                .css("min-height", scroll_h + "px")
+                                .css("overflow", "");
+                        }
+                    },
+                    mounted: function() {
+                        var self = this,
+                            $textarea = self.$textarea = $(self.$el);
+
+                        self.offset = $textarea[0].offsetHeight - $textarea[0].clientHeight;
 
                         $textarea
                             .css("overflow", "hidden")
@@ -450,39 +479,27 @@
                         $textarea
                             .css("min-height", scroll_h + "px")
                             .css("overflow", "");
+                        if (self.rows === '1') {
+                            $textarea.css("white-space", "nowrap");
+                        }
+                        self.$emit("ready", self.$el.value);
+
+                        if (self.prop_focus) { $textarea.trigger("focus"); }
                     }
                 },
-                mounted: function() {
-                    var self = this,
-                        $textarea = self.$textarea = $(self.$el);
+            };
 
-                    self.offset = $textarea[0].offsetHeight - $textarea[0].clientHeight;
-
-                    $textarea
-                        .css("overflow", "hidden")
-                        .css("min-height", 0);
-                    var scroll_h = $textarea[0].scrollHeight + self.offset;
-                    $textarea
-                        .css("min-height", scroll_h + "px")
-                        .css("overflow", "");
-                    if (self.rows === '1') {
-                        $textarea.css("white-space", "nowrap");
+            $.vue_app = Vue.createApp({
+                data() {
+                    return {
+                        categories: that.categories,
+                        states    : that.states
                     }
-                    self.$emit("ready", self.$el.value);
-
-                    if (self.focus) { $textarea.trigger("focus"); }
-                }
-            });
-
-            return new Vue({
-                el: $vue_section[0],
-                data: {
-                    categories: that.categories,
-                    states    : that.states
                 },
                 components: {
                     "component-dropdown-categories-sorting": {
                         template: that.components["component-dropdown-categories-sorting"],
+                        emits: ["change"],
                         delimiters: ['{ { ', ' } }'],
                         computed: {},
                         methods: {
@@ -501,7 +518,6 @@
                     },
                     "component-search-categories": {
                         data: function() {
-                            var self = this;
                             return {
                                 search_string: "",
                                 position: 0,
@@ -628,8 +644,6 @@
                     "component-categories": {
                         props: ["categories"],
                         data: function() {
-                            var self = this;
-
                             var storage_name = "wa_shop_categories_columns",
                                 storage = getStorage();
 
@@ -680,7 +694,6 @@
                                     "component-category-sorting": {
                                         props: ["category"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 options: that.category_sort_variants,
                                                 states: {
@@ -754,6 +767,7 @@
                                     },
                                     "component-category-filters": {
                                         props: ["category"],
+                                        components: { "component-switch": that.vue_components["component-switch"] },
                                         data: function() {
                                             var self = this;
                                             return {
@@ -815,14 +829,18 @@
                                         }
                                     },
                                     "component-dropdown-storefronts": {
-                                        props: ["value", "category"],
+                                        props: ["modelValue", "category"],
+                                        emits: ["update:modelValue"],
+                                        components: {
+                                            "component-radio": that.vue_components["component-radio"],
+                                            "component-checkbox": that.vue_components["component-checkbox"]
+                                        },
                                         data: function() {
-                                            var self = this,
-                                                type = "";
+                                            var self = this;
 
                                             return {
-                                                type: (!self.value.length ? "all" : "selection"),
-                                                storefronts: getStorefronts(self.value),
+                                                type: (!self.modelValue.length ? "all" : "selection"),
+                                                storefronts: getStorefronts(self.modelValue),
                                                 states: {
                                                     locked: false
                                                 }
@@ -832,7 +850,6 @@
                                                 var storefronts = $.wa.clone(that.storefronts);
                                                 $.each(storefronts, function(i, storefront) {
                                                     storefront.active = (active_storefronts.indexOf(storefront.url) >= 0);
-                                                    if (storefront.active) { type = "selection"; }
                                                 });
                                                 return storefronts;
                                             }
@@ -841,14 +858,12 @@
                                         delimiters: ['{ { ', ' } }'],
                                         watch: {
                                             "type": function() {
-                                                var self = this;
-                                                self.dropdown.resize();
+                                                this.dropdown.resize();
                                             }
                                         },
                                         computed: {
                                             radio_name: function() {
-                                                var self = this;
-                                                return "category["+self.category.id+"]radio_option";
+                                                return "category["+this.category.id+"]radio_option";
                                             },
                                             selected_storefronts: function() {
                                                 var self = this;
@@ -880,7 +895,7 @@
                                                     })
                                                     .done( function(response) {
                                                         if (response.status === "ok") {
-                                                            self.$emit("input", result);
+                                                            self.$emit("update:modelValue", result);
                                                         } else {
                                                             console.log( "ERRORS: cant save storefronts", response.errors );
                                                         }
@@ -1074,13 +1089,14 @@
                                         function initDialog($dialog, dialog) {
                                             var $vue_section = $dialog.find(".js-vue-section");
 
-                                            new Vue({
-                                                el: $vue_section[0],
-                                                data: {
-                                                    category: category,
-                                                    copy_categories: true,
-                                                    copy_products: false,
-                                                    locked: false
+                                            Vue.createApp({
+                                                data() {
+                                                    return {
+                                                        category: category,
+                                                        copy_categories: true,
+                                                        copy_products: false,
+                                                        locked: false
+                                                    }
                                                 },
                                                 delimiters: ['{ { ', ' } }'],
                                                 computed: {},
@@ -1127,7 +1143,7 @@
                                                 created: function () {
                                                     $vue_section.css("visibility", "");
                                                 }
-                                            });
+                                            }).mount($vue_section[0]);
                                         }
                                     },
                                     categoryView: function() {
@@ -1161,16 +1177,16 @@
 
                                             var $vue_section = $dialog.find(".js-vue-section");
 
-                                            var view_model = new Vue({
-                                                el: $vue_section[0],
-                                                data: {
-                                                    category: category,
-                                                    urls: dialog.options.urls
+                                            Vue.createApp({
+                                                data() {
+                                                    return {
+                                                        category: category,
+                                                        urls: dialog.options.urls
+                                                    }
                                                 },
                                                 delimiters: ['{ { ', ' } }'],
                                                 methods: {
                                                     onClick: function() {
-                                                        const self = this;
                                                         dialog.close();
                                                     }
                                                 },
@@ -1178,10 +1194,9 @@
                                                     $vue_section.css("visibility", "");
                                                 },
                                                 mounted: function() {
-                                                    const self = this;
                                                     dialog.resize();
                                                 }
-                                            });
+                                            }).mount($vue_section[0]);
                                         }
 
                                         function getStorefronts(all_fronts, cat_fronts) {
@@ -1216,7 +1231,6 @@
                             "component-categories-header-column": {
                                 props: ["column"],
                                 data: function() {
-                                    var self = this;
                                     return {
                                         states: {
                                             locked: false,
@@ -1296,13 +1310,8 @@
 
                                 localStorage.setItem(self.storage_name, data);
                             }
-                        },
-                        mounted: function () {
-                            var self = this;
                         }
                     }
-                },
-                computed: {
                 },
                 methods: {
                     categoryAdd: function() {
@@ -1492,6 +1501,10 @@
                     that.init(this);
                 }
             });
+
+            $.vue_app.config.compilerOptions.whitespace = 'preserve';
+
+            return $.vue_app.mount($vue_section[0]);
         };
 
         Page.prototype.formatCategory = function(category) {
@@ -2004,13 +2017,17 @@
                 // VUE
                 var $section = $dialog.find(".js-vue-section");
 
-                new Vue({
-                    el: $section[0],
-                    data: {
-                        category: category,
-                        remove_products: false,
-                        remove_categories: false,
-                        locked: false
+                Vue.createApp({
+                    components: {
+                        "component-switch": that.vue_components["component-switch"],
+                    },
+                    data() {
+                        return {
+                            category: category,
+                            remove_products: false,
+                            remove_categories: false,
+                            locked: false
+                        }
                     },
                     delimiters: ['{ { ', ' } }'],
                     computed: {
@@ -2074,8 +2091,7 @@
                     },
                     watch: {
                         "remove_categories": function() {
-                            const self = this;
-                            self.resizeDialog();
+                            this.resizeDialog();
                         }
                     },
                     created: function () {
@@ -2089,7 +2105,7 @@
 
                         vue_ready.resolve(dialog);
                     }
-                });
+                }).mount($section[0]);
 
                 function formatCategory(category, category_data) {
                     category.count = category_data.count;
@@ -2113,11 +2129,14 @@
                 },
                 onOpen: function($dialog, dialog) {
                     ready.resolve(dialog);
+                },
+                onClose: function(dialog) {
+                    dialog.app.unmount();
                 }
             });
 
             function initDialog($dialog, dialog, options) {
-                var category = formatCategory(options.category),
+                var category = Vue.reactive(formatCategory(options.category)),
                     category_sort_variants = options.category_sort_variants,
                     lang = options.lang;
 
@@ -2129,38 +2148,42 @@
                 var category_name = category.name,
                     category_data = that.categories_object[category.id];
 
-                new Vue({
-                    el: $section[0],
-                    data: {
-                        category: category,
-                        init_category: null,
-                        category_data: category_data,
-                        category_types: that.category_types,
-                        storefronts: getStorefronts(that.storefronts),
-                        init_storefronts: null,
-                        states: {
-                            locked: false,
-                            category_url_focus: false,
-                            copy_locked: false,
+                dialog.app = Vue.createApp({
+                    data() {
+                        return {
+                            category: category,
+                            init_category: null,
+                            category_data: category_data,
+                            category_types: that.category_types,
+                            storefronts: getStorefronts(that.storefronts),
+                            init_storefronts: null,
+                            states: {
+                                locked: false,
+                                category_url_focus: false,
+                                copy_locked: false,
 
-                            visible_menu_url: (category.status === "1"),
-                            visible_menu_url_at_subcategories: false,
-                            update_storefronts_at_subcategories: false,
+                                visible_menu_url: (category.status === "1"),
+                                visible_menu_url_at_subcategories: false,
+                                update_storefronts_at_subcategories: false,
 
-                            url_sync_started: false,
-                            transliterate_xhr: null,
-                            transliterate_timer: null
-                        },
-                        init_states: null,
-                        errors: {}
+                                url_sync_started: false,
+                                transliterate_xhr: null,
+                                transliterate_timer: null
+                            },
+                            init_states: null,
+                            errors: {}
+                        }
                     },
                     delimiters: ['{ { ', ' } }'],
                     components: {
+                        "component-checkbox": that.vue_components["component-checkbox"],
+                        "component-radio": that.vue_components["component-radio"],
+                        "component-switch": that.vue_components["component-switch"],
+                        "component-dropdown": that.vue_components["component-dropdown"],
+                        "component-textarea": that.vue_components["component-textarea"],
                         "component-category-visible-storefronts": {
                             props: ["category", "storefronts"],
                             data: function() {
-                                var self = this;
-                                self.storefronts = $.wa.clone(self.storefronts);
                                 return {
                                     states: {
                                         expanded: false
@@ -2191,6 +2214,10 @@
                         },
                         "component-category-storefronts-section": {
                             props: ["root_states", "category", "category_data", "storefronts"],
+                            components: {
+                                "component-radio": that.vue_components["component-radio"],
+                                "component-checkbox": that.vue_components["component-checkbox"],
+                            },
                             data: function() {
                                 var type = (category.storefronts.length ? "selection" : "all");
 
@@ -2239,15 +2266,10 @@
                             }
                         },
                         "component-category-description-redactor": {
-                            props: ["value"],
-                            data: function() {
-                                var self = this;
-                                return {}
-                            },
+                            props: ["modelValue"],
+                            emits: ["update:modelValue"],
                             template: that.components["component-category-description-redactor"],
                             delimiters: ['{ { ', ' } }'],
-                            computed: {},
-                            methods: {},
                             mounted: function() {
                                 const self = this,
                                       $wrapper = $(self.$el);
@@ -2298,7 +2320,7 @@
                                             var value = editor.getValue();
                                             $textarea.val(value).trigger("change");
                                             self.value = value;
-                                            self.$emit("input", self.value);
+                                            self.$emit("update:modelValue", self.value);
                                             dialog.resize();
                                         });
 
@@ -2395,7 +2417,7 @@
 
                                                     this.$textarea.val(html).trigger("change");
                                                     self.value = html;
-                                                    self.$emit("input", self.value);
+                                                    self.$emit("update:modelValue", self.value);
 
                                                     clearTimeout(resize_timer);
                                                     resize_timer = setTimeout( function() {
@@ -2492,7 +2514,6 @@
                         },
                         "component-category-filter-section": {
                             data: function() {
-                                var self = this;
                                 return {
                                     category: category,
                                     states: {
@@ -2505,10 +2526,6 @@
                             components: {
                                 "component-category-filter-item": {
                                     props: ["filter"],
-                                    data: function() {
-                                        var self = this;
-                                        return {};
-                                    },
                                     template: that.components["component-category-filter-item"],
                                     delimiters: ['{ { ', ' } }'],
                                     computed: {
@@ -2534,9 +2551,6 @@
                                                 delete category.allow_filter_data[self.filter.id];
                                             }
                                         }
-                                    },
-                                    mounted: function() {
-                                        const self = this;
                                     }
                                 }
                             },
@@ -2613,7 +2627,7 @@
                                         filter = formatFilter(filter);
                                         // Добавляем в модель
                                         category.explode_feature_ids.push(filter.id);
-                                        self.$set(category.allow_filter_data, filter.id, filter);
+                                        category.allow_filter_data[filter.id] = filter;
                                         // Анимашки
                                         highlight(filter);
                                     }
@@ -2734,7 +2748,6 @@
                         },
                         "component-category-features-section": {
                             data: function() {
-                                var self = this;
                                 return {
                                     category: category,
                                     states: {
@@ -2748,7 +2761,6 @@
                                 "component-category-feature-item": {
                                     props: ["item", "index"],
                                     data: function() {
-                                        var self = this;
                                         return {
                                             states: {
                                                 is_locked: false
@@ -2903,11 +2915,11 @@
 
                                                                 switch (item.data.render_type) {
                                                                     case "select":
-                                                                        self.$set( self.item.data, "values", [item.data.value]);
+                                                                        self.item.data["values"] = [item.data.value];
                                                                         break;
 
                                                                     case "checkbox":
-                                                                        if (!self.item.data.values) { self.$set(self.item.data, "values", []); }
+                                                                        if (!self.item.data.values) { self.item.data["values"] = []; }
 
                                                                         self.item.data.values.splice(0);
                                                                         self.item.data.options.splice(0);
@@ -2921,7 +2933,7 @@
                                                                         break;
 
                                                                     case "tags":
-                                                                        if (!self.item.data.values) { self.$set(self.item.data, "values", []); }
+                                                                        if (!self.item.data.values) { self.item.data["values"] = []; }
 
                                                                         self.item.data.values.splice(0);
                                                                         self.item.data.options.splice(0);
@@ -2939,12 +2951,13 @@
                                                                                 var parsed_value = parseFloat(value);
                                                                                 if (parsed_value >= 0 ? parsed_value + "" : value);
                                                                             }
-                                                                            self.$set(option, "value", value);
+
+                                                                            option["value"] = value;
                                                                         });
                                                                         if (self.item.data.active_unit) {
                                                                             var active_unit_search = self.item.data.units.filter( unit => (unit.value === item.data.active_unit.value));
                                                                             if (active_unit_search.length) {
-                                                                                self.$set(self.item.data, "active_unit", active_unit_search[0]);
+                                                                                self.item.data["active_unit"] = active_unit_search[0];
                                                                             }
                                                                         }
                                                                         break;
@@ -2957,12 +2970,12 @@
                                                         onOpen: function($dialog, dialog) {
                                                             dialog.animateToggle(true);
                                                         },
-                                                        onClose: function() {
+                                                        onClose: function(dialog) {
+                                                            dialog.app.unmount();
                                                             self.$nextTick( function() {
                                                                 if (self.item.edit_on_add) {
                                                                     if (!self.values.length) {
                                                                         self.remove();
-//console.log( "TODO:remove", self.item );
                                                                     } else {
                                                                         self.item.edit_on_add = false;
                                                                     }
@@ -3171,17 +3184,17 @@
                             const self = this;
 
                             if (!value.length) {
-                                self.$set(self.errors, "category_name", {
+                                self.errors["category_name"] = {
                                     id: "category_name",
                                     text: that.locales["error_category_name_empty"]
-                                });
+                                };
                             } else if (value.length > 255) {
-                                self.$set(self.errors, "category_name", {
+                                self.errors["category_name"] = {
                                     id: "category_name",
                                     text: that.locales["error_category_name"]
-                                });
+                                };
                             } else {
-                                self.$delete(self.errors, "category_name");
+                                delete self.errors["category_name"];
                             }
                         }
                     },
@@ -3200,10 +3213,10 @@
                         onBlurName: function() {
                             var self = this;
                             if (!self.category.name.length && !self.errors["category_name"]) {
-                                self.$set(self.errors, "category_name", {
+                                self.errors["category_name"] = {
                                     id  : "category_name",
                                     text: that.locales["error_category_name_empty"]
-                                });
+                                };
                             }
                         },
 
@@ -3457,6 +3470,10 @@
                     }
                 });
 
+                dialog.app.config.compilerOptions.whitespace = 'preserve';
+
+                dialog.app.mount($section[0]);
+
                 function formatCategory(category) {
                     category = that.formatCategory(options.category);
 
@@ -3507,7 +3524,6 @@
 
         Page.prototype.initEditCategoryConditionDialog = function($dialog, dialog, options) {
             var that = this;
-            console.log( dialog );
 
             that.updateRootVariables(options);
 
@@ -3517,23 +3533,26 @@
             var item = $.wa.clone(dialog.options.item),
                 data_object = getItemData(item.data, options.values);
 
-            new Vue({
-                el: $section[0],
-                data: {
-                    item: item,
-                    item_data: data_object.item_data,
-                    items_keys: data_object.items_keys,
-                    states: {
-                        locked: false
-                    },
-                    errors: {}
+            dialog.app = Vue.createApp({
+                data() {
+                    return {
+                        item: item,
+                        item_data: data_object.item_data,
+                        items_keys: data_object.items_keys,
+                        states: {
+                            locked: false
+                        }
+                    }
                 },
                 delimiters: ['{ { ', ' } }'],
                 components: {
+                    "component-input": that.vue_components["component-input"],
+                    "component-radio": that.vue_components["component-radio"],
+                    "component-dropdown": that.vue_components["component-dropdown"],
+                    "component-date-picker": that.vue_components["component-date-picker"],
                     "component-feature-value-checkbox": {
                         props: ["item_data"],
                         data: function() {
-                            var self = this;
                             return {
                                 search_string: "",
                                 selection: []
@@ -3544,8 +3563,11 @@
                         components: {
                             "component-feature-value-checkbox-item": {
                                 props: ["item"],
+                                emits: ["change"],
+                                components: {
+                                    "component-switch": that.vue_components["component-switch"]
+                                },
                                 data: function() {
-                                    var self = this;
                                     return {
                                         states: {
                                             timer_enable: 0,
@@ -3870,6 +3892,8 @@
                     });
                 }
             });
+
+            dialog.app.mount($section[0]);
         };
 
         return Page;

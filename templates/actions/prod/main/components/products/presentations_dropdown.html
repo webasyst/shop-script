@@ -127,20 +127,20 @@
 {capture assign="_component_presentation_add_form"}
     <div class="s-presentation-add-form flexbox middle space-12">
         <div class="s-field-wrapper wide">
-            <component-input class="small full-width" placeholder="{_w("Enter a name")|escape}"
+            <component-input class="small full-width" placeholder="[`Enter a name`]"
                 v-model="name"
                 v-bind:focus="true"></component-input>
         </div>
         <div class="s-actions-wrapper flexbox middle">
             <button class="button small outlined" type="button"
                     v-bind:disabled="states.locked"
-                    v-on:click="create">
+                    v-on:click.prevent="create">
                 <span class="s-icon icon"
                       v-if="!states.locked"
-                      v-bind:key="'check'"><i class="fas fa-check"></i></span>
+                ><i class="fas fa-check"></i></span>
                 <span class="s-icon icon"
                       v-if="states.locked"
-                      v-bind:key="'spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                ><i class="fas fa-spinner fa-spin"></i></span>
             </button>
             <button class="button small outlined" type="button"
                     v-show="!states.locked"
@@ -155,18 +155,18 @@
 {capture assign="_component_presentation_rename_form"}
     <div class="s-presentation-rename-form flexbox middle space-12">
         <div class="s-field-wrapper wide">
-            <input class="small full-width" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}">
+            <input class="small full-width" type="text" v-model="name" placeholder="[`Enter a name`]">
         </div>
         <div class="s-actions-wrapper flexbox middle">
             <button class="button small outlined" type="button"
                     v-bind:disabled="states.locked"
-                    v-on:click="create">
+                    v-on:click.prevent="create">
                 <span class="s-icon icon"
                       v-if="!states.locked"
-                      v-bind:key="'check'"><i class="fas fa-check"></i></span>
+                ><i class="fas fa-check"></i></span>
                 <span class="s-icon icon"
                       v-if="states.locked"
-                      v-bind:key="'spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                ><i class="fas fa-spinner fa-spin"></i></span>
             </button>
             <button class="button small outlined" type="button"
                     v-show="!states.locked"

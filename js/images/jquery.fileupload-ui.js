@@ -342,15 +342,6 @@
             },
             // Callback for upload progress events:
             progress: function (e, data) {
-//                if (data.context) {
-//                    var progress = Math.floor(data.loaded / data.total * 100);
-//                    data.context.find('.progress')
-//                        .attr('aria-valuenow', progress)
-//                        .find('.bar').css(
-//                            'width',
-//                            progress + '%'
-//                        );
-//                }
                 if (data.context[1]) {
                     data.context[1].find('.s-upload-oneimage-progress').css(
                         'width',
@@ -360,29 +351,11 @@
             },
             // Callback for global upload progress events:
             progressall: function (e, data) {
-//                var $this = $(this),
-//                    progress = Math.floor(data.loaded / data.total * 100),
-//                    globalProgressNode = $this.find('.fileupload-progress'),
-//                    extendedProgressNode = globalProgressNode
-//                        .find('.progress-extended');
-//                if (extendedProgressNode.length) {
-//                    extendedProgressNode.html(
-//                        ($this.data('blueimp-fileupload') || $this.data('fileupload'))
-//                            ._renderExtendedProgress(data)
-//                    );
-//                }
-//                globalProgressNode
-//                    .find('.progress')
-//                    .attr('aria-valuenow', progress)
-//                    .find('.bar').css(
-//                        'width',
-//                        progress + '%'
-//                    );
-                var $this = $(this);
-                $this.find('.fileupload-progressbar').css(
-                    'width',
-                    parseInt(data.loaded / data.total * 95, 10) + '%'
-                );
+                var that = $(this).data('blueimp-fileupload') || $(this).data('fileupload'),
+                    $this = $(this);
+
+                that.progressbar.set({ percentage: parseInt(data.loaded / data.total * 95, 10) });
+
                 $("#s-upload-filescount").html(parseInt(data.loaded / data.total * 95, 10) + '%');
                 $this.find('.progress-extended').each(function () {
                         $(this).html(
@@ -397,13 +370,9 @@
                         $(this).data('fileupload');
                 that._resetFinishedDeferreds();
 
-                /*
-                that._transition($(this).find('.fileupload-progress')).done(
-                    function () {
-                        that._trigger('started', e);
-                    }
-                );
-                */
+                that.progressbar.set({ percentage: 0 });
+
+                that._showDialog();
 
                 // remove containers with empty list of images
                 that.options.preloadContainer.find('tr').each(function() {
@@ -417,9 +386,6 @@
                 $('#s-upload-step1-buttons .cancel').text($_('Stop upload'));
                 $("#s-upload-error").hide();
 
-                var progressbar = $("#s-upload-progressbar").css('width', '0%');
-                progressbar.parents('.progressbar:first').show();
-                that._showDialog();
                 return false;
             },
 
@@ -435,14 +401,8 @@
                     });
                 that._transition($(this).find('.fileupload-progress')).done(
                     function () {
-//                        $(this).find('.progress')
-//                            .attr('aria-valuenow', '0')
-//                            .find('.bar').css('width', '0%');
-//                        $(this).find('.progress-extended').html('&nbsp;');
                         $("#s-upload-filescount").html('100%');
-                        $('#s-upload-progressbar').animate({
-                            'width': '100%'
-                        });
+                        that.progressbar.set({ percentage: 100 });
                         deferred.resolve();
                     }
                 );
@@ -504,7 +464,7 @@
                 msg.push($_('Images uploaded:') + ' ' + this.options.report.file_count + '<br>');
             }
             if (msg.length) {
-                $('#s-imagesproduct-report').html('<div class="successmsg">' + msg.join(' ') + '</div>').show();
+                $('#s-imagesproduct-report').html('<div class="state-success-hint">' + msg.join(' ') + '</div>').show();
             }
         },
 
@@ -849,16 +809,22 @@
                     }
                 }
             });
-            container.find('ul').sortable({
-                distance: 5,
-                items: 'li',
-                opacity: 0.75,
-                connectWith: 'ul',
-                tolerance: 'pointer',
-                placeholder: 'ui-state-highlight',
-                dropOnEmpty: true,
-                forceHelperSize: true,
-                forcePlaceholderSize: true
+
+            Sortable.create(container.find('ul')[0], {
+                group: 'shared',
+                handle: '.js-sort',
+                draggable: 'li',
+                ghostClass: 'ui-state-highlight',
+                animation: 100,
+                removeCloneOnHide: true,
+                onStart: function () {
+                    $('body').on('drop', function (e) {
+                        return false;
+                   });
+                },
+                onEnd: function () {
+                    $('body').off('drop');
+                }
             });
             $('#submit').show();
             $('#add-new-group-container').show();
@@ -1228,26 +1194,17 @@
             this._initFilesContainers();
             this._initTemplates();
             this._initRegExpOptions();
-            this._initDialog();
+
         },
 
         _showDialog: function() {
-            this.dialog.waDialog({
-                onSubmit: function() {
-                    return false;
-                },
-                onCancel: function() {
-                    $('#s-product-type-container').hide();
-                    $('#s-image-upload-dropbox').show();
-                    $('#s-image-upload-explanation').hide();
-                    $('#submit').hide();
-                    $('#add-new-group-container').hide();
-                }
-            });
+            $('body').addClass('is-locked');
+            this.$dialog.removeClass('hidden');
         },
 
         _hideDialog: function() {
-            this.dialog.trigger('close');
+            $('body').removeClass('is-locked');
+            this.$dialog.addClass('hidden');
             $('#s-product-type-container').hide();
             $('#s-image-upload-dropbox').show();
             $('#s-image-upload-explanation').hide();
@@ -1257,13 +1214,16 @@
         },
 
         _initDialog: function() {
-            var that = this;
-            that.dialog = $('#s-image-uploader');
-            /*
-            $('.cancel', that.dialog).click(function() {
-                that.dialog.trigger('close');
-            });
-            */
+            var that = this,
+                $dialog = $('#s-image-uploader');
+
+            that.dialog = $.waDialog({ html: $dialog.get(0) });
+
+            that.$dialog = this.dialog.$wrapper;
+
+            $('body').removeClass('is-locked');
+
+            that.progressbar = $("#js-upload-progressbar").waProgressbar({"text-inside": true }).data('progressbar');
         },
 
         // There is grouping idea for rendering fileinfo in proper container.
@@ -1296,6 +1256,7 @@
                 };
             }
             this._resetFinishedDeferreds();
+            this._initDialog();
         },
 
         enable: function () {

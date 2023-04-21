@@ -5,19 +5,20 @@
 {$_components = []}
 
 {capture assign="_component_products_list"}
+{literal}
     <div class="vue-component-products-list">
         <div class="field s-add-product-form">
             <div class="name">[`Find and add a product`]</div>
             <div class="value">
-                <component-add-product v-bind:class="'wide'" v-bind:placeholder="'{_w("Start typing product name or SKU")|escape}'" v-on:add_product="addProduct($event, products)"></component-add-product>
+                <component-add-product v-bind:class="'wide'" placeholder="[`Start typing product name or SKU`]" v-on:add_product="addProduct($event, products)"></component-add-product>
                 <div class="hint"><i class="fas fa-info-circle"></i>&nbsp;[`If you have not found a certain product, enter a more detailed search query to see more exact results.`]</div>
             </div>
         </div>
         <div class="s-products-list" v-if="products.length">
             <div class="s-product-wrapper flexbox middle space-8" v-for="product in products"
-                 v-bind:key="product.id"
-                 v-bind:class="{ 'is-moving' : product.is_moving }"
-                 v-bind:data-id="product.id">
+                v-bind:key="product.id"
+                v-bind:class="{ 'is-moving' : product.is_moving }"
+                v-bind:data-id="product.id">
                 <div class="s-move-actions">
                     <div class="s-toggle-move js-product-move-toggle cursor-move" draggable="true">
                         <i class="icon baseline shift-2 size-14"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i>
@@ -32,16 +33,15 @@
                 </div>
                 <div class="s-price" v-html="product.price"></div>
                 <div class="s-actions">
-                    <button class="button small light-gray rounded"
-                            v-on:click.prevent="removeProduct(product, products)"
-                            title="[`Remove`]">
-                        <span class="s-icon icon baseline shift-2 size-12"><i class="fas fa-times"></i></span>
+                    <button class="button nobutton small light-gray rounded" v-on:click.prevent="removeProduct(product, products)" title="[`Remove`]">
+                        <span class="s-icon icon baseline shift-2 size-12 text-red"><i class="fas fa-trash-alt"></i></span>
                         <span class="s-name"></span>
                     </button>
                 </div>
             </div>
         </div>
     </div>
+{/literal}
 {/capture}
 {$_components["component-products-list"] = $_component_products_list|strip}
 
@@ -60,7 +60,7 @@
         <div class="s-section-body">
             <div class="s-content-section s-cross-selling-section">
                 <div class="s-section-header">
-                    <h5 class="s-title">[`Complementary products`] (cross-selling)</h5>
+                    <h5 class="s-title"> [`Complementary products`] (cross-selling)</h5>
                 </div>
                 <div class="s-section-body">
                     <p>[`Recommend other products as complementary to the current product, if they were previously ordered with this product or if they are contained in selected categories. For instance, you may recommend cases, protective glasses, and earphones for smartphones.`]</p>
@@ -78,7 +78,7 @@
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="auto" v-model="cross_selling.view_type" v-on:change="onTypeChange(cross_selling)"><span></span>
                                                 </span>
-                                                <span class="s-title">[`For product type`]</span>
+                                                <span class="s-title"> [`For product type`]</span>
                                             </label>
                                         </div>
                                         <div class="s-section-body">
@@ -102,7 +102,7 @@
                                                     <div class="message-actions middle">
                                                         <a class="button nobutton rounded nowrap small" href="{$wa_app_url}marketing/recommendations/" target="_blank">
                                                             <span class="s-icon"><i class="fas fa-cog"></i></span>
-                                                            <span class="s-name">[`Options`]</span>
+                                                            <span class="s-name"> [`Options`] </span>
                                                             <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
                                                         </a>
                                                     </div>
@@ -116,12 +116,12 @@
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="manual" v-model="cross_selling.view_type" v-on:change="onTypeChange(cross_selling)"><span></span>
                                                 </span>
-                                                <span class="s-title">[`Individually for this product`]</span>
+                                                <span class="s-title"> [`Individually for this product`]</span>
                                             </label>
                                         </div>
                                         <div class="s-section-body">
                                             <div class="s-options-list">
-                                                <div class="s-option-section" v-for="option in cross_selling.options" v-key="option.id" v-bind:class="{ 'is-active': cross_selling.value === option.value }">
+                                                <div class="s-option-section" v-for="option in cross_selling.options" v-bind:key="option.id" v-bind:class="{ 'is-active': cross_selling.value === option.value }">
                                                     <div class="s-section-header small">
                                                         <label>
                                                             <span class="wa-radio">
@@ -132,7 +132,7 @@
                                                                        v-on:change="cross_selling.view_type = 'manual'">
                                                                 <span></span>
                                                             </span>
-                                                            <span class="s-title">{ { option.name } }</span>
+                                                            <span class="s-title">&nbsp;{ { option.name } }</span>
                                                         </label>
                                                     </div>
 
@@ -141,13 +141,13 @@
                                                         <template v-if="option.value === '2'">
                                                             <div class="s-products-header flexbox small middle wrap">
                                                                 <div class="s-count-wrapper">
-                                                                    <span class="s-label">[`Products selected`]:</span>
+                                                                    <span class="s-label">[`Products selected`]: </span>
                                                                     <span class="s-count bold">{ { cross_selling.products.length } }</span>
                                                                 </div>
                                                                 <button class="nobutton s-form-toggle-button small"
                                                                         v-on:click.prevent="cross_selling.show_form = !cross_selling.show_form">
                                                                     <span class="s-icon" style="font-size: 12px;"><i class="fas fa-pen"></i></span>
-                                                                    <span class="s-name">[`Change`]</span>
+                                                                    <span class="s-name"> [`Change`] </span>
                                                                     <span class="s-icon" v-show="!cross_selling.show_form" style="display: inline-block; transform: translate(0, -12.5%)"><i class="fas fa-sort-down"></i></span>
                                                                     <span class="s-icon" v-show="cross_selling.show_form" style="display: inline-block; transform: translate(0, 25%)"><i class="fas fa-sort-up"></i></span>
                                                                 </button>
@@ -170,7 +170,7 @@
 
             <div class="s-content-section s-upselling-section">
                 <div class="s-section-header">
-                    <h5 class="s-title">[`Upselling & similar`] (upselling)</h5>
+                    <h5 class="s-title"> [`Upselling & similar`] (upselling)</h5>
                 </div>
                 <div class="s-section-body">
                     <p>[`Recommend products with other prices and features, or products of absolutely different types, matching specified criteria. For instance, for a certain smartphone you may recommend other smartphones of different brands with similar functionality.`]</p>
@@ -188,7 +188,7 @@
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="auto" v-model="upselling.view_type" v-on:change="onTypeChange(upselling)"><span></span>
                                                 </span>
-                                                <span class="s-title">[`For product type`]</span>
+                                                <span class="s-title"> [`For product type`]</span>
                                             </label>
                                         </div>
                                         <div class="s-section-body">
@@ -212,7 +212,7 @@
                                                     <div class="message-actions middle">
                                                         <a class="button nobutton rounded nowrap small" href="{$wa_app_url}marketing/recommendations/" target="_blank">
                                                             <span class="s-icon"><i class="fas fa-cog"></i></span>
-                                                            <span class="s-name">[`Options`]</span>
+                                                            <span class="s-name"> [`Options`] </span>
                                                             <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
                                                         </a>
                                                     </div>
@@ -226,12 +226,12 @@
                                                 <span class="wa-radio baseline shift-2">
                                                     <input type="radio" value="manual" v-model="upselling.view_type" v-on:change="onTypeChange(upselling)"><span></span>
                                                 </span>
-                                                <span class="s-title">[`Individually for this product`]</span>
+                                                <span class="s-title"> [`Individually for this product`]</span>
                                             </label>
                                         </div>
                                         <div class="s-section-body">
                                             <div class="s-options-list">
-                                                <div class="s-option-section" v-for="option in upselling.options" v-key="option.id" v-bind:class="{ 'is-active': upselling.value === option.value, 'is-disabled': !!option.disabled }">
+                                                <div class="s-option-section" v-for="option in upselling.options" v-bind:key="option.id" v-bind:class="{ 'is-active': upselling.value === option.value, 'is-disabled': !!option.disabled }">
                                                     <div class="s-section-header small" v-if="!option.disabled">
                                                         <label>
                                                             <span class="wa-radio">
@@ -242,7 +242,7 @@
                                                                        v-on:change="upselling.view_type = 'manual'">
                                                                 <span></span>
                                                             </span>
-                                                            <span class="s-title">{ { option.name } }</span>
+                                                            <span class="s-title">&nbsp;{ { option.name } }</span>
                                                         </label>
                                                     </div>
 
@@ -251,13 +251,13 @@
                                                         <template v-if="option.value === '2'">
                                                             <div class="s-products-header flexbox small middle wrap">
                                                                 <div class="s-count-wrapper">
-                                                                    <span class="s-label">[`Products selected`]:</span>
+                                                                    <span class="s-label">[`Products selected`]: </span>
                                                                     <span class="s-count bold">{ { upselling.products.length } }</span>
                                                                 </div>
                                                                 <button class="nobutton s-form-toggle-button small"
                                                                         v-on:click.prevent="upselling.show_form = !upselling.show_form">
                                                                     <span class="s-icon" style="font-size: 12px;"><i class="fas fa-pen"></i></span>
-                                                                    <span class="s-name">[`Change`]</span>
+                                                                    <span class="s-name"> [`Change`] </span>
                                                                     <span class="s-icon" v-show="!upselling.show_form" style="display: inline-block; transform: translate(0, -12.5%)"><i class="fas fa-sort-down"></i></span>
                                                                     <span class="s-icon" v-show="upselling.show_form" style="display: inline-block; transform: translate(0, 25%)"><i class="fas fa-sort-up"></i></span>
                                                                 </button>
@@ -293,10 +293,10 @@
 
                 <div class="s-features-hidden-on-front-section">
                     <div class="wa-message small warn flexbox space-8">
-                        <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="message-icon"><i class="fas fa-exclamation-triangle text-yellow"></i></div>
                         <div class="message-text wide">
-                            <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`]</span>
-                            <span class="s-icon" data-tooltip-id="product-sku-features-hidden-on-front"><i class="fas fa-question-circle  gray"></i></span>
+                            <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`] </span>
+                            <span class="s-icon" data-tooltip-id="product-sku-features-hidden-on-front"><i class="fas fa-question-circle text-gray"></i></span>
                         </div>
                     </div>
                 </div>
@@ -313,7 +313,7 @@
             var sources = [{
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
             }, {
                 id: "wa-shop-products-product-related-js",
                 type: "js",

@@ -4,6 +4,7 @@
 
         function Page(options) {
             var that = this;
+            const { reactive, ref } = Vue;
 
             // DOM
             that.$wrapper = options["$wrapper"];
@@ -29,19 +30,19 @@
             that.filter_options       = formatFilterOptions(options["filter_options"], that.filter.rules);
             that.presentations        = formatPresentations(options["presentations"]);
             that.presentation         = formatActivePresentation(options["presentation"]);
-            that.products_selection   = "visible_products";
+            that.products_selection   = ref("visible_products");
 
             that.model_data = {};
-            that.states = {
+            that.states = reactive({
                 $animation: null,
                 mass_actions_pinned: false,
                 mass_actions_storage_key: "shop_products/mass_actions_pinned"
-            };
+            });
             that.keys = {
                 table: 0,
                 mass_actions: 0
             };
-            that.broadcast = that.initBroadcast();
+            that.broadcast = reactive(that.initBroadcast());
 
             // INIT
             that.vue_model = that.initVue();
@@ -219,666 +220,710 @@
 
             var $vue_section = that.$wrapper.find("#js-vue-section");
 
-            /**
-             * @description Switch
-             * */
-            Vue.component("component-switch", {
-                props: ["value", "disabled"],
-                data: function() {
-                    return {
-                        active: (typeof this.value === "boolean" ? this.value : false),
-                        disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
-                    };
-                },
-                template: '<div class="switch wa-small"></div>',
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
+            if (typeof $.vue_app === "object" && typeof $.vue_app.unmount === "function") {
+                $.vue_app.unmount();
+            }
 
-                    $.waSwitch({
-                        $wrapper: $(self.$el),
-                        active: self.active,
-                        disabled: self.disabled,
-                        change: function(active, wa_switch) {
-                            self.$emit("change", active);
-                            self.$emit("input", active);
-                        }
-                    });
-                }
-            });
-
-            /**
-             * @description Checkbox
-             * */
-            Vue.component("component-checkbox", {
-                props: ["value", "label", "disabled", "field_id"],
-                data: function() {
-                    var self = this;
-                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
-                    return {
-                        tag: (self.label !== false ? "label" : "span"),
-                        id: (typeof self.field_id === "string" ? self.field_id : "")
-                    }
-                },
-                template: that.components["component-checkbox"],
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    onChange: function(event) {
+            // TODO: migrate to file
+            that.vue_components = {
+                "component-switch": {
+                    props: ["modelValue", "disabled"],
+                    emits: ["update:modelValue", "change"],
+                    template: '<div class="switch small"></div>',
+                    delimiters: ['{ { ', ' } }'],
+                    mounted: function() {
                         var self = this;
-                        self.$emit("input", self.value);
-                        self.$emit("change", self.value);
-                    }
-                }
-            });
 
-            /**
-             * @description Radio
-             * */
-            Vue.component("component-radio", {
-                props: ["value", "name", "val", "label", "disabled"],
-                data: function() {
-                    let self = this;
-                    return {
-                        tag: (self.label !== false ? "label" : "span"),
-                        val: (typeof self.val === "string" ? self.value : ""),
-                        name: (typeof self.name === "string" ? self.name : ""),
-                        disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
-                    }
-                },
-                template: that.components["component-radio"],
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    onChange: function(event) {
-                        let self = this;
-                        self.$emit("input", self.value);
-                        self.$emit("change", self.value);
-                    }
-                }
-            });
-
-            /**
-             * @description Dropdown
-             * */
-            Vue.component("component-dropdown", {
-                props: ["value", "options", "disabled", "button_class", "body_width", "body_class", "empty_option"],
-                data: function() {
-                    var self = this;
-
-                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
-                    self.body_width = (typeof self.body_width === "string" ? self.body_width : "");
-                    self.body_class = (typeof self.body_class === "string" ? self.body_class : "");
-                    self.button_class = (typeof self.button_class === "string" ? self.button_class : "");
-                    self.empty_option = (typeof self.empty_option !== "undefined" ? self.empty_option : false);
-
-                    return {
-                        states: { is_changed: false }
-                    }
-                },
-                template: that.components["component-dropdown"],
-                delimiters: ['{ { ', ' } }'],
-                computed: {
-                    active_option: function() {
-                        let self = this,
-                            active_option = null;
-
-                        if (self.value) {
-                            var filter_search = self.options.filter( function(option) {
-                                return (option.value === self.value);
-                            });
-                            active_option = (filter_search.length ? filter_search[0] : active_option);
-                        } else if (!self.empty_option) {
-                            active_option = self.options[0];
-                        }
-
-                        return active_option;
-                    },
-                    formatted_options: function() {
-                        var self = this,
-                            result = [];
-
-                        if (self.empty_option) {
-                            result.push({
-                                name: (typeof self.empty_option === "string" ? self.empty_option : ""),
-                                value: ""
-                            });
-                        }
-
-                        $.each(self.options, function(i, option) {
-                            result.push(option);
-                        });
-
-                        return result;
-                    }
-                },
-                methods: {
-                    change: function(option) {
-                        let self = this;
-                        if (self.active_option !== option) {
-                            self.$emit("input", option.value);
-                            self.$emit("change", option.value);
-                        }
-                        self.dropdown.hide();
-                    }
-                },
-                mounted: function() {
-                    let self = this;
-
-                    if (self.disabled) { return false; }
-
-                    self.dropdown = $(self.$el).waDropdown({
-                        hover : false,
-                        open: function() {
-                            self.$emit("focus");
-                        },
-                        close: function() {
-                            self.$emit("blur");
-                        }
-                    }).waDropdown("dropdown");
-                }
-            });
-
-            /**
-             * @description Date Picker
-             * */
-            Vue.component("component-date-picker", {
-                props: ["value", "readonly", "field_class"],
-                data: function() {
-                    var self = this;
-                    self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
-                    return {};
-                },
-                template: that.components["component-date-picker"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    $(self.$el).find(".js-date-picker").each( function(i, field) {
-                        var $field = $(field),
-                            $alt_field = $field.parent().find("input[type='hidden']");
-
-                        $field.datepicker({
-                            altField: $alt_field,
-                            altFormat: "yy-mm-dd",
-                            changeMonth: true,
-                            changeYear: true,
-                            beforeShow:function(field, instance){
-                                var $calendar = $(instance.dpDiv[0]);
-                                var index = 2001;
-                                setTimeout( function() {
-                                    $calendar.css("z-index", index);
-                                }, 10);
-                            },
-                            onClose: function(field, instance) {
-                                var $calendar = $(instance.dpDiv[0]);
-                                $calendar.css("z-index", "");
+                        $.waSwitch({
+                            $wrapper: $(self.$el),
+                            active: !!self.modelValue,
+                            disabled: !!self.disabled,
+                            change: function(active, wa_switch) {
+                                self.$emit("update:modelValue", active);
+                                self.$emit("change", active);
                             }
                         });
+                    }
+                },
 
-                        if (self.value) {
-                            var date = formatDate(self.value);
-                            $field.datepicker( "setDate", date);
+                "component-checkbox": {
+                    props: ["modelValue", "label", "disabled", "field_id"],
+                    emits: ["update:modelValue", "change"],
+                    data: function() {
+                        var self = this;
+                        return {
+                            tag: (self.label !== false ? "label" : "span"),
+                            id: (typeof self.field_id === "string" ? self.field_id : "")
                         }
+                    },
+                    computed: {
+                        prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); }
+                    },
+                    template: that.components["component-checkbox"],
+                    delimiters: ['{ { ', ' } }'],
+                    methods: {
+                        onChange: function(event) {
+                            var self = this;
+                            var val = event.target.checked;
+                            self.$emit("update:modelValue", val);
+                            self.$emit("change", val);
+                        }
+                    }
+                },
 
-                        $field.on("change", function() {
-                            var field_value = $field.val();
-                            if (!field_value) { $alt_field.val(""); }
-                            var value = $alt_field.val();
-                            self.$emit("input", value);
-                            self.$emit("change");
+                "component-radio": {
+                    props: ["modelValue", "name", "val", "label", "disabled"],
+                    emits: ["update:modelValue", "change"],
+                    data: function() {
+                        let self = this;
+                        return {
+                            tag: (self.label !== false ? "label" : "span"),
+                            value: self.val
+                        }
+                    },
+                    computed: {
+                        prop_name() { return (typeof this.name === "string" ? this.name : ""); },
+                        prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); },
+                        checked() { return this.modelValue === this.value }
+                    },
+                    template: that.components["component-radio"],
+                    delimiters: ['{ { ', ' } }'],
+                    methods: {
+                        onChange: function(event) {
+                            this.$emit("update:modelValue", this.value);
+                            this.$emit("change", this.value);
+                        }
+                    }
+                },
+
+                "component-dropdown": {
+                    props: ["modelValue", "options", "disabled", "button_class", "body_width", "body_class", "empty_option"],
+                    emits: ["update:modelValue", "change", "focus", "blur"],
+                    data: function() {
+                        return {
+                            states: { is_changed: false }
+                        }
+                    },
+                    template: that.components["component-dropdown"],
+                    delimiters: ['{ { ', ' } }'],
+                    computed: {
+                        prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); },
+                        prop_body_width() { return (typeof this.body_width === "string" ? this.body_width : ""); },
+                        prop_body_class() { return (typeof this.body_class === "string" ? this.body_class : ""); },
+                        prop_button_class() { return (typeof this.button_class === "string" ? this.button_class : ""); },
+                        prop_empty_option() { return (typeof this.empty_option !== "undefined" ? this.empty_option : false); },
+                        active_option: function() {
+                            let self = this,
+                                active_option = null;
+
+                            if (self.modelValue) {
+                                var filter_search = self.options.filter( function(option) {
+                                    return (option.value === self.modelValue);
+                                });
+                                active_option = (filter_search.length ? filter_search[0] : active_option);
+                            } else if (!self.prop_empty_option) {
+                                active_option = self.options[0];
+                            }
+
+                            return active_option;
+                        },
+                        formatted_options: function() {
+                            var self = this,
+                                result = [];
+
+                            if (self.prop_empty_option) {
+                                result.push({
+                                    name: (typeof self.prop_empty_option === "string" ? self.prop_empty_option : ""),
+                                    value: ""
+                                });
+                            }
+
+                            $.each(self.options, function(i, option) {
+                                result.push(option);
+                            });
+
+                            return result;
+                        }
+                    },
+                    methods: {
+                        change: function(option) {
+                            let self = this;
+
+                            if (option.prop_disabled) { return false; }
+
+                            if (self.active_option !== option) {
+                                self.$emit("update:modelValue", option.value);
+                                self.$emit("change", option.value);
+                            }
+                            self.dropdown.hide();
+                        }
+                    },
+                    mounted: function() {
+                        let self = this;
+
+                        if (self.prop_disabled) { return false; }
+
+                        self.dropdown = $(self.$el).waDropdown({
+                            hover : false,
+                            open: function() {
+                                self.$emit("focus");
+                            },
+                            close: function() {
+                                self.$emit("blur");
+                            }
+                        }).waDropdown("dropdown");
+                    }
+                },
+
+                "component-date-picker": {
+                    props: ["modelValue", "readonly", "field_class"],
+                    emits: ["update:modelValue", "change"],
+                    template: that.components["component-date-picker"],
+                    delimiters: ['{ { ', ' } }'],
+                    computed: {
+                        prop_readonly() { return (typeof this.readonly === "boolean" ? this.readonly : false); }
+                    },
+                    mounted: function() {
+                        var self = this;
+
+                        $(self.$el).find(".js-date-picker").each( function(i, field) {
+                            var $field = $(field),
+                                $alt_field = $field.parent().find("input[type='hidden']");
+
+                            $field.datepicker({
+                                altField: $alt_field,
+                                altFormat: "yy-mm-dd",
+                                changeMonth: true,
+                                changeYear: true,
+                                beforeShow:function(field, instance){
+                                    var $calendar = $(instance.dpDiv[0]);
+                                    var index = 2001;
+                                    setTimeout( function() {
+                                        $calendar.css("z-index", index);
+                                    }, 10);
+                                },
+                                onClose: function(field, instance) {
+                                    var $calendar = $(instance.dpDiv[0]);
+                                    $calendar.css("z-index", "");
+                                }
+                            });
+
+                            if (self.modelValue) {
+                                var date = formatDate(self.modelValue);
+                                $field.datepicker( "setDate", date);
+                            }
+
+                            $field.on("change", function() {
+                                var field_value = $field.val();
+                                if (!field_value) { $alt_field.val(""); }
+                                var value = $alt_field.val();
+                                self.$emit("update:modelValue", value);
+                                self.$emit("change");
+                            });
+
+                            function formatDate(date_string) {
+                                if (typeof date_string !== "string") { return null; }
+
+                                var date_array = date_string.split("-"),
+                                    year = date_array[0],
+                                    mount = date_array[1] - 1,
+                                    day = date_array[2];
+
+                                return new Date(year, mount, day);
+                            }
                         });
-
-                        function formatDate(date_string) {
-                            if (typeof date_string !== "string") { return null; }
-
-                            var date_array = date_string.split("-"),
-                                year = date_array[0],
-                                mount = date_array[1] - 1,
-                                day = date_array[2];
-
-                            return new Date(year, mount, day);
-                        }
-                    });
-                }
-            });
-
-            /**
-             * @description Color Picker
-             * */
-            Vue.component("component-color-picker", {
-                props: ["value", "readonly", "disabled", "field_class"],
-                data: function() {
-                    var self = this;
-                    self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
-                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
-                    if (self.value) { self.value = self.value.toLowerCase() }
-                    return {
-                        is_ready: true,
-                        extended: false,
-                        start_value: self.value
-                    };
-                },
-                template: that.components["component-color-picker"],
-                delimiters: ['{ { ', ' } }'],
-                computed: {
-                    is_changed: function() {
-                        var self = this;
-                        return (self.start_value !== self.value);
                     }
                 },
-                methods: {
-                    onFocus: function() {
-                        var self = this;
-                        if (!self.extended) {
-                            self.toggle(true);
-                        }
-                    },
-                    onInput: function() {
-                        var self = this;
-                        self.setColor();
-                        self.$emit("input", self.value);
-                    },
-                    onChange: function() {
-                        var self = this;
-                        self.change();
-                    },
-                    toggle: function(show) {
+
+                "component-color-picker": {
+                    props: ["modelValue", "readonly", "disabled", "field_class"],
+                    emits: ["update:modelValue", "change", "focus"],
+                    data: function() {
                         var self = this;
 
-                        if (self.readonly || self.disabled) { return false; }
-
-                        show = (typeof show === "boolean" ? show : !self.extended);
-                        self.extended = show;
-
-                        if (show) {
-                            self.$document.on("mousedown", self.watchOff);
-                            self.setColor();
-                            self.$emit("focus");
-
-                        } else {
-                            self.$document.off("mousedown", self.watchOff);
-                            self.change();
-                        }
-                    },
-                    setColor: function() {
-                        var self = this,
-                            color = (self.value ? self.value : "#000000");
-
-                        self.is_ready = false;
-                        self.farbtastic.setColor(color);
-                        self.is_ready = true;
-                    },
-                    watchOff: function(event) {
-                        var self = this,
-                            is_target = self.$wrapper[0].contains(event.target);
-                        if (!is_target) {
-                            if (self.extended) { self.toggle(false); }
-                            self.$document.off("mousedown", self.watchOff);
-                        }
-                    },
-                    change: function() {
-                        var self = this;
-                        if (self.is_changed) {
-                            self.$emit("change", self.value);
-                            // self.start_value = self.value;
-                        }
-                    }
-                },
-                mounted: function() {
-                    var self = this;
-
-                    self.$document = $(document);
-                    self.$wrapper = $(self.$el);
-
-                    var $picker = self.$wrapper.find(".js-color-picker");
-
-                    self.farbtastic = $.farbtastic($picker, onChangeColor);
-
-                    function onChangeColor(color) {
-                        if (self.is_ready && self.value !== color) {
-                            self.value = color;
-                            self.$emit("input", self.value);
-                        }
-                    }
-                }
-            });
-
-            /**
-             * @description Textarea
-             * */
-            Vue.component("component-textarea", {
-                props: ["value", "placeholder", "readonly", "disabled", "cancel", "focus"],
-                data: function() {
-                    var self = this;
-                    self.focus = (typeof self.focus === "boolean" ? self.focus : false);
-                    self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
-                    self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
-                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
-                    return {
-                        offset: 0,
-                        $textarea: null,
-                        start_value: null
-                     };
-                },
-                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-bind:readonly="readonly" v-bind:disabled="disabled" v-on:focus="onFocus" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:blur="onBlur"></textarea>',
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    onInput: function($event) {
-                        var self = this;
-                        self.update();
-                        self.$emit('input', $event.target.value);
-                    },
-                    onFocus: function($event) {
-                        var self = this;
-                        self.start_value = $event.target.value;
-                        self.$emit("focus");
-                    },
-                    onBlur: function($event) {
-                        var self = this,
-                            value = $event.target.value;
-
-                        if (value === self.start_value) {
-                            if (self.cancel) { self.$emit("cancel"); }
-                        } else {
-                            self.$emit("change", value);
-                        }
-                    },
-                    onEsc: function($event) {
-                        var self = this;
-                        if (self.cancel) {
-                            $event.target.value = self.value = self.start_value;
-                            self.$emit('input', self.value);
-                            self.$textarea.trigger("blur");
-                        }
-                    },
-                    update: function() {
-                        var self = this;
-                        var $textarea = $(self.$el);
-
-                        $textarea
-                            .css("overflow", "hidden")
-                            .css("min-height", 0);
-                        var x = self.$el.offsetHeight;
-                        var scroll_h = self.$el.scrollHeight + self.offset;
-                        $textarea
-                            .css("min-height", scroll_h + "px")
-                            .css("overflow", "");
-                    }
-                },
-                mounted: function() {
-                    var self = this,
-                        $textarea = self.$textarea = $(self.$el);
-
-                    self.offset = $textarea[0].offsetHeight - $textarea[0].clientHeight;
-                    self.update();
-
-                    self.$emit("ready", self.$el.value);
-
-                    if (self.focus) { $textarea.trigger("focus"); }
-                }
-            });
-
-            /**
-             * @description Input
-             * */
-            Vue.component("component-input", {
-                props: ["value", "placeholder", "readonly", "disabled", "required", "cancel", "focus", "validate", "fraction_size", "format"],
-                data: function() {
-                    var self = this;
-                    self.focus = (typeof self.focus === "boolean" ? self.focus : false);
-                    self.cancel = (typeof self.cancel === "boolean" ? self.cancel : false);
-                    self.required = (typeof self.required === "boolean" ? self.required : false);
-                    self.readonly = (typeof self.readonly === "boolean" ? self.readonly : false);
-                    self.disabled = (typeof self.disabled === "boolean" ? self.disabled : false);
-                    self.format = (typeof self.format === "string" ? self.format : "text");
-                    return {
-                        $input: null,
-                        start_value: null
-                     };
-                },
-                template: '<input type="text" v-bind:class="field_class" v-bind:placeholder="placeholder" v-bind:value="value" v-bind:readonly="readonly" v-bind:disabled="disabled" v-on:focus="onFocus" v-on:input="onInput" v-on:keydown.esc="onEsc" v-on:keydown.enter="onEnter" v-on:blur="onBlur">',
-                delimiters: ['{ { ', ' } }'],
-                computed: {
-                    field_class: function() {
-                        var self = this,
-                            result = [];
-
-                        if (self.required && !self.value.length) {
-                            result.push("wa-error-field");
+                        if (self.modelValue) {
+                            self.$emit("update:modelValue", self.modelValue.toLowerCase());
                         }
 
-                        if (self.format === "number" || self.format === "number-negative") {
-                            result.push("is-number");
-                        }
-
-                        return result.join(" ");
-                    }
-                },
-                methods: {
-                    onInput: function($event) {
-                        var self = this;
-
-                        if (self.validate) {
-                            var options = {};
-                            if (self.fraction_size > 0) { options.fraction_size = self.fraction_size; }
-
-                            $event.target.value = self.value = $.wa.validate(self.validate, $event.target.value, options);
-                        }
-
-                        self.$emit('input', $event.target.value);
-                    },
-                    onFocus: function($event) {
-                        var self = this;
-                        self.start_value = $event.target.value;
-                        self.$emit("focus");
-                    },
-                    onBlur: function($event) {
-                        var self = this,
-                            value = $event.target.value;
-
-                        if (value === self.start_value) {
-                            if (self.cancel) { self.$emit("cancel"); }
-                        } else {
-                            self.onChange(value);
-                        }
-
-                        self.$emit("blur", value);
-                    },
-                    onEsc: function($event) {
-                        var self = this;
-                        if (self.cancel) {
-                            $event.target.value = self.value = self.start_value;
-                            self.$emit('input', self.value);
-                            self.$input.trigger("blur");
-                        }
-                    },
-                    onEnter: function($event) {
-                        var self = this;
-                        self.$input.trigger("blur");
-                    },
-                    onChange: function(value) {
-                        var self = this;
-                        if (self.required && self.value === "") {
-                            self.value = self.start_value;
-                            self.$input.val(self.value);
-                            self.$emit('input', self.value);
-                        } else {
-                            self.$emit("change", value);
-                        }
-                    }
-                },
-                mounted: function() {
-                    var self = this,
-                        $input = self.$input = $(self.$el);
-
-                    self.$emit("ready", self.$el.value);
-
-                    if (self.focus) {
-                        $input.trigger("focus");
-                    }
-                }
-            });
-
-            Vue.component("component-product-column-tags", {
-                props: ["product", "column", "column_info", "column_data", "ignore_limit"],
-                data: function() {
-                    var self = this,
-                        tags_states = {},
-                        settings = (self.column.data && self.column.data.settings ? self.column.data.settings : {});
-
-                    self.ignore_limit = (typeof self.ignore_limit === "boolean" ? self.ignore_limit : false);
-
-                    $.each(self.column_data.options, function(i, tag) {
-                        tags_states[tag.value] = { is_locked: false }
-                    });
-
-                    return {
-                        limit: (settings.visible_count && !self.ignore_limit ? settings.visible_count : null),
-                        tags_states: tags_states
-                    };
-                },
-                template: that.components["component-product-column-tags"],
-                delimiters: ['{ { ', ' } }'],
-                computed: {
-                    over_limit: function() {
-                        var self = this,
-                            result = null;
-
-                        if (self.limit > 0 && self.limit < self.column_data.options.length) {
-                            result = (self.column_data.options.length - self.limit);
-                        }
-
-                        return result;
-                    },
-                    tags: function() {
-                        var self = this,
-                            result = self.column_data.options;
-
-                        if (self.over_limit) {
-                            result = self.column_data.options.slice(0, self.limit);
-                        }
-
-                        return result;
-                    }
-                },
-                methods: {
-                    deleteTag: function(tag) {
-                        var self = this,
-                            tag_states = self.tags_states[tag.value],
-                            type = "";
-
-                        switch(self.column.column_type) {
-                            case "tags":
-                                type = "tag";
-                                break;
-                            case "categories":
-                                type = "category";
-                                break;
-                            case "sets":
-                                type = "set";
-                                break;
-                        }
-
-                        var data = {
-                            product_id: self.product.id,
-                            dataset_id: tag.value,
-                            type: type
+                        return {
+                            is_ready: true,
+                            extended: false,
+                            start_value: self.modelValue
                         };
-
-                        tag_states.is_locked = true;
-
-                        $.post(that.urls["product_exclude"], data, "json")
-                            .always( function() {
-                                tag_states.is_locked = false;
-                            })
-                            .done( function(response) {
-                                if (response.status === "ok") {
-                                    self.column_data.options.splice(self.column_data.options.indexOf(tag), 1);
-                                } else {
-                                    alert("Server error");
-                                    console.log( response.errors );
-                                }
-                            });
                     },
-                    showDialog: function() {
+                    template: that.components["component-color-picker"],
+                    delimiters: ['{ { ', ' } }'],
+                    computed: {
+                        prop_readonly() { return (typeof this.readonly === "boolean" ? this.readonly : false) },
+                        prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false) },
+                        is_changed: function() {
+                            var self = this;
+                            return (self.start_value !== self.modelValue);
+                        }
+                    },
+                    methods: {
+                        onFocus: function() {
+                            var self = this;
+                            if (!self.extended) {
+                                self.toggle(true);
+                            }
+                        },
+                        onInput: function(e) {
+                            this.$emit("update:modelValue", e.target.value);
+                            this.setColor();
+                        },
+                        onChange: function(e) {
+                            this.change(e.target.value);
+                        },
+                        toggle: function(show) {
+                            var self = this;
+
+                            if (self.prop_readonly || self.prop_disabled) { return false; }
+
+                            show = (typeof show === "boolean" ? show : !self.extended);
+                            self.extended = show;
+
+                            if (show) {
+                                self.$document.on("mousedown", self.watchOff);
+                                self.setColor();
+                                self.$emit("focus");
+
+                            } else {
+                                self.$document.off("mousedown", self.watchOff);
+                                self.change();
+                            }
+                        },
+                        setColor: function() {
+                            var self = this,
+                                color = (self.modelValue ? self.modelValue : "#000000");
+
+                            self.is_ready = false;
+                            self.farbtastic.setColor(color);
+                            self.is_ready = true;
+                        },
+                        watchOff: function(event) {
+                            var self = this,
+                                is_target = self.$wrapper[0].contains(event.target);
+                            if (!is_target) {
+                                if (self.extended) { self.toggle(false); }
+                                self.$document.off("mousedown", self.watchOff);
+                            }
+                        },
+                        change: function(value) {
+                            var self = this;
+                            if (self.is_changed) {
+                                self.$emit("update:modelValue", value);
+                            }
+                        }
+                    },
+                    mounted: function() {
                         var self = this;
 
-                        $.waDialog({
-                            html: that.templates["dialog-product-column-tags"],
-                            onOpen: initDialog
+                        self.$document = $(document);
+                        self.$wrapper = $(self.$el);
+
+                        var $picker = self.$wrapper.find(".js-color-picker");
+
+                        self.farbtastic = $.farbtastic($picker, onChangeColor);
+
+                        function onChangeColor(color) {
+                            if (self.is_ready && self.modelValue !== color) {
+                                self.$emit("update:modelValue", color);
+                            }
+                        }
+                    }
+                },
+
+                "component-textarea": {
+                    props: ["modelValue", "placeholder", "readonly", "cancel", "focus", "rows"],
+                    emits: ["update:modelValue", "change", "focus", "blur", "cancel", "ready"],
+                    data: function() {
+                        return {
+                            offset: 0,
+                            textarea: null,
+                            start_value: null
+                        };
+                    },
+                    computed: {
+                        prop_readonly() { return (typeof this.readonly === "boolean" ? this.readonly : false) },
+                        prop_focus() { return (typeof this.focus === "boolean" ? this.focus : false) },
+                        prop_cancel() { return (typeof this.cancel === "boolean" ? this.cancel : false) },
+                    },
+                    template: `<textarea v-bind:placeholder="placeholder"
+                                    v-bind:value="modelValue"
+                                    v-bind:readonly="prop_readonly"
+                                    v-on:focus="onFocus"
+                                    v-on:input="onInput"
+                                    v-on:keydown.esc="onEsc"
+                                    v-on:blur="onBlur"
+                                ></textarea>`,
+                    delimiters: ['{ { ', ' } }'],
+                    methods: {
+                        onInput: function($event) {
+                            var self = this;
+                            self.update();
+                            self.$emit('update:modelValue', $event.target.value);
+                        },
+                        onFocus: function($event) {
+                            var self = this;
+                            self.start_value = $event.target.value;
+                            self.$emit("focus");
+                        },
+                        onBlur: function($event) {
+                            var self = this,
+                                value = $event.target.value;
+
+                            if (value === self.start_value) {
+                                if (self.prop_cancel) { self.$emit("cancel"); }
+                            } else {
+                                self.$emit("change", value);
+                            }
+                            self.$emit("blur", value);
+                        },
+                        onEsc: function($event) {
+                            var self = this;
+                            if (self.prop_cancel) {
+                                $event.target.value = self.start_value;
+                                self.$emit('update:modelValue', $event.target.value);
+                                self.textarea.trigger("blur");
+                            }
+                        },
+                        update: function() {
+                            var self = this;
+                            var textarea = $(self.$el);
+
+                            textarea
+                                .css("overflow", "hidden")
+                                .css("min-height", 0);
+                            var scroll_h = textarea[0].scrollHeight + self.offset;
+                            textarea
+                                .css("min-height", scroll_h + "px")
+                                .css("overflow", "");
+                        }
+                    },
+                    mounted: function() {
+                        var self = this,
+                            textarea = self.textarea = $(self.$el);
+
+                        self.offset = textarea[0].offsetHeight - textarea[0].clientHeight;
+                        self.update();
+
+                        if (self.rows === '1') {
+                            textarea.css("white-space", "nowrap");
+                        }
+
+                        self.$emit("ready", self.$el.value);
+
+                        if (self.focus) { textarea.trigger("focus"); }
+                    }
+                },
+
+                "component-input": {
+                    props: ["modelValue", "placeholder", "readonly", "required", "cancel", "focus", "validate", "fraction_size", "format"],
+                    emits: ["update:modelValue", "input", "change", "focus", "blur", "cancel", "ready"],
+                    template: `<input type="text" v-bind:class="field_class"
+                                    v-bind:placeholder="placeholder"
+                                    v-bind:value="modelValue"
+                                    v-bind:readonly="prop_readonly"
+                                    v-on:focus="onFocus"
+                                    v-on:input="onInput"
+                                    v-on:keydown.esc="onEsc"
+                                    v-on:keydown.enter="onEnter"
+                                    v-on:blur="onBlur">`,
+                    data: function() {
+                        return {
+                            input: null,
+                            start_value: null
+                        };
+                    },
+                    computed: {
+                        prop_readonly() { return (typeof this.readonly === "boolean" ? this.readonly : false); },
+                        prop_required() { return (typeof this.required === "boolean" ? this.required : false); },
+                        prop_cancel() { return (typeof this.cancel === "boolean" ? this.cancel : false); },
+                        prop_focus() { return (typeof this.focus === "boolean" ? this.focus : false); },
+                        prop_format() { return (typeof this.format === "string" ? this.format : "text"); },
+                        field_class: function() {
+                            var self = this,
+                                result = [];
+
+                            if (self.prop_required && !self.modelValue.length) {
+                                result.push("state-error");
+                            }
+
+                            if (self.prop_format === "number" || self.prop_format === "number-negative") {
+                                result.push("is-number");
+                            }
+
+                            return result.join(" ");
+                        }
+                    },
+                    methods: {
+                        onInput: function($event) {
+                            var self = this;
+
+                            if (self.validate) {
+                                var options = {};
+                                if (self.fraction_size > 0) { options.fraction_size = self.fraction_size; }
+
+                                $event.target.value = $.wa.validate(self.validate, $event.target.value, options);
+                            }
+
+                            self.$emit('input', $event.target.value);
+                            self.$emit('update:modelValue', $event.target.value);
+                        },
+                        onFocus: function($event) {
+                            var self = this;
+                            self.start_value = $event.target.value;
+                            self.$emit("focus");
+                        },
+                        onBlur: function($event) {
+                            var self = this,
+                                value = $event.target.value;
+
+                            if (value === self.start_value) {
+                                if (self.prop_cancel) { self.$emit("cancel"); }
+                            } else {
+                                self.onChange(value);
+                            }
+
+                            self.$emit("blur", value);
+                        },
+                        onEsc: function($event) {
+                            var self = this;
+                            if (self.prop_cancel) {
+                                $event.target.value = self.start_value;
+                                self.$emit('update:modelValue', $event.target.value);
+                                self.input.trigger("blur");
+                            }
+                        },
+                        onEnter: function($event) {
+                            this.input.trigger("blur");
+                        },
+                        onChange: function(value) {
+                            var self = this;
+                            if (self.prop_required && self.modelValue === "") {
+                                self.input.val(self.start_value);
+                                self.$emit('update:modelValue', self.start_value);
+                            } else {
+                                self.$emit("change", value);
+                            }
+                        }
+                    },
+                    mounted: function() {
+                        var self = this,
+                            input = self.input = $(self.$el);
+
+                        self.$emit("ready", self.$el.value);
+
+                        if (self.prop_focus) {
+                            input.trigger("focus");
+                        }
+                    }
+                },
+
+                "component-product-column-tags": {
+                    props: ["product", "column", "column_info", "column_data", "ignore_limit"],
+                    data: function() {
+                        var self = this,
+                            tags_states = {},
+                            settings = (self.column.data && self.column.data.settings ? self.column.data.settings : {});
+
+                        $.each(self.column_data.options, function(i, tag) {
+                            tags_states[tag.value] = { is_locked: false }
                         });
 
-                        function initDialog($dialog, dialog) {
-                            console.log( dialog );
+                        return {
+                            limit: (settings.visible_count && !self.ignore_limit ? settings.visible_count : null),
+                            tags_states: tags_states
+                        };
+                    },
+                    template: that.components["component-product-column-tags"],
+                    delimiters: ['{ { ', ' } }'],
+                    computed: {
+                        prop_ignore_limit() { return (typeof self.ignore_limit === "boolean" ? self.ignore_limit : false); },
+                        over_limit: function() {
+                            var self = this,
+                                result = null;
 
-                            var $section = $dialog.find(".js-vue-section");
+                            if (self.limit > 0 && self.limit < self.column_data.options.length) {
+                                result = (self.column_data.options.length - self.limit);
+                            }
 
-                            new Vue({
-                                el: $section[0],
-                                data: {
-                                    product: self.product,
-                                    column: self.column,
-                                    column_info: self.column_info,
-                                    column_data: self.column_data
-                                },
-                                delimiters: ['{ { ', ' } }'],
-                                created: function () {
-                                    $section.css("visibility", "");
-                                },
-                                mounted: function () {
-                                    var self = this;
-                                    dialog.resize();
-                                }
+                            return result;
+                        },
+                        tags: function() {
+                            var self = this,
+                                result = self.column_data.options;
+
+                            if (self.over_limit) {
+                                result = self.column_data.options.slice(0, self.limit);
+                            }
+
+                            return result;
+                        }
+                    },
+                    methods: {
+                        deleteTag: function(tag) {
+                            var self = this,
+                                tag_states = self.tags_states[tag.value],
+                                type = "";
+
+                            switch(self.column.column_type) {
+                                case "tags":
+                                    type = "tag";
+                                    break;
+                                case "categories":
+                                    type = "category";
+                                    break;
+                                case "sets":
+                                    type = "set";
+                                    break;
+                            }
+
+                            var data = {
+                                product_id: self.product.id,
+                                dataset_id: tag.value,
+                                type: type
+                            };
+
+                            tag_states.is_locked = true;
+
+                            $.post(that.urls["product_exclude"], data, "json")
+                                .always( function() {
+                                    tag_states.is_locked = false;
+                                })
+                                .done( function(response) {
+                                    if (response.status === "ok") {
+                                        self.column_data.options.splice(self.column_data.options.indexOf(tag), 1);
+                                    } else {
+                                        alert("Server error");
+                                        console.log( response.errors );
+                                    }
+                                });
+                        },
+                        showDialog: function() {
+                            var self = this;
+
+                            $.waDialog({
+                                html: that.templates["dialog-product-column-tags"],
+                                onOpen: initDialog
                             });
+
+                            function initDialog($dialog, dialog) {
+                                console.log( dialog );
+
+                                var $section = $dialog.find(".js-vue-section");
+
+                                Vue.createApp({
+                                    data() {
+                                        return {
+                                            product: self.product,
+                                            column: self.column,
+                                            column_info: self.column_info,
+                                            column_data: self.column_data
+                                        }
+                                    },
+                                    delimiters: ['{ { ', ' } }'],
+                                    components: {
+                                        "component-product-column-tags": that.vue_components["component-product-column-tags"]
+                                    },
+                                    created: function () {
+                                        $section.css("visibility", "");
+                                    },
+                                    mounted: function () {
+                                        dialog.resize();
+                                    }
+                                }).mount($section[0]);
+                            }
+                        }
+                    }
+                },
+            };
+
+            Object.assign(that.vue_components, {
+                // Используется в различных частях (раздед, диалоги)
+                "component-table-filters-search": {
+                    props: ["modelValue", "search_icon", "placeholder"],
+                    emits: ["update:modelValue", "search_input", "search_change"],
+                    template: that.components["component-table-filters-search"],
+                    delimiters: ['{ { ', ' } }'],
+                    components: { "component-input": that.vue_components["component-input"] },
+                    computed: {
+                        prop_search_icon() { return (typeof this.search_icon === "boolean" ? this.search_icon : false) }
+                    },
+                    methods: {
+                        onInput: function(val) {
+                            this.$emit("update:modelValue", val);
+                            this.$emit("search_input", val);
+                        },
+                        onChange: function(val) {
+                            this.$emit("update:modelValue", val);
+                            this.$emit("search_change", val);
+                        },
+                        revert: function() {
+                            this.onChange("");
+                        }
+                    }
+                },
+
+                "component-category-search": {
+                    props: ["modelValue"],
+                    emits: ["update:modelValue", "search_input", "search_change"],
+                    template: that.components["component-category-search"],
+                    delimiters: ['{ { ', ' } }'],
+                    components: { "component-input": that.vue_components["component-input"] },
+                    methods: {
+                        onInput: function(val) {
+                            this.$emit("update:modelValue", val);
+                            this.$emit("search_input", val);
+                        },
+                        onChange: function(val) {
+                            this.$emit("update:modelValue", val);
+                            this.$emit("search_change", val);
+                        },
+                        revert: function() {
+                            this.onChange("");
+                        }
+                    }
+                },
+
+                "component-set-search": {
+                    props: ["modelValue"],
+                    emits: ["update:modelValue", "search_input", "search_change"],
+                    template: that.components["component-set-search"],
+                    delimiters: ['{ { ', ' } }'],
+                    components: { "component-input": that.vue_components["component-input"] },
+                    methods: {
+                        onInput: function(val) {
+                            this.$emit("update:modelValue", val);
+                            this.$emit("search_input", val);
+                        },
+                        onChange: function() {
+                            this.$emit("update:modelValue", val);
+                            this.$emit("search_change", val);
+                        },
+                        revert: function() {
+                            this.onChange("");
                         }
                     }
                 }
             });
 
-            /**
-             * Используется в различных частях (раздед, диалоги)
-             * */
-            Vue.component("component-table-filters-search", {
-                props: ["value", "search_icon", "placeholder"],
-                data: function() {
-                    let self = this;
-                    self.search_icon = (typeof self.search_icon === "boolean" ? self.search_icon : false);
-                    return {};
-                },
-                template: that.components["component-table-filters-search"],
-                delimiters: ['{ { ', ' } }'],
-                methods: {
-                    onInput: function() {
-                        let self = this;
-                        self.$emit("input", self.value);
-                        self.$emit("search_input", self.value);
-                    },
-                    onChange: function() {
-                        let self = this;
-                        self.$emit("input", self.value);
-                        self.$emit("search_change", self.value);
-                    },
-                    revert: function() {
-                        let self = this;
-                        self.value = "";
-                        self.onChange();
-                    }
-                }
-            });
 
-            return new Vue({
-                el: $vue_section[0],
-                data: {
-                    paging       : that.paging,
-                    products     : that.products,
-                    presentation : that.presentation,
-                    states       : that.states,
-                    keys         : that.keys
+            $.vue_app = Vue.createApp({
+                data() {
+                    return {
+                        paging       : that.paging,
+                        products     : that.products,
+                        presentation : that.presentation,
+                        states       : that.states,
+                        keys         : that.keys
+                    }
                 },
                 components: {
                     "component-dropdown-presentations": {
-                        props: [],
+                        emits: ["change", "success"],
                         data: function() {
-                            var self = this;
                             return {
                                 active_presentation: that.presentation,
                                 presentations: that.presentations,
@@ -889,9 +934,8 @@
                         delimiters: ['{ { ', ' } }'],
                         components: {
                             "component-presentation-add-form": {
-                                props: [],
+                                emits: ["form_success"],
                                 data: function() {
-                                    var self = this;
                                     return {
                                         name: "",
                                         states: {
@@ -901,6 +945,9 @@
                                 },
                                 template: that.components["component-presentation-add-form"],
                                 delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-input": that.vue_components["component-input"]
+                                },
                                 computed: {},
                                 methods: {
                                     cancel: function() {
@@ -942,10 +989,10 @@
                             },
                             "component-presentation-rename-form": {
                                 props: ["presentation"],
+                                emits: ["form_success"],
                                 data: function() {
-                                    var self = this;
                                     return {
-                                        name: self.presentation.name,
+                                        name: this.presentation.name,
                                         states: {
                                             locked: false
                                         }
@@ -953,7 +1000,6 @@
                                 },
                                 template: that.components["component-presentation-rename-form"],
                                 delimiters: ['{ { ', ' } }'],
-                                computed: {},
                                 methods: {
                                     cancel: function() {
                                         var self = this;
@@ -988,27 +1034,20 @@
                         },
                         computed: {
                             active_presentation_name: function() {
-                                let self = this,
-                                    result = null;
-
-                                var session_name = sessionPresentationName();
+                                let result = null;
+                                let session_name = sessionPresentationName();
                                 if (session_name && !that.presentation.states.is_changed) {
                                     result = session_name;
                                     sessionPresentationName(null);
                                 }
 
                                 return result;
-                            },
-                            presentations_object: function() {
-                                var self = this;
-                                return $.wa.construct(self.presentations, "id");
                             }
                         },
                         methods: {
                             onCopyUrl: function(event, presentation) {
-                                const self = this;
-                                var url = event.currentTarget.href;
-                                var dummy = document.createElement('input');
+                                let url = event.currentTarget.href;
+                                let dummy = document.createElement('input');
                                 document.body.appendChild(dummy);
                                 dummy.value = url;
                                 dummy.select();
@@ -1032,7 +1071,6 @@
                                 self.$emit("change", presentation);
                             },
                             rename: function(presentation) {
-                                var self = this;
                                 presentation.states.show_rename_form = true;
                             },
                             rewrite: function(presentation) {
@@ -1107,10 +1145,11 @@
                                     function initDialog($dialog, dialog) {
                                         var $vue_section = $dialog.find(".js-vue-section");
 
-                                        new Vue({
-                                            el: $vue_section[0],
-                                            data: {
-                                                presentation: presentation,
+                                        Vue.createApp({
+                                            data() {
+                                                return {
+                                                    presentation: presentation,
+                                                }
                                             },
                                             delimiters: ['{ { ', ' } }'],
                                             computed: {},
@@ -1123,7 +1162,7 @@
                                             created: function () {
                                                 $vue_section.css("visibility", "");
                                             }
-                                        });
+                                        }).mount($vue_section[0]);
                                     }
 
                                     return deferred.promise();
@@ -1148,6 +1187,7 @@
 
                                 $wrapper.on("dragstart", ".js-presentation-move-toggle", function(event) {
                                     var $move = $(this).closest(".s-presentation-wrapper");
+                                    is_change = false;
 
                                     var presentation_id = "" + $move.attr("data-id"),
                                         presentation = getPresentation(presentation_id);
@@ -1195,7 +1235,6 @@
                                     off();
                                 }
 
-                                //
 
                                 function movePresentation($over) {
                                     var presentation_id = "" + $over.attr("data-id"),
@@ -1212,14 +1251,16 @@
                                         over_index = presentations.indexOf(presentation),
                                         before = (move_index > over_index);
 
-                                    if (over_index !== move_index) {
+                                    is_change = over_index !== move_index;
+                                    if (is_change) {
                                         presentations.splice(move_index, 1);
 
                                         over_index = presentations.indexOf(presentation);
                                         var new_index = over_index + (before ? 0 : 1);
 
                                         presentations.splice(new_index, 0, drag_data.move_presentation);
-                                        is_change = true;
+
+                                        $over.trigger("dragend");
                                     }
                                 }
 
@@ -1257,11 +1298,8 @@
                                     }
                                 }
 
-                                //
-
                                 function getPresentation(presentation_id) {
-                                    var presentations_object = self.presentations_object;
-                                    return (presentations_object[presentation_id] ? presentations_object[presentation_id] : null);
+                                    return presentations.find(p => p.id === presentation_id) || null;
                                 }
 
                                 function off() {
@@ -1289,7 +1327,8 @@
                         }
                     },
                     "component-view-toggle": {
-                        props: ["value"],
+                        props: ["modelValue"],
+                        emits: ["update:modelValue", "change"],
                         template: that.components["component-view-toggle"],
                         delimiters: ['{ { ', ' } }'],
                         mounted: function() {
@@ -1297,18 +1336,19 @@
                             $(self.$el).waToggle({
                                 change: function(event, target) {
                                     var value = $(target).data("id");
-                                    self.$emit("input", value);
+                                    self.$emit("update:modelValue", value);
                                     self.$emit("change", value);
                                 }
                             });
                         }
                     },
                     "component-paging": {
-                        props: ["value", "count"],
+                        props: ["modelValue", "count"],
+                        emits: ["update:modelValue", "change"],
                         template: that.components["component-paging"],
                         data: function() {
                             var self = this,
-                                page = (self.value > 0 && self.value <= self.count ? self.value : 1);
+                                page = (self.modelValue > 0 && self.modelValue <= self.count ? self.modelValue : 1);
 
                             return { page: page };
                         },
@@ -1318,7 +1358,7 @@
                                 var self = this;
 
                                 if (page > 0 && page <= self.count && self.page !== page) {
-                                    self.$emit("input", page);
+                                    self.$emit("update:modelValue", page);
                                     self.$emit("change", page);
                                     // Каунтер страницы должен обновиться при смене AJAX контента
                                     // self.page = page;
@@ -1364,13 +1404,11 @@
                                     page: page
                                 });
                             }
-                        },
-                        mounted: function() {
-                            var self = this;
                         }
                     },
                     "component-paging-dropdown": {
-                        props: ["value"],
+                        props: ["modelValue"],
+                        emits: ["update:modelValue", "change"],
                         data: function() {
                             var self = this,
                                 active_option = null,
@@ -1382,7 +1420,7 @@
                                 ];
 
                             var active_search = options.filter( function(option) {
-                                return option.value === parseInt(self.value);
+                                return option.value === parseInt(self.modelValue);
                             });
 
                             if (active_search.length) {
@@ -1408,18 +1446,15 @@
                                     var $target = $(target),
                                         option_value = $target.attr("data-value");
 
-                                    self.$emit("input", option_value);
+                                    self.$emit("update:modelValue", option_value);
                                     self.$emit("change", option_value);
                                 }
                             });
                         }
                     },
                     "component-table-filters": {
-                        props: [],
                         data: function() {
-                            var self = this;
-
-                            var search_rule = getSearchRule();
+                            let search_rule = getSearchRule();
 
                             return {
                                 search_rule: search_rule,
@@ -1455,33 +1490,30 @@
                         delimiters: ['{ { ', ' } }'],
                         components: {
                             "component-table-product-search": {
-                                props: ["value", "placeholder"],
-                                    data: function() {
-                                    let self = this;
+                                props: ["modelValue", "placeholder"],
+                                emits: ["update:modelValue", "search_input", "search_change"],
+                                components: { "component-input": that.vue_components["component-input"] },
+                                data: function() {
                                     return {
                                         states: {
                                             is_loading: false,
-                                            show_reset: (self.value !== "")
+                                            show_reset: (this.value !== "")
                                         }
                                     };
                                 },
                                 template: that.components["component-table-product-search"],
                                 delimiters: ['{ { ', ' } }'],
                                 methods: {
-                                    onInput: function() {
-                                        let self = this;
-                                        self.$emit("input", self.value);
-                                        self.$emit("search_input", self.value);
+                                    onInput: function(val) {
+                                        this.$emit("update:modelValue", val);
+                                        this.$emit("search_input", val);
                                     },
-                                    onEnter: function() {
-                                        let self = this;
-                                        self.$emit("input", self.value);
-                                        self.$emit("search_change", self.value);
+                                    onEnter: function(val) {
+                                        this.$emit("update:modelValue", val);
+                                        this.$emit("search_change", val);
                                     },
                                     revert: function() {
-                                        let self = this;
-                                        self.value = "";
-                                        self.onEnter();
+                                        this.onEnter("");
                                     },
 
                                     initAutocomplete: function($input) {
@@ -1557,8 +1589,7 @@
                                         };
                                     },
                                     goToProduct: function(product) {
-                                        const self = this;
-                                        var url = $.wa_shop_products.section_url + product.id + "/";
+                                        const url = $.wa_shop_products.section_url + product.id + "/";
                                         $.wa_shop_products.router.load(url);
                                         that.animate(true);
                                     }
@@ -1579,7 +1610,7 @@
                                                 self.goToProduct(self._last_focused_ui_item);
                                                 $input.trigger("blur");
                                             } else {
-                                                self.onEnter();
+                                                self.onEnter($input.val());
                                             }
                                         } else {
                                             self._last_focused_ui_item = null;
@@ -1595,7 +1626,6 @@
                             },
                             "component-table-filters-categories-sets-types": {
                                 data: function() {
-                                    let self = this;
                                     return {
                                         content_type: "category"
                                     };
@@ -1604,12 +1634,10 @@
                                 delimiters: ['{ { ', ' } }'],
                                 components: {
                                     "component-table-filters-categories": {
-                                        props: ["value", "placeholders"],
+                                        emits: ["success"],
                                         data: function() {
-                                            let self = this,
-                                                options = $.wa.clone(that.filter_options);
-
-                                            let categories = options.categories,
+                                            let options = $.wa.clone(that.filter_options),
+                                                categories = options.categories,
                                                 categories_object = formatCategories(getCategoriesObject(categories));
 
                                             return {
@@ -1651,6 +1679,7 @@
                                         template: that.components["component-table-filters-categories"],
                                         delimiters: ['{ { ', ' } }'],
                                         components: {
+                                            "component-table-filters-search": that.vue_components["component-table-filters-search"],
                                             "component-table-filters-categories-category": {
                                                 name: "component-table-filters-categories-category",
                                                 props: ["category", "search_string"],
@@ -1748,13 +1777,11 @@
                                         methods: {
                                             changeItem: function(item) {
                                                 if (item.is_locked) { return false; }
-                                                const self = this;
                                                 item.states.enabled = !item.states.enabled;
-                                                self.save(item);
+                                                this.save(item);
                                             },
                                             save: function(item) {
-                                                const self = this;
-                                                self.$emit("success", {
+                                                this.$emit("success", {
                                                     type: "category",
                                                     item: item
                                                 });
@@ -1770,8 +1797,7 @@
                                     },
                                     "component-table-filters-sets": {
                                         data: function() {
-                                            let self = this,
-                                                options = $.wa.clone(that.filter_options);
+                                            let options = $.wa.clone(that.filter_options);
 
                                             return {
                                                 search_string: "",
@@ -1804,11 +1830,12 @@
                                         template: that.components["component-table-filters-sets"],
                                         delimiters: ['{ { ', ' } }'],
                                         components: {
+                                            "component-table-filters-search": that.vue_components["component-table-filters-search"],
                                             "component-table-filters-sets-set": {
                                                 name: "component-table-filters-sets-set",
                                                 props: ["set", "search_string"],
+                                                emits: ["use_set"],
                                                 data: function() {
-                                                    var self = this;
                                                     return {
                                                         states: {
                                                             is_opened: false
@@ -1932,9 +1959,9 @@
                                         }
                                     },
                                     "component-table-filters-types": {
+                                        emits: ["success"],
                                         data: function() {
-                                            let self = this,
-                                                options = $.wa.clone(that.filter_options);
+                                            let options = $.wa.clone(that.filter_options);
 
                                             return {
                                                 search_string: "",
@@ -1953,6 +1980,9 @@
                                         },
                                         template: that.components["component-table-filters-types"],
                                         delimiters: ['{ { ', ' } }'],
+                                        components: {
+                                            "component-table-filters-search": that.vue_components["component-table-filters-search"],
+                                        },
                                         computed: {
                                             items: function() {
                                                 const self = this;
@@ -2016,8 +2046,7 @@
                             },
                             "component-table-filters-storefronts": {
                                 data: function() {
-                                    let self = this,
-                                        options = $.wa.clone(that.filter_options);
+                                    let options = $.wa.clone(that.filter_options);
 
                                     return {
                                         storefronts: formatOptions(options.storefronts),
@@ -2039,10 +2068,13 @@
                                 },
                                 template: that.components["component-table-filters-storefronts"],
                                 delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-checkbox": that.vue_components["component-checkbox"],
+                                    "component-table-filters-search": that.vue_components["component-table-filters-search"],
+                                },
                                 computed: {
                                     has_value: function() {
-                                        const self = this;
-                                        return !!self.storefronts.filter( storefront => storefront.states.enabled).length;
+                                        return !!this.storefronts.filter( storefront => storefront.states.enabled).length;
                                     },
                                     items: function() {
                                         const self = this;
@@ -2053,17 +2085,15 @@
                                 },
                                 methods: {
                                     onChange: function() {
-                                        const self = this;
-
-                                        if (!self.states.is_changed) {
-                                            self.states.is_changed = true;
+                                        if (!this.states.is_changed) {
+                                            this.states.is_changed = true;
                                         }
                                     },
                                     changeStorefront: function(storefront) {
                                         if (storefront.is_locked) { return false; }
-                                        const self = this;
+
                                         storefront.states.enabled = !storefront.states.enabled;
-                                        self.onChange();
+                                        this.onChange();
                                     },
                                     reset: function() {
                                         const self = this;
@@ -2075,14 +2105,13 @@
                                         self.onChange();
                                     },
                                     save: function() {
-                                        const self = this;
-                                        self.dropbox.hide();
-                                        self.$emit("success", self.storefronts);
+                                        this.dropbox.hide();
+                                        this.$emit("success", this.storefronts);
                                     }
                                 },
                                 mounted: function() {
-                                    const self = this;
-                                    var $wrapper = $(self.$el);
+                                    const self = this,
+                                          $wrapper = $(self.$el);
 
                                     self.dropbox = $.wa.new.Dropbox({
                                         $wrapper: $wrapper,
@@ -2094,9 +2123,12 @@
                                 }
                             },
                             "component-table-filters-tags": {
+                                components: {
+                                    "component-checkbox": that.vue_components["component-checkbox"],
+                                    "component-table-filters-search": that.vue_components["component-table-filters-search"],
+                                },
                                 data: function() {
-                                    let self = this,
-                                        options = $.wa.clone(that.filter_options);
+                                    let options = $.wa.clone(that.filter_options);
 
                                     return {
                                         tags: formatOptions(options.tags),
@@ -2160,8 +2192,8 @@
                                     }
                                 },
                                 mounted: function() {
-                                    const self = this;
-                                    var $wrapper = $(self.$el);
+                                    const self = this,
+                                          $wrapper = $(self.$el);
 
                                     self.dropbox = $.wa.new.Dropbox({
                                         $wrapper: $wrapper,
@@ -2174,8 +2206,7 @@
                             },
                             "component-table-filters-features": {
                                 data: function() {
-                                    let self = this,
-                                        options = $.wa.clone(that.filter_options);
+                                    let options = $.wa.clone(that.filter_options);
 
                                     return {
                                         features: formatOptions(options.features),
@@ -2190,12 +2221,10 @@
                                 template: that.components["component-table-filters-features"],
                                 delimiters: ['{ { ', ' } }'],
                                 components: {
+                                    "component-table-filters-search": that.vue_components["component-table-filters-search"],
                                     "component-table-filters-features-item": {
                                         props: ["item"],
-                                        data: function() {
-                                            var self = this;
-                                            return {};
-                                        },
+                                        emits: ["feature_dialog", "success"],
                                         template: that.components["component-table-filters-features-item"],
                                         delimiters: ['{ { ', ' } }'],
                                         methods: {
@@ -2246,8 +2275,8 @@
                                     }
                                 },
                                 mounted: function() {
-                                    const self = this;
-                                    var $wrapper = $(self.$el);
+                                    const self = this,
+                                        $wrapper = $(self.$el);
                                     self.dropbox = $.wa.new.Dropbox({
                                         $wrapper: $wrapper,
                                         protect: false,
@@ -2259,7 +2288,6 @@
                             },
                             "component-table-filters-list": {
                                 data: function() {
-                                    let self = this;
                                     var formatted_filters = that.filter.rules.filter( filter => (filter.type !== "search") );
 
                                     return {
@@ -2275,9 +2303,8 @@
                                 delimiters: ['{ { ', ' } }'],
                                 components: {
                                     "component-filter-add-form": {
-                                        props: [],
+                                        emits: ["form_cancel", "form_success"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 name: "",
                                                 states: {
@@ -2287,7 +2314,7 @@
                                         },
                                         template: that.components["component-filter-add-form"],
                                         delimiters: ['{ { ', ' } }'],
-                                        computed: {},
+                                        components: { "component-input": that.vue_components["component-input"] },
                                         methods: {
                                             cancel: function() {
                                                 var self = this;
@@ -2327,10 +2354,10 @@
                                     },
                                     "component-filter-rename-form": {
                                         props: ["filter"],
+                                        emits: ["form_success"],
                                         data: function() {
-                                            var self = this;
                                             return {
-                                                name: self.filter.name,
+                                                name: this.filter.name,
                                                 states: {
                                                     locked: false
                                                 }
@@ -2381,15 +2408,10 @@
                                         }
 
                                         return result;
-                                    },
-                                    filters_object: function() {
-                                        var self = this;
-                                        return $.wa.construct(self.filters, "id");
                                     }
                                 },
                                 methods: {
                                     onCopyUrl: function(event, filter) {
-                                        const self = this;
                                         var url = event.currentTarget.href;
                                         var dummy = document.createElement('input');
                                         document.body.appendChild(dummy);
@@ -2410,8 +2432,6 @@
                                         self.toggleForm(false);
                                     },
                                     filterUse: function(filter) {
-                                        var self = this;
-
                                         that.broadcast.getPresentationsIds().done( function(ids) {
                                             var data = {
                                                 filter: filter.id,
@@ -2423,7 +2443,6 @@
                                         });
                                     },
                                     rename: function(filter) {
-                                        var self = this;
                                         filter.states.show_rename_form = true;
                                     },
                                     rewrite: function(filter) {
@@ -2507,10 +2526,11 @@
                                             function initDialog($dialog, dialog) {
                                                 var $vue_section = $dialog.find(".js-vue-section");
 
-                                                new Vue({
-                                                    el: $vue_section[0],
-                                                    data: {
-                                                        filter: filter,
+                                                Vue.createApp({
+                                                    data() {
+                                                        return {
+                                                            filter: filter,
+                                                        }
                                                     },
                                                     delimiters: ['{ { ', ' } }'],
                                                     computed: {},
@@ -2523,15 +2543,14 @@
                                                     created: function () {
                                                         $vue_section.css("visibility", "");
                                                     }
-                                                });
+                                                }).mount($vue_section[0]);
                                             }
 
                                             return deferred.promise();
                                         }
                                     },
                                     toggleForm: function(toggle) {
-                                        var self = this;
-                                        self.states.show_add_form = toggle;
+                                        this.states.show_add_form = toggle;
                                     },
 
                                     initDragAndDrop: function($wrapper) {
@@ -2548,6 +2567,7 @@
 
                                         $wrapper.on("dragstart", ".js-filter-move-toggle", function(event) {
                                             var $move = $(this).closest(".s-filter-wrapper");
+                                            is_change = false;
 
                                             var filter_id = "" + $move.attr("data-id"),
                                                 filter = getFilter(filter_id);
@@ -2595,8 +2615,6 @@
                                             off();
                                         }
 
-                                        //
-
                                         function moveFilter($over) {
                                             var filter_id = "" + $over.attr("data-id"),
                                                 filter = getFilter(filter_id);
@@ -2612,14 +2630,16 @@
                                                 over_index = filters.indexOf(filter),
                                                 before = (move_index > over_index);
 
-                                            if (over_index !== move_index) {
+                                            is_change = over_index !== move_index;
+                                            if (is_change) {
                                                 filters.splice(move_index, 1);
 
                                                 over_index = filters.indexOf(filter);
                                                 var new_index = over_index + (before ? 0 : 1);
 
                                                 filters.splice(new_index, 0, drag_data.move_filter);
-                                                is_change = true;
+
+                                                $over.trigger("dragend");
                                             }
                                         }
 
@@ -2648,17 +2668,15 @@
                                             return deferred.promise();
 
                                             function getFilters() {
-                                                return self.filters.map( function(filter) {
+                                                return filters.map( function(filter) {
                                                     return filter.id;
                                                 });
                                             }
                                         }
 
-                                        //
 
                                         function getFilter(filter_id) {
-                                            var filters_object = self.filters_object;
-                                            return (filters_object[filter_id] ? filters_object[filter_id] : null);
+                                            return filters.find(f => f.id === filter_id) || null;
                                         }
 
                                         function off() {
@@ -2687,9 +2705,7 @@
                             },
 
                             "component-table-filters-rules": {
-                                props: [],
                                 data: function() {
-                                    const self = this;
                                     return {
                                         result_filters: that.filter.rules,
                                         formatted_filters: that.filter.rules.filter( filter => (filter.type !== "search") ),
@@ -2704,11 +2720,10 @@
                                 components: {
                                     "component-table-filters-rules-item": {
                                         props: ["group", "show_tooltip"],
+                                        emits: ["remove_group"],
                                         data: function() {
-                                            var self = this;
-                                            self.show_tooltip = (typeof self.show_tooltip === "boolean" ? self.show_tooltip : false);
                                             return {
-                                                feature_data: getFeatureData(self.group)
+                                                feature_data: getFeatureData(this.group)
                                             };
 
                                             function getFeatureData(group) {
@@ -2729,6 +2744,7 @@
                                         template: that.components["component-table-filters-rules-item"],
                                         delimiters: ['{ { ', ' } }'],
                                         computed: {
+                                            prop_show_tooltip() { return (typeof self.show_tooltip === "boolean" ? self.show_tooltip : false); },
                                             label: function() {
                                                 const self = this;
                                                 var result = null;
@@ -2911,8 +2927,6 @@
                                         self.removeGroup(group);
                                     },
                                     removeGroup: function(group) {
-                                        const self = this;
-
                                         that.animate(true);
 
                                         that.broadcast.getPresentationsIds().done( function(ids) {
@@ -2933,8 +2947,6 @@
                                         });
                                     },
                                     resetFilters: function(group) {
-                                        const self = this;
-
                                         that.animate(true);
 
                                         that.broadcast.getPresentationsIds().done( function(ids) {
@@ -2967,8 +2979,6 @@
 
                                     initObserver(self.$el);
 
-                                    //
-
                                     function initObserver(wrapper) {
                                         var resizeObserver = new ResizeObserver(onSizeChange);
                                         resizeObserver.observe(wrapper);
@@ -2986,7 +2996,6 @@
                                 }
                             },
                         },
-                        computed: {},
                         methods: {
                             applySearch: function(value) {
                                 const self = this;
@@ -3080,13 +3089,10 @@
                                 self.save(data);
                             },
                             applyFeatures : function(features_data) {
-                                const self = this;
-                                self.save(features_data);
+                                this.save(features_data);
                             },
 
                             save: function(values) {
-                                const self = this;
-
                                 that.animate(true);
 
                                 that.broadcast.getPresentationsIds().done( function(ids) {
@@ -3117,6 +3123,7 @@
                         template: that.components["component-product-thumb"],
                         delimiters: ['{ { ', ' } }'],
                         components: {
+                            "component-checkbox": that.vue_components["component-checkbox"],
                             "component-product-slider": {
                                 props: ["photos", "photo_id"],
                                 data: function() {
@@ -3272,8 +3279,7 @@
                         },
                         computed: {
                             product_url: function() {
-                                const self = this;
-                                return "products/" + self.product.id + "/?presentation=" + that.presentation.id;
+                                return "products/" + this.product.id + "/?presentation=" + that.presentation.id;
                             },
                             product_code: function() {
                                 var self = this,
@@ -3339,8 +3345,7 @@
                                 return result;
                             },
                             name_class: function() {
-                                let self = this,
-                                    result = [];
+                                let result = [];
 
                                 var name_column = that.columns["name"],
                                     settings = name_column.settings;
@@ -3356,16 +3361,11 @@
                             }
                         },
                         methods: {
-                        },
-                        mounted: function() {
-                            var self = this;
-                            // console.log( self );
                         }
                     },
                     "component-products-table": {
                         props: ["products"],
                         data: function() {
-                            var self = this;
                             return {
                                 columns : that.columns,
                                 presentation : that.presentation,
@@ -3382,26 +3382,20 @@
                         template: that.components["component-products-table"],
                         delimiters: ['{ { ', ' } }'],
                         components: {
+                            "component-checkbox": that.vue_components["component-checkbox"],
                             "component-products-table-header": {
                                 props: ["column", "columns", "presentation"],
-                                data: function() {
-                                    var self = this;
-                                    return {}
-                                },
                                 template: that.components["component-products-table-header"],
                                 delimiters: ['{ { ', ' } }'],
                                 computed: {
                                     is_stock: function() {
-                                        let self = this;
-                                        return (self.column.column_type.indexOf('stocks_') === 0);
+                                        return (this.column.column_type.indexOf('stocks_') === 0);
                                     },
                                     is_virtual_stock: function() {
-                                        let self = this;
-                                        return (self.column.column_type.indexOf('stocks_v') === 0);
+                                        return (this.column.column_type.indexOf('stocks_v') === 0);
                                     },
                                     is_feature: function() {
-                                        let self = this;
-                                        return (self.column.column_type.indexOf('feature_') === 0);
+                                        return (this.column.column_type.indexOf('feature_') === 0);
                                     },
                                     column_name: function() {
                                         var self = this,
@@ -3418,10 +3412,9 @@
                                         return result;
                                     },
                                     column_class_name: function() {
-                                        var self = this,
-                                            result = [];
+                                        const result = [];
 
-                                        switch (self.column.column_type) {
+                                        switch (this.column.column_type) {
                                             case "name":
                                                 result.push("s-column-name");
                                                 break;
@@ -3611,12 +3604,14 @@
                                 }
                             },
                             "component-products-table-field": {
-                                props: ["column", "product", "sku", "sku_mod"],
+                                props: {
+                                    "column": null,
+                                    "product": null,
+                                    "sku": null,
+                                    "sku_mod": null
+                                },
                                 data: function() {
                                     let self = this;
-
-                                    self.sku = (typeof self.sku !== "undefined" ? self.sku : null);
-                                    self.sku_mod = (typeof self.sku_mod !== "undefined" ? self.sku_mod : null);
 
                                     const is_product_col = !self.sku,
                                           is_sku_col     = (self.sku && !self.sku_mod),
@@ -3788,6 +3783,9 @@
                                     }
                                 },
                                 components: {
+                                    "component-input": that.vue_components["component-input"],
+                                    "component-textarea": that.vue_components["component-textarea"],
+                                    "component-product-column-tags": that.vue_components["component-product-column-tags"],
                                     "component-product-column-name": {
                                         props: ["product", "column", "column_info", "column_data", "sku", "sku_mod"],
                                         data: function() {
@@ -3817,10 +3815,12 @@
                                         },
                                         template: that.components["component-product-column-name"],
                                         delimiters: ['{ { ', ' } }'],
+                                        components: {
+                                            "component-textarea": that.vue_components["component-textarea"]
+                                        },
                                         computed: {
                                             product_url: function() {
-                                                const self = this;
-                                                return "products/" + self.product.id + "/?presentation=" + that.presentation.id;
+                                                return "products/" + this.product.id + "/?presentation=" + that.presentation.id;
                                             },
                                             sku_mod_photo: function() {
                                                 var self = this,
@@ -3847,8 +3847,7 @@
                                                 return result;
                                             },
                                             name_class: function() {
-                                                let self = this,
-                                                    result = [];
+                                                let result = [];
 
                                                 var name_column = that.columns["name"],
                                                     settings = name_column.settings;
@@ -3924,7 +3923,6 @@
                                     "component-product-column-summary": {
                                         props: ["product", "column", "column_info", "column_data"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 states: {
                                                     is_locked: false
@@ -3933,6 +3931,9 @@
                                         },
                                         template: that.components["component-product-column-summary"],
                                         delimiters: ['{ { ', ' } }'],
+                                        components: {
+                                            "component-textarea": that.vue_components["component-textarea"]
+                                        },
                                         methods: {
                                             onChange: function(value) {
                                                 var self = this;
@@ -3986,18 +3987,22 @@
 
                                                     var $section = $dialog.find(".js-vue-section");
 
-                                                    new Vue({
-                                                        el: $section[0],
-                                                        data: {
-                                                            product: self.product,
-                                                            column: self.column,
-                                                            column_data: $.wa.clone(self.column_data),
-                                                            states: {
-                                                                is_locked: false,
-                                                                is_changed: false
+                                                    Vue.createApp({
+                                                        data() {
+                                                            return {
+                                                                product: self.product,
+                                                                column: self.column,
+                                                                column_data: $.wa.clone(self.column_data),
+                                                                states: {
+                                                                    is_locked: false,
+                                                                    is_changed: false
+                                                                }
                                                             }
                                                         },
                                                         delimiters: ['{ { ', ' } }'],
+                                                        components: {
+                                                            "component-textarea": that.vue_components["component-textarea"]
+                                                        },
                                                         methods: {
                                                             onInput: function(value) {
                                                                 var dialog_self = this;
@@ -4020,10 +4025,9 @@
                                                             $section.css("visibility", "");
                                                         },
                                                         mounted: function () {
-                                                            var dialog_self = this;
                                                             dialog.resize();
                                                         }
-                                                    });
+                                                    }).mount($section[0]);
                                                 }
                                             }
                                         }
@@ -4031,7 +4035,6 @@
                                     "component-product-column-description": {
                                         props: ["product", "column", "column_info", "column_data"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 states: {
                                                     is_locked: false
@@ -4055,13 +4058,14 @@
 
                                                     var $section = $dialog.find(".js-vue-section");
 
-                                                    new Vue({
-                                                        el: $section[0],
-                                                        data: {
-                                                            product: self.product,
-                                                            column: self.column,
-                                                            column_data: $.wa.clone(self.column_data),
-                                                            states: {}
+                                                    Vue.createApp({
+                                                        data() {
+                                                            return {
+                                                                product: self.product,
+                                                                column: self.column,
+                                                                column_data: $.wa.clone(self.column_data),
+                                                                states: {}
+                                                            }
                                                         },
                                                         delimiters: ['{ { ', ' } }'],
                                                         methods: {
@@ -4070,10 +4074,9 @@
                                                             $section.css("visibility", "");
                                                         },
                                                         mounted: function () {
-                                                            var dialog_self = this;
                                                             dialog.resize();
                                                         }
-                                                    });
+                                                    }).mount($section[0]);
                                                 }
                                             }
                                         }
@@ -4081,12 +4084,14 @@
                                     "component-product-column-status": {
                                         props: ["product", "column", "column_info", "column_data"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 states: { is_locked: false }
                                             };
                                         },
                                         template: that.components["component-product-column-status"],
+                                        components: {
+                                            "component-dropdown": that.vue_components["component-dropdown"]
+                                        },
                                         computed: {
                                             statuses: function() {
                                                 var self = this,
@@ -4172,18 +4177,19 @@
 
                                                     var $section = $dialog.find(".js-vue-section");
 
-                                                    new Vue({
-                                                        el: $section[0],
-                                                        data: {
-                                                            product: self.product,
-                                                            column: self.column,
-                                                            column_data: $.wa.clone(self.column_data),
-                                                            types: self.types,
-                                                            codes: self.codes,
-                                                            states: {
-                                                                is_locked: false,
-                                                                is_changed: false,
-                                                                show_errors: false
+                                                    Vue.createApp({
+                                                        data() {
+                                                            return {
+                                                                product: self.product,
+                                                                column: self.column,
+                                                                column_data: $.wa.clone(self.column_data),
+                                                                types: self.types,
+                                                                codes: self.codes,
+                                                                states: {
+                                                                    is_locked: false,
+                                                                    is_changed: false,
+                                                                    show_errors: false
+                                                                }
                                                             }
                                                         },
                                                         delimiters: ['{ { ', ' } }'],
@@ -4203,15 +4209,15 @@
 
                                                                     if (self.column_data.redirect.type === 'url') {
                                                                         if (!value.length) {
-                                                                            Vue.set(errors, error_class, {
+                                                                            errors[error_class] = {
                                                                                 "id": error_class,
                                                                                 "text": that.locales["error_url_required"]
-                                                                            });
+                                                                            };
                                                                         } else if (!is_valid) {
-                                                                            Vue.set(errors, error_class, {
+                                                                            errors[error_class] = {
                                                                                 "id": error_class,
                                                                                 "text": that.locales["error_url_incorrect"]
-                                                                            });
+                                                                            };
                                                                         }
                                                                     }
                                                                 }
@@ -4272,10 +4278,9 @@
                                                             $section.css("visibility", "");
                                                         },
                                                         mounted: function () {
-                                                            var dialog_self = this;
                                                             dialog.resize();
                                                         }
-                                                    });
+                                                    }).mount($section[0]);
                                                 }
                                             }
                                         }
@@ -4487,13 +4492,13 @@
                                                         var error_key = "price_error";
 
                                                         if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
-                                                            self.$set(self.errors, error_key, {
+                                                            self.errors[error_key] = {
                                                                 id: error_key,
                                                                 text: "price_error"
-                                                            });
+                                                            };
                                                         } else {
                                                             if (self.errors[error_key]) {
-                                                                self.$delete(self.errors, error_key);
+                                                                delete self.errors[error_key];
                                                             }
                                                         }
 
@@ -4504,7 +4509,7 @@
                                                 }
 
                                                 // set
-                                                self.$set(data, key, value);
+                                                data[key] = value;
                                             },
 
                                             edit: function(show) {
@@ -4519,7 +4524,6 @@
                                     "component-product-column-url": {
                                         props: ["product", "column", "column_info", "column_data"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 errors: {},
                                                 states: {
@@ -4532,7 +4536,7 @@
                                         methods: {
                                             onInput: function() {
                                                 var self = this;
-                                                if (self.errors["url_error"]) { self.$delete(self.errors, "url_error"); }
+                                                if (self.errors["url_error"]) { delete self.errors["url_error"]; }
                                                 self.column_data.value = self.column_data.value.replace(/\//g, "");
                                             },
                                             onChange: function() {
@@ -4552,10 +4556,10 @@
                                                         self.states.is_locked = false;
 
                                                         if (html) {
-                                                            self.$set(self.errors, "url_error", {
+                                                            self.errors["url_error"] = {
                                                                 id: "url_error",
                                                                 text: html
-                                                            });
+                                                            };
                                                         }
                                                     })
                                                     .done( function() {
@@ -4801,7 +4805,7 @@
                                                                 var html = "";
 
                                                                 $.each(response.errors, function(i, error) {
-                                                                    html += '<div class="wa-error-text">'+error.text+'</div>';
+                                                                    html += '<div class="state-error-hint">'+error.text+'</div>';
                                                                     self.errors.push(error);
                                                                 });
 
@@ -4835,6 +4839,7 @@
                                         },
                                         template: that.components["component-product-column-dropdown"],
                                         delimiters: ['{ { ', ' } }'],
+                                        components: { "component-dropdown": that.vue_components["component-dropdown"]},
                                         methods: {
                                             onChange: function() {
                                                 var self = this;
@@ -4902,6 +4907,7 @@
                                         },
                                         template: that.components["component-product-column-stock"],
                                         delimiters: ['{ { ', ' } }'],
+                                        components: { "component-input": that.vue_components["component-input"] },
                                         computed: {
                                             icon_class: function() {
                                                 var self = this,
@@ -4959,12 +4965,12 @@
                                                     error_key = "stock_error";
 
                                                 if (Math.abs(value) >= 0) {
-                                                    self.$delete(self.errors, error_key);
+                                                    delete self.errors[error_key];
                                                 } else {
-                                                    self.$set(self.errors, error_key, {
+                                                    self.errors[error_key] = {
                                                         id: error_key,
                                                         text: "price_error"
-                                                    });
+                                                    };
                                                 }
                                             },
                                             onChange: function() {
@@ -5016,7 +5022,7 @@
                                     "component-product-column-badge": {
                                         props: ["product", "column", "column_info", "column_data"],
                                         data: function() {
-                                            var self = this;
+                                            const self = this;
                                             return {
                                                 value: getValue(),
                                                 options: self.column_info.options,
@@ -5042,6 +5048,9 @@
                                             }
                                         },
                                         template: that.components["component-product-column-badge"],
+                                        components: {
+                                            "component-dropdown": that.vue_components["component-dropdown"]
+                                        },
                                         computed: {
                                         },
                                         delimiters: ['{ { ', ' } }'],
@@ -5108,22 +5117,22 @@
                                                 });
 
                                                 function initDialog($dialog, dialog) {
-                                                    console.log( dialog );
-
                                                     var $section = $dialog.find(".js-vue-section");
 
-                                                    new Vue({
-                                                        el: $section[0],
-                                                        data: {
-                                                            product: self.product,
-                                                            column: self.column,
-                                                            column_info: self.column_info,
-                                                            column_data: $.wa.clone(self.column_data),
-                                                            states: {
-                                                                is_locked: false
+                                                    var app = Vue.createApp({
+                                                        data() {
+                                                            return {
+                                                                product: self.product,
+                                                                column: self.column,
+                                                                column_info: self.column_info,
+                                                                column_data: $.wa.clone(self.column_data),
+                                                                states: {
+                                                                    is_locked: false
+                                                                }
                                                             }
                                                         },
                                                         delimiters: ['{ { ', ' } }'],
+                                                        components: { "component-textarea": that.vue_components["component-textarea"] },
                                                         computed: {
                                                             badge: function() {
                                                                 let self = this;
@@ -5182,10 +5191,12 @@
                                                             $section.css("visibility", "");
                                                         },
                                                         mounted: function () {
-                                                            var dialog_self = this;
                                                             dialog.resize();
                                                         }
                                                     });
+
+                                                    app.mount($section[0]);
+                                                    dialog.onClose = () => app.unmount();
                                                 }
                                             }
                                         }
@@ -5193,7 +5204,6 @@
                                     "component-product-column-feature": {
                                         props: ["product", "sku_mod", "column", "column_info", "column_data"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 timer: 0,
                                                 states: {
@@ -5207,10 +5217,12 @@
                                         template: that.components["component-product-column-feature"],
                                         delimiters: ['{ { ', ' } }'],
                                         components: {
+                                            "component-dropdown": that.vue_components["component-dropdown"],
+                                            "component-textarea": that.vue_components["component-textarea"],
+                                            "component-date-picker": that.vue_components["component-date-picker"],
                                             "component-product-feature-color": {
                                                 props: ["data", "readonly", "disabled"],
                                                 data: function() {
-                                                    var self = this;
                                                     return {
                                                         timer: 0,
                                                         color_xhr: null,
@@ -5221,7 +5233,10 @@
                                                 },
                                                 template: that.components["component-product-feature-color"],
                                                 delimiters: ['{ { ', ' } }'],
-                                                computed: {},
+                                                components: {
+                                                    "component-input": that.vue_components["component-input"],
+                                                    "component-color-picker": that.vue_components["component-color-picker"],
+                                                },
                                                 methods: {
                                                     onChangeCode: function() {
                                                         var self = this;
@@ -5316,6 +5331,7 @@
                                             },
                                             "component-product-feature-checkbox": {
                                                 props: ["product", "sku_mod", "column_info", "column_data"],
+                                                emits: ["change"],
                                                 data: function() {
                                                     var self = this;
                                                     return {
@@ -5325,6 +5341,9 @@
                                                 },
                                                 template: that.components["component-product-feature-checkbox"],
                                                 delimiters: ['{ { ', ' } }'],
+                                                components: {
+                                                    "component-dropdown": that.vue_components["component-dropdown"]
+                                                },
                                                 computed: {
                                                     active_options: function() {
                                                         var self = this;
@@ -5394,9 +5413,8 @@
                                                         function initDialog($dialog, dialog) {
                                                             var $section = $dialog.find(".js-vue-section");
 
-                                                            new Vue({
-                                                                el: $section[0],
-                                                                data: function() {
+                                                            Vue.createApp({
+                                                                data() {
                                                                     var dialog_self = this;
                                                                     var units = null;
 
@@ -5433,7 +5451,6 @@
                                                                     "component-feature-option-search": {
                                                                         props: ["options"],
                                                                         data: function() {
-                                                                            let self = this;
                                                                             return {
                                                                                 search_string: "",
                                                                                 selection: []
@@ -5477,6 +5494,7 @@
                                                                     },
                                                                     "component-feature-option-form": {
                                                                         props: ["column_data", "feature", "units"],
+                                                                        emits: ["add"],
                                                                         data: function() {
                                                                             var self = this;
                                                                             return {
@@ -5619,7 +5637,7 @@
                                                                 mounted: function() {
                                                                     dialog.resize();
                                                                 }
-                                                            });
+                                                            }).mount($section[0]);
                                                         }
 
                                                     },
@@ -5627,6 +5645,7 @@
                                             },
                                             "component-feature-input": {
                                                 props: ["option", "column_data"],
+                                                emits: ["blur"],
                                                 data: function() {
                                                     var self = this;
 
@@ -5643,6 +5662,9 @@
                                                 },
                                                 template: that.components["component-feature-input"],
                                                 delimiters: ['{ { ', ' } }'],
+                                                components: {
+                                                    "component-input": that.vue_components["component-input"]
+                                                },
                                                 computed: {
                                                     show_preview: function() {
                                                         let self = this;
@@ -5653,7 +5675,7 @@
                                                             value = self.option.value;
 
                                                         if (Math.abs(parseFloat(value)) >= 0) {
-                                                            value = $.wa.validate(self.format, value, {
+                                                            value = $.wa.validate(self.states.format, value, {
                                                                 group_size: 3,
                                                                 delimiter: ($.wa_shop_products.lang === "ru" ? ",": null)
                                                             });
@@ -5878,6 +5900,7 @@
                                     },
                                     "component-product-column-sbratio": {
                                         props: ["column", "column_info", "column_data", "product", "sku_mod"],
+                                        emits: ["change"],
                                         data: function() {
                                             var self = this;
                                             var placeholder = "";
@@ -5897,6 +5920,7 @@
                                         },
                                         template: that.components["component-product-column-sbratio"],
                                         delimiters: ['{ { ', ' } }'],
+                                        components: { "component-input": that.vue_components["component-input"] },
                                         computed: {
                                             formatted_value: function() {
                                                 var self = this,
@@ -5929,10 +5953,6 @@
                                     },
                                     "component-product-column-sku": {
                                         props: ["column", "column_info", "column_data", "product"],
-                                        data: function() {
-                                            var self = this;
-                                            return {};
-                                        },
                                         template: that.components["component-product-column-sku"],
                                         delimiters: ['{ { ', ' } }'],
                                         computed: {
@@ -6009,20 +6029,13 @@
                                                 });
                                         }
                                     }
-                                },
-                                mounted: function() {
-                                    var self = this;
-                                    // if (self.column.column_type.indexOf("feature_") === 0) {
-                                    //     console.log( self.column_data );
-                                    // }
                                 }
                             },
                             "component-products-table-mass-selection": {
                                 props: ["products"],
                                 data: function() {
-                                    var self = this;
                                     return {
-                                        all_products: true,
+                                        all_products: 'true',
                                         states: {
                                             is_disabled: false
                                         }
@@ -6030,9 +6043,12 @@
                                 },
                                 template: that.components["component-products-table-mass-selection"],
                                 delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-checkbox": that.vue_components["component-checkbox"],
+                                    "component-radio": that.vue_components["component-radio"]
+                                },
                                 computed: {
                                     current_page_smart_string: function() {
-                                        var self = this;
                                         return $.wa.locale_plural(that.products.length, that.locales["products_forms"]);
                                     },
                                     selected_products: function() {
@@ -6044,6 +6060,9 @@
                                     selected_all_products: function() {
                                         var self = this;
                                         return (self.selected_products.length === self.products.length);
+                                    },
+                                    bool_all_products: function () {
+                                        return this.all_products === 'true';
                                     }
                                 },
                                 methods: {
@@ -6066,15 +6085,15 @@
                                             product.states.selected = check_all;
                                         });
 
-                                        self.setSelection((check_all ? self.all_products : false));
+                                        self.setSelection((check_all ? self.bool_all_products : false));
                                     },
                                     setSelection: function(all_products) {
                                         var self = this;
 
-                                        all_products = (typeof all_products === "boolean" ? all_products : self.all_products);
+                                        all_products = (typeof all_products === "boolean" ? all_products : self.bool_all_products);
                                         var products_selection = (all_products ? "all_products" : "visible_products");
-                                        if (that.products_selection !== products_selection) {
-                                            that.products_selection = products_selection;
+                                        if (that.products_selection.value !== products_selection) {
+                                            that.products_selection.value = products_selection;
                                         }
                                     }
                                 }
@@ -6106,8 +6125,7 @@
                                 return result;
                             },
                             getColumnClassName: function(column) {
-                                var self = this,
-                                    result = [];
+                                var result = [];
 
                                 switch (column.column_type) {
                                     case "name":
@@ -6121,15 +6139,12 @@
                                 return result.join(" ");
                             },
                             showColumnManager: function() {
-                                var self = this;
-
                                 var columns_ready = getColumns();
 
                                 $.waDialog({
                                     html: that.templates["dialog-list-column-manager"],
                                     options: {
                                         ready: columns_ready,
-                                        vue_model: self
                                     },
                                     onOpen: function($dialog, dialog) {
                                         columns_ready.then(function(columns) {
@@ -6180,9 +6195,6 @@
                     "component-mass-actions": {
                         props: ["products", "type"],
                         data: function() {
-                            var self = this;
-
-                            self.type = (typeof self.type !== "string" ? "footer" : self.type);
                             return {
                                 actions: that.mass_actions
                             };
@@ -6192,8 +6204,8 @@
                         components: {
                             "component-mass-actions-footer": {
                                 props: ["products", "actions"],
+                                emits: ["call_action"],
                                 data: function() {
-                                    var self = this;
                                     return {
                                         states: {
                                             resize_timer: 0
@@ -6202,13 +6214,14 @@
                                 },
                                 template: that.components["component-mass-actions-footer"],
                                 delimiters: ['{ { ', ' } }'],
+                                components: { "component-checkbox": that.vue_components["component-checkbox"] },
                                 computed: {
                                     products_length: function() {
                                         let self = this,
                                             result = self.products.length,
                                             unselected = that.products.length - self.products.length;
 
-                                        if (that.products_selection === "all_products") {
+                                        if (that.products_selection.value === "all_products") {
                                             result = that.products_total_count - unselected;
                                         }
 
@@ -6307,8 +6320,6 @@
 
                                     initObserver(self.$el);
 
-                                    //
-
                                     function initObserver(wrapper) {
                                         var resizeObserver = new ResizeObserver(onSizeChange);
                                         resizeObserver.observe(wrapper);
@@ -6327,17 +6338,17 @@
                             },
                             "component-mass-actions-aside": {
                                 props: ["products", "actions"],
+                                emits: ["call_action"],
                                 template: that.components["component-mass-actions-aside"],
                                 delimiters: ['{ { ', ' } }'],
-                                components: {
-                                },
+                                components: { "component-checkbox": that.vue_components["component-checkbox"] },
                                 computed: {
                                     products_length: function() {
                                         let self = this,
                                             result = self.products.length,
                                             unselected = that.products.length - self.products.length;
 
-                                        if (that.products_selection === "all_products") {
+                                        if (that.products_selection.value === "all_products") {
                                             result = that.products_total_count - unselected;
                                         }
 
@@ -6361,17 +6372,16 @@
                                         const self = this;
                                         self.$emit("call_action", action);
                                     }
-                                },
-                                mounted: function() {
-                                    var self = this;
                                 }
                             }
                         },
-                        computed: {},
+                        computed: {
+                            prop_type() { return (typeof this.type !== "string" ? "footer" : this.type); }
+                        },
                         methods: {
                             callAction: function(action) {
                                 const self = this;
-                                that.callMassAction(action, self.products, that.products_selection);
+                                that.callMassAction(action, self.products, that.products_selection.value);
                             }
                         }
                     }
@@ -6386,13 +6396,11 @@
                     },
                     show_mass_actions: function() {
                         const self = this;
-                        return (self.selected_products.length || that.products_selection === "all_products");
+                        return (self.selected_products.length || that.products_selection.value === "all_products");
                     }
                 },
                 methods: {
                     changeView: function(view_id) {
-                        let self = this;
-
                         that.animate(true);
 
                         that.broadcast.getPresentationsIds().done( function(ids) {
@@ -6453,8 +6461,6 @@
                         });
                     },
                     changePresentation: function(presentation) {
-                        const self = this;
-
                         sessionPresentationName(presentation.name);
 
                         that.broadcast.getPresentationsIds().done( function(ids) {
@@ -6514,6 +6520,10 @@
                     });
                 }
             });
+
+            $.vue_app.config.compilerOptions.whitespace = 'preserve';
+
+            return $.vue_app.mount($vue_section[0]);
         };
 
         /**
@@ -6806,22 +6816,26 @@
 
             var $section = $dialog.find(".js-vue-section");
 
-            var vue_model = new Vue({
-                el: $section[0],
-                data: {
-                    item_data: getItemData(),
-                    items_keys: {},
-                    states: {
-                        locked: false,
-                        is_loading: false
+            var vue_model = Vue.createApp({
+                data() {
+                    return {
+                        item_data: getItemData(),
+                        items_keys: {},
+                        states: {
+                            locked: false,
+                            is_loading: false
+                        }
                     }
                 },
                 delimiters: ['{ { ', ' } }'],
                 components: {
+                    "component-radio": that.vue_components["component-radio"],
+                    "component-input": that.vue_components["component-input"],
+                    "component-dropdown": that.vue_components["component-dropdown"],
+                    "component-date-picker": that.vue_components["component-date-picker"],
                     "component-feature-value-checkbox": {
                         props: ["item_data"],
                         data: function() {
-                            var self = this;
                             return {
                                 search_string: "",
                                 selection: []
@@ -6833,7 +6847,6 @@
                             "component-feature-value-checkbox-item": {
                                 props: ["item"],
                                 data: function() {
-                                    var self = this;
                                     return {
                                         states: {
                                             timer_enable: 0,
@@ -6845,6 +6858,9 @@
                                 },
                                 template: that.components["component-feature-value-checkbox-item"],
                                 delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-switch": that.vue_components["component-switch"]
+                                },
                                 computed: {
                                     item_class: function() {
                                         let self = this,
@@ -7158,7 +7174,7 @@
 
                     dialog.resize();
                 }
-            });
+            }).mount($section[0]);
 
             function getItemData() {
                 let item_data = $.wa.clone(dialog.options.item_data);
@@ -7232,20 +7248,20 @@
 
             var $section = $dialog.find(".js-vue-section");
 
-            var vue_model = new Vue({
-                el: $section[0],
-                data: {
-                    columns: columns,
-                    states: {
-                        locked: false,
-                        column_expand: false
+            var app = Vue.createApp({
+                data() {
+                    return {
+                        columns: columns,
+                        states: {
+                            locked: false,
+                            column_expand: false
+                        }
                     }
                 },
                 delimiters: ['{ { ', ' } }'],
                 components: {
                     "component-search-column": {
                         data: function() {
-                            let self = this;
                             return {
                                 search_string: "",
                                 selection: []
@@ -7253,13 +7269,11 @@
                         },
                         template: that.components["component-search-column"],
                         delimiters: ['{ { ', ' } }'],
-                        computed: {
-                        },
                         methods: {
                             search: function() {
-                                let self = this;
-
-                                let selection = [];
+                                const self = this;
+                                const columns = self.$root.columns;
+                                const selection = [];
 
                                 // Делаем выборку
                                 checkItems(columns);
@@ -7297,32 +7311,33 @@
                     },
                     "component-list-column-item": {
                         props: ["column"],
+                        emits: ["column_enabled", "column_expanded"],
                         data: function() {
                             var self = this;
 
                             switch (self.column.id) {
                                 case "name":
                                     if (!self.column.settings.long_name_format) {
-                                        self.$set(self.column.settings, "long_name_format", "");
+                                        self.column.settings["long_name_format"] = "";
                                     }
                                     break;
                                 case "summary":
                                     if (!self.column.settings.display) {
-                                        self.$set(self.column.settings, "display", "text");
+                                        self.column.settings["display"] = "text";
                                     }
                                     break;
                                 case "tags":
                                 case "categories":
                                 case "sets":
                                     if (!self.column.settings.visible_count) {
-                                        self.$set(self.column.settings, "visible_count", "3");
+                                        self.column.settings["visible_count"] = "3";
                                     }
                                 case "price":
                                 case "compare_price":
                                 case "purchase_price":
                                 case "base_price":
                                     if (!self.column.settings.format) {
-                                        self.$set(self.column.settings, "format", "origin");
+                                        self.column.settings["format"] = "origin";
                                     }
                                     break;
                             }
@@ -7355,30 +7370,8 @@
                             }
                         },
                         components: {
-                            "component-switch": {
-                                props: ["value", "disabled"],
-                                data: function() {
-                                    return {
-                                        active: (typeof this.value === "boolean" ? this.value : false),
-                                        disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
-                                    };
-                                },
-                                template: '<div class="switch wa-small"></div>',
-                                delimiters: ['{ { ', ' } }'],
-                                mounted: function() {
-                                    var self = this;
-
-                                    $.waSwitch({
-                                        $wrapper: $(self.$el),
-                                        active: self.active,
-                                        disabled: self.disabled,
-                                        change: function(active, wa_switch) {
-                                            self.$emit("change", active);
-                                            self.$emit("input", active);
-                                        }
-                                    });
-                                }
-                            }
+                            "component-radio": that.vue_components["component-radio"],
+                            "component-switch": that.vue_components["component-switch"]
                         },
                         computed: {
                             is_stock: function() {
@@ -7422,7 +7415,6 @@
                                 clearTimeout(self.states.timer_enable);
                                 self.states.timer_enable = setTimeout( function() {
                                     self.column.enabled = value;
-                                    // self.states.hidden = false;
                                 }, 500);
                             },
                             setup: function() {
@@ -7647,15 +7639,18 @@
 
                     dialog.resize();
 
-                    self.initDragAndDrop( $(self.$el) );
+                    self.initDragAndDrop( $(self.$el.parentElement) );
                 }
             });
+            app.mount($section[0]);
+
+            dialog.onClose = () => app.unmount();
         };
 
         Page.prototype.callMassAction = function(action, products, products_selection) {
             var that = this;
 
-console.log(products_selection, action.id);
+            console.log(products_selection, action.id);
 
             if (action.states.is_locked) { return false; }
 
@@ -7686,8 +7681,6 @@ console.log(products_selection, action.id);
                     that.$wrapper.prepend($link);
                     $link.trigger("click").remove();
                     break;
-
-                //
 
                 case "add_to_categories":
                     action.states.is_locked = true;
@@ -7755,8 +7748,6 @@ console.log(products_selection, action.id);
                         });
                     break;
 
-                //
-
                 case "set_badge":
                     action.states.is_locked = true;
                     $.post(action.action_url, dialog_data, "json")
@@ -7816,8 +7807,6 @@ console.log(products_selection, action.id);
                         });
                     break;
 
-                //
-
                 case "discount_coupons":
                     var redirect_url = action.redirect_url;
                     if (is_all_products) {
@@ -7842,10 +7831,7 @@ console.log(products_selection, action.id);
                         });
                     break;
 
-                //
-
                 default:
-
                     var products_hash;
                     if (is_all_products) {
                         products_hash = 'presentation/'+that.presentation.id;
@@ -7882,21 +7868,20 @@ console.log(products_selection, action.id);
                         onOpen: function($dialog, dialog) {
                             var $section = $dialog.find(".js-vue-section");
 
-                            var vue_model = new Vue({
-                                el: $section[0],
-                                data: {
-                                    action: action
+                            var vue_model = Vue.createApp({
+                                data() {
+                                    return {
+                                        action: action
+                                    }
                                 },
                                 delimiters: ['{ { ', ' } }'],
                                 created: function () {
                                     $section.css("visibility", "");
                                 },
                                 mounted: function() {
-                                    var self = this,
-                                        $wrapper = $(self.$el);
                                     dialog.resize();
                                 }
-                            });
+                            }).mount($section[0]);
                         }
                     });
                     break;
@@ -7929,11 +7914,11 @@ console.log(products_selection, action.id);
 
                     var component_category_form = {
                         props: ["category"],
+                        emits: ["cancel"],
                         data: function() {
-                            var self = this;
                             return {
                                 name: "",
-                                parent_id: (self.category ? self.category.id : ""),
+                                parent_id: (this.category ? this.category.id : ""),
                                 errors: {},
                                 states: {
                                     is_locked: false
@@ -7981,10 +7966,10 @@ console.log(products_selection, action.id);
                                 var error_id = "name_required";
                                 if (!$.trim(self.name).length) {
                                     var error = { id: error_id, text: error_id };
-                                    self.$set(self.errors, error_id, error);
+                                    self.errors[error_id] = error;
                                     errors.push(error);
                                 } else if (self.errors[error_id]) {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return errors;
@@ -8002,34 +7987,32 @@ console.log(products_selection, action.id);
                         }
                     };
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            categories_array: options.categories,
-                            categories_object: categories_object,
-                            search_string: "",
-                            states: {
-                                is_locked: false,
-                                show_form: false
+                    that.vue_components["component-category-search"]["template"] = that.components["component-category-search"];
+                    Vue.createApp({
+                        data() {
+                            return {
+                                categories_array: options.categories,
+                                categories_object: categories_object,
+                                search_string: "",
+                                states: {
+                                    is_locked: false,
+                                    show_form: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
                         components: {
+                            "component-category-search": that.vue_components["component-category-search"],
                             "component-category-form": component_category_form,
                             "component-categories-group": {
                                 name: "component-categories-group",
                                 props: ["categories"],
-                                data: function() {
-                                    var self = this;
-                                    return {};
-                                },
                                 template: that.components["component-categories-group"],
                                 delimiters: ['{ { ', ' } }'],
                                 components: {
                                     "component-category": {
                                         props: ["category"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 states: {
                                                     show_form: false
@@ -8063,7 +8046,7 @@ console.log(products_selection, action.id);
                                                 const self = this;
                                                 new_category = formatCategory(new_category);
                                                 self.category.categories.unshift(new_category);
-                                                self.$set(categories_object, new_category.id, new_category);
+                                                categories_object[new_category.id] = new_category;
                                                 self.toggleForm(false);
                                                 self.$nextTick( function() {
                                                     dialog.resize();
@@ -8074,32 +8057,6 @@ console.log(products_selection, action.id);
                                                 self.toggleForm(false);
                                             }
                                         }
-                                    }
-                                }
-                            },
-                            "component-category-search": {
-                                props: ["value"],
-                                data: function() {
-                                    let self = this;
-                                    return {};
-                                },
-                                template: that.components["component-category-search"],
-                                delimiters: ['{ { ', ' } }'],
-                                methods: {
-                                    onInput: function() {
-                                        let self = this;
-                                        self.$emit("input", self.value);
-                                        self.$emit("search_input", self.value);
-                                    },
-                                    onChange: function() {
-                                        let self = this;
-                                        self.$emit("input", self.value);
-                                        self.$emit("search_change", self.value);
-                                    },
-                                    revert: function() {
-                                        let self = this;
-                                        self.value = "";
-                                        self.onChange();
                                     }
                                 }
                             }
@@ -8162,7 +8119,7 @@ console.log(products_selection, action.id);
                                 const self = this;
                                 new_category = formatCategory(new_category);
                                 self.categories.unshift(new_category);
-                                self.$set(categories_object, new_category.id, new_category);
+                                categories_object[new_category.id] = new_category;
                                 self.toggleForm(false);
 
                                 self.$nextTick( function() {
@@ -8206,8 +8163,7 @@ console.log(products_selection, action.id);
                             $section.css("visibility", "");
                         },
                         mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();
@@ -8215,7 +8171,7 @@ console.log(products_selection, action.id);
                                 $(self.$el).find("input.js-autofocus").trigger("focus");
                             });
                         }
-                    });
+                    }).mount($section[0]);
                 }
 
                 function formatCategory(category) {
@@ -8286,33 +8242,31 @@ console.log(products_selection, action.id);
 
                     var categories_object = getCategoryObject(options.categories);
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            categories_array: options.categories,
-                            categories_object: categories_object,
-                            search_string: "",
-                            states: {
-                                is_locked: false,
-                                show_form: false
+                    that.vue_components["component-category-search"]["template"] = that.components["component-category-search"];
+                    const app = Vue.createApp({
+                        data() {
+                            return {
+                                categories_array: options.categories,
+                                categories_object: categories_object,
+                                search_string: "",
+                                states: {
+                                    is_locked: false,
+                                    show_form: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
                         components: {
+                            "component-category-search": that.vue_components["component-category-search"],
                             "component-categories-group": {
                                 name: "component-categories-group",
                                 props: ["categories"],
-                                data: function() {
-                                    var self = this;
-                                    return {};
-                                },
                                 template: that.components["component-categories-group"],
                                 delimiters: ['{ { ', ' } }'],
                                 components: {
                                     "component-category": {
                                         props: ["category"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 states: {
                                                     show_form: false
@@ -8333,32 +8287,6 @@ console.log(products_selection, action.id);
                                                 return result.join(" ");
                                             }
                                         }
-                                    }
-                                }
-                            },
-                            "component-category-search": {
-                                props: ["value"],
-                                data: function() {
-                                    let self = this;
-                                    return {};
-                                },
-                                template: that.components["component-category-search"],
-                                delimiters: ['{ { ', ' } }'],
-                                methods: {
-                                    onInput: function() {
-                                        let self = this;
-                                        self.$emit("input", self.value);
-                                        self.$emit("search_input", self.value);
-                                    },
-                                    onChange: function() {
-                                        let self = this;
-                                        self.$emit("input", self.value);
-                                        self.$emit("search_change", self.value);
-                                    },
-                                    revert: function() {
-                                        let self = this;
-                                        self.value = "";
-                                        self.onChange();
                                     }
                                 }
                             }
@@ -8443,8 +8371,7 @@ console.log(products_selection, action.id);
                             $section.css("visibility", "");
                         },
                         mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();
@@ -8452,7 +8379,7 @@ console.log(products_selection, action.id);
                                 $(self.$el).find("input.js-autofocus").trigger("focus");
                             });
                         }
-                    });
+                    }).mount($section[0]);
                 }
 
                 function formatCategory(category) {
@@ -8527,11 +8454,11 @@ console.log(products_selection, action.id);
 
                     var component_set_form = {
                         props: ["item"],
+                        emits: ["cancel"],
                         data: function() {
-                            var self = this;
                             return {
                                 name: "",
-                                parent_id: (self.item ? self.item.group_id : ""),
+                                parent_id: (this.item ? this.item.group_id : ""),
                                 errors: {},
                                 states: {
                                     is_locked: false
@@ -8540,7 +8467,6 @@ console.log(products_selection, action.id);
                         },
                         template: that.components["component-set-form"],
                         delimiters: ['{ { ', ' } }'],
-                        computed: {},
                         methods: {
                             save: function() {
                                 const self = this;
@@ -8569,8 +8495,7 @@ console.log(products_selection, action.id);
                                     });
                             },
                             onInput: function() {
-                                const self = this;
-                                self.validate();
+                                this.validate();
                             },
                             validate: function() {
                                 const self = this;
@@ -8579,17 +8504,16 @@ console.log(products_selection, action.id);
                                 var error_id = "name_required";
                                 if (!$.trim(self.name).length) {
                                     var error = { id: error_id, text: error_id };
-                                    self.$set(self.errors, error_id, error);
+                                    self.errors[error_id] = error;
                                     errors.push(error);
                                 } else if (self.errors[error_id]) {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return errors;
                             },
                             cancel: function() {
-                                const self = this;
-                                self.$emit("cancel");
+                                this.$emit("cancel");
                             }
                         },
                         mounted: function() {
@@ -8600,35 +8524,33 @@ console.log(products_selection, action.id);
                         }
                     };
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            items_array: options.items,
-                            sets: sets_object,
-                            groups: groups_object,
-                            search_string: "",
-                            states: {
-                                is_locked: false,
-                                show_form: false
+                    that.vue_components["component-set-search"]["template"] = that.components["component-set-search"];
+                    var vue_model = Vue.createApp({
+                        data() {
+                            return {
+                                items_array: options.items,
+                                sets: sets_object,
+                                groups: groups_object,
+                                search_string: "",
+                                states: {
+                                    is_locked: false,
+                                    show_form: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
                         components: {
                             "component-set-form": component_set_form,
+                            "component-set-search": that.vue_components["component-set-search"],
                             "component-set-item-group": {
                                 name: "component-set-item-group",
                                 props: ["items"],
-                                data: function() {
-                                    var self = this;
-                                    return {};
-                                },
                                 template: that.components["component-set-item-group"],
                                 delimiters: ['{ { ', ' } }'],
                                 components: {
                                     "component-set-item": {
                                         props: ["item"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 states: {
                                                     show_form: false
@@ -8652,32 +8574,6 @@ console.log(products_selection, action.id);
                                                 return result.join(" ");
                                             }
                                         }
-                                    }
-                                }
-                            },
-                            "component-set-search": {
-                                props: ["value"],
-                                data: function() {
-                                    let self = this;
-                                    return {};
-                                },
-                                template: that.components["component-set-search"],
-                                delimiters: ['{ { ', ' } }'],
-                                methods: {
-                                    onInput: function() {
-                                        let self = this;
-                                        self.$emit("input", self.value);
-                                        self.$emit("search_input", self.value);
-                                    },
-                                    onChange: function() {
-                                        let self = this;
-                                        self.$emit("input", self.value);
-                                        self.$emit("search_change", self.value);
-                                    },
-                                    revert: function() {
-                                        let self = this;
-                                        self.value = "";
-                                        self.onChange();
                                     }
                                 }
                             }
@@ -8740,7 +8636,7 @@ console.log(products_selection, action.id);
                                 const self = this;
                                 new_item = formatItem(new_item);
                                 self.items_array.unshift(new_item);
-                                self.$set(sets_object, new_item.set_id, new_item);
+                                sets_object[new_item.set_id] = new_item;
                                 self.toggleForm(false);
                                 self.$nextTick( function() {
                                     dialog.resize();
@@ -8781,8 +8677,7 @@ console.log(products_selection, action.id);
                             $section.css("visibility", "");
                         },
                         mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();
@@ -8790,7 +8685,7 @@ console.log(products_selection, action.id);
                                 $(self.$el).find("input.js-autofocus").trigger("focus");
                             });
                         }
-                    });
+                    }).mount($section[0]);
                 }
 
                 function formatItem(item) {
@@ -8874,34 +8769,32 @@ console.log(products_selection, action.id);
                         sets_object = object.sets,
                         groups_object = object.groups;
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            items_array: options.items,
-                            sets: sets_object,
-                            groups: groups_object,
-                            search_string: "",
-                            states: {
-                                is_locked: false,
-                                show_form: false
+                    that.vue_components["component-set-search"]["template"] = that.components["component-set-search"];
+                    var vue_model = Vue.createApp({
+                        data() {
+                            return {
+                                items_array: options.items,
+                                sets: sets_object,
+                                groups: groups_object,
+                                search_string: "",
+                                states: {
+                                    is_locked: false,
+                                    show_form: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
                         components: {
+                            "component-set-search": that.vue_components["component-set-search"],
                             "component-set-item-group": {
                                 name: "component-set-item-group",
                                 props: ["items"],
-                                data: function() {
-                                    var self = this;
-                                    return {};
-                                },
                                 template: that.components["component-set-item-group"],
                                 delimiters: ['{ { ', ' } }'],
                                 components: {
                                     "component-set-item": {
                                         props: ["item"],
                                         data: function() {
-                                            var self = this;
                                             return {
                                                 states: {
                                                     show_form: false
@@ -8922,32 +8815,6 @@ console.log(products_selection, action.id);
                                                 return result.join(" ");
                                             }
                                         }
-                                    }
-                                }
-                            },
-                            "component-set-search": {
-                                props: ["value"],
-                                data: function() {
-                                    let self = this;
-                                    return {};
-                                },
-                                template: that.components["component-set-search"],
-                                delimiters: ['{ { ', ' } }'],
-                                methods: {
-                                    onInput: function() {
-                                        let self = this;
-                                        self.$emit("input", self.value);
-                                        self.$emit("search_input", self.value);
-                                    },
-                                    onChange: function() {
-                                        let self = this;
-                                        self.$emit("input", self.value);
-                                        self.$emit("search_change", self.value);
-                                    },
-                                    revert: function() {
-                                        let self = this;
-                                        self.value = "";
-                                        self.onChange();
                                     }
                                 }
                             }
@@ -9031,8 +8898,7 @@ console.log(products_selection, action.id);
                             $section.css("visibility", "");
                         },
                         mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();
@@ -9040,7 +8906,7 @@ console.log(products_selection, action.id);
                                 $(self.$el).find("input.js-autofocus").trigger("focus");
                             });
                         }
-                    });
+                    }).mount($section[0]);
                 }
 
                 function formatItem(item) {
@@ -9120,19 +8986,18 @@ console.log(products_selection, action.id);
 
                     that.updateRootVariables(options);
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            tags: [],
-                            tags_keys: {},
-                            states: {
-                                is_locked: false
+                    var vue_model = Vue.createApp({
+                        data() {
+                            return {
+                                tags: [],
+                                tags_keys: {},
+                                states: {
+                                    is_locked: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
                         components: {
-                        },
-                        computed: {
                         },
                         methods: {
                             initAutocomplete: function($input) {
@@ -9202,7 +9067,7 @@ console.log(products_selection, action.id);
                                 };
 
                                 $dialog.on("dialog-closed", function() {
-                                    $input.autocomplete( "destroy" );
+                                    $input.autocomplete("destroy");
                                 });
                             },
                             addItem: function(tag) {
@@ -9248,7 +9113,7 @@ console.log(products_selection, action.id);
                         },
                         mounted: function() {
                             var self = this,
-                                $wrapper = $(self.$el);
+                                $wrapper = $(self.$el.parentElement);
 
                             var $autocomplete = $wrapper.find('.js-autocomplete');
                             if ($autocomplete.length) {
@@ -9261,7 +9126,7 @@ console.log(products_selection, action.id);
                                 $(self.$el).find("input.js-autofocus").trigger("focus");
                             });
                         }
-                    });
+                    }).mount($section[0]);
                 }
             }
 
@@ -9286,13 +9151,14 @@ console.log(products_selection, action.id);
 
                     that.updateRootVariables(options);
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            search_string: "",
-                            tags_array: formatTags(options.tags),
-                            states: {
-                                is_locked: false
+                    var vue_model = Vue.createApp({
+                        data() {
+                            return {
+                                search_string: "",
+                                tags_array: formatTags(options.tags),
+                                states: {
+                                    is_locked: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
@@ -9309,7 +9175,6 @@ console.log(products_selection, action.id);
                         },
                         methods: {
                             toggleTag: function(tag, show) {
-                                const self = this;
                                 tag.states.is_active = show;
                             },
 
@@ -9343,8 +9208,7 @@ console.log(products_selection, action.id);
                             $section.css("visibility", "");
                         },
                         mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();
@@ -9352,7 +9216,7 @@ console.log(products_selection, action.id);
                                 $(self.$el).find("input.js-autofocus").trigger("focus");
                             });
                         }
-                    });
+                    }).mount($section[0]);
 
                     function formatTags(tags) {
                         $.each(tags, function(i, tag) {
@@ -9366,7 +9230,6 @@ console.log(products_selection, action.id);
                 }
             }
 
-            //
 
             function setBadgeDialog(html, action) {
                 var ready = $.Deferred(),
@@ -9389,26 +9252,26 @@ console.log(products_selection, action.id);
 
                     that.updateRootVariables(options);
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            active_badge: null,
-                            badges: options.badges,
-                            states: {
-                                is_locked: false
+                    const app = Vue.createApp({
+                        data() {
+                            return {
+                                active_badge: null,
+                                badges: options.badges,
+                                states: {
+                                    is_locked: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
+                        components: { "component-textarea": that.vue_components["component-textarea"] },
                         computed: {
                             disabled: function() {
-                                const self = this;
-                                return !!(self.states.is_locked || self.active_badge === null);
+                                return !!(this.states.is_locked || this.active_badge === null);
                             }
                         },
                         methods: {
                             setBadge: function(badge) {
-                                const self = this;
-                                self.active_badge = badge;
+                                this.active_badge = badge;
                             },
                             save: function() {
                                 const self = this;
@@ -9440,8 +9303,7 @@ console.log(products_selection, action.id);
                             $section.css("visibility", "");
                         },
                         mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();
@@ -9449,6 +9311,8 @@ console.log(products_selection, action.id);
                             });
                         }
                     });
+
+                    app.mount($section[0]);
                 }
             }
 
@@ -9473,16 +9337,21 @@ console.log(products_selection, action.id);
 
                     that.updateRootVariables(options);
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            active_option: null,
-                            options: options.options,
-                            states: {
-                                is_locked: false
+                    Vue.createApp({
+                        data() {
+                            return {
+                                active_option: null,
+                                options: options.options,
+                                states: {
+                                    is_locked: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-radio": that.vue_components["component-radio"],
+                            "component-checkbox": that.vue_components["component-checkbox"]
+                        },
                         computed: {
                             disabled: function() {
                                 const self = this;
@@ -9518,15 +9387,14 @@ console.log(products_selection, action.id);
                             $section.css("visibility", "");
                         },
                         mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();
                                 vue_ready.resolve(dialog);
                             });
                         }
-                    });
+                    }).mount($section[0]);
                 }
             }
 
@@ -9551,15 +9419,19 @@ console.log(products_selection, action.id);
 
                     that.updateRootVariables(options);
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            type: "",
-                            states: {
-                                is_locked: false
+                    Vue.createApp({
+                        data() {
+                            return {
+                                type: "",
+                                states: {
+                                    is_locked: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
+                        components: {
+                            "component-radio": that.vue_components["component-radio"]
+                        },
                         methods: {
                             save: function() {
                                 const self = this;
@@ -9585,15 +9457,14 @@ console.log(products_selection, action.id);
                             $section.css("visibility", "");
                         },
                         mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();
                                 vue_ready.resolve(dialog);
                             });
                         }
-                    });
+                    }).mount($section[0]);
                 }
             }
 
@@ -9616,13 +9487,10 @@ console.log(products_selection, action.id);
                 function initDialog($dialog, dialog) {
                     var $section = $dialog.find(".js-vue-section");
 
-                    var vue_model = new Vue({
-                        el: $section[0],
+                    var vue_model = Vue.createApp({
                         delimiters: ['{ { ', ' } }'],
                         methods: {
                             close: function() {
-                                const self = this;
-
                                 $.wa_shop_products.router.reload().done( function() {
                                     dialog.close();
                                 });
@@ -9639,7 +9507,7 @@ console.log(products_selection, action.id);
                                 vue_ready.resolve(dialog);
                             });
                         }
-                    });
+                    }).mount($section[0]);
                 }
             }
 
@@ -9664,11 +9532,12 @@ console.log(products_selection, action.id);
 
                     that.updateRootVariables(options);
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            states: {
-                                is_locked: false
+                    var vue_model = Vue.createApp({
+                        data() {
+                            return {
+                                states: {
+                                    is_locked: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
@@ -9696,15 +9565,14 @@ console.log(products_selection, action.id);
                             $section.css("visibility", "");
                         },
                         mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();
                                 vue_ready.resolve(dialog);
                             });
                         }
-                    });
+                    }).mount($section[0]);
                 }
             }
 
@@ -9727,15 +9595,17 @@ console.log(products_selection, action.id);
                 function initDialog($dialog, dialog, options) {
                     var $section = $dialog.find(".js-vue-section");
 
-                    var vue_model = new Vue({
-                        el: $section[0],
-                        data: {
-                            promo: "",
-                            states: {
-                                is_locked: false
+                    var vue_model = Vue.createApp({
+                        data() {
+                            return {
+                                promo: "",
+                                states: {
+                                    is_locked: false
+                                }
                             }
                         },
                         delimiters: ['{ { ', ' } }'],
+                        components: { "component-radio": that.vue_components["component-radio"] },
                         methods: {
                             save: function() {
                                 const self = this;
@@ -9751,19 +9621,16 @@ console.log(products_selection, action.id);
                             $section.css("visibility", "");
                         },
                         mounted: function() {
-                            var self = this,
-                                $wrapper = $(self.$el);
+                            var self = this;
 
                             self.$nextTick( function() {
                                 dialog.resize();
                                 vue_ready.resolve(dialog);
                             });
                         }
-                    });
+                    }).mount($section[0]);
                 }
             }
-
-            //
 
             function getSubmitData() {
                 var result = {

@@ -13,7 +13,7 @@
         {foreach $info as $f}
         <div class="value" style="min-width: 300px;">
             <p>
-                <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}&file={$f.name|escape}" class="bold nowrap inline"><i class="icon16 download" style="margin-top: 0.3em;"></i>[`Download`]</a>
+                <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}&file={$f.name|escape}" class="bold nowrap inline"><i class="fas fa-file-download"></i>[`Download`]</a>
                 <span class="hint inline">{$f.size|wa_format_file_size}</span>
                 <br>
                 <span class="hint inline" style="color: #aaa;">[`Updated`]: {$f.mtime|wa_datetime:"humandatetime"}</span>
@@ -268,7 +268,7 @@
     </div>
     <div class="field">
         <div class="value">
-            <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}" class="bold nowrap"><i class="fas fa-file-download custom-mr-4"></i>[`Download`]</a>
+            <a href="?module=csv&action=productdownload&profile={$profile.id|default:''}" class="bold nowrap"><i class="fas fa-file-download"></i>[`Download`]</a>
         </div>
     </div>
 </div>

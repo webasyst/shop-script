@@ -133,7 +133,7 @@
                                         {else}
                                             <label for="id-product-checkbox-{$item@iteration}">{$item.name|escape}</label>
                                         {/if}
-                                        {if !empty($item.product_id) || !empty($item.sku_id)
+                                        {if !empty($item.product_id) || !empty($item.sku_id)}
                                             <span class="gray">{if $_is_service}[`deleted service`]{else}[`deleted product`]{/if}</span>
                                         {/if}
                                     {else}

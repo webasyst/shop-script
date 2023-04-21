@@ -26,6 +26,10 @@ class shopProductImageUploadController extends shopUploadController
 
         shopImage::generateThumbs($data, $config->getImageSizes());
 
+        $product_model->updateById($product_id, [
+            'edit_datetime' => date('Y-m-d H:i:s')
+        ]);
+
         return array(
             'id'             => $data['id'],
             'name'           => $data['filename'],

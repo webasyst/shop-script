@@ -69,7 +69,12 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
 
             // Set up AJAX to never use cache
             $.ajaxSetup({
-                cache: false
+                cache: false,
+                converters: {
+                    "text json" : function(response) {
+                        return (!response ? null : JSON.parse(response));
+                    },
+                },
             });
 
             if (typeof ($.History) != "undefined") {

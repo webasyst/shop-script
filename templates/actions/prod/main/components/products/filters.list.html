@@ -64,11 +64,11 @@
                                              v-bind:class="{ 'cursor-move js-filter-move-toggle' : !filter.states.move_locked, 'text-light-gray' : filter.states.move_locked }">
                                             <span class="s-icon icon size-12"
                                                   v-if="!filter.states.move_locked"
-                                                  v-bind:key="'fa-bars'">
+                                            >
                                                 <svg><use xlink:href='{$_sprite_url}#grip'></use></svg></span>
                                             <span class="s-icon icon size-12"
                                                   v-if="filter.states.move_locked"
-                                                  v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                                            ><i class="fas fa-spinner fa-spin"></i></span>
                                         </div>
                                     </div>
                                 </div>

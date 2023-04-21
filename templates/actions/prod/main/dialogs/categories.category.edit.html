@@ -157,7 +157,7 @@
          v-bind:class="item_class">
         <div class="s-column-toggle">
             <div class="s-toggle-wrapper cursor-move js-filter-move-toggle" draggable="true">
-                <span class="s-icon icon shift-0"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></i></span>
+                <span class="s-icon icon shift-0"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></span>
             </div>
         </div>
         <div class="s-column-name wide">
@@ -210,7 +210,7 @@
                         <div class="s-options-list" v-if="type === 'selection'">
                             <div class="s-option">
                                 <label class="flexbox middle space-8">
-                                    <component-checkbox v-bind:label="false" v-bind:value="all_selected" v-on:change="selectAll"></component-checkbox>
+                                    <component-checkbox v-bind:label="false" v-bind:model-value="all_selected" v-on:change="selectAll"></component-checkbox>
                                     <span class="s-label">[`Select all`]</span>
                                 </label>
                             </div>
@@ -256,7 +256,7 @@
 
             <div class="s-section-body">
                 <div class="s-wysiwyg-editor js-wysiwyg-editor">
-                    <textarea class="js-product-description-textarea" v-bind:value="value"></textarea>
+                    <textarea class="js-product-description-textarea" v-bind:value="modelValue"></textarea>
                 </div>
                 <div class="s-html-editor js-html-editor"></div>
             </div>
@@ -395,11 +395,11 @@
                                         placeholder="{_w("Category name")|escape}"
                                         rows="1"
                                         v-model="category.name"
-                                        v-bind:class="{ 'wa-error-field' : errors['category_name'] }"
+                                        v-bind:class="{ 'state-error' : errors['category_name'] }"
                                         v-on:blur="onBlurName"
                                         v-on:input="onChangeName"></component-textarea>
                                 </div>
-                                <div class="state-error"
+                                <div class="state-error-hint"
                                      v-if="errors['category_name']"
                                      v-html="errors['category_name'].text"></div>
                             </div>
@@ -430,7 +430,7 @@
                                     <div class="s-actions flexbox space-12">
                                         <div class="s-action cursor-pointer"
                                              v-if="states.copy_locked">
-                                            <span class="s-icon icon text-gray" v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
+                                            <span class="s-icon icon text-green" v-bind:key="'fa-check'"><i class="fas fa-check"></i></span>
                                         </div>
                                         <div class="s-action cursor-pointer"
                                              v-else

@@ -355,13 +355,13 @@
                                                             <component-flex-textarea
                                                                 v-model="social.image_url"
                                                                 v-bind:placeholder="'https://your-site.ru/image-url'"
-                                                                v-bind:class="{ 'small wide': true, 'wa-error-field': !!errors['social_image_url']}"
+                                                                v-bind:class="{ 'small wide': true, 'state-error': !!errors['social_image_url']}"
                                                                 v-on:input="removeError('social_image_url')"
                                                                 v-on:ready="onUrlBlur($event, 'social_image_url')"
                                                                 v-on:blur="onUrlBlur($event, 'social_image_url')"></component-flex-textarea>
 
                                                             <template v-if="errors['social_image_url']">
-                                                                <div class="state-error">{ { errors['social_image_url'].text } }</div>
+                                                                <div class="state-error-hint">{ { errors['social_image_url'].text } }</div>
                                                             </template>
 
                                                         </template>
@@ -399,13 +399,13 @@
                                             <component-flex-textarea
                                                 v-model="social.video_url"
                                                 v-bind:placeholder="'https://your-site.ru/video-url'"
-                                                v-bind:class="{ 'small wide': true, 'wa-error-field': !!errors['social_video_url']}"
+                                                v-bind:class="{ 'small wide': true, 'state-error': !!errors['social_video_url']}"
                                                 v-on:input="removeError('social_video_url')"
                                                 v-on:ready="onUrlBlur($event, 'social_video_url')"
                                                 v-on:blur="onUrlBlur($event, 'social_video_url')"></component-flex-textarea>
 
                                             <template v-if="errors['social_video_url']">
-                                                <div class="state-error">{ { errors['social_video_url'].text } }</div>
+                                                <div class="state-error-hint">{ { errors['social_video_url'].text } }</div>
                                             </template>
 
                                         </div>
@@ -480,9 +480,9 @@
 
                 <div class="s-features-hidden-on-front-section">
                     <div class="wa-message small warn flexbox space-8">
-                        <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="message-icon"><i class="fas fa-exclamation-triangle text-yellow"></i></div>
                         <div class="message-text wide">
-                            <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`]</span>
+                            <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`] </span>
                             <span class="s-icon" data-tooltip-id="product-sku-features-hidden-on-front"><i class="fas fa-question-circle  gray"></i></span>
                         </div>
                     </div>
@@ -500,7 +500,7 @@
             var sources = [{
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
             }, {
                 id: "wa-shop-products-product-seo-js",
                 type: "js",

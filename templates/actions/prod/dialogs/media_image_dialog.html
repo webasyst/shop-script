@@ -93,7 +93,7 @@
                                     </div>
 
                                     <div class="s-slider-actions left">
-                                        <button class="button gray outlined" type="button"
+                                        <button class="button nobutton gray circle" type="button"
                                             v-bind:disabled="is_prev_disabled"
                                             v-on:click.prevent="prevPhoto">
                                             <span class="s-icon"><i class="fas fa-chevron-circle-left"></i></span>
@@ -101,7 +101,7 @@
                                     </div>
 
                                     <div class="s-slider-actions right">
-                                        <button class="button gray outlined" type="button"
+                                        <button class="button nobutton gray circle" type="button"
                                             v-bind:disabled="is_next_disabled"
                                             v-on:click.prevent="nextPhoto">
                                             <span class="s-icon"><i class="fas fa-chevron-circle-right"></i></span>
@@ -139,43 +139,43 @@
 
                             <div class="s-edit-section">
                                 <h5>[`Editing`]</h5>
-                                <div class="wa-list space-4">
-                                    <div class="list-item">
+                                <div class="list">
+                                    <div class="custom-mb-8">
                                         <button class="button small short outlined"
                                             v-bind:disabled="!photo_is_ready"
                                             v-on:click.prevent="rotateImage(-90)">
                                             <span class="s-icon"><i class="fas fa-undo"></i></span>
-                                            <span class="s-name">[`Rotate counterclockwise`]</span>
+                                            <span class="s-name"> [`Rotate counterclockwise`]</span>
                                         </button>
                                     </div>
-                                    <div class="list-item">
+                                    <div class="custom-my-8">
                                         <button class="button small short outlined"
                                             v-bind:disabled="!photo_is_ready"
                                             v-on:click.prevent="rotateImage(90)">
                                             <span class="s-icon"><i class="fas fa-redo"></i></span>
-                                            <span class="s-name">[`Rotate clockwise`]</span>
+                                            <span class="s-name"> [`Rotate clockwise`]</span>
                                         </button>
                                     </div>
-                                    <div class="list-item">
+                                    <div class="custom-my-8">
                                         <button class="button small short outlined"
                                             v-on:click.prevent="cropUse">
                                             <span class="s-icon"><i class="fas fa-crop"></i></span>
-                                            <span class="s-name">[`Crop`]</span>
+                                            <span class="s-name"> [`Crop`]</span>
                                         </button>
                                     </div>
-                                    <div class="list-item">
+                                    <div class="custom-my-8">
                                         <button class="button small wa-short gray outlined"
                                             v-bind:disabled="(photo.url === photo.url_backup)"
                                             v-on:click.prevent="restoreImage">
                                             <span class="s-icon"><i class="fas fa-history"></i></span>
-                                            <span class="s-name">[`Revert to original`]</span>
+                                            <span class="s-name"> [`Revert to original`]</span>
                                         </button>
                                     </div>
-                                    <div class="list-item">
+                                    <div class="custom-mt-8">
                                         <button class="button small wa-short red outlined"
                                             v-on:click.prevent="deletePhoto">
                                             <span class="s-icon"><i class="fas fa-trash-alt"></i></span>
-                                            <span class="s-name">[`Delete image`]</span>
+                                            <span class="s-name"> [`Delete image`]</span>
                                         </button>
                                     </div>
                                 </div>
@@ -183,8 +183,8 @@
 
                             <div class="s-description-section">
                                 <h5>
-                                    <span class="s-title">[`Description`]</span>
-                                    <span class="text-light-gray">([`TITLE & Alt`])</span>
+                                    <span class="s-title">[`Description`] </span>
+                                    <span class="text-light-gray">([`TITLE & Alt`]) </span>
                                     <span class="icon baseline size-12" data-tooltip-id="product-media-dialog-1"><i class="fas fa-question-circle text-light-gray"></i></span>
                                 </h5>
 
@@ -202,15 +202,15 @@
                                 <p>
                                     <a class="s-download-link" v-bind:href="photo.url_backup" target="_blank">
                                         <span class="s-icon"><i class="fas fa-download"></i></span>
-                                        <span class="s-name" v-text="photo.name"></span>
+                                        <span class="s-name custom-ml-4" v-text="photo.name"></span>
                                     </a>
                                 </p>
                                 <p>
-                                    <span class="s-label text-gray">[`Resolution`]:</span>
+                                    <span class="s-label text-gray">[`Resolution`]: </span>
                                     <span class="text-black bold" v-text="photo.width + 'x' + photo.height"></span>
                                 </p>
                                 <p>
-                                    <span class="s-label text-gray">[`Size`]:</span>
+                                    <span class="s-label text-gray">[`Size`]: </span>
                                     <span class="text-black bold" v-text="photo.size"></span>
                                 </p>
                             </div>

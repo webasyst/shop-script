@@ -45,8 +45,9 @@
                         <div class="s-fields-wrapper flexbox space-12">
                             <template v-for="(option, index) in item_data.options">
                                 <div class="s-field-wrapper with-divider" v-bind:class="{ 'is-price' : format === 'price' }">
-                                    <component-input class="s-field small" v-model="option.value"
-                                                     v-bind:class="{ 'wa-error-field': errors['value_error_' + index] }"
+                                    <component-input class="s-field small"
+                                                     v-model="option.value"
+                                                     v-bind:class="{ 'state-error': errors['value_error_' + index] }"
                                                      v-bind:validate="validate"
                                                      v-bind:format="format"></component-input>
                                     <span class="s-currency" v-if="item_data.currency" v-html="item_data.currency.sign_html"></span>
@@ -133,9 +134,7 @@
     <div class="vue-component-feature-value-checkbox">
         {* Активные *}
         <div class="s-table-section" v-if="active_items.length">
-            <template v-for="item in active_items">
-                <component-feature-value-checkbox-item v-bind:item="item"></component-feature-value-checkbox-item>
-            </template>
+            <component-feature-value-checkbox-item v-for="item in active_items" v-bind:item="item"></component-feature-value-checkbox-item>
         </div>
 
         {* Форма добавления *}
@@ -157,9 +156,7 @@
             </div>
 
             <div class="s-table-section">
-                <template v-for="item in inactive_items">
-                    <component-feature-value-checkbox-item v-bind:item="item"></component-feature-value-checkbox-item>
-                </template>
+                <component-feature-value-checkbox-item v-for="item in inactive_items" v-bind:item="item"></component-feature-value-checkbox-item>
             </div>
         </template>
     </div>
@@ -170,7 +167,7 @@
     <div class="s-item-wrapper" v-bind:class="item_class" v-bind:key="item.value" v-if="item.states.display">
         <div class="s-item-table">
             <div class="s-column s-column-enable">
-                <component-switch v-bind:value="item.states.enabled" v-on:change="onToggleSwitch"></component-switch>
+                <component-switch v-bind:model-value="item.states.enabled" v-on:change="onToggleSwitch"></component-switch>
             </div>
             <div class="s-column s-column-name">
                 <span class="s-name" v-text="item.name"></span>

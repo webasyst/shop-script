@@ -4,6 +4,7 @@
 
         Section = function(options) {
             var that = this;
+            const { reactive } = Vue;
 
             // DOM
             that.$wrapper = options["$wrapper"];
@@ -22,20 +23,20 @@
             // VUE JS MODELS
             that.stocks_array = options["stocks"];
             that.stocks = $.wa.construct(that.stocks_array, "id");
-            that.product = formatProduct(options["product"]);
+            that.product = reactive(formatProduct(options["product"])); // !!! Need a better solution
             that.currencies = options["currencies"];
-            that.selectable_features = options["selectable_features"];
+            that.selectable_features = reactive(options["selectable_features"]);
             that.states = {
                 load: {
                     selectable_features: false,
                     add_feature: false
                 }
             };
-            that.errors = {
+            that.errors = reactive({
                 // сюда будут добавться точечные ключи ошибок
                 // ключ global содержит массив с общими ошибками страницы
                 global: []
-            };
+            });
             that.fractional_vue_model = null;
 
             //
@@ -50,9 +51,6 @@
             that.init();
 
             function formatProduct(product) {
-                // product.normal_mode = false;
-                // product.normal_mode_switch = false;
-
                 product.badge_form = false;
                 product.badge_id = (typeof product.badge_id === "string" ? product.badge_id : null);
                 product.badge_prev_id = null;
@@ -72,10 +70,6 @@
 
                     $.each(sku.modifications, function(i, sku_mod) {
                         that.formatModification(sku_mod);
-
-                        // if (!product.normal_mode) {
-                        //     sku_mod.expanded = true;
-                        // }
 
                         if (session_data && session_data.mods[sku_mod.id]) {
                             var session_sku_mod = session_data.mods[sku_mod.id];
@@ -137,6 +131,10 @@
         Section.prototype.initVue = function() {
             var that = this;
 
+            if (typeof $.vue_app === "object" && typeof $.vue_app.unmount === "function") {
+                $.vue_app.unmount();
+            }
+
             // DOM
             var $view_section = that.$wrapper.find(".js-product-sku-section");
 
@@ -146,27 +144,109 @@
             var front_feature_timeout = 0;
 
             // COMPONENTS
+            const {
+                ComponentToggle,
+                ComponentDropdownCurrency,
+                DatePicker,
+                DropdownUnits,
+                ComponentFeatureValueForm,
+                ComponentFeatureColor,
+                ComponentFeatureColorPicker
+            } = that.auxComponents();
 
-            // feature components
-
-            Vue.component("component-features", {
-                props: ["product", "features", "vertical", "columns"],
-                template: that.templates["component-features"],
+            var DropdownFeatureOptions = {
+                props: ["feature", "columns", "disabled"],
+                emits: ["change"],
+                template: that.templates["dropdown-feature-options"],
                 delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this;
+
+                    if (!self.disabled) {
+                        var $dropdown = $(self.$el)
+                        $dropdown.waDropdown({
+                            hover: false,
+                            items: ".js-set-dropdown-item",
+                            disabled: self.prop_disabled,
+                            change: function(event, target, dropdown) {
+                                var value = $(target).data("value");
+                                value = (typeof value === "undefined" ? "" : value);
+                                value += "";
+
+                                var filter = self.feature.options.filter( function(option) {
+                                    return (option.value === value);
+                                });
+
+                                if (filter.length) {
+                                    self.feature.active_option = filter[0];
+                                    self.$emit("change");
+                                }
+                            }
+                        });
+                    }
+                },
+                computed: {
+                    prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false) }
+                }
+            };
+
+            var ComponentProductBadgeForm = {
+                props: ["product"],
+                data: function() {
+                    return {
+                        "badge": this.product.badges[this.product.badges.length - 1]
+                    }
+                },
+                template: that.templates["component-product-badge-form"],
                 methods: {
-                    onChange: function(event) {
-                        var self = this;
-                        self.$emit("change", event);
+                    updateForm: function() {
+                        this.product.badge_form = false;
+
+                        that.$wrapper.trigger("change");
+                    },
+                    revertForm: function() {
+                        this.badge.code = this.badge.code_model;
+
+                        if (this.product.badge_prev_id) {
+                            this.product.badge_id = this.product.badge_prev_id;
+                            that.$wrapper.trigger("change");
+                        }
+
+                        this.product.badge_form = false;
                     }
                 },
                 mounted: function() {
                     var self = this;
-                    initFeatureTooltips(self);
-                }
-            });
 
-            Vue.component("component-feature", {
+                    var $textarea = $(self.$el).find("textarea");
+
+                    that.toggleHeight($textarea);
+
+                    $textarea.on("input", function() {
+                        that.toggleHeight($textarea);
+                    });
+                }
+            };
+
+            var ComponentSkuNameTextarea = {
+                props: ["sku"],
+                template: that.templates["component-sku-name-textarea"],
+                updated: function() {
+                    var self = this;
+                    var $textarea = $(self.$el);
+                    that.toggleHeight($textarea);
+                },
+                mounted: function() {
+                    var self = this;
+                    var $textarea = $(self.$el);
+                    that.toggleHeight($textarea);
+                }
+            };
+
+            // feature components
+            var ComponentFeature = {
                 props: ["product", "feature", "value", "vertical", "columns"],
+                emits: ["change"],
                 template: that.templates["component-feature"],
                 delimiters: ['{ { ', ' } }'],
                 methods: {
@@ -205,6 +285,12 @@
                     }
                 },
                 components: {
+                    ComponentFeatureColor,
+                    ComponentFeatureValueForm,
+                    ComponentFeatureColorPicker,
+                    DatePicker,
+                    DropdownUnits,
+                    DropdownFeatureOptions,
                     "component-feature_default_tooltip": {
                         props: ["feature"],
                         template: that.templates["component-feature_default_tooltip"],
@@ -213,7 +299,7 @@
                             var self = this;
 
                             $(self.$el).find(".wa-tooltip").each(function () {
-                                $(this).waTooltip({hover: true, hover_delay: 200});
+                                $(this).waTooltip({ hover: true, hover_delay: 200 });
                             });
                         }
                     },
@@ -223,13 +309,10 @@
                         delimiters: ['{ { ', ' } }'],
                         methods: {
                             showFeatureUsedValuesDialog: function(feature) {
-                                var self = this;
-
                                 $.waDialog({
                                     html: that.templates["dialog_feature_used_values"],
                                     options: {
-                                        scope: self,
-                                        feature: feature
+                                        feature
                                     },
                                     onOpen: initDialog
                                 });
@@ -237,11 +320,11 @@
                                 function initDialog($dialog, dialog) {
                                     var $section = $dialog.find(".js-vue-wrapper");
 
-                                    new Vue({
-                                        el: $section[0],
-                                        data: {
-                                            feature: dialog.options.feature,
-                                            product: dialog.options.scope.product
+                                    Vue.createApp({
+                                        data() {
+                                            return {
+                                                ...dialog.options
+                                            }
                                         },
                                         delimiters: ['{ { ', ' } }'],
                                         methods: {
@@ -366,8 +449,10 @@
                                         mounted: function () {
                                             dialog.resize();
                                         }
-                                    });
+                                    }).mount($section[0]);
                                 }
+
+                                return true;
                             }
                         },
                         mounted: function() {
@@ -382,735 +467,46 @@
                         self.onChange();
                     });
                 }
-            });
+            };
 
-            Vue.component("component-feature-color", {
-                props: ["feature", "vertical"],
-                data: function() {
-                    return {
-                        color_xhr: null,
-                        transliterate_name: true,
-                        transliterate_color: true,
-                        timer: 0
-                    }
-                },
-                template: that.templates["component-feature-color"],
+            var ComponentFeatures = {
+                props: ["product", "features", "vertical", "columns"],
+                emits: ["change"],
+                template: that.templates["component-features"],
+                delimiters: ['{ { ', ' } }'],
+                components: { ComponentFeature },
                 methods: {
-                    colorChange: function() {
-                        var self = this;
-
-                        var option = self.feature.options[0];
-
-                        self.transliterate_color = !option.code.length;
-
-                        clearTimeout(self.timer);
-                        self.timer = setTimeout(sendRequest, 500);
-
-                        function sendRequest() {
-                            var color = option.code;
-                            color = (typeof color === "string" ? color : "");
-
-                            if (option.code.length && self.transliterate_name) {
-                                self.getColorInfo(null, color)
-                                    .done( function(data) {
-                                        if (self.transliterate_name) {
-                                            option.value = data.name;
-                                        }
-                                    });
-                            }
-                        }
-
-                        self.$emit("change");
-                    },
-                    colorNameChange: function() {
-                        var self = this;
-
-                        var option = self.feature.options[0];
-
-                        self.transliterate_name = !option.value.length;
-
-                        clearTimeout(self.timer);
-                        self.timer = setTimeout(sendRequest, 500);
-
-                        function sendRequest() {
-                            var name = option.value;
-                            name = (typeof name === "string" ? name : "");
-
-                            if (name.length && self.transliterate_color) {
-                                self.getColorInfo(name, null)
-                                    .done( function(data) {
-                                        if (self.transliterate_color) {
-                                            option.code = data.color;
-                                            self.$set(option, "code", data.color);
-                                        }
-                                    });
-                            }
-                        }
-
-                        self.$emit("change");
-                    },
-                    getColorInfo: function(name, color) {
-                        var self = this;
-
-                        var href = that.urls["color_transliterate"],
-                            data = {};
-
-                        if (color) { data.code = color2magic(color); }
-                        if (name) { data.name = name; }
-
-                        var deferred = $.Deferred();
-
-                        if (self.color_xhr) { self.color_xhr.abort(); }
-
-                        self.color_xhr = $.get(href, data, "json")
-                            .always( function() {
-                                self.color_xhr = null;
-                            })
-                            .done( function(response) {
-                                if (response.status === "ok") {
-                                    deferred.resolve({
-                                        name: response.data.name,
-                                        color: magic2color(response.data.code)
-                                    });
-                                } else {
-                                    deferred.reject();
-                                }
-                            })
-                            .fail( function() {
-                                deferred.reject();
-                            });
-
-                        return deferred.promise();
-
-                        function color2magic(color) {
-                            return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
-                        }
-
-                        function magic2color(magic) {
-                            return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
-                        }
+                    onChange: function(event) {
+                        this.$emit("change", event);
                     }
                 },
                 mounted: function() {
-                    var self = this;
+                    initFeatureTooltips(this);
                 }
-            });
-
-            Vue.component("component-feature-value-form", {
-                props: ["feature"],
-                data: function() {
-                    return {
-                        is_locked: false,
-                        color_xhr: null,
-                        transliterate_name: true,
-                        transliterate_color: true,
-                        timer: 0
-                    }
-                },
-                template: that.templates["component-feature-value-form"],
-                methods: {
-                    submitForm: function() {
-                        var self = this;
-
-                        if (!self.feature.form.value.length) { return; }
-                        if (self.is_locked) { return; }
-
-                        self.is_locked = true;
-
-                        var data = {
-                            "feature_id": self.feature.id,
-                            "value[value]": self.feature.form.value
-                        };
-
-                        if (typeof self.feature.form.code === "string" && self.feature.form.code.length) {
-                            data["value[code]"] = self.feature.form.code;
-                        }
-
-                        if (typeof self.feature.form.unit === "string" && self.feature.form.unit.length) {
-                            data["value[unit]"] = self.feature.form.unit;
-                        }
-
-                        request(data)
-                            .always( function() {
-                                self.is_locked = false;
-                            })
-                            .done( function(data) {
-                                self.feature.show_form = false;
-                                self.feature.form.value = "";
-                                if (self.feature.form.code) {
-                                    self.feature.form.code = "";
-                                }
-                                if (self.feature.default_unit) {
-                                    self.feature.form.unit = self.feature.default_unit;
-                                }
-                                // update all features model values
-                                that.addFeatureValueToModel(self.feature, data.option);
-                                self.$emit("feature_value_added", data.option);
-                            });
-
-                        function request(request_data) {
-                            var deferred = $.Deferred();
-
-                            $.post(that.urls["add_feature_value"], request_data, "json")
-                                .done( function(response) {
-                                    if (response.status === "ok") {
-                                        deferred.resolve(response.data);
-                                    } else {
-                                        deferred.reject(response.errors);
-                                    }
-                                })
-                                .fail( function() {
-                                    deferred.reject([]);
-                                });
-
-                            return deferred.promise();
-                        }
-                    },
-                    closeForm: function() {
-                        var self = this;
-                        self.feature.show_form = false;
-                    },
-                    changeFormUnit: function(unit) {
-                        var self = this;
-                        self.feature.form.unit = unit.value;
-                    },
-                    colorChange: function() {
-                        var self = this;
-
-                        self.transliterate_color = !self.feature.form.code.length;
-
-                        clearTimeout(self.timer);
-                        self.timer = setTimeout(sendRequest, 500);
-
-                        function sendRequest() {
-                            var color = self.feature.form.code;
-                            color = (typeof color === "string" ? color : "");
-
-                            if (self.feature.form.code.length && self.transliterate_name) {
-                                self.getColorInfo(null, color)
-                                    .done( function(data) {
-                                        if (self.transliterate_name) {
-                                            self.feature.form.value = data.name;
-                                        }
-                                    });
-                            }
-                        }
-                    },
-                    colorNameChange: function() {
-                        var self = this;
-
-                        if (self.feature.type !== "color") { return false; }
-
-                        self.transliterate_name = !self.feature.form.value.length;
-
-                        clearTimeout(self.timer);
-                        self.timer = setTimeout(sendRequest, 500);
-
-                        function sendRequest() {
-                            var name = self.feature.form.value;
-                            name = (typeof name === "string" ? name : "");
-
-                            if (name.length && self.transliterate_color) {
-                                self.getColorInfo(name, null)
-                                    .done( function(data) {
-                                        if (self.transliterate_color) {
-                                            self.feature.form.code = data.color;
-                                            self.$set(self.feature.form, "code", data.color);
-                                        }
-                                    });
-                            }
-                        }
-                    },
-                    getColorInfo: function(name, color) {
-                        var self = this;
-
-                        var href = that.urls["color_transliterate"],
-                            data = {};
-
-                        if (color) { data.code = color2magic(color); }
-                        if (name) { data.name = name; }
-
-                        var deferred = $.Deferred();
-
-                        if (self.color_xhr) { self.color_xhr.abort(); }
-
-                        self.color_xhr = $.get(href, data, "json")
-                            .always( function() {
-                                self.color_xhr = null;
-                            })
-                            .done( function(response) {
-                                if (response.status === "ok") {
-                                    deferred.resolve({
-                                        name: response.data.name,
-                                        color: magic2color(response.data.code)
-                                    });
-                                } else {
-                                    deferred.reject();
-                                }
-                            })
-                            .fail( function() {
-                                deferred.reject();
-                            });
-
-                        return deferred.promise();
-
-                        function color2magic(color) {
-                            return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
-                        }
-
-                        function magic2color(magic) {
-                            return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
-                        }
-                    }
-                },
-                mounted: function() {
-                    var self = this;
-
-                    $(self.$el).find(".js-field").trigger("focus");
-                }
-            });
-
-            Vue.component("component-feature-color-picker", {
-                props: ["data", "property"],
-                data: function() {
-                    return {
-                        extended: false
-                    };
-                },
-                template: that.templates["component-feature-color-picker"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    var $document = $(document),
-                        $wrapper = $(self.$el),
-                        $field = $wrapper.find(".js-color-field"),
-                        $toggle = $wrapper.find(".js-color-toggle"),
-                        $picker = $wrapper.find(".js-color-picker");
-
-                    var farbtastic = $.farbtastic($picker, function(color) {
-                        if (color !== self.data[self.property]) {
-                            self.data[self.property] = color;
-                            self.$emit("input", [color]);
-                            $wrapper.trigger("change");
-                        }
-                    });
-
-                    $toggle.on("click", function(event) {
-                        event.preventDefault();
-                        toggle(!self.extended);
-                    });
-
-                    $field.on("focus", function() {
-                        if (!self.extended) {
-                            toggle(true);
-                        }
-                    });
-
-                    $field.on("input", function(event) {
-                        var color = $(this).val();
-                        updateColor(color);
-                        self.$emit("input", [color]);
-                    });
-
-                    $document.on("click", clickWatcher);
-                    function clickWatcher(event) {
-                        var is_exist = $.contains(document, $wrapper[0]);
-                        if (is_exist) {
-                            if (self.extended) {
-                                if (!$.contains($wrapper[0], event.target)) {
-                                    toggle(false);
-                                }
-                            }
-                        } else {
-                            $document.off("click", clickWatcher);
-                        }
-                    }
-
-                    if (self.data[self.property]) {
-                        updateColor();
-                    }
-
-                    function updateColor(color) {
-                        color = (typeof color === "string" ? color : self.data[self.property]);
-
-                        if (color !== self.data[self.property]) {
-                            self.data[self.property] = color;
-                        }
-
-                        farbtastic.setColor(color);
-                    }
-
-                    function toggle(show) {
-                        self.extended = show;
-                    }
-                }
-            });
-
-            // other components
-
-            Vue.component("component-toggle", {
-                props: ["options", "active"],
-                template: that.templates["component-toggle"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-                    $(self.$el).waToggle({
-                        use_animation: false,
-                        change: function(event, target) {
-                            self.$emit("change", $(target).data("id"));
-                        }
-                    });
-                }
-            });
-
-            Vue.component("component-dropdown-currency", {
-                props: ["currency_code", "currencies", "wide"],
-                template: that.templates["component-dropdown-currency"],
-                data: function() {
-                    return {
-                        wide: (typeof wide === "boolean" ? wide : false)
-                    }
-                },
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    $(self.$el).waDropdown({
-                        hover: false,
-                        items: ".dropdown-item",
-                        change: function(event, target, dropdown) {
-                            self.$emit("change", $(target).data("id"));
-                        }
-                    });
-                }
-            });
-
-            Vue.component("dropdown-units", {
-                props: ["units", "default_value", "disabled"],
-                template: that.templates["component-dropdown-units"],
-                data: function() {
-                    var self = this;
-
-                    var filter_array = self.units.filter( function(unit) {
-                        return (unit.value === self.default_value);
-                    });
-
-                    var active_unit = (filter_array.length ? filter_array[0] : self.units[0]);
-
-                    return {
-                        active_unit: active_unit,
-                        disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
-                    }
-                },
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    $(self.$el).waDropdown({
-                        hover: false,
-                        items: ".dropdown-item",
-                        disabled: self.disabled,
-                        change: function(event, target, dropdown) {
-                            var value = $(target).data("value");
-
-                            var filter = self.units.filter(function (unit) {
-                                return (unit.value === value);
-                            });
-
-                            if (filter.length) {
-                                self.$emit("change_unit", filter[0]);
-                                self.$emit("change");
-                            } else {
-                                console.error("Unit undefined");
-                            }
-                        }
-                    });
-                }
-            });
-
-            Vue.component("dropdown-feature-options", {
-                props: ["feature", "columns", "disabled"],
-                data: function() {
-                    var self = this;
-                    return {
-                        disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
-                    };
-                },
-                template: that.templates["dropdown-feature-options"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    if (!self.disabled) {
-                        var $dropdown = $(self.$el)
-                        $dropdown.waDropdown({
-                            hover: false,
-                            items: ".js-set-dropdown-item",
-                            disabled: self.disabled,
-                            change: function(event, target, dropdown) {
-                                var value = $(target).data("value");
-                                value = (typeof value === "undefined" ? "" : value);
-                                value += "";
-
-                                var filter = self.feature.options.filter( function(option) {
-                                    return (option.value === value);
-                                });
-                                if (filter.length) {
-                                    self.feature.active_option = filter[0];
-                                    self.$emit("change");
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-
-            Vue.component("date-picker", {
-                props: ["value", "disabled"],
-                data: function() {
-                    var self = this;
-                    return {
-                        disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
-                    };
-                },
-                template: that.templates["component-date-picker"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    if (self.disabled) { return false; }
-
-                    $(self.$el).find(".js-date-picker").each( function(i, field) {
-                        var $field = $(field),
-                            $alt_field = $field.parent().find("input[type='hidden']");
-
-                        $field.datepicker({
-                            altField: $alt_field,
-                            altFormat: "yy-mm-dd",
-                            changeMonth: true,
-                            changeYear: true,
-                            beforeShow:function(field, instance){
-                                var $calendar = $(instance.dpDiv[0]);
-                                var index = 2001;
-                                setTimeout( function() {
-                                    $calendar.css("z-index", index);
-                                }, 10);
-                            },
-                            onClose: function(field, instance) {
-                                var $calendar = $(instance.dpDiv[0]);
-                                $calendar.css("z-index", "");
-                            }
-                        });
-
-                        if (self.value) {
-                            var date = formatDate(self.value);
-                            $field.datepicker( "setDate", date);
-                        }
-
-                        $field.on("change", function() {
-                            var field_value = $field.val();
-                            if (!field_value) { $alt_field.val(""); }
-                            var value = $alt_field.val();
-                            self.$emit("input", value);
-                            self.$emit("change");
-                        });
-
-                        function formatDate(date_string) {
-                            if (typeof date_string !== "string") { return null; }
-
-                            var date_array = date_string.split("-"),
-                                year = date_array[0],
-                                mount = date_array[1] - 1,
-                                day = date_array[2];
-
-                            return new Date(year, mount, day);
-                        }
-                    });
-                }
-            });
-
-            Vue.component("color-picker", {
-                props: ["value"],
-                data: function() {
-                    return {
-                        extended: false
-                    };
-                },
-                template: that.templates["component-color-picker"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    var $document = $(document),
-                        $wrapper = $(self.$el),
-                        $field = $wrapper.find(".js-color-field"),
-                        $toggle = $wrapper.find(".js-color-toggle"),
-                        $picker = $wrapper.find(".js-color-picker");
-
-                    var is_ready = false;
-
-                    var farbtastic = $.farbtastic($picker, function(color) {
-                        $field.val(color);
-                        updateColor();
-                        if (is_ready) {
-                            $field.trigger("change", [true]);
-                        }
-                        $wrapper.trigger("change");
-                    });
-
-                    $toggle.on("click", function(event) {
-                        event.preventDefault();
-                        toggle(!self.extended);
-                    });
-
-                    $field.on("focus", function() {
-                        if (!self.extended) {
-                            toggle(true);
-                        }
-                    });
-
-                    $field.on("input", function(event, is_my_event) {
-                        if (!is_my_event) {
-                            updateColor(is_my_event);
-                        } else {
-                            self.$emit("input", $field.val());
-                        }
-                    });
-
-                    $document.on("click", clickWatcher);
-                    function clickWatcher(event) {
-                        var is_exist = $.contains(document, $wrapper[0]);
-                        if (is_exist) {
-                            if (self.extended) {
-                                if (!$.contains($wrapper[0], event.target)) {
-                                    toggle(false);
-                                }
-                            }
-                        } else {
-                            $document.off("click", clickWatcher);
-                        }
-                    }
-
-                    if (self.value) {
-                        $field.val(self.value);
-                        updateColor();
-                    }
-
-                    is_ready = true;
-
-                    function updateColor() {
-                        var color = $field.val();
-                        $toggle.css("background-color", color);
-                        farbtastic.setColor(color);
-                        self.$emit("input", color);
-                    }
-
-                    function toggle(show) {
-                        self.extended = show;
-                    }
-                }
-            });
-
-            Vue.component("component-switch", {
-                props: ["value", "disabled", "id"],
-                data: function() {
-                    return {
-                        id: (typeof this.id === "string" ? this.id : ""),
-                        checked: (typeof this.value === "boolean" ? this.value : false),
-                        disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
-                    };
-                },
-                template: that.templates["component-switch"],
-                delimiters: ['{ { ', ' } }'],
-                mounted: function() {
-                    var self = this;
-
-                    $(self.$el).waSwitch({
-                        change: function(active, wa_switch) {
-                            self.$emit("change", active);
-                            self.$emit("input", active);
-                        }
-                    });
-                }
-            });
-
-            Vue.component("component-product-badge-form", {
-                props: ["product"],
-                data: function() {
-                    var self = this;
-                    return {
-                        "badge": self.product.badges[self.product.badges.length - 1]
-                    }
-                },
-                template: that.templates["component-product-badge-form"],
-                methods: {
-                    updateForm: function() {
-                        var self = this;
-
-                        self.badge.code = self.badge.code_model;
-                        self.product.badge_form = false;
-
-                        that.$wrapper.trigger("change");
-                    },
-                    revertForm: function() {
-                        var self = this;
-
-                        if (self.product.badge_prev_id) {
-                            self.product.badge_id = self.product.badge_prev_id;
-                            that.$wrapper.trigger("change");
-                        }
-
-                        self.product.badge_form = false;
-                    }
-                },
-                mounted: function() {
-                    var self = this;
-
-                    var $textarea = $(self.$el).find("textarea");
-
-                    that.toggleHeight($textarea);
-
-                    $textarea.on("input", function() {
-                        that.toggleHeight($textarea);
-                    });
-                }
-            });
-
-            Vue.component("component-sku-name-textarea", {
-                props: ["sku"],
-                template: that.templates["component-sku-name-textarea"],
-                methods: {
-                },
-                updated: function() {
-                    var self = this;
-                    var $textarea = $(self.$el);
-                    that.toggleHeight($textarea);
-                },
-                mounted: function() {
-                    var self = this;
-                    var $textarea = $(self.$el);
-                    that.toggleHeight($textarea);
-                }
-            });
+            };
 
             // ROOT VUE
-
-            var vue_model = new Vue({
-                el: $view_section[0],
-                data: {
-                    errors: that.errors,
-                    states: that.states,
-                    stocks: that.stocks,
-                    stocks_array: that.stocks_array,
-                    product: that.product,
-                    currencies: that.currencies,
-                    selectable_features: that.selectable_features,
-                    keys: {
-                        product_features: 0
+            $.vue_app = Vue.createApp({
+                data() {
+                    return {
+                        errors: that.errors,
+                        states: that.states,
+                        stocks: that.stocks,
+                        stocks_array: that.stocks_array,
+                        product: that.product,
+                        currencies: that.currencies,
+                        selectable_features: that.selectable_features,
+                        keys: {
+                            product_features: 0
+                        }
                     }
                 },
                 components: {
+                    ComponentFeatures,
+                    ComponentToggle,
+                    ComponentDropdownCurrency,
+                    ComponentProductBadgeForm,
+                    ComponentSkuNameTextarea,
                     "component-fractional-section": {
                         props: ["sku_mod"],
                         data: function() {
@@ -1382,13 +778,13 @@
                                 if (self.fractional.rights.stock_unit_id === "enabled" || self.fractional.rights.base_unit_id === "enabled") {
                                     var case_1 = (self.fractional.stock_unit_id && self.fractional.base_unit_id && self.fractional.stock_unit_id === self.fractional.base_unit_id);
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["units_unique_error"] });
+                                        self.errors[error_id] = { id: error_id, text: that.locales["units_unique_error"] };
                                         result = "units_error";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1402,13 +798,13 @@
                                 if (self.fractional.rights.stock_unit_id === "enabled") {
                                     var case_1 = (!self.fractional.stock_unit_id);
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_unit_required"] });
+                                        self.errors[error_id] = { id: error_id, text: that.locales["stock_unit_required"] };
                                         result = "stock_unit_error";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1427,17 +823,17 @@
                                     var case_1 = (!self.fractional.stock_base_ratio || !(parseFloat(self.fractional.stock_base_ratio) > 0)),
                                         case_2 = isInvalidRatio(self.fractional.stock_base_ratio);
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, {id: error_id, text: that.locales["stock_base_ratio_error"]});
+                                        self.errors[error_id] = {id: error_id, text: that.locales["stock_base_ratio_error"]};
                                         result = "stock_base_ratio_error";
                                     } else
                                     if (case_2) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_base_ratio_invalid"] });
+                                        self.errors[error_id] = { id: error_id, text: that.locales["stock_base_ratio_invalid"] };
                                         result = "stock_base_ratio_invalid";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1466,13 +862,13 @@
                                 if (self.fractional.rights.order_multiplicity_factor === "enabled") {
                                     var case_1 = (!self.fractional.order_multiplicity_factor || !checkValue(self.fractional.order_multiplicity_factor));
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_multiplicity_factor_required"] });
+                                        self.errors[error_id] = { id: error_id, text: that.locales["order_multiplicity_factor_required"] };
                                         result = "order_multiplicity_factor_required";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1505,13 +901,13 @@
                                 if (self.fractional.order_count_step !== "" && self.fractional.rights.order_count_step === "enabled" && self.fractional.order_multiplicity_factor) {
                                     var case_1 = (!self.fractional.order_count_step || !self.checkValue(self.fractional.order_count_step));
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_step_error"] });
+                                        self.errors[error_id] = { id: error_id, text: that.locales["order_count_step_error"] };
                                         result = "order_count_step_error";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1528,13 +924,13 @@
                                 if (self.fractional.order_count_min !== "" && self.fractional.rights.order_count_min === "enabled" && self.fractional.order_multiplicity_factor) {
                                     var case_1 = (!self.fractional.order_count_min || !self.checkValue(self.fractional.order_count_min));
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_min_error"] });
+                                        self.errors[error_id] = { id: error_id, text: that.locales["order_count_min_error"] };
                                         result = "order_count_min_error";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1569,19 +965,16 @@
                     },
                     "component-advanced-sku-mode": {
                         props: ["product", "locked"],
-                        data: function() {
-                            var self = this;
-                            return {
-                                locked: (typeof self.locked === "boolean" ? self.locked : false)
-                            }
-                        },
                         template: '<div class="switch small" v-on:click.prevent="onClick"><input v-bind:id="$attrs.input_id" type="checkbox"></div>',
                         delimiters: ['{ { ', ' } }'],
+                        computed: {
+                            prop_locked() { return (typeof this.locked === "boolean" ? this.locked : false) }
+                        },
                         methods: {
                             onClick: function() {
                                 var self = this;
 
-                                if (self.locked) {
+                                if (self.prop_locked) {
                                     $.waDialog({ html: that.templates["dialog_locked_mode_message"] });
                                 } else if (self.product.normal_mode) {
                                     $.waDialog({ html: that.templates["dialog_minimal_mode_message"] });
@@ -1592,7 +985,7 @@
                             var self = this,
                                 $switch = $(self.$el);
 
-                            if (self.locked) {
+                            if (self.prop_locked) {
                                 $switch.waSwitch({ active: true, disabled: true });
 
                             } else {
@@ -1625,8 +1018,9 @@
                         template: that.templates["component-file-manager"],
                         components: {
                             "component-flex-textarea": {
-                                props: ["value", "placeholder"],
-                                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)"></textarea>',
+                                props: ["modelValue", "placeholder"],
+                                emits: ["update:modelValue", "blur", "ready"],
+                                template: `<textarea v-bind:placeholder="placeholder" v-bind:value="modelValue" v-on:input="$emit('update:modelValue', $event.target.value)" v-on:blur="$emit('blur', $event.target.value)"></textarea>`,
                                 delimiters: ['{ { ', ' } }'],
                                 updated: function() {
                                     var self = this;
@@ -1743,8 +1137,7 @@
 
                                             var $section = $dialog.find(".js-vue-node-wrapper");
 
-                                            new Vue({
-                                                el: $section[0],
+                                            Vue.createApp({
                                                 delimiters: ['{ { ', ' } }'],
                                                 created: function() {
                                                     $section.css("visibility", "");
@@ -1752,7 +1145,7 @@
                                                 mounted: function() {
                                                     dialog.resize();
                                                 }
-                                            });
+                                            }).mount($section[0]);
 
                                             $dialog.on("click", ".js-success-action", function(event) {
                                                 event.preventDefault();
@@ -1869,13 +1262,13 @@
                                 // render error
                                 var error_key = 'product[skus]['+self.sku_mod.id+'][additional_prices]['+self.field.id+']';
                                 if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
-                                    self.$set(self.errors, error_key, {
+                                    self.errors[error_key] = {
                                         id: "price_error",
                                         text: "price_error"
-                                    });
+                                    };
                                 } else {
                                     if (self.errors[error_key]) {
-                                        self.$delete(that.errors, error_key);
+                                        delete that.errors[error_key];
                                     }
                                 }
 
@@ -1936,7 +1329,7 @@
                                                 });
 
                                                 if (active_option_search.length) {
-                                                    self.$set(self.field, "active_option", active_option_search[0]);
+                                                    self.field["active_option"] = active_option_search[0];
                                                     self.$emit("change", [option_value, active_option_search[0]]);
                                                 }
                                             }
@@ -1945,9 +1338,10 @@
                                 }
                             },
                             "component-plugin-textarea": {
-                                props: ["value", "placeholder", "errors"],
+                                props: ["modelValue", "placeholder", "errors"],
+                                emits: ["update:modelValue", "blur", "ready"],
                                 data: function() { return { offset: 0 }; },
-                                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)" v-on:blur="$emit(\'blur\', $event.target.value)"></textarea>',
+                                template: `<textarea v-bind:placeholder="placeholder" v-bind:value="modelValue" v-on:input="$emit('update:modelValue', $event.target.value)" v-on:blur="$emit('blur', $event.target.value)"></textarea>`,
                                 delimiters: ['{ { ', ' } }'],
                                 updated: function() {
                                     var self = this;
@@ -1988,7 +1382,7 @@
                                 var error_id = "product[skus]["+self.sku_mod.id+"][additional_fields]["+self.field.id+"]",
                                     value = getValue();
 
-                                self.$delete(self.errors, error_id);
+                                delete self.errors[error_id];
 
                                 if (value) {
                                     // if (self.field.validate.numbers) {
@@ -1996,10 +1390,10 @@
                                     // }
                                 } else if (self.field.validate) {
                                     if (self.field.validate.required) {
-                                        self.$set(self.errors, error_id, {
+                                        self.errors[error_id] = {
                                             "id": error_id,
                                             "text": that.locales["value_required"]
-                                        });
+                                        };
                                     }
                                 }
 
@@ -2035,13 +1429,14 @@
                         }
                     },
                     "component-flex-textarea": {
-                        props: ["value", "placeholder"],
+                        props: ["modelValue", "placeholder"],
+                        emits: ["update:modelValue", "blur", "ready"],
                         data: function() {
                             return {
                                 offset: 0
                             };
                         },
-                        template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)" v-on:blur="$emit(\'blur\', $event.target.value)"></textarea>',
+                        template: `<textarea v-bind:placeholder="placeholder" v-bind:value="modelValue" v-on:input="$emit('update:modelValue', $event.target.value)" v-on:blur="$emit('blur', $event.target.value)"></textarea>`,
                         delimiters: ['{ { ', ' } }'],
                         updated: function() {
                             var self = this;
@@ -2070,8 +1465,8 @@
                         var self = this,
                             result = false;
 
-                        var selectable_features = self.selectable_features.filter( function(feature) { return feature.active; });
-                        if (!selectable_features.length) {
+                        var need_selectable_features = self.selectable_features.filter(feature => feature.active);
+                        if (!need_selectable_features.length) {
                             var is_features_mode = (self.product.sku_type === "1");
                             if (is_features_mode) {
                                 result = true;
@@ -2188,7 +1583,7 @@
                         }
 
                         function getTarget() {
-                            var $error = $(".wa-error-text:first");
+                            var $error = $(".state-error-hint:first");
 
                             $.each(errors, function(i, error) {
                                 if (error.id === "main_sku_visibility") {
@@ -2259,7 +1654,7 @@
                                 }
                             }
 
-                            self.$set(that.errors, (error.name || error.id), error);
+                            that.errors[(error.name || error.id)] = error;
                         } else {
                             that.errors.global.push(error);
                         }
@@ -2273,7 +1668,7 @@
                         if (errors === null) {
                             $.each(that.errors, function(key) {
                                 if (key !== "global") {
-                                    self.$delete(that.errors, key);
+                                    delete that.errors[key];
                                 } else {
                                     that.errors.global.splice(0, that.errors.global.length);
                                 }
@@ -2289,7 +1684,7 @@
                         var self = this;
 
                         if (that.errors[error_id]) {
-                            self.$delete(that.errors, error_id);
+                            delete that.errors[error_id];
                         } else {
                             var error_index = that.errors.global.indexOf(error);
                             if (error_index >= 0) {
@@ -2327,7 +1722,7 @@
                         var that_vue_model = this;
 
                         that.states.load.selectable_features = true;
-                        var clone_selectable_features = JSON.parse(JSON.stringify(that.selectable_features));
+                        var clone_selectable_features = clone(that.selectable_features);
 
                         $.waDialog({
                             html: that.templates["dialog_select_selectable_features"],
@@ -2359,15 +1754,18 @@
                             var selectable_features = dialog.options.selectable_features;
 
                             $.each(selectable_features, function(i, feature) {
-                                Vue.set(feature, "is_moving", false);
+                                feature["is_moving"] = false;
                             });
 
-                            var vue_model = new Vue({
-                                el: $section[0],
+                            const { ComponentSwitch } = that.auxComponents();
+                            var vue_model = Vue.createApp({
                                 delimiters: ['{ { ', ' } }'],
-                                data: {
-                                    selectable_features: selectable_features,
-                                    states: { is_changed: false }
+                                components: { ComponentSwitch },
+                                data() {
+                                    return {
+                                        selectable_features: selectable_features,
+                                        states: { is_changed: false }
+                                    }
                                 },
                                 computed: {
                                     active_features: function() {
@@ -2399,7 +1797,7 @@
                                         self.onChange();
                                     });
                                 }
-                            });
+                            }).mount($section[0]);
 
                             $dialog.on("click", ".js-submit-button", function (event) {
                                 event.preventDefault();
@@ -2446,12 +1844,9 @@
                                 }
                             }
 
-                            function initDragAndDrop(vue_model) {
+                            function initDragAndDrop(vue_mode) {
                                 var drag_data = {},
-                                    over_locked = false,
-                                    timer = 0;
-
-                                var move_class = "is-moving";
+                                    over_locked = false;
 
                                 var $list = $dialog.find(".js-active-features-list");
 
@@ -2468,7 +1863,7 @@
 
                                     event.originalEvent.dataTransfer.setDragImage($move[0], 20, 20);
 
-                                    $.each(selectable_features, function(i, feature) {
+                                    $.each(vue_model.selectable_features, function(i, feature) {
                                         feature.is_moving = (feature.id === feature_id);
                                     });
 
@@ -2487,8 +1882,6 @@
                                     }
                                 });
 
-                                $dialog.on("dragend", onEnd);
-
                                 function onOver(event, $over) {
                                     var feature_id = "" + $over.attr("data-id"),
                                         feature = getFeature(feature_id);
@@ -2500,32 +1893,28 @@
 
                                     if (drag_data.move_feature === feature) { return false; }
 
-                                    var move_index = selectable_features.indexOf(drag_data.move_feature),
-                                        over_index = selectable_features.indexOf(feature),
+                                    var move_index = vue_model.selectable_features.indexOf(drag_data.move_feature),
+                                        over_index = vue_model.selectable_features.indexOf(feature),
                                         before = (move_index > over_index);
 
                                     if (over_index !== move_index) {
-                                        selectable_features.splice(move_index, 1);
+                                        vue_model.selectable_features.splice(move_index, 1);
 
-                                        over_index = selectable_features.indexOf(feature);
+                                        over_index = vue_model.selectable_features.indexOf(feature);
                                         var new_index = over_index + (before ? 0 : 1);
 
-                                        selectable_features.splice(new_index, 0, drag_data.move_feature);
+                                        vue_model.selectable_features.splice(new_index, 0, drag_data.move_feature);
 
                                         vue_model.onChange();
                                     }
-                                }
 
-                                function onEnd() {
                                     drag_data.move_feature.is_moving = false;
                                 }
-
-                                //
 
                                 function getFeature(feature_id) {
                                     var result = null;
 
-                                    $.each(selectable_features, function(i, feature) {
+                                    $.each(vue_model.selectable_features, function(i, feature) {
                                         feature.id = (typeof feature.id === "number" ? "" + feature.id : feature.id);
                                         if (feature.id === feature_id) {
                                             result = feature;
@@ -2572,10 +1961,8 @@
                         });
                     },
                     setProductPhoto: function(photo, sku_mod) {
-                        var self = this;
-
-                        self.$set(sku_mod, "photo", photo);
-                        self.$set(sku_mod, "image_id", photo.id);
+                        sku_mod["photo"] = photo;
+                        sku_mod["image_id"] = photo.id;
                         that.$wrapper.trigger("change");
                     },
                     removeProductPhoto: function(sku_mod) {
@@ -2585,8 +1972,8 @@
                             html: that.templates["dialog_sku_delete_photo"],
                             options: {
                                 onUnpin: function() {
-                                    self.$set(sku_mod, "photo", null);
-                                    self.$set(sku_mod, "image_id", null);
+                                    sku_mod["photo"] = null;
+                                    sku_mod["image_id"] = null;
                                     that.$wrapper.trigger("change");
                                 },
                                 onDelete: function() {
@@ -2599,8 +1986,8 @@
                                     $.each(that.product.skus, function(i, _sku) {
                                         $.each(_sku.modifications, function(i, _sku_mod) {
                                             if (_sku_mod.photo && _sku_mod.photo.id === photo.id) {
-                                                self.$set(_sku_mod, "photo", null);
-                                                self.$set(_sku_mod, "image_id", null);
+                                                _sku_mod["photo"] = null;
+                                                _sku_mod["image_id"] = null;
                                             }
                                         });
                                     });
@@ -2651,7 +2038,6 @@
                         $.waDialog({
                             html: that.templates["dialog_mass_sku_generation"],
                             options: {
-                                vue_model: self,
                                 onSuccess: onSuccess
                             },
                             onOpen: function($dialog, dialog) {
@@ -3351,7 +2737,7 @@
                         });
 
                         // свойство отображает текущий статус модификации. Доступна/недоступна на витрине относительно установленных значений характеристик
-                        self.$set(sku_mod, "_front_features_status", result);
+                        sku_mod["_front_features_status"] = result;
 
                         return result;
 
@@ -3436,13 +2822,13 @@
                                 var error_key = "product[skus][" + data.id + "]["+ key + "]";
 
                                 if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
-                                    self.$set(self.errors, error_key, {
+                                    self.errors[error_key] = {
                                         id: "price_error",
                                         text: "price_error"
-                                    });
+                                    };
                                 } else {
                                     if (self.errors[error_key]) {
-                                        self.$delete(that.errors, error_key);
+                                        delete that.errors[error_key];
                                     }
                                 }
 
@@ -3453,7 +2839,7 @@
                         }
 
                         // set
-                        self.$set(data, key, value);
+                        data[key] = value;
                     },
 
                     //
@@ -3513,10 +2899,6 @@
                             $.waDialog({
                                 html: html,
                                 options: {
-                                    onSuccess: function() {
-                                        // do something
-                                        console.log( "AAAAA" );
-                                    },
                                     scope: {
                                         initFeatureEditDialog: function(options) {
                                             return $.wa.new.AddFeatureDialog(options);
@@ -3556,7 +2938,7 @@
                         // 2.1 Обновляем модель характеристик в модификациях
                         $.each(that.product.skus, function(i, sku) {
                             $.each(sku.modifications, function (i, sku_mod) {
-                                var sku_mod_feature = formatModificationFeature($.wa.clone(feature_data));
+                                var sku_mod_feature = formatModificationFeature(clone(feature_data));
                                 sku_mod.features.unshift(sku_mod_feature);
                             });
                         });
@@ -3616,7 +2998,7 @@
                 },
                 mounted: function() {
                     var self = this,
-                        $wrapper = $(self.$el);
+                        $wrapper = $(self.$el.parentElement);
 
                     that.initDragAndDrop(this);
                     // that.initTouchAndDrop(this);
@@ -3663,7 +3045,10 @@
                 }
             });
 
-            return vue_model;
+            $.vue_app.config.compilerOptions.isCustomElement = tag => ['component-fractional-changes'].includes(tag);
+            $.vue_app.config.compilerOptions.whitespace = 'preserve';
+
+            return $.vue_app.mount($view_section[0]);
 
             // FUNCTIONS
 
@@ -3872,8 +3257,8 @@
                     }
                 });
 
-                Vue.set(modification, "features_selectable", selected_mod_features);
-                Vue.set(modification, "features", unselected_mod_features);
+                modification["features_selectable"] = selected_mod_features;
+                modification["features"] = unselected_mod_features;
             }
         };
 
@@ -4014,7 +3399,6 @@
         };
 
         // Move/Touch события для перемещеная артикулов/модификаций
-
         Section.prototype.initDragAndDrop = function(vue) {
             var that = this;
 
@@ -4408,12 +3792,13 @@
             if (that.product.normal_mode_switch) {
                 if (vue_model.front_features_empty) {
                     errors.push("front_features_empty");
-                    vue_model.$set(that.errors, "front_features_empty", {
+
+                    vue_model.errors["front_features_empty"] = {
                         id: "front_features_empty",
                         text: "front_features_empty"
-                    });
+                    };
                 } else {
-                    vue_model.$delete(that.errors, "front_features_empty");
+                    delete vue_model.errors["front_features_empty"];
                 }
             }
 
@@ -4424,7 +3809,7 @@
                     sku_name = (sku.name ? sku.name : "");
 
                 $.each(["sku_required", "sku_full_required", "sku_unique", "sku_full_unique"], function(i, error_id) {
-                    if (sku.errors[error_id]) { Vue.delete(sku.errors, error_id); }
+                    if (sku.errors[error_id]) { delete sku.errors[error_id]; }
                 });
 
                 if (that.product.normal_mode_switch && that.product.skus.length > 1) {
@@ -4432,17 +3817,17 @@
                     if (sku_name || sku_sku) {
                         var group = sku_groups[sku_sku + "|" + sku_name];
                         if (group.length > 1 && group.indexOf(sku) >= 0) {
-                            Vue.set(sku.errors, "sku_full_unique", {
+                            sku.errors["sku_full_unique"] = {
                                 "id": "sku_full_unique",
                                 "text": "sku_full_unique"
-                            });
+                            };
                             errors.push("sku_full_unique");
                         }
                     } else {
-                        Vue.set(sku.errors, "sku_full_required", {
+                        sku.errors["sku_full_required"] = {
                             "id": "sku_full_required",
                             "text": "sku_full_required"
-                        });
+                        };
                         errors.push("sku_full_required");
                     }
                 }
@@ -4459,18 +3844,18 @@
                                     if (field.validate.numbers) {
                                         var is_valid = $.wa.isValid("price", value);
                                         if (!is_valid) {
-                                            Vue.set(that.errors, error_id, {
+                                            that.errors[error_id] = {
                                                 "id": error_id,
                                                 "text": that.locales["value_invalid"]
-                                            });
+                                            };
                                             errors.push("field_value_invalid");
                                         }
                                     }
                                 } else if (field.validate.required) {
-                                    Vue.set(that.errors, error_id, {
+                                    that.errors[error_id] = {
                                         "id": error_id,
                                         "text": that.locales["value_required"]
-                                    });
+                                    };
                                     errors.push("field_value_required");
                                 }
                             }
@@ -4481,7 +3866,7 @@
                                 var error_id = "product[skus]["+sku_mod.id+"][additional_fields]["+field.id+"]",
                                     value = getValue(field);
 
-                                if (that.errors[error_id]) { Vue.delete(that.errors, error_id); }
+                                if (that.errors[error_id]) { delete that.errors[error_id]; }
 
                                 if (value) {
                                     // if (field.validate.numbers) {
@@ -4489,10 +3874,10 @@
                                     // }
                                 } else if (field.validate) {
                                     if (field.validate.required) {
-                                        Vue.set(that.errors, error_id, {
+                                        that.errors[error_id] = {
                                             "id": error_id,
                                             "text": that.locales["value_required"]
-                                        });
+                                        };
                                         errors.push("field_value_required");
                                     }
                                 }
@@ -4593,7 +3978,7 @@
                         no_plugin_errors = false;
                         $.each(plugin_errors, function(i, err) {
                             if (err && err.id) {
-                                Vue.set(that.errors, err.id, err);
+                                that.errors[err.id] = err;
                             }
                         });
                     }
@@ -4601,7 +3986,7 @@
 
                 if (errors.length || !no_plugin_errors) {
                     that.vue_model.$nextTick( function() {
-                        var $error = $(".wa-error-text:first, .s-sku-wrapper.has-error:first");
+                        var $error = $(".state-error-hint:first, .s-sku-wrapper.has-error:first");
                         if ($error.length) {
                             $(window).scrollTop($error.offset().top - 150);
                         }
@@ -4657,9 +4042,9 @@
                             $button.attr("disabled", false);
                             $loading.remove();
 
-                            afterSaveFailPluginHook(data, errors ? errors : []);
+                            afterSaveFailPluginHook(data, errors ? clone(errors) : []);
 
-                            if (errors) {
+                            if (Array.isArray(errors)) {
                                 var error_search = errors.filter( error => (error.id === "not_found"));
                                 if (error_search.length) { $.wa_shop_products.showDeletedProductDialog(); }
 
@@ -5219,12 +4604,13 @@
                         onOpen: function($dialog, dialog) {
                             var $section = $dialog.find(".js-vue-node-wrapper");
 
-                            new Vue({
-                                el: $section[0],
-                                data: {
-                                    sku: sku,
-                                    sku_mod: sku_mod,
-                                    product: that.product
+                            Vue.createApp({
+                                data() {
+                                    return {
+                                        sku: sku,
+                                        sku_mod: sku_mod,
+                                        product: that.product
+                                    }
                                 },
                                 delimiters: ['{ { ', ' } }'],
                                 methods: {
@@ -5250,7 +4636,7 @@
                                 mounted: function () {
                                     dialog.resize();
                                 }
-                            });
+                            }).mount($section[0]);
 
                             $dialog.on("click", ".js-success-action", function(event) {
                                 event.preventDefault();
@@ -5277,34 +4663,40 @@
 
             var $vue_section = $dialog.find("#vue-generator-section");
 
-            var timer = 0;
-
-            new Vue({
-                el: $vue_section[0],
-                data: {
-                    use_values: true,
-                    prices: {
-                        price: 0,
-                        compare_price: 0,
-                        purchase_price: 0
-                    },
-                    features: getFeatures(),
-                    skus: [],
-                    modifications: [],
-                    currency: that.product.currency,
-                    currencies: that.currencies,
-                    errors: {}
+            const { ComponentSwitch, ComponentFeatureColor, DropdownUnits, DatePicker, ComponentDropdownCurrency } = that.auxComponents();
+            var app = Vue.createApp({
+                data() {
+                    return {
+                        use_values: true,
+                        prices: {
+                            price: 0,
+                            compare_price: 0,
+                            purchase_price: 0
+                        },
+                        features: getFeatures(),
+                        skus: [],
+                        modifications: [],
+                        currency: that.product.currency,
+                        currencies: that.currencies,
+                        errors: {}
+                    }
                 },
                 delimiters: ['{ { ', ' } }'],
                 components: {
+                    ComponentSwitch,
+                    ComponentDropdownCurrency,
                     "component-generator-feature": {
                         props: ["feature", "is_sku"],
                         template: that.components["component-generator-feature"],
                         delimiters: ['{ { ', ' } }'],
                         components: {
+                            DropdownUnits,
+                            DatePicker,
+                            ComponentFeatureColor,
                             "component-flex-textarea": {
-                                props: ["value", "placeholder"],
-                                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)"></textarea>',
+                                props: ["modelValue", "placeholder"],
+                                emits: ["update:modelValue", "blur", "ready"],
+                                template: `<textarea v-bind:placeholder="placeholder" v-bind:value="modelValue" v-on:input="$emit('update:modelValue', $event.target.value)" v-on:blur="$emit('blur', $event.target.value)"></textarea>`,
                                 delimiters: ['{ { ', ' } }'],
                                 updated: function() {
                                     var self = this;
@@ -5439,9 +4831,6 @@
 
                                 return result;
                             }
-                        },
-                        mounted: function() {
-                            var self = this;
                         }
                     }
                 },
@@ -5588,13 +4977,13 @@
                                 var error_key = key;
 
                                 if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
-                                    self.$set(self.errors, error_key, {
+                                    self.errors[error_key] = {
                                         id: error_key,
                                         text: "price_error"
-                                    });
+                                    };
                                 } else {
                                     if (self.errors[error_key]) {
-                                        self.$delete(self.errors, error_key);
+                                        delete self.errors[error_key];
                                     }
                                 }
 
@@ -5608,7 +4997,7 @@
                         set(value);
 
                         function set(value) {
-                            Vue.set(data, key, value);
+                            data[key] = value;
                         }
                     }
                 },
@@ -5622,7 +5011,7 @@
 
                     dialog.resize();
 
-                    var $dropdown = $(self.$el).find(".js-features-dropdown");
+                    var $dropdown = $(self.$el.parentElement).find(".js-features-dropdown");
                     if ($dropdown.length) {
                         initFeaturesDropdown($dropdown);
                     }
@@ -5651,6 +5040,10 @@
                     }
                 }
             });
+
+            app.config.compilerOptions.whitespace = 'preserve';
+            app.mount($vue_section[0]);
+
 
             function getFeatures() {
                 var root_features_object = $.wa.construct(that.product.features, "id"),
@@ -5699,8 +5092,6 @@
             }
 
             function initDragAndDrop(vue) {
-                var that = this;
-
                 var move_class = "is-moving",
                     over_class = "is-over";
 
@@ -5708,7 +5099,6 @@
                 var timer = 0,
                     drag_data = null;
 
-                //
 
                 var $droparea = $("<div />", { class: "s-drop-area js-drop-area" });
 
@@ -5831,14 +5221,15 @@
                 photos.unshift(active_photo);
             }
 
-            new Vue({
-                el: $vue_section[0],
-                data: {
-                    photo_id: photo_id,
-                    photos: photos,
-                    active_photo: active_photo,
-                    files: [],
-                    errors: []
+            Vue.createApp({
+                data() {
+                    return {
+                        photo_id: photo_id,
+                        photos: photos,
+                        active_photo: active_photo,
+                        files: [],
+                        errors: []
+                    }
                 },
                 delimiters: ['{ { ', ' } }'],
                 components: {
@@ -6069,7 +5460,7 @@
 
                     dialog.resize();
                 }
-            });
+            }).mount($vue_section[0]);
 
             function formatPhoto(photo) {
                 photo.expanded = false;
@@ -6100,12 +5491,15 @@
             function initDialog($dialog, dialog) {
                 var $section = $dialog.find("#vue-features-wrapper");
 
-                new Vue({
-                    el: $section[0],
-                    data: {
-                        feature: dialog.options.feature
+                const { ComponentFeatureValueForm } = that.auxComponents();
+                Vue.createApp({
+                    data() {
+                        return {
+                            feature: dialog.options.feature
+                        }
                     },
                     delimiters: ['{ { ', ' } }'],
+                    components: { ComponentFeatureValueForm },
                     methods: {
                         onFeatureValueAdded: function(option) {
                             var self = this;
@@ -6165,7 +5559,7 @@
                             }
                         }
                     }
-                });
+                }).mount($section[0]);
             }
         }
 
@@ -6291,7 +5685,7 @@
                 // Устанавливаем ошибку
                 var sku_mod_error = checkError(sku_mod, sku);
                 if (sku_mod_error) {
-                    Vue.set(sku_mod.errors, sku_mod_error["id"], sku_mod_error);
+                    sku_mod.errors[sku_mod_error["id"]] = sku_mod_error;
                     result.push(sku_mod_error);
 
                     // Ставим фокус на первой ошибке
@@ -6354,7 +5748,7 @@
                     $.each(errors, function(i, name) {
                         var error_name = error_id+"["+name+"]";
                         if (sku_mod.errors[error_name]) {
-                            Vue.delete(sku_mod.errors, error_name);
+                            delete sku_mod.errors[error_name];
                         }
                     });
                 }
@@ -6488,6 +5882,550 @@
 
             return deferred.promise();
         };
+
+        Section.prototype.auxComponents = function() {
+            var that = this;
+
+            // other components
+            const ComponentToggle = {
+                props: ["options", "active"],
+                template: that.templates["component-toggle"],
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this;
+                    $(self.$el).waToggle({
+                        use_animation: false,
+                        change: function(event, target) {
+                            self.$emit("change", $(target).data("id"));
+                        }
+                    });
+                }
+            };
+
+            const ComponentDropdownCurrency = {
+                props: ["currency_code", "currencies", "wide"],
+                emits: ["change"],
+                template: that.templates["component-dropdown-currency"],
+                delimiters: ['{ { ', ' } }'],
+                computed: {
+                    prop_wide() { return (typeof this.wide === "boolean" ? this.wide : false) }
+                },
+                mounted: function() {
+                    var self = this;
+
+                    $(self.$el).waDropdown({
+                        hover: false,
+                        items: ".dropdown-item",
+                        change: function(event, target, dropdown) {
+                            self.$emit("change", $(target).data("id"));
+                        }
+                    });
+                }
+            };
+
+            const DropdownUnits =  {
+                props: ["units", "default_value", "disabled"],
+                emits: ["change", "change_unit"],
+                template: that.templates["component-dropdown-units"],
+                data: function() {
+                    var self = this;
+
+                    var filter_array = self.units.filter( function(unit) {
+                        return (unit.value === self.default_value);
+                    });
+
+                    var active_unit = (filter_array.length ? filter_array[0] : self.units[0]);
+
+                    return {
+                        active_unit,
+                    }
+                },
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this;
+
+                    $(self.$el).waDropdown({
+                        hover: false,
+                        items: ".dropdown-item",
+                        disabled: self.prop_disabled,
+                        change: function(event, target, dropdown) {
+                            var value = $(target).data("value");
+
+                            var filter = self.units.filter(function (unit) {
+                                return (unit.value === value);
+                            });
+
+                            if (filter.length) {
+                                self.$emit("change_unit", filter[0]);
+                                self.$emit("change");
+                            } else {
+                                console.error("Unit undefined");
+                            }
+                        }
+                    });
+                },
+                computed: {
+                    prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); }
+                }
+            };
+
+            const DatePicker = {
+                props: ["modelValue", "disabled"],
+                emits: ["update:modelValue", "change"],
+                template: that.templates["component-date-picker"],
+                delimiters: ['{ { ', ' } }'],
+                computed: {
+                    prop_disabled() {return (typeof self.disabled === "boolean" ? self.disabled : false) }
+                },
+                mounted: function() {
+                    var self = this;
+
+                    if (self.disabled) { return false; }
+
+                    $(self.$el).find(".js-date-picker").each( function(i, field) {
+                        var $field = $(field),
+                            $alt_field = $field.parent().find("input[type='hidden']");
+
+                        $field.datepicker({
+                            altField: $alt_field,
+                            altFormat: "yy-mm-dd",
+                            changeMonth: true,
+                            changeYear: true,
+                            beforeShow:function(field, instance){
+                                var $calendar = $(instance.dpDiv[0]);
+                                var index = 2001;
+                                setTimeout( function() {
+                                    $calendar.css("z-index", index);
+                                }, 10);
+                            },
+                            onClose: function(field, instance) {
+                                var $calendar = $(instance.dpDiv[0]);
+                                $calendar.css("z-index", "");
+                            }
+                        });
+
+                        if (self.value) {
+                            var date = formatDate(self.value);
+                            $field.datepicker( "setDate", date);
+                        }
+
+                        $field.on("change", function() {
+                            var field_value = $field.val();
+                            if (!field_value) { $alt_field.val(""); }
+                            var value = $alt_field.val();
+                            self.$emit("update:modelValue", value);
+                            self.$emit("change");
+                        });
+
+                        function formatDate(date_string) {
+                            if (typeof date_string !== "string") { return null; }
+
+                            var date_array = date_string.split("-"),
+                                year = date_array[0],
+                                mount = date_array[1] - 1,
+                                day = date_array[2];
+
+                            return new Date(year, mount, day);
+                        }
+                    });
+                }
+            };
+
+            const ComponentSwitch = {
+                props: ["modelValue", "disabled", "id"],
+                emits: ["update:modelValue", "change"],
+                template: that.templates["component-switch"],
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this;
+
+                    $(self.$el).waSwitch({
+                        change: function(active, wa_switch) {
+                            self.$emit("change", active);
+                            self.$emit("update:modelValue", active);
+                        }
+                    });
+                },
+                computed: {
+                    prop_id() { return (typeof this.id === "string" ? this.id : "") },
+                    prop_checked() { return (typeof this.modelValue === "boolean" ? this.modelValue : false)},
+                    prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false) }
+                }
+            };
+
+            const ComponentFeatureColorPicker = {
+                props: ["data", "property"],
+                emits: ["input"],
+                data: function() {
+                    return {
+                        extended: false
+                    };
+                },
+                template: that.templates["component-feature-color-picker"],
+                delimiters: ['{ { ', ' } }'],
+                mounted: function() {
+                    var self = this;
+
+                    var $document = $(document),
+                        $wrapper = $(self.$el),
+                        $field = $wrapper.find(".js-color-field"),
+                        $toggle = $wrapper.find(".js-color-toggle"),
+                        $picker = $wrapper.find(".js-color-picker");
+
+                    var farbtastic = $.farbtastic($picker, function(color) {
+                        if (color !== self.data[self.property]) {
+                            self.data[self.property] = color;
+                            self.$emit("input", [color]);
+                            $wrapper.trigger("change");
+                        }
+                    });
+
+                    $toggle.on("click", function(event) {
+                        event.preventDefault();
+                        toggle(!self.extended);
+                    });
+
+                    $field.on("focus", function() {
+                        if (!self.extended) {
+                            toggle(true);
+                        }
+                    });
+
+                    $field.on("input", function(event) {
+                        var color = $(this).val();
+                        updateColor(color);
+                        self.$emit("input", [color]);
+                    });
+
+                    $document.on("click", clickWatcher);
+                    function clickWatcher(event) {
+                        var is_exist = $.contains(document, $wrapper[0]);
+                        if (is_exist) {
+                            if (self.extended) {
+                                if (!$.contains($wrapper[0], event.target)) {
+                                    toggle(false);
+                                }
+                            }
+                        } else {
+                            $document.off("click", clickWatcher);
+                        }
+                    }
+
+                    if (self.data[self.property]) {
+                        updateColor();
+                    }
+
+                    function updateColor(color) {
+                        color = (typeof color === "string" ? color : self.data[self.property]);
+
+                        if (color !== self.data[self.property]) {
+                            self.data[self.property] = color;
+                        }
+
+                        farbtastic.setColor(color);
+                    }
+
+                    function toggle(show) {
+                        self.extended = show;
+                    }
+                }
+            };
+
+            const ComponentFeatureColor = {
+                props: ["feature", "vertical"],
+                data: function() {
+                    return {
+                        color_xhr: null,
+                        transliterate_name: true,
+                        transliterate_color: true,
+                        timer: 0
+                    }
+                },
+                template: that.templates["component-feature-color"],
+                components: { ComponentFeatureColorPicker },
+                methods: {
+                    colorChange: function() {
+                        var self = this;
+
+                        var option = self.feature.options[0];
+
+                        self.transliterate_color = !option.code.length;
+
+                        clearTimeout(self.timer);
+                        self.timer = setTimeout(sendRequest, 500);
+
+                        function sendRequest() {
+                            var color = option.code;
+                            color = (typeof color === "string" ? color : "");
+
+                            if (option.code.length && self.transliterate_name) {
+                                self.getColorInfo(null, color)
+                                    .done( function(data) {
+                                        if (self.transliterate_name) {
+                                            option.value = data.name;
+                                        }
+                                    });
+                            }
+                        }
+
+                        self.$emit("change");
+                    },
+                    colorNameChange: function() {
+                        var self = this;
+
+                        var option = self.feature.options[0];
+
+                        self.transliterate_name = !option.value.length;
+
+                        clearTimeout(self.timer);
+                        self.timer = setTimeout(sendRequest, 500);
+
+                        function sendRequest() {
+                            var name = option.value;
+                            name = (typeof name === "string" ? name : "");
+
+                            if (name.length && self.transliterate_color) {
+                                self.getColorInfo(name, null)
+                                    .done( function(data) {
+                                        if (self.transliterate_color) {
+                                            option.code = data.color;
+                                            option["code"] = data.color;
+                                        }
+                                    });
+                            }
+                        }
+
+                        self.$emit("change");
+                    },
+                    getColorInfo: function(name, color) {
+                        var self = this;
+
+                        var href = that.urls["color_transliterate"],
+                            data = {};
+
+                        if (color) { data.code = color2magic(color); }
+                        if (name) { data.name = name; }
+
+                        var deferred = $.Deferred();
+
+                        if (self.color_xhr) { self.color_xhr.abort(); }
+
+                        self.color_xhr = $.get(href, data, "json")
+                            .always( function() {
+                                self.color_xhr = null;
+                            })
+                            .done( function(response) {
+                                if (response.status === "ok") {
+                                    deferred.resolve({
+                                        name: response.data.name,
+                                        color: magic2color(response.data.code)
+                                    });
+                                } else {
+                                    deferred.reject();
+                                }
+                            })
+                            .fail( function() {
+                                deferred.reject();
+                            });
+
+                        return deferred.promise();
+
+                        function color2magic(color) {
+                            return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
+                        }
+
+                        function magic2color(magic) {
+                            return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
+                        }
+                    }
+                }
+            };
+
+            const ComponentFeatureValueForm = {
+                props: ["feature"],
+                data: function() {
+                    return {
+                        is_locked: false,
+                        color_xhr: null,
+                        transliterate_name: true,
+                        transliterate_color: true,
+                        timer: 0
+                    }
+                },
+                template: that.templates["component-feature-value-form"],
+                components: { ComponentFeatureColorPicker, DropdownUnits },
+                methods: {
+                    submitForm: function() {
+                        var self = this;
+
+                        if (!self.feature.form.value.length) { return; }
+                        if (self.is_locked) { return; }
+
+                        self.is_locked = true;
+
+                        var data = {
+                            "feature_id": self.feature.id,
+                            "value[value]": self.feature.form.value
+                        };
+
+                        if (typeof self.feature.form.code === "string" && self.feature.form.code.length) {
+                            data["value[code]"] = self.feature.form.code;
+                        }
+
+                        if (typeof self.feature.form.unit === "string" && self.feature.form.unit.length) {
+                            data["value[unit]"] = self.feature.form.unit;
+                        }
+
+                        request(data)
+                            .always( function() {
+                                self.is_locked = false;
+                            })
+                            .done( function(data) {
+                                self.feature.show_form = false;
+                                self.feature.form.value = "";
+                                if (self.feature.form.code) {
+                                    self.feature.form.code = "";
+                                }
+                                if (self.feature.default_unit) {
+                                    self.feature.form.unit = self.feature.default_unit;
+                                }
+                                // update all features model values
+                                that.addFeatureValueToModel(self.feature, data.option);
+                                self.$emit("feature_value_added", data.option);
+                            });
+
+                        function request(request_data) {
+                            var deferred = $.Deferred();
+
+                            $.post(that.urls["add_feature_value"], request_data, "json")
+                                .done( function(response) {
+                                    if (response.status === "ok") {
+                                        deferred.resolve(response.data);
+                                    } else {
+                                        deferred.reject(response.errors);
+                                    }
+                                })
+                                .fail( function() {
+                                    deferred.reject([]);
+                                });
+
+                            return deferred.promise();
+                        }
+                    },
+                    closeForm: function() {
+                        var self = this;
+                        self.feature.show_form = false;
+                    },
+                    changeFormUnit: function(unit) {
+                        var self = this;
+                        self.feature.form.unit = unit.value;
+                    },
+                    colorChange: function() {
+                        var self = this;
+
+                        self.transliterate_color = !self.feature.form.code.length;
+
+                        clearTimeout(self.timer);
+                        self.timer = setTimeout(sendRequest, 500);
+
+                        function sendRequest() {
+                            var color = self.feature.form.code;
+                            color = (typeof color === "string" ? color : "");
+
+                            if (self.feature.form.code.length && self.transliterate_name) {
+                                self.getColorInfo(null, color)
+                                    .done( function(data) {
+                                        if (self.transliterate_name) {
+                                            self.feature.form.value = data.name;
+                                        }
+                                    });
+                            }
+                        }
+                    },
+                    colorNameChange: function() {
+                        var self = this;
+
+                        if (self.feature.type !== "color") { return false; }
+
+                        self.transliterate_name = !self.feature.form.value.length;
+
+                        clearTimeout(self.timer);
+                        self.timer = setTimeout(sendRequest, 500);
+
+                        function sendRequest() {
+                            var name = self.feature.form.value;
+                            name = (typeof name === "string" ? name : "");
+
+                            if (name.length && self.transliterate_color) {
+                                self.getColorInfo(name, null)
+                                    .done( function(data) {
+                                        if (self.transliterate_color) {
+                                            self.feature.form.code = data.color;
+                                        }
+                                    });
+                            }
+                        }
+                    },
+                    getColorInfo: function(name, color) {
+                        var self = this;
+
+                        var href = that.urls["color_transliterate"],
+                            data = {};
+
+                        if (color) { data.code = color2magic(color); }
+                        if (name) { data.name = name; }
+
+                        var deferred = $.Deferred();
+
+                        if (self.color_xhr) { self.color_xhr.abort(); }
+
+                        self.color_xhr = $.get(href, data, "json")
+                            .always( function() {
+                                self.color_xhr = null;
+                            })
+                            .done( function(response) {
+                                if (response.status === "ok") {
+                                    deferred.resolve({
+                                        name: response.data.name,
+                                        color: magic2color(response.data.code)
+                                    });
+                                } else {
+                                    deferred.reject();
+                                }
+                            })
+                            .fail( function() {
+                                deferred.reject();
+                            });
+
+                        return deferred.promise();
+
+                        function color2magic(color) {
+                            return 0xFFFFFF & parseInt(('' + color + '000000').replace(/[^0-9A-F]+/gi, '').substr(0, 6), 16);
+                        }
+
+                        function magic2color(magic) {
+                            return (0xF000000 | magic).toString(16).toLowerCase().replace(/^f/, "#");
+                        }
+                    }
+                },
+                mounted: function() {
+                    var self = this;
+
+                    $(self.$el).find(".js-field").trigger("focus");
+                }
+            };
+
+            return {
+                ComponentToggle,
+                ComponentDropdownCurrency,
+                DropdownUnits,
+                DatePicker,
+                ComponentSwitch,
+                ComponentFeatureColor,
+                ComponentFeatureColorPicker,
+                ComponentFeatureValueForm,
+            }
+        }
 
         return Section;
 

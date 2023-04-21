@@ -200,12 +200,9 @@
             var $view_section = that.$wrapper.find(".js-product-prices-section");
 
             // COMPONENTS
-
             var component_price_table = {
-                props: ["skus", "promo"],
+                props: { skus: null, promo: { type: Object, default: null } },
                 data: function() {
-                    var self = this;
-                    self.promo = (typeof self.promo !== "undefined" ? self.promo : null);
                     return {
                         product: that.product
                     };
@@ -312,7 +309,6 @@
                                     sku_mod_stocks[stock.id] = (typeof value === "number" ? value.toFixed(3) * 1 : value);
                                 });
 
-                                // sku_mod.count = (is_set && !is_infinite ? $.wa.validate("float", stocks_count) : "");
                             },
                             focusSkuModStocks: function(sku_mod) {
                                 var self = this;
@@ -411,13 +407,13 @@
                                         var error_key = "product[skus][" + data.id + "]["+ key + "]";
 
                                         if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
-                                            self.$set(self.errors, error_key, {
+                                            self.errors[error_key] = {
                                                 id: "price_error",
                                                 text: "price_error"
-                                            });
+                                            };
                                         } else {
                                             if (self.errors[error_key]) {
-                                                self.$delete(that.errors, error_key);
+                                                delete self.errors[error_key];
                                             }
                                         }
 
@@ -432,12 +428,7 @@
                                         break;
                                 }
 
-                                // set
-                                set(value);
-
-                                function set(value) {
-                                    Vue.set(data, key, value);
-                                }
+                                data[key] = value;
                             },
 
                             // Close Magic
@@ -463,8 +454,6 @@
                 delimiters: ['{ { ', ' } }'],
                 computed: {
                     promo_icon_class: function() {
-                        var self = this;
-
                         return function(sku_mod) {
                             var result = "";
 
@@ -480,7 +469,6 @@
                         };
                     },
                     promo_tooltip: function() {
-                        var self = this;
                         return function(sku_mod) {
                             var result = "";
 
@@ -530,7 +518,6 @@
                         }
                     },
                     sku_mod_price_class: function() {
-                        var self = this;
                         return function(sku_mod, type) {
                             var class_name = "";
                             if (sku_mod.promo_status) {
@@ -566,7 +553,6 @@
                         }
                     },
                     sku_mod_visible: function() {
-                        var self = this;
                         return function(sku_mod) {
                             if (that.product.can_edit) {
                                 return sku_mod.is_visible;
@@ -638,7 +624,14 @@
             };
 
             var component_dropdown = {
-                props: ["items", "active_item_id", "button_class", "body_width", "body_class"],
+                // props: ["items", "active_item_id", "button_class", "body_width", "body_class"],
+                props: {
+                    items: { type: Array, default: [] },
+                    active_item_id: { type: String },
+                    button_class: { type: String, default: "" },
+                    body_width: { type: String, default: "" },
+                    body_class: { type: String, default: "" }
+                },
                 data: function() {
                     var self = this;
 
@@ -651,9 +644,6 @@
                     }
 
                     return {
-                        button_class: (typeof self.button_class === "string" ? self.button_class : ""),
-                        body_width: (typeof self.body_width === "string" ? self.body_width : ""),
-                        body_class: (typeof self.body_class === "string" ? self.body_class : ""),
                         active_item: active_item
                     }
                 },
@@ -687,24 +677,23 @@
             };
 
             // MAIN VUE
-
-            var vue_model = new Vue({
-                el: $view_section[0],
-                data: {
-                    errors              : that.errors,
-                    errors_global       : that.errors_global,
-                    product             : that.product,
-                    filters             : that.filters,
-                    prices_model        : that.prices_model,
-                    promos_model        : that.promos_model,
-                    storefronts_extended: (typeof storefronts_extended === "boolean" ? storefronts_extended : false)
+            var vue_model = Vue.createApp({
+                data() {
+                    return {
+                        errors              : that.errors,
+                        errors_global       : that.errors_global,
+                        product             : that.product,
+                        filters             : that.filters,
+                        prices_model        : that.prices_model,
+                        promos_model        : that.promos_model,
+                        storefronts_extended: (typeof storefronts_extended === "boolean" ? storefronts_extended : false)
+                    }
                 },
                 components: {
                     "component-dropdown": component_dropdown,
                     "component-prices-section": {
                         props: ["prices_model"],
                         data: function() {
-                            var self = this;
                             return {
                                 filters: that.filters
                             }
@@ -734,7 +723,6 @@
                     "component-promo-section": {
                         props: ["promo"],
                         data: function() {
-                            var self = this;
                             return {
                                 filters: that.filters
                             }
@@ -781,8 +769,6 @@
                         }
                     }
                 },
-                computed: {
-                },
                 methods: {
                     // ERRORS
                     renderErrors: function(errors) {
@@ -800,9 +786,9 @@
                         var white_list = [];
 
                         if (error.id && white_list.indexOf(error.id) >= 0) {
-                            self.$set(that.errors, error.id, error);
+                            self.errors[error.id] = error;
                         } else {
-                            that.errors_global.push(error);
+                            self.errors_global.push(error);
                         }
                     },
                     removeErrors: function(errors) {
@@ -810,11 +796,11 @@
 
                         // Очистка всех ошибок
                         if (errors === null) {
-                            $.each(that.errors, function(key) {
+                            $.each(self.errors, function(key) {
                                 if (key !== "global") {
-                                    self.$delete(that.errors, key);
+                                    delete self.errors[key];
                                 } else {
-                                    that.errors_global.splice(0, that.errors.length);
+                                    self.errors_global.splice(0, self.errors.length);
                                 }
                             });
 
@@ -829,13 +815,13 @@
                         var self = this;
 
                         if (typeof error === "object") {
-                            var error_index = that.errors_global.indexOf(error);
+                            var error_index = self.errors_global.indexOf(error);
                             if (error_index >= 0) {
-                                that.errors_global.splice(error_index, 1);
+                                self.errors_global.splice(error_index, 1);
                             }
                         } else if (typeof error_id === "string") {
-                            if (that.errors[error_id]) {
-                                self.$delete(that.errors, error_id);
+                            if (self.errors[error_id]) {
+                                delete self.errors[error_id];
                             }
                         }
                     },
@@ -880,7 +866,7 @@
 
                     that.$wrapper.trigger("section_mounted", ["prices", that]);
                 }
-            });
+            }).mount($view_section[0]);
 
             return vue_model;
 

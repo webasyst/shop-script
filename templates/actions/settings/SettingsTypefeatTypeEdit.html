@@ -35,15 +35,17 @@
 {$_templates = []}
 
 {capture assign="_component_switch"}
+{literal}
     <div class="vue-component-switch flexbox middle space-4">
         <div v-if="title_data">
             <span class="wa-tooltip icon size-14 text-dark-gray top"
-             {''} v-bind:data-wa-tooltip-content="title_data">
+                v-bind:data-wa-tooltip-content="title_data">
                 <i class="fas fa-question-circle"></i>
             </span>
         </div>
         <div class="switch small" v-bind:class="class_switch"><input type="checkbox" v-model="modelValue" v-bind:disabled="prop_disabled"></div>
     </div>
+{/literal}
 {/capture}
 {$_templates["component-switch"] = $_component_switch}
 

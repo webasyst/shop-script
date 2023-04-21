@@ -46,8 +46,8 @@
 
 {capture assign="_component_table_filters_result_item"}
 <div class="s-filter-item-wrapper"
-     v-bind:data-title="(show_tooltip ? name_tooltip : null)"
-     v-bind:data-tooltip-id="(show_tooltip ? 'table-result-filter-name' : null)">
+     v-bind:data-title="(prop_show_tooltip ? name_tooltip : null)"
+     v-bind:data-tooltip-id="(prop_show_tooltip ? 'table-result-filter-name' : null)">
     <div class="flexbox space-4">
         <div class="s-icon-wrapper">
             <template v-if="group.type === 'categories'">
@@ -55,12 +55,12 @@
                 <span class="s-icon icon shift-0 text-light-gray" v-bind:key="'fa-folder'" v-else><i class="fas fa-folder"></i></span>
             </template>
             <template v-else-if="group.type === 'sets'">
-                <span class="s-icon icon shift-0 text-light-gray" v-if="is_list_dynamic" v-bind:key="'fa-list-auto'"><svg><use xlink:href="{$_sprite_url}#list-auto"></use></svg></span>
-                <span class="s-icon icon shift-0 text-light-gray" v-else="" v-bind:key="'fa-list'"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></span>
+                <span class="s-icon icon shift-0 text-light-gray" v-if="is_list_dynamic"><svg><use xlink:href="{$_sprite_url}#list-auto"></use></svg></span>
+                <span class="s-icon icon shift-0 text-light-gray" v-else=""><svg><use xlink:href="{$_sprite_url}#list"></use></svg></span>
             </template>
-            <span class="s-icon icon shift-0 text-light-gray" v-else-if="group.type === 'storefronts'" v-bind:key="group.type"><i class="fas fa-store"></i></span>
-            <span class="s-icon icon shift-0 text-light-gray" v-else-if="group.type === 'tags'" v-bind:key="group.type"><i class="fas fa-tag"></i></span>
-            <span class="s-icon icon shift-0 text-light-gray" v-else-if="group.type === 'types'" v-bind:key="group.type"><i class="fas fa-cube"></i></span>
+            <span class="s-icon icon shift-0 text-light-gray" v-else-if="group.type === 'storefronts'"><i class="fas fa-store"></i></span>
+            <span class="s-icon icon shift-0 text-light-gray" v-else-if="group.type === 'tags'"><i class="fas fa-tag"></i></span>
+            <span class="s-icon icon shift-0 text-light-gray" v-else-if="group.type === 'types'"><i class="fas fa-cube"></i></span>
             <template v-else-if="feature_data">
                 <span class="s-icon icon shift-0 text-gray" v-if="feature_data.available_for_sku"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
                 <span class="s-icon icon shift-0 text-light-gray" v-else><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>

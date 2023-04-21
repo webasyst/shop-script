@@ -25,9 +25,10 @@
                             <span>[`Published on the website`]</span>
                         </div>
                         <div class="value">
-                            <component-switch v-model="page.status"
-                                              v-on:change="onChangeStatus"
-                                              v-bind:class="'small'"></component-switch>
+                            <component-switch
+                            v-model="page.status"
+                            v-on:change="onChangeStatus"
+                            v-bind:class="'small'"></component-switch>
                         </div>
                     </div>
                     {* URL *}
@@ -38,7 +39,7 @@
                         <div class="value">
                             <div class="s-field-wrapper">
                                 <input class="full-width small" type="text" v-model="page.url"
-                                       v-bind:class="{ 'wa-error-field' : !!errors['url_required'] }"
+                                       v-bind:class="{ 'state-error' : !!errors['url_required'] }"
                                        v-on:input="onChangeUrl">
 
                                 <div class="state-error" v-if="!!errors['url_required']">
@@ -109,7 +110,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="state-error" v-if="!!errors['pages']">
+                <div class="state-error-hint" v-if="!!errors['pages']">
                     { { errors['pages'].text } }
                 </div>
                 <section class="s-editor-section js-editor-section">

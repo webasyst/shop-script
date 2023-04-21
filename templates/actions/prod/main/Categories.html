@@ -214,7 +214,7 @@
                     {if $wa->userRights('setscategories')}
                     <div class="s-action animate" v-on:click.prevent="categoryDelete" data-tooltip-id="category_delete">
                         <span class="s-icon icon size-14 text-red" v-if="!states.delete_locked" v-bind:key="'fa-trash-alt'"><i class="far fa-trash-alt"></i></span>
-                        <span class="s-icon icon size-14" v-else v-bind:key="'fa-spinner'" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                        <span class="s-icon icon size-14" v-else v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                     </div>
                     {/if}
                 </div>
@@ -276,7 +276,7 @@
 {capture assign="_component_dropdown_storefronts"}
     <div class="vue-component-dropdown-storefronts">
         <div class="dropdown" v-show="!states.locked">
-            <button class="dropdown-toggle button small s-square-field nowrap" type="button">{ { value.length ? '{_w("Selected storefronts")|escape} ('+value.length+')' : '{_w("All storefronts")|escape}' } }</button>
+            <button class="dropdown-toggle button small s-square-field nowrap" type="button">{ { modelValue.length ? '{_w("Selected storefronts")|escape} ('+modelValue.length+')' : '{_w("All storefronts")|escape}' } }</button>
             <div class="dropdown-body right">
                 <div class="s-options-section">
                     <div class="s-options-group">
@@ -324,9 +324,10 @@
 {$_components["component-dropdown-storefronts"] = $_component_dropdown_storefronts|strip}
 
 {capture assign="_component_search_categories"}
+<div class="s-search-section-wrapper" @click.prevent="$refs.input.focus()">
     <div class="s-search-section flexbox space-8">
         <div class="s-field-wrapper wide">
-            <input class="s-field" placeholder="{_w("Search")|escape}" v-model="search_string" v-on:input="search">
+            <input class="s-field" ref="input" placeholder="[`Search`]" v-model="search_string" v-on:input="search">
         </div>
         <template v-if="search_string.length">
             <div class="s-counter-wrapper">
@@ -334,22 +335,23 @@
             </div>
             <div class="s-actions-wrapper flexbox space-8">
                 <div class="s-action"
-                     v-on:click.prevent="moveUp"
-                     v-bind:class="{ 'is-disabled' : is_start, 'is-active' : !is_start }">
+                        v-on:click.prevent="moveUp"
+                        v-bind:class="{ 'is-disabled' : is_start, 'is-active' : !is_start }">
                     <span class="s-icon icon size-14"><i class="fas fa-chevron-up"></i></span>
                 </div>
                 <div class="s-action"
-                     v-on:click.prevent="moveDown"
-                     v-bind:class="{ 'is-disabled' : is_end, 'is-active' : !is_end }">
+                        v-on:click.prevent="moveDown"
+                        v-bind:class="{ 'is-disabled' : is_end, 'is-active' : !is_end }">
                     <span class="s-icon icon size-14"><i class="fas fa-chevron-down"></i></span>
                 </div>
                 <div class="s-action is-active"
-                     v-on:click.prevent="revert">
+                        v-on:click.prevent="revert">
                     <span class="s-icon icon size-14"><i class="fas fa-times"></i></span>
                 </div>
             </div>
         </template>
     </div>
+</div>
 {/capture}
 {$_components["component-search-categories"] = $_component_search_categories|strip}
 
@@ -465,7 +467,7 @@
             var sources = [{
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
             }, {
                 id: "wa-shop-products-categories-js",
                 type: "js",

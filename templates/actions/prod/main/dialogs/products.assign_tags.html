@@ -23,12 +23,10 @@
                 <div class="s-tags-section">
                     <div class="s-value-list">
                         <template v-if="tags.length">
-                            <template v-for="tag in tags">
-                                <div class="s-value-wrapper">
-                                    <span class="s-name" v-text="tag.name"></span>
-                                    <span class="s-icon icon cursor-pointer" v-on:click="removeTag(tag)"><i class="fas fa-times"></i></span>
-                                </div>
-                            </template>
+                            <div class="s-value-wrapper" v-for="tag in tags">
+                                <span class="s-name" v-text="tag.name"></span>
+                                <span class="s-icon icon cursor-pointer" v-on:click="removeTag(tag)"><i class="fas fa-times"></i></span>
+                            </div>
                         </template>
                     </div>
 

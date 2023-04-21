@@ -75,15 +75,22 @@
             // DOM
             var $view_section = that.$wrapper.find(".js-product-related-section");
 
-            var vue_model = new Vue({
-                el: $view_section[0],
-                data: {
-                    errors       : that.errors,
-                    errors_global: that.errors_global,
-
-                    product      : that.product,
-                    upselling    : that.upselling,
-                    cross_selling: that.cross_selling
+            var vue_model = Vue.createApp({
+                data() {
+                    return {
+                        errors       : that.errors,
+                        errors_global: that.errors_global,
+                        product      : that.product,
+                        upselling    : that.upselling,
+                        cross_selling: that.cross_selling
+                    }
+                },
+                delimiters: ['{ { ', ' } }'],
+                created: function () {
+                    $view_section.css("visibility", "");
+                },
+                mounted: function() {
+                    that.$wrapper.trigger("section_mounted", ["related", that]);
                 },
                 components: {
                     "component-products-list": {
@@ -200,6 +207,8 @@
                                 if (index >= 0) {
                                     products.splice(index, 1);
                                 }
+
+                                $view_section.trigger("change");
                             }
                         },
                         mounted: function() {
@@ -225,9 +234,10 @@
                         var white_list = ["product_video_add", "file_add"];
 
                         if (error.id && white_list.indexOf(error.id) >= 0) {
-                            self.$set(that.errors, error.id, error);
+                            self.errors[error.id] = error;
+
                         } else {
-                            that.errors.global.push(error);
+                            self.errors_global.push(error);
                         }
                     },
                     removeErrors: function(errors) {
@@ -235,12 +245,8 @@
 
                         // Очистка всех ошибок
                         if (errors === null) {
-                            $.each(that.errors, function(key) {
-                                if (key !== "global") {
-                                    self.$delete(that.errors, key);
-                                } else {
-                                    that.errors.global.splice(0, that.errors.length);
-                                }
+                            $.each(self.errors, function(key) {
+                                delete self.errors[key];
                             });
 
                             // Рендер ошибок
@@ -254,13 +260,13 @@
                         var self = this;
 
                         if (typeof error_id === "number") {
-                            var error_index = that.errors.global.indexOf(error_id);
+                            var error_index = self.errors_global.indexOf(error_id);
                             if (typeof error_index >= 0) {
-                                that.errors.splice(error_index, 1);
+                                self.errors.splice(error_index, 1);
                             }
                         } else if (typeof error_id === "string") {
-                            if (that.errors[error_id]) {
-                                self.$delete(that.errors, error_id);
+                            if (self.errors[error_id]) {
+                                delete self.errors[error_id];
                             }
                         }
                     },
@@ -276,17 +282,10 @@
                             }
                         }
                     }
-                },
-                delimiters: ['{ { ', ' } }'],
-                created: function () {
-                    $view_section.css("visibility", "");
-                },
-                mounted: function() {
-                    var self = this;
-
-                    that.$wrapper.trigger("section_mounted", ["related", that]);
                 }
             });
+
+            vue_model.mount($view_section[0]);
 
             return vue_model;
         };
@@ -425,7 +424,7 @@
                 // Очищаем ошибки
                 $.each(that.errors, function(key, error) {
                     // Точечные ошибки
-                    if (key !== "global") { Vue.delete(that.errors, key); }
+                    if (key !== "global") { delete that.errors[key]; }
                     // Общие ошибки
                     else if (error.length) {
                         error.splice(0, error.length);

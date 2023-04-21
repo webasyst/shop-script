@@ -67,12 +67,12 @@
         </div>
         <div class="s-field-wrapper wide">
             <component-input class="s-field js-autofocus"
-                             v-model="value"
+                             v-bind:model-value="modelValue"
                              v-on:input="onInput"
                              v-bind:cancel="true"
                              v-bind:placeholder="'{_w("Find a set")|escape}'"></component-input>
         </div>
-        <template v-if="value.length">
+        <template v-if="modelValue.length">
             <div class="s-actions-wrapper flexbox space-8">
                 <div class="s-action is-active" v-on:click.prevent="revert">
                     <span class="s-icon icon"><i class="fas fa-times"></i></span>

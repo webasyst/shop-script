@@ -3,16 +3,18 @@
 {$_components = []}
 
 {capture assign="_component_dropdown_rules"}
+{literal}
 <div class="dropdown">
     <button class="dropdown-toggle button gray-field small" type="button">{ { active_item.name } }</button>
     <div class="dropdown-body">
-        <template v-for="item in items">
-            <div class="dropdown-item"
-                 v-on:click="change(item)"
-                 v-bind:class="{ 'selected': (item === active_item) }">{ { item.name } }</div>
-        </template>
+        <div class="dropdown-item"
+            v-for="item in items"
+            v-bind:key="item.value"
+            v-on:click="change(item)"
+            v-bind:class="{ 'selected': (item === active_item) }">{ { item.name } }</div>
     </div>
 </div>
+{/literal}
 {/capture}
 {$_components["component-dropdown-rules"] = $_component_dropdown_rules|strip}
 
@@ -45,7 +47,7 @@
                                     class="s-set-name-field bold full-width js-autofocus"
                                     v-model="set.name"
                                     rows="1"
-                                    v-bind:class="{ 'wa-error-field' : errors['set_name'] }"
+                                    v-bind:class="{ 'state-error' : errors['set_name'] }"
                                     v-on:blur="onBlurName"
                                     v-on:input="onChangeName"
                                     v-bind:placeholder="'{_w("Set name")|escape}'"></component-flex-textarea>
@@ -64,7 +66,7 @@
                             {strip}
                             <div class="s-field-wrapper">
                                 <span class="s-label">&#123;$wa->shop->productSet("</span>
-                                <input class="small" type="text" name="id" v-model="set.id" v-bind:class="{ 'wa-error-field' : errors['set_id'] }" v-on:blur="onBlurId">
+                                <input class="small" type="text" name="id" v-model="set.id" v-bind:class="{ 'state-error' : errors['set_id'] }" v-on:blur="onBlurId">
                                 <span>")&#125;</span>
                             </div>
                             {/strip}
@@ -102,7 +104,7 @@
                                     <div class="s-radio-wrapper">
                                         <label class="flexbox middle space-8">
                                             <component-radio v-model="set.type"
-                                                             v-bind:val="'0'"
+                                                             v-bind:value="'0'"
                                                              v-bind:name="'type'"></component-radio>
                                             <span class="s-label">[`Static set`]</span>
                                         </label>
@@ -111,7 +113,7 @@
                                     <div class="s-radio-wrapper">
                                         <label class="flexbox middle space-8">
                                             <component-radio v-model="set.type"
-                                                             v-bind:val="'1'"
+                                                             v-bind:value="'1'"
                                                              v-bind:name="'type'"></component-radio>
                                             <span class="s-label">[`Dynamic set`]</span>
                                         </label>
@@ -138,7 +140,7 @@
                             </div>
                             <div class="value">
                                 <component-datepicker v-model="set.date_start"
-                                             v-bind:name="'date_start'"></component-datepicker>
+                                             v-bind:name="'date_start'" v-bind:key="refresh_key"></component-datepicker>
                                 <div class="hint">[`Products will be selected from orders paid on or after specified date.`]</div>
                             </div>
                         </div>
@@ -148,7 +150,7 @@
                             </div>
                             <div class="value">
                                 <component-datepicker v-model="set.date_end"
-                                             v-bind:name="'date_end'"></component-datepicker>
+                                             v-bind:name="'date_end'" v-bind:key="refresh_key"></component-datepicker>
                                 <div class="hint">[`Products will be selected from orders paid on or before specified date.`]</div>
                             </div>
                         </div>

@@ -1,36 +1,68 @@
 <!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>[`Order`] {$order.id_str} &mdash; {$wa->shop->settings("name")}</title>
 <link href="{$wa_url}wa-content/css/wa/wa-2.0.css?v{$wa->version(true)}" rel="stylesheet" type="text/css">
+    <style>
+        .wa-method-wrapper:hover { background-color: #e0e0e0; }
+        form {
+            text-align: center;
+        }
+        input[type="submit"] {
+            display: inline-block;
+            font-weight: 500;
+            color: var(--white);
+            text-align: center;
+            user-select: none;
+            background-color: var(--accent-color);
+            border: 0.125em solid transparent;
+            padding: 0.4375em 0.75em;
+            line-height: 1;
+            border-radius: 0.375em;
+            outline: 0 none;
+            box-shadow: 0 0.25em 0.75em -0.25em rgb(0 0 0 / 20%);
+            transition: color .1s ease-in-out, background-color .1s ease-in-out, border-color .1s ease-in-out, box-shadow .1s ease-in-out;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        input[type="submit"]:hover {
+            color: var(--white);
+            top: 0;
+            box-shadow: 0 0.5em 1em -0.25em rgb(0 0 0 / 20%);
+            transition: 500ms;
+        }
+        input[type="submit"]:active {
+            top: 1px;
+            box-shadow: none;
+        }
+    </style>
 </head>
 <body>
 
-<div class="article box contentbox" style="max-width: 42rem">
+<div class="article box contentbox" style="max-width: 40rem">
     <div class="article-body">
+        <p class="align-center small">{$wa->shop->settings("name")}</p>
+        <p class="large bold align-center custom-mt-0 custom-mb-4">[`Order`] {$order.id_str}</p>
+        <p class="largest bold align-center custom-mt-0 custom-mb-16">{$order.total_str}</p>
 
 {if $payment_form_html}
     {$payment_form_html}
 {elseif $methods}
-    <p class="align-center small">{$wa->shop->settings("name")}</p>
-    <p class="large bold align-center custom-mt-0 custom-mb-4">[`Order`] {$order.id_str}</p>
-    <p class="largest bold align-center custom-mt-0 custom-mb-16">{$order.total_str}</p>
-
     <div class="wa-methods-list wide js-methods-list">
         {foreach $methods as $_method}
             <div class="wa-method-wrapper bordered box rounded custom-p-16{if !$_method@last} custom-mb-8{/if}" data-id="{$_method.id|escape}">
-                <div class="wa-method flexbox{if $_method.info.type == 'manual'} opacity-50{/if}">
-                    {if $_method.info.type != 'manual'}<a href="?payment_id={$_method.id|escape}">{/if}
+                <div class="wa-method flexbox">
+                    <a href="?payment_id={$_method.id|escape}">
                         {if !empty($_method.logo)}
                             <div class="wa-image-wrapper custom-mr-16">
                                 <img src="{$_method.logo}" alt="">
                             </div>
                         {/if}
-                    {if $_method.info.type != 'manual'}</a>{/if}
+                    </a>
 
                     <div class="wa-method-body">
                         <div class="wa-payment-name text-blue large">
-                            {if $_method.info.type != 'manual'}<a href="?payment_id={$_method.id|escape}">{/if}
+                            <a href="?payment_id={$_method.id|escape}">
                                 {$_method.name|default:"[`Unknown`]"|escape}
-                            {if $_method.info.type != 'manual'}</a>{/if}
+                            </a>
                         </div>
                         {if !empty($_method.description)}
                             <div class="wa-description small custom-mt-4 text-gray">{$_method.description}</div>
@@ -42,14 +74,12 @@
     </div>
 {else}
     {if $show_methods}
-        <div>[`No suitable payment option is available for your order, sorry. Please contact the seller.`]</div>
+        <div class="alert warning align-center">[`No suitable payment option is available for your order, sorry. Please contact the seller.`]</div>
     {else}
-        <form id="prepayment-form" action="" method="POST" target="_top">
+        <form id="prepayment-form" action="" method="POST" target="_top" class="align-center">
             <input type="hidden" name="challenge" value="{$challenge|escape}">
 
             {if $enable_auto_submit}
-                <i class="icon16 loading"></i>
-                <br /><br />
                 <script type="text/javascript">
                     setTimeout(function () {
                         document.getElementById('prepayment-form').submit();
@@ -57,7 +87,12 @@
                 </script>
             {/if}
 
-            <input type="submit" value="[`Перейти к оплате`]"{if $enable_auto_submit} style="display:none"{/if}>
+            <button type="submit"
+                    class="button full-width bg-black custom-mt-16 custom-p-12"{if $enable_auto_submit} disabled{/if}
+                    {if $enable_auto_submit} style="display: flex; align-items: center; justify-content: center;"{/if}>
+                [`Перейти к оплате`]
+                {if $enable_auto_submit}<i class="spinner custom-ml-8"></i>{/if}
+            </button>
         </form>
     {/if}
 {/if}

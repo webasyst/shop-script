@@ -31,18 +31,18 @@
 
 {capture assign="_component_table_filters_search"}
     <div class="component-table-filters-search flexbox space-8">
-        <div class="s-icon" v-if="search_icon">
+        <div class="s-icon" v-if="prop_search_icon">
             <span class="icon"><i class="fas fa-search"></i></span>
         </div>
         <div class="s-field-wrapper wide">
             <component-input class="s-field js-autofocus"
-                             v-model="value"
+                             v-bind:model-value="modelValue"
                              v-on:input="onInput"
                              v-on:change="onChange"
                              v-bind:cancel="true"
                              v-bind:placeholder="(placeholder ? placeholder : '{_w("Search")|escape}')"></component-input>
         </div>
-        <template v-if="value.length">
+        <template v-if="modelValue.length">
             <div class="s-actions-wrapper flexbox space-8">
                 <div class="s-action is-active"
                      v-on:click.prevent="revert">
@@ -61,12 +61,12 @@
         </div>
         <div class="s-field-wrapper wide">
             <component-input class="s-field js-autocomplete"
-                             v-model="value"
+                             v-bind:model-value="modelValue"
                              v-on:input="onInput"
                              v-bind:cancel="true"
                              v-bind:placeholder="(placeholder ? placeholder : '{_w("Search")|escape}')"></component-input>
         </div>
-        <template v-if="value.length && states.show_reset">
+        <template v-if="modelValue.length && states.show_reset">
             <div class="s-actions-wrapper flexbox space-8">
                 <div class="s-action is-active"
                      v-on:click.prevent="revert">

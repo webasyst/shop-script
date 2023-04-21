@@ -6,10 +6,10 @@
 
 {capture assign="_component_product_column_price"}
     <div class="vue-render-type-price">
-        <templates v-if="states.is_locked">
+        <template v-if="states.is_locked">
             <span class="s-icon icon" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
-        </templates>
-        <templates v-else>
+        </template>
+        <template v-else>
             <template v-if="show_price_range">
                 <div class="s-price-range" v-html="price_range"></div>
             </template>
@@ -24,19 +24,19 @@
                 <div class="s-field-wrapper" v-else>
                     <input class="s-field small full-width is-number s-square-field" type="text"
                            v-model="column_data.value"
-                           v-bind:class="{ 'wa-error-field': errors['price_error'] }"
+                           v-bind:class="{ 'state-error': errors['price_error'] }"
                            v-on:input="validate(column_data.value, 'price', column_data, 'value')"
                            v-on:blur="edit(false)"
                            v-on:change="onChange">
                         <span class="s-currency" v-html="column_data.currency.sign_html"></span>
 
-                    <div class="state-error" v-if="errors['price_error']">
+                    <div class="state-error-hint" v-if="errors['price_error']">
                         {_w("Invalid value")|escape}
                         <span class="s-tooltip-icon" data-tooltip-id="price-error"><i class="fas fa-question-circle text-red"></i></span>
                     </div>
                 </div>
             </template>
-        </templates>
+        </template>
     </div>
 {/capture}
 {$_components["component-product-column-price"] = $_component_product_column_price|strip}

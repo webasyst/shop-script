@@ -758,15 +758,12 @@ SQL;
 
                     } else {
                         $this->filtered_by_features[$feature_id] = $values;
-                        $skus_joins = $this->getJoinsByTableName('shop_product_skus');
-                        $join_where = $skus_joins ? $skus_joins[0]['alias'] . '.id = :table.sku_id' : 'p.id = :table.product_id';
-                        $on = $join_where . ' AND :table.feature_id = '.$feature_id;
-                        $where = ':table.feature_value_id IN ('.$imploded_values.')';
+                        $where = ":table.feature_id = $feature_id AND :table.feature_value_id IN ($imploded_values)";
+                        $on = ":table.product_id = p.id";
                         if (!empty($skus_alias)) {
-                            $where .= ' AND (:table.sku_id IS NULL OR :table.sku_id = '.$skus_alias.'.id)';
+                            $on .= " OR :table.sku_id = $skus_alias.id";
                         }
-
-                        $this->addJoin('shop_product_features', $on, $where);
+                        $this->addJoin('shop_product_features', "($on)", $where);
                     }
                     $this->group_by = 'p.id';
                 } else {
@@ -1941,9 +1938,9 @@ SQL;
                             $values_id = [$value_id];
                         }
 
-                        $join_where = ":table.feature_id = {$feature['id']} AND :table.feature_value_id IN ({$value_id})";
                         $skus_join = $this->addUniqueJoin('shop_product_skus', ':table.product_id = p.id', null);
-                        $this->addUniqueJoin('shop_product_features', $skus_join.'.id = :table.sku_id', $join_where);
+                        $join_where = ":table.feature_id = {$feature['id']} AND :table.feature_value_id IN ($value_id)";
+                        $this->addUniqueJoin('shop_product_features', "(:table.sku_id = $skus_join.id OR :table.product_id = p.id)", $join_where);
 
                         $this->filtered_by_features[$feature['id']] = $values_id;
                         $this->group_by = 'p.id';
@@ -2044,7 +2041,8 @@ SQL;
                         $value_ids = join(', ', array_keys($range_ids));
 
                         $skus_join = $this->addUniqueJoin('shop_product_skus', ':table.product_id = p.id', null);
-                        $this->addJoin('shop_product_features', $skus_join.'.id = :table.sku_id', ':table.feature_id = '.$feature['id'].' AND :table.feature_value_id IN ('.$value_ids.')');
+                        $join_where = ":table.feature_id = {$feature['id']} AND :table.feature_value_id IN ($value_ids)";
+                        $this->addJoin('shop_product_features', "(:table.sku_id = $skus_join.id OR :table.product_id = p.id)", $join_where);
 
                         $this->filtered_by_features[$feature['id']] = array_keys($range_ids);
                         $this->group_by = 'p.id';

@@ -133,14 +133,14 @@
                 <div class="s-generator-section tablebox fixed space-24">
                     <div class="s-column-features">
                         <div class="s-column-header">
-                            <div class="s-header">
+                            <div class="s-header custom-mr-8">
                                 <span class="s-icon"><i class="fas fa-sitemap"></i></span>
                                 <span class="s-name">[`Features`]</span>
                             </div>
 
                             <div class="dropdown s-features-dropdown js-features-dropdown">
                                 <button class="dropdown-toggle without-arrow button small outlined" type="button">
-                                    <span class="s-icon"><i class="fas fa-plus"></i></span>
+                                    <span class="s-icon"><i class="fas fa-plus-circle"></i></span>
                                     <span class="s-name">[`Add`]</span>
                                 </button>
                                 <div class="dropdown-body">
@@ -220,7 +220,7 @@
                                             <div class="column">
                                                 <input class="small full-width align-right" type="text"
                                                        v-model="prices.price"
-                                                       v-bind:class="{ 'wa-error-field' : !!errors['price'] }"
+                                                       v-bind:class="{ 'state-error' : !!errors['price'] }"
                                                        v-bind:disabled="!use_values"
                                                        v-on:input="validate($event, 'price', prices, 'price')">
                                             </div>
@@ -240,7 +240,7 @@
                                             <div class="column">
                                                 <input class="small full-width align-right" type="text"
                                                        v-model="prices.purchase_price"
-                                                       v-bind:class="{ 'wa-error-field' : !!errors['purchase_price'] }"
+                                                       v-bind:class="{ 'state-error' : !!errors['purchase_price'] }"
                                                        v-bind:disabled="!use_values"
                                                        v-on:input="validate($event, 'price', prices, 'purchase_price')">
                                             </div>
@@ -260,7 +260,7 @@
                                             <div class="column">
                                                 <input class="small full-width strike align-right" type="text"
                                                        v-model="prices.compare_price"
-                                                       v-bind:class="{ 'wa-error-field' : !!errors['compare_price'] }"
+                                                       v-bind:class="{ 'state-error' : !!errors['compare_price'] }"
                                                        v-bind:disabled="!use_values"
                                                        v-on:input="validate($event, 'price', prices, 'compare_price')">
                                             </div>

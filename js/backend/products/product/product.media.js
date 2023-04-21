@@ -27,11 +27,11 @@
 
             // INIT
             that.vue_model = that.initVue();
-            that.init();
+            that.init(that.vue_model);
 
         };
 
-        Section.prototype.init = function() {
+        Section.prototype.init = function(vue_model) {
             var that = this;
 
             var page_promise = that.$wrapper.closest(".s-product-page").data("ready");
@@ -53,7 +53,7 @@
                 }
             });
 
-            that.initDragAndDrop();
+            that.initDragAndDrop(vue_model);
 
             that.initSave();
 
@@ -97,21 +97,22 @@
                 active_photo = photos[0];
             }
 
-            var vue_model = new Vue({
-                el: $view_section[0],
-                data: {
-                    files_errors: [],
-                    errors: that.errors,
-                    product: that.product,
+            var vue_model = Vue.createApp({
+                data() {
+                    return {
+                        files_errors: [],
+                        errors: that.errors,
+                        product: that.product,
 
-                    video: video,
+                        video: video,
 
-                    files: [],
-                    photo_id: photo_id,
-                    photos: photos,
-                    active_photo: active_photo,
+                        files: [],
+                        photo_id: photo_id,
+                        photos: photos,
+                        active_photo: active_photo,
 
-                    drop_style: { height: "" }
+                        drop_style: { height: "" }
+                    }
                 },
                 components: {
                     "component-loading-file": {
@@ -186,8 +187,10 @@
                         }
                     },
                     "component-flex-textarea": {
-                        props: ["value", "placeholder", "class_name"],
-                        template: '<textarea v-bind:class="class_name" v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)"></textarea>',
+                        props: ["modelValue", "placeholder", "class_name"],
+                        emits: ["update:modelValue"],
+                        template: `<textarea v-bind:class="class_name" v-bind:placeholder="placeholder" v-bind:value="modelValue" v-on:input="$emit('update:modelValue', $event.target.value)"></textarea>`,
+
                         delimiters: ['{ { ', ' } }'],
                         updated: function() {
                             var self = this;
@@ -201,17 +204,16 @@
                         }
                     },
                     "component-checkbox": {
-                        props: ["value"],
-                        template: '<label class="wa-checkbox"><input type="checkbox" v-bind:checked="value" v-on:input.stop="onInput($event)" v-on:change.stop="onChange($event)"><span><span class="icon"><i class="fas fa-check"></i></span></span></label>',
+                        props: ["modelValue"],
+                        emits: ["update:modelValue", "change"],
+                        template: '<label class="wa-checkbox"><input type="checkbox" v-bind:checked="modelValue" v-on:input.stop="onInput($event)" v-on:change.stop="onChange($event)"><span><span class="icon"><i class="fas fa-check"></i></span></span></label>',
                         delimiters: ['{ { ', ' } }'],
                         methods: {
                             onInput: function(event) {
-                                var self = this;
-                                self.$emit('input', event.target.checked);
+                                this.$emit('update:modelValue', event.target.checked);
                             },
                             onChange: function(event) {
-                                var self = this;
-                                self.$emit('change', event.target.checked);
+                                this.$emit('change', event.target.checked);
                             }
                         }
                     }
@@ -260,9 +262,9 @@
                         var white_list = ["product_video_add", "file_add"];
 
                         if (error.id && white_list.indexOf(error.id) >= 0) {
-                            self.$set(that.errors, error.id, error);
+                            self.errors[error.id] = error;
                         } else {
-                            that.errors.global.push(error);
+                            self.errors.global.push(error);
                         }
                     },
                     removeErrors: function(errors) {
@@ -270,11 +272,11 @@
 
                         // Очистка всех ошибок
                         if (errors === null) {
-                            $.each(that.errors, function(key) {
+                            $.each(self.errors, function(key) {
                                 if (key !== "global") {
-                                    self.$delete(that.errors, key);
+                                    delete self.errors[key];
                                 } else {
-                                    that.errors.global.splice(0, that.errors.length);
+                                    self.errors.global.splice(0, self.errors.length);
                                 }
                             });
 
@@ -289,13 +291,13 @@
                         var self = this;
 
                         if (typeof error_id === "number") {
-                            var error_index = that.errors.global.indexOf(error_id);
+                            var error_index = self.errors.global.indexOf(error_id);
                             if (typeof error_index >= 0) {
-                                that.errors.splice(error_index, 1);
+                                self.errors.splice(error_index, 1);
                             }
                         } else if (typeof error_id === "string") {
-                            if (that.errors[error_id]) {
-                                self.$delete(that.errors, error_id);
+                            if (self.errors[error_id]) {
+                                delete self.errors[error_id];
                             }
                         }
                     },
@@ -304,7 +306,7 @@
                     deleteVideo: function() {
                         var self = this;
 
-                        if (video.request_xhr) { return false; }
+                        if (self.video.request_xhr) { return false; }
 
                         var data = { id: that.product.id }
 
@@ -313,8 +315,8 @@
                                 self.renderErrors(errors);
                             })
                             .done( function() {
-                                video.model = "";
-                                video.url = null;
+                                self.video.model = "";
+                                self.video.url = null;
                             });
 
                         function request(data) {
@@ -341,11 +343,11 @@
                     setVideo: function() {
                         var self = this;
 
-                        if (video.request_xhr) { return false; }
+                        if (self.video.request_xhr) { return false; }
 
                         var data = {
                             id: that.product.id,
-                            url: video.model
+                            url: self.video.model
                         }
 
                         request(data)
@@ -353,7 +355,7 @@
                                 self.renderErrors(errors);
                             })
                             .done( function(video_data) {
-                                video.url = video_data.url;
+                                self.video.url = video_data.url;
                             });
 
                         function request(data) {
@@ -389,7 +391,7 @@
                                     $wrapper: $dialog,
                                     dialog: dialog,
                                     photo: photo,
-                                    photos: photos,
+                                    photos: self.photos,
                                     scope_model: self,
                                     scope: that
                                 });
@@ -441,10 +443,11 @@
 
                                 var $section = $dialog.find(".js-vue-node");
 
-                                new Vue({
-                                    el: $section[0],
-                                    data: {
-                                        photos: photos
+                                Vue.createApp({
+                                    data() {
+                                        return {
+                                            photos: photos
+                                        }
                                     },
                                     delimiters: ['{ { ', ' } }'],
                                     computed: {
@@ -462,7 +465,7 @@
                                     mounted: function () {
                                         dialog.resize();
                                     }
-                                });
+                                }).mount($section[0]);
 
                                 $dialog.on("click", ".js-delete-button", function(event) {
                                     event.preventDefault();
@@ -732,7 +735,7 @@
                 }
             });
 
-            return vue_model;
+            return vue_model.mount($view_section[0]);
 
             function formatPhoto(photo) {
                 photo.expanded = false;
@@ -747,7 +750,7 @@
             }
         };
 
-        Section.prototype.initDragAndDrop = function() {
+        Section.prototype.initDragAndDrop = function(vue_model) {
             var that = this;
 
             var $document = $(document);
@@ -772,7 +775,7 @@
 
                 event.originalEvent.dataTransfer.setDragImage($photo[0], 20, 20);
 
-                $.each(that.product.photos, function(i, photo) {
+                $.each(vue_model.product.photos, function(i, photo) {
                     photo.is_moving = (photo.id === photo_id);
                 });
 
@@ -813,20 +816,20 @@
 
                 if (drag_data.move_photo === photo) { return false; }
 
-                var move_index = that.product.photos.indexOf(drag_data.move_photo),
-                    over_index = that.product.photos.indexOf(photo),
+                var move_index = vue_model.product.photos.indexOf(drag_data.move_photo),
+                    over_index = vue_model.product.photos.indexOf(photo),
                     before = (move_index > over_index);
 
                 if (over_index !== move_index) {
-                    that.product.photos.splice(move_index, 1);
+                    vue_model.product.photos.splice(move_index, 1);
 
-                    over_index = that.product.photos.indexOf(photo);
+                    over_index = vue_model.product.photos.indexOf(photo);
                     var new_index = over_index + (before ? 0 : 1);
 
-                    that.product.photos.splice(new_index, 0, drag_data.move_photo);
+                    vue_model.product.photos.splice(new_index, 0, drag_data.move_photo);
 
                     // Для простого режима делаем первое фото главным
-                    if (!that.product.normal_mode) { that.product.image_id = drag_data.move_photo.id; }
+                    if (!vue_model.product.normal_mode) { vue_model.product.image_id = drag_data.move_photo.id; }
 
                     that.$wrapper.trigger("change");
                 }
@@ -837,7 +840,7 @@
             function getPhoto(photo_id) {
                 var result = null;
 
-                $.each(that.product.photos, function(i, photo) {
+                $.each(vue_model.product.photos, function(i, photo) {
                     photo.id = (typeof photo.id === "number" ? "" + photo.id : photo.id);
                     if (photo.id === photo_id) {
                         result = photo;
@@ -879,7 +882,7 @@
                 // Очищаем ошибки
                 $.each(that.errors, function(key, error) {
                     // Точечные ошибки
-                    if (key !== "global") { Vue.delete(that.errors, key); }
+                    if (key !== "global") { delete that.errors[key]; }
                     // Общие ошибки
                     else if (error.length) {
                         error.splice(0, error.length);

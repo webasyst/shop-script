@@ -46,21 +46,44 @@
 
             var $vue_section = that.$wrapper.find(".js-vue-section");
 
-            return new Vue({
-                el: $vue_section[0],
-                data: {
-                    set: that.set,
-                    products: that.products,
-                    render_products: that.render_products,
-                    sort: "",
-                    states: that.states
+            const app = Vue.createApp({
+                data() {
+                    return {
+                        set: that.set,
+                        products: that.products,
+                        render_products: that.render_products,
+                        sort: "",
+                        states: that.states
+                    }
                 },
                 delimiters: ['{ { ', ' } }'],
                 components: {
-                    "component-dropdown-products-sorting": {
-                        props: ["value"],
+                    "component-checkbox": {
+                        props: ["modelValue", "label", "disabled", "field_id"],
+                        emits: ["update:modelValue", "change"],
                         data: function() {
                             var self = this;
+                            return {
+                                tag: (self.label !== false ? "label" : "span"),
+                                id: (typeof self.field_id === "string" ? self.field_id : ""),
+                                prop_disabled: (typeof self.disabled === "boolean" ? self.disabled : false)
+                            }
+                        },
+                        template: that.components["component-checkbox"],
+                        delimiters: ['{ { ', ' } }'],
+                        methods: {
+                            onChange: function(checked) {
+                                var self = this;
+                                self.$emit("update:modelValue", checked);
+                                self.$emit("change", checked);
+                            }
+                        }
+                    },
+
+                    "component-dropdown-products-sorting": {
+                        props: ["modelValue"],
+                        emits: ["update:modelValue", "change"],
+                        data: function() {
                             return {
                                 options:  that.sort_options
                             }
@@ -70,16 +93,15 @@
                         computed: {
                             active_option: function() {
                                 var self = this,
-                                    option_search = self.options.filter( function(option) { return (self.value === option.value); });
+                                    option_search = self.options.filter( function(option) { return (self.modelValue === option.value); });
                                 return (option_search ? option_search[0] : self.options[0]);
                             }
                         },
                         methods: {
                             change: function(option) {
                                 var self = this;
-                                self.active_option = option;
                                 self.dropdown.hide();
-                                self.$emit("input", option.value);
+                                self.$emit("update:modelValue", option.value);
                                 self.$emit("change", option.value);
                             }
                         },
@@ -101,15 +123,13 @@
                 },
                 watch: {
                     "selected_products": function(value, old_value) {
-                        var self = this;
                         if (value.length === 0 || old_value.length === 0) {
-                            self.resize();
+                            this.resize();
                         }
                     }
                 },
                 methods: {
                     onSelect: function(product) {
-                        var self = this;
                     },
                     revert: function() {
                         var self = this;
@@ -183,7 +203,7 @@
                                     $.each(self.products, function(i, product) {
                                         product.states.move_locked = false;
                                     });
-                                    // self.reload({ set_id: self.set.id, force: (self.render_products ? 1 : 0) });
+
                                 });
                         }
 
@@ -295,7 +315,11 @@
                 mounted: function () {
                     that.init(this);
                 }
-            });
+            })
+
+            app.config.compilerOptions.whitespace = 'preserve';
+
+            return app.mount($vue_section[0]);
         };
 
         Dialog.prototype.init = function(vue_model) {
@@ -328,7 +352,7 @@
 
                 event.originalEvent.dataTransfer.setDragImage($product[0], 20, 20);
 
-                $.each(that.products, function(i, product) {
+                $.each(vue_model.products, function(i, product) {
                     product.states.moving = (product.id === product_id);
                 });
 
@@ -373,28 +397,26 @@
 
                 if (drag_data.move_product === product) { return false; }
 
-                var move_index = that.products.indexOf(drag_data.move_product),
-                    over_index = that.products.indexOf(product),
+                var move_index = vue_model.products.indexOf(drag_data.move_product),
+                    over_index = vue_model.products.indexOf(product),
                     before = (move_index > over_index);
 
                 if (over_index !== move_index) {
-                    that.products.splice(move_index, 1);
+                    vue_model.products.splice(move_index, 1);
 
-                    over_index = that.products.indexOf(product);
+                    over_index = vue_model.products.indexOf(product);
                     var new_index = over_index + (before ? 0 : 1);
 
-                    that.products.splice(new_index, 0, drag_data.move_product);
+                    vue_model.products.splice(new_index, 0, drag_data.move_product);
 
                     that.$wrapper.trigger("change");
                 }
             }
 
-            //
-
             function getProduct(product_id) {
                 var result = null;
 
-                $.each(that.products, function(i, product) {
+                $.each(vue_model.products, function(i, product) {
                     product.id = (typeof product.id === "number" ? "" + product.id : product.id);
                     if (product.id === product_id) {
                         result = product;

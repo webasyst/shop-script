@@ -1,7 +1,8 @@
 {capture assign="_component_mass_actions"}
+{literal}
     <div class="vue-component-mass-actions">
         <component-mass-actions-aside
-            v-if="type === 'aside'"
+            v-if="prop_type === 'aside'"
             v-bind:actions="actions"
             v-bind:products="products"
             v-on:call_action="callAction"></component-mass-actions-aside>
@@ -11,15 +12,17 @@
             v-bind:products="products"
             v-on:call_action="callAction"></component-mass-actions-footer>
     </div>
+{/literal}
 {/capture}
 {$_components["component-mass-actions"] = $_component_mass_actions|strip}
 
 {capture assign="_component_mass_actions_footer"}
+{literal}
     <div class="vue-mass-actions-footer">
         <div class="s-section-body">
             <div class="flexbox space-24 nowrap">
                 <div class="s-checkbox-wrapper" v-on:click.prevent="close">
-                    <component-checkbox v-bind:value="true"></component-checkbox>
+                    <component-checkbox v-bind:model-value="true"></component-checkbox>
                 </div>
                 <div class="s-counter-wrapper">
                     <span class="s-label">[`Selected`]</span>
@@ -72,17 +75,19 @@
             </div>
         </div>
     </div>
+{/literal}
 {/capture}
 {$_components["component-mass-actions-footer"] = $_component_mass_actions_footer|strip}
 
 {capture assign="_component_mass_actions_aside"}
+{literal}
     <div class="vue-mass-actions-aside">
         <div class="s-section-header">
             <div class="flexbox full-width space-16">
                 <div class="s-title-wrapper">
                     <div class="flexbox space-12 nowrap">
                         <div class="s-checkbox-wrapper" v-on:click.prevent="close">
-                            <component-checkbox v-bind:value="true"></component-checkbox>
+                            <component-checkbox v-bind:model-value="true"></component-checkbox>
                         </div>
                         <div class="s-counter-wrapper">
                             <span class="s-label">[`Selected`]</span>
@@ -121,6 +126,7 @@
             </div>
         </div>
     </div>
+{/literal}
 {/capture}
 {$_components["component-mass-actions-aside"] = $_component_mass_actions_aside|strip}
 

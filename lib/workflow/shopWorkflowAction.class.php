@@ -219,10 +219,13 @@ HTML;
         if (empty($html) && !$this->getOption('html')) {
             return null;
         }
+
+        $button_class = $this->getOption('button_class');
         $this->getView()->assign(array(
             'order_id'     => $order_id,
             'action_id'    => $action_id,
             'plugins_html' => $html,
+            'button_class' => $button_class,
         ));
 
         return $this->display();

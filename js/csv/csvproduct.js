@@ -644,7 +644,7 @@ if (typeof ($) != 'undefined') {
                             'cleanup': 1
                         },
                         dataType: 'json',
-                        type: 'post',
+                        type: 'POST',
                         success: function (response) {
                             self.csv_productOnComplete(response);
                         },
@@ -907,6 +907,7 @@ if (typeof ($) != 'undefined') {
                 case 'complete':
                     this.form.find('.js-progressbar-container').hide();
                     $progressbar.hide();
+                    $container.hide();
                     this.form.find('.shop-ajax-status-loading').remove();
 
                     if (mode_name == 'emulate') {

@@ -1,6 +1,6 @@
 {capture assign="_component_checkbox"}
     <component v-bind:is="tag" class="wa-checkbox">
-        <input type="checkbox" v-model="value" v-bind:id="field_id" v-on:change="onChange" v-bind:disabled="disabled" tabindex="-1">
+        <input type="checkbox" v-bind:checked="modelValue" v-bind:id="field_id" v-on:change="onChange" v-bind:disabled="prop_disabled" tabindex="-1">
         <span>
             <span class="icon"><i class="fas fa-check"></i></span>
         </span>
@@ -11,8 +11,8 @@
 {* DROPDOWN *}
 {capture assign="_component_dropdown"}
     <div class="dropdown">
-        <template v-if="disabled">
-            <button class="dropdown-toggle button small" type="button" v-bind:class="button_class" disabled>
+        <template v-if="prop_disabled">
+            <button class="dropdown-toggle button small" type="button" v-bind:class="prop_button_class" disabled>
                 <template v-if="active_option">
                     <span class="s-icon icon shift-inherit" v-if="active_option.icon" v-html="active_option.icon"></span>
                     <span class="s-icon" v-else-if="active_option.icon_html" v-html="active_option.icon_html"></span>
@@ -21,7 +21,7 @@
             </button>
         </template>
         <template v-else>
-            <button class="dropdown-toggle button small" type="button" v-bind:class="button_class">
+            <button class="dropdown-toggle button small" type="button" v-bind:class="prop_button_class">
                 <template v-if="active_option">
                     <span class="s-icon icon shift-inherit" v-if="active_option.icon" v-html="active_option.icon"></span>
                     <span class="s-icon" v-else-if="active_option.icon_html" v-html="active_option.icon_html"></span>
@@ -45,7 +45,7 @@
 {* RADIO *}
 {capture assign="_component_radio"}
     <component class="wa-radio" v-bind:is="tag">
-        <input type="radio" v-bind:value="val" v-bind:name="name" v-on:change="onChange" v-bind:key="val" v-bind:disabled="disabled" v-model="value">
+        <input type="radio" v-bind:checked="checked" v-bind:value="value" v-bind:name="prop_name" v-on:change="onChange" v-bind:disabled="prop_disabled">
         <span></span>
     </component>
 {/capture}
@@ -56,7 +56,7 @@
     <div class="vue-component-date-picker">
         <input class="js-date-picker" type="text"
                v-bind:class="field_class"
-               v-bind:disabled="readonly">
+               v-bind:disabled="prop_readonly">
         <span class="s-icon"><i class="fas fa-calendar-alt"></i></span>
         <input name="" type="hidden" value="">
     </div>
@@ -66,24 +66,26 @@
 {* COLOR PICKER *}
 {capture assign="_component_color_picker"}
 {strip}
+{literal}
     <div class="vue-component-color-picker" v-bind:class="{ 'is-extended': extended }">
         <div class="flexbox space-8 middle nowrap">
             <input class="size-color js-color-field" placeholder="#000000" type="text"
-                   v-model="value"
+                   v-bind:value="modelValue"
                    v-bind:class="field_class"
-                   v-bind:readonly="readonly"
-                   v-bind:disabled="disabled"
+                   v-bind:readonly="prop_readonly"
+                   v-bind:disabled="prop_disabled"
                    v-on:focus="onFocus"
                    v-on:input="onInput"
                    v-on:change="onChange">
             <div class="s-icon">
                 <span class="icon shift-2 rounded s-color-toggle js-color-toggle"
-                      v-bind:style="{ 'background-color' : value }"
+                      v-bind:style="{ 'background-color' : modelValue }"
                       v-on:click="toggle"></span>
             </div>
         </div>
         <div class="s-color-picker js-color-picker" v-show="extended"></div>
     </div>
+{/literal}
 {/strip}
 {/capture}
 {$_components["component-color-picker"] = $_component_color_picker|strip}

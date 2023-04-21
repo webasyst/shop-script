@@ -66,7 +66,7 @@
         <div class="flexbox middle space-4">
             <input class="small js-autofocus" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}"
                    v-on:input="onInput"
-                   v-bind:class="{ 'wa-error-field' : !!errors['name_required'] }">
+                   v-bind:class="{ 'state-error' : !!errors['name_required'] }">
 
             <button class="button smaller blue" type="button" v-on:click="save">
                 <span class="icon s-icon" v-if="states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
@@ -88,12 +88,12 @@
         </div>
         <div class="s-field-wrapper wide">
             <component-input class="s-field js-autofocus"
-                             v-model="value"
+                             v-bind:model-value="modelValue"
                              v-on:input="onInput"
                              v-bind:cancel="true"
                              v-bind:placeholder="'{_w("Find a set")|escape}'"></component-input>
         </div>
-        <template v-if="value.length">
+        <template v-if="modelValue.length">
             <div class="s-actions-wrapper flexbox space-8">
                 <div class="s-action is-active" v-on:click.prevent="revert">
                     <span class="s-icon icon"><i class="fas fa-times"></i></span>

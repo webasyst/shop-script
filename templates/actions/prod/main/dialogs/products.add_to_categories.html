@@ -9,8 +9,8 @@
 
 {capture assign="_component_categories_group"}
     <div class="s-categories-group">
-        <template v-for="category in categories">
-            <div class="s-category-wrapper" v-bind:key="category.id" v-show="category.states.display_category">
+        <template v-for="category in categories" v-bind:key="category.id">
+            <div class="s-category-wrapper" v-show="category.states.display_category">
                 <component-category
                     v-bind:category="category"></component-category>
 
@@ -72,7 +72,7 @@
         <div class="flexbox middle space-4">
             <input class="small js-autofocus" type="text" v-model="name" placeholder="{_w("Enter a name")|escape}"
                    v-on:input="onInput"
-                   v-bind:class="{ 'wa-error-field' : !!errors['name_required'] }">
+                   v-bind:class="{ 'state-error' : !!errors['name_required'] }">
 
             <button class="button smaller blue" type="button" v-on:click="save">
                 <span class="icon s-icon" v-if="states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
@@ -88,18 +88,19 @@
 {$_components["component-category-form"] = $_add_category_form}
 
 {capture assign="_component_category_search"}
+{literal}
     <div class="component-category-search flexbox space-8">
         <div class="s-icon">
             <span class="icon shift-3"><i class="fas fa-search"></i></span>
         </div>
         <div class="s-field-wrapper wide">
             <component-input class="s-field js-autofocus"
-                             v-model="value"
+                             v-bind:model-value="modelValue"
                              v-on:input="onInput"
                              v-bind:cancel="true"
-                             v-bind:placeholder="'{_w("Find a category")|escape}'"></component-input>
+                             placeholder="[`Find a category`]"></component-input>
         </div>
-        <template v-if="value.length">
+        <template v-if="modelValue.length">
             <div class="s-actions-wrapper flexbox space-8">
                 <div class="s-action is-active" v-on:click.prevent="revert">
                     <span class="s-icon icon"><i class="fas fa-times"></i></span>
@@ -107,6 +108,7 @@
             </div>
         </template>
     </div>
+{/literal}
 {/capture}
 {$_components["component-category-search"] = $_component_category_search|strip}
 
@@ -124,7 +126,7 @@
                     <component-category-search
                         class="s-search-form"
                         v-model="search_string"
-                        v-bind:placeholder="'{_w("Find a category")|escape}'"></component-category-search>
+                        placeholder="[`Find a category`]"></component-category-search>
 
                     <div class="s-categories-list">
                         <div class="s-add-root-category-wrapper">

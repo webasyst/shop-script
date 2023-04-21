@@ -16,6 +16,7 @@ class shopShippingCli extends waCliController
         $plugin_model = new shopPluginModel();
         $options = array(
             'all' => true,
+            'except_dummy' => true,
         );
         $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
 

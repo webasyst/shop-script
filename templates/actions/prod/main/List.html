@@ -6,13 +6,13 @@
 
 {capture assign="_component_view_toggle"}
     <div class="vue-component-view-toggle toggle small">
-        <div data-id="thumbs" data-tooltip-id="view_thumbs" v-bind:class="{ 'selected' : value === 'thumbs' }">
+        <div data-id="thumbs" data-tooltip-id="view_thumbs" v-bind:class="{ 'selected' : modelValue === 'thumbs' }">
             <i class="icon"><i class="fas fa-th-large"></i></i>
         </div>
-        <div data-id="table_extended" data-tooltip-id="view_table_extended" v-bind:class="{ 'selected' : value === 'table_extended' }">
+        <div data-id="table_extended" data-tooltip-id="view_table_extended" v-bind:class="{ 'selected' : modelValue === 'table_extended' }">
             <i class="icon"><svg><use xlink:href="{$_sprite_url}#toggle-full"></use></svg></i>
         </div>
-        <div data-id="table" data-tooltip-id="view_table" v-bind:class="{ 'selected' : value === 'table' }">
+        <div data-id="table" data-tooltip-id="view_table" v-bind:class="{ 'selected' : modelValue === 'table' }">
             <i class="icon"><svg><use xlink:href="{$_sprite_url}#toggle-thin"></use></svg></i>
         </div>
     </div>
@@ -20,6 +20,7 @@
 {$_components["component-view-toggle"] = $_component_view_toggle|strip}
 
 {capture assign="_component_paging"}
+{literal}
     <div class="vue-component-paging">
         <div class="s-item">
             <component class="s-toggle"
@@ -72,12 +73,14 @@
             </component>
         </div>
     </div>
+{/literal}
 {/capture}
 {$_components["component-paging"] = $_component_paging|strip}
 
 {capture assign="_component_paging_dropdown"}
+{literal}
     <div class="dropdown s-paging-dropdown">
-        <button class="dropdown-toggle button small no-indent outlined" type="button">{ { active_option ? active_option.name : value } }</button>
+        <button class="dropdown-toggle button small no-indent outlined" type="button">{ { active_option ? active_option.name : modelValue } }</button>
         <div class="dropdown-body">
             <template v-for="option in options">
                 <div class="dropdown-item"
@@ -86,19 +89,19 @@
             </template>
         </div>
     </div>
+{/literal}
 {/capture}
 {$_components["component-paging-dropdown"] = $_component_paging_dropdown|strip}
 
 {capture assign="_component_product_slider"}
+{literal}
     <div class="s-slider-wrapper"
          v-on:mouseenter="onMouseEnter"
          v-on:mouseleave="onMouseLeave">
         <div class="s-slider-list">
-            <template v-for="photo in photos">
-                <div class="s-slide-wrapper" v-bind:key="photo.id">
-                    <div class="s-photo-wrapper" v-bind:style="{ 'background-image': 'url('+photo.url+')'}"></div>
-                </div>
-            </template>
+            <div class="s-slide-wrapper" v-for="photo in photos" v-bind:key="photo.id">
+                <div class="s-photo-wrapper" v-bind:style="{ 'background-image': 'url('+photo.url+')'}"></div>
+            </div>
         </div>
         <div class="s-slider-actions" v-if="photos.length > 1">
             <div class="s-action left"
@@ -113,16 +116,16 @@
         <div class="s-slider-controls" v-if="photos.length > 1">
             <div class="s-control-list">
                 <div class="s-label" v-if="controls.before_count">{ { "+" + controls.before_count } }</div>
-                <template v-for="photo in controls.photos">
                     <div class="s-control"
+                         v-for="photo in controls.photos"
                          v-bind:key="photo.id"
                          v-bind:class="{ 'is-active' : (active_photo === photo), 'is-main' : (photo_id && photo.id === photo_id) }"
                          v-on:click.prevent="change(photo)"></div>
-                </template>
                 <div class="s-label" v-if="controls.after_count">{ { "+" + controls.after_count } }</div>
             </div>
         </div>
     </div>
+{/literal}
 {/capture}
 {$_components["component-product-slider"] = $_component_product_slider|strip}
 
@@ -235,7 +238,7 @@
                             </div>
                         </div>
                         <component-view-toggle
-                            v-bind:value="presentation.view"
+                            v-model="presentation.view"
                             v-on:change="changeView"></component-view-toggle>
                     </div>
                 </div>
@@ -254,9 +257,7 @@
                 <div class="s-products-thumbs-section" v-if="presentation.view === 'thumbs'" v-on:scroll="onScrollProductsSection">
                     <div class="s-section-body">
                         <div class="s-thumbs-list">
-                            <template v-for="product in products">
-                                <component-product-thumb v-bind:product="product" v-bind:key="product.id"></component-product-thumb>
-                            </template>
+                            <component-product-thumb v-for="product in products" v-bind:key="product.id" v-bind:product="product"></component-product-thumb>
                         </div>
                     </div>
                 </div>
@@ -330,7 +331,7 @@
             var sources = [{
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
             }, {
                 id: "wa-shop-products-list-js",
                 type: "js",

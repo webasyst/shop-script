@@ -1,6 +1,5 @@
 {capture assign="_component_product_column_name"}
-    <div class="vue-component-product-column-name"
-         v-bind:class="{ 'is-extended' : states.is_extended }">
+    <div class="vue-component-product-column-name" v-bind:class="{ 'is-extended' : states.is_extended }">
 
         <template v-if="states.is_product_col">
             <template v-if="states.is_edit && column_data.editable">
@@ -58,7 +57,7 @@
                     <div class="s-photo-wrapper" v-if="sku_mod_photo">
                         <div class="s-photo" v-bind:class="{ 'has-photo' : !!sku_mod_photo.url, 'is-empty' : !sku_mod_photo.url }">
                             <template v-if="sku_mod_photo.url">
-                                <div class="s-image" v-bind:style="{ 'background-image' : 'url('+sku_mod_photo.url+')' }">
+                                <div class="s-image" v-bind:style="{ 'background-image' : 'url('+sku_mod_photo.url+')' }"></div>
                             </template>
                             <template v-else>
                                 <span class="s-icon icon size-18"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>

@@ -18,8 +18,9 @@
                 </div>
 
                 <div class="s-services-list">
-                    <template v-for="service in services">
-                        <div class="s-service-wrapper"
+                    <template v-for="service in services" v-bind:key="service.id">
+                        <div v-if="service.visible"
+                             class="s-service-wrapper"
                              v-bind:class="{ 'is-disabled': service.is_disabled }">
                             <component-switch
                                 v-model="service.is_enabled"
@@ -27,8 +28,11 @@
                                 v-bind:class="'small'"
                                 v-bind:data-tooltip-id="(service.is_disabled ? 'product-services-15' : '')"
                                 v-on:change="switchService(service)"></component-switch>
-                            <span class="s-name">{ { service.name } }</span>
+                            <span class="s-name custom-ml-8">{ { service.name } }</span>
                         </div>
+                    </template>
+                    <template v-if="emptySearchResult">
+                        [`Nothing found`]
                     </template>
                 </div>
             </div>

@@ -63,18 +63,20 @@
             // DOM
             var $view_section = that.$wrapper.find(".js-product-seo-section");
 
-            var vue_model = new Vue({
-                el: $view_section[0],
-                data: {
-                    errors       : that.errors,
-                    errors_global: that.errors_global,
-                    product      : that.product,
-                    social       : that.social
+            var vue_model = Vue.createApp({
+                data() {
+                    return {
+                        errors       : that.errors,
+                        errors_global: that.errors_global,
+                        product      : that.product,
+                        social       : that.social
+                    }
                 },
                 components: {
                     "component-flex-textarea": {
-                        props: ["value", "placeholder"],
-                        template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)" v-on:blur="$emit(\'blur\', $event.target.value)"></textarea>',
+                        props: ["modelValue", "placeholder"],
+                        emits: ["update:modelValue", "blur", "ready"],
+                        template: `<textarea v-bind:placeholder="placeholder" v-bind:value="modelValue" v-on:input="$emit('update:modelValue', $event.target.value)" v-on:blur="$emit('blur', $event.target.value)"></textarea>`,
                         delimiters: ['{ { ', ' } }'],
                         updated: function() {
                             var self = this;
@@ -114,14 +116,9 @@
                         }
                     },
                     "component-switch": {
-                        props: ["value", "disabled"],
-                        data: function() {
-                            return {
-                                checked: (typeof this.value === "boolean" ? this.value : false),
-                                disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
-                            };
-                        },
-                        template: '<div class="switch"><input type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled"></div>',
+                        props: ["modelValue", "disabled"],
+                        emits: ["update:modelValue", "change"],
+                        template: '<div class="switch"><input type="checkbox" v-bind:checked="prop_checked" v-bind:disabled="prop_disabled"></div>',
                         delimiters: ['{ { ', ' } }'],
                         mounted: function() {
                             var self = this;
@@ -129,20 +126,25 @@
                             $(self.$el).waSwitch({
                                 change: function(active, wa_switch) {
                                     self.$emit("change", active);
-                                    self.$emit("input", active);
+                                    self.$emit("update:modelValue", active);
                                 }
                             });
+                        },
+                        computed: {
+                            prop_checked() { return (typeof this.modelValue === "boolean" ? this.modelValue : false); },
+                            prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); }
                         }
                     },
                     "component-image-toggle": {
-                        props: ["value"],
+                        props: ["modelValue"],
+                        emits: ["update:modelValue"],
                         template: that.components["component-image-toggle"],
                         delimiters: ['{ { ', ' } }'],
                         mounted: function() {
                             var self = this;
 
                             var $wrapper = $(self.$el),
-                                $active = $wrapper.find("> [data-id='" + self.value + "']");
+                                $active = $wrapper.find("> [data-id='" + self.modelValue + "']");
 
                             if ($active.length) { $active.addClass("selected"); }
 
@@ -152,7 +154,7 @@
 
                                     if (typeof id !== "boolean") { id = (id === "true"); }
 
-                                    self.$emit("input", id);
+                                    self.$emit("update:modelValue", id);
                                 }
                             });
                         }
@@ -307,9 +309,9 @@
                         var white_list = ["product_video_add", "file_add", "social_image_url", "social_video_url"];
 
                         if (error.id && white_list.indexOf(error.id) >= 0) {
-                            self.$set(that.errors, error.id, error);
+                            self.errors[error.id] = error;
                         } else {
-                            that.errors_global.push(error);
+                            self.errors_global.push(error);
                         }
                     },
                     removeErrors: function(errors) {
@@ -317,11 +319,11 @@
 
                         // Очистка всех ошибок
                         if (errors === null) {
-                            $.each(that.errors, function(key) {
+                            $.each(self.errors, function(key) {
                                 if (key !== "global") {
-                                    self.$delete(that.errors, key);
+                                    delete self.errors[key];
                                 } else {
-                                    that.errors.global.splice(0, that.errors.length);
+                                    self.errors.global.splice(0, self.errors.length);
                                 }
                             });
 
@@ -336,13 +338,13 @@
                         var self = this;
 
                         if (typeof error_id === "number") {
-                            var error_index = that.errors.global.indexOf(error_id);
+                            var error_index = self.errors.global.indexOf(error_id);
                             if (typeof error_index >= 0) {
-                                that.errors.splice(error_index, 1);
+                                self.errors.splice(error_index, 1);
                             }
                         } else if (typeof error_id === "string") {
-                            if (that.errors[error_id]) {
-                                self.$delete(that.errors, error_id);
+                            if (self.errors[error_id]) {
+                                delete self.errors[error_id];
                             }
                         }
                     },
@@ -379,9 +381,7 @@
                         });
                     },
                     setPhoto: function(photo) {
-                        var self = this;
-
-                        self.$set(self.social, "image_id", photo.id);
+                        this.social["image_id"] = photo.id;
 
                         that.$wrapper.trigger("change");
                     },
@@ -407,11 +407,9 @@
                     $view_section.css("visibility", "");
                 },
                 mounted: function() {
-                    var self = this;
-
                     that.$wrapper.trigger("section_mounted", ["seo", that]);
                 }
-            });
+            }).mount($view_section[0]);
 
             return vue_model;
         };
@@ -451,7 +449,7 @@
                 // Останавливаем сохранение если во фронте есть ошибки
                 var errors = that.validate();
                 if (errors.length) {
-                    var $error = $(".wa-error-text:first");
+                    var $error = $(".state-error:first");
                     if ($error.length) {
                         $(window).scrollTop($error.offset().top - 100);
                     }
@@ -466,7 +464,7 @@
                 // Очищаем ошибки
                 $.each(that.errors, function(key, error) {
                     // Точечные ошибки
-                    if (key !== "global") { Vue.delete(that.errors, key); }
+                    if (key !== "global") { delete that.errors[key]; }
                     // Общие ошибки
                     else if (error.length) {
                         error.splice(0, error.length);
@@ -633,14 +631,15 @@
                 active_photo = photos[0];
             }
 
-            new Vue({
-                el: $vue_section[0],
-                data: {
-                    photo_id: photo_id,
-                    photos: photos,
-                    active_photo: active_photo,
-                    files: [],
-                    errors: []
+            Vue.createApp({
+                data() {
+                    return {
+                        photo_id: photo_id,
+                        photos: photos,
+                        active_photo: active_photo,
+                        files: [],
+                        errors: []
+                    }
                 },
                 delimiters: ['{ { ', ' } }'],
                 components: {
@@ -857,11 +856,9 @@
                     $content.scrollTop(content_top);
                 },
                 mounted: function () {
-                    var self = this;
-
                     dialog.resize();
                 }
-            });
+            }).mount($vue_section[0]);
 
             function formatPhoto(photo) {
                 photo.expanded = false;

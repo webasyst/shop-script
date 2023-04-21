@@ -465,6 +465,7 @@ class shopProdCategoryDialogAction extends waViewAction
                 $result[] = [
                     'name' => $feature['name'],
                     'type' => 'feature',
+                    'is_negative' => !$feature['selectable'] && ($feature['type'] == shopFeatureModel::TYPE_DOUBLE || mb_strpos($feature['type'], 'range.') === 0 || mb_strpos($feature['type'], 'dimension.') === 0),
                     'data' => $feature,
                 ];
             }

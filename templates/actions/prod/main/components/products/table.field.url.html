@@ -6,20 +6,20 @@
 
 {capture assign="_component_product_column_url"}
     <div class="vue-column-type-url">
-        <templates v-if="states.is_locked">
+        <template v-if="states.is_locked">
             <span class="s-icon icon" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
-        </templates>
-        <templates v-else>
+        </template>
+        <template v-else>
             <div class="s-field-wrapper">
                 <input class="s-field small full-width s-square-field" type="text"
                        v-model="column_data.value"
-                       v-bind:class="{ 'wa-error-field': errors['url_error'] }"
+                       v-bind:class="{ 'state-error': errors['url_error'] }"
                        v-on:input="onInput"
                        v-on:change="onChange">
 
-                <div class="state-error" v-if="errors['url_error']">[`The URL is already in use.`]</div>
+                <div class="state-error-hint" v-if="errors['url_error']">[`The URL is already in use.`]</div>
             </div>
-        </templates>
+        </template>
     </div>
 {/capture}
 {$_components["component-product-column-url"] = $_component_product_column_url|strip}

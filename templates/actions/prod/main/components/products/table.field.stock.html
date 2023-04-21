@@ -31,7 +31,7 @@
                         </div>
                         <template v-if="states.is_preview">
                             <input class="s-field small full-width s-square-field align-right" placeholder="∞" type="text" readonly
-                                   v-bind:class="{ 'wa-error-field' : errors['stock_error'] }"
+                                   v-bind:class="{ 'state-error' : errors['stock_error'] }"
                                    v-on:click="togglePreview(false)"
                                    v-model="formatted_value">
                         </template>
@@ -41,7 +41,7 @@
                                 v-model="column_data.value"
                                 v-bind:cancel="true"
                                 v-bind:focus="true"
-                                v-bind:class="{ 'wa-error-field' : errors['stock_error'] }"
+                                v-bind:class="{ 'state-error' : errors['stock_error'] }"
                                 v-bind:validate="'number-negative'"
                                 v-bind:fraction_size="3"
                                 v-bind:placeholder="'∞'"
@@ -51,7 +51,7 @@
                         </template>
                     </div>
 
-                    <div class="state-error" v-if="errors['stock_error']">
+                    <div class="state-error-hint" v-if="errors['stock_error']">
                         {_w("Invalid value")|escape}
                         <span class="s-tooltip-icon" data-tooltip-id="stock-error"><i class="fas fa-question-circle text-red"></i></span>
                     </div>

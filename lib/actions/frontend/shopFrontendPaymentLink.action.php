@@ -93,7 +93,7 @@ class shopFrontendPaymentLinkAction extends waViewAction
 
         foreach ($methods as $method_index => &$m) {
             // Some plugins are disabled
-            if (empty($m['available'])) {
+            if (empty($m['available']) || $m['info']['type'] == 'manual') {
                 unset($methods[$method_index]);
                 continue;
             }

@@ -198,7 +198,7 @@
                 v-bind:units="fractional.units"
                 v-bind:default_value="fractional.stock_unit_id"
                 v-bind:readonly="isReadonly('stock_unit_id')"
-                v-bind:class="{ 'wa-error-field' : errors['units_error'] || errors['stock_unit'] }"
+                v-bind:class="{ 'state-error' : errors['units_error'] || errors['stock_unit'] }"
                 v-bind:data-tooltip-id="stock_unit_tooltip"></component-fractional-dropdown>
 
             <div class="state-error"
@@ -228,7 +228,7 @@
                 v-bind:default_value="fractional.base_unit_id"
                 v-bind:show_empty="true"
                 v-bind:readonly="isReadonly('base_unit_id')"
-                v-bind:class="{ 'wa-error-field' : errors['units_error'] }"
+                v-bind:class="{ 'state-error' : errors['units_error'] }"
                 v-bind:data-tooltip-id="base_unit_tooltip"></component-fractional-dropdown>
 
             <div class="state-error"
@@ -259,7 +259,7 @@
                 <input class="small size-short is-number" type="text"
                        v-model="fractional.stock_base_ratio"
                        v-on:input="onChangeStockBaseRatio"
-                       v-bind:class="{ 'wa-error-field' : errors['stock_base_ratio'] }"
+                       v-bind:class="{ 'state-error' : errors['stock_base_ratio'] }"
                        v-bind:readonly="isReadonly('stock_base_ratio')"
                        v-bind:placeholder="getPlaceholder('stock_base_ratio')"
                        v-bind:data-tooltip-id="getTooltip('stock_base_ratio', 'stock-ratio-readonly')">&nbsp;{ { selected_base_unit } }
@@ -292,7 +292,7 @@
             <input class="small size-medium is-number" type="text"
                    v-model="fractional.order_multiplicity_factor"
                    v-on:input="onChangeCountDenominator"
-                   v-bind:class="{ 'wa-error-field' : errors['order_multiplicity_factor'] }"
+                   v-bind:class="{ 'state-error' : errors['order_multiplicity_factor'] }"
                    v-bind:readonly="isReadonly('order_multiplicity_factor')"
                    v-bind:data-tooltip-id="order_multiplicity_factor_tooltip">&nbsp;<span v-bind:class="{ 'text-light-gray' : isReadonly('order_multiplicity_factor') }" v-text="selected_stock_unit"></span>
 
@@ -322,7 +322,7 @@
             <input class="small size-medium is-number" type="text"
                    v-model="fractional.order_count_min"
                    v-on:input="onChangeOrderCountMin"
-                   v-bind:class="{ 'wa-error-field' : errors['order_count_min'] }"
+                   v-bind:class="{ 'state-error' : errors['order_count_min'] }"
                    v-bind:readonly="isReadonly('order_count_min')"
                    v-bind:placeholder="getPlaceholder('order_count_min')"
                    v-bind:data-tooltip-id="getTooltip('order_count_min', 'count-min-readonly')">&nbsp;<span v-bind:class="{ 'text-light-gray' : isReadonly('order_count_min') }" v-text="selected_stock_unit"></span>
@@ -360,7 +360,7 @@
             <input class="small size-medium is-number" type="text"
                    v-model="fractional.order_count_step"
                    v-on:input="onChangeOrderCountStep"
-                   v-bind:class="{ 'wa-error-field' : errors['order_count_step'] }"
+                   v-bind:class="{ 'state-error' : errors['order_count_step'] }"
                    v-bind:readonly="isReadonly('order_count_step')"
                    v-bind:placeholder="getPlaceholder('order_count_step')"
                    v-bind:data-tooltip-id="getTooltip('order_count_step', 'count-step-readonly')">&nbsp;<span v-bind:class="{ 'text-light-gray' : isReadonly('order_count_step') }" v-text="selected_stock_unit"></span>

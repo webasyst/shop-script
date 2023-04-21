@@ -131,7 +131,7 @@
                     <div class="message-actions middle">
                         <a class="button nobutton rounded" href="{$wa_app_url}?action=products#services/" target="_blank">
                             <span class="s-icon"><i class="fas fa-cog"></i></span>
-                            <span class="s-name">[`Configure services`]</span>
+                            <span class="s-name"> [`Configure services`] </span>
                             <span class="s-icon" style="font-size: 12px;"><i class="fas fa-external-link-square-alt"></i></span>
                         </a>
                     </div>
@@ -165,7 +165,7 @@
                     <div class="name">
 
                         <div class="wa-label">
-                            <span class="s-name">[`Product type`]</span>
+                            <span class="s-name">[`Product type`] </span>
                             <span class="s-icon" data-tooltip-id="product-services-1">
                                 <i class="fas fa-question-circle gray"></i>
                             </span>
@@ -199,17 +199,14 @@
                     <button class="button light-gray rounded" type="button"
                             v-on:click.prevent="changeServicesList">
                         <span class="s-icon text-blue"><i class="fas fa-project-diagram"></i></span>
-                        <span class="s-name">[`Select available services`]</span>
+                        <span class="s-name"> [`Select available services`] </span>
                     </button>
                 </div>
                 <div class="s-section-body">
                     <div class="s-services-list">
 
-                        <template v-for="service in services">
-
-                            <div class="s-service-section tablebox space-16"
-                                 v-if="service.is_enabled"
-                                 v-bind:key="service.id">
+                        <template v-for="service in services" v-bind:key="service.id">
+                            <div v-if="service.is_enabled" class="s-service-section tablebox space-16">
                                 {* ACTION *}
                                 <div class="s-column-service-actions">
                                     <div class="flexbox middle nowrap" style="max-width: 63px;">
@@ -265,7 +262,7 @@
                                                         <input class="s-price small bold is-price" type="text"
                                                                v-model="service.variants[0].price"
                                                                v-bind:placeholder="service.variants[0].base_price"
-                                                               v-bind:class="{ 'wa-error-field' : !!errors['service['+service.id+'][price]'] }"
+                                                               v-bind:class="{ 'state-error' : !!errors['service['+service.id+'][price]'] }"
                                                                v-on:input="validate($event, 'price', service, 'price', 'service['+service.id+'][price]')">
                                                         <span class="s-currency bold">{ { service.currency } }</span>
                                                     </div>
@@ -290,7 +287,7 @@
                                                         <button class="button light-gray nobutton text-blue"
                                                                 v-bind:disabled="isOverwritten(service)"
                                                                 v-on:click.prevent="toggleService(service)">
-                                                            <span class="s-name">[`SKUs & variants`]</span>
+                                                            <span class="s-name"> [`SKUs & variants`] </span>
                                                             <span class="s-icon" v-bind:key="1" v-if="!service.is_expanded"><i class="fas fa-caret-down"></i></span>
                                                             <span class="s-icon" v-bind:key="2" v-if="service.is_expanded"><i class="fas fa-caret-up"></i></span>
                                                         </button>
@@ -302,9 +299,8 @@
 
                                         {* VARIANTS *}
                                         <div class="s-variants-list" v-if="service.variants.length && service.status_model && (service.variants.length > 1 || service.is_expanded)">
-                                            <template v-for="variant in service.variants">
-                                                <div class="s-variant-section"
-                                                     v-bind:key="variant.id">
+                                            <template v-for="variant in service.variants" v-bind:key="variant.id">
+                                                <div class="s-variant-section">
 
                                                     <template v-if="service.variants.length > 1">
                                                         <div class="s-variant-wrapper tablebox space-16"
@@ -347,7 +343,7 @@
                                                                         <input class="s-price small bold is-price" type="text"
                                                                                v-model="variant.price"
                                                                                v-bind:placeholder="variant.base_price"
-                                                                               v-bind:class="{ 'wa-error-field' : !!errors['service['+service.id+'][variant]['+variant.id+'][price]'] }"
+                                                                               v-bind:class="{ 'state-error' : !!errors['service['+service.id+'][variant]['+variant.id+'][price]'] }"
                                                                                v-on:input="validate($event, 'price', variant, 'price', 'service['+service.id+'][variant]['+variant.id+'][price]')">
                                                                         <span class="s-currency bold">{ { service.currency } }</span>
                                                                     </div>
@@ -379,7 +375,7 @@
                                                                         <button class="button light-gray nobutton text-blue"
                                                                                 v-bind:disabled="isOverwritten(service, variant)"
                                                                                 v-on:click.prevent="toggleVariant(service, variant)">
-                                                                            <span class="s-name">[`SKUs & variants`]</span>
+                                                                            <span class="s-name"> [`SKUs & variants`] </span>
                                                                             <span class="s-icon" v-bind:key="1" v-if="!variant.is_expanded"><i class="fas fa-caret-down"></i></span>
                                                                             <span class="s-icon" v-bind:key="2" v-if="variant.is_expanded"><i class="fas fa-caret-up"></i></span>
                                                                         </button>
@@ -395,7 +391,7 @@
                                                          v-if="service.product_id && variant.status_model && variant.skus && variant.is_expanded"
                                                          v-bind:class="{ 'is-single-variant' : service.variants.length === 1 }">
 
-                                                        <template v-for="modification in variant.skus">
+                                                        <template v-for="modification in variant.skus" v-bind:key="modification.sku_id">
                                                             <div class="s-modification-wrapper tablebox space-16">
                                                                 {* BODY *}
                                                                 <div class="s-column-name wide">
@@ -421,7 +417,7 @@
                                                                             <input class="s-price small bold is-price" type="text"
                                                                                    v-model="modification.price"
                                                                                    v-bind:placeholder="placeholder_modification(service, variant, modification)"
-                                                                                   v-bind:class="{ 'wa-error-field' : !!errors['service['+service.id+'][variant]['+variant.id+'][sku]['+modification.sku_id+'][price]'] }"
+                                                                                   v-bind:class="{ 'state-error' : !!errors['service['+service.id+'][variant]['+variant.id+'][sku]['+modification.sku_id+'][price]'] }"
                                                                                    v-on:input="validate($event, 'price', modification, 'price', 'service['+service.id+'][variant]['+variant.id+'][sku]['+modification.sku_id+'][price]')">
                                                                             <span class="s-currency bold">{ { service.currency } }</span>
                                                                         </div>
@@ -482,9 +478,9 @@
 
                 <div class="s-features-hidden-on-front-section">
                     <div class="wa-message small warn flexbox space-8">
-                        <div class="message-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="message-icon"><i class="fas fa-exclamation-triangle text-yellow"></i></div>
                         <div class="message-text wide">
-                            <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`]</span>
+                            <span class="s-text">[`Some product variants are not displayed in the storefront because of errors.`] </span>
                             <span class="s-icon" data-tooltip-id="product-sku-features-hidden-on-front"><i class="fas fa-question-circle  gray"></i></span>
                         </div>
                     </div>
@@ -502,7 +498,7 @@
             var sources = [{
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
             }, {
                 id: "wa-shop-products-product-services-js",
                 type: "js",

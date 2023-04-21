@@ -46,6 +46,23 @@
 {/capture}
 {$_components["component-dropdown-products-sorting"] = $_component_dropdown_products_sorting|strip}
 
+{capture assign="_component_checkbox"}
+{literal}
+    <component v-bind:is="tag" class="wa-checkbox">
+        <input type="checkbox"
+            v-bind:checked="modelValue"
+            v-bind:id="field_id"
+            v-on:change="onChange($event.target.checked)"
+            v-bind:disabled="prop_disabled" tabindex="-1"
+        >
+        <span>
+            <span class="icon"><i class="fas fa-check"></i></span>
+        </span>
+    </component>
+{/literal}
+{/capture}
+{$_components["component-checkbox"] = $_component_checkbox|strip}
+
 <div class="wa-dialog s-set-sort-products-dialog" id="js-set-sort-products-dialog">
     <div class="dialog-background"></div>
     <div class="dialog-body">
@@ -74,50 +91,49 @@
                 <template v-if="render_products">
                     <template v-if="products.length">
                         <div class="s-products-list" v-bind:class="{ 'is-locked' : states.sort_locked }">
-                            <template v-for="product in products">
-                                <div class="s-product-wrapper"
-                                     v-bind:class="{ 'is-selected' : product.states.selected, 'is-moving' : product.states.moving }"
-                                     v-bind:data-id="product.id"
-                                     v-bind:key="product.id">
+                            <div class="s-product-wrapper"
+                                    v-for="product in products"
+                                    v-bind:class="{ 'is-selected' : product.states.selected, 'is-moving' : product.states.moving }"
+                                    v-bind:data-id="product.id"
+                                    v-bind:key="product.id">
 
-                                    <div class="s-column-toggle">
-                                        <div class="s-middle-content">
-                                            <template v-if="!product.states.move_locked">
-                                                <span class="s-icon icon size-16 cursor-move js-product-move-toggle" draggable="true"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></span>
-                                            </template>
-                                            <template v-else>
-                                                <span class="s-icon icon size-16"><i class="fas fa-spinner fa-spin"></i></span>
-                                            </template>
-                                        </div>
-                                    </div>
-                                    <div class="s-column-checkbox">
-                                        <div class="s-middle-content">
-                                            <component-checkbox v-model="product.states.selected" v-on:change="onSelect(product)"></component-checkbox>
-                                        </div>
-                                    </div>
-                                    <div class="s-column-image">
-                                        <div class="s-image-wrapper">
-                                            <template v-if="product.photo">
-                                                <div class="s-image" v-bind:style="{ 'background-image' : 'url('+product.photo.url+')' }">
-                                            </template>
-                                            <template v-else>
-                                                {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
-                                                <span class="s-icon icon size-18"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>
-                                            </template>
-                                        </div>
-                                    </div>
-                                    <div class="s-column-name">
-                                        <div class="s-middle-content">
-                                            <div class="s-name" v-html="product.name"></div>
-                                        </div>
-                                    </div>
-                                    <div class="s-column-price">
-                                        <div class="s-middle-content end">
-                                            <div class="s-price" v-html="product.price_html"></div>
-                                        </div>
+                                <div class="s-column-toggle">
+                                    <div class="s-middle-content">
+                                        <template v-if="!product.states.move_locked">
+                                            <span class="s-icon icon size-16 cursor-move js-product-move-toggle" draggable="true"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></span>
+                                        </template>
+                                        <template v-else>
+                                            <span class="s-icon icon size-16"><i class="fas fa-spinner fa-spin"></i></span>
+                                        </template>
                                     </div>
                                 </div>
-                            </template>
+                                <div class="s-column-checkbox">
+                                    <div class="s-middle-content">
+                                        <component-checkbox v-model="product.states.selected" v-on:change="onSelect(product)"></component-checkbox>
+                                    </div>
+                                </div>
+                                <div class="s-column-image">
+                                    <div class="s-image-wrapper">
+                                        <template v-if="product.photo">
+                                            <div class="s-image" v-bind:style="{ 'background-image' : 'url('+product.photo.url+')' }">
+                                        </template>
+                                        <template v-else>
+                                            {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+                                            <span class="s-icon icon size-18"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div class="s-column-name">
+                                    <div class="s-middle-content">
+                                        <div class="s-name" v-html="product.name"></div>
+                                    </div>
+                                </div>
+                                <div class="s-column-price">
+                                    <div class="s-middle-content end">
+                                        <div class="s-price" v-html="product.price_html"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </template>
                     <template v-else>

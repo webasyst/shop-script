@@ -74,16 +74,15 @@
             // DOM
             var $view_section = that.$wrapper.find(".js-product-services-section");
 
-            var vue_model = new Vue({
-                el: $view_section[0],
-                data: {
-                    errors       : that.errors,
-                    errors_global: that.errors_global,
-                    product      : that.product,
-                    product_type : that.product_type,
-                    services     : that.services
-                },
-                components: {
+            var vue_model = Vue.createApp({
+                data() {
+                    return {
+                        errors       : that.errors,
+                        errors_global: that.errors_global,
+                        product      : that.product,
+                        product_type : that.product_type,
+                        services     : that.services
+                    }
                 },
                 computed: {
                     placeholder_modification: function() {
@@ -116,9 +115,9 @@
                         var self = this;
 
                         if (error.id && error.id.indexOf("][price]") >= 0) {
-                            self.$set(that.errors, error.id, error);
+                            self.errors[error.id] = error;
                         } else {
-                            that.errors_global.push(error);
+                            self.errors_global.push(error);
                         }
                     },
                     removeErrors: function(errors) {
@@ -126,11 +125,11 @@
 
                         // Очистка всех ошибок
                         if (errors === null) {
-                            $.each(that.errors, function(key) {
+                            $.each(self.errors, function(key) {
                                 if (key !== "global") {
-                                    self.$delete(that.errors, key);
+                                    delete self.errors[key];
                                 } else {
-                                    that.errors.global.splice(0, that.errors.length);
+                                    self.errors.global.splice(0, self.errors.length);
                                 }
                             });
 
@@ -144,12 +143,12 @@
                     removeError: function(error_id, error) {
                         var self = this;
 
-                        if (that.errors[error_id]) {
-                            self.$delete(that.errors, error_id);
+                        if (self.errors[error_id]) {
+                            delete self.errors[error_id];
                         } else {
-                            var error_index = that.errors_global.indexOf(error);
+                            var error_index = self.errors_global.indexOf(error);
                             if (error_index >= 0) {
-                                that.errors_global.splice(error_index, 1);
+                                self.errors_global.splice(error_index, 1);
                             }
                         }
                     },
@@ -183,11 +182,7 @@
                         }
 
                         // set
-                        set(value);
-
-                        function set(value) {
-                            Vue.set(data, key, value);
-                        }
+                        data[key] = value;
                     },
 
                     changeServicesList: function() {
@@ -329,6 +324,8 @@
                 }
             });
 
+            vue_model.mount($view_section[0]);
+
             return vue_model;
         };
 
@@ -376,7 +373,7 @@
                 // Очищаем ошибки
                 $.each(that.errors, function(key, error) {
                     // Точечные ошибки
-                    if (key !== "global") { Vue.delete(that.errors, key); }
+                    if (key !== "global") { delete that.errors[key] }
                     // Общие ошибки
                     else if (error.length) {
                         error.splice(0, error.length);
@@ -619,7 +616,6 @@
                         function enableService(service, enable) {
                             service.is_enabled = enable;
                             service.status_model = enable;
-                            // service.product_id = (enable ? that.product.id : null);
                             service.product_id = null;
                             if (service.variants) {
                                 $.each(service.variants, function(i, variant) {
@@ -644,25 +640,21 @@
 
                 var filter_timer = 0;
 
-                new Vue({
-                    el: $section[0],
-                    data: {
-                        services: services,
-                        states: {
-                            changed: false
+                Vue.createApp({
+                    data() {
+                        return {
+                            services: services,
+                            states: {
+                                changed: false
+                            }
                         }
                     },
                     delimiters: ['{ { ', ' } }'],
                     components: {
                         "component-switch": {
-                            props: ["value", "disabled"],
-                            data: function() {
-                                return {
-                                    checked: (typeof this.value === "boolean" ? this.value : false),
-                                    disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
-                                };
-                            },
-                            template: '<div class="switch"><input type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled"></div>',
+                            props: ["modelValue", "disabled"],
+                            emits: ["update:modelValue", "change"],
+                            template: '<div class="switch"><input type="checkbox" v-bind:checked="prop_checked" v-bind:disabled="prop_disabled"></div>',
                             delimiters: ['{ { ', ' } }'],
                             mounted: function() {
                                 var self = this;
@@ -670,10 +662,23 @@
                                 $(self.$el).waSwitch({
                                     change: function(active, wa_switch) {
                                         self.$emit("change", active);
-                                        self.$emit("input", active);
+                                        self.$emit("update:modelValue", active);
                                     }
                                 });
+                            },
+                            computed: {
+                                prop_checked() { return (typeof this.modelValue === "boolean" ? this.modelValue : false); },
+                                prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); }
                             }
+                        }
+                    },
+                    computed: {
+                        emptySearchResult() {
+                            if (!this.services.length) {
+                                return false;
+                            }
+
+                            return this.services.every(s => !s.visible);
                         }
                     },
                     methods: {
@@ -681,7 +686,7 @@
                             var self = this;
 
                             clearTimeout(filter_timer);
-                            filter_timer = setTimeout( update, 100);
+                            filter_timer = setTimeout( update, 200);
 
                             function update() {
                                 value = value.toLowerCase();
@@ -718,13 +723,14 @@
                     mounted: function () {
                         dialog.resize();
                     }
-                });
+                }).mount($section[0]);
 
                 function getServices() {
                     var services = $.wa.clone(dialog.options.services);
 
                     $.each(services, function(i, service) {
                         service.is_disabled = !!service.type_id;
+                        service.visible = true;
                     });
 
                     return services;

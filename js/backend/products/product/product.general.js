@@ -4,6 +4,7 @@
 
         Section = function(options) {
             var that = this;
+            const { reactive } = Vue;
 
             // DOM
             that.$wrapper = options["$wrapper"];
@@ -25,7 +26,7 @@
             // VUE JS MODELS
             that.stocks_array = options["stocks"];
             that.stocks = $.wa.construct(that.stocks_array, "id");
-            that.product = formatProduct(options["product"]);
+            that.product = reactive(formatProduct(options["product"]));
             that.currencies = options["currencies"];
             // Ошибки sku vue model
             that.errors = {};
@@ -289,7 +290,7 @@
                 $(window).scrollTop( $focus_message.offset().top - 100 );
 
             } else {
-                var $errors = that.$wrapper.find(".wa-error-field, .wa-error-text");
+                var $errors = that.$wrapper.find(".state-error, .state-error-hint");
                 if ($errors.length) {
                     var top = $errors.first().offset().top - 100;
                     top = (top > 0 ? top : 0);
@@ -342,11 +343,11 @@
             $name_field.on("input", function() {
                 var value = $.trim($name_field.val()),
                     show_length_error = (value.length > 255),
-                    error_class = "wa-error-field";
+                    error_class = "state-error";
 
                 if (show_length_error) {
                     if (!$error_html) {
-                        $error_html = $("<div />", { class: "wa-error-text"}).html(that.locales["max_length_error"]);
+                        $error_html = $("<div />", { class: "state-error-hint"}).html(that.locales["max_length_error"]);
                         $error_html.insertAfter($name_field);
                     }
                     $name_field.addClass(error_class);
@@ -528,7 +529,7 @@
 
                 function renderError(html) {
                     var $wrapper = $url_field.closest(".s-url-field-wrapper"),
-                        $error = $("<div />", { class: "wa-error-text error"}).html(html),
+                        $error = $("<div />", { class: "state-error-hint"}).html(html),
                         error_class = "has-error";
 
                     $wrapper.addClass(error_class);
@@ -545,7 +546,7 @@
 
             function validateNameField() {
                 var value = $.trim($name_field.val()),
-                    error_class = "wa-error-field";
+                    error_class = "state-error";
 
                 if (value) {
                     $name_field.removeClass(error_class);
@@ -556,7 +557,7 @@
 
                 } else {
                     if (!$product_error) {
-                        $product_error = $("<div class=\"wa-error-text\"></div>").html(that.locales["product_name_required"]);
+                        $product_error = $('<div class="state-error-hint"></div>').html(that.locales["product_name_required"]);
                         $name_field.addClass(error_class).after($product_error);
                     }
                 }
@@ -596,6 +597,12 @@
                     var status_id = $(target).data("id");
                     $redirect_section.attr("data-id", status_id);
                     $redirect_input.val(status_id).trigger("change");
+
+                    if (status_id !== 'url') {
+                        ["error_url_required", "error_url_incorrect"].forEach(err_key => {
+                            delete that.errors[err_key];
+                        });
+                    }
                 }
             });
 
@@ -612,7 +619,7 @@
             function onUrlChange($field) {
                 var value = $.trim($field.val()),
                     is_valid = $.wa.isValid("url_absolute", value),
-                    error_class = "wa-error-field";
+                    error_class = "state-error";
 
                 // Рендер ошибки на поле
                 if (!value.length) {
@@ -628,22 +635,22 @@
 
                 // Добавление ошибки в модель чтобы блочить сохранение
                 if (value.length) {
-                    Vue.delete(that.errors, "error_url_required");
+                    delete that.errors["error_url_required"];
                 } else {
-                    Vue.set(that.errors, "error_url_required", {
+                    that.errors["error_url_required"] = {
                         "id": "error_url_required",
                         "text": "error_url_required"
-                    });
+                    };
                 }
 
                 // Добавление ошибки в модель чтобы блочить сохранение
                 if (is_valid) {
-                    Vue.delete(that.errors, "error_url_incorrect");
+                    delete that.errors["error_url_incorrect"];
                 } else {
-                    Vue.set(that.errors, "error_url_incorrect", {
+                    that.errors["error_url_incorrect"] = {
                         "id": "error_url_incorrect",
                         "text": "error_url_incorrect"
-                    });
+                    };
                 }
 
                 function renderError($_error) {
@@ -671,33 +678,37 @@
 
             var $section = that.$wrapper.find("#vue-sku-section");
 
-            var vue_model = new Vue({
-                el: $section[0],
-                data: {
-                    errors: that.errors,
-                    stocks: that.stocks,
-                    stocks_array: that.stocks_array,
-                    product: that.product,
-                    currencies: that.currencies
+            if (typeof $.vue_app === "object" && typeof $.vue_app.unmount === "function") {
+                $.vue_app.unmount();
+            }
+
+            $.vue_app = Vue.createApp({
+                data() {
+                    return {
+                        errors: that.errors,
+                        stocks: that.stocks,
+                        stocks_array: that.stocks_array,
+                        product: that.product,
+                        currencies: that.currencies
+                    }
                 },
                 components: {
                     "component-switch": {
-                        props: ["value", "disabled"],
-                        data: function() {
-                            return {
-                                checked: (typeof this.value === "boolean" ? this.value : false),
-                                disabled: (typeof this.disabled === "boolean" ? this.disabled : false)
-                            };
-                        },
-                        template: '<div class="switch"><input v-bind:id="$attrs.input_id" type="checkbox" v-bind:checked="checked" v-bind:disabled="disabled"></div>',
+                        props: ["modelValue", "disabled"],
+                        emits: ["update:modelValue", "change"],
+                        template: '<div class="switch"><input v-bind:id="$attrs.input_id" type="checkbox" v-bind:checked="prop_checked" v-bind:disabled="prop_disabled"></div>',
                         delimiters: ['{ { ', ' } }'],
+                        computed: {
+                            prop_checked() { return (typeof this.modelValue === "boolean" ? this.modelValue : false) },
+                            prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false) }
+                        },
                         mounted: function() {
                             var self = this;
 
                             $(self.$el).waSwitch({
                                 change: function(active, wa_switch) {
                                     self.$emit("change", active);
-                                    self.$emit("input", active);
+                                    self.$emit("update:modelValue", active);
                                 }
                             });
                         }
@@ -705,12 +716,10 @@
                     "component-dropdown-currency": {
                         props: ["currency_code", "currencies", "wide"],
                         template: that.templates["component-dropdown-currency"],
-                        data: function() {
-                            return {
-                                wide: (typeof wide === "boolean" ? wide : false)
-                            }
-                        },
                         delimiters: ['{ { ', ' } }'],
+                        computed: {
+                            prop_wide() { return (typeof this.wide === "boolean" ? this.wide : false) }
+                        },
                         mounted: function() {
                             var self = this;
 
@@ -726,30 +735,26 @@
                     "component-product-badge-form": {
                         props: ["product"],
                         data: function() {
-                            var self = this;
                             return {
-                                "badge": self.product.badges[self.product.badges.length - 1]
+                                "badge": this.product.badges[this.product.badges.length - 1]
                             }
                         },
                         template: that.templates["component-product-badge-form"],
                         methods: {
                             updateForm: function() {
-                                var self = this;
-
-                                self.badge.code = self.badge.code_model;
-                                self.product.badge_form = false;
+                                this.product.badge_form = false;
 
                                 that.$wrapper.trigger("change");
                             },
                             revertForm: function() {
-                                var self = this;
+                                this.badge.code = this.badge.code_model;
 
-                                if (self.product.badge_prev_id) {
-                                    self.product.badge_id = self.product.badge_prev_id;
+                                if (this.product.badge_prev_id) {
+                                    this.product.badge_id = this.product.badge_prev_id;
                                     that.$wrapper.trigger("change");
                                 }
 
-                                self.product.badge_form = false;
+                                this.product.badge_form = false;
                             }
                         },
                         mounted: function() {
@@ -784,8 +789,9 @@
                         template: that.templates["component-file-manager"],
                         components: {
                             "component-flex-textarea": {
-                                props: ["value", "placeholder"],
-                                template: '<textarea v-bind:placeholder="placeholder" v-bind:value="value" v-on:input="$emit(\'input\', $event.target.value)"></textarea>',
+                                props: ["modelValue", "placeholder"],
+                                emits: ["update:modelValue", "blur", "ready"],
+                                template: `<textarea v-bind:placeholder="placeholder" v-bind:value="modelValue" v-on:input="$emit('update:modelValue', $event.target.value)" v-on:blur="$emit('blur', $event.target.value)"></textarea>`,
                                 delimiters: ['{ { ', ' } }'],
                                 updated: function() {
                                     var self = this;
@@ -902,8 +908,7 @@
 
                                             var $section = $dialog.find(".js-vue-node-wrapper");
 
-                                            new Vue({
-                                                el: $section[0],
+                                            Vue.createApp({
                                                 delimiters: ['{ { ', ' } }'],
                                                 created: function() {
                                                     $section.css("visibility", "");
@@ -911,7 +916,7 @@
                                                 mounted: function() {
                                                     dialog.resize();
                                                 }
-                                            });
+                                            }).mount($section[0]);
 
                                             $dialog.on("click", ".js-success-action", function(event) {
                                                 event.preventDefault();
@@ -1077,10 +1082,8 @@
                         });
                     },
                     setProductPhoto: function(photo, sku_mod) {
-                        var self = this;
-
-                        self.$set(sku_mod, "photo", photo);
-                        self.$set(sku_mod, "image_id", photo.id);
+                        sku_mod["photo"] = photo;
+                        sku_mod["image_id"] = photo.id;
                         that.$wrapper.trigger("change");
                     },
                     removeProductPhoto: function(sku_mod) {
@@ -1090,8 +1093,8 @@
                             html: that.templates["dialog_sku_delete_photo"],
                             options: {
                                 onUnpin: function() {
-                                    self.$set(sku_mod, "photo", null);
-                                    self.$set(sku_mod, "image_id", null);
+                                    sku_mod["photo"] = null;
+                                    sku_mod["image_id"] = null;
                                     that.$wrapper.trigger("change");
                                 },
                                 onDelete: function() {
@@ -1104,8 +1107,8 @@
                                     $.each(that.product.skus, function(i, _sku) {
                                         $.each(_sku.modifications, function(i, _sku_mod) {
                                             if (_sku_mod.photo && _sku_mod.photo.id === photo.id) {
-                                                self.$set(_sku_mod, "photo", null);
-                                                self.$set(_sku_mod, "image_id", null);
+                                                _sku_mod["photo"] = null;
+                                                _sku_mod["image_id"] = null;
                                             }
                                         });
                                     });
@@ -1337,13 +1340,13 @@
                                 var error_key = "product[skus][" + data.id + "]["+ key + "]";
 
                                 if (parts[0].length > limit_body || (parts[1] && parts[1].length > limit_tail)) {
-                                    self.$set(self.errors, error_key, {
+                                    self.errors[error_key] = {
                                         id: "price_error",
                                         text: "price_error"
-                                    });
+                                    };
                                 } else {
                                     if (self.errors[error_key]) {
-                                        self.$delete(that.errors, error_key);
+                                        delete that.errors[error_key];
                                     }
                                 }
 
@@ -1362,7 +1365,7 @@
                         set(value);
 
                         function set(value) {
-                            Vue.set(data, key, value);
+                            data[key] = value;
                         }
                     }
                 },
@@ -1375,6 +1378,9 @@
                     that.$wrapper.trigger("section_mounted", ["services", that]);
                 }
             });
+
+            $.vue_app.config.compilerOptions.whitespace = 'preserve';
+            $.vue_app.mount($section[0]);
 
             function updateProductMainPhoto(image_id) {
                 if (!that.product.photos.length) { return false; }
@@ -1393,14 +1399,14 @@
 
         Section.prototype.initFractionalSection = function() {
             var that = this;
-
             var $section = that.$wrapper.find(".js-fractional-section:first");
 
-            var vue_model = new Vue({
-                el: $section[0],
-                data: {
-                    product: that.product,
-                    keys: that.keys
+            Vue.createApp({
+                data() {
+                    return {
+                        product: that.product,
+                        keys: that.keys
+                    }
                 },
                 components: {
                     "component-fractional-section": {
@@ -1697,13 +1703,13 @@
                                 if (self.fractional.rights.stock_unit_id === "enabled" || self.fractional.rights.base_unit_id === "enabled") {
                                     var case_1 = (self.fractional.stock_unit_id && self.fractional.base_unit_id && self.fractional.stock_unit_id === self.fractional.base_unit_id);
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["units_unique_error"] });
+                                        self.errors[error_id] = { id: error_id, text: that.locales["units_unique_error"] };
                                         result = "units_error";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1717,13 +1723,13 @@
                                 if (self.fractional.rights.stock_unit_id === "enabled") {
                                     var case_1 = (!self.fractional.stock_unit_id);
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_unit_required"] });
+                                        self.errors[error_id] = { id: error_id, text: that.locales["stock_unit_required"] };
                                         result = "stock_unit_error";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1745,17 +1751,17 @@
                                         case_2 = isInvalidRatio(self.fractional.stock_base_ratio);
 
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, {id: error_id, text: that.locales["stock_base_ratio_error"]});
+                                        self.errors[error_id] = {id: error_id, text: that.locales["stock_base_ratio_error"]};
                                         result = "stock_base_ratio_error";
                                     } else
                                     if (case_2) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["stock_base_ratio_invalid"] });
+                                        self.errors[error_id] = {id: error_id, text: that.locales["stock_base_ratio_invalid"]};
                                         result = "stock_base_ratio_invalid";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1784,13 +1790,13 @@
                                 if (self.fractional.rights.order_multiplicity_factor === "enabled") {
                                     var case_1 = (!self.fractional.order_multiplicity_factor || !checkValue(self.fractional.order_multiplicity_factor));
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_multiplicity_factor_required"] });
+                                        self.errors[error_id] = {id: error_id, text: that.locales["order_multiplicity_factor_required"]};
                                         result = "order_multiplicity_factor_required";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1823,13 +1829,13 @@
                                 if (self.fractional.rights.order_count_step === "enabled" && self.fractional.order_multiplicity_factor) {
                                     var case_1 = (!self.fractional.order_count_step || !self.checkValue(self.fractional.order_count_step));
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_step_error"] });
+                                        self.errors[error_id] = { id: error_id, text: that.locales["order_count_step_error"] };
                                         result = "order_count_step_error";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1846,13 +1852,13 @@
                                 if (self.fractional.rights.order_count_min === "enabled" && self.fractional.order_multiplicity_factor) {
                                     var case_1 = (!self.fractional.order_count_min || !self.checkValue(self.fractional.order_count_min));
                                     if (case_1) {
-                                        self.$set(self.errors, error_id, { id: error_id, text: that.locales["order_count_min_error"] });
+                                        self.errors[error_id] = { id: error_id, text: that.locales["order_count_min_error"] };
                                         result = "order_count_min_error";
                                     } else {
-                                        self.$delete(self.errors, error_id);
+                                        delete self.errors[error_id];
                                     }
                                 } else {
-                                    self.$delete(self.errors, error_id);
+                                    delete self.errors[error_id];
                                 }
 
                                 return result;
@@ -1890,7 +1896,7 @@
                 created: function() {
                     $section.css("visibility", "");
                 }
-            });
+            }).mount($section[0]);
         };
 
         Section.prototype.initTypeSection = function() {
@@ -2645,12 +2651,12 @@
                         console.log( vue_errors );
                         // Есть разница во времени рендера Vue ошибок. Скролл к ошибке следует запускать чуть позже
                         setTimeout( function() {
-                            var $errors = that.$wrapper.find(".wa-error-text");
+                            var $errors = that.$wrapper.find(".state-error-hint");
                             if ($errors.length > 0) {
                                 $(window).scrollTop( $errors.first().offset().top - 128 );
                                 that.is_locked = false;
                             }
-                        }, 100);
+                        }, 200);
 
                     } else if (!no_errors || form_data.errors.length) {
                         that.renderErrors(form_data.errors);
@@ -2688,7 +2694,7 @@
                                 $submit_button.attr("disabled", false);
                                 that.is_locked = false;
 
-                                afterSaveFailPluginHook(form_data.data, reason == 'errors' ? errors : []);
+                                afterSaveFailPluginHook(form_data.data, reason == 'errors' ? clone(errors) : []);
 
                                 if (reason == 'errors' && errors && errors.length) {
                                     var error_search = errors.filter( error => (error.id === "not_found"));
@@ -3135,14 +3141,15 @@
                 photos.unshift(active_photo);
             }
 
-            new Vue({
-                el: $vue_section[0],
-                data: {
-                    photo_id: photo_id,
-                    photos: photos,
-                    active_photo: active_photo,
-                    files: [],
-                    errors: []
+            Vue.createApp({
+                data() {
+                    return {
+                        photo_id: photo_id,
+                        photos: photos,
+                        active_photo: active_photo,
+                        files: [],
+                        errors: []
+                    }
                 },
                 delimiters: ['{ { ', ' } }'],
                 components: {
@@ -3373,7 +3380,7 @@
 
                     dialog.resize();
                 }
-            });
+            }).mount($vue_section[0]);
 
             function formatPhoto(photo) {
                 photo.expanded = false;

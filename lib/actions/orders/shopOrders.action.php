@@ -134,8 +134,16 @@ class shopOrdersAction extends shopOrderListAction {
             'sort'                 => $this->getSort(),
             'all_order_state_ids'  => $all_order_state_ids,
             'state_counters'       => $state_counters,
-            'last_update_datetime' => max(array_column($orders, 'update_datetime')),
+            'last_update_datetime' => $this->getLastUpdateDatetime($orders),
         ]);
+    }
+
+    protected function getLastUpdateDatetime($orders)
+    {
+        if (!$orders) {
+            return date('Y-m-d H:i:s', time() - 3600*24);
+        }
+        return max(array_column($orders, 'update_datetime'));
     }
 
     public function getOrders($offset, $limit) {

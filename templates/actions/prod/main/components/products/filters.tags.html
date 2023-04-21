@@ -20,7 +20,7 @@
                         <div class="s-tag-wrapper flexbox space-8">
                             <div class="s-checkbox-wrapper">
                                 <template v-if="tag.is_locked">
-                                    <component-checkbox v-bind:value="true" v-bind:disabled="true"></component-checkbox>
+                                    <component-checkbox v-bind:model-value="true" v-bind:disabled="true"></component-checkbox>
                                 </template>
                                 <template v-else>
                                     <component-checkbox v-model="tag.states.enabled" v-on:change="onChange"></component-checkbox>

@@ -28,29 +28,19 @@
 {* КОМПОНЕНТЫ *}
 {$_components = []}
 
-{capture assign="_component_checkbox"}
-    <component v-bind:is="tag" class="wa-checkbox">
-        <input type="checkbox" v-model="value" v-bind:id="field_id" v-on:change="onChange" v-bind:disabled="disabled" tabindex="-1">
-        <span>
-            <span class="icon"><i class="fas fa-check"></i></span>
-        </span>
-    </component>
-{/capture}
-{$_components["component-checkbox"] = $_component_checkbox|strip}
-
 {capture assign="_component_radio"}
     <component class="wa-radio" v-bind:is="tag">
-        <input type="radio" v-bind:value="val" v-bind:name="name" v-on:change="onChange" v-bind:key="val" v-bind:disabled="disabled" v-model="value">
+        <input type="radio" v-bind:checked="checked" v-bind:value="value" v-bind:name="prop_name" v-on:change="onChange($event.target.value)" v-bind:disabled="prop_disabled">
         <span></span>
     </component>
 {/capture}
 {$_components["component-radio"] = $_component_radio|strip}
 
 {capture assign="_component_datepicker"}
-    <div class="vue-component-date-picker" v-bind:class="{ 'is-disabled': disabled }">
-        <input class="s-field small size-short js-date-picker" type="text" value="" v-bind:readonly="disabled">
+    <div class="vue-component-date-picker" v-bind:class="{ 'is-disabled': prop_disabled }">
+        <input class="s-field small size-short js-date-picker" type="text" value="" v-bind:readonly="prop_disabled">
         <span class="s-icon"><i class="fas fa-calendar-alt"></i></span>
-        <input v-bind:name="name" type="hidden" value="">
+        <input v-bind:name="prop_name" type="hidden" value="">
     </div>
 {/capture}
 {$_components["component-datepicker"] = $_component_datepicker|strip}
@@ -58,7 +48,7 @@
 {capture assign="_component_dropdown_set_sorting"}
     <div class="dropdown">
         <button class="dropdown-toggle button small" type="button"
-                v-bind:class="button_class" v-bind:disabled="disabled">{ { active_item.name } }</button>
+                v-bind:class="button_class" v-bind:disabled="prop_disabled">{ { active_item.name } }</button>
         <div class="dropdown-body">
             <template v-for="item in items">
                 <div class="dropdown-item"
@@ -88,9 +78,10 @@
 {$_components["component-dropdown-sets-sorting"] = $_component_dropdown_sets_sorting|strip}
 
 {capture assign="_component_search_sets"}
+<div class="s-search-section-wrapper" @click.prevent="$refs.input.focus()">
     <div class="s-search-section flexbox space-8">
         <div class="s-field-wrapper wide">
-            <input class="s-field" placeholder="{_w("Search")|escape}" v-model="search_string" v-on:input="search">
+            <input class="s-field" ref="input" placeholder="[`Search`]" v-model="search_string" v-on:input="search">
         </div>
         <template v-if="search_string.length">
             <div class="s-counter-wrapper">
@@ -114,6 +105,7 @@
             </div>
         </template>
     </div>
+</div>
 {/capture}
 {$_components["component-search-sets"] = $_component_search_sets|strip}
 
@@ -417,7 +409,7 @@
             var sources = [{
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
             }, {
                 id: "wa-shop-products-sets-js",
                 type: "js",

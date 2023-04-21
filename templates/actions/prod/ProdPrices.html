@@ -100,22 +100,22 @@
                 <div class="s-column-title flexbox middle space-4 {if $formatted_product["normal_mode"]}cursor-pointer{/if}"
                      {if $formatted_product["normal_mode"]}v-on:click.prevent="pricesToggle"{/if}>
                     {if $formatted_product["normal_mode"]}
-                        <span class="s-icon custom-mt-32">
+                        <span class="s-icon">
                             <span class="icon size-20" v-if="prices_model.is_extended" v-bind:key="'down'"><i class="fas fa-chevron-down"></i></span>
                             <span class="icon size-20" v-else v-bind:key="'right'"><i class="fas fa-chevron-right"></i></span>
                         </span>
                     {/if}
-                    <h4 class="s-title">[`Prices & availability`]</h4>
+                    <div><h4 class="s-title">[`Prices & availability`]</h4></div>
                 </div>
                 <div class="s-column-filters wide" v-if="prices_model.is_extended">
                     <div class="s-filters-list">
                         <template v-for="(active_filter_id, filter_name) in prices_model.filters">
                             <div class="s-filter-section">
-                                <span class="s-label">{ { filters[filter_name].label } }</span>
+                                <span class="s-label">{ { filters[filter_name].label } } </span>
                                 <component-dropdown
                                     v-bind:items="filters[filter_name]['options']"
                                     v-bind:active_item_id="active_filter_id"
-                                    v-bind:button_class="'small white rounded'"
+                                    v-bind:button_class="'small light-gray'"
                                     v-bind:body_class="'right'"
                                     v-on:change="onChangeFilter(filter_name, $event)"></component-dropdown>
                             </div>
@@ -176,15 +176,14 @@
                                  v-bind:data-id="sku_mod.id"
                                  v-bind:key="sku_mod.id">
                                 <div class="s-table-column s-column-name">
-                                    <div class="flexbox">
-                                        <div class="s-modification-icon s-modification-percentage"
+                                    <div class="flexbox middle space-8">
+                                        <div class="s-modification-percentage"
                                              v-if="show_percentage(sku.modifications) && sku_mod.promos">
-                                            <button class="button no-indent outlined"
+                                            <button class="button nobutton circle light-gray no-indent"
                                                     v-bind:data-tooltip-id="promo_tooltip(sku_mod)"
                                                     v-bind:style="{ 'visibility' : (Object.keys(sku_mod.promos).length ? '' : 'hidden' ) }"
                                                     v-on:click.prevent="scrollToPromo(sku_mod)">
-                                                <span class="s-icon"
-                                                      v-bind:class="promo_icon_class(sku_mod)"><i class="fas fa-percentage"></i></span>
+                                                <span class="s-icon" v-bind:class="promo_icon_class(sku_mod)"><i class="fas fa-percentage"></i></span>
                                             </button>
                                         </div>
                                         <div class="s-modification-icon s-modification-status">
@@ -310,7 +309,7 @@
                                         </div>
                                     </template>
                                     <template v-else>
-                                        <div class="s-message">[`The promo is applied to all storefronts.`]</div>
+                                        <div class="s-message hint">[`The promo is applied to all storefronts.`]</div>
                                     </template>
                                 </div>
                             {/if}
@@ -318,12 +317,12 @@
                         <div class="s-column-filters nowrap">
                             <div class="s-filters-list">
                                 <template v-for="(active_filter_id, filter_name) in promo.filters">
-                                    <div class="s-filter-section">
-                                        <span class="s-label">{ { filters[filter_name].label } }</span>
+                                    <div class="s-filter-section wide">
+                                        <span class="s-label">{ { filters[filter_name].label } } </span>
                                         <component-dropdown
                                             v-bind:items="filters[filter_name]['options']"
                                             v-bind:active_item_id="active_filter_id"
-                                            v-bind:button_class="'small white rounded'"
+                                            v-bind:button_class="'small light-gray'"
                                             v-bind:body_class="'right'"
                                             v-on:change="onChangeFilter(filter_name, $event)"></component-dropdown>
                                     </div>
@@ -465,7 +464,6 @@
 <div id="js-product-prices-section-wrapper">
     {* VUE *}
     <div class="article wider s-product-prices-section js-product-prices-section" style="visibility: hidden;">
-        {* BODY *}
 
         <!-- plugin hook: 'backend_prod_content.top' -->
         {* @event backend_prod_content.%plugin_id%.top *}
@@ -474,17 +472,15 @@
         <div class="s-section-body">
             {* GLOBAL ERRORS *}
             <div class="s-errors-place" v-if="errors_global.length">
-                <template v-for="error in errors_global">
-                    <div class="wa-message small info flexbox space-8"
-                         v-bind:data-id="error.id"
-                         v-bind:key="error.id">
-                        <div class="message-icon"><i class="fas fa-info-circle"></i></div>
-                        <div class="message-text wide">{ { error.text } }</div>
-                        <div class="message-actions">
-                            <div class="message-action" v-on:click.prevent="removeError(error.id, error)"><i class="fas fa-times message-toggle"></i></div>
-                        </div>
+                <div v-for="error in errors_global" v-bind:key="error.id"
+                        class="wa-message small info flexbox space-8"
+                        v-bind:data-id="error.id">
+                    <div class="message-icon"><i class="fas fa-info-circle"></i></div>
+                    <div class="message-text wide">{ { error.text } }</div>
+                    <div class="message-actions">
+                        <div class="message-action" v-on:click.prevent="removeError(error.id, error)"><i class="fas fa-times message-toggle"></i></div>
                     </div>
-                </template>
+                </div>
             </div>
 
             {* STATUS *}
@@ -569,7 +565,7 @@
                                     {if $_count > 10}
                                         <li>
                                             <a class="s-action" href="javascript:void(0);"
-                                               v-on:click.prevent="storefrontsToggle">{$_store_locales["hide_toggle"]|escape}</a>
+                                            v-on:click.prevent="storefrontsToggle">{$_store_locales["hide_toggle"]|escape}</a>
                                         </li>
                                     {/if}
                                 </template>
@@ -580,32 +576,31 @@
             {/if}
 
             {* PRICES *}
-            <component-prices-section
-                v-bind:prices_model="prices_model"></component-prices-section>
+            <component-prices-section v-bind:prices_model="prices_model"></component-prices-section>
 
             {* PROMOS *}
             <div class="s-promos-section">
                 <div class="s-section-header">
-                    <div class="flexbox space-16">
-                        <div class="s-column-title flexbox middle space-4 {if $formatted_product["normal_mode"] && !empty($promos_model.promos)}cursor-pointer{/if}"
+                    <div class="flexbox middle space-16">
+                        <div class="s-column-title flexbox middle wide space-4 {if $formatted_product["normal_mode"] && !empty($promos_model.promos)}cursor-pointer{/if}"
                             {if $formatted_product["normal_mode"] && !empty($promos_model.promos)}v-on:click.prevent="promosToggle"{/if}>
                             {if $formatted_product["normal_mode"] && !empty($promos_model.promos)}
-                                <span class="s-icon custom-mt-32">
+                                <span class="s-icon">
                                     <span class="icon size-20" v-if="promos_model.is_extended" v-bind:key="'down'"><i class="fas fa-chevron-down"></i></span>
                                     <span class="icon size-20" v-else v-bind:key="'right'"><i class="fas fa-chevron-right"></i></span>
                                 </span>
                             {/if}
-                            <h4 class="s-title">[`Promos`]</h4>
+                            <div><h4 class="s-title">[`Promos`]</h4></div>
                         </div>
-                        <div class="s-column-filters wide" v-if="promos_model.promos.length && promos_model.is_extended">
+                        <div class="s-column-filters" v-if="promos_model.promos.length && promos_model.is_extended">
                             <div class="s-filters-list">
                                 <template v-for="(active_filter_id, filter_name) in promos_model.filters">
                                     <div class="s-filter-section">
-                                        <span class="s-label">{ { filters[filter_name].label } }</span>
+                                        <span class="s-label">{ { filters[filter_name].label } }&nbsp;</span>
                                         <component-dropdown
                                             v-bind:items="filters[filter_name]['options']"
                                             v-bind:active_item_id="active_filter_id"
-                                            v-bind:button_class="'small white rounded'"
+                                            v-bind:button_class="'small light-gray'"
                                             v-on:change="onChangeFilter(filter_name, $event)"></component-dropdown>
                                     </div>
                                 </template>
@@ -614,7 +609,7 @@
                     </div>
                 </div>
                 <div class="s-section-body"
-                     v-if="promos_model.is_extended">
+                    v-if="promos_model.is_extended">
 
                     <template v-if="promos_model.promos.length">
                         <template v-for="promo in promos_model.promos">
@@ -644,7 +639,7 @@
             var sources = [{
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
             }, {
                 id: "wa-shop-products-product-prices-js",
                 type: "js",

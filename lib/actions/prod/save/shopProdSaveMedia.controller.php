@@ -87,6 +87,7 @@ class shopProdSaveMediaController extends waJsonController
             'image_id'       => $image_data['id'],
             'image_filename' => $image_data['filename'],
             'ext'            => $image_data['ext'],
+            'edit_datetime'  => date('Y-m-d H:i:s'),
         ]);
 
         $product_skus_model = new shopProductSkusModel();

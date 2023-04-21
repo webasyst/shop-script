@@ -8,14 +8,12 @@
     <div class="vue-column-type-visibility"
          v-bind:class="{ 'is-editable' : editable }"
          v-bind:data-tooltip-id="(!editable ? 'visibility-setup' : '')">
-        {strip}
         <div class="s-actions nowrap">
             <template v-if="product.normal_mode">
-                {* MAIN SKU *}
+                <!-- {* MAIN SKU *} -->
                 <template v-if="states.sku_locked">
                     <div class="s-action">
-                        <span class="s-icon icon top"
-                              v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                        <span class="s-icon icon top" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                     </div>
                 </template>
                 <template v-else>
@@ -27,7 +25,7 @@
                     </div>
                 </template>
 
-                {* VISIBILITY *}
+                <!-- {* VISIBILITY *} -->
                 <template v-if="states.visibility_locked">
                     <div class="s-action">
                         <span class="s-icon icon top size-16 top"
@@ -38,6 +36,7 @@
                     <div class="s-action">
                         <span class="s-icon icon top size-16 text-light-gray"
                               v-bind:key="'fa-eye'"><i class="fas fa-eye"></i></span>
+                    </div>
                 </template>
                 <template v-else>
                     <div class="s-action cursor-pointer" v-on:click="onChangeVisibility">
@@ -58,7 +57,7 @@
                 <div class="s-action"><span class="s-icon icon top size-16"></span></div>
             </template>
 
-            {* AVAILABLE *}
+            <!-- {* AVAILABLE *} -->
             <template v-if="states.available_locked">
                 <div class="s-action">
                     <span class="s-icon icon top size-16 top"
@@ -90,7 +89,6 @@
                 </div>
             </template>
         </div>
-        {/strip}
     </div>
 {/capture}
 {$_components["component-product-column-visibility"] = $_component_product_column_visibility|strip}

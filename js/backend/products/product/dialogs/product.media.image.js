@@ -44,28 +44,26 @@
                 }
             });
 
-            return new Vue({
-                el: $section[0],
-                data: {
-                    //
-                    photo: photo,
-                    photos: photos,
-                    //
-                    image: null,            // Промежуточные данные для рендера в канвасе
-                    //
-                    edit_mode: false,       // Режим редактирования
-                    is_changed: false,      // Наличие изменений в одном из фото
-                    photo_is_ready: false,  // Фотка загрузилась и готова к работе
-                    //
-                    is_locked: false        // Маркер сохранения
+            return Vue.createApp({
+                data() {
+                    return {
+                        photo: photo,
+                        photos: photos,
+                        image: null,            // Промежуточные данные для рендера в канвасе
+                        //
+                        edit_mode: false,       // Режим редактирования
+                        is_changed: false,      // Наличие изменений в одном из фото
+                        photo_is_ready: false,  // Фотка загрузилась и готова к работе
+                        //
+                        is_locked: false        // Маркер сохранения
+                    }
                 },
+                emits: ["success", "cancel"],
                 delimiters: ['{ { ', ' } }'],
                 components: {
                     "component-crop-section": {
                         props: ["photo"],
                         data: function() {
-                            var self = this;
-
                             return {
                                 canvas: null,
                                 image: null,
@@ -506,10 +504,11 @@
 
                                 var $section = $dialog.find(".js-vue-node");
 
-                                new Vue({
-                                    el: $section[0],
-                                    data: {
-                                        photo: self.photo
+                                Vue.createApp({
+                                    data() {
+                                        return {
+                                            photo: self.photo
+                                        }
                                     },
                                     delimiters: ['{ { ', ' } }'],
                                     created: function() {
@@ -518,7 +517,7 @@
                                     mounted: function() {
                                         dialog.resize();
                                     }
-                                });
+                                }).mount($section[0]);
 
                                 $dialog.on("click", ".js-delete-button", function(event) {
                                     event.preventDefault();
@@ -768,7 +767,7 @@
                         }
                     }
                 }
-            });
+            }).mount($section[0]);
         };
 
         Dialog.prototype.save = function() {

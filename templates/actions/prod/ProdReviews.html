@@ -17,19 +17,21 @@
 {$_components = []}
 
 {capture assign="_component_dropdown"}
+{literal}
     <div class="dropdown">
-        <button class="dropdown-toggle button" type="button"
-                v-bind:class="button_class">{ { active_item.name } }</button>
-        <div class="dropdown-body"
-             v-bind:class="body_class"
-             v-bind:style="{ 'width' : body_width }">
-            <template v-for="item in items">
-                <div class="dropdown-item"
-                     v-bind:data-id="item.id"
-                     v-bind:class="{ 'selected': item.id === active_item.id }">{ { item.name } }</div>
-            </template>
+        <button type="button" class="dropdown-toggle button" v-bind:class="button_class"
+        >{ { active_item.name } }</button>
+        <div class="dropdown-body" v-bind:class="body_class" v-bind:style="{ 'width' : body_width }">
+            <div
+                v-for="item in items"
+                v-bind:key="item.id"
+                class="dropdown-item"
+                v-bind:class="{ 'selected': item.id === active_item.id }"
+                v-bind:data-id="item.id"
+            >{ { item.name } }</div>
         </div>
     </div>
+{/literal}
 {/capture}
 {$_components["component-dropdown"] = $_component_dropdown|strip}
 
@@ -38,11 +40,9 @@
         <template v-if="page > 1">
             <li><span v-on:click.prevent="changePage(page-1)">&nbsp;<i class="fas fa-angle-left"></i>&nbsp;</span></li>
         </template>
-        <template v-for="page_number in available_pages">
-            <li v-bind:class="{ 'selected' : (page === page_number) }" v-bind:key="page_number">
-                <span v-on:click.prevent="changePage(page_number)">{ { page_number } }</span>
-            </li>
-        </template>
+        <li v-for="page_number in available_pages" v-bind:key="page_number" v-bind:class="{ 'selected' : (page === page_number) }">
+            <span v-on:click.prevent="changePage(page_number)">{ { page_number } }</span>
+        </li>
         <template v-if="page < pages">
             <li><span v-on:click.prevent="changePage(page+1)">&nbsp;<i class="fas fa-angle-right"></i>&nbsp;</span></li>
         </template>
@@ -52,28 +52,23 @@
 
 {/strip}
 {capture assign="_component_review"}
-    <div class="vue-component-review"
-         v-bind:class="{ 'is-locked' : states.is_delete, 'is-new' : review.is_new }">
-
+    <div class="vue-component-review" v-bind:class="{ 'is-locked' : states.is_delete, 'is-new' : review.is_new }">
         <div class="tablebox space-16">
             <div class="s-column-status-switch custom-pt-4"
-                 v-bind:style="{ 'visibility' : (review.status === '{$review_states["deleted"]}' ? 'hidden' : '') }">
+                v-bind:style="{ 'visibility' : (review.status === '{$review_states["deleted"]}' ? 'hidden' : '') }">
                 <component-switch
                     v-bind:key="states.reload_key"
                     v-bind:disabled="review.disabled"
-                    v-bind:value="review.status_model"
+                    v-model="review.status_model"
                     v-bind:onChange="onReviewStatusChange"></component-switch>
             </div>
             <div class="s-column-body wide">
                 {* STATUS *}
                 <div class="s-status-wrapper tablebox middle space-24">
                     <div class="s-column-status">
-                        <span class="text-red bold"
-                              v-if="review.status === '{$review_states["deleted"]}'">[`Deleted`]</span>
-                        <span class="text-green bold"
-                              v-if="review.status === '{$review_states["published"]}'">[`Published`]</span>
-                        <span class="text-orange bold"
-                              v-if="review.status === '{$review_states["moderation"]}'">[`Under moderation`]</span>
+                        <span class="text-red bold" v-if="review.status === '{$review_states["deleted"]}'">[`Deleted`]</span>
+                        <span class="text-green bold" v-if="review.status === '{$review_states["published"]}'">[`Published`]</span>
+                        <span class="text-orange bold" v-if="review.status === '{$review_states["moderation"]}'">[`Under moderation`]</span>
                     </div>
                     <div class="s-column-actions align-right">
                         <button class="button small light-gray"
@@ -107,15 +102,13 @@
                         {strip}
                         <div class="s-name-wrapper">
                             <template v-if="review.contact_id">
-                                <a class="s-author-name"
-                                   v-bind:href="'{$wa_backend_url}contacts/#/contact/'+review.author.id">{ { review.author.name|escape } }</a>
+                                <a class="s-author-name" v-bind:href="'{$wa_backend_url}contacts/#/contact/'+review.author.id">{ { htmlToText(review.author.name) } }</a>
                             </template>
                             <template v-else-if="review.site">
-                                <a class="s-author-name"
-                                   v-bind:href="review.site">{ { review.author.name|escape } }</a>
+                                <a class="s-author-name" v-bind:href="review.site">{ { htmlToText(review.author.name) } }</a>
                             </template>
                             <template v-else>
-                                <span class="s-author-name">{ { review.author.name|escape } }</span>
+                                <span class="s-author-name">{ { htmlToText(review.author.name) } }</span>
                                 <template v-if="review.author.email">
                                     ,&nbsp;<span class="s-author-email">{ { review.author.email } }</span>
                                 </template>
@@ -130,7 +123,7 @@
                 <div class="s-review-title">
                     <div class="s-rating"
                          v-if="review.show_rate">
-                        <template v-for="(n, index) in 5">
+                        <template v-for="(n, index) in 5" v-bind:key="index">
                             <template v-if="n <= review.rate">
                                 <span class="icon baseline top s-star color-yellow" v-bind:key="n"><i class="fas fa-star"></i></span>
                             </template>
@@ -142,7 +135,7 @@
                             </template>
                         </template>
                     </div>
-                    <div class="s-title">{ { review.title|escape } }</div>
+                    <div class="s-title">{ { htmlToText(review.title) } }</div>
                 </div>
 
                 {* TEXT *}
@@ -151,23 +144,21 @@
                 {* IMAGES *}
                 <div class="s-review-images">
                     <div class="s-images-list flexbox wrap">
-                        <template v-for="image in review.images">
-                            <div class="s-image-wrapper"
-                                 v-bind:class="{ 'is-locked' : image.states.is_delete }"
-                                 v-bind:key="image.id">
-                                <div class="s-image cursor-pointer"
-                                     v-bind:data-title="(image.title ? image.title : '')"
-                                     v-bind:data-tooltip-id="(image.title ? 'product-review-image-title' : '')"
-                                     v-on:click.prevent="imageView(image)"
-                                     v-bind:style="{ 'background-image' : 'url(' + image.thumb + ')' }"></div>
+                        <div v-for="image in review.images"
+                            class="s-image-wrapper"
+                            v-bind:class="{ 'is-locked' : image.states.is_delete }"
+                            v-bind:key="image.id">
+                            <div class="s-image cursor-pointer"
+                                    v-bind:data-title="(image.title ? image.title : '')"
+                                    v-bind:data-tooltip-id="(image.title ? 'product-review-image-title' : '')"
+                                    v-on:click.prevent="imageView(image)"
+                                    v-bind:style="{ 'background-image' : 'url(' + image.thumb + ')' }"></div>
 
-                                <div class="s-image-action"
-                                     v-on:click.prevent="imageDelete(image)">
-                                    <span class="icon size-12" v-if="!image.states.is_delete" v-bind:key="1"><i class="fas fa-trash-alt text-red"></i></span>
-                                    <span class="icon size-12" v-if="image.states.is_delete" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
-                                </div>
+                            <div class="s-image-action" v-on:click.prevent="imageDelete(image)">
+                                <span class="icon size-12" v-if="!image.states.is_delete" v-bind:key="1"><i class="fas fa-trash-alt text-red"></i></span>
+                                <span class="icon size-12" v-if="image.states.is_delete" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
                             </div>
-                        </template>
+                        </div>
                     </div>
                 </div>
 
@@ -202,11 +193,9 @@
                 </div>
 
                 <div class="s-inner-reviews" v-if="review.reviews.length">
-                    <template v-for="inner_review in review.reviews">
-                        <div class="s-review-section" v-bind:key="inner_review.id">
-                            <component-review v-bind:review="inner_review"></component-review>
-                        </div>
-                    </template>
+                    <div v-for="inner_review in review.reviews" class="s-review-section" v-bind:key="inner_review.id">
+                        <component-review v-bind:review="inner_review"></component-review>
+                    </div>
                 </div>
             </div>
         </div>
@@ -232,6 +221,7 @@
 {/strip}
 
 <div id="js-product-reviews-section-wrapper">
+    {* VUE *}
     <div class="article wider s-product-reviews-section js-product-reviews-section" style="visibility: hidden;">
 
         {* HEADER *}
@@ -252,31 +242,31 @@
                     <div class="s-filters-list flexbox middle right space-16">
                         {* PHOTO *}
                         <div class="s-filter-section">
-                            <span class="s-label">[`Photos`]:</span>
+                            <span class="s-label">[`Photos`]: </span>
                             <component-dropdown
                                 v-bind:items="filters['images_count']"
                                 v-bind:active_item_id="active_filters['images_count']"
-                                v-bind:button_class="'small white rounded'"
+                                v-bind:button_class="'small light-gray'"
                                 v-on:change="onChangeFilter('images_count', $event)"></component-dropdown>
                         </div>
 
                         {* MODERATION *}
                         <div class="s-filter-section">
-                            <span class="s-label">[`Moderation`]:</span>
+                            <span class="s-label">[`Moderation`]: </span>
                             <component-dropdown
                                 v-bind:items="filters['status']"
                                 v-bind:active_item_id="active_filters['status']"
-                                v-bind:button_class="'small white rounded'"
+                                v-bind:button_class="'small light-gray'"
                                 v-on:change="onChangeFilter('status', $event)"></component-dropdown>
                         </div>
 
                         {* SORT *}
                         <div class="s-filter-section">
-                            <span class="s-label">[`Order by`]:</span>
+                            <span class="s-label">[`Order by`]: </span>
                             <component-dropdown
                                 v-bind:items="filters['sort']"
                                 v-bind:active_item_id="active_filters['sort_order']"
-                                v-bind:button_class="'small white rounded'"
+                                v-bind:button_class="'small light-gray'"
                                 v-on:change_item="onChangeFilter('sort_order', $event)"></component-dropdown>
                         </div>
                     </div>
@@ -289,11 +279,9 @@
 
             <div class="s-reviews-list">
                 <template v-if="reviews.length">
-                    <template v-for="review in reviews">
-                        <div class="s-review-section" v-bind:key="review.id">
-                            <component-review v-bind:review="review"></component-review>
-                        </div>
-                    </template>
+                    <div v-for="review in reviews" v-bind:key="review.id" class="s-review-section">
+                        <component-review v-bind:review="review"></component-review>
+                    </div>
                 </template>
                 <template v-else>
                     <p>[`Reviews not found.`]</p>
@@ -336,8 +324,9 @@
             var sources = [{
                 id: "vue-js",
                 type: "js",
-                uri: "{$wa_app_static_url}js/backend/products/vue/vue.min.js?v={$wa->version()}"
-            }, {
+                uri: "{$wa_app_static_url}js/backend/vue/{if $wa->debug()}vue.global.js{else}vue.global.prod.js{/if}?v={$wa->version()}"
+            },
+            {
                 id: "wa-shop-products-product-reviews-js",
                 type: "js",
                 uri: "{$wa_app_static_url}js/backend/products/product/product.reviews.js?v={$wa->version()}"

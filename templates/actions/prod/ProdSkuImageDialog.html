@@ -36,7 +36,7 @@
                                      v-bind:style="{ 'background-image' :  'url(' + photo.url + ')'}"></div>
 
                                 <div class="s-description-wrapper" v-bind:class="{ 'is-expanded': photo.expanded }">
-                                    <p class="s-description-text" v-if="!photo.expanded"
+                                    <p class="s-description-text editable" v-if="!photo.expanded"
                                         v-on:click.prevent="showDescriptionForm($event, photo)">{ { photo.description && photo.description.length ? photo.description : "{_w("Add description...")|escape}" } }</p>
 
                                     <form class="s-description-form" v-if="photo.expanded">
@@ -52,11 +52,9 @@
                             </div>
                         </template>
 
-                        <template v-for="file in files">
-                            <div class="s-photo-wrapper is-new" v-bind:key="file.id">
-                                <component-loading-file v-bind:file="file" v-on:photo_added="onAddedPhoto"></component-loading-file>
-                            </div>
-                        </template>
+                        <div v-for="file in files" v-bind:key="file.id" class="s-photo-wrapper is-new">
+                            <component-loading-file v-bind:file="file" v-on:photo_added="onAddedPhoto"></component-loading-file>
+                        </div>
                     </div>
                 </div>
             </div>

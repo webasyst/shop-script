@@ -90,7 +90,11 @@ class shopProductImagesModel extends waModel
         $main_image = $this->query("SELECT id, filename, ext FROM {$this->table} WHERE product_id = $product_id ORDER BY sort LIMIT 1")->fetch();
         $product_model = new shopProductModel();
         $product_model->updateById($product_id, array(
-            'image_id' => $main_image['id'], 'image_filename' => $main_image['filename'], 'ext' => $main_image['ext']));
+            'image_id' => $main_image['id'],
+            'image_filename' => $main_image['filename'],
+            'ext' => $main_image['ext'],
+            'edit_datetime' => date('Y-m-d H:i:s'),
+        ));
 
         return true;
     }
