@@ -341,7 +341,7 @@ class shopProdListAction extends waViewAction
             }
 
             $label = implode($divider, $label) . $unit_name;
-            if (in_array($rule["type"], ['price', 'purchase_price', 'compare_price'])) {
+            if (in_array($rule["type"], ['price', 'purchase_price', 'compare_price', 'badge'])) {
                 $rule['label'] = $label;
             } else {
                 $rule['label'] = htmlentities($label, ENT_QUOTES, 'utf-8');

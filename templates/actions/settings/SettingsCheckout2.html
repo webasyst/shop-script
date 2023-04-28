@@ -21,7 +21,7 @@
             </div>
             <div class="alert outlined custom-mt-32 custom-mb-32">
                 <div>
-                    {$_storefront_settings_path = sprintf_wp("?action=storefronts#/design/theme=%s&domain=%s&route=%s&action=settings", $route.theme|default:'default'|urlencode, waIdna::enc($route.domain)|urlencode, $route.route_id|urlencode)}
+                    {$_storefront_settings_path = sprintf("?action=storefronts#/design/theme=%s&domain=%s&route=%s&action=settings", $route.theme|default:'default'|urlencode, waIdna::enc($route.domain)|urlencode, $route.route_id|urlencode)}
                     {$text = str_replace('icon16 new-window', 'fas fa-external-link-alt smaller', _w('In <a href="%s" target="_blank">storefront settings <i class="icon16 new-window"></i></a> you can switch between <strong>multi-step checkout</strong> and <strong>in-cart checkout</strong>.'))}
                     {sprintf_wp($text, $_storefront_settings_path)}
                 </div>

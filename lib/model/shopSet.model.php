@@ -260,7 +260,7 @@ class shopSetModel extends waModel
                 'value' => ""
             ],
             [
-                'name' => _w("наименование товара"),
+                'name' => _w("product name"),
                 'value' => "name ASC"
             ],
             [

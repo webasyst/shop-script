@@ -139,6 +139,9 @@ class shopImage
                  * @var waImage
                  */
                 if ($thumb_img = self::generateThumb($image_path, $size)) {
+                    if (method_exists($thumb_img, 'fixImageOrientation')) {
+                        $thumb_img->fixImageOrientation();
+                    }
                     $thumb_img->save($thumb_path, $config->getSaveQuality($is_2x));
                 }
             }

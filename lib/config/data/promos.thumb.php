@@ -50,6 +50,9 @@ if (preg_match($image_pattern, $request_file, $matches)) {
             if ($options['thumbs_on_demand']) {
                 $image = shopImage::generateThumb($source, $info['size'], $options['max_size']);
                 if ($image) {
+                    if (method_exists($image, 'fixImageOrientation')) {
+                        $image->fixImageOrientation();
+                    }
                     $quality = $app_config->getSaveQuality();
                     $image->save($file, $quality);
                     clearstatcache();

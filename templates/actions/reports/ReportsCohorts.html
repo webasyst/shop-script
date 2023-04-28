@@ -139,30 +139,12 @@
     var request_params = {json_encode($request_options)};
     var action_url = '?module=reports&action=cohorts';
 
-    // Storefront selector logic
-    (function() {
-
-        var $storefront_selector = $('#s-cohorts-report-storefront-selector').removeAttr('id');
-
-        // Move selector into the top menu wrapper
-        $('#s-reports-custom-controls').empty().append($storefront_selector.closest('.wa-select'));
-
-        // Reload page when user changes something in the selector
-        $storefront_selector.change(function() {
-            $storefront_selector.after('<i class="fas fa-spinner fa-spin"></i>');
-            $.post(action_url, $.extend({ }, request_params, { sales_channel: $storefront_selector.val() }), function(r) {
-                $('#reportscontent').html(r);
-            });
-        });
-
-    })();
-
     // Filter by source selector
     var $source_selector = $('#s-cohorts-source-selector');
     $source_selector.change(function() {
         $source_selector.after('<i class="icon16 loading"></i>');
         $.post(action_url, $.extend({ }, request_params, { source: $source_selector.val() }), function(r) {
-            $('#reportscontent').html(r);
+            $.reports.replaceContent(r);
         });
     });
 
@@ -171,7 +153,7 @@
     $group_by_selector.change(function() {
         $group_by_selector.after('<i class="icon16 loading"></i>');
         $.post(action_url, $.extend({ }, request_params, { group_period: $group_by_selector.val() }), function(r) {
-            $('#reportscontent').html(r);
+            $.reports.replaceContent(r);
         });
     });
 
@@ -182,7 +164,7 @@
         var type_id = $li.data('type');
         $li.find('a').append('<i class="icon16 loading"></i>');
         $.post(action_url, $.extend({ }, request_params, { type: type_id }), function(r) {
-            $('#reportscontent').html(r);
+            $.reports.replaceContent(r);
         });
     });
 

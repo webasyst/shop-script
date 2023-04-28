@@ -93,7 +93,11 @@
                     <div class="name">[`Order ID format`]</div>
                     <div class="value">
                         <input type="text" name="order_format" class="small" value="{$order_format}">
-                        <p class="hint">[`<strong>&#123;$order.id&#125;</strong> will be replaced with the actual order ID. Do not delete &#123;$order.id&#125; from this string.`]</p>
+                        <p class="hint">{sprintf_wp(
+                            '%s will be replaced with the actual order ID. Do not delete %s from this string.',
+                            '<strong>&#123;$order.id&#125;</strong>',
+                            '&#123;$order.id&#125;'
+                        )}</p>
                     </div>
                 </div>
 
@@ -101,7 +105,10 @@
                     <div class="name">[`Default no-product orders item name`]</div>
                     <div class="value">
                         <input type="text" name="order_noproduct_item_name" value="{$order_noproduct_item_name}" placeholder="[`Payment for the ordered service`]" class="long" />
-                        <p class="hint">[`<strong>&#123;$order.id_str&#125;</strong> will be replaced with the actual formatted string order ID.`]</p>
+                        <p class="hint">{sprintf_wp(
+                            '%s will be replaced with the full order ID string.',
+                            '<strong>&#123;$order.id_str&#125;</strong>'
+                        )}</p>
                     </div>
                 </div>
 

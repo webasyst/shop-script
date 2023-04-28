@@ -86,29 +86,29 @@
             </div>
         {/if}
 
-        <table class="zebra" id="sales-report-table">
+        <table class="s-reports-sales-table zebra" id="sales-report-table">
             <thead>
                 <tr class="white s-header-row">
                     <th>&nbsp;</th>
-                    <th class="align-right"><a href="javascript:void(0)" data-col="order_count" title="[`Only paid orders are counted`]">[`Orders`]</a></th>
-                    <th><a href="javascript:void(0)" data-col="sales" title="[`Overall amount of all paid orders`]">
-                        <div class="flexbox middle space-4">
+                    <th><a href="javascript:void(0)" class="wa-tooltip" data-col="order_count" data-wa-tooltip-content="[`Only paid orders are counted`]">[`Orders`]</a></th>
+                    <th><a href="javascript:void(0)" class="wa-tooltip" data-col="sales" data-wa-tooltip-content="[`Overall amount of all paid orders`]">
+                        <div class="wide flexbox middle space-4">
                             <span class="icon size-12 custom-ml-auto"><i class="fas fa-circle" style="color: #80DFAF;"></i> </span>
                             <span>[`Sales volume`]</span>
                         </div>
                     </a></th>
-                    <th class="align-right"><a href="javascript:void(0)" data-col="average_order" title="[`Average paid order amount`]">[`Average order`]</a></th>
-                    <th><a href="javascript:void(0)" data-col="profit" class="inline" title="[`Profit = Order amount &minus; Shipping &minus; Tax &minus; Product purchase price`]">
-                        <div class="flexbox middle space-4">
+                    <th><a href="javascript:void(0)" class="wa-tooltip" data-col="average_order" data-wa-tooltip-content="[`Average paid order amount`]">[`Average order`]</a></th>
+                    <th><a href="javascript:void(0)" class="wa-tooltip" data-col="profit" class="inline" data-wa-tooltip-content="[`Profit = Order amount &minus; Shipping &minus; Tax &minus; Product purchase price`]">
+                        <div class="wide flexbox middle space-4">
                             <span class="icon size-12 custom-ml-auto"><i class="fas fa-circle" style="color: #00BF60;"></i> </span>
                             <span>[`Profit`]</span>
                         </div>
                     </a></th>
 
                     {if $roi_enabled}
-                        <th class="align-right"><a href="javascript:void(0)" data-col="cost" title="[`Marketing costs`]">[`Cost`]</a></th>
-                        <th class="align-right"><a href="javascript:void(0)" data-col="roi" title="[`Return On Investment for the selected period = Profit / Marketing costs`]">[`ROI`]</a></th>
-                        <th class="align-right" title="[`Overall ROI calculated for the entire data. This is where your current ROI value might converge to.`]">[`All time ROI`]</th>
+                        <th><a href="javascript:void(0)" class="wa-tooltip" data-col="cost" data-wa-tooltip-content="[`Marketing costs`]">[`Cost`]</a></th>
+                        <th><a href="javascript:void(0)" class="wa-tooltip" data-col="roi" data-wa-tooltip-content="[`Return On Investment for the selected period = Profit / Marketing costs`]">[`ROI`]</a></th>
+                        <th class="align-right wa-tooltip" data-wa-tooltip-content="[`Overall ROI calculated for the entire data. This is where your current ROI value might converge to.`]">[`All time ROI`]</th>
                     {/if}
                 </tr>
                 <tr class="s-summary-row">
@@ -198,68 +198,6 @@
         </p>
 </div>
 
-<script>
-    // Tooltips
-    ( function($) {
-
-        var bindEvents = function() {
-            var $tooltip_array = $("#sales-report-table th a");
-
-            $tooltip_array.on("mousemove", function(e) {
-                onMove(e)
-            });
-
-            $tooltip_array.on("mouseenter", function(e) {
-                onHover(e, $(this));
-            });
-
-            $tooltip_array.on("mouseleave", function() {
-                onHoverOut( $(this) );
-            });
-        };
-
-        var onHover = function(event, element) {
-            var titleText = element.attr('title');
-
-            if (titleText) {
-                // Set Title to Data
-                element.data('tiptext', titleText).removeAttr('title');
-
-                // Render Tooltip
-                $('<div class="tooltip-bubble"></div>')
-                        .text(titleText)
-                        .appendTo('body')
-                        .css({
-                            top: (event.pageY - 10) + 'px',
-                            left: (event.pageX + 20) + 'px'
-                        })
-                        .fadeIn('slow');
-            }
-        };
-
-        var onHoverOut = function(element) {
-            var title_text = element.data('tiptext');
-
-            if (title_text) {
-                element.attr('title', title_text);
-                $('.tooltip-bubble').remove();
-            }
-        };
-
-        var onMove = function(event) {
-            $(".tooltip-bubble").css({
-                top: (event.pageY - 10) + 'px',
-                left: (event.pageX + 20) + 'px'
-            });
-        };
-
-        $(document).ready( function() {
-            bindEvents();
-        });
-
-    })(jQuery);
-</script>
-
 <script>(function() {
     document.title = "[`Sales`] — {$wa->accountName(false)|escape:javascript}";
     $.wa.locale = $.extend($.wa.locale, {
@@ -287,6 +225,8 @@
             $('#reportscontent').html(r);
         });
     });
+
+    $(".wa-tooltip").waTooltip({ delay: 500 });
 
     // Table sorting logic
     (function() { "use strict";

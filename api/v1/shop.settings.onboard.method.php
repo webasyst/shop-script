@@ -18,6 +18,7 @@ class shopSettingsOnboardMethod extends shopApiMethod
         }
 
         $country = $this->post('country', true);
+        $country = mb_strtolower($country);
         $all_countries = $this->getAllCountries();
         if (!isset($all_countries[$country])) {
             throw new waAPIException('invalid_param', 'Invalid country', 400);
@@ -69,7 +70,8 @@ class shopSettingsOnboardMethod extends shopApiMethod
             $files = waFiles::listdir($path, false);
             foreach ($files as $file) {
                 if (preg_match('/^country_([a-z]{3})\.php$/', $file, $matches)) {
-                    $all_countries[$matches[1]] = $matches[1];
+                    $country = mb_strtolower($matches[1]);
+                    $all_countries[$country] = $country;
                 }
             }
         }

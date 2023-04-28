@@ -72,6 +72,11 @@
 
                 var target = document.querySelector("title");
                 var observer = new MutationObserver(function(mutations) {
+                    if ($.settings.path.dispatch.section !== 'marketplaces') {
+                        observer.disconnect();
+                        return;
+                    }
+
                     mutations.forEach(function(mutation) {
                         if (document.title !== title) { document.title = title; }
                     });

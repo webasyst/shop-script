@@ -257,7 +257,7 @@
                                             <div class="s-column-price nowrap">
 
                                                 <template v-if="service.variants.length === 1">
-                                                    <div class="s-price-wrapper text-black"
+                                                    <div class="s-price-wrapper"
                                                          v-bind:style="{ 'visibility' : (service.status_model ? '' : 'hidden') }">
                                                         <input class="s-price small bold is-price" type="text"
                                                                v-model="service.variants[0].price"
@@ -338,7 +338,7 @@
                                                             <div class="s-column-price nowrap">
 
                                                                 <template v-if="service.product_id">
-                                                                    <div class="s-price-wrapper text-black"
+                                                                    <div class="s-price-wrapper"
                                                                          v-bind:style="{ 'visibility' : (variant.status_model ? '' : 'hidden') }">
                                                                         <input class="s-price small bold is-price" type="text"
                                                                                v-model="variant.price"
@@ -357,7 +357,7 @@
                                                                     </div>
                                                                 </template>
                                                                 <template v-else>
-                                                                    <div class="s-price-wrapper text-black"
+                                                                    <div class="s-price-wrapper"
                                                                          v-bind:style="{ 'visibility' : (variant.status_model ? '' : 'hidden') }">
                                                                         <input class="s-price small bold is-price" type="text"
                                                                                v-bind:placeholder="variant.base_price">
@@ -412,7 +412,7 @@
                                                                 <div class="s-column-price nowrap">
 
                                                                     <template v-if="service.product_id">
-                                                                        <div class="s-price-wrapper text-black"
+                                                                        <div class="s-price-wrapper"
                                                                              v-bind:style="{ 'visibility' : (modification.status_model ? '' : 'hidden') }">
                                                                             <input class="s-price small bold is-price" type="text"
                                                                                    v-model="modification.price"
@@ -432,7 +432,7 @@
                                                                         </div>
                                                                     </template>
                                                                     <template v-else>
-                                                                        <div class="s-price-wrapper text-black"
+                                                                        <div class="s-price-wrapper"
                                                                              v-bind:style="{ 'visibility' : (modification.status_model ? '' : 'hidden') }">
                                                                             <input class="s-price small bold is-price" type="text"
                                                                                    v-model="modification.base_price"

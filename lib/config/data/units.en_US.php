@@ -9,7 +9,7 @@ return [
     ['051', _w('square centimeter'),     'CMK', 'cm²'],
     ['055', _w('square meter'),          'MTK', 'm²'],
     ['112', _w('liter'),                 'LTR', 'I'],
-    ['112', _w('cubic decimeter	'),      'DMQ', 'dm³'],
+    ['112', _w('cubic decimeter'),      'DMQ', 'dm³'],
     ['163', _w('gram'),                  'GRM', 'g'],
     ['166', _w('kilogram'),              'KGM', 'kg'],
     ['356', _w('hour'),                  'HUR', 'h.'],

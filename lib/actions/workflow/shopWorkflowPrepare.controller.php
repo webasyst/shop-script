@@ -41,9 +41,9 @@ class shopWorkflowPrepareController extends waController
             preg_match('/^Syntax Error in template ".*?" on line ([\d+]) "(.*?)" (.*?)$/i', $msg, $m);
             if ($m) {
                 str_replace($m[0], '', $msg);
-                $msg = sprintf(_w("Syntax error in the template of action “%s” in line %s “%s”. Reason: %s. "), $action->getName(), $m[1], $m[2], $m[3]);
+                $msg = sprintf_wp("Syntax error in the template of action “%s” in line %s “%s”. Reason: %s.", $action->getName(), $m[1], $m[2], $m[3]);
             }
-            $msg .= sprintf(_w("You can edit the template in <a href=\"?action=settings#/orderStates/\">order states settings</a>."));
+            $msg .= ' ' . sprintf(_w("You can edit the template in <a href=\"?action=settings#/orderStates/\">order states settings</a>."));
             $msg = htmlentities($msg, ENT_QUOTES, 'utf-8');
             $html = <<<HTML
 <script>

@@ -311,7 +311,7 @@ return array(
         )
     ),
     'voltage' => array(
-        'name' => _w('Напряжение'),
+        'name' => _w('Voltage'),
         'base_unit' => 'Ah',
         'units' => array(
             'mV' => array(

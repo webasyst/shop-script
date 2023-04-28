@@ -3793,7 +3793,7 @@ $.wa = $.extend($.wa || {}, {
         var header = ( options.title ? '<h2>' + options.title + '</h2>' : null );
         var text = ( options.text ? options.text : "Confirm text is required" );
 
-        var success_button = "<button class=\"js-success-action wa-button blue\" type=\"button\">" + ( options.success_button_name ? options.success_button_name : $.wa.translate("Ok") ) + "</button>",
+        var success_button = "<button class=\"js-success-action wa-button blue\" type=\"button\">" + ( options.success_button_name ? options.success_button_name : $.wa.translate("OK") ) + "</button>",
             cancel_button = "<button class=\"js-dialog-close wa-button gray\" type=\"button\">" + ( options.cancel_button_name ? options.cancel_button_name : $.wa.translate("Cancel") ) + "</button>";
 
         var footer = success_button + cancel_button;

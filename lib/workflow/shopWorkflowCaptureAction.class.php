@@ -320,6 +320,9 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
                 'currency'       => $plugin->allowedCurrency(),
                 'order_currency' => $order->currency,
             );
+            if ($refund_options['currency'] === true) {
+                $refund_options['currency'] = $order->currency;
+            }
             foreach ($items as $id => $item) {
                 if (empty($item['quantity'])) {
                     unset($items[$id]);

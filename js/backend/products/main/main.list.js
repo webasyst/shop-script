@@ -4831,7 +4831,7 @@
                                             }
 
                                             return {
-                                                options: options,
+                                                options: $.wa.clone(options),
                                                 states: {
                                                     is_locked: false
                                                 }
@@ -4840,6 +4840,13 @@
                                         template: that.components["component-product-column-dropdown"],
                                         delimiters: ['{ { ', ' } }'],
                                         components: { "component-dropdown": that.vue_components["component-dropdown"]},
+                                        watch: {
+                                            "column_data.value": function(newVal, oldVal) {
+                                                if (this.column.column_type === "category_id" && oldVal === null) {
+                                                    this.options = this.options.filter(opt => opt.value !== null);
+                                                }
+                                            }
+                                        },
                                         methods: {
                                             onChange: function() {
                                                 var self = this;
@@ -4867,6 +4874,16 @@
                                                             }
                                                         }
                                                     });
+                                            }
+                                        },
+                                        created() {
+                                            if (
+                                                this.column.column_type === "category_id"
+                                                && !this.product.columns.category_id.value
+                                                && Array.isArray(this.options)
+                                                && this.options[0].value !== null
+                                            ) {
+                                                this.options.unshift({ name: that.locales["select_category"], value: null });
                                             }
                                         }
                                     },

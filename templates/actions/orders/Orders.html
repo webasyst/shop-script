@@ -129,6 +129,11 @@
                     Kanban.init({
                         filter_params: {json_encode($params)},
                         filter_params_str: '{$params_str}',
+                        state_transitions: {$state_transitions|json_encode},
+                        locale: {
+                            'no_action_for_states': {_w("Не доступно ни одного действия, которое переводило бы заказ в этот статус")|json_encode},
+                            'action_requires_user_input': {_w("Действие, которое переводит заказ в этот статус, требует дополнительных данных. Воспользуйтесь кнопкой действия на странице заказа.")|json_encode}
+                        }
                     })
                 </script>
 
@@ -147,7 +152,7 @@
                 {/capture}
             {else}
                 <div class="box flexbox">
-                    <span class="alert info custom-mx-auto">[`Непозволительно роскошная фича`]</span>
+                    <span class="alert info custom-mx-auto">[`This feature is available only with the premium license.`]</span>
                 </div>
             {/if}
         {/if}
@@ -236,7 +241,7 @@
     const state_icons = {};
     {if $state_names}
         {foreach $state_names as $state_id => $state_name}
-            state_icons.{$state_id} = '{$wa->shop->convertIcon({$state_name.options.icon})}'
+            state_icons['{$state_id}'] = '{$wa->shop->convertIcon({$state_name.options.icon})}'
         {/foreach}
     {/if}
 

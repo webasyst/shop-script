@@ -717,7 +717,7 @@
         alertError: function(error_msg, log_msg) {
             $.waDialog.alert({
                 title: error_msg,
-                button_title: 'Ok',
+                button_title: 'OK',
                 button_class: 'warning',
             });
 

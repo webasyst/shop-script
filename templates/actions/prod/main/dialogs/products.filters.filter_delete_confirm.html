@@ -3,8 +3,8 @@
     <div class="dialog-body">
         <div class="js-vue-section" style="visibility: hidden;">
             <div class="dialog-header">
-                <h3>[`Удаление фильтра`]</h3>
-                <div class="s-description">{sprintf(_w("Фильтр “%s” будет удалён без возможности восстановления."), "{ { filter.name } }")}</div>
+                <h3>[`Filter deletion`]</h3>
+                <div class="s-description">{sprintf_wp("Filter “%s” will be deleted without the ability to restore.", "{ { filter.name } }")}</div>
             </div>
             <div class="dialog-footer">
                 <button class="button red" type="button" v-on:click.prevent="deleteFilter">

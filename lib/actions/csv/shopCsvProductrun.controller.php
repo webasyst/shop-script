@@ -2348,8 +2348,8 @@ SQL;
         if (isset($this->data['error_log_name'][$type])) {
             $report_file = wa()->getTempPath('csv/download/0/' . $this->data['error_log_name'][$type]);
             $report .= '<div class="block"><p>' . _w('Errors have been found in your CSV file. Download the log file to view details.') . '</p>';
-            $report .= '<ul class="menu-v"><li><a href="?module=csv&action=productdownload&profile=0&file='.$report_file.'" class="bold nowrap">';
-            $report .= '<i class="icon16 download"></i>' . _w('Download log file') . '</a></li></ul></div>';
+            $report .= '<div><a href="?module=csv&action=productdownload&profile=0&file='.$report_file.'" class="bold nowrap">';
+            $report .= '<i class="icon16 download fas fa-file-download"></i>' . _w('Download log file') . '</a></div></div>';
         }
 
         return iconv('UTF-8', 'UTF-8//IGNORE', $report);

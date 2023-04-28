@@ -113,8 +113,10 @@ class shopOrdersAction extends shopOrderListAction {
         }
 
         $state_counters = null;
+        $state_transitions = null;
         if ($view === 'kanban') {
             $state_counters = (new shopOrderModel())->getStateCounters();
+            $state_transitions = $this->getStateTransitions($workflow, array_keys($state_counters));
         }
 
         $this->assign([
@@ -134,6 +136,7 @@ class shopOrdersAction extends shopOrderListAction {
             'sort'                 => $this->getSort(),
             'all_order_state_ids'  => $all_order_state_ids,
             'state_counters'       => $state_counters,
+            'state_transitions'    => $state_transitions,
             'last_update_datetime' => $this->getLastUpdateDatetime($orders),
         ]);
     }
@@ -144,6 +147,27 @@ class shopOrdersAction extends shopOrderListAction {
             return date('Y-m-d H:i:s', time() - 3600*24);
         }
         return max(array_column($orders, 'update_datetime'));
+    }
+
+    protected function getStateTransitions($workflow, $state_ids)
+    {
+        $actions_data = $workflow->getAvailableActions();
+
+        $state_transitions = [];
+        foreach($state_ids as $state_id) {
+            $state = $workflow->getStateById($state_id);
+            foreach($state->getActions() as $action) {
+                $to_state_id = ifset($actions_data, $action->getId(), 'state', null);
+                if ($to_state_id) {
+                    $state_transitions[$state->getId()][$to_state_id] = true;
+                }
+            }
+        }
+
+        $state_transitions['auth']['paid'] = true;
+        $state_transitions['auth']['refunded'] = true;
+
+        return $state_transitions;
     }
 
     public function getOrders($offset, $limit) {

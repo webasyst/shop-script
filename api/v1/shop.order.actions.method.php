@@ -65,40 +65,45 @@ class shopOrderActionsMethod extends shopApiMethod
                 unset($actions[$id]);
                 continue;
             }
-            $type = 'button';
 
-            $b_class = $a->getOption('button_class');
-            $b_color = $a->getOption('border_color');
-            if (!empty($b_class)) {
-                $color = self::getHexColorCode($b_class);
-            } elseif (!empty($b_color)) {
-                $color = '#'.$b_color;
-            } else {
-                $color = self::BASIC_COLOR;
+            try {
+                $type = 'button';
+
+                $b_class = $a->getOption('button_class');
+                $b_color = $a->getOption('border_color');
+                if (!empty($b_class)) {
+                    $color = self::getHexColorCode($b_class);
+                } elseif (!empty($b_color)) {
+                    $color = '#'.$b_color;
+                } else {
+                    $color = self::BASIC_COLOR;
+                }
+
+                if ($id === "delete") {
+                    $color = "#aaaaaa";
+                } elseif ($id === "process") {
+                    $color = "#22d13d";
+                }
+
+                if ($a->getOption('top') || $a->getOption('position') == 'top') {
+                    $type = 'link_top';
+                } elseif ($a->getOption('position') == 'bottom') {
+                    $type = 'link_bottom';
+                } elseif ($a->getOption('head') && $a->getHTML($order_id)) {
+                    $type = 'link_head';
+                }
+
+                $result[] = array(
+                    'id'            => $id,
+                    'type'          => $type,
+                    'is_custom'     => !$a->original,
+                    'name'          => $a->getName(),
+                    'data_required' => $id == 'edit' || !!$a->getHTML($order_id),
+                    'color'         => $color,
+                );
+            } catch (waException $e) {
+                // ignore actions if they err
             }
-
-            if ($id === "delete") {
-                $color = "#aaaaaa";
-            } elseif ($id === "process") {
-                $color = "#22d13d";
-            }
-
-            if ($a->getOption('top') || $a->getOption('position') == 'top') {
-                $type = 'link_top';
-            } elseif ($a->getOption('position') == 'bottom') {
-                $type = 'link_bottom';
-            } elseif ($a->getOption('head') && $a->getHTML($order_id)) {
-                $type = 'link_head';
-            }
-
-            $result[] = array(
-                'id'            => $id,
-                'type'          => $type,
-                'is_custom'     => !$a->original,
-                'name'          => $a->getName(),
-                'data_required' => $id == 'edit' || !!$a->getHTML($order_id),
-                'color'         => $color,
-            );
         }
         return $result;
     }

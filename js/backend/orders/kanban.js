@@ -90,19 +90,82 @@ var Kanban = (($) => {
         cols.each((i, list) => new Column(list).observe());
     };
 
-    const addSortable = (cols) => {
+    const addSortable = (cols, sttr, locale) => {
+
+        /**
+         * Dragging start
+         */
+
+        // order_can_be_moved[order_id][status_id] = bool
+        const order_can_be_moved = {};
+
+        var xhr = null;
+
         cols.each((i, list) => {
             new Sortable(list, {
-                group:{ name: "statuses", put: false },
+                group: {
+                    name: "statuses",
+                    pull: "clone",
+                    put: true
+                },
                 animation: 150,
                 sort: false,
                 delay: 1500,
                 delayOnTouchOnly: true,
-                onEnd: () => {
-                    $.shop.notification({
-                        class: 'danger',
-                        timeout: 3000,
-                        content: 'Temporarily blocked. The ability to drag orders under the terms of basic workflow limitations will be available by the time of Shop-Script X release.'
+
+                // Called on start of dragging. Asks server which columns given order_id can be moved into.
+                onStart: (evt) => {
+                    const order_id = $(evt.item).data('order-id');
+                    xhr = $.post('?module=orders&action=availableActions', { id: order_id }, 'json');
+                },
+
+                // Called when user drops order into another column.
+                // Sortable is set up to put a clone of original order element in both columns at this point.
+                // onAdd() waits until
+                onAdd: (evt) => {
+
+                    $.when().then(() => {
+                        // Can any order theoretically be moved between given columns?
+                        const order_id = $(evt.item).data('order-id');
+                        const from_state_id = $(evt.from).data('kanban-list-status-id');
+                        const to_state_id = $(evt.to).data('kanban-list-status-id');
+                        if (!sttr[from_state_id] || !sttr[from_state_id][to_state_id]) {
+                            $.shop.notification({
+                                class: 'danger',
+                                timeout: 3000,
+                                content: locale.no_action_for_states
+                            });
+                            return false;
+                        }
+
+                        // Can this particular order be moved between given columns?
+                        return xhr.then((r) => {
+                            const state_data = r.data[to_state_id];
+                            if (state_data && !state_data.use_form) {
+                                // All is fine, perform given action.
+                                return $.post('?module=workflow&action=perform', {
+                                    id: order_id,
+                                    action_id: state_data.action_id
+                                }, 'json').then(function(r) {
+                                    return true;
+                                });
+                            } else {
+                                $.shop.notification({
+                                    class: 'danger',
+                                    timeout: 3000,
+                                    content: locale.action_requires_user_input
+                                });
+                                return false;
+                            }
+                        });
+                    }).then((all_fine) => {
+                        // Sortable is set up to put a copy of original order element in both columns.
+                        // We have to delete one or the other depending on whether operation is successfull.
+                        if (all_fine) {
+                            $(evt.clone).remove(); // clone is in the initial column
+                        } else {
+                            $(evt.item).remove(); // item is in the final column
+                        }
                     });
                 },
             });
@@ -179,7 +242,7 @@ var Kanban = (($) => {
 
         $.when(defineSortable()).then(() => {
             const $kanbanCols = $("[data-kanban-list-status-id]");
-            addSortable($kanbanCols);
+            addSortable($kanbanCols, options.state_transitions, options.locale);
             addLazyLoad($kanbanCols);
         });
     };

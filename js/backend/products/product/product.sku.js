@@ -5980,7 +5980,7 @@
                 mounted: function() {
                     var self = this;
 
-                    if (self.disabled) { return false; }
+                    if (self.prop_disabled) { return false; }
 
                     $(self.$el).find(".js-date-picker").each( function(i, field) {
                         var $field = $(field),
@@ -6004,8 +6004,8 @@
                             }
                         });
 
-                        if (self.value) {
-                            var date = formatDate(self.value);
+                        if (self.modelValue) {
+                            var date = formatDate(self.modelValue);
                             $field.datepicker( "setDate", date);
                         }
 

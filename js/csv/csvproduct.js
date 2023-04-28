@@ -907,12 +907,12 @@ if (typeof ($) != 'undefined') {
                 case 'complete':
                     this.form.find('.js-progressbar-container').hide();
                     $progressbar.hide();
-                    $container.hide();
                     this.form.find('.shop-ajax-status-loading').remove();
 
                     if (mode_name == 'emulate') {
                         this.csv_productMode('setup', 0);
                     } else {
+                        $container.hide();
                         $.storage.del('shop/hash');
                         $navigator.find('>li[data-mode="' + mode_name + '"]').removeClass('s-current').addClass('s-passed');
                         $navigator.find('>li[data-mode="finish"]').removeClass('s-current').addClass('s-passed');

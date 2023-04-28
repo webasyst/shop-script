@@ -919,6 +919,8 @@ ul.menu-h.s-reports-timeframe li.s-custom-timeframe { padding-top: 0; top: -6px;
 ul.menu-h.s-reports-timeframe li.s-custom-timeframe:hover { background: #fff; }
 ul.menu-h.s-reports-timeframe li.s-custom-timeframe input { width: 100px; }
 
+.s-reports-sales-table th a { display: flex; justify-content: flex-end; align-items: center; gap: 0.25rem; }
+
 .s-graph { margin: 20px; }
 .s-profit { color: #a00; }
 .s-bar { width: 100px; height: 10px; display: inline-block; background: #9cf; }
@@ -978,8 +980,6 @@ table tr .edit-icon-wrapper { display: inline-block; padding: 0 4px; vertical-al
 table tr .edit-icon-wrapper a { visibility: hidden; opacity: 0; -webkit-transition: all 500ms ease-in-out; transition: all 500ms ease-in-out; }
 table tr .edit-icon-wrapper i { margin: 0; }
 table tr:hover .edit-icon-wrapper a { visibility: visible; opacity: 1; }
-
-.tooltip-bubble { display:none; position:absolute; background: var(--background-color-blank); border: 1px solid var(--border-color-input-outlined); box-shadow: 0px 2px 24px rgba(0, 0, 0, 0.16); border-radius: 5px; color: #777; padding: 5px 10px; max-width: 250px; font-size: 0.8em; z-index: 9999; }
 
 /* customers */
 
@@ -1325,16 +1325,17 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .s-sublist {padding-left: 30px; margin-bottom: 0;}
 
 /* Datepicker */
-#ui-datepicker-div { width: 280px; }
-#ui-datepicker-div .ui-datepicker-header { margin: 10px; }
-#ui-datepicker-div .ui-datepicker-header .ui-datepicker-prev { left: 0; top: 1px; }
-#ui-datepicker-div .ui-datepicker-header .ui-datepicker-next { right: 0; top: 1px; }
-#ui-datepicker-div .ui-datepicker-header .ui-datepicker-prev-hover,
-#ui-datepicker-div .ui-datepicker-header .ui-datepicker-next-hover { top: 1px; }
-#ui-datepicker-div .ui-datepicker-header .ui-datepicker-prev span,
-#ui-datepicker-div .ui-datepicker-header .ui-datepicker-next span { background-repeat: no-repeat; font-size: 0; }
-#ui-datepicker-div .ui-icon { height: 16px; width: 16px; }
-#ui-datepicker-div .ui-datepicker-prev:hover, #ui-datepicker-div .ui-datepicker-next:hover { background: var(--background-color-input); }
+.ui-datepicker .ui-datepicker-header { margin: 3px; }
+.ui-datepicker .ui-datepicker-header .ui-datepicker-prev span,
+.ui-datepicker .ui-datepicker-header .ui-datepicker-next span { background-repeat: no-repeat; font-size: 0; }
+.ui-datepicker .ui-icon { height: 16px; width: 16px; }
+.ui-datepicker .ui-datepicker-prev:hover, .ui-datepicker .ui-datepicker-next:hover { background: var(--background-color-input); }
+.ui-datepicker .ui-datepicker-header .ui-datepicker-title { display: flex; justify-content: space-evenly; }
+.ui-datepicker.ui-widget-content .ui-datepicker-prev,
+.ui-datepicker.ui-widget-content .ui-datepicker-next { background-color: var(--background-color-input); right: 7px; top: 5px; width: 1.75em; height: 1.75em; border-radius: 3px; }
+.ui-datepicker.ui-widget-content .ui-datepicker-prev { left: 7px; }
+.ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year { width: 45%; }
+
 .state-with-inner-icon input.s-datepicker { width: 8.1em; }
 input.s-datepicker { width: 6.1em; }
 

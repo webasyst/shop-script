@@ -3,8 +3,8 @@
     <div class="dialog-body">
         <div class="js-vue-section" style="visibility: hidden;">
             <div class="dialog-header">
-                <h3>[`Удаление представления`]</h3>
-                <div class="s-description">{sprintf(_w("Представление “%s” будет удалено без возможности восстановления."), "{ { presentation.name } }")}</div>
+                <h3>[`Saved view deletion`]</h3>
+                <div class="s-description">{sprintf_wp("Saved view “%s” will be deleted without the ability to restore.", "{ { presentation.name } }")}</div>
             </div>
             <div class="dialog-footer">
                 <button class="button red" type="button" v-on:click.prevent="deletePresentation">

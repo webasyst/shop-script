@@ -1128,8 +1128,9 @@ SQL;
                 $compare_sign = $group['open_interval'] == shopFilterRulesModel::OPEN_INTERVAL_LEFT_CLOSED ? '>=' : '<=';
                 $this->where[] = "$table_alias.{$group['type']} $compare_sign $string_type{$group['rule_params'][0]}$string_type";
             } elseif (count($group['rule_params']) > 1) {
-                $this->where[] = "$table_alias.{$group['type']} >= $string_type{$group['rule_params'][0]}$string_type";
-                $this->where[] = "$table_alias.{$group['type']} <= $string_type{$group['rule_params'][1]}$string_type";
+                $group_type = $group['type'] == 'price' ? 'primary_price' : $group['type'];
+                $this->where[] = "$table_alias.$group_type >= $string_type{$group['rule_params'][0]}$string_type";
+                $this->where[] = "$table_alias.$group_type <= $string_type{$group['rule_params'][1]}$string_type";
             }
         } elseif ($type['render_type'] == 'select') {
             $in = "(" . implode(",", $group['rule_params']) . ")";

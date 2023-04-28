@@ -313,7 +313,7 @@
                                     {$do_calc_profit = $item.purchase_price > 0}
                                     {if !$do_calc_profit}{$sum_unaccounted_purchase = $sum_unaccounted_purchase + $item.price * $item.quantity}{/if}
                                     <tr class="s-product-wrapper {if $item.type == 'service'}is-product small{/if}" data-id="{$item.id}" aria-label="">
-                                        <td class="min-width custom-mx-auto-mobile">
+                                        <td class="min-width custom-mx-auto-mobile valign-top">
                                             {if $item.type != 'service'}
                                                 {if !empty($item.image_id)}
                                                     {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '96x96', ["class" => "s-ordered-product-image"])}

@@ -1868,6 +1868,9 @@ SQL;
             'tax'        => null,
             'currency'   => ifset($options['order_currency']),
         );
+        if ($options['currency'] === true) {
+            $options['currency'] = $options['order_currency'];
+        }
         if (is_array($options['currency'])) {
             if (!empty($options['order_currency']) && in_array($options['order_currency'], $options['currency'])) {
                 $options['currency'] = $options['order_currency'];

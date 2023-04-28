@@ -71,10 +71,10 @@
             <div class="s-price-wrapper">
                 <div class="s-price js-product-price">{$_stock_price}</div>
                 <div class="s-base-price js-product-base-price">{$_base_price}</div>
-                <div class="s-ratio-wrapper">
+                <div class="s-ratio-wrapper wa-mt-4">
                     <span>{sprintf(_w("1 %s"), $_stock_unit["name_short"])}</span>
                     <span>&nbsp;=&nbsp;</span>
-                    <span class="js-stock-base-ratio">{$wa->shop->numberFormat($active_sku["stock_base_ratio"])}</span>&nbsp;<span>{$_base_unit["name_short"]}</span>
+                    <span class="js-stock-base-ratio">{$wa->shop->roundNumber($active_sku['stock_base_ratio'], 3, null, null)}</span>&nbsp;<span>{$_base_unit["name_short"]}</span>
                 </div>
             </div>
             <div class="compare-at-price nowrap s-compare-price js-compare-price wa-ml-16 {if !($product.compare_price > 0)}is-hidden{/if}">{$_stock_compare_price}</div>

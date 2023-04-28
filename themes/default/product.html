@@ -276,7 +276,7 @@
             <p class="tags" id="product-tags">
                  <span class="font-size-big text-black">[`Tags`]:</span>
                 {foreach $product.tags as $t}
-                    <a href="{$wa->getUrl('/frontend/tag', ['tag' => str_replace('%2F', '/', urlencode($t))])}">{$t}</a>
+                    <a href="{$wa->getUrl('/frontend/tag', ['tag' => str_replace('%2F', '/', urlencode(htmlspecialchars_decode($t)))])}">{$t}</a>
                 {/foreach}
             </p>
         {/if}

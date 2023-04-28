@@ -965,7 +965,7 @@ SQL;
                 $can_access = $contact_rights_model->get($data['order']['courier_contact_id'], 'shop', 'backend');
 
                 if ($is_user && $can_access) {
-                    $notification_text = _w('Вы назначены курьером для заказа') . ' ' . shopHelper::encodeOrderId($data['order']['id']);
+                    $notification_text = sprintf_wp('You have been assigned as courier for order %s.', shopHelper::encodeOrderId($data['order']['id']));
                     $shop_orders_app_url = wa()->getRootUrl(true) . wa()->getConfig()->getBackendUrl() . '/shop?action=orders';
                     $workflow = new shopWorkflow();
                     $push_data = array(
