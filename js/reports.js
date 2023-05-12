@@ -366,8 +366,6 @@
                 redirect();
             }
 
-            this.setSalesChannel(params_map);
-
             const rnd_protect = $.reports.rnd_protect = Math.random();
 
             this.preContent();
@@ -391,7 +389,20 @@
         },
 
         cohortsAction: function() {
-            this.load('?module=reports&action=cohorts'+this.getTimeframeParams());
+            const params = {};
+            const source = $('#s-cohorts-source-selector').val();
+            if (source) {
+                params.source = source;
+            }
+
+            const type = $('#s-cohorts-type-selector li.selected').data('type');
+            if (type) {
+                params.type = type;
+            }
+
+            const params_str = Object.keys(params).length ? '&' + $.param(params) : '';
+
+            this.load('?module=reports&action=cohorts'+this.getTimeframeParams()+params_str);
         },
 
         summaryAction: function() {
@@ -408,8 +419,20 @@
         },
         productsAssetsAction: function() {
             this.setActiveTop('products');
+            const params = {};
             const limit = $.storage.get('shop/reports/assets/limit');
-            this.load('?module=reportsproducts&action=assets'+this.getTimeframeParams()+(limit ? '&limit='+limit : ''));
+            if (limit) {
+                params.limit = limit;
+            }
+
+            const stock = $('#stock-selector').val();
+            if (stock) {
+                params.stock = stock;
+            }
+
+            const params_str = Object.keys(params).length ? '&' + $.param(params) : '';
+
+            this.load('?module=reportsproducts&action=assets'+this.getTimeframeParams()+params_str);
         },
         productsWhattosellAction: function() {
             this.setActiveTop('products');
@@ -439,7 +462,7 @@
 
         setSalesChannel: function(obj) {
             const sales_channel = $('.js-reports-channel-dropdown li.selected').data('value');
-            if (obj && sales_channel) {
+            if (sales_channel) {
                 obj.sales_channel = sales_channel;
             }
         },

@@ -1,6 +1,7 @@
 (function ($) {
     $.storage = new $.store();
     $.orders = {
+        $wrapper: null,
         options: {
             view: 'table'      // default view
         },
@@ -13,6 +14,8 @@
 
             var that = this;
             that.options = options;
+            that.$wrapper = $('#s-content');
+
             if (typeof($.History) != "undefined") {
                 $.History.bind(function () {
                     that.dispatch();
@@ -75,8 +78,8 @@
                 $.wa.setHash(hash);
             }
 
-            this.initVisibilitySecondaryFilters();
-            this.initSearch();
+            this.initEventsVisibilityFilters();
+
             this.initDropdown();
 
             // sync with app counters
@@ -119,28 +122,22 @@
 
             this.checkAlerts();
             this.ordersNavDetach();
+            this.initWaLoading();
+
+            this.$wrapper.on('wa_loaded.wa_loading', () => {
+                this.initSearch();
+            });
         },
 
-        initVisibilitySecondaryFilters: function() {
-            const storage_key = 'shop/orders/split/secondary_filtres';
-            const toggleSecondaryFilters = (state) => {
-                const $filters_wrapper = $('.js-order-nav-block-secondary');
+        initEventsVisibilityFilters: function() {
+            $(document).on('click', '.js-orders-show-filters', () => {
+                this.visibilityFilters(true);
+                this.clearFilters();
+            });
 
-                if (state) {
-                    $filters_wrapper.show(100);
-                } else {
-                    $filters_wrapper.hide(100);
-                }
-            }
-
-            const state = $.storage.get(storage_key);
-            toggleSecondaryFilters(state);
-
-            $(document).on('click', '#js-orders-show-secondary-filters', function() {
-                const new_state = !($.storage.get(storage_key));
-
-                $.storage.set(storage_key, new_state);
-                toggleSecondaryFilters(new_state);
+            $(document).on('click', '.js-orders-hide-filters', () => {
+                this.visibilityFilters(false);
+                this.clearFilters();
             });
         },
 
@@ -231,18 +228,51 @@
                 source : function(request, response) {
                     if (search_xhr) { search_xhr.abort(); }
 
-                    search_xhr = $.getJSON(autocomplete_url, request, function(r) {
+                    $.orders.waLoadingBeforeLoad();
+                    search_xhr = $.getJSON(autocomplete_url, request, (r) => {
                         last_response = r;
                         response(r);
-
-                    }).always( function() {
+                        $.orders.waLoadingLoaded();
+                    }).always(() => {
                         search_xhr = null;
+                    });
+                }
+            });
+
+            // Button search
+            $(document).on('click', '.js-orders-search', function(e) {
+                e.preventDefault();
+
+                const $wrapper = $('#js-order-search');
+                const $input = $wrapper.find('#s-orders-search');
+
+                if ($wrapper.hasClass('open')) {
+                    $wrapper.addClass('close');
+                    $input.val('');
+
+                    setTimeout(() => {
+                        $wrapper.removeClass('open');
+                        $wrapper.removeClass('close');
+                        $wrapper.addClass('hidden');
+                    }, 500);
+
+                } else {
+                    $wrapper.removeClass('hidden');
+                    setTimeout(() => {
+                        $wrapper.addClass('open');
+                        $input.focus();
                     });
                 }
             });
         },
 
         initDropdown: function() {
+            const highlightedButton = (dropdown) => {
+                dropdown.$button.css({
+                    'background': 'var(--highlighted-blue)'
+                })
+            };
+
             $('.js-orders-dropdown').waDropdown({
                 hover: false,
                 items: ".menu > li > a",
@@ -251,7 +281,8 @@
                     if (hash) {
                         const search_hash = 'hash=search';
                         let params = decodeURIComponent(hash)
-                            .replace(new RegExp(`#\\/orders\\/|${search_hash}\\/|\\/$`, 'g'), "")
+                            //`#\\/orders\\/|${search_hash}\\/|\\/$`
+                            .replace(new RegExp(`#\\/orders\\/|${search_hash}\\/$`, 'g'), "")
                             .split('&')
                             .filter(Boolean);
 
@@ -263,10 +294,12 @@
                                     const $item = $(this);
                                     if(params.some(item => item == $item.data('param'))) {
                                         dropdown.$button.html($item.html());
+                                        highlightedButton(dropdown);
                                     }
 
                                     if (params.some(item => decodeURIComponent($item.attr('href')).includes(item))) {
                                         dropdown.$button.html($item.html());
+                                        highlightedButton(dropdown);
                                     }
 
                                 })
@@ -282,8 +315,9 @@
                     }
                 },
                 change(event, target, dropdown) {
+                    const $target = $(target);
                     let hash = window.location.hash;
-                    let param = $(target).data('param');
+                    let param = $target.data('param');
                     const search_hash = 'hash=search'
                     const sales_channels = ['storefront', 'sales_channel']
 
@@ -307,6 +341,10 @@
 
                         // оставляем в параметрах только один какой-то канал продаж
                         const existed_sales_channel_key = params.findIndex(param => sales_channels.some(channel => param.includes(channel)));
+                        if (existed_sales_channel_key === -1 ) {
+                            params.push(param);
+                        }
+
                         if (existed_sales_channel_key !== -1) {
 
                             if (!params[existed_sales_channel_key].includes('params.')) {
@@ -315,12 +353,15 @@
 
                                 // возвращаем отрезанный слэш к имени витрины
                                 if (params[existed_sales_channel_key].includes('storefront')) {
-                                    params[existed_sales_channel_key] = params[existed_sales_channel_key] + '/'
+                                    params[existed_sales_channel_key] += '/'
                                 }
                             }
 
                             if (sales_channels.some(channel => param.includes(channel))) {
                                 params[existed_sales_channel_key] = `params.${param}`;
+                                if (params[existed_sales_channel_key].includes('storefront')) {
+                                    params[existed_sales_channel_key] += '/'
+                                }
                             }
                         }
 
@@ -340,6 +381,12 @@
                         $.wa.setHash(hash);
 
                         $('.js-remove-filters-link').toggleClass('hidden', false);
+
+                        highlightedButton(dropdown);
+
+                        $('.js-order-nav-brick').each(function () {
+                            $(this).removeClass('selected');
+                        });
                     } else {
                         location.replace($(target).attr('href'));
                     }
@@ -348,14 +395,34 @@
                 }
             });
 
-            $('.js-remove-filters-link').on('click', function () {
-                $('.js-orders-dropdown').find('.dropdown-toggle').each(function () {
-                    const text = $(this).data('text')
-                    if (text) {
-                        $(this).text(text);
-                    }
-                })
+            $('.js-remove-filters-link').on('click', () => {
+                this.clearFilters();
             })
+        },
+
+        visibilityFilters: function(state) {
+            const $filters_wrapper = $('.js-order-nav-block-secondary');
+
+            if (state) {
+                $filters_wrapper.show();
+            } else {
+                $filters_wrapper.hide();
+            }
+        },
+
+        clearFilters: function() {
+            $('.js-orders-dropdown').find('.dropdown-toggle').each(function () {
+                const $btn = $(this);
+
+                $btn.removeAttr('style');
+
+                const text = $btn.data('text');
+                if (text) {
+                    $btn.text(text);
+                }
+            });
+
+            $('.js-remove-filters-link').addClass('hidden');
         },
 
         //
@@ -498,6 +565,8 @@
 
         ordersAction: function(params) {
 
+            let show_filters = true;
+            const states_processing = "new|processing|auth|paid";
             if (params === 'hash') {
                 params = {
                     hash: Array.prototype.slice.call(arguments, 1).join('/')
@@ -512,8 +581,8 @@
                 }
                 if (!params) {
                     // default params
-                    params = "state_id=new|processing|auth|paid";
-                } else if (params === 'all') {
+                    params = `state_id=${states_processing}`;
+                } else if (params === 'all' || params === 'all&view=split') {
                     params = '';
                 }
                 params = $.shop.helper.parseParams(params || '');
@@ -529,15 +598,17 @@
                 }
             }
 
+            show_filters = params && params.state_id !== states_processing;
             if (this.actionName !== 'orders' || !$.order_list) {
                 if ($.order_list) {
                     $.order_list.finit();
                 }
-                this.load('?module=orders&'+this.buildOrdersUrlComponent(params), function() {
+                this.load('?module=orders&'+this.buildOrdersUrlComponent(params), () => {
                     $(window).trigger('wa_loaded', [['table']]);
                     if ($.order_list) {
                         $.order_list.dispatch(params);
                     }
+                    this.visibilityFilters(show_filters);
                 });
             } else {
                 $.order_list.dispatch(params);
@@ -602,7 +673,28 @@
             var r = Math.random();
             this.random = r;
             var self = this;
-            return  $.get(url, function(result) {
+
+
+            return $.ajax({
+                method: 'GET',
+                url: url,
+                global: false,
+                cache: false,
+                xhr: function() {
+                    var xhr = new window.XMLHttpRequest();
+
+                    xhr.addEventListener("progress", function(event) {
+                        self.$wrapper.trigger("wa_loading.wa_loading", event);
+                    }, false);
+
+                    xhr.addEventListener("abort", function(event) {
+                        self.$wrapper.trigger("wa_abort.wa_loading");
+                    }, false);
+
+                    return xhr;
+                }
+            })
+            .done(function(result) {
                 if ((typeof options.check === 'undefined' || options.check) && self.random != r) {
                     // too late: user clicked something else.
                     return;
@@ -621,6 +713,14 @@
                 showOrdersSortMenu();
 
                 self.checkAlerts();
+
+                self.waLoadingLoaded()
+            })
+            .fail( function(data) {
+                if (data.responseText) {
+                    console.error(data.responseText);
+                }
+                self.$wrapper.trigger("wa_load_fail.wa_loading");
             });
 
             function showOrdersSortMenu() {
@@ -638,7 +738,7 @@
         },
 
 
-        checkAlerts: function () {
+        checkAlerts() {
             var alerts = $.storage.get('shop/alerts');
             $.shop.trace('checkAlerts',alerts);
             $('.s-alert').each(function () {
@@ -652,6 +752,39 @@
             if (window.ordersNav === undefined) {
                 window.ordersNav = $('#s-order-nav').detach();
             }
+        },
+
+        initWaLoading() {
+            const waLoading = $.waLoading();
+
+            const $wrapper = $("#wa"),
+                locked_class = "is-locked";
+
+            this.$wrapper
+                .on("wa_before_load.wa_loading", function() {
+                    waLoading.show();
+                    waLoading.animate(10000, 95, false);
+                    $wrapper.addClass(locked_class);
+                })
+                .on("wa_loading.wa_loading", function(event, xhr_event) {
+                    const percent = (xhr_event.loaded / xhr_event.total) * 100;
+                    waLoading.set(percent);
+                })
+                .on("wa_abort.wa_loading", function() {
+                    waLoading.abort();
+                    $wrapper.removeClass(locked_class);
+                })
+                .on("wa_loaded.wa_loading", function() {
+                    waLoading.done();
+                    $wrapper.removeClass(locked_class);
+                });
+        },
+
+        waLoadingBeforeLoad: function () {
+            this.$wrapper.trigger("wa_before_load.wa_loading");
+        },
+        waLoadingLoaded: function () {
+            this.$wrapper.trigger("wa_loaded.wa_loading", [['waLoading']]);
         }
     };
 })(jQuery);

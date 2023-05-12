@@ -172,12 +172,14 @@
                 {* @event backend_settings.%plugin_id%.sidebar_bottom_li *}
                 {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
 
+                {if empty($is_premium)}
                 <li class="top-padded">
                     <a href="?action=settings#/premium/" class="custom-mb-12">
                         <span class="icon"><i class="fas fa-star"></i></span>
                         <span class="shop-sidebar-hidden">[`Upgrade to Premium`]</span>
                     </a>
                 </li>
+                {/if}
 
             </ul>
 

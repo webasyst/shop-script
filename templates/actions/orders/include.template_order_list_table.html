@@ -22,18 +22,18 @@
                 </div>
             </td>
             <td>
-                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{% if (order.contact.name) { %}{%#order.contact.name%}{% } else { %}[`(no name)`]{% } %}</a><i class="shortener"></i></div>
+                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">{% if (order.contact.name) { %}{%#order.contact.name%}{% } else { %}<span class="hint">[`not specified`]</span>{% } %}</a><i class="shortener"></i></div>
             </td>
             <td class="nowrap align-right">
                 <div>
+                    <a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}" class="custom-mr-4 semibold">
+                        {%#order.total_str%}
+                    </a>
                     {% if (order.paid_date) { %}
-                        <span class="text-green custom-ml-4 cursor-pointer" data-wa-tooltip-content="[`Paid`] {% if (order.paid_datetime_str) { %}{%#order.paid_datetime_str%}{% } else { %}{%#order.paid_date_str%}{% } %}" data-wa-tooltip-placement="left">
+                        <span class="text-green custom-mr-4 cursor-pointer" data-wa-tooltip-content="[`Paid`] {% if (order.paid_datetime_str) { %}{%#order.paid_datetime_str%}{% } else { %}{%#order.paid_date_str%}{% } %}" data-wa-tooltip-placement="left">
                             <i class="fas fa-check-circle"></i>
                         </span>
                     {% } %}
-                    <a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}" class="custom-mr-8 semibold">
-                        {%#order.total_str%}
-                    </a>
                 </div>
             </td>
             <td>

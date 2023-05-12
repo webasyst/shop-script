@@ -37,17 +37,29 @@ class shopPluginsActions extends waPluginsActions {
 
             $this->setLayout(new shopBackendLayout());
 
-            $installer_url = $this->getConfig()->getBackendUrl(true);
-            $plugins_list_url = $installer_url . 'installer/?module=plugins&action=view&slug=shop';
-
             $this->getView()->assign([
-                "plugins_list_url"     => $plugins_list_url,
+                "plugins_list_url"     => $this->getListUrl(waRequest::request('page')),
                 'backend_plugins_list' => wa('shop')->event('backend_plugins_list'),
             ]);
 
         }
 
         parent::defaultAction();
+    }
+
+    protected function getListUrl($type)
+    {
+        $installer_url = wa()->getConfig()->getBackendUrl(true).'installer/';
+        switch ($type) {
+            case 'home':
+                return $installer_url.'?module=store&action=inApp';
+            case 'apps':
+                return $installer_url.'?module=store&action=inApp&filter[type]=app';
+            case 'marketplaces':
+                return $installer_url.'?module=plugins&action=view&slug=shop&filter[tag]=marketplaces';
+            default:
+                return $installer_url . '?module=plugins&action=view&slug=shop';
+        }
     }
 
     public function installedAction() {

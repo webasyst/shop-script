@@ -126,6 +126,8 @@ if (typeof($) != 'undefined') {
                             const url = form.attr('action');
                             let processId;
 
+                            const enableSubmit = () => $submitButton.prop("disabled", false);
+
                             const cleanup = () => {
                                 $.post(url, { processId: processId, cleanup: 1 }, function(r) {
                                     // show statistic
@@ -140,7 +142,7 @@ if (typeof($) != 'undefined') {
                                             // dialog.hide();
                                         });
                                     }
-
+                                    enableSubmit();
                                     dialog.resize();
                                 }, 'json');
                             };
@@ -160,11 +162,12 @@ if (typeof($) != 'undefined') {
                                                 cleanup();
                                             } else if (r && r.error) {
                                                 form.find('.state-error').text(r.error);
+                                                enableSubmit();
                                             } else {
                                                 if (r && r.progress) {
                                                     const progress = parseFloat(r.progress.replace(/,/, '.'));
 
-                                                    $progressbar.find('.progressbar .progressbar-inner').animate({
+                                                    $progressbar.find('.progressbar .progressbar-inner').css({
                                                         'width': progress + '%'
                                                     });
 
@@ -187,12 +190,15 @@ if (typeof($) != 'undefined') {
                                 pull.push(timer_id);
                             };
 
+                            $progressbar.find('.progressbar .progressbar-inner').css({  width: '0%' });
+                            $progressbar.find('.progressbar-text').text('0%');
                             $.post(url, { processId: processId },
                                 function(r) {
                                     if (r && r.processId) {
                                         processId = r.processId;
                                         step(1000);   // invoke Runner
                                         step();         // invoke Messenger
+                                        $submitButton.prop("disabled", true);
                                     } else if (r && r.error) {
                                         form.find('state-error').text(r.error);
                                     } else {

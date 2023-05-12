@@ -10,6 +10,7 @@
 {$wa_app_static_url}js/order/form/customer.js
 {/wa_js}
 
+<link href="{$wa_app_static_url}css/backend/orders/orders.css?v={$wa->version()}" rel="stylesheet" />
 <link href="{$wa_app_static_url}js/order/timepicker/jquery.timepicker.css?v{$wa->version()}" rel="stylesheet" type="text/css" />
 
 {if 0}
@@ -37,9 +38,10 @@
 </div>
 {/if}
 
-<div id="s-order-nav" class="flexbox wrap-mobile" style="display:none;">
 
-    <div class="s-order-nav-block flexbox">
+<div id="s-order-nav" class="flexbox wrap-mobile s-order-nav" style="display:none;">
+
+    <div class="s-order-nav-block flexbox wide-mobile">
 
         <!-- VIEW -->
         <div class="s-order-nav-view s-order-view-toggle js-order-view wide">
@@ -62,9 +64,76 @@
             </ul>
         </div>
 
-        <!-- ADD -->
-        <div class="s-order-nav-view custom-mt-4 custom-ml-8">
-            <button class="custom-mr-16 button nobutton light-gray circle" id="js-orders-show-secondary-filters"><i class="fas fa-search text-gray"></i></button>
+        <div class="s-order-nav-view flexbox middle space-8">
+            <!-- SORT -->
+            <div class="s-order-nav-sort js-orders-sort">
+                <div class="flexbox space-8">
+                    <div class="dropdown s-orders-sort-dropdown js-sort-dropdown">
+                        <button type="button" class="dropdown-toggle without-arrow button nobutton circle nowrap text-gray light-gray" title="[`Sort`]" data-sort="">
+                            <i class="fas fa-sort-amount-up-alt count"></i>
+                        </button>
+
+                        <div class="dropdown-body right">
+                            <ul class="menu">
+                                <li class="s-sort" data-sort="create_datetime">
+                                    <a href="#" data-sort="create_datetime">
+                                        <span>[`Time created`]</span>
+                                        <i class="fas fa-sort-amount-up-alt count asc small"></i>
+                                        <i class="fas fa-sort-amount-down count desc "></i>
+                                    </a>
+                                </li>
+
+                                <li class="s-sort" data-sort="updated">
+                                    <a href="#" data-sort="updated">
+                                        <span>[`Time updated`]</span>
+                                        <i class="fas fa-sort-amount-up count desc"></i>
+                                        <i class="fas fa-sort-amount-down count asc"></i>
+                                    </a>
+                                </li>
+
+                                <li class="s-sort" data-sort="paid_date">
+                                    <a href="#" data-sort="paid_date">
+                                        <span>[`Time paid`]</span>
+                                        <i class="fas fa-sort-amount-up count desc"></i>
+                                        <i class="fas fa-sort-amount-down count asc"></i>
+                                    </a>
+                                </li>
+
+                                <li class="s-sort" data-sort="shipping_datetime">
+                                    <a href="#" data-sort="shipping_datetime">
+                                        <span>[`Shipping time`]</span>
+                                        <i class="fas fa-sort-amount-up count desc"></i>
+                                        <i class="fas fa-sort-amount-down count asc"></i>
+                                    </a>
+                                </li>
+
+                                <li class="s-sort" data-sort="state_id">
+                                    <a href="#" data-sort="state_id">
+                                        <span>[`Order status`]</span>
+                                        <i class="fas fa-sort-amount-up count desc"></i>
+                                        <i class="fas fa-sort-amount-down count asc"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- SEARCH -->
+            <div class="s-order-nav-search">
+                <button type="button" class="button nobutton light-gray circle js-orders-search">
+                    <span class="icon text-gray"><i class="fas fa-search"></i></span>
+                </button>
+                <div class="s-order-search hidden" id="js-order-search">
+                    <div class="search-wrapper">
+                        <input type="search" id="s-orders-search" class="search-input small" placeholder="[`Search orders`]">
+                        <button type="button" class="button nobutton light-gray circle s-orders-search js-orders-search">
+                            <span class="icon text-gray custom-mr-4"><i class="fas fa-times"></i></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- NEW ORDER -->
             <a class="rounded button small nowrap s-order-nav-plus-button" href="#/orders/new/" title="[`New order`]">
                 <i class="fas fa-plus"></i>
                 <span class="s-order-nav-plus-button-label">[`New order`]</span>
@@ -74,100 +143,28 @@
     </div>
 
     <!-- PRIMARY FILTERS -->
-    <div class="s-order-nav-block">
+    <div class="s-order-nav-block s-order-nav-block-split-filters">
 
         <!-- plugin hook: 'backend_orders.sidebar_section' -->
         {* @event backend_orders.%plugin_id%.sidebar_section *}
         {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
 
-        <div class="flexbox space-12 custom-mt-4">
-            <div class="dropdown wide js-orders-dropdown">
-                <button class="dropdown-toggle small light-gray full-width align-left text-black s-pseudo-brick">
-                    <span class="count">
-                        {if !empty($pending_count)}{$pending_count}{else}0{/if}
-                    </span>
-                    <span class="label semibold">
-                        [`Processing`]
-                    </span>
-                </button>
-
-                <div class="dropdown-body">
-                    <ul class="menu">
-                        <li>
-                            <a href="#/orders/state_id=new|processing|auth|paid" class="js-orders-link" id="s-pending-orders">
-                                <span class="count">
-                                    {if !empty($pending_count)}{$pending_count}{else}0{/if}
-                                </span>
-                                <span class="label semibold">
-                                    [`Processing`]
-                                    {if !empty($state_counters['new'])}<span class="highlighted smaller">+{$state_counters['new']}</span>{/if}
-                                </span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#/orders/all/" class="js-orders-link" id="s-all-orders">
-                                <span class="count">{if !empty($all_count)}{$all_count}{else}0{/if}</span>
-                                <span class="label semibold">[`All statuses`]</span>
-                            </a>
-                        </li>
-
-                        <!-- plugin hook: 'backend_orders.sidebar_top_li' -->
-                        {* @event backend_orders.%plugin_id%.sidebar_top_li *}
-                        {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
-
-                        {foreach $states as $id => $state}
-                            <li data-state-id="{$id}">
-                                <a href="#/orders/state_id={$id}/" class="js-orders-link" style="{$state->getStyle()}">
-                                    <span class="icon"><i class="{$wa->shop->convertIcon($state->getOption('icon'), true)}" style="{$state->getStyle()}"></i></span>
-                                    <span class="label">{$state->getName()|escape}</span>
-                                    <span class="count">{if isset($state_counters[$id])}{$state_counters[$id]}{else}0{/if}</span>
-                                </a>
-                            </li>
-                        {/foreach}
-                    </ul>
-                </div>
-            </div>
-
-            <div class="dropdown wide js-orders-dropdown">
-                <button class="dropdown-toggle small light-gray full-width align-left text-black s-pseudo-brick">
-                    <span class="count"><i class="fas fa-shopping-cart"></i></span>
-                    <span class="label semibold">[`Sales channels`]</span>
-                </button>
-
-                <div class="dropdown-body right">
-                    <ul class="menu menus-storefronts-filter">
-
-                        <li>
-                            <a href="#/orders/all/" class="js-orders-link" id="s-all-orders">
-                                <span class="count">{if !empty($all_count)}{$all_count}{else}0{/if}</span>
-                                <span class="label semibold">[`All channels`]</span>
-                            </a>
-                        </li>
-
-                        {foreach $sales_channels as $channel_id => $channel}
-                            <li data-storefront="{$channel.storefront|escape}" data-sales-channel="{$channel_id|escape}" class="list">
-                                <a href="{$channel.url|escape}" class="js-orders-link">
-                                    <span class="icon"><i class="fas fa-shopping-cart"></i></span>
-                                    <span class="label">{$channel.name|escape}</span>
-                                    <span class="count">{$channel.count}</span>
-                                </a>
-                            </li>
-                        {/foreach}
-
-                        <li>
-                            <a href="#/orders/all/" class="js-orders-link" id="s-all-orders">
-                                <span class="icon"><i class="fas fa-plus"></i></span>
-                                <span class="label text-gray">[`Add channel`]</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+        <div class="bricks s-order-nav-bricks custom-m-0">
+            <a href="#/orders/state_id=new|processing|auth|paid" class="brick shadowed js-orders-links js-orders-hide-filters js-order-nav-brick" id="s-pending-orders">
+                <span class="custom-pr-4 icon js-pending_counters-orders bold">{if !empty($pending_count)}{$pending_count}{else}0{/if}</span>
+                <span class="count js-total_processing-orders"></span>
+                <span class="label semibold">[`Processing`]</span>
+            </a>
+            <a href="#/orders/all/" class="brick shadowed js-orders-link js-orders-show-filters js-order-nav-brick" id="s-all-orders">
+                <span class="icon"><i class="fas fa-shopping-cart"></i></span>
+                <span class="count">{$all_count}</span>
+                <span class="label semibold">[`All orders`]</span>
+            </a>
         </div>
     </div>
 
     <!-- SECONDAY FILTERS -->
-    <div class="s-order-nav-block s-order-nav-block-chips js-order-nav-block-secondary" style="display: none;">
+    <div class="s-order-nav-block s-order-nav-block-chips js-order-nav-block-secondary s-order-nav-block-filters" style="display: none;">
     <ul class="chips small custom-m-0">
         {if !empty($couriers)}
             <li class="dropdown js-orders-dropdown">
@@ -246,86 +243,88 @@
             </li>
         {/if}
 
+        <li class="dropdown js-orders-dropdown s-orders-dropdown-status">
+            <button class="dropdown-toggle light-gray" data-text="[`Status`]">
+                [`Status`]
+            </button>
+
+            <div class="dropdown-body">
+                <ul class="menu">
+                    <!-- plugin hook: 'backend_orders.sidebar_top_li' -->
+                    {* @event backend_orders.%plugin_id%.sidebar_top_li *}
+                    {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+
+                    {*<li>
+                        <a href="#/orders/all/" class="js-orders-link" id="s-all-orders">
+                            <span class="count">{if !empty($all_count)}{$all_count}{else}0{/if}</span>
+                            <span class="label semibold">[`All statuses`]</span>
+                        </a>
+                    </li>*}
+
+                    {foreach $states as $id => $state}
+                        <li data-state-id="{$id}">
+                            <a href="#/orders/state_id={$id}/" data-param="state_id={$id|escape}" class="js-orders-link" style="{$state->getStyle()}">
+                                <span class="icon"><i class="{$wa->shop->convertIcon($state->getOption('icon'), true)}" style="{$state->getStyle()}"></i></span>
+                                <span class="label">{$state->getName()|escape}</span>
+                                <span class="count">{if isset($state_counters[$id])}{$state_counters[$id]}{else}0{/if}</span>
+                            </a>
+                        </li>
+                    {/foreach}
+                </ul>
+            </div>
+        </li>
+
+        <li class="dropdown js-orders-dropdown s-orders-dropdown-sales_channels">
+            <button class="dropdown-toggle light-gray" data-text="[`Sales channels`]">
+                [`Sales channels`]
+            </button>
+
+            <div class="dropdown-body">
+                <ul class="menu menus-storefronts-filter">
+
+                    {*<li>
+                        <a href="#/orders/all/" class="js-orders-link" id="s-all-orders">
+                            <span class="count">{if !empty($all_count)}{$all_count}{else}0{/if}</span>
+                            <span class="label semibold">[`All channels`]</span>
+                        </a>
+                    </li>*}
+
+                    {foreach $sales_channels as $channel_id => $channel}
+                        {$channel_id_escaped = {$channel_id|escape}}
+                        {$has_storefront = strpos($channel_id_escaped, 'storefront:') !== false && strpos($channel_id_escaped, '/') !== false}
+
+                        {if empty({$channel.storefront|escape})}
+                            {$param_channel = 'sales_channel='|cat:$channel_id_escaped}
+                        {else}
+                            {$param_channel = str_replace('storefront:', '', $channel_id_escaped)}
+                            {$param_channel = 'storefront='|cat:$param_channel}
+                        {/if}
+
+                        {$param_channel = 'params.'|cat:$param_channel|cat:{($has_storefront) ? '/' : ''}}
+                        <li data-storefront="{$channel.storefront|escape}" data-sales-channel="{$channel_id_escaped}" class="list">
+                            <a href="{$channel.url|escape}" class="js-orders-link" data-param="{$param_channel}">
+                                <span class="icon"><i class="fas fa-shopping-cart"></i></span>
+                                <span class="label">{$channel.name|escape}</span>
+                                <span class="count">{$channel.count}</span>
+                            </a>
+                        </li>
+                    {/foreach}
+                </ul>
+            </div>
+        </li>
+
         <!-- plugin hook: 'backend_orders.sidebar_bottom_li' -->
         {* @event backend_orders.%plugin_id%.sidebar_bottom_li *}
         {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
 
         <li class="transparent js-remove-filters-link hidden">
-            <a href="#/orders/state_id=new|processing|auth|paid" class="s-remove-filters-link gray">
+            <a href="#/orders/all/" class="s-remove-filters-link gray">
                 <i class="fas fa-times-circle" title="[`Clear filters`]"></i>
             </a>
         </li>
     </ul>
     </div>
 
-    <div class="s-order-nav-block s-order-nav-block-aux space-12 wide flexbox js-order-nav-block-secondary" style="display: none;">
-
-        <!-- SEARCH -->
-        <div class="s-sidebar-search-form js-sidebar-search-form custom-mt-4">
-            <div class="state-with-inner-icon left width-100">
-                <div class="icon">
-                    <i class="fas fa-search"></i>
-                </div>
-
-                <input type="search" id="s-orders-search" class="small transparent solid full-width" placeholder="[`Search orders`]">
-            </div>
-        </div>
-
-        <!-- SORT -->
-        <div class="s-order-nav-sort hidden js-orders-sort custom-mt-4">
-            <div class="flexbox space-8">
-                <div class="wide">
-                    <div class="dropdown hidden js-sort-dropdown">
-                        <a href="#" class="dropdown-toggle button small nobutton nowrap text-gray" data-sort="">[`Sort`]</a>
-
-                        <div class="dropdown-body right">
-                            <ul class="menu">
-                                <li class="s-sort" data-sort="create_datetime">
-                                    <a href="#" data-sort="create_datetime">
-                                        <span>[`Time created`]</span>
-                                        <i class="fas fa-sort-amount-up-alt count asc small hidden"></i>
-                                        <i class="fas fa-sort-amount-down count desc  hidden"></i>
-                                    </a>
-                                </li>
-
-                                <li class="s-sort" data-sort="updated">
-                                    <a href="#" data-sort="updated">
-                                        <span>[`Time updated`]</span>
-                                        <i class="fas fa-sort-amount-up count desc hidden"></i>
-                                        <i class="fas fa-sort-amount-down count asc hidden"></i>
-                                    </a>
-                                </li>
-
-                                <li class="s-sort" data-sort="paid_date">
-                                    <a href="#" data-sort="paid_date">
-                                        <span>[`Time paid`]</span>
-                                        <i class="fas fa-sort-amount-up count desc hidden"></i>
-                                        <i class="fas fa-sort-amount-down count asc hidden"></i>
-                                    </a>
-                                </li>
-
-                                <li class="s-sort" data-sort="shipping_datetime">
-                                    <a href="#" data-sort="shipping_datetime">
-                                        <span>[`Shipping time`]</span>
-                                        <i class="fas fa-sort-amount-up count desc hidden"></i>
-                                        <i class="fas fa-sort-amount-down count asc hidden"></i>
-                                    </a>
-                                </li>
-
-                                <li class="s-sort" data-sort="state_id">
-                                    <a href="#" data-sort="state_id">
-                                        <span>[`Order status`]</span>
-                                        <i class="fas fa-sort-amount-up count desc hidden"></i>
-                                        <i class="fas fa-sort-amount-down count asc hidden"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 <div class="flexbox" id="s-content">
     {* order list & order primary data view *}
@@ -650,7 +649,6 @@
 {/capture}
 
 {* js templates block*}
-
 {foreach $smarty.capture as $template => $template_content}
     {if $template_content && (strpos($template, 'template-')===0)}
         <script id="{$template}" type="text/html">
@@ -660,59 +658,71 @@
     {/if}
 {/foreach}
 
-<script>
-     function getNeedView(prop) {
-        var hashParams = { };
-        var e,
-            a = /\+/g,
-            r = /([^&;=]+)=?([^&;]*)/g,
-            d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
-            q = window.location.hash.substring(1 + 0);
+{* check mobile device *}
+<div id="js-media-mobile" class="mobile-only"></div>
 
-        while (e = r.exec(q)) {
-            var prop = d(e[1]);
-            var val = d(e[2]);
-            if (val) {
-                var regex = new RegExp('\\w+', 'g');
-                var m = regex.exec(val);
-                if (m.length) {
-                    val = m[0];
+<script>
+    (function() {
+        function getNeedView(prop) {
+            var hashParams = { };
+            var e,
+                a = /\+/g,
+                r = /([^&;=]+)=?([^&;]*)/g,
+                d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+                q = window.location.hash.substring(1 + 0);
+
+            while (e = r.exec(q)) {
+                var prop = d(e[1]);
+                var val = d(e[2]);
+                if (val) {
+                    var regex = new RegExp('\\w+', 'g');
+                    var m = regex.exec(val);
+                    if (m.length) {
+                        val = m[0];
+                    }
+                }
+
+                if(['/orders/view', 'view'].includes(prop)) {
+                    return val;
+                }
+
+                var regOrder= new RegExp('order/\\d+', 'g');
+                if (regOrder.test(prop)) {
+                    return 'order';
                 }
             }
 
-            if(['/orders/view', 'view'].includes(prop)) {
-                return val;
-            }
-
-            var regOrder= new RegExp('order/\\d+', 'g');
-            if (regOrder.test(prop)) {
-                return 'order';
-            }
+            return null;
         }
 
-        return null;
-    }
+        var view = getNeedView() || $.storage.get('shop/orders/view');
 
-    var view = getNeedView() || $.storage.get('shop/orders/view');
+        // :TODO fix if/else for type orders on the backend
+        var skeleton_template;
+        switch (view) {
+            case 'table':
+                skeleton_template = '{{include '../orders/skeleton/table.html'}|strip}';
+                break;
+            case 'kanban':
+                skeleton_template = '{{include '../orders/skeleton/kanban.html' select='kanban'}|strip}';
+                break;
+            case 'order':
+                skeleton_template = '{{include '../orders/skeleton/split.html' no_sidebar=true inline}|strip}';
+                break;
+            default:
+                skeleton_template = '{{include '../orders/skeleton/split.html'}|strip}';
+                break;
+        }
 
-    // :TODO fix if/else for type orders on the backend
-    var skeleton_template;
-    switch (view) {
-        case 'table':
-            skeleton_template = '{{include '../orders/skeleton/table.html'}|strip}';
-            break;
-        case 'kanban':
-            skeleton_template = '{{include '../orders/skeleton/kanban.html' select='kanban'}|strip}';
-            break;
-        case 'order':
-            skeleton_template = '{{include '../orders/skeleton/split.html' no_sidebar=true inline}|strip}';
-            break;
-        default:
-            skeleton_template = '{{include '../orders/skeleton/split.html'}|strip}';
-            break;
-    }
+        $('#skeleton_orders').html(skeleton_template);
 
-    $('#skeleton_orders').html(skeleton_template);
+        const class_hide_mobile = 'desktop-and-tablet-only';
+        if (new RegExp('id=\\d+').test(window.location.hash)) {
+            $('#js-split-order-sidebar').addClass(class_hide_mobile);
+        } else {
+            $('#js-split-order-content').addClass(class_hide_mobile);
+        }
+    })();
 
     $(function() {
         if ($.wa_push) {

@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.3\n"
+"X-Generator: Poedit 3.1.1\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -3616,6 +3616,9 @@ msgstr "Извините, но товар «%s» недоступен для п�
 msgid "Payment link"
 msgstr "Ссылка на оплату"
 
+msgid "Payment links are not eligible for deleted orders."
+msgstr "Для удаленного заказа нельзя получить ссылку на оплату."
+
 msgid "Your payment has been successfully accepted. We will process your order and contact you shortly."
 msgstr "Оплата успешно принята. Мы обработаем ваш заказ и свяжемся с вами в ближайшее время."
 
@@ -3758,7 +3761,7 @@ msgid "Please specify options for multiple choice field."
 msgstr "Укажите значения для множественного поля."
 
 msgid "Browse plugins"
-msgstr "Поиск плагинов"
+msgstr "Топ плагинов"
 
 msgid "Install new plugins from the Webasyst Store using the Installer app"
 msgstr "Установите новые плагины из магазина Webasyst с помощью приложения «Инсталлер»"
@@ -6015,6 +6018,9 @@ msgstr "Вы еще не создали ни одной категории то�
 
 msgid "Checkout anti-spam filter"
 msgstr "Антиспам-фильтр для заказов"
+
+msgid "The anti-spam filter works with the multi-step checkout only."
+msgstr "Антиспам-фильтр работает только с пошаговым оформлением заказа."
 
 msgid "Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots."
 msgstr "Антиспам-фильтр для заказов работает незаметно для реальных покупателей и автоматически отвергает все заказы, оформленные ботами."
@@ -8739,6 +8745,9 @@ msgstr "Все доступные инструменты уже добавлен
 
 msgid "https://www.shop-script.com/help/33511/marketing/"
 msgstr "https://support.webasyst.ru/shop-script/33510/marketing/"
+
+msgid "https://support.webasyst.com/"
+msgstr "https://support.webasyst.ru/"
 
 msgid "Help"
 msgstr "Помощь"
@@ -13068,3 +13077,36 @@ msgstr "МВ"
 
 msgid "OK"
 msgstr ""
+
+msgid "Shipping address updated"
+msgstr "Изменен адрес доставки"
+
+msgid "(no customer information)"
+msgstr "(нет информации о покупателе)"
+
+msgid "See what’s more in premium"
+msgstr "Посмотрите, что еще есть в премиум"
+
+msgid "Kanban view for orders"
+msgstr "Канбан для заказов"
+
+msgid "See all orders at a glance by status on a kanban board. User filter to focus on specific order segments. Drag an order to quickly change its status."
+msgstr "Наглядное представление заказов по статусам на канбан-доске. Фильтрация по различным параметрам. Быстрая смена статуса заказа простым перетаскиванием."
+
+msgid "Free updates forever!"
+msgstr "Бесплатные обновления навсегда!"
+
+msgid "Shop-Script at its max!"
+msgstr "Переходите на премиум!"
+
+msgid "Awesome advanced features and free unlimited updates with no extra subscriptions."
+msgstr "Больше возможностей и бесплатные безлимитные обновления без дополнительных подписок."
+
+msgid "Marketplaces"
+msgstr "Маркетплейсы"
+
+msgid "Editor picks"
+msgstr "Подборки плагинов"
+
+msgid "Webasyst apps"
+msgstr "Приложения Webasyst"

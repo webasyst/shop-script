@@ -1,11 +1,13 @@
 <!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>[`Order`] {$order.id_str} &mdash; {$wa->shop->settings("name")}</title>
 <link href="{$wa_url}wa-content/css/wa/wa-2.0.css?v{$wa->version(true)}" rel="stylesheet" type="text/css">
     <style>
+        .wa-method-wrapper { position: relative; }
         .wa-method-wrapper:hover { background-color: #e0e0e0; }
-        form {
-            text-align: center;
-        }
+        .wa-method .wa-image-wrapper { flex: 0 0 60px; }
+        .wa-method-link { position: absolute;inset: 0; }
+        form { text-align: center; }
         input[type="submit"] {
             display: inline-block;
             font-weight: 500;
@@ -37,38 +39,39 @@
 </head>
 <body>
 
-<div class="article box contentbox" style="max-width: 40rem">
+<div class="article box contentbox" style="max-width: 40rem;box-sizing: border-box;">
     <div class="article-body">
-        <p class="align-center small">{$wa->shop->settings("name")}</p>
-        <p class="large bold align-center custom-mt-0 custom-mb-4">[`Order`] {$order.id_str}</p>
-        <p class="largest bold align-center custom-mt-0 custom-mb-16">{$order.total_str}</p>
+
+        <p class="align-center gray">{$wa->shop->settings("name")}</p>
+
+        <hr>
+
+        <h1 class="align-center custom-mt-0 custom-mb-4">{$order.total_str}</h1>
+        <h4 class="gray align-center custom-mt-0 custom-mb-32">[`Order`] {$order.id_str}</h4>
 
 {if $payment_form_html}
     {$payment_form_html}
 {elseif $methods}
     <div class="wa-methods-list wide js-methods-list">
         {foreach $methods as $_method}
-            <div class="wa-method-wrapper bordered box rounded custom-p-16{if !$_method@last} custom-mb-8{/if}" data-id="{$_method.id|escape}">
+            <div class="wa-method-wrapper blank box rounded custom-p-16{if !$_method@last} custom-mb-16{/if}" data-id="{$_method.id|escape}">
                 <div class="wa-method flexbox">
-                    <a href="?payment_id={$_method.id|escape}">
-                        {if !empty($_method.logo)}
-                            <div class="wa-image-wrapper custom-mr-16">
-                                <img src="{$_method.logo}" alt="">
-                            </div>
-                        {/if}
-                    </a>
+                    {if !empty($_method.logo)}
+                        <div class="wa-image-wrapper custom-mr-16">
+                            <img src="{$_method.logo}" alt="">
+                        </div>
+                    {/if}
 
                     <div class="wa-method-body">
                         <div class="wa-payment-name text-blue large">
-                            <a href="?payment_id={$_method.id|escape}">
-                                {$_method.name|default:"[`Unknown`]"|escape}
-                            </a>
+                            {$_method.name|default:"[`Unknown`]"|escape}
                         </div>
                         {if !empty($_method.description)}
                             <div class="wa-description small custom-mt-4 text-gray">{$_method.description}</div>
                         {/if}
                     </div>
                 </div>
+                <a href="?payment_id={$_method.id|escape}" class="wa-method-link"></a>
             </div>
         {/foreach}
     </div>

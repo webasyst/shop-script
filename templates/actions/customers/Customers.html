@@ -4,17 +4,17 @@
 <script type="text/javascript" src="{$wa_app_static_url}js/lazy.load.js?{$wa->version()}"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/form/customer/backend.js?{$wa->version()}"></script>
 
-<div class="not-blank hidden" id="s-customers">
-<div class="article wider">
-<div class="article-body">
-    <div class="flexbox space-12 vertical-mobile">
-        <div class="sidebar mobile-friendly" id="s-sidebar">
+<div class="not-blank hidden s-customers" id="s-customers">
+    <div class="flexbox space-12 wrap-mobile">
+        <div class="sidebar flexbox blank width-adaptive-wider bordered-right wide-mobile ahead-little overflow-visible box" id="s-sidebar">
             {wa_action app="shop" module="customers" action="sidebar"}
         </div>
-        <div class="custom-mt-4 wide" id="s-content" style="min-height:calc(100vh - 4rem)"></div>
+        <div class="article wider">
+            <div class="article-body custom-pt-20">
+                <div class="custom-mt-4 wide" id="s-content" style="min-height:calc(100vh - 4rem)"></div>
+            </div>
+        </div>
     </div>
-</div>
-</div>
 </div>
 
 {include file="./../../layouts/skeleton/customers.html"}

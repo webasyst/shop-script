@@ -11,6 +11,7 @@ class shopBackendOrdersAction extends waViewAction
         $this->setLayout(new shopBackendLayout());
         $this->getResponse()->setTitle(_w('Orders'));
 
+        /** @var shopConfig $config */
         $config = $this->getConfig();
 
         $order_model = new shopOrderModel();
@@ -50,13 +51,14 @@ class shopBackendOrdersAction extends waViewAction
             'couriers'        => $couriers,
             'coupons_count'   => $cm->countActive(),
             'state_counters'  => $state_counters,
+            'currency'        => $config->getCurrency(),
             'pending_count'   => $pending_count,
             'all_count'       => $all_count,
             'sales_channels'  => $sales_channels,
             'backend_orders'  => $backend_orders,
             'unsettled_count' => $unsettled_count,
-            'shipping' => $this->shipping(),
-            'payments' => $this->payment(),
+            'shipping'        => $this->shipping(),
+            'payments'        => $this->payment(),
         ));
     }
 

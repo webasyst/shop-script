@@ -58,13 +58,16 @@ class shopDemoDataImporter
 
         $tmp_config_files_dir = $extract_path . 'wa-config/';
 
-        // IMPORT wa-config/routing.php
+        // Backup wa-config files to be affected by this import
+        $this->backupWaConfig();
+
+        // IMPORT wa-config/routing.php for SHOP app
         $import_routing_result = $this->importRoutingSettings($tmp_config_files_dir);
 
         // IMPORT wa-config/apps/shop
         $this->importShopConfigs($tmp_config_files_dir, $import_routing_result);
 
-        // Import site routing settings
+        // IMPORT wa-config/routing.php for SITE app
         $import_routing_result = $this->importSiteRoutingSettings($tmp_config_files_dir);
 
         // IMPORT site "The array defining core website navigation menu" setting
@@ -363,6 +366,35 @@ class shopDemoDataImporter
         }
     }
 
+    protected function backupWaConfig()
+    {
+        // routing.php
+        $wa_config_files_dir = wa()->getConfigPath();
+        $routing_config_path = $wa_config_files_dir . '/routing.php';
+
+        // checkout config
+        $shop_configs_path = $wa_config_files_dir . '/apps/shop/';
+        $shop_checkout2_config_path = $shop_configs_path . 'checkout2.php';
+
+        // site domain config for current domain
+        $current_domain = $this->getCurrentDomain();
+        $site_configs_path = $wa_config_files_dir . '/apps/site/domains/';
+        $site_domain_config_path = $site_configs_path . $current_domain . '.php';
+
+        $backup_path = wa('shop')->getDataPath('backup/onboarding/'.date('Ymd-His'));
+        waFiles::create($backup_path, true);
+        foreach([
+            $routing_config_path,
+            $shop_checkout2_config_path,
+            $site_domain_config_path
+        ] as $file) {
+            if (file_exists($file)) {
+                $new_file = $backup_path.'/'.basename($file);
+                waFiles::copy($file, $new_file);
+            }
+        }
+    }
+
     protected function importRoutingSettings($config_files_dir)
     {
         // distribute all settings of shop routing of exporter throughout all shop-settlements of importer
@@ -415,7 +447,7 @@ class shopDemoDataImporter
                         $current_settlement_config = $exporter_shop_settlement_config;
                         $current_settlement_config['url'] = $url;
 
-                        // checkout 1 if there is not suck key - (shop version <= 7)
+                        // checkout 1 if there is not such key - (shop version <= 7)
                         if (!isset($new_current_settlement_config['checkout_version'])) {
                             $new_current_settlement_config['checkout_version'] = 1;
                         }
@@ -462,7 +494,7 @@ class shopDemoDataImporter
             'current_site_url' => null
         );
 
-        // distribute all settings of site routing of exporter throughout all shop-settlements of importer
+        // distribute all settings of site routing of exporter throughout all site-settlements of importer
 
         $config_routing_file = $config_files_dir . 'routing.php';
 
@@ -497,7 +529,8 @@ class shopDemoDataImporter
             $current_routing_config = include($current_config_routing_file);
         }
 
-        $changed = false;
+        // Create new site settlement on each domain that has shop settlement but no site settlement
+        list($changed, $current_routing_config) = $this->createEmptySiteSettlements($current_routing_config);
 
         // get first site settlement of current domain
         $imported_site_settlement_config = null;
@@ -507,7 +540,7 @@ class shopDemoDataImporter
             // may be 'mirror' - 'mirror' is scalar value, not array
             if (is_array($current_domain_routing_config)) {
                 foreach ($current_domain_routing_config as &$current_settlement_config) {
-                    if (is_array($current_settlement_config) && isset($current_settlement_config['app']) && $current_settlement_config['app'] == 'site') {
+                    if (is_array($current_settlement_config) && ifset($current_settlement_config, 'app', null) === 'site' && empty($current_settlement_config['theme'])) {
 
                         // url will not be changed
                         $url = $current_settlement_config['url'];
@@ -539,6 +572,53 @@ class shopDemoDataImporter
         }
 
         return $result;
+    }
+
+    /**
+     * For each domain in $current_routing_config, if domain has a shop settlement
+     * but no site settlement, add a site settlement to that domain.
+     * Site settlement will be added as root (url=*) if domain has no root settlement,
+     * otherwise url=site/*
+     */
+    protected function createEmptySiteSettlements($current_routing_config)
+    {
+        // Figure out which domains need a new site settlement
+        $changed = false;
+        $affected_domains = []; // domain => route url
+        foreach ($current_routing_config as $current_domain => $current_domain_routing_config) {
+            if (!is_array($current_domain_routing_config)) {
+                continue;
+            }
+            $domain_has_shop = false;
+            $domain_has_site = false;
+            $domain_has_root_settlement = false;
+            foreach ($current_domain_routing_config as $current_settlement_config) {
+                if (!is_array($current_settlement_config)) {
+                    continue;
+                }
+
+                $domain_has_shop = $domain_has_shop || ifset($current_settlement_config, 'app', null) === 'shop';
+                $domain_has_site = $domain_has_site || ifset($current_settlement_config, 'app', null) === 'site';
+                $domain_has_root_settlement = $domain_has_root_settlement || ifset($current_settlement_config, 'url', null) === '*';
+            }
+
+            if ($domain_has_shop && !$domain_has_site) {
+                $changed = true;
+                if ($domain_has_root_settlement) {
+                    array_unshift($current_routing_config[$current_domain], [
+                        'url' => 'site/*',
+                        'app' => 'site',
+                    ]);
+                } else {
+                    $current_routing_config[$current_domain][] = [
+                        'url' => '*',
+                        'app' => 'site',
+                    ];
+                }
+            }
+        }
+
+        return [$changed, $current_routing_config];
     }
 
     protected function importShopConfigs($config_files_dir, $options = array())

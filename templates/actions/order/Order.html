@@ -90,13 +90,12 @@
                                         {$customer_essentials.name|default:'[`(no name)`]'|escape}
                                     </a>
                                 {else}
-                                    {$customer_essentials.name|default:'[`(no name)`]'|escape}
-                                    {if !$customer_essentials.id|default:'0'|escape} <span class="hint">[`deleted`]</span>{/if}
+                                    <span class="gray">{$customer_essentials.name|default:'[`(no customer information)`]'|escape}</span>
                                 {/if}
                                 {if $customer_essentials.registered|default:false}
                                     <i class="fas fa-check-circle fa-xs text-green" title="[`Registered customer`]"></i>
                                 {/if}
-                                {if !empty($customer)}
+                                {if !empty($customer) && !empty($customer_essentials.id)}
                                     {if $customer.number_of_orders == 1}
                                         <em class="hint">[`New customer`]</em>
                                     {else}
@@ -262,17 +261,20 @@
                                         <p class="small"><em>{sprintf('[`Order payment was captured on %s`]', $order.auth_date|wa_date:'humandate')}</em></p>
 
                                     {else}
+                                        {if $order.state_id === 'deleted'}
+                                            <hr class="custom-mb-8">
+                                            <div><p class="gray small"><i class="fas fa-info-circle"></i> [`Payment links are not eligible for deleted orders.`]</p></div>
+                                        {else}
+                                            <p class="small">[`Order was not paid yet`]</p>
 
-                                        <p class="small">[`Order was not paid yet`]</p>
+                                            <hr class="custom-mb-16">
 
-                                        <hr class="custom-mb-16">
+                                            <a href="[`https://www.shop-script.com/help/44627/payment-by-link/`]" target="_blank" class="h6 gray">[`Payment link`] <i class="fas fa-info-circle"></i></a>
 
-                                        <a href="[`https://www.shop-script.com/help/44627/payment-by-link/`]" target="_blank" class="h6 gray">[`Payment link`] <i class="fas fa-info-circle"></i></a>
-
-                                        <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre>
-                                        <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs"></i></a>
-                                        <button class="button smaller nowrap js-copy-btn" data-copy-target="#js-payment-url" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]">[`Copy link`]</button>
-
+                                            <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre>
+                                            <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs"></i></a>
+                                            <button class="button smaller nowrap js-copy-btn" data-copy-target="#js-payment-url" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]">[`Copy link`]</button>
+                                        {/if}
                                     {/if}
 
                                 </div>

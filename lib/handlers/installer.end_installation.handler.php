@@ -44,8 +44,10 @@ class shopInstallerEnd_installationHandler extends waEventHandler
                 $compatibility = false;
             }
 
+            $is_first_install = empty($data['update']);
             if (
-                !$compatibility
+                $is_first_install
+                && !$compatibility
                 && isset($data['type'])
                 && (shopFrac::isEnabled() || shopUnits::isEnabled())
             ) {

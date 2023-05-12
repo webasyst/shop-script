@@ -4537,7 +4537,9 @@
                                             onInput: function() {
                                                 var self = this;
                                                 if (self.errors["url_error"]) { delete self.errors["url_error"]; }
-                                                self.column_data.value = self.column_data.value.replace(/\//g, "");
+
+                                                var forbidden_symbols = new RegExp("[/|#|\\\\|?]");
+                                                self.column_data.value = self.column_data.value.replace(forbidden_symbols, "");
                                             },
                                             onChange: function() {
                                                 var self = this;

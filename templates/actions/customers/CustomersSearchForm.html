@@ -101,7 +101,7 @@
                 <div class="name">
                     [`Last order`]
                 </div>
-                <div class="value no-shift">
+                <div class="value">
                     {capture "_last_order_options"}
                         <select name="app.last_order_datetime" data-op="<=" id="s-customers-order-datetime-select" class="non-wa-contact-field">
                             <option></option>
@@ -113,8 +113,8 @@
                         </select>
                     {/capture}
                     {sprintf('<span>[`Over %s ago`]</span>', $smarty.capture._last_order_options)}
-                    <div id="s-customers-last-order-period" class="hidden">
-                        <input type="text" class="s-customer-datepicker non-wa-contact-field" name="app.last_order_datetime.val" value="{$hash.app.last_order_datetime.val|default:''}">
+                    <div id="s-customers-last-order-period">
+                        <input type="text" class="s-customer-datepicker s-datepicker non-wa-contact-field" name="app.last_order_datetime.val" value="{$hash.app.last_order_datetime.val|default:''}">
                         {select n='app.last_order_datetime.op'
                             o=[['id' => '<=', 'name' => _w('or earlier')],
                                 ['id' => '>=', 'name' => _w('or later')]]
@@ -128,7 +128,7 @@
                     [`First order`]
                 </div>
                 <div class="value">
-                    <input type="text" class="s-customer-datepicker non-wa-contact-field" name="app.first_order_datetime.val" value="{$hash.app.first_order_datetime.val|default:''}">
+                    <input type="text" class="s-customer-datepicker s-datepicker non-wa-contact-field" name="app.first_order_datetime.val" value="{$hash.app.first_order_datetime.val|default:''}">
                     {select n='app.first_order_datetime.op'
                         o=[['id' => '<=', 'name' => _w('or earlier')],
                             ['id' => '>=', 'name' => _w('or later')]]
@@ -142,7 +142,7 @@
                     <div class="name">
                         [`Payment`]
                     </div>
-                    <div class="value no-shift">
+                    <div class="value">
                         {select n='app.payment_method' o=$payment_methods d=$hash.app.payment_method.val|default:'' c="non-wa-contact-field"}
                     </div>
                 </div>
@@ -152,7 +152,7 @@
                     <div class="name">
                         [`Shipping`]
                     </div>
-                    <div class="value no-shift">
+                    <div class="value">
                         {select n='app.shipment_method' o=$shipping_methods d=$hash.app.shipment_method.val|default:'' c="non-wa-contact-field"}
                     </div>
                 </div>
@@ -163,7 +163,7 @@
                     <div class="name">
                         [`Applied discount coupon`]
                     </div>
-                    <div class="value no-shift">
+                    <div class="value">
                         {select n="app.coupon" o=$coupons d=$hash.app.coupon.val|default:'' c="non-wa-contact-field"}
                     </div>
                 </div>
@@ -178,8 +178,8 @@
             <div class="field">
                 <div class="name">[`Purchased product`]</div>
                 <div class="value">
-                    <input type="text" value="{if $hash.app.product.val|default:'' && !is_numeric($hash.app.product.val|default:'')}{$hash.app.product.val|default:''}{else}{$product_name}{/if}" placeholder="[`Start typing product or SKU name`]" class="long non-wa-contact-field"  id="s-customer-product" data-enter-ignore="1">
-                    <input type="hidden" name="app.product" value="{$hash.app.product.val|default:''}" {if $hash.app.product.val|default:'' && is_numeric($hash.app.product.val|default:'')}data-op="="{else}data-op="*="{/if} class="non-wa-contact-field">
+                    <input type="text" value="{if $hash.app.product.val|escape|default:'' && !is_numeric($hash.app.product.val|escape|default:'')}{$hash.app.product.val|escape|default:''}{else}{$product_name|escape}{/if}" placeholder="[`Start typing product or SKU name`]" class="long non-wa-contact-field"  id="s-customer-product" data-enter-ignore="1">
+                    <input type="hidden" name="app.product" value="{$hash.app.product.val|escape|default:''}" {if $hash.app.product.val|escape|default:'' && is_numeric($hash.app.product.val|escape|default:'')}data-op="="{else}data-op="*="{/if} class="non-wa-contact-field">
                 </div>
             </div>
             <div class="field">
@@ -199,7 +199,7 @@
         <div class="field-group">
             <div class="field">
                 <div class="name">[`Referer`]</div>
-                <div class="value no-shift">
+                <div class="value">
                     {select n="app.referer" o=$referers d=$hash.app.referer.val|default:'' c="non-wa-contact-field"}
                 </div>
             </div>
@@ -207,14 +207,14 @@
                 <div class="name">
                     [`Storefront`]
                 </div>
-                <div class="value no-shift">
+                <div class="value">
                     {select n="app.storefront" o=$storefronts d=$storefront c="non-wa-contact-field"}
                 </div>
             </div>
             {if $utm_campagns}
                 <div class="field">
                     <div class="name">[`UTM campaign`]</div>
-                    <div class="value no-shift">
+                    <div class="value">
                         {select n="app.utm_campaign" o=$utm_campagns d=$hash.app.utm_campaign.val|default:'' c="non-wa-contact-field"}
                     </div>
                 </div>
@@ -272,7 +272,7 @@
                 var hash = { };
                 $(':input', container).not('[type=submit]').not(':disabled').each(function () {
                     var item = $(this);
-                    if ((item.is(':radio') || item.is(':checkbox')) && !item.attr('checked')) {
+                    if ((item.is(':radio') || item.is(':checkbox')) && !item.prop('checked')) {
                         return;
                     }
                     var value = (item.val() || '').trim();
@@ -350,6 +350,7 @@
                     if (el.val) {
                         el.val = format(key, el);
                         el.val = el.val.replace(/\//g, '\\/');// escape
+                        el.val = el.val.replace(/&/g, '\\&'); // escape
                         hash_ar.push(el.val);
                     }
                 });
@@ -503,8 +504,8 @@
         })($('#{$container_id}'));
 
         function makeChoosePeriodControl(el) {
-            var start_input = $('<input type="text" class="datepicker non-wa-contact-field" style="max-width:107px;">');
-            var end_input = $('<input type="text" class="datepicker non-wa-contact-field" style="max-width:107px;">');
+            var start_input = $('<input type="text" class="datepicker s-datepicker non-wa-contact-field" style="max-width:107px;">');
+            var end_input = $('<input type="text" class="datepicker s-datepicker non-wa-contact-field" style="max-width:107px;">');
             var hidden_input = $('<input type="hidden" name="' + el.data('name') + '" class="non-wa-contact-field">');
 
             var init_val = el.data('val');

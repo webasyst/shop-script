@@ -140,6 +140,8 @@ class shopCustomersListAction extends waViewAction
             return '#/category/'.$this->getCategoryId().'/';
         } elseif ($this->getType()) {
             return '#/clients/';
+        } elseif ($this->getFilterId()) {
+            return '#/filter/'.$this->getFilterId().'/';
         } else {
             return '#/all/';
         }

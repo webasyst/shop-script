@@ -141,12 +141,11 @@
 
                 <div id="s-reindex-progressbar" class="custom-mt-12" style="display:none;">
                     <div class="progressbar">
-                        <div class="progressbar-line-wrapper text-inside">
+                        <div class="progressbar-line-wrapper text-outside">
                             <div class="progressbar-outer">
-                                <div class="progressbar-inner" style="width: 0%;">
-                                    <div class="progressbar-text">0%</div>
-                                </div>
+                                <div class="progressbar-inner" style="width: 0%;"></div>
                             </div>
+                            <div class="progressbar-text">0%</div>
                         </div>
                     </div>
 
@@ -160,7 +159,7 @@
 
             <footer class="dialog-footer">
                 {$wa->csrf()}
-                <button type="submit" class="button small green js-dialog-submit">
+                <button type="submit" class="button small js-dialog-submit">
                     [`Start re-indexing process`]
                 </button>
 

@@ -171,7 +171,9 @@
     var $source_selector = $('#s-cohorts-source-selector');
     $source_selector.change(function() {
         $source_selector.after('<i class="icon16 loading"></i>');
-        $.post(action_url, $.extend({ }, request_params, { source: $source_selector.val() }), function(r) {
+        var source = $source_selector.val();
+        $.reports.tmp_params.cohorts.source = source;
+        $.post(action_url, $.extend({ }, request_params, { source }), function(r) {
             $('#reportscontent').html(r);
         });
     });
@@ -190,6 +192,7 @@
     $metric_selector_ul.on('click', 'li[data-type]:not(.selected)', function() {
         var $li = $(this);
         var type_id = $li.data('type');
+        $.reports.tmp_params.cohorts.type = type_id;
         $li.find('a').append('<i class="icon16 loading"></i>');
         $.post(action_url, $.extend({ }, request_params, { type: type_id }), function(r) {
             $('#reportscontent').html(r);

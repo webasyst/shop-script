@@ -848,8 +848,10 @@ SQL;
                     if (!$category) {
                         break;
                     }
-                    $this->info['main_filter_type'] = 'category';
-                    $this->info['main_filter_data'] = $category;
+                    if (!$search_prepared) {
+                        $this->info['main_filter_type'] = 'category';
+                        $this->info['main_filter_data'] = $category;
+                    }
                     if ($category['type'] == shopCategoryModel::TYPE_STATIC) {
                         $category_alias = $this->addJoin('shop_category_products');
                         if ($category['include_sub_categories']) {
@@ -894,8 +896,10 @@ SQL;
                     if (!$set) {
                         break;
                     }
-                    $this->info['main_filter_type'] = 'set';
-                    $this->info['main_filter_data'] = $set;
+                    if (!$search_prepared) {
+                        $this->info['main_filter_type'] = 'set';
+                        $this->info['main_filter_data'] = $set;
+                    }
                     if ($set['type'] == shopSetModel::TYPE_STATIC) {
                         $set_alias = $this->addJoin('shop_set_products');
                         $this->where[] = $set_alias . ".set_id = '" . $set_model->escape($set['id']) . "'";

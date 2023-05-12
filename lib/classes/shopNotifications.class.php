@@ -320,7 +320,7 @@ SQL;
                     'id'   => $data['order']['id'],
                     'code' => $data['order']['params']['auth_code'],
                     'item' => $i['id'],
-                ), true, $storefront_domain, $storefront_route_url);
+                ), true, $storefront_domain ?? null, $storefront_route_url ?? null); // :TODO init vars
             }
             if (!empty($products[$i['product_id']])) {
                 $i['product'] = $products[$i['product_id']];
@@ -1006,7 +1006,7 @@ SQL;
 
         $order = $data['order'];
         $notification_text = _w('New order').' '.shopHelper::encodeOrderId($order['id']);
-        $notification_text .= ' - '.wa_currency($order['total'], $order['currency']);
+        $notification_text .= ' — '.wa_currency($order['total'], $order['currency']);
 
         // Send to recipients, grouped by domain name they registered to
         $results = array();

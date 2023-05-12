@@ -1,4 +1,7 @@
 {include "./sales_sidebar.html" inline}
+{capture assign="_icon_darr"}
+<i class="fas fa-caret-down"></i>
+{/capture}
 <div class="content">
     <div class="block double-padded">
 
@@ -52,28 +55,28 @@
                 {*
                  * Best selling products table
                  *}
-                <table id="s-report-products-bestsellers-table" class="zebra">
+                <table id="s-report-products-bestsellers-table" class="zebra s-reports-table-sort">
                     <thead>
                         <tr class="white s-header-row">
                             <th style="width:50px;"></th>
                             <th></th>
                             <th class="align-right">
                                 {if $request_options.sort == 'quantity'}
-                                    [`Quantity`]<i class="icon16 darr"></i>
+                                    [`Quantity`] {$_icon_darr}
                                 {else}
                                     <a href="#/products/bestsellers/sort=quantity/">[`Quantity`]</a>
                                 {/if}
                             </th>
                             <th class="align-right">
                                 {if $request_options.sort == 'sales'}
-                                    [`Sales`] <i class="icon16 darr"></i>
+                                    [`Sales`] {$_icon_darr}
                                 {else}
                                     <a href="#/products/bestsellers/sort=sales/">[`Sales`]</a>
                                 {/if}
                             </th>
                             <th class="s-wider-cell align-right">
                                 {if $request_options.sort == 'profit'}
-                                    [`Profit`] <i class="icon16 darr"></i>
+                                    [`Profit`] {$_icon_darr}
                                 {else}
                                     <a href="#/products/bestsellers/sort=profit/">[`Profit`]</a>
                                 {/if}
@@ -208,24 +211,17 @@
 
     var request_params = {json_encode($request_options)};
     var action_url = '?module=reportsproducts&action=default';
+    var $table = $('#s-report-products-bestsellers-table');
+    var $thead = $table.children('thead');
 
-    // Storefront selector logic
-    (function() { "use strict";
-
-        var $storefront_selector = $('#s-products-report-storefront-selector').removeAttr('id');
-
-        // Move selector into the top menu wrapper
-        $('#s-reports-custom-controls').empty().append($storefront_selector.closest('.wa-select'));
-
-        // Reload page when user changes something in the selector
-        $storefront_selector.change(function() {
-            $storefront_selector.after('<i class="fas fa-spinner fa-spin"></i>');
-            $.post(action_url, $.extend({ }, request_params, { sales_channel: $storefront_selector.val() }), function(r) {
-                $('#reportscontent').html(r);
-            });
-        });
-
-    })();
+    // Sort table when user clicks on a column header
+    $thead.on('click', 'a', function() {
+        $thead.find('.fa-caret-down,.fa-caret-up').remove();
+        var $a = $(this);
+        var $td = $a.closest('th,td');
+        $.reports.sortTable($td);
+        $a.append('<i class="fas fa-caret-down"></i>');
+    });
 
     // Human-readable period description in page header
     (function() {

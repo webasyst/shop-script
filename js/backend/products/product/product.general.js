@@ -369,7 +369,8 @@
             $url_field
                 .on("input", function(event) {
                     var value = $url_field.val();
-                    value = value.replace(/\//g, "");
+                    var forbidden_symbols = new RegExp("[/|#|\\\\|?]");
+                    value = value.replace(forbidden_symbols, "");
                     $url_field.val(value);
                 })
                 .on("keyup", function() {
@@ -1497,26 +1498,19 @@
                             },
                             "component-fractional-changes": {
                                 props: ["name", "changes", "revert"],
-                                data: function() {
-                                    var self = this;
-                                    return {
-                                        revert: (typeof self.revert === "boolean" ? self.revert : false)
-                                    };
-                                },
                                 template: that.components["component-fractional-changes"],
                                 delimiters: ['{ { ', ' } }'],
                                 computed: {
+                                    prop_revert() { (typeof this.revert === "boolean" ? this.revert : false) },
                                     has_changes: function() {
-                                        var self = this;
-                                        return self.changes[self.name];
+                                        return this.changes[this.name];
                                     },
                                     show_indicator: function() {
-                                        var self = this;
-                                        return (that.product.normal_mode_switch && that.product.fractional.rights[self.name] === "enabled");
+
+                                        return (that.product.normal_mode_switch && that.product.fractional.rights[this.name] === "enabled");
                                     },
                                     show_refresh: function() {
-                                        var self = this;
-                                        return (self.show_indicator && self.has_changes);
+                                        return (this.show_indicator && this.has_changes);
                                     }
                                 },
                                 methods: {

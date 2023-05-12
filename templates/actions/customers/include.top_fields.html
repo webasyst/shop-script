@@ -8,7 +8,7 @@
     <div class="s-customer-fields-section small break-words" id="js-customer-fields-section">
         <ul class="unstyled s-customer-top-field-list">
             {foreach $top as $top_field}
-                <li class="s-customer-top-field-default-value-item flexbox middle space-8">
+                <li class="s-customer-top-field-default-value-item flexbox middle wrap" style="column-gap: 0.5rem;">
                     {if $top_field.id !== 'im'}
                         <i class="fas fa-{if $top_field.default_value.is_confirmed}check-circle text-green{else}{if $top_field.id == 'email'}envelope{else}{$top_field.id}{/if}{/if} text-gray" {if $top_field.default_value.is_confirmed}title="[`Confirmed`]"{/if}></i>
                     {/if}
@@ -17,7 +17,7 @@
                         {$_formatted_phone_value = $top_field.default_value.value|regex_replace:'/^(8|(\+)?7)/':'+7'}
                         <span>{$top_field.default_value.formatted}</span>
                         <div class="dropdown js-messengers nowrap">
-                            <span class="dropdown-toggle badge button-light-gray rounded">[`Message`]</span>
+                            <span class="dropdown-toggle badge button-light-gray small rounded">[`Message`]</span>
                             <div class="dropdown-body">
                                 <ul class="menu">
                                     <li>
@@ -37,23 +37,41 @@
                     {else}
                         <span>{$top_field.default_value.formatted}</span>
                     {/if}
+
                     {if $top_field.id == 'email' && !empty($similar_contacts.email.count)}
-                        <span class="similar hint">
-                            <span class="similar-hull">
-                                {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="fas fa-exclamation-triangle small custom-mr-4"></i>{_w('%d more customer found with the same email address', '%d more customers found with the same email address', $similar_contacts.email.count)}{if $customers_rights}</a>{/if}
-                            </span>
-                            <span class="similar-short" title="[`Number of customers with the same email address`]">
-                                {if $customers_rights}<a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}" class="nowrap">{/if}<i class="fas fa-exclamation-triangle small custom-mr-4"></i>{$similar_contacts.email.count}{if $customers_rights}</a>{/if}
+                        <span class="similar">
+                            <span class="custom-mr-4">
+                                {if $customers_rights}
+                                    <a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}"
+                                      id="js-client-duplicate-tooltip-email" class="nowrap badge small orange"
+                                      data-wa-tooltip-content="{_w('%d more customer found with the same email address', '%d more customers found with the same email address', $similar_contacts.email.count)}">
+                                        <i class="fas fa-user-friends small custom-ml-4"></i>
+                                        {$similar_contacts.email.count}
+                                    </a>
+                                    <script>
+                                        ( function($) {
+                                            $("#js-client-duplicate-tooltip-email").waTooltip();
+                                        })(jQuery);
+                                    </script>
+                                {/if}
                             </span>
                          </span>
-
                     {elseif $top_field.id == 'phone' && !empty($similar_contacts.phone.count)}
-                        <span class="similar hint">
-                            <span class="similar-hull">
-                                {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="fas fa-exclamation-triangle small custom-mr-4"></i>{_w('%d more customer found with the same phone number', '%d more customers found with the same phone number', $similar_contacts.phone.count)}{if $customers_rights}</a>{/if}
-                            </span>
-                            <span class="similar-short" title="[`Number of customers with the same phone number`]">
-                                {if $customers_rights}<a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}" class="nowrap">{/if}<i class="fas fa-exclamation-triangle small custom-mr-4"></i>{$similar_contacts.phone.count}{if $customers_rights}</a>{/if}
+                        <span class="similar">
+                            <span class="custom-mr-4">
+                                {if $customers_rights}
+                                    <a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}"
+                                      id="js-client-duplicate-tooltip-phone" class="nowrap badge small orange"
+                                      data-wa-tooltip-content="{_w('%d more customer found with the same phone number', '%d more customers found with the same phone number', $similar_contacts.phone.count)}">
+                                        <i class="fas fa-user-friends small custom-ml-4"></i>
+                                        {$similar_contacts.phone.count}
+                                    </a>
+                                    <script>
+                                        ( function($) {
+                                            $("#js-client-duplicate-tooltip-phone").waTooltip();
+                                        })(jQuery);
+                                    </script>
+                                {/if}
                             </span>
                         </span>
                     {/if}

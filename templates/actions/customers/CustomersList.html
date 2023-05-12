@@ -73,37 +73,38 @@
 
 {else}
     <div id="customers-list-wrapper">
-        <div class="flexbox  space-12 middle full-width custom-mb-16 js-customers-header s-customers-header wrap-mobile s-calc-width-container">
-            <h1 class="s-header custom-mb-0 h3-mobile custom-mb-0-mobile" title="{$title|escape}">
-                <span class="s-title">{$title|escape}</span>
-            </h1>
+        <div class="flexbox space-12 middle full-width custom-mb-16 js-customers-header s-customers-header wrap">
 
-            <div class="wide js-customers-header-buttons custom-mt-8-mobile">
-                {if empty($category_id) && empty($query)}
-                    <a href="#/add/" class="button circle small custom-mt-4" title="[`New customer`]">
-                        <i class="fas fa-plus"></i>
-                    </a>
-                {/if}
+            <div class="flexbox space-12 middle full-width wrap-mobile wide">
+                <h1 class="s-header custom-mb-0 h3-mobile custom-mb-0-mobile">
+                    <span class="s-title">{$title|escape}</span>
+                </h1>
 
-                {if $category_id}
-                    <a href="#/editcategory/{$category_id}" class="button circle light-gray small" title="[`Edit`]"><i class="fas fa-edit text-blue"></i></a>
-                    <a href="javascript:void(0)" class="button light-gray circle small" id="delete-category" title="[`Delete`]"><i class="fas fa-trash-alt text-red"></i></a>
-                {/if}
+                {if $hash_start === "#/all/"}
+                <a href="#/add/" class="button circle small custom-mr-auto custom-mt-8" title="[`New customer`]">
+                    <i class="fas fa-plus"></i>
+                </a>
+                {else}
+                <div class="js-customers-header-buttons s-customers-header-buttons nowrap custom-mt-8">
+                    {if $category_id}
+                        <a href="#/editcategory/{$category_id}" class="button rounded light-gray small"><i class="fas fa-edit text-blue"></i> [`Edit`]</a>
+                        <a href="javascript:void(0)" class="button light-gray circle small" id="delete-category" title="[`Delete`]"><i class="fas fa-trash-alt text-red"></i></a>
+                    {/if}
 
-                {if $query}
-                    <a href="javascript:void(0);" id="s-customers-add-filter" class="button green rounded small">[`Save this search`]</a>
-                    <a href="#/searchform/{$query}/" class="button rounded small">[`Change search conditions`]</a>
-                {elseif $filter_id}
-                    <a href="javascript:void(0);" id="s-customers-edit-filter" class="button rounded light-gray small"><i class="fas fa-edit text-blue"></i> [`Edit`]</a>
+                    {if $query}
+                        <a href="javascript:void(0);" id="s-customers-add-filter" class="button green rounded small">[`Save this search`]</a>
+                        <a href="#/searchform/{$query|escape}/" class="button rounded small">[`Change search conditions`]</a>
+                    {elseif $filter_id}
+                        <a href="javascript:void(0);" id="s-customers-edit-filter" class="button rounded light-gray small"><i class="fas fa-edit text-blue"></i> [`Edit`]</a>
+                    {/if}
+                </div>
                 {/if}
             </div>
 
-            <div class="align-right align-left-mobile custom-mt-12-mobile ml-auto js-customers-list-menu">
-
+            <div class="js-customers-list-menu custom-mt-12-mobile" style="flex: 100%;">
                 <!-- plugin hook: 'backend_customers_list.top_li' -->
                 {* @event backend_customers_list.%plugin_id%.top_li *}
                 {if !empty($backend_customers_list)}{foreach $backend_customers_list as $_}{if (!empty($_.top_li))}{$_.top_li}{/if}{/foreach}{/if}
-
             </div>
         </div>
 
@@ -115,7 +116,7 @@
                 {/if}
 
                 {if !empty($customers)}
-                    <div class="table-scrollable-x s-customers-table-scrollable-x s-calc-width-container">
+                    <div class="table-scrollable-x s-customers-table-scrollable-x">
                         <table class="s-customers small">
                             <thead>
                                 <tr>
@@ -128,6 +129,36 @@
                                 </tr>
                             </thead>
                             <tbody>{$customers_list}</tbody>
+                        </table>
+                    </div>
+                {else}
+                    {* Fake table. A need to take a certain width so that the interface does not swell when there is no table *}
+                    <div class="table-scrollable-x s-customers-table-scrollable-x" style="overflow: hidden;">
+                        <table class="s-customers small" style="visibility: hidden;">
+                            <thead>
+                                <tr>
+                                    <th class="min-width"></th>
+                                    {foreach $cols as $col_id => $col_name}
+                                        <th {if $col_id == 'name'}class="align-left"{/if}>
+                                            <a href="javascript:void(0)" class="sort-link">{$col_name}</a>
+                                        </th>
+                                    {/foreach}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="s-customer ui-draggable" style="visibility: hidden;">
+                                    <td class="min-width valign-top s-userpic custom-mt-24-mobile"><div style="width: 50px;height: 50px;"></div> </td>
+                                    <td class="align-left s-name">
+                                        <h3 class="large name custom-mb-4"></h3>
+                                        <div class="s-customer-fields-section small break-words"></div>
+                                    </td>
+                                    <td><strong class="nowrap"></strong></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 {/if}
@@ -221,7 +252,7 @@
                 const menu = $('.js-customers-list-menu').hide();
                 const hide = function() {
                     fs_block.slideUp(function() {
-                        header.css("max-width", "53%").show();
+                        header.show();
                         buttons.show();
                         menu.show();
                     });

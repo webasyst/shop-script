@@ -285,7 +285,13 @@
                                         <br>{$item.stock_icon}
                                     {/if}
                                 </td>
-                                <td class="align-right nowrap"><span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}</td>
+                                <td class="align-right nowrap" aria-label="[`Qty`]">
+                                    <span class="gray large">&times;</span> <span class="semibold large">{$item.quantity}</span><br>
+                                    <span class="gray small">{wa_currency_html($item.price, $order.currency)}</span>
+                                    {if !empty($item.stock_unit)}
+                                        <span class="s-unit">{$item.stock_unit.name_short}</span>
+                                    {/if}
+                                </td>
                                 <td class="align-right nowrap">{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>
                             </tr>
                             {$subtotal = $subtotal + $item.price*$item.quantity}

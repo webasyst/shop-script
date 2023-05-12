@@ -521,7 +521,7 @@ class shopFrontendOrderActions extends waJsonActions
         if ($session_data === null) {
             $session_data = wa()->getStorage()->get('shop/checkout', []);
         }
-
+        $routing_url = wa()->getRouting()->getRootUrl();
         $order = new shopOrder([
             'contact_id' => ifempty(ref(wa()->getUser()->getId()), null),
             'currency'   => wa('shop')->getConfig()->getCurrency(false),
@@ -530,6 +530,7 @@ class shopFrontendOrderActions extends waJsonActions
             'tax'        => 'calculate',
             'params'     => [
                 'coupon_code' => ifset($session_data, 'coupon_code', null),
+                'storefront' => wa()->getConfig()->getDomain().($routing_url ? '/'.$routing_url : ''),
             ],
         ], [
             'items_format'       => 'cart',

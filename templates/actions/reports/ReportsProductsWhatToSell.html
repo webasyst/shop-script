@@ -17,7 +17,7 @@
                 </select>
             </div>
         </div>
-        <table id="s-reports-what-to-sell-table" class="zebra">
+        <table id="s-reports-what-to-sell-table" class="zebra s-reports-table-sort">
             <thead>
                 <tr class="s-marked-row">
                     <td colspan="5" style="padding-left: 0 !important; padding-top: 0 !important;">
@@ -122,7 +122,7 @@
     // Reload page when user changes number of products on page
     var $limit_selector = $('#limit-selector');
     $limit_selector.change(function() {
-        $limit_selector.parent().after('<i class="fas fa-spinner fa-spin"></i>');
+        $limit_selector.parent().after('<i class="fas fa-spinner wa-animation-spin"></i>');
         var limit = $limit_selector.val();
         $.storage.set('shop/reports/whattosell/limit', limit); // used in reports.js
         $.post(action_url, $.extend({}, request_options, { limit: limit }), function(r) {
@@ -133,7 +133,7 @@
     // Reload page when user changes filtering selector
     var $only_sold_selector = $('#only-sold-selector');
     $only_sold_selector.change(function() {
-        $only_sold_selector.parent().after('<i class="fas fa-spinner fa-spin"></i>');
+        $only_sold_selector.parent().after('<i class="fas fa-spinner wa-animation-spin"></i>');
         var val = $only_sold_selector.val();
         $.storage.set('shop/reports/whattosell/only_sold', val); // used in reports.js
         $.post(action_url, $.extend({}, request_options, { only_sold: val }), function(r) {
@@ -234,16 +234,16 @@
             var sold = $sold_input.val() || p.sold;
 
             if (!margin) {
-                $margin_input.addClass('error');
+                $margin_input.addClass('state-error');
                 margin = 0;
             } else {
-                $margin_input.removeClass('error');
+                $margin_input.removeClass('state-error');
             }
             if (isNaN(sold)) {
-                $sold_input.addClass('error');
+                $sold_input.addClass('state-error');
                 sold = 0;
             } else {
-                $sold_input.removeClass('error');
+                $sold_input.removeClass('state-error');
             }
 
             var sales = Math.round(p.price * sold * period_multiplier);

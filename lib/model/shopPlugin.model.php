@@ -28,11 +28,16 @@ class shopPluginModel extends shopSortableModel
         if (!empty($options['id'])) {
             $fields['id'] = $options['id'];
         }
-        $where = $this->getWhereByField($fields);
+
+        $plugins = $this->getByField($fields, $this->id);
         if (empty($options['id']) && !empty($options['except_dummy'])) {
-            $where .= " AND `plugin` != '" . ($type == self::TYPE_SHIPPING ? shopShipping::DUMMY : shopPayment::DUMMY) . "'";
+            $dummy_id = $type == self::TYPE_SHIPPING ? shopShipping::DUMMY : shopPayment::DUMMY;
+            foreach ($plugins as $plugin_id => $plugin) {
+                if ($plugin['plugin'] == $dummy_id) {
+                    unset($plugins[$plugin_id]);
+                }
+            }
         }
-        $plugins = $this->where($where)->fetchAll($this->id);
         $complementary = ($type == self::TYPE_PAYMENT) ? self::TYPE_SHIPPING : self::TYPE_PAYMENT;
         $non_available = array();
         if (!empty($options[$complementary])) {

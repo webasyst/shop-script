@@ -294,8 +294,8 @@
                     delimiters: ['{ { ', ' } }'],
                     methods: {
                         onChange: function(event) {
-                            self.$emit("update:modelValue", this.value);
-                            self.$emit("change", this.value);
+                            this.$emit("update:modelValue", this.value);
+                            this.$emit("change", this.value);
                         }
                     }
                 },
@@ -528,12 +528,10 @@
                         delimiters: ['{ { ', ' } }'],
                         computed: {
                             is_start: function() {
-                                var self = this;
-                                return !(self.position > 1);
+                                return !(this.position > 1);
                             },
                             is_end: function() {
-                                var self = this;
-                                return (self.position === self.selection.length);
+                                return (this.position === this.selection.length);
                             }
                         },
                         methods: {

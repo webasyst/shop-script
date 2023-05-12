@@ -90,10 +90,6 @@
          */
         sort: ['create_datetime', 'desc'],
 
-        drawer_order: '', // v2
-
-        touched: false,
-
         /**
          * Collection of xhr-deffered objects for synchronization
          * {Object}
@@ -110,7 +106,6 @@
             this.plugin_hash = options.plugin_hash || '';
             this.filter_params = options.filter_params || {};
             this.filter_params_str = options.filter_params_str || '';
-            this.drawer_order = options.drawer_order;
             this.container = $('#order-list');
 
             if (options.view == 'table') {
@@ -119,7 +114,7 @@
                 if (this.$selectionMenu) {
                     this.select_all_input = this.$selectionMenu.find('.s-order-list-select-all');
                     this.select_all_input.attr('checked', false);
-                    $('.js-selection-dropdown').waDropdown();
+                    $('.js-selection-dropdown').waDropdown({ hide: false });
                 }
             }
 
@@ -127,86 +122,66 @@
 
                 // for mobile
                 const order_li = 'li[data-order-id]';
-                const regexpId = new RegExp('&id=\\d+', 'g');
+                const regexpId = new RegExp('id=\\d+');
+                const $order_list = $('#s-orders');
+                const $order = $('#s-order');
+                const class_hide_mobile = 'desktop-and-tablet-only';
 
-                // function removeDrawerOrder() {
-                //     $('.drawer-order').remove();
-                // }
+                const openOrder = (id) => {
+                    // if (!regexpId.test(window.location.hash)) {
+                    //     return;
+                    // }
 
-                function openOrder(id) {
-                    if (!regexpId.test(window.location.hash)) {
-                        return;
-                    }
-
-                    const $order_list = $('#s-orders');
-                    const $order = $('#s-order');
-                    const desktop_class = 'desktop-and-tablet-only';
                     let disable_back_history = true;
+                    const $button_close = $order.find('.back.order-list');
 
-                    $order_list.hide(200, function() {
-                        $order_list.addClass(desktop_class);
-                        $(this).show();
-                    });
-                    $order.removeClass(desktop_class);
+                    $button_close
+                        .addClass('js-order-hide mobile-only')
+                        .show()
+                        .attr('href', 'javascript:void(0);');
 
-                    setTimeout(function() {
-                        disable_back_history = false;
-                    });
-                    $(window).unbind('hashchange');
-
-                    const $button_close = $order.find('.back.order-list')
-                            .addClass('js-close-drawer mobile-only')
-                            .show()
-                            .attr('href', window.location.hash.replace(regexpId, ''))
-
-                    $button_close.on('click', function() {
-                        $order.addClass(desktop_class);
-                        $order_list.removeClass(desktop_class);
+                    $button_close.off().on('click', function() {
+                        $order.addClass(class_hide_mobile);
+                        $order_list.removeClass(class_hide_mobile);
 
                         $(window).off('hashchange');
 
                         disable_back_history = true;
                     });
 
+                    setTimeout(function() {
+                        disable_back_history = false;
+                    });
+                    $(window).unbind('hashchange');
+
                     $(window).on('hashchange', function() {
                         if (disable_back_history) {
                             return;
                         }
 
-                        $('.js-close-drawer', $order).trigger('click');
+                        // $('.js-order-hide', $order).trigger('click');
                     });
                 }
 
-                this.container.off().on('orderMobile', function(e, id) {
-                    if (
-                        $.shop.helper.isMobile()
-                        && $.order_list.touched
-                        && id
-                        && $.order_list.id
-                    ) {
-                        $.order_list.touched = false;
-
+                this.container.off().on('wa_order_mobile_loaded', function(e, id) {
+                    if ($.order_list.isMobile() && id && $.order_list.id) {
                         openOrder(id);
                     }
                 })
 
-                this.container.on('touchstart', order_li, function(e) {
-                    $.order_list.touched = true;
-                });
-
-                this.container.on('click', order_li, function() {
-                    // removeDrawerOrder();
-
-                    if (!$.order_list.touched) {
-                        return;
-                    }
+                this.container.on('click', order_li, function(e) {
+                    $('#skeleton_split').removeClass(class_hide_mobile);
+                    $order.removeClass(class_hide_mobile);
+                    $order_list.addClass(class_hide_mobile);
 
                     const $li = $(this);
-                    const id = $.order_list.params.id || $.order_list.id;
-                    if (id == $li.data('order-id') && !regexpId.test(window.location.hash)) {
-                        const hash = $('a.details', $li).attr('href');
-                        $.wa.setHash(hash);
-                        $(this).trigger('orderMobile', [id]);
+                    const id = ($.order_list.params ? $.order_list.params.id : null) || $.order_list.id;
+
+                    if (id == $li.data('order-id')) {
+                        e.preventDefault();
+                        openOrder(id);
+                        // const hash = $('a.details', $li).attr('href');
+                        // $.wa.setHash(hash);
                     }
                 });
 
@@ -241,15 +216,22 @@
                         ));
                     this.container.trigger('append_order_list', [options.orders]);
                 } catch (e) {
-                    $.shop.notification({
-                        class: 'danger',
-                        content: `Error: ${e.message}`
-                    })
 
-                    if (console) {
-                        console.log(e.stack);
+                    if ($('#template-order-list-kanban').length) {
+                        $.shop.notification({
+                            class: 'danger',
+                            content: `Error: ${e.message}`
+                        });
+                        if (console) {
+                            console.log(e.stack);
+                        }
+                        return this;
+                    } else {
+                        // premium is disabled
+                        // next time user enters Orders section, show Table view
+                        $.storage.set('shop/orders/view', 'table');
                     }
-                    return this;
+
                 }
                 delete options.orders;
                 delete this.options.orders;
@@ -283,6 +265,10 @@
             this.ordersNavTeleport();
             this.initView();
             this.selectionMenuTeleport();
+
+            if (options.total_processing) {
+                this.updateTotalProcessing(options.total_processing);
+            }
         },
 
         initLazyLoad: function (options) {
@@ -297,7 +283,7 @@
 
             $order_list.on('touchstart', function () {
                 $("body").css({overflow: "hidden"})
-                $(this).children('.sidebar-body').css({overflow: "auto"});
+                $(this).children('.sidebar-body').css({overflow: "overlay"});
                 setTimeout(()  => {
                     $("body").css({overflow: "auto"})
                 })
@@ -402,7 +388,6 @@
                 this.initSelecting();
             }
             if (this.options.id) {
-                $.order_list.touched = $.shop.helper.isMobile();
                 this.loadOrder(this.options.id);
             }
             var orders_view_ul = $('#s-orders-views');
@@ -522,7 +507,7 @@
                     $.order_list.updateCounters({
                         state_counters: r.data.state_counters,
                         common_counters: {
-                            pending: r.data.pending_count
+                            pending: r.data.pending_counters
                         }
                     });
                 };
@@ -624,9 +609,7 @@
         },
 
         loadOrder: function (order_id) {
-            if ($.shop.helper.isMobile() && !$.order_list.touched) {
-                return;
-            }
+
             this.container.find('.selected').removeClass('selected');
             this.container.find('[data-order-id=' + order_id + ']').addClass('selected');
 
@@ -636,7 +619,7 @@
                 function () {
                     this.id = order_id;
                     $(window).trigger('wa_loaded', [['split', 'kanban']]);
-                    $('#order-list').trigger('orderMobile', [order_id]);
+                    $('#order-list').trigger('wa_order_mobile_loaded', [order_id]);
                 }
             );
         },
@@ -760,32 +743,34 @@
         },
 
         initSidebar: function () {
-            var sidebar = this.sidebar;
+            // var sidebar = this.sidebar;
+            var sidebar = $('#s-order-nav');
 
+            // :TODO remove
             // Replace list view type in all links in sidebar
-            var view = this.options.view;
-            sidebar.find('.bricks a').each(function () {
-                var item = $(this);
-                var href = item.attr('href');
-                var match = href.match(/view=((.*)&|(.*)\/|(.*))/);
-                if (match) {
-                    item.attr('href', href.replace('view=' + (match[2] || match[3] || match[4]), 'view=' + view));
-                } else if ((match = href.match(/^#\/orders\/hash\/(.*?)\/?$/))) {/* */
-                    item.attr('href', '#/orders/view=' + view + '&hash=' + encodeURIComponent(match[1]) + '/');
-                } else {
-                    match = href.match(/orders\/((.*)\/|(.*))/);
-                    var chunk = '';
-                    if (match) {
-                        if (match[1]) {
-                            chunk = match[2] || match[3];
-                            chunk += '&view=' + view;
-                        } else {
-                            chunk = 'view=' + view;
-                        }
-                        item.attr('href', '#/orders/' + chunk + '/');
-                    }
-                }
-            });
+            // var view = this.options.view;
+            // sidebar.find('.bricks a').each(function () {
+            //     var item = $(this);
+            //     var href = item.attr('href');
+            //     var match = href.match(/view=((.*)&|(.*)\/|(.*))/);
+            //     if (match) {
+            //         item.attr('href', href.replace('view=' + (match[2] || match[3] || match[4]), 'view=' + view));
+            //     } else if ((match = href.match(/^#\/orders\/hash\/(.*?)\/?$/))) {/* */
+            //         item.attr('href', '#/orders/view=' + view + '&hash=' + encodeURIComponent(match[1]) + '/');
+            //     } else {
+            //         match = href.match(/orders\/((.*)\/|(.*))/);
+            //         var chunk = '';
+            //         if (match) {
+            //             if (match[1]) {
+            //                 chunk = match[2] || match[3];
+            //                 chunk += '&view=' + view;
+            //             } else {
+            //                 chunk = 'view=' + view;
+            //             }
+            //             item.attr('href', '#/orders/' + chunk + '/');
+            //         }
+            //     }
+            // });
 
             // Change active list view selection
             var $prev_li_selected = sidebar.find('.selected').removeClass('selected');
@@ -1220,11 +1205,14 @@
                         $counter_wrapper.filter(`[data-status-id="${counter}"]`).text(counters.state_counters[counter])
                     }
                 }
-            }else {
+            } else {
                 var sidebar = this.sidebar;
                 if (!sidebar) {
                     sidebar = $('#s-sidebar');
                 }
+
+                this.updateTotalProcessing(counters.total_processing);
+
                 var ext_new_counter = $('#s-pending-orders .small');
                 for (var name in counters) {
                     if (counters.hasOwnProperty(name)) {
@@ -1233,7 +1221,7 @@
                             if (cntrs.hasOwnProperty(id)) {
                                 var item;
                                 if (name == 'common_counters') {
-                                    item = $('#s-' + id + '-orders .count');
+                                    item = $('.js-' + id + '-orders');
                                 } else {
                                     if (name === 'storefront_counters') {
                                         item = sidebar.find('li[data-' + name.replace('_counters', '') + '="' + id + '"] .count');
@@ -1293,6 +1281,10 @@
             }
         },
 
+        updateTotalProcessing: function(total) {
+            $('.js-total_processing-orders').html(total);
+        },
+
         hideListItems: function (id) {
             // deffered fiber
             var d = $.Deferred();
@@ -1327,8 +1319,13 @@
             }
             var loaders = {
                 list: function () {
+                    $.orders.waLoadingBeforeLoad();
                     $.order_list.finit();
                     $.orders.load('?module=orders&' + $.orders.buildOrdersUrlComponent(params), function () {
+                        if ($.order_list.options.view === 'split') {
+                            // :TODO fix
+                            // console.log('$.order_list.filter_params_str', $.order_list.filter_params_str);
+                        }
                         $.order_list.dispatch(params);
                         $(window).trigger('wa_loaded', [['table']]);
                     });
@@ -1621,13 +1618,14 @@
         },
 
         ordersNavTeleport() {
-            if (window.ordersNav !== undefined && $.orders !== undefined) {
-                window.ordersNav.show();
+            const $ordersNav = window.ordersNav;
+            if ($ordersNav !== undefined && $.orders !== undefined) {
+                $ordersNav.show();
                 if (this.options.view === 'split') {
-                    $('#s-orders').find('.sidebar-header').prepend(window.ordersNav)
+                    $('#s-orders').find('.sidebar-header').prepend($ordersNav)
                     $.orders.initDropdown();
                 } else {
-                    $('#s-content').before(window.ordersNav)
+                    $('#s-content').before($ordersNav)
                     $.orders.initDropdown();
                 }
             }
@@ -1641,6 +1639,10 @@
                     this.$search_form.after($selection_menu)
                 }
             }
+        },
+        isMobile() {
+            // $.shop.helper.isMobile();
+            return $('#js-media-mobile').is(':visible');
         }
     };
 

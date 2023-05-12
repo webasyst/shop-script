@@ -178,8 +178,8 @@
             <div class="field">
                 <div class="name">[`Purchased product`]</div>
                 <div class="value">
-                    <input type="text" value="{if $hash.app.product.val|default:'' && !is_numeric($hash.app.product.val|default:'')}{$hash.app.product.val|default:''}{else}{$product_name}{/if}" placeholder="[`Start typing product or SKU name`]" class="long non-wa-contact-field"  id="s-customer-product" data-enter-ignore="1">
-                    <input type="hidden" name="app.product" value="{$hash.app.product.val|default:''}" {if $hash.app.product.val|default:'' && is_numeric($hash.app.product.val|default:'')}data-op="="{else}data-op="*="{/if} class="non-wa-contact-field">
+                    <input type="text" value="{if $hash.app.product.val|escape|default:'' && !is_numeric($hash.app.product.val|escape|default:'')}{$hash.app.product.val|escape|default:''}{else}{$product_name|escape}{/if}" placeholder="[`Start typing product or SKU name`]" class="long non-wa-contact-field"  id="s-customer-product" data-enter-ignore="1">
+                    <input type="hidden" name="app.product" value="{$hash.app.product.val|escape|default:''}" {if $hash.app.product.val|escape|default:'' && is_numeric($hash.app.product.val|escape|default:'')}data-op="="{else}data-op="*="{/if} class="non-wa-contact-field">
                 </div>
             </div>
             <div class="field">
@@ -348,6 +348,7 @@
                     if (el.val) {
                         el.val = format(key, el);
                         el.val = el.val.replace(/\//g, '\\/');// escape
+                        el.val = el.val.replace(/&/g, '\\&'); // escape
                         hash_ar.push(el.val);
                     }
                 });

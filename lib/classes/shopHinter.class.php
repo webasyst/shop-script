@@ -19,7 +19,7 @@ class shopHinter
         if (!$hint || !is_array($hint)) {
             return '';
         }
-        return $this->render($hint);
+        return $this->render($hint, $name);
     }
 
     public static function hint($name)
@@ -61,17 +61,19 @@ class shopHinter
         return $this->hints;
     }
 
-    protected function render($hint)
+    protected function render($hint, $name)
     {
         $hint['text'] = isset($hint['text']) ? $hint['text'] : '';
         $hint['link'] = isset($hint['link']) ? $hint['link'] : '';
 
+        $html = 'lib/config/hints/template' . (wa()->whichUI() === '1.3' ? '-legacy' : '') . '.html';
         $template_path = isset($this->options['template']) ? $this->options['template'] :
-            wa()->getAppPath('lib/config/hints/template.html', 'shop');
+            wa()->getAppPath($html, 'shop');
 
         return wa()->getView()->renderTemplate($template_path, array(
             'hint' => $hint,
-            'locale' => $this->locale
+            'locale' => $this->locale,
+            'name' => $name
         ));
     }
 }

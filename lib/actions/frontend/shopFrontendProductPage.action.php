@@ -35,6 +35,9 @@ class shopFrontendProductPageAction extends shopFrontendProductAction
         } catch (waException $e) {
             $this->pageNotFound();
         }
+        if (!$page) {
+            $this->pageNotFound();
+        }
         if (!$page['status']) {
             $hash = $this->appSettings('preview_hash');
             if (!$hash || md5($hash) != waRequest::get('preview')) {
@@ -42,9 +45,6 @@ class shopFrontendProductPageAction extends shopFrontendProductAction
             }
         }
 
-        if (!$page) {
-            $this->pageNotFound();
-        }
         if (!$page['title']) {
             $page['title'] = $page['name'];
         }

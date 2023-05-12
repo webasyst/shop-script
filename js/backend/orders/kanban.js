@@ -90,6 +90,17 @@ var Kanban = (($) => {
         cols.each((i, list) => new Column(list).observe());
     };
 
+    const changeStateName = ($order, new_state_id) => {
+        // Need a more reliable way to get a status map
+        const state = $.order_list.options.state_names[new_state_id];
+        if (!state) return;
+
+        const { name, options } = state;
+        $order.find('.js-state')
+            .text(name)
+            .css('background', options.style.color);
+    }
+
     const addSortable = (cols, sttr, locale) => {
 
         /**
@@ -102,7 +113,7 @@ var Kanban = (($) => {
         var xhr = null;
 
         cols.each((i, list) => {
-            new Sortable(list, {
+            Sortable.create(list, {
                 group: {
                     name: "statuses",
                     pull: "clone",
@@ -115,6 +126,7 @@ var Kanban = (($) => {
 
                 // Called on start of dragging. Asks server which columns given order_id can be moved into.
                 onStart: (evt) => {
+                    $(evt.clone).addClass('hidden')
                     const order_id = $(evt.item).data('order-id');
                     xhr = $.post('?module=orders&action=availableActions', { id: order_id }, 'json');
                 },
@@ -126,7 +138,8 @@ var Kanban = (($) => {
 
                     $.when().then(() => {
                         // Can any order theoretically be moved between given columns?
-                        const order_id = $(evt.item).data('order-id');
+                        const $order = $(evt.item);
+                        const order_id = $order.data('order-id');
                         const from_state_id = $(evt.from).data('kanban-list-status-id');
                         const to_state_id = $(evt.to).data('kanban-list-status-id');
                         if (!sttr[from_state_id] || !sttr[from_state_id][to_state_id]) {
@@ -146,8 +159,17 @@ var Kanban = (($) => {
                                 return $.post('?module=workflow&action=perform', {
                                     id: order_id,
                                     action_id: state_data.action_id
-                                }, 'json').then(function(r) {
-                                    return true;
+                                }, 'json').then((r) => {
+                                    if (typeof r === "object" && r.status === 'ok') {
+                                        changeStateName($order, r.data.after_state_id);
+
+                                        return true;
+                                    }
+
+                                    return false;
+
+                                }).fail(() => {
+                                    return false;
                                 });
                             } else {
                                 $.shop.notification({
@@ -164,6 +186,7 @@ var Kanban = (($) => {
                         if (all_fine) {
                             $(evt.clone).remove(); // clone is in the initial column
                         } else {
+                            $(evt.clone).removeClass('hidden');
                             $(evt.item).remove(); // item is in the final column
                         }
                     });

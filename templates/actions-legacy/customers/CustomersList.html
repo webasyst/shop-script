@@ -87,7 +87,7 @@
                         <a href="javascript:void(0);" id="s-customers-add-filter" class="inline-link"><i class="icon16 add"></i><b><i>[`Save this search`]</i></b></a>
                     </li>
                     <li>
-                        <a href="#/searchform/{$query}/"><i class="icon16 edit-bw"></i>[`Change search conditions`]</a>
+                        <a href="#/searchform/{$query|escape}/"><i class="icon16 edit-bw"></i>[`Change search conditions`]</a>
                     </li>
                 {else if $filter_id}
                     <li>
@@ -250,4 +250,3 @@
     })();</script>
 
 {/if}
-

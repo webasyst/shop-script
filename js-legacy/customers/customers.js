@@ -333,6 +333,7 @@
         },
 
         filterAction: function(filter_id, order) {
+            order = this.getSortOrder(order);
             this.load(this.getUrl() + '&filter_id=' + filter_id + order);
         },
 

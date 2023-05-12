@@ -626,6 +626,22 @@ SQL;
         $this->query($sql);
     }
 
+    /**
+     * @return float
+     */
+    public function getTotalSalesByInProcessingStates()
+    {
+        $states = ['new', 'processing', 'auth', 'paid'];
+
+        $sql = "SELECT SUM(total*rate)
+        FROM shop_order
+        WHERE state_id IN (:states);";
+
+        $result = floatval($this->query($sql, array('states' => $states))->fetchField());
+
+        return $result;
+    }
+
     public function getTotalSalesByProduct($product_id, $product_currency = null)
     {
         if ($product_currency) {

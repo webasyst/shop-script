@@ -1,33 +1,30 @@
 {include './orders_list.inc.html' inline}
 
-<div class="skeleton">
+<div class="skeleton" style="width: 100%; max-width: 100vw; overflow: hidden;">
     {if empty($no_sidebar)}
     {include './table_sidebar.html' inline}
     {/if}
-    <div class="box custom-mt-16">
-        <span class="skeleton-line custom-m-0 custom-mr-16" style="width: 100px;height: 30px;"></span>
-    </div>
 
     <div class="flexbox full-width box">
-        <span class="skeleton-line custom-m-0 custom-mr-16" style="width: 24%;height: 75vh;">
+        <span class="skeleton-line custom-m-0 custom-mr-16" style="min-width: 320px;width: 24%;height: 75vh;">
             <span class="skeleton-line custom-ml-8 custom-mt-8" style="width: 60%;height: 17px;"></span>
             <div style="padding: 0 20px;">
                 {split_orders count=1 margin_height='8px'}
             </div>
         </span>
-        <span class="skeleton-line custom-m-0 custom-mr-16" style="width: 24%;height: 75vh;">
+        <span class="skeleton-line custom-m-0 custom-mr-16" style="min-width: 320px;width: 24%;height: 75vh;">
             <span class="skeleton-line custom-ml-8 custom-mt-8" style="width: 50%;height: 17px;"></span>
             <div style="padding: 0 20px;">
                 {split_orders count=3 margin_height='8px'}
             </div>
         </span>
-        <span class="skeleton-line custom-m-0 custom-mr-16" style="width: 24%;height: 75vh;">
+        <span class="skeleton-line custom-m-0 custom-mr-16" style="min-width: 320px;width: 24%;height: 75vh;">
             <span class="skeleton-line custom-ml-8 custom-mt-8" style="width: 70%;height: 17px;"></span>
             <div style="padding: 0 20px;">
                 {split_orders count=2 margin_height='8px'}
             </div>
         </span>
-        <span class="skeleton-line custom-m-0 custom-mr-16" style="width: 24%;height: 75vh;">
+        <span class="skeleton-line custom-m-0 custom-mr-16" style="min-width: 320px;width: 24%;height: 75vh;">
             <span class="skeleton-line custom-ml-8 custom-mt-8" style="width: 55%;height: 17px;"></span>
             <div style="padding: 0 20px;">
                 {split_orders count=4 margin_height='8px'}

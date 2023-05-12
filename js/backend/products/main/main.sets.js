@@ -186,12 +186,10 @@
                         delimiters: ['{ { ', ' } }'],
                         computed: {
                             is_start: function() {
-                                let self = this;
-                                return !(self.position > 1);
+                                return !(this.position > 1);
                             },
                             is_end: function() {
-                                let self = this;
-                                return (self.position === self.selection.length);
+                                return (this.position === this.selection.length);
                             }
                         },
                         methods: {
@@ -264,7 +262,7 @@
                                 }
 
                                 function moveTo() {
-                                    let $set = that.$wrapper.find(".s-item-wrapper[data-id=\""+set.id+"\"]");
+                                    let $set = that.$wrapper.find(".s-item-wrapper[data-set-id=\""+set.id+"\"]");
                                     if ($set.length) {
                                         let $wrapper = $set.closest(".s-sets-table-section");
 

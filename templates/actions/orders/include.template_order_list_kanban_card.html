@@ -9,7 +9,7 @@
         <div class="s-kanban-item-body wide">
             <p class="flexbox full-width custom-mb-4">
                 <span>
-                    <span class="badge uppercase text-white nowrap small custom-mr-8" style="background-color: {%=o.state_color%}">{%=o.state_name%}</span>
+                    <span class="badge uppercase text-white nowrap small custom-mr-8 js-state" style="background-color: {%=o.state_color%}">{%=o.state_name%}</span>
                 </span>
                 <span class="nowrap semibold">
                     {%if (o.order.paid_date_str) { %}
@@ -22,7 +22,7 @@
             </p>
             <p class="custom-mt-0 custom-mb-8" style="line-height: 1.2;">
                 <a href="?action=orders#/order/{%=o.order.id%}/" class="semibold custom-mr-4">{%=o.order.id_str%}</a>
-                <span class="opacity-80">{% if (o.order.contact.name) { %}{%=o.order.contact.name%}{% } else { %}[`(no name)`]{% } %}</span>
+                <span class="opacity-80">{% if (o.order.contact.name) { %}{%=o.order.contact.name%}{% } %}</span>
             </p>
             <p class="hint custom-mt-4">
                 [`Created`] {%=o.order.create_datetime_str%}

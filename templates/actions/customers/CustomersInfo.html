@@ -163,7 +163,7 @@
                         <div class="field">
                             <div class="name">[`Comment`]</div>
                             <div class="value">
-                                <textarea class="small"></textarea>
+                                <textarea class="small s-aff-bonus-form-comment"></textarea>
                                 <p class="hint">[`Comment is <strong>public</strong>. Your customer will see it in his account in the storefront.`]</p>
                             </div>
                         </div>
@@ -244,7 +244,7 @@
             <button type="submit" id="s-save-categories" class="button green" style="display: none;">[`Save`]</button>
         </form>
 
-        <div class="fields vertical small s-customer-contact-summary">
+        <div class="fields vertical small s-customer-contact-summary custom-pr-20">
             {foreach $fields as $f}
                 {if $contact->get($f->getId()) && $f->getId() != 'company_contact_id'}
                     <div class="field">
@@ -255,7 +255,7 @@
                                 {$_shipping_map_is_rendered = false}
                                 {$_billing_map_is_rendered = false}
                                 {foreach $contact->get($f->getId(), 'js') as $a}
-                                    <div class="s-customer-map-wrapper">
+                                    <div class="s-customer-map-wrapper width-80">
                                         <div class="s-map-name">{$a.value}</div>
 
                                         {if empty($_shipping_map_is_rendered)}
@@ -295,6 +295,17 @@
 
 <script>(function() { "use strict";
 
+    (function() {
+        var $map = $('.js-map-block');
+        if ($map.length) {
+            $map.css({
+                "width": "100%",
+                "height": "auto",
+                "aspect-ratio": "1 / 1"
+            });
+        }
+    })();
+
     // Link back to last list view
     var backlink = $('#s-content h1 a.back');
     if ($.customers.lastView && $.customers.lastView.title) {
@@ -326,9 +337,9 @@
 
         var contact_id = "{$contact->getId()}";
 
-        $('#s-content').on('click', '#reset-password-link, #create-password-link', function(event) {
+        $('#reset-password-link, #create-password-link').on('click', function(event) {
             event.preventDefault();
-            event.stopImmediatePropagation();
+
             if (is_locked) { return false; }
             is_locked = true;
 

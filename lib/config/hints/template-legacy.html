@@ -1,0 +1,13 @@
+{strip}
+    <span class="shop-tooltip"><i class="icon10 info"></i>
+        <span>
+            {$hint.text}<br/>
+            {if $hint.link}
+                {* Case In order for the link in the link *}
+                <object type="lol/wut">
+                    <a href="{$hint.link}" target="_blank" class="s-hint-link">[`Read more`]</a>
+                </object>
+            {/if}
+        </span>
+    </span>
+{/strip}

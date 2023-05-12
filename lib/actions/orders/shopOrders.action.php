@@ -114,17 +114,21 @@ class shopOrdersAction extends shopOrderListAction {
 
         $state_counters = null;
         $state_transitions = null;
+        $order_model = new shopOrderModel();
         if ($view === 'kanban') {
-            $state_counters = (new shopOrderModel())->getStateCounters();
+            $state_counters = $order_model->getStateCounters();
             $state_transitions = $this->getStateTransitions($workflow, array_keys($state_counters));
         }
 
+
+        $currency =  $config->getCurrency();
+        $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $currency);
         $this->assign([
             'orders'               => array_values($orders),
             'total_count'          => $this->getTotalCount(),
             'count'                => count($orders),
             'order'                => $this->getOrder($orders),
-            'currency'             => $config->getCurrency(),
+            'currency'             => $currency,
             'state_names'          => $state_names,
             'plugin_hash'          => waRequest::get('hash', '', waRequest::TYPE_STRING_TRIM),
             'params'               => $this->getFilterParams(),
@@ -138,6 +142,7 @@ class shopOrdersAction extends shopOrderListAction {
             'state_counters'       => $state_counters,
             'state_transitions'    => $state_transitions,
             'last_update_datetime' => $this->getLastUpdateDatetime($orders),
+            'total_processing'     => $total_processing,
         ]);
     }
 

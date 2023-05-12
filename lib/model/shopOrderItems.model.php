@@ -946,7 +946,11 @@ SQL;
             waLog::log("\nSTART IN \n".var_export($items, true)."\n OUT \n".var_export($sorted_items, true)."\n END", 'shop/sort_order_items.log');
         }
 
-        $items = $sorted_items;
+        if (isset($items[0])) {
+            $items = array_values($sorted_items);
+        } else {
+            $items = $sorted_items;
+        }
     }
 
     public static function sortOrderItemsBySkuName($a_arr, $b_arr)

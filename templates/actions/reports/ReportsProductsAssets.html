@@ -1,4 +1,7 @@
 {include "./sales_sidebar.html" inline}
+{capture assign="_icon_darr"}
+<span class="sorting-indicator"><i class="fas fa-caret-down"></i></span>
+{/capture}
 <div class="content">
         <h1>
             [`In-stock assets`]
@@ -34,19 +37,19 @@
             </div>
         </div>
 
-        <table class="zebra" id="s-assets-report-table">
+        <table class="zebra s-reports-table-sort" id="s-assets-report-table">
             <thead>
                 <tr class="white s-header-row">
                     <th style="width:50px;"></th>
                     <th></th>
-                    <th class="align-right s-wider-cell"><a href="javascript:void(0)" data-sort-php="stock">[`Stock count`]{if $sort == 'stock'} <i class="fas fa-caret-down"></i></i>{/if}</a></th>
+                    <th class="align-right s-wider-cell"><a href="javascript:void(0)" data-sort-php="stock">[`Stock count`]{if $sort == 'stock'} {$_icon_darr}{/if}</a></th>
                     <th class="align-right s-wider-cell">
                         <a href="javascript:void(0)" data-sort-php="purchase_worth">
-                            [`Purchase worth`]{if $sort === 'purchase_worth'} <i class="fas fa-caret-down"></i></i>{/if}
+                            [`Purchase worth`]{if $sort === 'purchase_worth'} {$_icon_darr}{/if}
                         </a>
                     </th>
                     <th class="align-right s-wider-cell">
-                        <a href="javascript:void(0)" data-sort-php="net_worth" title="[`The overall amount you will get if you sell the entire stock`]">[`Net worth`]{if $sort == 'net_worth'}<i class="fas fa-caret-down"></i>{/if}</a>
+                        <a href="javascript:void(0)" data-sort-php="net_worth" title="[`The overall amount you will get if you sell the entire stock`]">[`Net worth`]{if $sort == 'net_worth'} {$_icon_darr}{/if}</a>
                     </th>
                     <th class="s-wider-cell" style="width:50%;"><a href="javascript:void(0)" data-sort-js="1">[`Selling time`]</a></th>
                 </tr>
@@ -114,20 +117,20 @@
     // Update page when user changes limit selector
     var $limit_selector = $('#limit-selector');
     $limit_selector.change(function() {
-        $limit_selector.after(spinner_html);
+        $limit_selector.parent().after(spinner_html);
         var limit = $limit_selector.val();
         $.storage.set('shop/reports/assets/limit', limit); // used in reports.js
         $.post(action_url, $.extend({}, request_options, { limit: limit }), function(r) {
-            $('#reportscontent').html(r);
+            $.reports.replaceContent(r);
         });
     });
 
     // Update page when user changes stock selector
     var $stock_selector = $('#stock-selector');
     $stock_selector.change(function() {
-        $stock_selector.after(spinner_html);
+        $stock_selector.parent().after(spinner_html);
         $.post(action_url, $.extend({}, request_options, { stock: $stock_selector.val() }), function(r) {
-            $('#reportscontent').html(r);
+            $.reports.replaceContent(r);
         });
     });
 
@@ -137,7 +140,7 @@
         if (sort != request_options.sort) {
             $(this).append(spinner_html);
             $.post(action_url, $.extend({}, request_options, { sort: sort }), function(r) {
-                $('#reportscontent').html(r);
+                $.reports.replaceContent(r);
             });
         }
     });
@@ -145,11 +148,11 @@
     // Order the table by estimated selling time in JS when user clicks on a header
     $thead.on('click', 'a[data-sort-js]', function() {
         request_options.sort = '';
-        $thead.find('.darr,.uarr').remove();
+        $thead.find('.sorting-indicator').remove();
         var $a = $(this);
         var asc = !$a.data('sort-js');
         $.reports.sortTable($a.closest('th'), asc);
         $a.data('sort-js', asc);
-        $a.append('<i class="fas fa-caret-'+(asc ? 'up' : 'down')+'"></i>');
+        $a.append('<span class="sorting-indicator"><i class="fas fa-caret-'+(asc ? 'up' : 'down')+'"></i></span>');
     });
 })();</script>

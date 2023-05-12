@@ -312,7 +312,7 @@ return array(
     ),
     'voltage' => array(
         'name' => _w('Voltage'),
-        'base_unit' => 'Ah',
+        'base_unit' => 'V',
         'units' => array(
             'mV' => array(
                 'name' => _w('mV'),

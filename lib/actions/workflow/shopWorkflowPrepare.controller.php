@@ -68,12 +68,16 @@ HTML;
                 (!empty($state_counters['processing']) ? $state_counters['processing'] : 0) +
                 (!empty($state_counters['paid']) ? $state_counters['paid'] : 0);
 
+            $config = wa('shop')->getConfig();
+            $currency = $config->getCurrency();
+            $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $currency);
             // update app counter
-            wa('shop')->getConfig()->setCount($state_counters['new']);
+            $config->setCount($state_counters['new']);
 
             $data = json_encode(array(
-                'state_counters'  => $state_counters,
-                'common_counters' => array(
+                'state_counters'   => $state_counters,
+                'total_processing' => $total_processing,
+                'common_counters'  => array(
                     'pending_counters' => $pending_counters,
                 ),
             ));

@@ -86,7 +86,7 @@
             </div>
         {/if}
 
-        <table class="s-reports-sales-table zebra" id="sales-report-table">
+        <table class="s-reports-sales-table s-reports-table-sort zebra" id="sales-report-table">
             <thead>
                 <tr class="white s-header-row">
                     <th>&nbsp;</th>
@@ -222,7 +222,7 @@
     $('#s-sales-abtest-selector').on('change', function() {
         $(this).parent().append('<i class="fas fa-spinner fa-spin text-gray"></i>');
         $.post(action_url, $.extend({ }, request_params, { abtest: $(this).val() }), function(r) {
-            $('#reportscontent').html(r);
+            $.reports.replaceContent(r);
         });
     });
 
@@ -262,7 +262,7 @@
                     return; // too late, user clicked something else
                 }
 
-                $('#reportscontent').html(r);
+                $.reports.replaceContent(r);
             });
         });
 

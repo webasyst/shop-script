@@ -51,7 +51,7 @@ class shopContactsContacts_collectionHandler extends waEventHandler
                 // this makes sure shopCustomersCollectionPreparator works properly.
                 $collection->setHash($this->removeShopCustomersFromHash($hash));
 
-                $preparator = new shopCustomersCollectionPreparator($collection, array('title_prefix' => _w('Shop customers').': '));
+                $preparator = new shopCustomersCollectionPreparator($collection, array('title_prefix' => _wd('shop','Shop customers').': '));
                 if (preg_match('/^filter=([\d]+)$/', $hash[1], $m)) {
                     $preparator->filterPrepare($m[1], $params['auto_title']);
                 } else if (preg_match('/^category=([\d]+)$/', $hash[1], $m)) {

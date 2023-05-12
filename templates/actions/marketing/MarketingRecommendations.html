@@ -34,9 +34,9 @@
                                         <label for="switch-cross_selling-{$type_id}" data-active-text="[`On`]" data-inactive-text="[`Off`]">{if $type.cross_selling}[`On`]{else}[`Off`]{/if}</label>
                                     </div>
                                 </li>
-                                <li class="custom-mt-0 field-settings"{if !$type.cross_selling} style="display:none"{/if}>
-                                    <div class="wa-select">
-                                        <select>
+                                <li class="custom-mt-0 field-settings nowrap"{if !$type.cross_selling} style="display:none"{/if}>
+                                    <div class="wa-select custom-mr-0">
+                                        <select class="text-ellipsis width-100">
                                             <option value="alsobought" {if !$type.cross_selling || $type.cross_selling == 'alsobought'}selected{/if}>[`Auto (based on what other customers purchased with a particular product)`]</option>
                                             <optgroup label="[`Random products from a category`]">
                                                 {foreach $categories as $c}

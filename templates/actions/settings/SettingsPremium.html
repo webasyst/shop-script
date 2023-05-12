@@ -20,6 +20,13 @@
 
 {$_features = [
     [
+        "title" => _w("Kanban view for orders"),
+        "description" => _w("See all orders at a glance by status on a kanban board. User filter to focus on specific order segments. Drag an order to quickly change its status."),
+        "image" => [
+            "name" => "image0.jpg"
+        ]
+    ],
+    [
         "title" => _w("Arbitrary product quantity units"),
         "description" => _w("Product quantities displayed in the storefront can be expressed in any units of your choice. You may want to sell products in packages, pieces, linear feet, or any other quantity units. Select units from a built-in list or add any custom units which you may need."),
         "image" => [
@@ -70,54 +77,28 @@
     {if !empty($backend_settings_premium)}{foreach $backend_settings_premium as $_}{ifset($_.top)}{/foreach}{/if}
 
     <div class="s-page-header">
-        <h1 class="align-center-mobile h2-mobile">[`PREMIUM license functionality`]</h1>
-        <ul>
-            <li class="custom-mb-8-mobile">
-                <p>
-                    <span class="icon size-16"><svg class="text-dark-gray"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
-                    [`Extended product catalog management.`]
-                </p>
-            </li>
-            <li class="custom-mb-8-mobile">
-                <p>
-                    <span class="icon size-16"><svg class="text-dark-gray"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
-                    [`New product showcase options for the storefront.`]
-                </p>
-            </li>
-            <li class="custom-mb-8-mobile">
-                <p>
-                    <span class="icon size-16"><svg class="text-dark-gray"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
-                    [`Special add-to-cart settings for your products.`]
-                </p>
-            </li>
-        </ul>
+        <h1 class="align-center h2-mobile">[`Shop-Script at its max!`]</h1>
+        <p class="align-center large width-70 width-100-mobile custom-mx-auto">[`Awesome advanced features and free unlimited updates with no extra subscriptions.`]</p>
     </div>
     <div class="s-page-body" id="js-information-block-place">
         {if empty($_is_premium)}
-            <div class="s-information-block flexbox vertical-mobile s-block">
-                <div class="s-image-wrapper custom-m-auto-mobile">
-                    <span class="icon"><svg><use xlink:href='{$_sprite_url}#rocket'></use></svg></span>
+            <div class="s-information-block align-center">
+                <div class="btn-block">
+                    <i class="fas fa-star text-yellow" style="font-size: 5rem;"></i>
+                    {if 1||!empty($_has_license)}
+                        <div class="s-plan semibold custom-my-16 italic">{sprintf(_w("Your current license is %s."), _w("PRO"))}</div>
+                        <a href="{$_buy_premium_link_url|escape}" class="button yellow rounded larger">[`Switch to PREMIUM`]</a>
+                    {else}
+                        <div class="s-plan state-caution custom-my-16 italic">
+                            [`No valid license detected.`]
+                        </div>
+                        <a href="{$_buy_premium_link_url|escape}" class="button green rounded larger">[`Acquire license`]</a>
+                    {/if}
+                    <h6 class="align-center text-yellow custom-mt-16">[`Free updates forever!`]</h6>
                 </div>
-                <div class="s-text-wrapper">
-                    <h2 class="align-center-mobile h3-mobile">[`How to start using PREMIUM`]</h2>
-
-                    <p>[`To get all the extended Shop-Script functionality, you need to switch to the PREMIUM license.`] [`Your online store will continue working as usual, and you will be free to enable any of the extended functions at any time when it is most convenient to you.`]</p>
-                    <p>
-                        <span class="icon"><svg class="text-dark-gray"><use xlink:href='{$_sprite_url}#hand-point-right'></use></svg></span>
-                        {sprintf(_w("<a href=\"%s\">Check up</a> how the installed plugins, apps, and design themes are compatible with PREMIUM’s extended features."), "{$wa_app_url}?action=settings#/compatibility/")}
-                    </p>
-                    <div class="btn-block">
-                        {if !empty($_has_license)}
-                            <div class="s-plan">{sprintf(_w("Your current license is %s."), _w("PRO"))}</div>
-                            <a href="{$_buy_premium_link_url|escape}" class="button blue width-100-mobile custom-mt-8-mobile">[`Switch to PREMIUM`]</a>
-                        {else}
-                            <div class="s-plan">
-                                [`No valid license detected.`]
-                            </div>
-                            <a href="{$_buy_premium_link_url|escape}" class="button blue width-100-mobile custom-mt-8-mobile">[`Acquire license`]</a>
-                        {/if}
-                    </div>
-                </div>
+                <p class="hint custom-mt-16 width-70 width-100-mobile custom-mx-auto">
+                    {sprintf_wp("<a href=\"%s\">Check up</a> how the installed plugins, apps, and design themes are compatible with PREMIUM’s extended features.", $_compatibility_link_url)}
+                </p>
             </div>
         {/if}
 

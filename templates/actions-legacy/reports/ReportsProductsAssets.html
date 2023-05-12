@@ -124,7 +124,9 @@
     var $stock_selector = $('#stock-selector');
     $stock_selector.change(function() {
         $stock_selector.after('<i class="icon16 loading"></i>');
-        $.post(action_url, $.extend({}, request_options, { stock: $stock_selector.val() }), function(r) {
+        var stock = $stock_selector.val();
+        $.reports.tmp_params.productsAssets.stock = stock;
+        $.post(action_url, $.extend({}, request_options, { stock }), function(r) {
             $('#reportscontent').html(r);
         });
     });

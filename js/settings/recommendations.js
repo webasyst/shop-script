@@ -239,7 +239,7 @@ $.extend($.settings = $.settings || {}, {
             type_id: f.data('type-id'),
             value: value
         }, function (response) {
-            var $icon = $('<span class="js-icon-yes"><i class="fas fa-check-circle text-green"></i></span>');
+            var $icon = $('<span class="js-icon-yes"><i class="fas fa-check-circle icon size-14 text-green"></i></span>');
             var s = f.find('.field-settings');
             if (!s.find('.js-icon-yes').length) {
                 s.append($icon);
@@ -255,7 +255,7 @@ $.extend($.settings = $.settings || {}, {
             type_id: f.data('type-id'),
             value: 0
         }, function (response) {
-            var $icon = $('<span class="js-icon-yes"><i class="fas fa-check-circle text-green"></i></span>');
+            var $icon = $('<span class="js-icon-yes"><i class="fas fa-check-circle icon size-14 text-green"></i></span>');
             var s = f.find('.value');
 
             if (!s.find('.js-icon-yes').length) {

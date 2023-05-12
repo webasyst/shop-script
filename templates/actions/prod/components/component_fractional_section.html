@@ -5,13 +5,14 @@
 {$_components = []}
 
 {capture assign="_component_fractional_dropdown"}
+{literal}
     <div class="vue-component-fractional-dropdown">
         <template v-if="readonly">
-            <button class="button small light-gray wa-ellipsis is-readonly" type="button">{ { active_unit ? active_unit.name : "{_w("Not specified")|escape}" } }</button>
+            <button class="button small light-gray wa-ellipsis is-readonly" type="button">{ { active_unit ? active_unit.name : "[`Not specified`]" } }</button>
         </template>
         <template v-else>
             <div class="dropdown">
-                <button class="button dropdown-toggle light-gray" type="button">{ { active_unit ? active_unit.name : "{_w("Not specified")|escape}" } }</button>
+                <button class="button dropdown-toggle light-gray" type="button">{ { active_unit ? active_unit.name : "[`Not specified`]" } }</button>
                 <div class="dropdown-body" v-bind:style="{ 'width': body_width }">
                     <div class="dropdown-item" data-value=""
                          v-if="show_empty_item"
@@ -23,11 +24,13 @@
             </div>
         </template>
     </div>
+{/literal}
 {/capture}
 {$_components["component-fractional-dropdown"] = $_component_fractional_dropdown|strip}
 
 {capture assign="_component_fractional_changes"}
-    <template v-if="revert">
+{literal}
+    <template v-if="prop_revert">
         <span class="s-icon text-blue cursor-pointer"
               v-if="show_refresh"
               data-tooltip-id="component-fractional-revert"
@@ -39,6 +42,7 @@
               v-bind:data-tooltip-id="(has_changes ? 'component-fractional-changes-yes' : 'component-fractional-changes-no')"
               v-bind:class="{ 'text-gray' : has_changes, 'text-light-gray' : !has_changes }"><i class="fas fa-sitemap"></i></span>
     </template>
+{/literal}
 {/capture}
 {$_components["component-fractional-changes"] = $_component_fractional_changes|strip}
 

@@ -8,7 +8,7 @@
 <div class="flexbox custom-mb-48">
 
     <div class="wide">
-        <table id="s-customers-report-table" class="zebra mode-sales">
+        <table id="s-customers-report-table" class="zebra s-reports-table-sort mode-sales">
             <thead>
             <tr class="white s-header-row">
                 <th>&nbsp;</th>
@@ -255,10 +255,10 @@
                 $storefront_selector.off().remove();
                 return;
             }
-            $storefront_selector.parent().append('<i class="fas fa-spinner fa-spin"></i>');
+            $storefront_selector.parent().append('<i class="fas fa-spinner wa-animation-spin"></i>');
             $.post(action_url, $.extend({ }, request_params, { sales_channel: $storefront_selector.val() }), function(r) {
                 var $old_chart = $('#reportscontent .graph-wrapper .pie-wrapper').detach();
-                $('#reportscontent').html(r);
+                $.reports.replaceContent(r);
                 if ($old_chart.length) {
                     $('#reportscontent .graph-wrapper .pie-wrapper').replaceWith($old_chart);
                 }
@@ -272,7 +272,7 @@
         var $select = $(this);
         var new_mode = $select.val();
         $base_selectors.val(new_mode);
-        $select.closest('tr').find('.darr, .uarr').remove();
+        $select.closest('tr').find('.sorting-indicator').remove();
         $table.removeClass('mode-sales mode-profit').addClass('mode-'+new_mode);
         $.reports.sortTable($select.closest('tr').children().eq(new_mode == 'sales' ? 4 : 7));
         updateRowVisibility();
@@ -302,9 +302,9 @@
     // Table sorting is implemented in JS
     $table.find('> thead').on('click', 'th a', function() {
         var $a = $(this);
-        var asc = $a.find('.darr').length > 0;
-        $a.closest('tr').find('.darr, .uarr').remove();
-        $a.append('<i class="icon16 '+(asc ? 'uarr' : 'darr')+'"></i>');
+        var asc = $a.find('.fa-caret-down').length > 0;
+        $a.closest('tr').find('.sorting-indicator').remove();
+        $a.append('<span class="sorting-indicator"><i class="fas fa-caret-'+(asc ? 'up' : 'down')+'"></i></span>');
         $.reports.sortTable($a.closest('th'), asc);
         updateRowVisibility();
     });

@@ -132,18 +132,18 @@
         </div>
 
         {* BOTTOM TABLE *}
-        <div class="blank">
+        <div>
             {if count($expenses)}
-                <table class="zebra single-lined">
+                <table class="zebra single-lined blank">
                     <tbody id="s-reports-marketing-costs-table">
                         {include file="./MarketingCostRows.html" inline}
                     </tbody>
                 </table>
             {else}
-                <table class="zebra single-lined hidden"><tbody id="s-reports-marketing-costs-table"></tbody></table>
-                <div class="empty expense-row">
-                    <h3>[`No marketing expenses on the selected period`]</h3>
-                    <p class="gray">[`Add your marketing expenses to automate ROI (Return On Investment) calculation by traffic source and campaign.`]</p>
+                <table class="zebra single-lined blank hidden"><tbody id="s-reports-marketing-costs-table"></tbody></table>
+                <div class="empty expense-row custom-mt-16">
+                    <h3 class="custom-mb-12">[`No marketing expenses on the selected period`]</h3>
+                    <p class="gray small custom-mt-0" class="gray small">[`Add your marketing expenses to automate ROI (Return On Investment) calculation by traffic source and campaign.`]</p>
                 </div>
             {/if}
         </div>

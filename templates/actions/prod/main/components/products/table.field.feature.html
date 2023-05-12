@@ -96,16 +96,18 @@
 
         {* RANGE *}
         <template v-else-if="column_data.render_type === 'range'">
-            <div class="s-fields-wrapper flexbox space-12">
-                <template v-for="option in column_data.options">
-                    <component-feature-input
-                        v-bind:option="option"
-                        v-bind:column_data="column_data"
-                        v-bind:class="'with-divider'"
-                        v-on:focus="onFieldFocus"
-                        v-on:blur="onFieldBlur"
-                        v-on:change="onFieldChange"></component-feature-input>
-                </template>
+            <div class="s-fields-wrapper flexbox space-12 nowrap">
+                <div class="s-field-range-wrapper">
+                    <template v-for="option in column_data.options">
+                        <component-feature-input
+                            v-bind:option="option"
+                            v-bind:column_data="column_data"
+                            v-bind:class="'with-divider'"
+                            v-on:focus="onFieldFocus"
+                            v-on:blur="onFieldBlur"
+                            v-on:change="onFieldChange"></component-feature-input>
+                    </template>
+                </div>
                 <div class="s-units-wrapper" v-if="column_data.active_unit">
                     <component-dropdown
                         v-model="column_data.active_unit.value"

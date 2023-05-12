@@ -1,13 +1,29 @@
 {strip}
-    <span class="shop-tooltip"><i class="icon10 info"></i>
-        <span>
-            {$hint.text}<br/>
+    <span class="wa-tooltip shop-hint" data-wa-tooltip-template="#hint_{$name}">
+        <span class="icon text-gray size-12"><i class="fas fa-info-circle"></i></span>
+    </span>
+    <div class="wa-tooltip-template" id="hint_{$name}">
+        <div>{$hint.text}</div>
+        <div>
             {if $hint.link}
                 {* Case In order for the link in the link *}
                 <object type="lol/wut">
                     <a href="{$hint.link}" target="_blank" class="s-hint-link">[`Read more`]</a>
                 </object>
             {/if}
-        </span>
-    </span>
+        </div>
+    </div>
+    <script>
+        (function($) {
+            var $hints = $(".shop-hint");
+
+            if ($hints.length && $($hints[0]).data('tooltip')) return;
+
+            $hints.waTooltip({
+                allowHTML: true,
+                delay: 300,
+                interactive: true
+            });
+        })(jQuery);
+    </script>
 {/strip}

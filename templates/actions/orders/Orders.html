@@ -1,16 +1,55 @@
+{function name="dummy_no_orders" target=body}
+<i class="fas fa-shopping-cart text-light-gray opacity-80" style="font-size: {if $target === 'body'}10{else}6{/if}rem; margin-right: 1.5rem;"></i>
+<p class="gray {if $target === 'body'}large{/if}">[`There are no orders in this view.`]</p>
+{/function}
 {if empty($orders)}
-    {if $view == 'split'}
-    <div class="sidebar blank width-adaptive-widest wide-mobile ahead-little bordered-right overflow-visible" id="s-orders">
-        <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
-        <div class="sidebar-body"></div>
-    </div>
-    {/if}
-    <div class="content contentbox box blank width-100 js-no-orders desktop-and-tablet-only" style="height: calc(100vh - 5.5rem - 56px); display: grid; place-items:center">
-        <div class="align-center">
-            <i class="fas fa-shopping-cart text-light-gray" style="font-size: 10rem; margin-right: 1.5rem;"></i>
-            <p class="gray large">[`There are no orders in this view.`]</p>
+    {if $view !== 'kanban'}
+        {if $view == 'split'}
+        <div class="sidebar blank width-adaptive-widest wide-mobile ahead-little bordered-right overflow-visible" id="s-orders">
+            <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
+            <div class="sidebar-body">
+                <div class="width-100 align-center custom-mt-32">
+                    {dummy_no_orders target=sidebar}
+                </div>
+            </div>
         </div>
-    </div>
+        {/if}
+        <div class="content contentbox box blank width-100 s-no-orders-{$view} js-no-orders" style="height: calc(100vh - 5.5rem - 56px); display: grid; place-items:center">
+            <div class="align-center">
+                {if $view == 'split'}
+                    <i class="fas fa-shopping-cart text-light-gray opacity-20" style="font-size: 10rem; margin-right: 1.5rem;"></i>
+                {else}
+                    {dummy_no_orders}
+                {/if}
+            </div>
+        </div>
+    {else}
+        <link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
+        <div class="s-kanban flexbox js-fix-max-width" style="max-width: calc(100vw - 18rem);">
+            <div class="flexbox fixed space-12 width-100">
+                {foreach $state_names as $state}
+                <div class="s-kanban__list">
+                    <div class="flexbox middle custom-p-12">
+                        <div class="wide">
+                            <span class="s-status-wrapper large nowrap" style="color:{$state.options.style.color|escape};font-weight:{$state.options.style['font-weight']|escape}">
+                                <i class="{$state.options.icon|escape}"></i> {$state.name|escape}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="s-kanban__list__count gray bold" data-status-id="processing">0</span>
+                        </div>
+                    </div>
+                    <div data-kanban-list-status-id="processing" data-kanban-list-total="0" class="s-kanban__list__body hide-scrollbar custom-px-12">
+                        <div class="s-kanban__list__body__footer">
+                            <div class="spinner custom-p-8 js-kanban-spinner" style="display: none;"></div>
+                        </div>
+                    </div>
+                    <div class="s-kanban__list__fade"></div>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+    {/if}
 {else}
 <div class="{if $view != 'table' && $view != 'kanban'}sidebar flexbox blank width-adaptive-widest bordered-right wide-mobile ahead-little{else}width-100{/if} overflow-visible" id="s-orders">
     {if $view == 'split'}
@@ -66,8 +105,6 @@
                         <span class="semibold custom-mr-4">{%#o.order.id_str%}</span>
                         {% if (o.order.contact.name) { %}
                             <span class="opacity-80">{%#o.order.contact.name%}</span>
-                        {% } else { %}
-                            <span class="opacity-80">[`(no name)`]</span>
                         {% } %}
                     </p>
                     <p class="hint">
@@ -79,7 +116,7 @@
                 {/literal}
             {/capture}
         {elseif $view == 'table'}
-            <div class="dropdown js-selection-dropdown" id="s-orders-selection-menu" style="display: none;">
+            <div class="dropdown js-selection-dropdown custom-mx-16 custom-my-4 s-orders-selection-menu" id="s-orders-selection-menu" style="display: none;">
                 <label>
                     <span class="wa-checkbox">
                         <input type="checkbox" name="" class="s-order-list-select-all">
@@ -90,12 +127,12 @@
                         </span>
                     </span>
                 </label>
-                <a href="#" class="dropdown-toggle button small nobutton" data-sort="">
+                <a href="#" class="dropdown-toggle button small nobutton custom-ml-4" data-sort="">
                     [`With selected`]
                     <i class="fas fa-spin fa-spinner loading js-selection-menu-loading" style="display: none"></i>
                 </a>
 
-                <div class="dropdown-body right" style="">
+                <div class="dropdown-body" style="">
                     <ul class="menu wf-actions">
                         {foreach $actions as $a_id => $a}
 
@@ -113,16 +150,17 @@
             <div id="skeleton_table">
                 {include './skeleton/table.html' no_sidebar=true inline}
             </div>
-            <table class="zebra single-lined s-order-table custom-mt-0" id="order-list" data-skeleton="#skeleton_table">
-                <tbody></tbody>
-            </table>
+            <div class="s-order-table-wrapper scrollable-x">
+                <table class="zebra s-order-table custom-mt-0 single-lined" id="order-list" data-skeleton="#skeleton_table">
+                    <tbody></tbody>
+                </table>
+            </div>
 
             {capture name="template-order-list-table"}
                 {include file='./include.template_order_list_table.html' inline}
             {/capture}
         {elseif $view == 'kanban'}
-            {* TODO "|| true" must be remove in prod*}
-            {if waLicensing::check('shop')->hasPremiumLicense() || true}
+            {if shopLicensing::isPremium()}
                 <link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
                 <script src="{$wa_app_static_url}js/backend/orders/kanban.js?v={$wa->version(true)}"></script>
                 <script>
@@ -151,8 +189,12 @@
                     {include file='./include.template_order_list_kanban_card.html' inline}
                 {/capture}
             {else}
-                <div class="box flexbox">
-                    <span class="alert info custom-mx-auto">[`This feature is available only with the premium license.`]</span>
+                <div class="box blank width-100" style="height: calc(100vh - 5.5rem - 56px); display: grid; place-items:center">
+                    <div class="align-center">
+                        <i class="fas fa-star text-light-gray opacity-50" style="font-size: 10rem; margin-right: 1.5rem;"></i>
+                        <p class="custom-mx-auto">[`This feature is available only with the premium license.`]</p>
+                        <a href="{$wa_app_url}?action=settings#/premium/" class="button yellow large rounded">[`See what’s more in premium`]</a>
+                    </div>
                 </div>
             {/if}
         {/if}
@@ -174,11 +216,11 @@
 </div>
 
 {if $view == 'split'}
-<div class="width-100 desktop-and-tablet-only" id="skeleton_split">
+<div class="width-100" id="skeleton_split">
     {include './skeleton/split.html' no_sidebar=true inline}
 </div>
 {/if}
-<div class="content desktop-and-tablet-only" id="s-order" {if $view == 'table' || $view == 'kanban'}style="display:none;"{/if} {if $view == 'split'}data-skeleton="#skeleton_split"{/if}></div>
+<div class="content desktop-and-tablet-only hide-scrollbar" id="s-order" {if $view == 'table' || $view == 'kanban'}style="display:none;"{/if} {if $view == 'split'}data-skeleton="#skeleton_split"{/if}></div>
 {capture name="template-order-list-printforms-menu-items"}
     {literal}
         {% var printform, printform_iterator = $.shop.iterator(o.printforms); %}
@@ -225,17 +267,6 @@
 
 {/if}
 
-{capture assign="_drawer_order"}
-<div class="drawer drawer-order mobile-only">
-    <div class="drawer-background"></div>
-    <div class="drawer-body width-100-mobile" style="max-width: 100%;box-shadow: none;">
-        <div class="drawer-block" style="padding:0;">
-            <div class="drawer-content"></div>
-        </div>
-    </div>
-</div>
-{/capture}
-
 <script>
 ( function($) {
     const state_icons = {};
@@ -245,6 +276,13 @@
         {/foreach}
     {/if}
 
+    $('#skeleton_{$view}').skeletonLoader({
+        content: '[data-skeleton="#skeleton_{$view}"]',
+        delay: 10,
+        show: true,
+        deleteSkeleton: false
+    });
+
     $.order_list.init({
         id: {if $view != 'table' && !empty($order.id)}{$order.id}{else}0{/if},
         view: '{$view}',
@@ -253,6 +291,7 @@
         filter_params_str: '{$params_str}',
         orders: {json_encode($orders)},
         total_count: {$total_count},
+        total_processing: {$total_processing|json_encode},
         all_order_state_ids: {$all_order_state_ids|json_encode},
         count: {$count},
         lazy_loading: {
@@ -271,17 +310,18 @@
         sort: {$sort|json_encode},
         locale: {
             'error': "[`An error occurred`]"
-        },
-        drawer_order: '{$_drawer_order|strip}'
+        }
     });
 
-    $('#skeleton_{$view}').skeletonLoader({
-        content: '[data-skeleton="#skeleton_{$view}"]',
-        delay: 10,
-        show: true,
-        deleteSkeleton: false
-    });
-
+    if ('{$view}' === 'split') {
+        const class_hide_mobile = 'desktop-and-tablet-only';
+        if (new RegExp('id=\\d+').test(window.location.hash)) {
+            $('#s-order').removeClass(class_hide_mobile);
+            $('#s-orders').addClass(class_hide_mobile);
+        } else {
+            $('#skeleton_split').addClass(class_hide_mobile);
+        }
+    }
 })(jQuery);
 
 

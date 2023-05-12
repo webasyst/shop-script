@@ -1,6 +1,7 @@
 ( function ($) {
     $.storage = new $.store();
     $.reports = {
+        tmp_params: {},
         init: function (options) {
             var that = this;
             if (typeof($.History) != "undefined") {
@@ -190,6 +191,10 @@
                         }
                     }
                     var attr = hash.slice(attrMarker);
+                    if (!this.tmp_params[actionName]) {
+                        this.tmp_params = {};
+                        this.tmp_params[actionName] = {};
+                    }
                     this.preExecute(actionName, attr);
                     if (typeof(this[actionName + 'Action']) == 'function') {
                         $.shop.trace('$.reports.dispatch',[actionName + 'Action',attr]);
@@ -314,7 +319,7 @@
         },
 
         cohortsAction: function() {
-            $("#reportscontent").load('?module=reports&action=cohorts'+this.getTimeframeParams());
+            $("#reportscontent").load('?module=reports&action=cohorts'+this.getTimeframeParams()+this.getAdditionalParams(this.tmp_params.cohorts));
         },
 
         summaryAction: function() {
@@ -332,7 +337,7 @@
         productsAssetsAction: function() {
             this.setActiveTop('products');
             var limit = $.storage.get('shop/reports/assets/limit');
-            $("#reportscontent").load('?module=reportsproducts&action=assets'+this.getTimeframeParams()+(limit ? '&limit='+limit : ''));
+            $("#reportscontent").load('?module=reportsproducts&action=assets'+this.getTimeframeParams()+(limit ? '&limit='+limit : '')+this.getAdditionalParams(this.tmp_params.productsAssets));
         },
         productsWhattosellAction: function() {
             this.setActiveTop('products');
@@ -362,6 +367,20 @@
         // Helper
         getTimeframeParams: function() {
             return '&' + $.param(this.getTimeframe());
+        },
+
+        // Add additional params to the request
+        getAdditionalParams: function(obj) {
+            const params = {};
+            for (const key in obj) {
+                if (Object.hasOwnProperty.call(obj, key) && obj[key] != '') {
+                    params[key] = obj[key];
+                }
+            }
+
+            const params_str = $.param(params);
+
+            return params_str ? '&' + params_str : '';
         },
 
         // Helper to sort the table by one of the columns
