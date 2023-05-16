@@ -37,7 +37,7 @@
             </div>
         </div>
 
-        <table class="zebra s-reports-table-sort" id="s-assets-report-table">
+        <table class="zebra s-reports-table-sort bigdata" id="s-assets-report-table">
             <thead>
                 <tr class="white s-header-row">
                     <th style="width:50px;"></th>
@@ -49,7 +49,7 @@
                         </a>
                     </th>
                     <th class="align-right s-wider-cell">
-                        <a href="javascript:void(0)" data-sort-php="net_worth" title="[`The overall amount you will get if you sell the entire stock`]">[`Net worth`]{if $sort == 'net_worth'} {$_icon_darr}{/if}</a>
+                        <a href="javascript:void(0)" data-sort-php="net_worth" data-wa-tooltip-content="[`The overall amount you will get if you sell the entire stock`]">[`Net worth`]{if $sort == 'net_worth'} {$_icon_darr}{/if}</a>
                     </th>
                     <th class="s-wider-cell" style="width:50%;"><a href="javascript:void(0)" data-sort-js="1">[`Selling time`]</a></th>
                 </tr>
@@ -84,7 +84,7 @@
                         </td>
                         <td class="align-right nowrap s-wider-cell">{wa_currency_html($p.purchase_worth, $def_cur)}</td>
                         <td class="align-right nowrap s-wider-cell">{wa_currency_html($p.net_worth, $def_cur)}</td>
-                        <td class="est-bar-td s-wider-cell nowrap" data-sort="{if $p.sold > 0}{$p.est}{else}-1{/if}"{if $p.sold > 0} title="{sprintf('[`Selling time is estimated based on the average monthly sales during last 90 days (%d items per month for this product).`]', $p.sold)}"{/if}>
+                        <td class="est-bar-td s-wider-cell" data-sort="{if $p.sold > 0}{$p.est}{else}-1{/if}"{if $p.sold > 0} title="{sprintf('[`Selling time is estimated based on the average monthly sales during last 90 days (%d items per month for this product).`]', $p.sold)}"{/if}>
                             {if $p.est > 0}
                                 <span class="s-bar" style="width:{$p.est_bar}px">
                                 </span>
@@ -138,7 +138,7 @@
     $thead.on('click', 'a[data-sort-php]', function() {
         var sort = $(this).data('sort-php');
         if (sort != request_options.sort) {
-            $(this).append(spinner_html);
+
             $.post(action_url, $.extend({}, request_options, { sort: sort }), function(r) {
                 $.reports.replaceContent(r);
             });
@@ -155,4 +155,8 @@
         $a.data('sort-js', asc);
         $a.append('<span class="sorting-indicator"><i class="fas fa-caret-'+(asc ? 'up' : 'down')+'"></i></span>');
     });
+
+    (function() {
+        $("[data-wa-tooltip-content]").waTooltip({ delay: 500 });
+    })();
 })();</script>

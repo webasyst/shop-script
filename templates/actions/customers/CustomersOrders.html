@@ -3,7 +3,7 @@
 
 <div id="{$wrapper_id}" data-page="{$page}">
     {if !count($orders)}
-        <p class="gray">{sprintf('[`%s did not purchase anything yet.`]', $contact.name|escape)}</p>
+        <p class="small gray">{sprintf('[`%s did not purchase anything yet.`]', $contact.name|escape)}</p>
     {else}
         <table class="zebra s-customer-orders single-lined" id="s-order-list">
             {foreach $orders as $o}
@@ -15,15 +15,28 @@
                            class="s-order-link"
                         >
                             <span class="badge smaller nowrap uppercase" style="background-color: {$o.state_color|escape};">{$o.state_name}</span>
-                            <span class="custom-ml-8 semibold">{$wa->shop->orderId($o.id)}</span>
                         </a>
                     </td>
-                    <td class="nowrap custom-pl-4">
+                    <td class="nowrap">
                         <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
                            data-order-id="{$o.id}"
                            data-state-id="{$o.state_id}"
                            class="s-order-link"
-                        >{$o.create_datetime|wa_date:'humandate'}</a>
+                        >
+                            <span class="custom-ml-8 semibold">{$wa->shop->orderId($o.id)}</span>
+                        </a>
+                    </td>
+                    <td class="bold nowrap align-right">
+                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
+                           data-order-id="{$o.id}"
+                           data-state-id="{$o.state_id}"
+                           class="s-order-link"
+                        >{$o.total_formatted}</a>
+                        {if $o.paid_date}
+                            <span class="text-green custom-ml-4 cursor-pointer" title="[`Paid`]">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
+                        {/if}
                     </td>
                     <td>
                         <div>
@@ -59,12 +72,14 @@
                             <i class="shortener"></i>
                         </div>
                     </td>
-                    <td class="bold nowrap align-right">
+                    <td class="nowrap align-right">
+                      <div class="small gray">
                         <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
                            data-order-id="{$o.id}"
                            data-state-id="{$o.state_id}"
                            class="s-order-link"
-                        >{$o.total_formatted}</a>
+                        >{$o.create_datetime|wa_date:'humandate'}</a>
+                      </div>
                     </td>
                 </tr>
             {/foreach}

@@ -32,40 +32,45 @@
     {/foreach}
     {/if}
 
-    {if $contact['is_user'] <= 0}
-        {if empty($contact['password'])}
-            <a href="#" id="create-password-link" class="button small light-gray rounded">
-                <i class="fas fa-link text-blue"></i>
-                [`Create a customer account and send the password`]
-            </a>
-        {else}
-            <a href="#" id="reset-password-link" class="button small light-gray rounded">
-                <i class="fas fa-link"></i>
-                [`Reset password for customer account`]
-            </a>
-        {/if}
-    {/if}
-
 </div>
 
-<div class="alert custom-my-16">
-    <div class="flexbox space-8">
-        <div>
-            <i class="fas {if !empty($contact['password'])}fa-check-circle text-green{else}fa-user text-gray{/if}"></i>
+<div class="s-block custom-my-16">
+    <div class="flexbox full-width space-12 wrap-mobile">
+        <div class="flexbox space-12 wide">
+            <div>
+                <i class="fas {if !empty($contact['password'])}fa-check-circle text-green{else}fa-user-secret text-gray{/if} largest custom-mt-4"></i>
+            </div>
+
+            <div class="wide">
+                {if !empty($contact['password'])}
+                    [`Permanent user account`]
+                    <p class="hint">
+                        {sprintf('[`%s has personal account on your site.`]', $contact_name)}
+                        [`Last login`]: <strong>{$contact.last_login_datetime|wa_datetime:"humandatetime"|default:'[`Never`]'}</strong>
+                    </p>
+                {else}
+                    [`No permanent user account`]
+                    <p class="hint">{sprintf('[`%s did not sign up for personal account on your site yet.`]', $contact_name)}</p>
+                {/if}
+            </div>
         </div>
 
-        <div>
-            {if !empty($contact['password'])}
-                [`Permanent user account`]
-                <p class="hint">
-                    {sprintf('[`%s has personal account on your site.`]', $contact_name)}
-                    [`Last login`]: <strong>{$contact.last_login_datetime|wa_datetime:"humandatetime"|default:'[`Never`]'}</strong>
-                </p>
+        {if $contact['is_user'] <= 0}
+          <div class="align-right custom-pt-4">
+            {if empty($contact['password'])}
+                <a href="#" id="create-password-link" class="button small light-gray rounded">
+                    <i class="fas fa-link text-blue"></i>
+                    [`Create a customer account and send the password`]
+                </a>
             {else}
-                [`No permanent user account`]
-                <p class="hint">{sprintf('[`%s did not sign up for personal account on your site yet.`]', $contact_name)}</p>
+                <a href="#" id="reset-password-link" class="button small light-gray rounded">
+                    <i class="fas fa-link"></i>
+                    [`Reset password for customer account`]
+                </a>
             {/if}
-        </div>
+          </div>
+        {/if}
+
     </div>
 </div>
 
@@ -81,7 +86,7 @@
                         <img src="{$contact.photo}" class="userpic userpic-96">
                     </div>
 
-                    <div class="large">
+                    <div>
                         {include file="./include.top_fields.html"
                             top=$top
                             similar_contacts=$similar_contacts
@@ -122,7 +127,7 @@
             {/capture}
 
             <div class="s-block">
-                <h3>[`Product reviews`]</h3>
+                <h4>[`Product reviews`]</h4>
                 {if $reviews}
                     <div class="s-reviews">
                         <ul class="menu with-icons">
@@ -135,7 +140,7 @@
             </div>
 
             <div class="s-block">
-                <h3>[`Affiliate program`]</h3>
+                <h4>[`Affiliate program`]</h4>
 
                 {if !count($affiliate_history)}
                     <p class="gray small">
@@ -144,7 +149,7 @@
                 {/if}
 
                 <ul class="tabs">
-                    <li class="s-aff-bonus-total">
+                    <li class="s-aff-bonus-total{if $customer && $customer.affiliate_bonus < 0} negative{/if}">
                         <strong class="large bold box">{if $customer && $customer.affiliate_bonus>=0}+{/if}{$customer.affiliate_bonus|default:'0'|wa_format_number:false}</strong>
                     </li>
                     <li class="no-tab"><a href="javascript:void(0)" id="add-credit"><i class="fas fa-plus text-green fa-xs"></i> [`Add credit`]</a></li>
@@ -154,14 +159,14 @@
                 <div id="affiliate-wrapper" class="tab-content s-aff-bonus-form" style="display:none;">
                     <div class="fields form">
                         <div class="field">
-                            <div class="name header-name"></div>
+                            <div class="name for-input bold header-name"></div>
                             <div class="value">
                                 <input type="text" class="number short bold" placeholder="0" step="any"> [`points`]
                                 <span class="hidden hint">≈ {sprintf($def_cur_tmpl, '<span class="amount-hint"></span>')}</span>
                             </div>
                         </div>
                         <div class="field">
-                            <div class="name">[`Comment`]</div>
+                            <div class="name for-input">[`Comment`]</div>
                             <div class="value">
                                 <textarea class="small s-aff-bonus-form-comment"></textarea>
                                 <p class="hint">[`Comment is <strong>public</strong>. Your customer will see it in his account in the storefront.`]</p>

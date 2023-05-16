@@ -305,6 +305,7 @@ let initMainWaSidebar;
                     that.$wrapper.addClass(inactive_class);
                     that.$wrapper.removeClass(active_class);
                 }
+                window.parent.document.documentElement.style.setProperty('--main-sidebar-width', that.$wrapper.width() + 'px');
 
                 setTimeout( function() {
                     that.$wrapper.removeClass(disabled_class);

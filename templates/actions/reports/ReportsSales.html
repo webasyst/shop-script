@@ -33,7 +33,7 @@
                         </div>
                     </div>
                 {/if}
-                <a href="?module=reports&action=exportsales&{http_build_query($request_options)}" class="button"><i class="fas fa-file-csv"></i> [`Download chart data in CSV`]</a>
+                <a href="?module=reports&action=exportsales&{http_build_query($request_options)}" class="button small nowrap"><i class="fas fa-file-csv"></i> [`Download chart data in CSV`]</a>
         </div>
 
         {if $details_graph_data}
@@ -86,19 +86,20 @@
             </div>
         {/if}
 
-        <table class="s-reports-sales-table s-reports-table-sort zebra" id="sales-report-table">
+        <div class="table-scrollable-x" style="max-width: calc(100vw - var(--main-sidebar-width) - var(--padding-container-width));">
+        <table class="s-reports-sales-table s-reports-table-sort zebra bigdata" id="sales-report-table">
             <thead>
                 <tr class="white s-header-row">
                     <th>&nbsp;</th>
-                    <th><a href="javascript:void(0)" class="wa-tooltip" data-col="order_count" data-wa-tooltip-content="[`Only paid orders are counted`]">[`Orders`]</a></th>
-                    <th><a href="javascript:void(0)" class="wa-tooltip" data-col="sales" data-wa-tooltip-content="[`Overall amount of all paid orders`]">
+                    <th><a href="javascript:void(0)" data-col="order_count" data-wa-tooltip-content="[`Only paid orders are counted`]">[`Orders`]</a></th>
+                    <th><a href="javascript:void(0)" data-col="sales" data-wa-tooltip-content="[`Overall amount of all paid orders`]">
                         <div class="wide flexbox middle space-4">
                             <span class="icon size-12 custom-ml-auto"><i class="fas fa-circle" style="color: #80DFAF;"></i> </span>
                             <span>[`Sales volume`]</span>
                         </div>
                     </a></th>
-                    <th><a href="javascript:void(0)" class="wa-tooltip" data-col="average_order" data-wa-tooltip-content="[`Average paid order amount`]">[`Average order`]</a></th>
-                    <th><a href="javascript:void(0)" class="wa-tooltip" data-col="profit" class="inline" data-wa-tooltip-content="[`Profit = Order amount &minus; Shipping &minus; Tax &minus; Product purchase price`]">
+                    <th><a href="javascript:void(0)" data-col="average_order" data-wa-tooltip-content="[`Average paid order amount`]">[`Average order`]</a></th>
+                    <th><a href="javascript:void(0)" data-col="profit" class="inline" data-wa-tooltip-content="[`Profit = Order amount &minus; Shipping &minus; Tax &minus; Product purchase price`]">
                         <div class="wide flexbox middle space-4">
                             <span class="icon size-12 custom-ml-auto"><i class="fas fa-circle" style="color: #00BF60;"></i> </span>
                             <span>[`Profit`]</span>
@@ -106,32 +107,32 @@
                     </a></th>
 
                     {if $roi_enabled}
-                        <th><a href="javascript:void(0)" class="wa-tooltip" data-col="cost" data-wa-tooltip-content="[`Marketing costs`]">[`Cost`]</a></th>
-                        <th><a href="javascript:void(0)" class="wa-tooltip" data-col="roi" data-wa-tooltip-content="[`Return On Investment for the selected period = Profit / Marketing costs`]">[`ROI`]</a></th>
-                        <th class="align-right wa-tooltip" data-wa-tooltip-content="[`Overall ROI calculated for the entire data. This is where your current ROI value might converge to.`]">[`All time ROI`]</th>
+                        <th><a href="javascript:void(0)" data-col="cost" data-wa-tooltip-content="[`Marketing costs`]">[`Cost`]</a></th>
+                        <th><a href="javascript:void(0)" data-col="roi" data-wa-tooltip-content="[`Return On Investment for the selected period = Profit / Marketing costs`]">[`ROI`]</a></th>
+                        <th class="align-right" data-wa-tooltip-content="[`Overall ROI calculated for the entire data. This is where your current ROI value might converge to.`]">[`All time ROI`]</th>
                     {/if}
                 </tr>
                 <tr class="s-summary-row">
-                    <td>[`Total`]</td>
-                    <td class="align-right">{strip}
+                    <td class="wrap">[`Total`]</td>
+                    <td class="align-right nowrap">{strip}
                         {$totals.order_count}
                         {foreach $abtest_variants as $v}
                             <br><span class="hint">{$v.name|escape}: {ifempty($v.totals.order_count, 0)}</span>
                         {/foreach}
                     {/strip}</td>
-                    <td class="s-sales-cell align-right">{strip}
+                    <td class="s-sales-cell align-right nowrap">{strip}
                         {$totals.sales_formatted}
                         {foreach $abtest_variants as $v}
                             <br><span class="hint">{$v.name|escape}: {$v.totals.sales_formatted}</span>
                         {/foreach}
                     {/strip}</td>
-                    <td class="align-right">{strip}
+                    <td class="align-right nowrap">{strip}
                         {$totals.avg_order_formatted}
                         {foreach $abtest_variants as $v}
                             <br><span class="hint">{$v.name|escape}: {$v.totals.avg_order_formatted}</span>
                         {/foreach}
                     {/strip}</td>
-                    <td class="s-profit-cell align-right">{strip}
+                    <td class="s-profit-cell align-right nowrap">{strip}
                         {$totals.profit_formatted}
                         {foreach $abtest_variants as $v}
                             <br><span class="hint">{$v.name|escape}: {$v.totals.profit_formatted}</span>
@@ -139,17 +140,17 @@
                     {/strip}</td>
 
                     {if $roi_enabled}
-                        <td class="align-right">
+                        <td class="align-right nowrap">
                             {$totals.cost_formatted}
                         </td>
-                        <td class="align-right"><strong class="s-roi {if $totals.roi >= 130}s-positive{elseif $totals.roi >= 100}s-questionable{elseif $totals.cost}s-negative{/if}">
+                        <td class="align-right nowrap"><strong class="s-roi {if $totals.roi >= 130}s-positive{elseif $totals.roi >= 100}s-questionable{elseif $totals.cost}s-negative{/if}">
                             {if $totals.cost}
                                 {round($totals.roi)}%</strong>
                             {else}
                                 <span class="gray">&mdash;</span>
                             {/if}
                         </td>
-                        <td class="align-right">
+                        <td class="align-right nowrap">
                             {if $totals.cost}
                                 {$totals.lifetime_roi}%
                             {else}
@@ -165,7 +166,7 @@
             </tbody>
 
         </table>
-
+        </div>
         <!-- BEGIN DETAILS BLOCK -->
 
         {$order_list_html = $order_list_html|default:''}
@@ -226,7 +227,9 @@
         });
     });
 
-    $(".wa-tooltip").waTooltip({ delay: 500 });
+    (function() {
+        $("[data-wa-tooltip-content]").waTooltip({ delay: 500 });
+    })();
 
     // Table sorting logic
     (function() { "use strict";
@@ -240,7 +243,10 @@
         highlightSortingColumn();
 
         // Reorder the table when user clicks on a column header
+        var in_progress_sort = false;
         $table.on('click', 'thead a', function() {
+            if (in_progress_sort) return false;
+
             var $a = $(this);
             var col = $a.data('col');
             if (col == current_sort) {
@@ -254,10 +260,14 @@
                 current_order = 'desc';
             }
 
+            $a.find('.sorting-indicator').remove();
             request_params['sort'] = (current_order == 'desc' ?'!':'')+current_sort;
             $a.append('<i class="fas fa-spinner wa-animation-spin loading"></i>');
             var rnd_protect = $.reports.rnd_protect = Math.random();
+
+            in_progress_sort = true;
             $.post(action_url, $.extend({ }, request_params/*, { table_only: 1 }*/), function(r) {
+                in_progress_sort = false;
                 if (rnd_protect != $.reports.rnd_protect) {
                     return; // too late, user clicked something else
                 }

@@ -7,15 +7,15 @@
 
 <div class="flexbox custom-mb-48">
 
-    <div class="wide">
-        <table id="s-customers-report-table" class="zebra s-reports-table-sort mode-sales">
+    <div class="wide table-scrollable-x" style="max-width: calc(100vw - var(--main-sidebar-width) - var(--padding-container-width) - var(--reposrts-customers-graph-pie-width));">
+        <table id="s-customers-report-table" class="zebra bigdata s-reports-table-sort mode-sales">
             <thead>
             <tr class="white s-header-row">
                 <th>&nbsp;</th>
-                <th class="align-right"><a href="javascript:void(0)" title="[`Only paid orders are counted`]">[`Customers`]</a></th>
-                <th class="align-right"><a href="javascript:void(0)" title="[`Average number of orders placed by a single customer`]">[`Orders per customer`]</a></th>
-                <th class="align-right"><a href="javascript:void(0)" title="[`Marketing costs`]">[`Cost`]</a></th>
-                <th class="align-right"><a href="javascript:void(0)" title="[`Customer Acquisition Cost — an average cost for convincing one to place and pay for an order`]">[`CAC`]</a></th>
+                <th class="align-right"><a href="javascript:void(0)" data-wa-tooltip-content="[`Only paid orders are counted`]">[`Customers`]</a></th>
+                <th class="align-right"><a href="javascript:void(0)" data-wa-tooltip-content="[`Average number of orders placed by a single customer`]">[`Orders per customer`]</a></th>
+                <th class="align-right"><a href="javascript:void(0)" data-wa-tooltip-content="[`Marketing costs`]">[`Cost`]</a></th>
+                <th class="align-right"><a href="javascript:void(0)" data-wa-tooltip-content="[`Customer Acquisition Cost — an average cost for convincing one to place and pay for an order`]">[`CAC`]</a></th>
 
                 <th class="align-right toggled sales">
                     <div class="wa-select">
@@ -25,8 +25,8 @@
                         </select>
                     </div>
                 </th>
-                <th class="align-right toggled sales"><a href="javascript:void(0)" title="[`Average Revenue Per User = Total sales / Number of customers`]">[`ARPU`] <span class="hint period-description">[`Custom range`]</span></a></th>
-                <th class="align-right toggled sales"><a href="javascript:void(0)" title="[`Indicates how much does average customer brings you in sales.`]">[`Lifetime ARPU`]</a></th>
+                <th class="align-right toggled sales"><a href="javascript:void(0)" data-wa-tooltip-content="[`Average Revenue Per User = Total sales / Number of customers`]"><div>[`ARPU`] <div class="small period-description">[`Custom range`]</div></div></a></th>
+                <th class="align-right toggled sales"><a href="javascript:void(0)" data-wa-tooltip-content="[`Indicates how much does average customer brings you in sales.`]">[`Lifetime ARPU`]</a></th>
 
                 <th class="align-right toggled profit">
                     <select class="table-base-selector">
@@ -34,8 +34,8 @@
                         <option value="profit">[`Profit`]</option>
                     </select>
                 </th>
-                <th class="align-right toggled profit"><a href="javascript:void(0)" title="[`Average Margin Per User = Total profit / Number of customers`]">[`AMPU`] <span class="hint period-description">[`Custom range`]</span></a></th>
-                <th class="align-right toggled profit"><a href="javascript:void(0)" title="[`Customer Lifetime Value indicates how much does average customer brings you in profit. LTV is the lifetime AMPU.`]">[`LTV`]</a></th>
+                <th class="align-right toggled profit"><a href="javascript:void(0)" data-wa-tooltip-content="[`Average Margin Per User = Total profit / Number of customers`]"><div>[`AMPU`] <div class="small period-description">[`Custom range`]</div></div></a></th>
+                <th class="align-right toggled profit"><a href="javascript:void(0)" data-wa-tooltip-content="[`Customer Lifetime Value indicates how much does average customer brings you in profit. LTV is the lifetime AMPU.`]">[`LTV`]</a></th>
             </tr>
 
             <tr class="s-summary-row">
@@ -191,17 +191,26 @@
     </div>
 </div>
 
-<div class="flexbox">
+<div class="flexbox space-4">
     <style>
-        .datamaps-subunits {
-            transform: translateY(-130px);
+        .datamaps-subunits { transform: translateY(-130px); }
+        @media screen and (max-width: 1535px){
+            .datamaps-subunits { transform: translateY(-95px); }
+        }
+        @media screen and (max-width: 1300px){
+            .datamaps-subunits { transform: translateY(-35px); }
+            .s-country-list { font-size: 75% !important; }
+
+        }
+        @media screen and (max-width: 1024px){
+            .datamaps-subunits { transform: translateY(0); }
         }
     </style>
     <div class="map-wrapper wide"></div>
 
-    <div class="width-20">
+    <div>
         {if count($country_customers)}
-            <table class="zebra s-country-list">
+            <table class="zebra s-country-list bigdata">
                 <tr class="white">
                     <th>&nbsp;</th>
                     <th colspan="2">[`Number of customers`]</th>
@@ -233,6 +242,10 @@
     var $load_more_link = $table.siblings('.load-more-link');
     var request_params = {json_encode($request_options)};
     var action_url = '?module=reports&action=customers';
+
+    (function() {
+        $("[data-wa-tooltip-content]").waTooltip({ delay: 500 });
+    })();
 
     // Human-readable period description in page header
     (function() {

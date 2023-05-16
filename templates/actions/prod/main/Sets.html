@@ -346,12 +346,12 @@
                             <div class="flexbox middle space-4">
                                 <div class="s-button flexbox middle space-4 cursor-pointer" v-on:click="addSet">
                                     <template v-if="!states.add_set_locked">
-                                        <span class="s-icon icon size-12 shift-up-1"><svg><use xlink:href="{$_sprite_url}#plus"></use></svg></span>
+                                        <span class="s-icon icon baseline size-12"><i class="fas fa-plus"></i></span>
                                     </template>
                                     <template v-else>
                                         <span class="s-icon icon size-12" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                                     </template>
-                                    <span class="s-name">[`new set`]</span>
+                                    <span class="s-name">[`New set`]</span>
                                 </div>
                                 <div class="s-button flexbox middle space-4 cursor-pointer" v-on:click="addGroup">
                                     <template v-if="!states.add_group_locked">

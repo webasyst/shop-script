@@ -13,20 +13,19 @@
 
 <div class="dialog s-drop-files-here-zone hidden" id="s-image-uploader">
     <div class="dialog-background"></div>
-    <div class="dialog-body" style="transform: translateY(-57%);">
+    <div class="dialog-body">
         <div class="dialog-content" style="min-height: 150px;">
             <div id="s-upload-step1">
                 <div id="s-upload-imagelist">
-                    <ul class="zebra files"></ul>
+                    <ul class="list files"></ul>
                 </div>
             </div>
         </div>
         <footer class="dialog-footer">
             <div id="s-upload-step1-buttons" class="fileupload-buttonbar">
-                <div class="progressbar" id="js-upload-progressbar"></div>
-                <div class="custom-my-12">
-                    <button class="button light-gray cancel">[`Stop upload`]</button>
-                    <span class="float-left" style="margin-top: 5px;" id="s-upload-filescount"></span>
+                <div class="custom-my-12 flexbox middle">
+                    <div class="progressbar wide" id="js-upload-progressbar"></div>
+                    <button class="button light-gray custom-ml-8 cancel">[`Stop upload`]</button>
                 </div>
                 <div id="s-upload-error" style="display:none" class="errormsg state-error-hint">
                     [`Files uploaded with errors`]
@@ -74,13 +73,15 @@
 {literal}
     {% for (var i=0, files=o.files, l=files.length, file=files[0]; i<l; file=files[++i]) { %}
     <li class="template-upload">
-        <div class="s-upload-oneimage-progress">
-            <div class="s-image-filename">
-                {%=file.name%}
-                <span class="hint">{%=o.formatFileSize(file.size)%}</span>
+        <div class="progressbar">
+            <div class="progressbar-text custom-mb-8 semibold">{%=file.name%} <span class="hint">{%=o.formatFileSize(file.size)%}</span></div>
+            <div class="progressbar-line-wrapper text-outside">
+                <div class="progressbar-outer">
+                    <div class="progressbar-inner js-upload-oneimage-progress" style="width: 0%;"></div>
+                </div>
             </div>
-            <span class="start"></span><span class="cancel"></span>
         </div>
+        <span class="start"></span><span class="cancel"></span>
         &nbsp;
     </li>
     {% } %}
@@ -92,8 +93,8 @@
     {% for (var i=0, files=o.files, l=files.length, file=files[0]; i<l; file=files[++i]) { %}
     <li class="template-upload {% if (file.error) { %}error{% } %}">
         {% if (file.error) { %}
-            <div class="s-upload-oneimage-progress" style="width:100%">
-                <div class="s-image-filename">
+            <div class="progressbar">
+                <div class="progressbar-text custom-mb-8">
                     <b>{%=file.name%}</b>
                     {% if (typeof file.error === 'object' && file.error instanceof SyntaxError) { %}
                         {% if (file.responseText) { %}
@@ -105,13 +106,21 @@
                         {%=file.error%}
                     {% } %}
                 </div>
-            </div>
-        {% } else { %}
-            <div class="s-upload-oneimage-progress" style="width:100%">
-                <div class="s-image-filename">
-                    {%=file.name%} <span class="hint">{%=o.formatFileSize(file.size)%}</span>
+                <div class="progressbar-line-wrapper text-outside">
+                    <div class="progressbar-outer">
+                        <div class="progressbar-inner bg-red" style="width: 100%;"></div>
+                    </div>
                 </div>
             </div>
+        {% } else { %}
+        <div class="progressbar">
+            <div class="progressbar-text custom-mb-8 semibold">{%=file.name%} <span class="hint">{%=o.formatFileSize(file.size)%}</span></div>
+            <div class="progressbar-line-wrapper text-outside">
+                <div class="progressbar-outer">
+                    <div class="progressbar-inner" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
         {% } %}
         &nbsp;
     </li>
@@ -126,7 +135,7 @@
 
 <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/images/jquery.fileupload-fp.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/images/jquery.fileupload-ui.js?v=2.0"></script>
+<script type="text/javascript" src="{$wa_app_static_url}js/images/jquery.fileupload-ui.js?v=2.1"></script>
 
 
 <script type="text/javascript">

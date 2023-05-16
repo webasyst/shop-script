@@ -2,6 +2,7 @@
     $.storage = new $.store();
     $.orders = {
         $wrapper: null,
+        $nav: null,
         options: {
             view: 'table'      // default view
         },
@@ -15,6 +16,7 @@
             var that = this;
             that.options = options;
             that.$wrapper = $('#s-content');
+            that.$nav = $('#s-order-nav');
 
             if (typeof($.History) != "undefined") {
                 $.History.bind(function () {
@@ -124,8 +126,13 @@
             this.ordersNavDetach();
             this.initWaLoading();
 
-            this.$wrapper.on('wa_loaded.wa_loading', () => {
+            this.$nav.on('wa_init_orders_nav', (e, view) => {
+
                 this.initSearch();
+
+                if (view === 'split' && this.hasFiltersInUrl()) {
+                    this.visibilityFilters(true);
+                }
             });
         },
 
@@ -334,9 +341,14 @@
                             .filter(Boolean);
 
                         // если среди параметров есть статусы заказов, то приводим их к нужному виду
-                        const state_id_param_key = params.findIndex(item => item.includes('state_id'));
-                        if(state_id_param_key >= 0) {
-                            params[state_id_param_key] = params[state_id_param_key]?.replaceAll('|', '||');
+                        // const state_id_param_key = params.findIndex(item => item.includes('state_id'));
+                        // if(state_id_param_key >= 0) {
+                        //     params[state_id_param_key] = params[state_id_param_key]?.replaceAll('|', '||');
+                        // }
+
+                        const state_processing_index = params.findIndex(item => item.includes('state_id') && item.includes('|'));
+                        if (state_processing_index !== -1) {
+                            params.splice(state_processing_index, 1);
                         }
 
                         // оставляем в параметрах только один какой-то канал продаж
@@ -750,7 +762,7 @@
 
         ordersNavDetach() {
             if (window.ordersNav === undefined) {
-                window.ordersNav = $('#s-order-nav').detach();
+                window.ordersNav = this.$nav.detach();
             }
         },
 
@@ -780,11 +792,15 @@
                 });
         },
 
-        waLoadingBeforeLoad: function () {
+        waLoadingBeforeLoad() {
             this.$wrapper.trigger("wa_before_load.wa_loading");
         },
-        waLoadingLoaded: function () {
+        waLoadingLoaded() {
             this.$wrapper.trigger("wa_loaded.wa_loading", [['waLoading']]);
+        },
+
+        hasFiltersInUrl() {
+            return window.location.hash ? window.location.hash.includes('hash=search') : false;
         }
     };
 })(jQuery);

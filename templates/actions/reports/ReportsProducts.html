@@ -55,26 +55,26 @@
                 {*
                  * Best selling products table
                  *}
-                <table id="s-report-products-bestsellers-table" class="zebra s-reports-table-sort">
+                <table id="s-report-products-bestsellers-table" class="zebra s-reports-table-sort bigdata">
                     <thead>
                         <tr class="white s-header-row">
                             <th style="width:50px;"></th>
                             <th></th>
-                            <th class="align-right">
+                            <th class="align-right nowrap">
                                 {if $request_options.sort == 'quantity'}
                                     [`Quantity`] {$_icon_darr}
                                 {else}
                                     <a href="#/products/bestsellers/sort=quantity/">[`Quantity`]</a>
                                 {/if}
                             </th>
-                            <th class="align-right">
+                            <th class="align-right nowrap">
                                 {if $request_options.sort == 'sales'}
                                     [`Sales`] {$_icon_darr}
                                 {else}
                                     <a href="#/products/bestsellers/sort=sales/">[`Sales`]</a>
                                 {/if}
                             </th>
-                            <th class="s-wider-cell align-right">
+                            <th class="s-wider-cell align-right nowrap">
                                 {if $request_options.sort == 'profit'}
                                     [`Profit`] {$_icon_darr}
                                 {else}
@@ -216,11 +216,9 @@
 
     // Sort table when user clicks on a column header
     $thead.on('click', 'a', function() {
-        $thead.find('.fa-caret-down,.fa-caret-up').remove();
         var $a = $(this);
         var $td = $a.closest('th,td');
         $.reports.sortTable($td);
-        $a.append('<i class="fas fa-caret-down"></i>');
     });
 
     // Human-readable period description in page header

@@ -1,6 +1,6 @@
 
 <h1>[`CSV product export`]</h1>
-<p>
+<p class="small">
     {sprintf('[`Export products to a comma-separated values (CSV) file. CSV files can be created and managed using most modern spreadsheet applications such as Microsoft Excel, OpenOffice, and iWork. For detailed information about Shop-Script-supported CSV file structure, please <a href="%s" target="_blank">refer to the manual</a>.`]','[`https://www.shop-script.com/help/45/import-products-from-csv-file/`]')}
     <i class="fas fa-external-link-alt smaller custom-ml-4"></i>
 </p>
@@ -24,37 +24,38 @@
 </div>
 {/if}
 
-
-<div class="field js-profile-description">
-   <div class="name">[`Profile`]</div>
-   <div class="value">
-       <input type="text" class="long" name="profile[name]" value="{$profile.name|default:''|escape}">
-       <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
-   </div>
-</div>
-
-<div class="field">
-    <div class="name">
-        [`Products representation in file rows`]
+<div class="field-group">
+    <div class="field js-profile-description">
+       <div class="name">[`Profile`]</div>
+       <div class="value">
+           <input type="text" class="long" name="profile[name]" value="{$profile.name|default:''|escape}">
+           <input type="hidden" name="profile[id]" value="{$profile.id|default:'-1'}">
+       </div>
     </div>
-    <div class="value">
-        <div class="wa-select">
-            <select name="export_mode">
-                <option value="0" {if empty($profile.config.export_mode)}selected="selected"{/if}>[`Default mode`]</option>
-                <option value="1" {if !empty($profile.config.export_mode)}selected="selected"{/if}>[`SKU as product`]</option>
-            </select>
+
+    <div class="field">
+        <div class="name">
+            [`Products representation in file rows`]
         </div>
-        <p class="hint {if !empty($profile.config.export_mode)}hidden{/if}">[`For a product with <em>multiple</em> SKUs, a separate row is exported with product-related data and additional rows are exported with the product’s SKUs. A product with <em>one</em> SKU is exported in one row.`]</p>
-        <div class="block-hint {if empty($profile.config.export_mode)}hidden{/if}">
-            <span>[`For each product SKU, a separate row, containing that SKU’s properties, is added to a file. If some SKU property is empty but has a value stored in the common product data then such a common property value is exported to an SKU row. No separate row with common product data is exported.`]</span>
-            <div class="wa-csv-message wa-small error flexbox">
-                <div class="message-icon">
-                    <svg aria-hidden="true" data-prefix="fas" data-icon="exclamation-triangle" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg="" class="svg-inline--fa">
-                        <path fill="currentColor" d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"></path>
-                    </svg>
-                </div>
-                <div class="message-text wide">
-                    <span class="s-text">{sprintf_wp('This export mode is not recommended for product updates to avoid corruption of the original data structure. You may find it useful to transfer information to external services. To update your products via an exported CSV file, use “%s”.', _w('Default mode'))}</span>
+        <div class="value">
+            <div class="wa-select">
+                <select name="export_mode">
+                    <option value="0" {if empty($profile.config.export_mode)}selected="selected"{/if}>[`Default mode`]</option>
+                    <option value="1" {if !empty($profile.config.export_mode)}selected="selected"{/if}>[`SKU as product`]</option>
+                </select>
+            </div>
+            <p class="hint {if !empty($profile.config.export_mode)}hidden{/if}">[`For a product with <em>multiple</em> SKUs, a separate row is exported with product-related data and additional rows are exported with the product’s SKUs. A product with <em>one</em> SKU is exported in one row.`]</p>
+            <div class="block-hint {if empty($profile.config.export_mode)}hidden{/if}">
+                <span>[`For each product SKU, a separate row, containing that SKU’s properties, is added to a file. If some SKU property is empty but has a value stored in the common product data then such a common property value is exported to an SKU row. No separate row with common product data is exported.`]</span>
+                <div class="wa-csv-message wa-small error flexbox">
+                    <div class="message-icon">
+                        <svg aria-hidden="true" data-prefix="fas" data-icon="exclamation-triangle" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg="" class="svg-inline--fa">
+                            <path fill="currentColor" d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"></path>
+                        </svg>
+                    </div>
+                    <div class="message-text wide">
+                        <span class="s-text">{sprintf_wp('This export mode is not recommended for product updates to avoid corruption of the original data structure. You may find it useful to transfer information to external services. To update your products via an exported CSV file, use “%s”.', _w('Default mode'))}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -273,29 +274,25 @@
     </div>
 </div>
 
-<div class="field-group" id="s-csvproduct-submit">
-    <div class="field">
-        <div class="value submit">
-            <ul>
-                <li>
-                    <input type="submit" class="button green" value="[`Start export`]">
-                </li>
-                <li class="js-progressbar-container" style="display:none;">
-                    <div class="progressbar" style="display: none; width: 70%;">
-                        <div class="progressbar-line-wrapper text-outside">
-                            <div class="progressbar-outer">
-                                <div class="progressbar-inner" style="width: 0;"></div>
-                            </div>
-                            <div class="progressbar-text progressbar-description"></div>
-                            <i class="fas fa-spinner fa-spin custom-ml-8"></i>
-                        </div>
+<div class="custom-mt-24" id="s-csvproduct-submit">
+    <ul>
+        <li>
+            <input type="submit" class="button green" value="[`Start export`]">
+        </li>
+        <li class="js-progressbar-container" style="display:none;">
+            <div class="progressbar" style="display: none; width: 70%;">
+                <div class="progressbar-line-wrapper text-outside">
+                    <div class="progressbar-outer">
+                        <div class="progressbar-inner" style="width: 0;"></div>
                     </div>
-                    <p class="small italic">
-                    [`Please do not close your browser window and do not leave this page until the entire export process is finished.`]
-                    </p>
-                    <em class="errormsg state-error-hint"></em>
-                </li>
-            </ul>
-        </div>
-    </div>
+                    <div class="progressbar-text progressbar-description"></div>
+                    <i class="fas fa-spinner fa-spin custom-ml-8"></i>
+                </div>
+            </div>
+            <p class="small italic">
+            [`Please do not close your browser window and do not leave this page until the entire export process is finished.`]
+            </p>
+            <em class="errormsg state-error-hint"></em>
+        </li>
+    </ul>
 </div>

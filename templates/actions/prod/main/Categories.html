@@ -420,10 +420,10 @@
                     <div class="s-title-wrapper flexbox middle space-12">
                         <h1 class="s-title">[`Categories`]</h1>
                         {if $wa->userRights('setscategories')}
-                        <button class="button flexbox middle" type="button" v-on:click.prevent="categoryAdd" v-bind:disabled="states.create_locked">
-                            <span class="icon size-12" v-if="!states.create_locked" v-bind:key="'plus'"><svg><use xlink:href="{$_sprite_url}#plus"></use></svg></span>
+                        <button class="button flexbox middle rounded" type="button" v-on:click.prevent="categoryAdd" v-bind:disabled="states.create_locked">
+                            <span class="icon size-12" v-if="!states.create_locked" v-bind:key="'plus'"><span class="s-icon icon baseline size-12"><i class="fas fa-plus"></i></span></span>
                             <span class="icon size-12" v-else v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
-                            <span class="s-name">[`new category`]</span>
+                            <span class="s-name">[`New category`]</span>
                         </button>
                         {/if}
 

@@ -150,11 +150,12 @@
 
                             function initSlider() {
                                 $slider.bxSlider({
-                                    mode: 'vertical',
+                                    mode: {if $wa->isMobile()}'horizontal'{else}'vertical'{/if},
                                     touchEnabled: true,
-                                    minSlides : 5,
+                                    minSlides : {if $wa->isMobile()}4{else}5{/if},
+                                    maxSlides : {if $wa->isMobile()}4{else}5{/if},
                                     infiniteLoop: false,
-                                    slideWidth: 64,
+                                    slideWidth: {if $wa->isMobile()}300{else}64{/if},
                                     slideMargin: 14,
                                     pager: false
                                 });

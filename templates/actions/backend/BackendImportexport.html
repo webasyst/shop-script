@@ -36,19 +36,21 @@
             {/foreach}
         </ul>
 
-        <div class="box align-center hint bordered-top">
-            <a href="#/plugins/" data-url="{$wa_backend_url}installer/#/plugins&amp;tag=importexport/shop/">[`Browse import/export plugins`]</a><br>
+        <div class="box align-center bordered-top">
+            <p class="hint width-80 custom-mx-auto custom-mt-12">
+              <a href="#/plugins/" data-url="{$wa_backend_url}installer/#/plugins&amp;tag=importexport/shop/">[`Browse import/export plugins`]</a><br>
             [`Install new plugins from the Webasyst Store using the Installer app`]
+            </p>
         </div>
     </div>
 
     <div class="content box contentbox not-blank">
         <div id="s-importexport-header">
             <h1><!-- title placeholder --></h1>
-            <p><!-- description placeholder --></p>
+            <p class="small"><!-- description placeholder --></p>
         </div>
 
-        <ul class="tabs s-export-profile-list" id="s-importexport-profile" style="display: none; padding-left: 10px;">
+        <ul class="tabs s-export-profile-list custom-mt-24 custom-pl-0" id="s-importexport-profile" style="display: none;">
             <li class="no-tab"><a href="#/profile/add/" data-href="#/profile/add/%plugin%/" class="js-action">
                     <i class="fas fa-plus-circle"></i>[`New profile`]</a>
             </li>

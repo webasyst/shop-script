@@ -212,7 +212,7 @@
                                                         $('.fileupload-buttonbar .start').hide();
                                                     }
                                                 });
-                                            }, 5000);
+                                            }, 3000);
                                         } else {
                                             data.context[0].find('.error').show().text(file.error);
                                             data.context[0].addClass('error');
@@ -343,10 +343,9 @@
             // Callback for upload progress events:
             progress: function (e, data) {
                 if (data.context[1]) {
-                    data.context[1].find('.s-upload-oneimage-progress').css(
-                        'width',
-                        parseInt(data.loaded / data.total * 90, 10) + '%'
-                    );
+                    data.context[1].find('.js-upload-oneimage-progress').css({
+                        'width': parseInt(data.loaded / data.total * 90, 10) + '%'
+                    });
                 }
             },
             // Callback for global upload progress events:
@@ -356,7 +355,6 @@
 
                 that.progressbar.set({ percentage: parseInt(data.loaded / data.total * 95, 10) });
 
-                $("#s-upload-filescount").html(parseInt(data.loaded / data.total * 95, 10) + '%');
                 $this.find('.progress-extended').each(function () {
                         $(this).html(
                             $this.data('fileupload')
@@ -382,7 +380,6 @@
                     }
                 });
 
-                $("#s-upload-filescount").show().empty();
                 $('#s-upload-step1-buttons .cancel').text($_('Stop upload'));
                 $("#s-upload-error").hide();
 
@@ -401,7 +398,6 @@
                     });
                 that._transition($(this).find('.fileupload-progress')).done(
                     function () {
-                        $("#s-upload-filescount").html('100%');
                         that.progressbar.set({ percentage: 100 });
                         deferred.resolve();
                     }
@@ -909,7 +905,7 @@
         },
 
         _initButtonBarEventHandlers: function () {
-            var form = this.element,
+            var that = this,
                 fileUploadButtonBar = this.element.find('.fileupload-buttonbar'),
                 filesList = this.options.filesContainer,
                 preloadContainer = this.options.preloadContainer;
@@ -959,7 +955,6 @@
                                     }
                                 }
                                 that.options.report.product_count = count;
-                                //$('#s-imagesproduct-report').html(r.data.report_message);
                                 filesList.find('.start').click();
                             }
                         }, 'json');
@@ -971,7 +966,12 @@
             this._on(fileUploadButtonBar.find('.cancel'), {
                 click: function (e) {
                     e.preventDefault();
-                    filesList.find('.cancel').click();
+                    const $filesList = filesList.find('.cancel');
+                    if ($filesList.length) {
+                        $filesList.click();
+                    } else {
+                        that._hideDialog();
+                    }
                 }
             });
             this._on(fileUploadButtonBar.find('.delete'), {
@@ -1200,9 +1200,12 @@
         _showDialog: function() {
             $('body').addClass('is-locked');
             this.$dialog.removeClass('hidden');
+            this.$dialog.resize();
+            this.resizeDialogInterval = setInterval(() => this.$dialog.resize(), 250);
         },
 
         _hideDialog: function() {
+            clearInterval(this.resizeDialogInterval);
             $('body').removeClass('is-locked');
             this.$dialog.addClass('hidden');
             $('#s-product-type-container').hide();

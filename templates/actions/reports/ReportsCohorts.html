@@ -1,6 +1,9 @@
 {include "./sales_sidebar.html" inline}
 
 <div class="content">
+    <h1>
+        [`Cohorts`]
+    </h1>
     <div>
         <div class="graph-wrapper">
             <div class="cohort-wrapper"></div>
@@ -11,7 +14,7 @@
         </div>
 
         {* Too easy to shoot yourself in the foot *}
-        <div class="hidden block float-right half-padded">
+        <div class="hidden block">
             [`Group by`]:
             {$group_by_options = [
                 'weeks' => "[`week`]",
@@ -28,7 +31,7 @@
         </div>
 
         <div class="flexbox middle full-width">
-            <div class="wa-select">
+            <div class="wa-select smaller custom-mr-16">
                 <select id="s-cohorts-source-selector">
                     <option value="">[`All sources`]</option>
                     {foreach $sources as $s}
@@ -36,7 +39,7 @@
                     {/foreach}
                 </select>
             </div>
-            <ul class="chips" id="s-cohorts-type-selector">
+            <ul class="chips small" id="s-cohorts-type-selector">
                 {$cohort_types = [
                     'sales' => "[`Sales`]",
                     'profit' => "[`Profit`]",
@@ -45,12 +48,12 @@
                     'roi' => "[`ROI`]"
                 ]}
                 {foreach $cohort_types as $type_id => $type_name}
-                    <li{if ifset($request_options.type) == $type_id} class="selected"{/if} data-type="{$type_id|escape}">
+                    <li class="transparent rounded custom-mr-4{if ifset($request_options.type) == $type_id} accented{/if}" data-type="{$type_id|escape}">
                         <a href="javascript:void(0)">{$type_name|escape}</a>
                     </li>
                 {/foreach}
             </ul>
-            <div class="wa-select custom-ml-auto">
+            <div class="wa-select smaller custom-ml-auto">
                 <select id="change-cohort-type" class="not-styled">
                     <option value="center">[`Stream graph`]</option>
                     <option value="bottom">[`Stacked graph`]</option>
@@ -60,7 +63,8 @@
 
         {if $table_data}
 
-            <table id="s-report-cohorts-table">
+        <div class="table-scrollable-x" style="max-width: calc(100vw - var(--main-sidebar-width) - var(--padding-container-width));">
+            <table id="s-report-cohorts-table" class="bigdata">
                 <thead>
                     <tr>{strip}
                         <th></th>
@@ -127,6 +131,7 @@
                     {/foreach}
                 </tbody>
             </table>
+        </div>
         {/if}
     </div>
 </div>

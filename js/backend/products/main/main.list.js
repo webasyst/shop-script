@@ -5467,6 +5467,7 @@
                                                                 },
                                                                 delimiters: ['{ { ', ' } }'],
                                                                 components: {
+                                                                    "component-checkbox": that.vue_components["component-checkbox"],
                                                                     "component-feature-option-search": {
                                                                         props: ["options"],
                                                                         data: function() {
@@ -5531,7 +5532,11 @@
                                                                         },
                                                                         template: that.components["component-feature-option-form"],
                                                                         delimiters: ['{ { ', ' } }'],
-                                                                        computed: {},
+                                                                        components: {
+                                                                            "component-input": that.vue_components["component-input"],
+                                                                            "component-color-picker": that.vue_components["component-color-picker"],
+                                                                            "component-dropdown": that.vue_components["component-dropdown"],
+                                                                        },
                                                                         methods: {
                                                                             onChangeValue: function() {
                                                                                 var self = this;

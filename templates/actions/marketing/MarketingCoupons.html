@@ -1,21 +1,21 @@
 {* PAGE *}
 <div class="s-coupons-page content flexbox" id="js-coupons-page">
 
-    <div class="sidebar bordered-right width-23rem blank">
+    <div class="sidebar bordered-right width-adaptive-wider blank">
 
-        <ul class="menu large">
-            <li class="bottom-padded">
+      <div class="box">
+
+        <ul class="menu">
+            <li class="rounded bottom-padded">
                 <a href="{$marketing_url}coupons/create/"><i class="fas fa-plus-circle text-green"></i> <span>[`New coupon`]</span></a>
             </li>
         </ul>
 
         {if $pages_count > 1 || strlen($coupon_name)}
-        <div class="box">
             <form class="s-coupon-search state-with-inner-icon left width-100">
                 <input class="s-coupon-field small full-width custom-mr-0" id="coupon-name" type="search" name="coupon_name" value="{$coupon_name}" placeholder="[`Coupons search`]" autocomplete="off">
                 <button class="icon js-coupon-name-submit" type="submit"><i class="fas fa-search"></i></button>
             </form>
-        </div>
         {/if}
 
 
@@ -34,7 +34,7 @@
                     {$_classes[] = "selected"}
                 {/if}
 
-                <li class="{$_classes|join:" "}">
+                <li class="rounded {$_classes|join:" "}">
                     {$params = []}
                     {if $page_number > 1}
                         {$params['page'] = $page_number}
@@ -60,6 +60,7 @@
             </div>
         {/if}
 
+      </div>
     </div>
 
     <div class="content">

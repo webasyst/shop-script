@@ -1,9 +1,9 @@
 {literal}
-<div data-order-id="{%#o.order.id%}" data-state-id="{%#o.state%}" class="order_ s-kanban__list__body__item custom-p-12 custom-mb-8 blank{% if (o.isUpdated) { %} wa-animation-swing{% } %}">
+<div data-order-id="{%#o.order.id%}" data-state-id="{%#o.state%}" class="order_ s-kanban__list__body__item custom-p-12 custom-mb-8 blank">
     <div class="flexbox">
         <div class="s-kanban-item-title custom-mr-8">
             <span class="userpic userpic48{% if (o.order.state_id == 'new') { %} highlighted {% } %} bold" title="">
-                <img src="{%=o.order.order_icon%}" alt="">
+                <img src="{%=o.order.order_icon ? o.order.order_icon : o.order.contact.photo_50x50 %}" alt="">
             </span>
         </div>
         <div class="s-kanban-item-body wide">

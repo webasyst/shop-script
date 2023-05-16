@@ -33,21 +33,23 @@
                 <a href="#" class="inline-link" id="add-new-group"><i class="fas fa-plus-circle text-green add"></i> [`Add product`]</a>
             </p>
 
-            <p id="s-product-type-container" class="flexbox middle space-8" style="display:none;">
+            <div id="s-product-type-container" class="flexbox middle space-8 custom-mb-24" style="display:none;">
                 {$type = reset($types)}
                 [`Assign all new products following product type:`]
                 <span id="s-product-type-icon" class="text-gray">{$wa->shop->getIcon($type.icon)}</span>
-                <select name="type_id" id="s-product-type">
-                    {foreach $types as $id => $type}
-                        <option data-icon="{$wa->shop->getIcon($type.icon)|escape}" value="{$id}">
-                            {$type.name|escape}
-                        </option>
-                    {/foreach}
-                </select>
-            </p>
+                <div class="wa-select">
+                    <select name="type_id" id="s-product-type">
+                        {foreach $types as $id => $type}
+                            <option data-icon="{$wa->shop->getIcon($type.icon)|escape}" value="{$id}">
+                                {$type.name|escape}
+                            </option>
+                        {/foreach}
+                    </select>
+                </div>
+            </div>
 
             <div class="fileupload-buttonbar">
-                <input type="button" class="button green start" value="[`Upload images`]" style="display:none" id="submit">
+                <button type="button" class="button start" style="display:none" id="submit">[`Upload images`]</button>
                 <span id="s-imagesproduct-report" style="display: none;"></span>
             </div>
 

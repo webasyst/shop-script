@@ -125,7 +125,7 @@
                 </a>
             </li>
 
-            {if $wa->user()->isAdmin()}
+            {if $wa->user()->isAdmin() && waSystemConfig::isDebug()}
                 <li class="top-padded">
                     <a href="?action=settings#/reset/">
                         <i class="icon16 ss reset-bw"></i>[`Reset`]

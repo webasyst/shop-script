@@ -17,7 +17,8 @@
                 </select>
             </div>
         </div>
-        <table id="s-reports-what-to-sell-table" class="zebra s-reports-table-sort">
+        <div class="table-scrollable-x" style="max-width: calc(100vw - var(--main-sidebar-width) - var(--padding-container-width));">
+        <table id="s-reports-what-to-sell-table" class="zebra s-reports-table-sort bigdata">
             <thead>
                 <tr class="s-marked-row">
                     <td colspan="5" style="padding-left: 0 !important; padding-top: 0 !important;">
@@ -44,20 +45,20 @@
                 <tr class="s-marked-row white s-header-row">
                     <th></th>
                     <th></th>
-                    <th class="align-right nowrap"><a href="javascript:void(0)" title="[`Profit per selling one item of a product`]">[`Profit per item`] <i class="fas fa-caret-down"></i></a></th>
+                    <th class="align-right"><a href="javascript:void(0)" data-wa-tooltip-content="[`Profit per selling one item of a product`]">[`Profit per item`] <i class="fas fa-caret-down"></i></a></th>
                     <th></th>
-                    <th class="align-right nowrap"><a href="javascript:void(0)" title="[`Average number of items sold per month`]">[`Sold per month`]</a></th>
+                    <th class="align-right"><a href="javascript:void(0)" data-wa-tooltip-content="[`Average number of items sold per month`]">[`Sold per month`]</a></th>
                     <th class="marked-column align-right s-wider-cell nowrap">
-                        <a href="javascript:void(0)" title="[`Estimated overall sales for the selected period`]"><span class="s-prediction">*</span>[`Sales`]</a>
+                        <a href="javascript:void(0)" data-wa-tooltip-content="[`Estimated overall sales for the selected period`]"><span class="s-prediction">*</span>[`Sales`]</a>
                     </th>
                     <th class="marked-column align-right s-wider-cell nowrap">
-                        <a href="javascript:void(0)" title="[`Estimated overall number of items to be shipped`]"><span class="s-prediction">*</span>[`Items to ship`]</a>
+                        <a href="javascript:void(0)" data-wa-tooltip-content="[`Estimated overall number of items to be shipped`]"><span class="s-prediction">*</span>[`Items to ship`]</a>
                     </th>
                     <th class="marked-column align-right s-wider-cell nowrap">
-                        <a href="javascript:void(0)" title="[`Estimated extra expenses on the purchase of items in addition to the current stock level`]"><span class="s-prediction">*</span>[`Investments`]</a>
+                        <a href="javascript:void(0)" data-wa-tooltip-content="[`Estimated extra expenses on the purchase of items in addition to the current stock level`]"><span class="s-prediction">*</span>[`Investments`]</a>
                     </th>
                     <th class="marked-column align-right s-wider-cell nowrap">
-                        <a href="javascript:void(0)"title="[`Estimated total income on selling these items`]"><span class="s-prediction">*</span>[`Income`]</a>
+                        <a href="javascript:void(0)"data-wa-tooltip-content="[`Estimated total income on selling these items`]"><span class="s-prediction">*</span>[`Income`]</a>
                     </th>
                     <th></th>
                 </tr>
@@ -99,6 +100,7 @@
                 {* Populated via JS *}
             </tbody>
         </table>
+        </div>
     </div>
 
 <script>
@@ -317,5 +319,8 @@
         return Math.round(num).toFixed().replace(format_regexp, format_thousands_separator);
     }
 
+    (function() {
+        $("[data-wa-tooltip-content]").waTooltip({ delay: 500 });
+    })();
 })();
 </script>

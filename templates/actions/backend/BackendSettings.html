@@ -159,7 +159,7 @@
                     </a>
                 </li>
 
-                {if $wa->user()->isAdmin()}
+                {if $wa->user()->isAdmin() && waSystemConfig::isDebug()}
                     <li>
                         <a href="?action=settings#/reset/">
                             <span class="icon"><i class="fas fa-power-off"></i></span>

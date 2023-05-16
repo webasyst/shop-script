@@ -31,7 +31,7 @@
                 <div class="s-kanban__list">
                     <div class="flexbox middle custom-p-12">
                         <div class="wide">
-                            <span class="s-status-wrapper large nowrap" style="color:{$state.options.style.color|escape};font-weight:{$state.options.style['font-weight']|escape}">
+                            <span class="s-status-wrapper large nowrap" style="color:{$state.options.style.color|escape};font-weight:{$state.options.style['font-weight']|escape|default:'normal'};">
                                 <i class="{$state.options.icon|escape}"></i> {$state.name|escape}
                             </span>
                         </div>
@@ -169,8 +169,8 @@
                         filter_params_str: '{$params_str}',
                         state_transitions: {$state_transitions|json_encode},
                         locale: {
-                            'no_action_for_states': {_w("Не доступно ни одного действия, которое переводило бы заказ в этот статус")|json_encode},
-                            'action_requires_user_input': {_w("Действие, которое переводит заказ в этот статус, требует дополнительных данных. Воспользуйтесь кнопкой действия на странице заказа.")|json_encode}
+                            'no_action_for_states': {_w("No actions are available to transfer orders to this status.")|json_encode},
+                            'action_requires_user_input': {_w("The action transferring orders to this status requires additional data. Please use the action button on the order-viewing screen.")|json_encode}
                         }
                     })
                 </script>

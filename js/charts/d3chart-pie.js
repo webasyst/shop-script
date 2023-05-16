@@ -68,6 +68,7 @@ if (data.length) {
         svg.select(".wrapper");
 
     } else {
+        window.parent.document.documentElement.style.setProperty('--reposrts-customers-graph-pie-width', storage.getWidth() + 'px');
         svg = d3.select(".pie-wrapper")
             .append("svg")
             .attr("width", storage.getWidth())

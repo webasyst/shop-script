@@ -82,6 +82,10 @@ class shopOrderAction extends waViewAction
 
         $order_data_array['tax'] = self::calculateNotIncludedTax($order_data_array);
 
+        if (wa()->whichUI() != '1.3') {
+            $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $config->getCurrency(), '%k{h}');
+        }
+
         $this->view->assign(array(
             'tracking'                   => $_order->getTracking('backend'),
             'map'                        => $_order->map,
@@ -119,6 +123,7 @@ class shopOrderAction extends waViewAction
             'customer_delivery_date_str' => ifset($params['shipping_params_desired_delivery.date_str']),
             'offset'                     => $order_model->getOffset($_order->id, $this->getParams(), true),
             'courier'                    => $_order->courier,
+            'total_processing'           => ifset($total_processing),
         ));
 
         $event_data = $order_data_array;

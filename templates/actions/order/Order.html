@@ -70,7 +70,7 @@
                     </div>
 
                     <!-- customer info -->
-                    <div class="s-block">
+                    <div class="s-block s-order-customer">
                     <div class="flexbox space-16">
                         <div class="image">
                             {if $customer_essentials.id|default:'0'}
@@ -136,9 +136,9 @@
                     {* @event backend_order.%plugin_id%.info_section *}
                     {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.info_section))}{$_.info_section}{/if}{/foreach}{/if}
 
-                    <div class="flexbox full-width wrap-mobile space-16">
+                    <div class="flexbox full-width wrap-mobile space-16 s-order-shipping-and-payment">
                         {if ($shipping_address) || !empty($params.shipping_name)}
-                            <div class="width-50 width-100-mobile custom-mr-0-mobile">
+                            <div class="width-50 width-100-mobile custom-mr-0-mobile s-order-shipping">
                                 <div class="s-block">
 
                                     <h6 class="custom-mb-8">
@@ -235,7 +235,7 @@
                             </div>
                         {/if}
 
-                            <div class="width-50 width-100-mobile">
+                            <div class="width-50 width-100-mobile s-order-payment">
                                 <div class="s-block{if !empty($order.paid_date)} highlighted green{elseif !empty($order.auth_date)} highlighted yellow{/if}">
 
                                     <h6>
@@ -742,6 +742,10 @@
                 };
 
                 $.order.init(options);
+
+                if ($.order_list) {
+                    $.order_list.updateTotalProcessing({$total_processing|json_encode});
+                }
             }
         })(jQuery);
     </script>

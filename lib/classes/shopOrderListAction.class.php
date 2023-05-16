@@ -57,9 +57,14 @@ class shopOrderListAction extends waViewAction
     public function getUpdatedOrders()
     {
         if ($this->updated_orders === null) {
-            $this->updated_orders = $this->collection->getOrders("*,products,contact,params,courier");
-            self::extendContacts($this->updated_orders);
-            shopHelper::workupOrders($this->updated_orders);
+            $search = waRequest::get('search', '');
+            if ($search) {
+                $search = preg_replace('/([<>]=?)([^=]+)/', '$1"$2"', $search);
+                $this->collection->addWhere($search);
+                $this->updated_orders = $this->collection->getOrders("*,products,contact,params,courier");
+                self::extendContacts($this->updated_orders);
+                shopHelper::workupOrders($this->updated_orders);
+            }
         }
         return $this->updated_orders;
     }
@@ -108,15 +113,15 @@ class shopOrderListAction extends waViewAction
     {
         if ($this->hash === null) {
 
-            $search = waRequest::get('search', null, waRequest::TYPE_STRING_TRIM);
-            if ($search) {
-                $this->hash = "search/{$search}";
-                return $this->hash;
-            }
-
             $filter_params = $this->getFilterParams();
             $hash = '';
             if ($filter_params) {
+                $updated_orders_param = '';
+                if (!empty($filter_params['updated_orders'])) {
+                    $updated_orders_param = $filter_params['updated_orders'];
+                    unset($filter_params['updated_orders']);
+                }
+
                 if (count($filter_params) == 1) {
                     $k = key($filter_params);
                     $v = $filter_params[$k];
@@ -145,6 +150,9 @@ class shopOrderListAction extends waViewAction
                         $k = 'params.'.$k;
                     }
                     $hash = "search/{$k}{$op}{$v}";
+                    if ($updated_orders_param) {
+                        $hash .= '&amp;' . $updated_orders_param;
+                    }
                 }
             } elseif (waRequest::get('hash')) {
                 $hash = waRequest::get('hash');
@@ -169,7 +177,7 @@ class shopOrderListAction extends waViewAction
 
             $search = urldecode(waRequest::get('search', '', waRequest::TYPE_STRING_TRIM));
             if ($search) {
-               $params['search/'] = $search;
+               $params['updated_orders'] = $search;
             }
             $contact_id = waRequest::get('contact_id', null, waRequest::TYPE_INT);
             if ($contact_id) {

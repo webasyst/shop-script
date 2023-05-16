@@ -9,12 +9,12 @@ class shopOrdersLoadListController extends shopOrderListAction
 
         $updated_orders = [];
 
-        if (waRequest::get('search')) {
-            $updated_orders = array_values($this->getUpdatedOrders());
-        }
-
         // id is order id
         if (!waRequest::get('id', 0, waRequest::TYPE_INT)) {
+            if (waRequest::get('search')) {
+                $updated_orders = array_values($this->getUpdatedOrders());
+            }
+
             if (waRequest::get('counters')) {
                 $datas['counters'] = $this->getListCounters();
             }
@@ -37,6 +37,10 @@ class shopOrdersLoadListController extends shopOrderListAction
 
         $total_count = $this->getTotalCount();
         $orders = $this->getOrders($offset, $count);
+
+        if (waRequest::get('search')) {
+            $updated_orders = array_values($this->getUpdatedOrders());
+        }
 
         $count = count($orders);
 

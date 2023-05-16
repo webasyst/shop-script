@@ -320,7 +320,7 @@ SQL;
                     'id'   => $data['order']['id'],
                     'code' => $data['order']['params']['auth_code'],
                     'item' => $i['id'],
-                ), true, $storefront_domain ?? null, $storefront_route_url ?? null); // :TODO init vars
+                ), true, ifset($storefront_domain), ifset($storefront_route_url)); // :TODO init vars
             }
             if (!empty($products[$i['product_id']])) {
                 $i['product'] = $products[$i['product_id']];

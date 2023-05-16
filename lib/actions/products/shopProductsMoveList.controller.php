@@ -13,24 +13,24 @@ class shopProductsMoveListController extends waJsonController
         $parent_id = waRequest::post('parent_id', 0);
 
         if ($id == $before_id) {
-            throw new waException("List couldn't be inserted before itself");
+            throw new waException(_w('A set cannot be inserted before itself.'));
         }
 
         if ($id == $parent_id) {
-            throw new waException("A set cannot be the parent of itself.");
+            throw new waException(_w('A set cannot be the parent of itself.'));
         }
 
         if (($before_id || $parent_id) && $before_id == $parent_id) {
-            throw new waException("Before item couldn't be parent item");
+            throw new waException(_w('Before an item cannot be placed its parent item.'));
         }
 
         $type = waRequest::post('type', '', waRequest::TYPE_STRING_TRIM);
         if (!$type) {
-            throw new waException('Unknown list type: ' . $type);
+            throw new waException(sprintf_wp('Unknown list type: %s.', $type));
         }
 
         if ($type == 'set' && $parent_id) {
-            throw new waException("Sets don't support hierarchy");
+            throw new waException(_w('Sets don’t support hierarchy.'));
         }
 
         $this->move($type, $id, $before_id, $parent_id);
@@ -64,7 +64,7 @@ class shopProductsMoveListController extends waJsonController
                 $this->errors = array('Error when move');
             }
         } else {
-            throw new waException('Unknown list type: ' . $type);
+            throw new waException(sprintf_wp('Unknown list type: %s.', $type));
         }
     }
 }

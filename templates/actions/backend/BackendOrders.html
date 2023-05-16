@@ -135,7 +135,7 @@
             </div>
             <!-- NEW ORDER -->
             <a class="rounded button small nowrap s-order-nav-plus-button" href="#/orders/new/" title="[`New order`]">
-                <i class="fas fa-plus"></i>
+                <span class="icon"><i class="fas fa-plus"></i></span>
                 <span class="s-order-nav-plus-button-label">[`New order`]</span>
             </a>
         </div>
@@ -149,8 +149,8 @@
         {* @event backend_orders.%plugin_id%.sidebar_section *}
         {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
 
-        <div class="bricks s-order-nav-bricks custom-m-0">
-            <a href="#/orders/state_id=new|processing|auth|paid" class="brick shadowed js-orders-links js-orders-hide-filters js-order-nav-brick" id="s-pending-orders">
+        <div class="bricks s-order-nav-bricks custom-m-0 custom-mb-4">
+            <a href="#/orders/state_id=new|processing|auth|paid" class="brick shadowed js-orders-link js-orders-hide-filters js-order-nav-brick" id="s-pending-orders">
                 <span class="custom-pr-4 icon js-pending_counters-orders bold">{if !empty($pending_count)}{$pending_count}{else}0{/if}</span>
                 <span class="count js-total_processing-orders"></span>
                 <span class="label semibold">[`Processing`]</span>
@@ -167,6 +167,9 @@
     <div class="s-order-nav-block s-order-nav-block-chips js-order-nav-block-secondary s-order-nav-block-filters" style="display: none;">
     <ul class="chips small custom-m-0">
         {if !empty($couriers)}
+            <li class="s-order-nav-button-wrapper s-order-nav-only-table-kanban">
+                <a href="#/orders/state_id=new|processing|auth|paid" class="dropdown-toggle light-gray js-orders-link js-orders-hide-filters js-order-nav-button s-order-nav-button js-pending-orders">[`Processing`]</a>
+            </li>
             <li class="dropdown js-orders-dropdown">
                 <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Couriers`]">[`Couriers`]</button>
                 <div class="dropdown-body">

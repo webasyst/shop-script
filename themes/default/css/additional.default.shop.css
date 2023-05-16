@@ -447,16 +447,12 @@
   }
   .s-slider-section .s-slider-block {
     height: 200px;
-    text-align: center;
   }
   .s-slider-section .s-slider-block .s-slide-wrapper .s-slide-block {
     padding: 1em;
   }
-  .s-slider-section .s-slider-block .s-slide-wrapper .s-header {
-    font-size: 15px;
-  }
   .s-slider-section .s-slider-block .s-slide-wrapper .s-description {
-    display: none;
+    font-size: 15px;
   }
   .s-slider-section .s-slider-block .s-slide-wrapper .s-price-wrapper .s-price,
   .s-slider-section .s-slider-block .s-slide-wrapper .s-price-wrapper .s-compare-price {

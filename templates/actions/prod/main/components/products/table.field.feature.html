@@ -323,13 +323,13 @@
         </template>
         <template v-else>
             <template v-if="!show_form">
-                <div class="s-button" v-on:click.prevent="show_form = true">
+                <div class="button outlined small" v-on:click.prevent="show_form = true">
                     <span class="s-icon icon size-12"><i class="fas fa-plus"></i></span>
                     <span class="s-name">[`Add`]</span>
                 </div>
             </template>
             <template v-else>
-                <div class="flexbox space-12">
+                <div class="flexbox space-4">
                     <div class="s-field-wrapper">
                         <component-input
                             v-model="data.value"
@@ -346,15 +346,15 @@
                     <div class="s-field-wrapper" v-else-if="units">
                         <component-dropdown
                             v-model="data.unit"
-                            v-bind:button_class="'s-square-field'"
+                            v-bind:button_class="'s-square-field small light-gray'"
                             v-bind:options="units"></component-dropdown>
                     </div>
-                    <div class="s-button" v-on:click="success" v-bind:class="{ 'is-locked' : !data.value.length }">
+                    <button class="button nobutton green circle small custom-ml-8" v-on:click="success" v-bind:class="{ 'is-locked' : !data.value.length }">
                         <div class="s-icon icon size-12"><i class="fas fa-check"></i></div>
-                    </div>
-                    <div class="s-button" v-on:click="cancel">
+                    </button>
+                    <button class="button nobutton red circle small" v-on:click="cancel">
                         <div class="s-icon icon size-12"><i class="fas fa-times"></i></div>
-                    </div>
+                    </button>
                 </div>
             </template>
         </template>

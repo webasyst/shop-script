@@ -10,7 +10,7 @@
 
 {$_moderate_enabled = $wa->setting('moderation_reviews', 0, 'shop')}
 {if !empty($_moderate_enabled)}
-    <li class="dropdown js-dropdown-menu">
+    <li class="dropdown custom-mr-12 js-dropdown-menu">
         {$_deleted = shopProductReviewsModel::STATUS_DELETED}
         {$_published = shopProductReviewsModel::STATUS_PUBLISHED}
         {$_moderation = shopProductReviewsModel::STATUS_MODERATION}

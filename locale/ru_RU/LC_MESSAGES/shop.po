@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 2.3\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -1251,12 +1251,6 @@ msgstr "Необязательный набор дополнительных п�
 
 msgid "Rating"
 msgstr "Рейтинг"
-
-msgid "is greater or equal"
-msgstr "больше или равно"
-
-msgid "is less or equal"
-msgstr "меньше или равно"
 
 msgid "Order"
 msgstr "Заказ"
@@ -2800,9 +2794,6 @@ msgstr "Выберите заказ для получения тестовых �
 msgid "Please save changes to be able to send tests."
 msgstr "Чтобы проверить отправку, сохраните изменения."
 
-msgid "Apps"
-msgstr "Приложения"
-
 msgid "Select stock"
 msgstr "Выберите склад"
 
@@ -4336,12 +4327,6 @@ msgstr "мес."
 msgid "years"
 msgstr "года"
 
-msgid "Shop by category"
-msgstr "Каталог товаров"
-
-msgid "You don’t have enough access rights to view the order list."
-msgstr "У вас недостаточно прав для просмотра списка заказов."
-
 msgid "Total export time: <strong>%s</strong>"
 msgstr "Общее время экспорта: <strong>%s</strong>"
 
@@ -4545,12 +4530,6 @@ msgstr "Осталось несколько штук"
 
 msgid "In your store backend, drag some products into <strong>%s</strong> product list (which is in the left sidebar of the Products screen), and these products will be automatically published here — right on your storefront homepage."
 msgstr "Перетащите несколько товаров в список <strong>%s</strong> в бекенде вашего интернет-магазина (список находится в левой колонке в разделе «Товары»), и эти товары будут автоматически опубликованы здесь на витрине вашего магазина."
-
-msgid "Photos app returned no photos, so there is nothing to show in your storefront homepage promo slider."
-msgstr "Приложение «Фото» вернуло пустой список фотографий, так что в слайдере показать нечего."
-
-msgid "Install Photos app to make your storefront homepage promo slider display last uploaded photos."
-msgstr "Установите приложение «Фото», чтобы в слайдере появились последние загруженные фотографии."
 
 msgid "Buy now"
 msgstr "Купить"
@@ -5526,9 +5505,6 @@ msgstr "Например, %s"
 
 msgid "Shop by Department"
 msgstr "Каталог товаров"
-
-msgid "Hot deals for %s"
-msgstr "Лучшие предложения на %s"
 
 msgid "None of your customers purchased this product yet."
 msgstr "Никто из покупателей еще не заказывал этот товар."
@@ -8680,9 +8656,6 @@ msgstr "Клонировать"
 msgid "%s in stock"
 msgstr "%s на складе"
 
-msgid "+%s items to buy"
-msgstr "+%s шт. доступны для покупки"
-
 msgid "+%s %s to buy"
 msgstr "+%s %s доступны для покупки"
 
@@ -10036,21 +10009,6 @@ msgstr "Купона нет"
 msgid "Hidden and unavailable (404)"
 msgstr "Скрыт и недоступен (404)"
 
-msgid "Try out the new products section"
-msgstr "Попробовать новый раздел товаров"
-
-msgid "Try out the new products section version. The option to return to the old editor will remain."
-msgstr "Попробуйте новую версию раздела товаров. В любое время можно будет вернуться в старый редактор."
-
-msgid "This window will automatically close in 3 seconds."
-msgstr "Это окно закроется автоматически через 3 секунды."
-
-msgid "Return to old products section"
-msgstr "Вернуть старый раздел"
-
-msgid "Return to the old products section version."
-msgstr "Вернуться в старую версию раздела товаров."
-
 msgid "By SKU name"
 msgstr "По наименованию артикула"
 
@@ -10063,14 +10021,8 @@ msgstr "Не найдено"
 msgid "Unable to save product."
 msgstr "Не удалось сохранить товар."
 
-msgid "Feedback message sending has failed."
-msgstr "Ошибка отправки сообщения обратной связи."
-
 msgid "This is a required field."
 msgstr "Это поле — обязательное."
-
-msgid "Unknown error"
-msgstr "Неизвестная ошибка"
 
 msgid "Enter a redirect URL."
 msgstr "Введите адрес перенаправления."
@@ -10878,9 +10830,6 @@ msgstr "Главное изображение"
 
 msgid "Some product variants are not displayed in the storefront because of errors."
 msgstr "Некоторые модификации товара не видны на витрине из-за ошибок."
-
-msgid "The main image is selected in the product’s main variant."
-msgstr "Главное изображение выбирается в свойствах главной модификации товара."
 
 msgid "Open the “Prices & features” tab to fix errors in the product variants."
 msgstr "Перейдите в раздел «Цены и характеристики», чтобы устранить ошибки в модификациях товара."
@@ -12004,9 +11953,6 @@ msgstr[0] "Всего %d товар"
 msgstr[1] "Всего %d товара"
 msgstr[2] "Всего %d товаров"
 
-msgid "Set a badge"
-msgstr "Добавить наклейку"
-
 msgid "Product-adding date"
 msgstr "Дата добавления товара в каталог"
 
@@ -12030,9 +11976,6 @@ msgstr "Свернуть меню"
 
 msgid "Catalog"
 msgstr "Каталог"
-
-msgid "Templates"
-msgstr "Шаблоны"
 
 msgid "Pages"
 msgstr "Страницы"
@@ -12091,9 +12034,6 @@ msgstr "Сортировка товаров для категории «%s»"
 msgid "Product sorting for the “%s” set"
 msgstr "Сортировка товаров для списка «%s»"
 
-msgid "Confirm deletion"
-msgstr "Подтвердите удаление"
-
 msgid "Do not copy products"
 msgstr "Не копировать товары"
 
@@ -12108,9 +12048,6 @@ msgstr "Если вы не нашли какую-то характеристик
 
 msgid "Category visibility in storefronts"
 msgstr "Публикация категории на витринах"
-
-msgid "all storefronts"
-msgstr "все витрины"
 
 msgid "Apply the same storefronts visibility settings to subcategories."
 msgstr "Применить такие же настройки видимости на витринах к подкатегориям."
@@ -12454,9 +12391,6 @@ msgstr "Посмотреть количество на виртуальном с
 msgid "Show now"
 msgstr "Показать"
 
-msgid "Other actions"
-msgstr "Другие действия"
-
 msgid "Pin the toolbar"
 msgstr "Закрепить панель"
 
@@ -12549,9 +12483,6 @@ msgstr "Сортировка на витрине"
 
 msgid "Filtering in storefront"
 msgstr "Фильтрация на витрине"
-
-msgid "Publication in storefronts"
-msgstr "Публикация на витринах"
 
 msgid "Edit category settings"
 msgstr "Редактировать настройки категории"
@@ -12913,9 +12844,6 @@ msgstr "Статический"
 msgid "Dynamic set"
 msgstr "Динамический"
 
-msgid "Upgrade"
-msgstr "Апгрейд"
-
 msgid "Upgrade to Premium"
 msgstr "Премиум-версия"
 
@@ -12987,9 +12915,6 @@ msgstr "Ваш магазин уже работает. Выполнять пов
 
 msgid "Get back to orders"
 msgstr "Вернуться к заказам"
-
-msgid "Add channel"
-msgstr "Добавить канал"
 
 msgid "Themes"
 msgstr "Темы"
@@ -13110,3 +13035,24 @@ msgstr "Подборки плагинов"
 
 msgid "Webasyst apps"
 msgstr "Приложения Webasyst"
+
+msgid "No actions are available to transfer orders to this status."
+msgstr "Нет доступных действий, переводящих заказы в этот статус."
+
+msgid "The action transferring orders to this status requires additional data. Please use the action button on the order-viewing screen."
+msgstr "Действию, которое переводит заказ в этот статус, требуются дополнительные данные. Воспользуйтесь кнопкой действия на странице заказа."
+
+msgid "%s will be sent to customer by email. Are you sure?"
+msgstr "%s отправится покупателю по email. Вы уверены?"
+
+msgid "A set cannot be inserted before itself."
+msgstr "Список не может быть вставлен перед самим собой."
+
+msgid "Before an item cannot be placed its parent item."
+msgstr "Перед элементом не может быть расположен его родительский элемент."
+
+msgid "Sets don’t support hierarchy."
+msgstr "Для списков не поддерживается вложенность."
+
+msgid "Unknown list type: %s."
+msgstr "Неизвестный тип списка: %s."

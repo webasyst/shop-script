@@ -70,7 +70,7 @@ HTML;
 
             $config = wa('shop')->getConfig();
             $currency = $config->getCurrency();
-            $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $currency);
+            $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $currency, '%k{h}');
             // update app counter
             $config->setCount($state_counters['new']);
 

@@ -122,7 +122,7 @@ class shopOrdersAction extends shopOrderListAction {
 
 
         $currency =  $config->getCurrency();
-        $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $currency);
+        $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $currency, '%k{h}');
         $this->assign([
             'orders'               => array_values($orders),
             'total_count'          => $this->getTotalCount(),

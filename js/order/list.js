@@ -262,13 +262,26 @@
                 options.sort[1] = options.sort[1].toLowerCase() === 'desc' ? 'desc' : 'asc';
                 this.sort = options.sort;
             }
-            this.ordersNavTeleport();
-            this.initView();
-            this.selectionMenuTeleport();
 
             if (options.total_processing) {
                 this.updateTotalProcessing(options.total_processing);
             }
+
+            // if opened order/{id}/
+            if (new RegExp('order\\/\\d+\\/').test($.orders.hash)) {
+                $.orders.$nav.addClass('hidden');
+
+            } else {
+                $.orders.$nav.removeClass('hidden');
+
+                this.ordersNavTeleport();
+                this.initSortMenu();
+                this.selectionMenuTeleport();
+
+                $.orders.$nav.trigger('wa_init_orders_nav', [options.view]);
+            }
+
+            this.initView();
         },
 
         initLazyLoad: function (options) {
@@ -380,8 +393,6 @@
 
         initView: function () {
             var that = this;
-
-            this.initSortMenu();
 
             this.initSidebar();
             if (this.options.view == 'table' && that.$selectionMenu && that.$selectionMenu.length) {
@@ -778,6 +789,7 @@
                 // Highlight a state
                 if ($.isArray(this.filter_params.state_id)) {
                     $('#s-pending-orders').addClass('selected');
+                    $('.js-pending-orders').parent().addClass('selected');
                 } else {
                     sidebar.find('[data-state-id="' + this.filter_params.state_id + '"]').addClass('selected');
                 }
@@ -1408,6 +1420,10 @@
                     var id = parseInt(first_li.attr('data-order-id'), 10) || 0;
                     const formattedDate = updatedDatetime(options.last_update_datetime);
 
+                    if (self.options?.view && self.options.view === 'kanban') {
+                        id = parseInt($('#order-list').find('[data-order-id]').length, 10) || 0;
+                    }
+
                     return $.getJSON(self.buildLoadListUrl(id, true, true, formattedDate),
                         function (r) {
                             if (r.status == 'ok') {
@@ -1420,17 +1436,30 @@
 
                                 if (r.data.count) {
                                     try {
-                                        self.container.prepend(
-                                            tmpl('template-order-list-' + self.options.view, {
-                                                    orders: r.data.orders,
-                                                    states: self.options.state_names || {},
-                                                    state_counters: self.options.state_counters  || {},
-                                                    state_icons: self.options.state_icons  || {},
-                                                    check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
-                                                }
-                                            ));
-                                        $('.lazyloading-progress-string').text(r.data.progress.loaded + ' ' + r.data.progress.of);
-                                        self.container.trigger('append_order_list', [r.data.orders]);
+                                        if (self.options.view === 'kanban') {
+                                            const $kanban_first_column = self.container.find('[data-kanban-list-status-id="new"]');
+                                            if ($kanban_first_column.length) {
+                                                r.data.orders.forEach(order => $kanban_first_column.prepend(tmpl('template-order-list-kanban-card', {
+                                                    order,
+                                                    state: 'new',
+                                                    state_name: self.options?.state_names['new']?.name || '',
+                                                    state_color: self.options?.state_names['new']?.options?.style?.color || '',
+                                                    }
+                                                )));
+                                            }
+                                        }else{
+                                            self.container.prepend(
+                                                tmpl('template-order-list-' + self.options.view, {
+                                                        orders: r.data.orders,
+                                                        states: self.options.state_names || {},
+                                                        state_counters: self.options.state_counters  || {},
+                                                        state_icons: self.options.state_icons  || {},
+                                                        check_all: self.options.view == 'table' ? self.select_all_input.attr('checked') : false
+                                                    }
+                                                ));
+                                            $('.lazyloading-progress-string').text(r.data.progress.loaded + ' ' + r.data.progress.of);
+                                            self.container.trigger('append_order_list', [r.data.orders]);
+                                        }
                                     } catch (e) {
                                         if (console) {
                                             console.log('Error: ' + e.message);
