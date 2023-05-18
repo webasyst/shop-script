@@ -1,22 +1,18 @@
-<div>
+<div class="block double-padded" style="padding-bottom: 10px;">
     <h1>1С (CommerceML)</h1>
-    <p>
-        Обмен данными с системами товарного учета через файлы формата <a target="_blank" href="http://v8.1c.ru/edi/edi_stnd/90/92.htm">CommerceML <i class="fas fa-external-link-alt smaller icon baseline"></i></a>
-        <br> Документация по настройке интеграции с «1С»: <a target="_blank" href="https://www.webasyst.ru/help/25/shop-script-5-cml1c/">https://www.webasyst.ru/help/25/shop-script-5-cml1c/ <i class="fas fa-external-link-alt smaller icon baseline"></i></a>
-        <br> Документация по настройке интеграции с «МойСклад»: <a target="_blank" href="https://www.shop-script.ru/help/15043/commerceml-moisklad/">https://www.shop-script.ru/help/15043/commerceml-moisklad/ <i class="fas fa-external-link-alt smaller icon baseline"></i></a>
-    </p>
+    <p>Обмен данными с системами товарного учета через файлы формата <a target="_blank" href="http://v8.1c.ru/edi/edi_stnd/90/92.htm">CommerceML<i class="icon16 new-window"></i></a> Документация по настройке интеграции с «1С»: <a target="_blank" href="https://www.webasyst.ru/help/25/shop-script-5-cml1c/">https://www.webasyst.ru/help/25/shop-script-5-cml1c/<i class="icon16 new-window"></i></a> Документация по настройке интеграции с «МойСклад»: <a target="_blank" href="https://www.shop-script.ru/help/15043/commerceml-moisklad/">https://www.shop-script.ru/help/15043/commerceml-moisklad/<i class="icon16 new-window"></i></a></p>
 </div>
 <div id="s-cml1c-form">
     <ul class="tabs" style="padding-left: 10px;">
         <li class="selected"><a href="#/cml1c/tab/auto/">Автоматический обмен</a></li>
         <li><a href="#/cml1c/tab/manual/">Ручной обмен</a></li>
         <li><a href="#/cml1c/tab/map/">Синхронизированные параметры</a></li>
-        <li class="no-tab"><a href="?action=plugins#/cml1c/" class="no-underline"><i class="fas fa-cog"></i>Настройки обмена</a></li>
+        <li class="no-tab"><a href="?action=plugins#/cml1c/" class="no-underline"><i class="icon16 settings"></i>Настройки обмена</a></li>
     </ul>
 
     <div class="tab-content">
-        <div class="custom-mt-16" id="s-cml1c-map">
-            <p class="hint"><i class="fas fa-info-circle smaller icon"></i> Список синхронизированных параметров доступен только для просмотра.</p>
+        <div class="block double-padded" id="s-cml1c-map">
+            <p class="hint"><i class="icon10 info" style="vertical-align: baseline;"></i>Список синхронизированных параметров доступен только для просмотра.</p>
             <div class="fields form">
                 {if $map}
                     {$map}
@@ -29,7 +25,7 @@
                 {else}
                     <div class="field">
                         <div class="value gray">
-                            <i class="fas fa-exclamation-triangle"></i> <strong>Синхронизированные параметры отсутствуют.</strong>
+                            <i class="icon16 exclamation"></i><strong>Синхронизированные параметры отсутствуют.</strong>
                             <br>Для настройки параметров обмена данных выполните анализ и импорт CommerceML-файла на вкладке
 <a href="#/cml1c/tab/manual/" class="underline">ручного обмена</a>.
                         </div>
@@ -38,19 +34,16 @@
             </div>
         </div>
 
-        <div class="custom-mt-16" id="s-cml1c-auto">
+        <div class="block double-padded" id="s-cml1c-auto">
             <div class="fields form">
-            <div class="fields-group">
                 <div class="field">
                     <div class="name">Автоматический обмен</div>
-                    <div class="value">
-                        <div class="switch-with-text">
-                            <label class="{if $enabled}gray {/if}s-cml1c-disable">Запрещен</label>
-                            <span class="switch small" id="s-cml1c-auto-enabled-switch">
-                                <input type="checkbox" name="enabled" value="1" id="s-cml1c-auto-enabled" {if $enabled} checked{/if}>
-                            </span>
-                            <label class="{if !$enabled}gray {/if}s-cml1c-enable">Разрешен</label>
-                        </div>
+                    <div class="value no-shift s-ibutton-checkbox">
+                        <ul class="menu-h">
+                            <li><label for="s-cml1c-auto-enabled"><span class="{if $enabled}gray {/if}s-cml1c-disable">Запрещен</span></label></li>
+                            <li><input type="checkbox" name="enabled" value="1" {if $enabled} checked{/if} id="s-cml1c-auto-enabled"></li>
+                            <li><label for="s-cml1c-auto-enabled"><span class="{if !$enabled}gray {/if}s-cml1c-enable">Разрешен</span></label></li>
+                        </ul>
                     </div>
                 </div>
                 {if !empty($stocks) && (count($stocks)>1)}
@@ -69,10 +62,10 @@
                 <div class="field"{if empty($enabled)} style="display: none;"{/if}>
                     <div class="name"><label for="cml1c-url">Скрипт синхронизации</label></div>
                     <div class="value js-cml1c-settlement" {if !empty($url)} style="display: none;"{/if}>
-                        <p><i class="fas fa-exclamation-triangle"></i> Для включения автоматического обмена данными настройте витрину интернет-магазина в приложении «<a href="{$wa_backend_url}site/#/routing/">Сайт</a>».</p>
+                        <p><i class="icon16 exclamation"></i> Для включения автоматического обмена данными настройте витрину интернет-магазина в приложении «<a href="{$wa_backend_url}site/#/routing/">Сайт</a>».</p>
                     </div>
                     <div class="value js-cml1c-url" {if empty($url)} style="display: none;"{/if}>
-                        <i class="fas fa-lock text-light-gray"></i>
+                        <i class="icon16 lock-bw"></i>
                         <input id="cml1c-url" type="text" class="bold" data-url="{$url|escape}" value="{$url|escape}" style="width: 500px;" readonly="readonly">
                         <br>
 
@@ -82,14 +75,12 @@
                             Поля «Имя пользователя» и «Пароль» оставьте пустыми или укажите любые значения, так как правильные данные уже закодированы в адресе скрипта синхронизации.</p>
                         <p class="small">Чтобы изменить адрес скрипта синхронизации, выключите и снова включите автоматический обмен.</p>
 
-                        <p class="hint js-cml1c-url-ssl" {if empty($url)||(strpos($url,'http://')===0)} style="display: none" {/if}><i class="fas fa-exclamation-triangle"></i> Если обмен данными по HTTPS не работает с вашей версией «1С», настройте дополнительное скрытое поселение магазина, доступное по HTTP, и подставьте адрес этого поселения в адрес скрипта синхронизации. <a href="https://www.shop-script.ru/help/25/shop-script-5-cml1c/#https-not-supported" target="_blank">Подробнее</a>.</p>
+                        <p class="hint js-cml1c-url-ssl" {if empty($url)||(strpos($url,'http://')===0)} style="display: none" {/if}><i class="icon16 exclamation"></i> Если обмен данными по HTTPS не работает с вашей версией «1С», настройте дополнительное скрытое поселение магазина, доступное по HTTP, и подставьте адрес этого поселения в адрес скрипта синхронизации. <a href="https://www.shop-script.ru/help/25/shop-script-5-cml1c/#https-not-supported" target="_blank">Подробнее</a>.</p>
                         <p class="hint">При автоматическом обмене данными Shop-Script передает в «1С» только информацию о заказах и принимает из «1С» только информацию о товарах (добавляет новые товары, обновляет цены, остатки и характеристики).</p>
                     </div>
-                </div>
-                <div class="field"{if empty($enabled)} style="display: none;"{/if}>
                     <div class="name"><label for="cml1c-url-moysklad">Скрипт экспорта товаров в «МойСклад»</label></div>
                     <div class="value">
-                        <i class="fas fa-lock text-light-gray"></i> <input id="cml1c-url-moysklad" type="text" value="{$url|escape}moysklad/" class="bold" style="width: 500px;" readonly="readonly">
+                        <i class="icon16 lock-bw"></i> <input id="cml1c-url-moysklad" type="text" value="{$url|escape}moysklad/" class="bold" style="width: 500px;" readonly="readonly">
                         <p class="hint">1. Сохраните этот адрес в поле «Адрес сайта» в аккаунте «МойСклад» для настройки синхронизации данных через CommerceML и запустите импорт заказов.<br>
                             2. После завершения импорта замените содержимое поля «Адрес сайта» в настройках синхронизации CommerceML в аккаунте «МойСклад» на адрес из поля «Скрипт синхронизации».<br>
                             <br>
@@ -113,32 +104,24 @@
                    *}
                 </div>
             </div>
-            </div>
         </div>
 
-        <div class="custom-mt-16" id="s-cml1c-manual">
+        <div class="block double-padded" id="s-cml1c-manual">
             <h2>Экспорт из магазина <span class="hint">Shop-Script &rarr; 1С</span></h2>
             <form id="s-plugin-cml1c-export" method="post" action="?plugin=cml1c&action=run">
                 <div class="fields form">
                     <div class="field-group">
                         <div class="field">
                             <div class="name">Экспортировать в файл</div>
-                            <div class="value">
-                                <div class="custom-mb-8">
-                                    <label><input type="checkbox" name="export[product]" value="1" checked="checked"> Товары</label>
-                                </div>
-                                <div>
-                                    <label class="flexbox-inline"><input type="checkbox" name="export[order]" value="1" checked="checked">
-                                        <span class="custom-mx-8">Заказы</span>
-                                    </label>
-                                    {if $export_timestamp}
-                                    <select name="export[new_order]">
-                                        <option value="1" selected="selected">только измененные после даты последнего экспорта ({$export_timestamp|wa_datetime:"humandatetime"})</option>
-                                        <option value="0">все заказы</option>
-                                    </select>
-                                    {/if}
-                                </div>
-
+                            <div class="value no-shift"><label><input type="checkbox" name="export[product]" value="1" checked="checked"> Товары</label></div>
+                            <div class="value no-shift">
+                                <label><input type="checkbox" name="export[order]" value="1" checked="checked"> Заказы</label>
+                                {if $export_timestamp}
+                                <select name="export[new_order]">
+                                    <option value="1" selected="selected">только измененные после даты последнего экспорта ({$export_timestamp|wa_datetime:"humandatetime"})</option>
+                                    <option value="0">все заказы</option>
+                                </select>
+                                {/if}
                             </div>
                         </div>
                     </div>
@@ -164,7 +147,7 @@
                                         Не закрывайте браузер, пока процесс экспорта не завершится полностью.
                                     </span>
                                 </div><br><br>
-                                <div class="state-error-hint"></div>
+                                <em class="errormsg"></em>
                             </div>
                         </div>
                     </div>
@@ -186,18 +169,10 @@
                             <div class="name">Файл CommerceML</div>
                             <div class="value no-shift">
                                 {$wa->csrf()}
-                                <div id="file-upload">
-                                    <div class="upload">
-                                        <label class="link">
-                                            <i class="fas fa-file-upload"></i>
-                                            <span>[`Choose file`]</span>
-                                            <input type="file" name="files" autocomplete="off">
-                                        </label>
-                                    </div>
-                                </div>
+                                <input type="file" name="files">
                                 <input type="hidden" name="zipfile" value="">
                                 <span id="s-plugin-cml1c-import-upload-status" style="display:none">
-                                <i style="vertical-align:middle" class="fas fa-spinner fa-spin"></i>
+                                <i style="vertical-align:middle" class="icon16 loading"></i>
                                 <span></span>
                             </span>
                                 <br><br>
@@ -207,15 +182,15 @@
                         <div class="field js-cml1c-zip" style="display: none;">
                             <div class="name">Файл</div>
                             <div class="value">
-                                <ul class="menu">
-                                    <li class="js-cml1c-template"><label><i class="fas fa-file-archive"></i> <input type="radio" name="filename" value="" disabled="disabled"><span></span></label></li>
+                                <ul class="menu-v with-icons">
+                                    <li class="js-cml1c-template"><label><i class="icon16 zip"></i><input type="radio" name="filename" value="" disabled="disabled"><span></span></label></li>
                                 </ul>
                                 <input type="hidden" name="filename" value="">
                             </div>
                         </div>
                         <div class="field">
                             <div class="name">Конфигурация</div>
-                            <div class="value">
+                            <div class="value no-shift">
                                 <label>
                                     <input type="checkbox" name="configure" value="1" checked="checked">
                                     Настроить синхронизацию характеристик, свойств, реквизитов и остатков товаров
@@ -224,7 +199,7 @@
                                 <span class="hint">Настройки синхронизации данных в файле CommerceML с данными Shop-Script.
 Данные настройки будут использоваться для всех последующих автоматических и ручных обменов через CommerceML. Сменить настройки можно будет после очередного анализа файла CommerceML.</span>
                             </div>
-                            <div class="value">
+                            <div class="value no-shift">
                                 <label>
                                     <input type="checkbox" name="expert" value="1"{if !empty($expert)} checked="checked"{/if}>
                                     Экспертный уровень настроек
@@ -269,7 +244,7 @@
                                         Не закрывайте браузер, пока процесс импорта не завершится полностью.
                                     </span>
                                 </div><br><br>
-                                <div class="state-error-hint"></div>
+                                <em class="errormsg"></em>
                             </div>
                         </div>
                     </div>
@@ -282,6 +257,9 @@
    </div>
 </div>
 
+<div class="clear"></div>
+
+
 <script type="text/javascript">
-{include file="../../../js/cml1c.js"}
+{include file="../../../js-legacy/cml1c.js"}
 </script>

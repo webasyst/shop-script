@@ -80,8 +80,6 @@
             },
 
             onInit: function () {
-                var that = this;
-
                 // $.shop.trace('$.importexport.cml1c', 'Init');
                 this.dom.container = $('#s-cml1c-form');
 
@@ -109,42 +107,32 @@
                     $(this).select()
                 });
 
-                $("#s-cml1c-auto-enabled-switch").waSwitch({
-                    change: function(active, wa_switch) {
-                        var self = wa_switch.$wrapper;
-
-                        if (!active) {
-                            $.waDialog.confirm({
-                                title: 'При отключении автоматического обмена текущий адрес скрипта синхронизации более не будет работать (после повторного включения будет создан новый адрес). Вы уверены?',
-                                success_button_title: 'OK',
-                                success_button_class: 'yellow',
-                                cancel_button_title: $_('Cancel'),
-                                cancel_button_class: 'light-gray',
-                                onSuccess: function() {
-                                    save.call(self, active);
-                                },
-                                onCancel: function() {
-                                    wa_switch.set(true);
-                                }
-                            });
-
-                        } else {
-                            save.call(self, active);
-                        }
+                var button = $('#s-cml1c-auto').find(':checkbox[name="enabled"]:first').iButton({
+                    labelOn: "",
+                    labelOff: "",
+                    className: 'mini'
+                }).change(function () {
+                    var self = $(this);
+                    var enabled = self.is(':checked');
+                    if (!enabled
+                        && !confirm('При отключении автоматического обмена текущий адрес скрипта синхронизации более не будет работать (после повторного включения будет создан новый адрес). Вы уверены?')
+                    ) {
+                        self.attr('checked', true);
+                        button.iButton('toggle', true);
+                        return false;
                     }
-                });
-
-                function save(enabled) {
-                    var $switch_container= this.parents('.switch-with-text');
-                    var $field = this.closest('.field').siblings();
-                    $switch_container.find('label.gray').removeClass('gray');
-
+                    var $value = self.parents('.value');
+                    var $field = self.closest('.field').siblings();
+                    // $.shop.trace('$field', $field);
+                    $value.find('span.gray').removeClass('gray');
+                    enabled = self.is(':checked');
+                    button.iButton('repaint');
                     $.post('?plugin=cml1c&action=save', {
                         enabled: enabled ? '1' : '0'
                     }, function (data) {
                         if (data && (data.status === 'ok')) {
                             if (enabled) {
-                                $switch_container.find('.s-cml1c-disable').addClass('gray');
+                                $value.find('span.s-cml1c-disable').addClass('gray');
                                 $field.show(200);
                                 if (data.data.url) {
                                     $field.find(":input:first").val(data.data.url);
@@ -165,16 +153,18 @@
                                     $field.find('.cml1c-url').hide();
                                 }
                             } else {
-                                $switch_container.find('.s-cml1c-enable').addClass('gray');
+                                $value.find('span.s-cml1c-disable').addClass('gray');
                                 $field.hide(200);
                             }
                         }
                     }, 'json');
+                    return true;
+                });
 
-                    that.dom.importform.find(':checkbox[name="configure"]').change(function () {
-                        that.configureHandler(that);
-                    }).change();
-                }
+                var self = this;
+                this.dom.importform.find(':checkbox[name="configure"]').change(function () {
+                    self.configureHandler(this);
+                }).change();
             },
 
             tabAction: function (tab) {
@@ -243,7 +233,7 @@
                 var $form = this.dom.importform;
                 $form.attr('action', $form.attr('action').replace(/\baction=run\b/, 'action=upload'));
                 $form.find('div.js-cml1c-zip:first, div.js-progressbar-container, div.plugin-cml1c-report, #s-plugin-cml1c-import-upload-status, div.plugin-cml1c-submit .js-cml1c-repeat').hide();
-                $form.find('div.plugin-cml1c-submit .state-error-hint').text('');
+                $form.find('div.plugin-cml1c-submit .errormsg').text('');
                 $form.find(':input').attr('disabled', null);
                 var $configure = $form.find('input[name="configure"]');
                 $configure.parents('div.field').slideDown();
@@ -287,7 +277,7 @@
             },
 
             mapReset: function ($el) {
-                $el.after('<i class="fas fa-spinner fa-spin"></i>');
+                $el.after('<i class="icon16 loading"></i>');
                 $el.hide();
 
                 $.ajax({
@@ -302,8 +292,8 @@
                     },
                     error: function () {
                         $el.show();
-                        $el.after('<i class="fas fa-times"></i>');
-                        $el.parent().find('.fa-spinner').remove();
+                        $el.after('<i class="icon16 no"></i>');
+                        $el.parent().find('i.icon16.loading').remove();
                     }
                 });
 
@@ -319,7 +309,7 @@
                 var $filename = $form.find(':input[name="filename"][type="hidden"]');
                 var $zipfile = $form.find(':input[name="zipfile"]');
                 if (!$filename.val()) {
-                    $status.find('.svg-inline--fa').removeClass('fa-times fa-check').addClass('fa-spinner fa-spin');
+                    $status.find('i.icon16').removeClass('yes no').addClass('loading');
                     $status.find('span').text('');
                     $form.find(':submit').attr('disabled', true);
                     $status.fadeIn(400);
@@ -349,14 +339,14 @@
                                     var response = r.files[0];
 
                                     $form.find(':input[type="file"]').attr('disabled', true).hide();
-                                    $status.find('.svg-inline--fa').removeClass('fa-spinner fa-spin fa-times').addClass('fa-check');
+                                    $status.find('i.icon16').removeClass('loading no').addClass('yes');
 
                                     $form.attr('action', $form.attr('action').replace(/\baction=upload/, 'action=run'));
                                     var submit = true;
                                     if (response.files.length) {
                                         $status.find('span').text(response.original_name).attr('title', response.size);
                                         // $.shop.trace('files', [response.files.length, response]);
-                                        $status.find('.svg-inline--fa').removeClass('fa-spinner fa-spin fa-times').addClass('fa-check');
+                                        $status.find('i.icon16').removeClass('no loading').addClass('yes');
                                         $zipfile.val(response.filename);
                                         var $container = $form.find('div.js-cml1c-zip:first ul:first');
                                         $container.find('li.js-cml1c-template:not(:first)').remove();
@@ -401,7 +391,7 @@
                                     }
                                 } else {
                                     $form.find(':submit').attr('disabled', null);
-                                    $status.find('.svg-inline--fa').removeClass('fa-spinner fa-spin fa-check').addClass('fa-times');
+                                    $status.find('i.icon16').removeClass('loading yes').addClass('no');
                                     var error = r.errors ? r.errors : '';
                                     if (r.files && r.files.length && r.files[0].error) {
                                         error += ' ' + r.files[0].error;
@@ -434,7 +424,7 @@
                 self.progress = true;
                 self.form = $(element);
                 var data = self.form.serialize();
-                self.form.find('.state-error-hint').text('');
+                self.form.find('.errormsg').text('');
                 self.form.find(':input').attr('disabled', true);//:not([type="hidden"])
                 self.form.find(':submit').hide();
                 self.form.find('.progressbar .progressbar-inner').css('width', '0%');
@@ -455,7 +445,7 @@
                             self.form.find('.js-progressbar-container').hide();
                             self.form.find('.shop-ajax-status-loading').remove();
                             self.progress = false;
-                            self.form.find('.state-error-hint').text(response.error);
+                            self.form.find('.errormsg').text(response.error);
                         } else {
                             self.form.find('.progressbar').attr('title', '0.00%');
                             self.form.find('.progressbar-description').text('0.00%');
@@ -559,7 +549,7 @@
                         self.form.find('.js-progressbar-container').hide();
                         self.form.find('.shop-ajax-status-loading').remove();
                         self.form.find('.progressbar').hide();
-                        self.form.find('.state-error-hint').text(response.error);
+                        self.form.find('.errormsg').text(response.error);
 
                     } else {
                         var $description;
@@ -583,7 +573,7 @@
                         }
                         if (response && (typeof(response.warning) !== 'undefined')) {
                             $description = self.form.find('.progressbar-description');
-                            $description.append('<i class="fas fa-exclamation-triangle"></i><p>' + response.warning + '</p>');
+                            $description.append('<i class="icon16 exclamation"></i><p>' + response.warning + '</p>');
                         }
 
                         var ajax_url = url;

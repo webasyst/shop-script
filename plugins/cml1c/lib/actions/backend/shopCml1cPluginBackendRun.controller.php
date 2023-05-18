@@ -580,7 +580,7 @@ class shopCml1cPluginBackendRunController extends waLongActionController
 
         $this->data['default_type_id'] = $this->pluginSettings('product_type');
         if (empty($this->data['default_type_id'])) {
-            $types = (new shopTypeModel())->getTypes();
+            $types = (new shopTypeModel())->getAll('id');
             $_type = reset($types);
             $this->data['default_type_id'] = ifset($_type, 'id', '0');
         }
@@ -943,9 +943,9 @@ class shopCml1cPluginBackendRunController extends waLongActionController
                 }
             }
         }
-        if ($stock_map) {
-            $exists_stocks = $stock_model->getAll('id');
+        $exists_stocks = $stock_model->getAll('id');
 
+        if ($stock_map) {
             foreach ($stock_map as $uuid => $stock_id) {
                 if (!in_array($stock_id, array(-1, 0)) && !isset($exists_stocks[$stock_id])) {
                     if (isset($this->data['stock_map'][$uuid])) {
@@ -965,34 +965,25 @@ class shopCml1cPluginBackendRunController extends waLongActionController
             }
         }
 
-        if ($this->pluginSettings('stock_complement')) {
-
-            $this->data['stock_complement'] = array();
-            if (empty($exists_stocks)) {
-                $exists_stocks = $stock_model->getAll('id');
-            }
-            $this->data['stock_complement'] = array_keys($exists_stocks);
-        } else {
-            $this->data['stock_complement'] = false;
-        }
-
         if ($this->pluginSettings('stock_setup')) {
             // Создавать новые артикулы с нулевыми остатками
-            $this->data['stock_setup'] = array();
-            if (empty($exists_stocks)) {
-                $exists_stocks = $stock_model->getAll('id');
-            }
             $this->data['stock_setup'] = array_keys($exists_stocks);
         } else {
             $this->data['stock_setup'] = false;
         }
 
+        if ($this->pluginSettings('stock_complement')) {
+            // Обнулять остатки в несинхронизированных складах
+            $this->data['stock_complement'] = array_keys($exists_stocks);
+        } else {
+            $this->data['stock_complement'] = false;
+        }
+
         if ($this->pluginSettings('stock_forced')) {
-            $this->data['stock_forced'] = array();
-            if (empty($exists_stocks)) {
-                $exists_stocks = $stock_model->getAll('id');
-            }
+            // Обнулять складские остатки при отсутствии значений в файле обмена
             $this->data['stock_forced'] = array_keys($exists_stocks);
+        } else {
+            $this->data['stock_forced'] = false;
         }
     }
 
@@ -1593,7 +1584,7 @@ HTML;
     public function settingOptionMapControl($name, $params = array())
     {
         $control = '';
-
+        $name = htmlentities((string) $name, ENT_QUOTES, 'utf-8');
         foreach ($params as $field => $param) {
             if (strpos($field, 'wrapper')) {
                 unset($params[$field]);
@@ -1698,7 +1689,7 @@ HTML;
 
             $control .= waHtmlControl::getControl($target_control, 'target', $target_params);
 
-            if (preg_match('@^(f:[^:]+):(.+)$@', $feature_params['value'], $matches)) {
+            if (!empty($feature_params['value']) && preg_match('@^(f:[^:]+):(.+)$@', $feature_params['value'], $matches)) {
                 $feature_params['value'] = $matches[1];
                 $dimension_params['value'] = $matches[2];
             } else {
@@ -4067,15 +4058,27 @@ SQL;
                     break;
                 case 'intval':
                 case 'int':
-                    $value = intval(str_replace(array(' ', ','), array('', '.'), (string)$value));
+                    if (trim($value) === '') {
+                        $value = null;
+                    } else {
+                        $value = intval(str_replace(array(' ', ','), array('', '.'), (string) $value));
+                    }
                     break;
                 case 'floatval':
                 case 'float':
-                    $value = floatval(str_replace(array(' ', ','), array('', '.'), (string)$value));
+                    if (trim($value) === '') {
+                        $value = null;
+                    } else {
+                        $value = floatval(str_replace(array(' ', ','), array('', '.'), (string) $value));
+                    }
                     break;
                 case 'doubleval':
                 case 'double':
-                    $value = doubleval(str_replace(array(' ', ','), array('', '.'), (string)$value));
+                    if (trim($value) === '') {
+                        $value = null;
+                    } else {
+                        $value = doubleval(str_replace(array(' ', ','), array('', '.'), (string) $value));
+                    }
                     break;
                 case 'array':
                     $value = (array)$value;
@@ -5285,7 +5288,6 @@ SQL;
                 # import stock counts
 
                 $stock = false;
-                $stock_not_found = true;
                 if (isset($this->data['stock_map']) && !empty($this->data['stock_map'])) {
                     $xpaths = array(
                         '//Склад',
@@ -5295,7 +5297,6 @@ SQL;
                     );
                     foreach ($xpaths as $xpath) {
                         foreach ($this->xpath($element, $xpath) as $s) {
-                            $stock_not_found = false;
                             $stock_uuid = self::attribute($s, array('ИдСклада', 'Ид'));
                             $_in_fields = false;
                             if (empty($stock_uuid)) {
@@ -5305,86 +5306,112 @@ SQL;
                                 }
                             }
                             if ($stock_uuid && isset($this->data['stock_map'][$stock_uuid])) {
+                                $stock = true;
                                 $stock_id = $this->data['stock_map'][$stock_uuid];
                                 if (is_array($stock_id)) {
                                     $stock_id = $stock_id['stock_id'];
                                 }
                                 if ($stock_id >= 0) {
                                     if ($_in_fields) {
-                                        $sku['stock'][$stock_id] = self::field($s, array('Количество', 'Остаток', 'КоличествоНаСкладе', 'ОстаточекПоСкладику'), 'floatval');
+                                        $quantity_in_stock = self::field($s, array('Количество', 'Остаток', 'КоличествоНаСкладе', 'ОстаточекПоСкладику'), 'floatval');
+                                        if (!is_null($quantity_in_stock)) {
+                                            $sku['stock'][$stock_id] = $quantity_in_stock;
+                                        }
                                     } else {
-                                        $sku['stock'][$stock_id] = self::attribute($s, 'КоличествоНаСкладе', 'floatval');//
+                                        $quantity_in_stock = self::attribute($s, 'КоличествоНаСкладе', 'floatval');
+                                        if (!is_null($quantity_in_stock)) {
+                                            $sku['stock'][$stock_id] = $quantity_in_stock;
+                                        }
                                     }
                                 }
-                                $stock = true;
                             }
                         }
                     }
                 }
 
                 $total = self::field($element, 'Количество', 'intval');
+                $stock_complement = $this->data['stock_complement'];
+                $stock_forced = $this->data['stock_forced'];
 
-                if (($total === null) && !empty($this->data['stock_forced']) && !count($sku['stock']) && !$stock) {
-                    $sku['stock'] = array(
-                        0 => 0,
-                    );
+                /** @var $stock_map array карта распределения складов */
+                $stock_map = isset($this->data['stock_map']) ? $this->data['stock_map'] : array();
+
+                /** @var $stock_1c bool есть ли склады 1с в файле импорта */
+                $stock_1c = !empty($stock_map);
+
+                foreach ($stock_map as $stock_uuid => &$stock_id) {
+                    if (is_array($stock_id)) {
+                        $stock_id = $stock_id['stock_id'];
+                    }
+                    if ($stock_id < 0) {
+                        /** < 0 — не импортировать остатки */
+                        unset($stock_map[$stock_uuid]);
+                    }
                 }
 
-                if (!count($sku['stock']) && !$stock) {
-
-                    $stock_map = isset($this->data['stock_map']) ? $this->data['stock_map'] : array();
-                    foreach ($stock_map as $stock_uuid => &$stock_id) {
-                        if (is_array($stock_id)) {
-                            $stock_id = $stock_id['stock_id'];
-                        }
-                        # < 0 — не импортировать остатки
-                        # == 0 — импорт в общие остатки
-                        if ($stock_id < 0) {
-                            unset($stock_map[$stock_uuid]);
-                        }
-                    }
-
-                    if ($stock_map) {
-                        # настроена карта распределения складов
-                        if ($total === 0) {
-                            # обнуляем остатки на всех сопоставленных складах
-                            foreach ($stock_map as $stock_uuid => $stock_id) {
-                                # < 0 — не импортировать остатки
-                                # == 0 — импорт в общие остатки
-                                if ($stock_id > 0) {
-                                    $sku['stock'][$stock_id] = 0;
-                                }
-                            }
-                        } else {
-                            # остатки сохраняются для склада, указанного в настройках плагина
-                            $sku['stock'][$this->data['stock_id']] = $total;
-                        }
-                    } else {
-                        # остатки сохраняются для склада, указанного в настройках плагина
+                if ($stock_complement === false && $stock_forced === false) {
+                    /**
+                     * ВЫКЛЮЧЕНЫ галки
+                     * - Обнулять остатки в несинхронизированных складах
+                     * - Обнулять складские остатки при отсутствии значений в файле обмена
+                     */
+                    if ($total !== null && !count($sku['stock']) && !$stock) {
+                        /** остатки сохраняются для склада, указанного в настройках плагина */
                         $sku['stock'][$this->data['stock_id']] = $total;
                     }
-                }
-
-                foreach ($sku['stock'] as $stock_id => $stock_count) {
-                    if ($stock_count === null) {
-                        unset($sku['stock'][$stock_id]);
+                } elseif ($stock_complement !== false && $stock_forced === false) {
+                    /**
+                     * ВКЛЮЧЕНА галка
+                     * - Обнулять остатки в несинхронизированных складах
+                     */
+                    $unsync_stock = array_diff($stock_complement, array_values($stock_map));
+                    if ($total !== null && !count($sku['stock']) && !$stock) {
+                        /** остатки сохраняются для склада, указанного в настройках плагина */
+                        $sku['stock'] = array_fill_keys($unsync_stock, 0);
+                        $sku['stock'][$this->data['stock_id']] = $total;
+                    } elseif ($unsync_stock) {
+                        $sku['stock'] += array_fill_keys($unsync_stock, 0);
                     }
-                }
-
-                if (empty($sku['stock'])) {
-                    unset($sku['stock']);
-                } else {
-                    /** @var false|int[] $stock_complement */
-                    $stock_complement = $this->data['stock_complement'];
-                    $_stock_data_filled = (count($sku['stock']) > 1) || !isset($sku['stock'][0]);
-                    if (!empty($stock_complement) # Выбрана настройка "Обнулять остатки в несинхронизированных складах"
-                        && $_stock_data_filled
-                    ) {
-                        $sku['stock'] += array_fill_keys($stock_complement, 0);
+                } elseif ($stock_complement === false && $stock_forced !== false) {
+                    /**
+                     * ВКЛЮЧЕНА галка
+                     * - Обнулять складские остатки при отсутствии значений в файле обмена
+                     */
+                    $sync_stock = array_intersect($stock_forced, array_values($stock_map));
+                    if ($total !== null && !count($sku['stock'])) {
+                        $sku['stock'] = array_fill_keys($sync_stock, 0);
+                        if (!$stock) {
+                            /** остатки сохраняются для склада, указанного в настройках плагина */
+                            $sku['stock'][$this->data['stock_id']] = $total;
+                        }
+                    } elseif ($sync_stock) {
+                        $sku['stock'] += array_fill_keys($sync_stock, 0);
+                    } elseif ($total === null) {
+                        if ($this->data['stock_id']) {
+                            $sku['stock'][$this->data['stock_id']] = 0;
+                        } elseif (!$stock_1c || !$stock) {
+                            $sku['stock'] = [0 => 0];
+                        }
                     }
-                    if (!empty($this->data['stock_forced']) && $stock_not_found) {
-                        # случай если в исходном файле нет поля с информацией о складах
-                        $sku['stock'] = array_fill_keys($stock_complement, 0);
+                } elseif ($stock_complement !== false && $stock_forced !== false) {
+                    /**
+                     * ВКЛЮЧЕНЫ обе галки
+                     * - Обнулять остатки в несинхронизированных складах
+                     * - Обнулять складские остатки при отсутствии значений в файле обмена
+                     */
+                    $_stocks = $stock_forced + $stock_complement;
+                    if ($total !== null && !count($sku['stock'])) {
+                        $sku['stock'] = array_fill_keys($_stocks, 0);
+                        if (!$stock) {
+                            /** остатки сохраняются для склада, указанного в настройках плагина */
+                            $sku['stock'][$this->data['stock_id']] = $total;
+                        }
+                    } elseif ($_stocks) {
+                        $sku['stock'] += array_fill_keys($_stocks, 0);
+                    } elseif ($total === null) {
+                        if (!$stock_1c || !$stock) {
+                            $sku['stock'] = [0 => 0];
+                        }
                     }
                 }
 
@@ -5822,21 +5849,26 @@ SQL;
      */
     private function formatFeature($features, $code, $value)
     {
-        $selectable = ifset($this->data, 'features', $code, 'selectable', 0);
-        if ($selectable) {
-            $feature = ifset($features, $code, []);
-            if (is_string($feature)) {
-                $feature = [$feature];
-            }
-
-            $multiple_separator = trim($this->pluginSettings('multiple_separator'));
-            if (empty($multiple_separator)) {
+        $feature_type = ifset($this->data, 'feature_types', $code, shopFeatureModel::TYPE_VARCHAR);
+        switch ($feature_type) {
+            case shopFeatureModel::TYPE_COLOR:
+                $feature = ifset($features, $code, []);
+                if (is_string($feature)) {
+                    $feature = [$feature];
+                }
                 $feature[] = $value;
-            } else {
-                $feature += explode($multiple_separator, $value);
-            }
-        } else {
-            $feature = $value;
+                break;
+            default:
+                $feature = $value;
+                if (!empty($this->data['expert'])) {
+                    $multiple_separator = trim($this->pluginSettings('multiple_separator'));
+                    if (!empty($multiple_separator) && !empty($value)) {
+                        $feature = explode($multiple_separator, $value);
+                        if (count($feature) === 1) {
+                            $feature = reset($feature);
+                        }
+                    }
+                }
         }
 
         return $feature;
@@ -6198,7 +6230,11 @@ SQL;
             }
 
             if (count($sku_features)) {
-                $skus[-1]['name'] = $update_fields['name'].' ('.implode(', ', $sku_features).')';
+                $_f = [];
+                foreach ($sku_features as $_sk_features) {
+                    $_f[] = (is_array($_sk_features) ? reset($_sk_features) : $_sk_features);
+                }
+                $skus[-1]['name'] = $update_fields['name'].' ('.implode(', ', $_f).')';
             }
         }
 
