@@ -15,8 +15,8 @@
     <div class="s-page-body flexbox">
         {* PRODUCTS MENU *}
         <div class="s-page-menu bordered-right">{$products_menu}</div>
-        <div class="wide">
-            <header class="s-page-header bordered-bottom">
+        <div class="wide width-100" style="max-width: calc(100% - var(--main-sidebar-width) - 2px);overflow-x: clip;">
+            <header class="s-page-header bordered-bottom nowrap">
                 <div class="flexbox middle space-8">
                     {if !empty($product.id) && !empty($product_list_data)}
                         {$_tooltips = []}
@@ -45,6 +45,12 @@
                                 ]}
                             {/if}
 
+                            {$_tooltips["product_name"] = [
+                                "id" => "product_name",
+                                "html" => {$product.name|default:_w('New product')|escape},
+                                "width" => "70%",
+                                "position" => "bottom-left"
+                            ]}
                             <script>
                                 ( function($) {
                                     var tooltips = {$_tooltips|json_encode};
@@ -54,7 +60,7 @@
                         </div>
                     {/if}
                     <div class="s-title-wrapper wide">
-                        <h3 class="s-title js-product-name">{$product.name|default:_w('New product')|escape}</h3>
+                        <h3 class="s-title js-product-name" data-tooltip-id="product_name">{$product.name|default:_w('New product')|escape}</h3>
                     </div>
                     <div class="s-details">
                         <span class="s-ident gray">id: {$product.id|default:_w('Product ID')}</span>

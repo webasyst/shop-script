@@ -94,6 +94,43 @@
                 {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
             </div>
             <div class="sidebar-footer">
+
+                {if !empty($show_mobile_ad)}
+                    <div class="s-tiny-ad box custom-pb-0">
+                        <div class="s-tiny-ad-box">
+
+                            <a href="javascript:void(0)" class="s-tiny-ad-close" title="[`Close`]">&times;</a>
+                            <h5 class="heading">[`Mobile app`]</h5>
+
+                            <div class="align-center">
+                                <p>
+                                    [`Install Webasyst Shop-Script mobile app on your phone today:`]
+                                </p>
+
+                                {if $wa->locale() == 'ru_RU'}
+                                    {$lang = '-ru'}
+                                {else}
+                                    {$lang = '-en'}
+                                {/if}
+
+                                <a href="https://apps.apple.com/us/app/webasyst-shop-script/id6443853956" target="_blank">
+                                    <img src="{$wa_app_static_url}img/badge-appstore{$lang}.png" class="s-mobile-badge" alt="App Store">
+                                </a>
+                                <a href="https://play.google.com/store/apps/details?id=com.webasyst.shopscript" target="_blank">
+                                    <img src="{$wa_app_static_url}img/badge-google-play{$lang}.png" class="s-mobile-badge" alt="Google Play">
+                                </a>
+                                {if $wa->locale() == 'ru_RU'}
+                                    <a href="https://apps.rustore.ru/app/com.webasyst.shopscript" target="_blank">
+                                        <img src="{$wa_app_static_url}img/badge-rustore.svg" class="s-mobile-badge" alt="RuStore">
+                                    </a>
+                                {/if}
+
+                            </div>
+
+                        </div>
+                    </div>
+                {/if}
+
                 <div class="s-main-menu box align-center custom-py-24">
                     <a href="{$frontend_url}" target="_blank" class="s-menu-link button white small rounded">
                         <span class="s-name">[`Open storefront`]</span>

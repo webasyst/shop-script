@@ -151,7 +151,8 @@
 
         <div class="bricks s-order-nav-bricks custom-m-0 custom-mb-4">
             <a href="#/orders/state_id=new|processing|auth|paid" class="brick shadowed js-orders-link js-orders-hide-filters js-order-nav-brick" id="s-pending-orders">
-                <span class="custom-pr-4 icon js-pending_counters-orders bold">{if !empty($pending_count)}{$pending_count}{else}0{/if}</span>
+                {$_pending_count = {(empty($pending_count)) ? 0 : $pending_count}}
+                <span class="custom-pr-4 icon js-pending_counters-orders bold">{$_pending_count}</span>
                 <span class="count js-total_processing-orders"></span>
                 <span class="label semibold">[`Processing`]</span>
             </a>
@@ -166,29 +167,50 @@
     <!-- SECONDAY FILTERS -->
     <div class="s-order-nav-block s-order-nav-block-chips js-order-nav-block-secondary s-order-nav-block-filters" style="display: none;">
     <ul class="chips small custom-m-0">
-        {if !empty($couriers)}
+        {if !empty($couriers) || !empty($contacts_as_courier)}
             <li class="s-order-nav-button-wrapper s-order-nav-only-table-kanban">
-                <a href="#/orders/state_id=new|processing|auth|paid" class="dropdown-toggle light-gray js-orders-link js-orders-hide-filters js-order-nav-button s-order-nav-button js-pending-orders">[`Processing`]</a>
+                <a href="#/orders/state_id=new|processing|auth|paid" class="button light-gray js-orders-link js-orders-hide-filters js-order-nav-button s-order-nav-button js-pending-orders">
+                    <span class="label">[`Processing`]</span>
+                    <span class="hint">
+                        <span class="js-pending_counters-orders">{$_pending_count},</span>
+                        <span class="js-total_processing-orders"></span>
+                    </span>
+                </a>
             </li>
             <li class="dropdown js-orders-dropdown">
                 <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Couriers`]">[`Couriers`]</button>
                 <div class="dropdown-body">
                     <ul class="menu">
-                        {foreach $couriers as $courier}
-                            <li>
-                                <a href="javascript:void(0)" data-param="params.courier_id={$courier.id|escape}" class="js-orders-link">
-                                    <span class="icon">
-                                        {if $courier.contact_id}
-                                            <i style="background-image: url({waContact::getPhotoUrl($courier.contact_id, $courier.photo, 40)});vertical-align: middle;"></i>
-                                        {else}
-                                            <i class="fas fa-walking"></i>
-                                        {/if}
-                                    </span>
-                                    <span>{$courier.name|escape}</span>
-                                    <span class="count">{$courier.count}</span>
-                                </a>
-                            </li>
-                        {/foreach}
+                        {if !empty($couriers)}
+                            {foreach $couriers as $courier}
+                                <li>
+                                    <a href="javascript:void(0)" data-param="params.courier_id={$courier.id|escape}" class="js-orders-link">
+                                        <span class="icon">
+                                            {if $courier.contact_id}
+                                                <i style="background-image: url({waContact::getPhotoUrl($courier.contact_id, $courier.photo, 40)});vertical-align: middle;"></i>
+                                            {else}
+                                                <i class="fas fa-walking"></i>
+                                            {/if}
+                                        </span>
+                                        <span>{$courier.name|escape}</span>
+                                        <span class="count">{$courier.count}</span>
+                                    </a>
+                                </li>
+                            {/foreach}
+                        {/if}
+                        {if !empty($contacts_as_courier)}
+                            {foreach $contacts_as_courier as $courier}
+                                <li>
+                                    <a href="javascript:void(0)" data-param="courier_contact_id={$courier.id|escape}" class="js-orders-link">
+                                        <span class="icon">
+                                            <i style="background-image: url({waContact::getPhotoUrl($courier.id, $courier.photo, 40)});vertical-align: middle;"></i>
+                                        </span>
+                                        <span>{$courier.name|escape}</span>
+                                        <span class="count">{$courier.count}</span>
+                                    </a>
+                                </li>
+                            {/foreach}
+                        {/if}
                     </ul>
                 </div>
             </li>

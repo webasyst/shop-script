@@ -1284,7 +1284,11 @@ class shopOrdersCollection
 
                     // Try to convert order id from frontend format
                     if ($param == 'id') {
-                        $decoded_id = shopBackendAutocompleteController::decodeOrderId($val);
+                        $decoded_id = shopHelper::decodeOrderId($val);
+                        if (!$decoded_id) {
+                            // legacy: this allows to decode strings like '1001234' => '1234', i.e. without '#' at the begining
+                            $decoded_id = shopBackendAutocompleteController::decodeOrderId($val);
+                        }
                         if ($decoded_id) {
                             $val = $decoded_id;
                         }

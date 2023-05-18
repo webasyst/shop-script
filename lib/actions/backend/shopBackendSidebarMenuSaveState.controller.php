@@ -4,8 +4,16 @@ class shopBackendSidebarMenuSaveStateController extends waJsonController
 {
     public function execute()
     {
-        $sidebar_menu_state = waRequest::post('sidebar_menu_state', 0, waRequest::TYPE_INT);
         $contact_settings_model = new waContactSettingsModel();
-        $contact_settings_model->set(wa()->getUser()->getId(), 'shop', 'sidebar_menu_state', $sidebar_menu_state);
+
+        $sidebar_menu_state = waRequest::post('sidebar_menu_state', null, waRequest::TYPE_INT);
+        if ($sidebar_menu_state !== null) {
+            $contact_settings_model->set(wa()->getUser()->getId(), 'shop', 'sidebar_menu_state', $sidebar_menu_state);
+        }
+
+        $hide_mobile_ad = waRequest::post('hide_mobile_ad', null);
+        if ($hide_mobile_ad !== null) {
+            $contact_settings_model->set(wa()->getUser()->getId(), 'shop', 'hide_mobile_ad_till', date('Y-m-d', strtotime('+30 days')));
+        }
     }
 }

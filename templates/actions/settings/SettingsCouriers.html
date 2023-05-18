@@ -265,7 +265,7 @@
 
             {if $courier.id != 'new'}
             <div>
-                <a href="?action=orders#/orders/search/params.courier_id={$courier.id}/" class="button gray">
+                <a href="?action=orders#/orders/hash={'search/&params.courier_id='|urlencode|cat:$courier.id}" class="button gray">
                     <i class="fas fa-file-excel"></i>
                     [`View all courier orders`]
                 </a>

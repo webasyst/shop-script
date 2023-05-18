@@ -337,7 +337,7 @@
                                value="{$product.item.quantity|default:1|floatval}"
                                class="s-orders-quantity shortest small bold js-quantity-field">
                         {if !empty($_stock_unit)}
-                            <span class="s-unit">{$_stock_unit["name_short"]}</span>
+                            <span class="s-unit">{$_stock_unit["name_short"]|escape}</span>
                         {/if}
                     </div>
                 </div>
@@ -347,14 +347,14 @@
                             <span class="s-label">[`Step`]=</span>
                             <span class="s-value">{$product["order_multiplicity_factor"]|default:1|floatval}</span>
                             {if !empty($_stock_unit)}
-                                <span class="s-unit">{$_stock_unit["name_short"]}</span>
+                                <span class="s-unit">{$_stock_unit["name_short"]|escape}</span>
                             {/if}
                         </div>
                         <div class="s-min js-order_count_min">
                             <span class="s-label">[`Min.`]=</span>
                             <span class="s-value js-value">{$_order_count_min|floatval}</span>
                             {if !empty($_stock_unit)}
-                                <span class="s-unit">{$_stock_unit["name_short"]}</span>
+                                <span class="s-unit">{$_stock_unit["name_short"]|escape}</span>
                             {/if}
                         </div>
                     </div>
@@ -559,13 +559,13 @@
                         {if empty($order.coupon)}
                             {$hidden_first = 'style="display: none"'}
                             <a href="{if isset($order.coupon.id)}{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/{/if}" data-href="{$wa_app_url}marketing/coupons/" class="s-order-edit-coupon {if !isset($order.coupon.id)}disabled-link{/if}" target="_blank">
-                                <i class="fas fa-tags js-coupon-icon" {$hidden_first}></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
+                                <i class="fas fa-tags js-coupon-icon custom-mx-4" {$hidden_first}></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
                             </a>
                         {else}
                             {$hidden_first = ''}
                             {if $order.coupon.right}
                             <a href="{if isset($order.coupon.id)}{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/{/if}" data-href="{$wa_app_url}marketing/coupons/" class="s-order-edit-coupon {if !isset($order.coupon.id)}disabled-link{/if}" target="_blank">
-                                <i class="fas fa-tags js-coupon-icon"></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
+                                <i class="fas fa-tags js-coupon-icon custom-mx-4"></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
                             </a>
                             {else}
                             <i class="fas fa-tags js-coupon-icon"></i><strong class="coupon-code-label">{if !empty($order.coupon)}{$order.coupon.code|escape}{/if}</strong>
@@ -573,8 +573,8 @@
                         {/if}
                         <input class="wa-input" type="text" id="coupon-code" name="coupon_code" value="" placeholder="[`Coupon code`]" style="display: none">
                         <a href="javascript:void(0);" class="coupon-controls">
-                            <span class="js-edit-coupon"><i class="fas fa-pencil-alt"></i></span>
-                            <span class="js-close-coupon" style="display: none""><i class="fas fa-times text-gray"></i></span>
+                            <span class="js-edit-coupon custom-mr-4"><i class="fas fa-pencil-alt"></i></span>
+                            <span class="js-close-coupon custom-mr-4" style="display: none""><i class="fas fa-times text-gray"></i></span>
                             <span class="js-delete-coupon" {$hidden_first}><i class="fas fa-trash-alt text-red"></i></span>
                         </a>
                         <input type="hidden" id="coupon_id" name="coupon_id" value="{if isset($order.coupon.id)}{$order.coupon.id}{/if}">

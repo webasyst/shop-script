@@ -175,7 +175,7 @@
                     {if $courier.id != 'new'}
                         <div class="float-right block half-padded">
                             <ul class="menu-h">
-                                <li><a href="?action=orders#/orders/search/params.courier_id={$courier.id}/"><i class="icon16 ss orders-all"></i>[`View all courier orders`]</a></li>
+                                <li><a href="?action=orders#/orders/hash={'search/&params.courier_id='|urlencode|cat:$courier.id}"><i class="icon16 ss orders-all"></i>[`View all courier orders`]</a></li>
                                 <li><a href="javascript:void(0)" id="delete-courier-link"><i class="icon16 delete"></i>[`Delete`]</a></li>
                             </ul>
                         </div>

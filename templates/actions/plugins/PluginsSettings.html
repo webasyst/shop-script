@@ -1,4 +1,10 @@
 {if isset($plugin_id)}
+
+    <style>
+        #wa-plugins-container .content { background-color: var(--background-color); }
+        #wa-plugins-container .fields-group { background-color: var(--background-color-blank); }
+    </style>
+
     {if !empty($settings_controls)}
         {if !empty($plugin_info.printform)}
             <div class="block double-padded align-center gray">
@@ -10,20 +16,25 @@
                 </p>
             </div>
         {else}
+
             <h1>{$plugin_info.name}</h1>
             <div class="fields form">
                 <form action="?module=plugins&id={$plugin_id}&action=save" method="post" id="plugins-settings-form" enctype="multipart/form-data" target="plugins-settings-iframe">
                     {$wa->csrf()}
-                    {foreach $settings_controls as $name => $control}
-                    <div class="field">
-                        {$control}
+                    <div class="fields-group custom-mt-16">
+                        {foreach $settings_controls as $name => $control}
+                        <div class="field">
+                            {$control}
+                        </div>
+                        {/foreach}
                     </div>
-                    {/foreach}
 
                     <div class="field">
                         <div class="value submit">
+                          <div class="custom-pl-16">
                             <input type="submit" class="button green" value="[`Save`]">
                             <span id="plugins-settings-form-status" style="display:none"><!-- message placeholder --></span>
+                          </div>
                         </div>
                     </div>
 
@@ -32,7 +43,7 @@
             </div>
         {/if}
     {else}
-        <div class="block double-padded align-center gray">
+        <div class="align-center gray">
             <p>
                 <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin “%s” is installed and working.`]'}</strong>
                 <br>

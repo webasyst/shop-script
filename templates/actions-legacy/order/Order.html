@@ -155,7 +155,7 @@
                             {if !empty($courier)}
                                 <!-- Courier -->
                                 <h3>
-                                    <span class="gray">[`Courier`] —</span> <a href="#/orders/{if isset($courier.enabled)}search/params.courier_id={else}courier_contact_id={/if}{$courier.id}/" class="bold highlighted">{$courier.name|escape}</a>
+                                    <span class="gray">[`Courier`] —</span> <a href="#/orders/{if isset($courier.enabled)}hash={'search/&params.courier_id='|urlencode|cat:$courier.id}{else}courier_contact_id={$courier.id}{/if}" class="bold highlighted">{$courier.name|escape}</a>
                                 </h3>
                             {/if}
 
@@ -302,7 +302,7 @@
                                     <td class="align-right nowrap">
                                         <span class="gray">{wa_currency_html($item.price, $order.currency)} &times;</span> {$item.quantity}
                                         {if !empty($item.stock_unit)}
-                                            <span class="s-unit">{$item.stock_unit.name_short}</span>
+                                            <span class="s-unit">{$item.stock_unit.name_short|escape}</span>
                                         {/if}
                                     </td>
                                     <td class="align-right nowrap"{if $item.total_discount > 0} title="{sprintf_wp("Total discount for this order item: %s.", wa_currency($item.total_discount, $order.currency))|escape}"{/if}>{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>

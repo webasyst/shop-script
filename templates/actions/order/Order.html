@@ -129,7 +129,7 @@
 
                     <!-- order comment -->
                     {if $order.comment}
-                        <blockquote class="highlighted s-order-comment">{$order.comment|escape}</blockquote>
+                        <blockquote class="highlighted s-order-comment break-words">{$order.comment|escape}</blockquote>
                     {/if}
 
                     <!-- plugin hook: 'backend_order.info_section' -->
@@ -193,7 +193,7 @@
                                             <!-- Courier -->
                                             <h6>
                                                 <span class="gray">[`Courier`] —</span>
-                                                <a href="#/orders/{if isset($courier.enabled)}search/params.courier_id={else}courier_contact_id={/if}{$courier.id}/">{$courier.name|escape}</a>
+                                                <a href="#/orders/{if isset($courier.enabled)}hash={'search/&params.courier_id='|urlencode|cat:$courier.id}{else}courier_contact_id={$courier.id}{/if}">{$courier.name|escape}</a>
                                             </h6>
                                         {/if}
 
@@ -228,7 +228,7 @@
                                         </blockquote>
                                     {/if}
 
-                                    {if $edit_shipping_details_available}
+                                    {if !empty($edit_shipping_details_available)}
                                         <a href="javascript:void(0)" class="wf-action button light-gray smaller" data-action-id="editshippingdetails" data-container="#workflow-content">[`Edit shipping details`]</a>
                                     {/if}
                                 </div>
@@ -405,7 +405,7 @@
                                             <span class="gray large">&times;</span> <span class="semibold large">{$item.quantity}</span><br>
                                             <span class="gray small">{wa_currency_html($item.price, $order.currency)}</span>
                                             {if !empty($item.stock_unit)}
-                                                <span class="s-unit">{$item.stock_unit.name_short}</span>
+                                                <span class="s-unit">{$item.stock_unit.name_short|escape}</span>
                                             {/if}
                                         </td>
                                         <td aria-label="[`Total`]" class="align-right nowrap">
@@ -442,7 +442,7 @@
                                         {if !empty($order.coupon.id) && $order.coupon.right}
                                             <a href="{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/">
                                         {/if}
-                                        <i class="fas fa-badge-percent custom-mr-4"></i><strong>{$order.coupon.code|escape}</strong>
+                                        <i class="fas fa-tags custom-mx-4"></i><strong>{$order.coupon.code|escape}</strong>
                                         {if !empty($order.coupon.id) && $order.coupon.right}
                                             </a>
                                         {/if}

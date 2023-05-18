@@ -90,7 +90,6 @@
                 data = data || {};
 
                 var cnt = parseInt(data.shop, 10);
-                $('#s-pending-orders .small').text(cnt ? '+' + cnt : '');
 
                 // update prefix of document.title. Prefix looks like: (\d+).
                 // Take into account extreme cases: cnt=0 or no prefix yet
@@ -326,7 +325,7 @@
                     let hash = window.location.hash;
                     let param = $target.data('param');
                     const search_hash = 'hash=search'
-                    const sales_channels = ['storefront', 'sales_channel']
+                    const sales_channels = ['params.storefront', 'params.sales_channel']
 
                     // если хэш уже имеет замиксованные параметры и отсутствует явный параметр у выбранного фильтра
                     if (hash.includes(search_hash) && !param) {
@@ -336,7 +335,7 @@
                     if (param) {
                         // готовим массив параметров
                         const params = decodeURIComponent(hash)
-                            .replace(new RegExp(`#\\/orders\\/|${search_hash}\\/|&id=\\d+|\\/$`, 'g'), "")
+                            .replace(new RegExp(`#\\/orders\\/|${search_hash}\\/|&id=\\d+|$`, 'g'), "")
                             .split('&')
                             .filter(Boolean);
 
@@ -351,32 +350,6 @@
                             params.splice(state_processing_index, 1);
                         }
 
-                        // оставляем в параметрах только один какой-то канал продаж
-                        const existed_sales_channel_key = params.findIndex(param => sales_channels.some(channel => param.includes(channel)));
-                        if (existed_sales_channel_key === -1 ) {
-                            params.push(param);
-                        }
-
-                        if (existed_sales_channel_key !== -1) {
-
-                            if (!params[existed_sales_channel_key].includes('params.')) {
-                                // если среди параметров есть каналы продаж, то приводим их к нужному виду
-                                params[existed_sales_channel_key] = params[existed_sales_channel_key].replace(new RegExp(`(${sales_channels.join('|')})=`, 'g'), 'params.$1=');
-
-                                // возвращаем отрезанный слэш к имени витрины
-                                if (params[existed_sales_channel_key].includes('storefront')) {
-                                    params[existed_sales_channel_key] += '/'
-                                }
-                            }
-
-                            if (sales_channels.some(channel => param.includes(channel))) {
-                                params[existed_sales_channel_key] = `params.${param}`;
-                                if (params[existed_sales_channel_key].includes('storefront')) {
-                                    params[existed_sales_channel_key] += '/'
-                                }
-                            }
-                        }
-
                         // если среди параметров есть существующий, но с другим значением, то обновляем значение
                         const [_param, _value] = param.split('=');
                         const existed_param_key = params.findIndex(item => item.includes(_param));
@@ -385,6 +358,29 @@
                         } else {
                             params.push(param)
                         }
+                        let existed_courier_id = -1;
+                        if (_param === 'courier_contact_id') {
+                            existed_courier_id = params.findIndex(item => item.includes('params.courier_id'));
+                        } else if (_param === 'params.courier_id') {
+                            existed_courier_id = params.findIndex(item => item.includes('courier_contact_id'));
+                        }
+                        if (existed_courier_id !== -1) {
+                            params.splice(existed_courier_id, 1);
+                        }
+
+                        // оставляем в параметрах только один какой-то канал продаж
+                        params.reduceRight((channel_last_index, item, index) => {
+
+                            if (sales_channels.some(channel => item.includes(channel))) {
+                                if (channel_last_index !== null) {
+                                    params.splice(index, 1);
+                                } else {
+                                    channel_last_index = index;
+                                }
+                            }
+
+                            return channel_last_index;
+                        }, null);
 
                         const encoded_params = encodeURIComponent(`/${params.join('&')}`);
 

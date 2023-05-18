@@ -64,25 +64,25 @@
         {if !empty($_show_fractional)}
             {$_stock_unit = $formatted_units[$product["stock_unit_id"]]}
             {$_base_unit = $formatted_units[$product["base_unit_id"]]}
-            {$_stock_price = shop_currency($active_sku["price"], ["unit" => $_stock_unit["name_short"], "in_currency" => $_currency, "format" => "price_wrapper"])}
-            {$_stock_compare_price = shop_currency($active_sku["compare_price"], ["unit" => $_stock_unit["name_short"], "in_currency" => $_currency, "format" => "price_wrapper"])}
+            {$_stock_price = shop_currency($active_sku["price"], ["unit" => $_stock_unit["name_short"]|escape, "in_currency" => $_currency, "format" => "price_wrapper"])}
+            {$_stock_compare_price = shop_currency($active_sku["compare_price"], ["unit" => $_stock_unit["name_short"]|escape, "in_currency" => $_currency, "format" => "price_wrapper"])}
             {$_base_price = ($active_sku["price"]/$active_sku["stock_base_ratio"])}
-            {$_base_price = shop_currency($_base_price, ["unit" => $_base_unit["name_short"], "in_currency" => $_currency, "format" => "price_wrapper"])}
+            {$_base_price = shop_currency($_base_price, ["unit" => $_base_unit["name_short"]|escape, "in_currency" => $_currency, "format" => "price_wrapper"])}
             <div class="s-price-wrapper">
                 <div class="s-price js-product-price">{$_stock_price}</div>
                 <div class="s-base-price js-product-base-price">{$_base_price}</div>
                 <div class="s-ratio-wrapper wa-mt-4">
-                    <span>{sprintf(_w("1 %s"), $_stock_unit["name_short"])}</span>
+                    <span>{sprintf(_w("1 %s"), $_stock_unit["name_short"]|escape)}</span>
                     <span>&nbsp;=&nbsp;</span>
-                    <span class="js-stock-base-ratio">{$wa->shop->roundNumber($active_sku['stock_base_ratio'], 3, null, null)}</span>&nbsp;<span>{$_base_unit["name_short"]}</span>
+                    <span class="js-stock-base-ratio">{$wa->shop->roundNumber($active_sku['stock_base_ratio'], 3, null, null)}</span>&nbsp;<span>{$_base_unit["name_short"]|escape}</span>
                 </div>
             </div>
             <div class="compare-at-price nowrap s-compare-price js-compare-price wa-ml-16 {if !($product.compare_price > 0)}is-hidden{/if}">{$_stock_compare_price}</div>
         {elseif !empty($fractional_config) && $fractional_config["stock_units_enabled"] && !empty($formatted_units) && !empty($formatted_units[$product["stock_unit_id"]])}
             {$_stock_unit = $formatted_units[$product["stock_unit_id"]]}
-            {$__stock_price = shop_currency($active_sku["price"], ["unit" => $_stock_unit["name_short"], "in_currency" => $_currency, "format" => "price_wrapper"])}
-            {$_stock_price = shop_currency($active_sku["price"], ["unit" => $_stock_unit["name_short"], "in_currency" => $_currency, "format" => "price_wrapper"])}
-            {$_stock_compare_price = shop_currency($active_sku["compare_price"], ["unit" => $_stock_unit["name_short"], "in_currency" => $_currency, "format" => "price_wrapper"])}
+            {$__stock_price = shop_currency($active_sku["price"], ["unit" => $_stock_unit["name_short"]|escape, "in_currency" => $_currency, "format" => "price_wrapper"])}
+            {$_stock_price = shop_currency($active_sku["price"], ["unit" => $_stock_unit["name_short"]|escape, "in_currency" => $_currency, "format" => "price_wrapper"])}
+            {$_stock_compare_price = shop_currency($active_sku["compare_price"], ["unit" => $_stock_unit["name_short"]|escape, "in_currency" => $_currency, "format" => "price_wrapper"])}
             <div class="s-price js-product-price">{$_stock_price}</div>
             <div class="compare-at-price nowrap s-compare-price js-compare-price wa-ml-16 {if !($active_sku["compare_price"] > 0)}is-hidden{/if}">{$_stock_compare_price}</div>
 
@@ -248,7 +248,7 @@
                             min: {$active_sku["order_count_min"]|default:1|floatval|json_encode},
                             max: {$active_sku.count|default:0|floatval|json_encode},
                             locales: {$_quantity_locales|json_encode},
-                            stock_unit: {$_stock_unit["name_short"]|default:''|json_encode}
+                            stock_unit: {$_stock_unit["name_short"]|escape|default:''|json_encode}
                         });
                     })(jQuery);
                 </script>

@@ -30,9 +30,9 @@
                 {foreach $state_names as $state}
                 <div class="s-kanban__list">
                     <div class="flexbox middle custom-p-12">
-                        <div class="wide">
-                            <span class="s-status-wrapper large nowrap" style="color:{$state.options.style.color|escape};font-weight:{$state.options.style['font-weight']|escape|default:'normal'};">
-                                <i class="{$state.options.icon|escape}"></i> {$state.name|escape}
+                        <div class="wide text-ellipsis" style="color:{$state.options.style.color|escape};font-weight:{$state.options.style['font-weight']|escape|default:'normal'};" data-wa-tooltip-content="{$state.name|escape}">
+                            <span class="s-status-wrapper large nowrap">
+                                <i class="{$wa->shop->convertIcon({$state.options.icon|escape})}"></i> {$state.name|escape}
                             </span>
                         </div>
                         <div>
@@ -330,4 +330,8 @@ $(window).off('wa_loaded').on('wa_loaded', function (e, view) {
         $.skeletonLoader.hide();
     }
 });
+
+(function() {
+    $("#s-orders [data-wa-tooltip-content]").waTooltip();
+})();
 </script>

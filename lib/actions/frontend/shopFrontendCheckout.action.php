@@ -268,31 +268,27 @@ class shopFrontendCheckoutAction extends waViewAction
             $result .= "ga('ecommerce:send');\n";
 
         } else {
-            $result = "_gaq.push(['_addTrans',
-                '".$order['id']."',           // transaction ID - required
-                '".htmlspecialchars($title, ENT_QUOTES, 'utf-8')."',  // affiliation or store name
-                '".$this->getBasePrice($order['total'], $order['currency'])."',          // total - required
-                '".$this->getBasePrice($order['tax'], $order['currency'])."',           // tax
-                '".$this->getBasePrice($order['shipping'], $order['currency'])."',              // shipping
-                '".$this->getOrderAddressField($order, 'city')."',       // city
-                '".$this->getOrderAddressField($order, 'region')."',     // state or province
-                '".$this->getOrderAddressField($order, 'country')."'             // country
-            ]);\n";
-
+            $items = '';
             foreach ($order['items'] as $item) {
                 $sku = $item['type'] == 'product' ? $item['sku_code'] : '';
-                $result .= " _gaq.push(['_addItem',
-                '".$order['id']."',           // transaction ID - required
-                '".$sku."',           // SKU/code - required
-                '".htmlspecialchars($item['name'])."',        // product name
-                '',   // category or variation
-                '".$this->getBasePrice($item['price'], $order['currency'])."',          // unit price - required
-                '".$item['quantity']."'               // quantity - required
-              ]);\n";
+                $items = "{
+                    item_id: '{$order['id']}',
+                    item_name: '".htmlspecialchars($item['name'], ENT_QUOTES, 'utf-8')."',
+                    price: {$this->formatPrice($item['price'])},
+                    quantity: {$item['quantity']},
+                    item_variant: '$sku'
+                },\n";
             }
 
-            $result .= "_gaq.push(['_set', 'currencyCode', '".$this->getConfig()->getCurrency(true)."']);\n";
-            $result .= "_gaq.push(['_trackTrans']);\n";
+            $result = "gtag('event', 'purchase', {
+                transaction_id: '{$order['id']}', // transaction ID - required
+                value: {$this->formatPrice($order['total'])}, // total - required
+                currency: '{$order['currency']}', // currency - required
+                tax: {$this->formatPrice($order['tax'])}, // tax
+                shipping: {$this->formatPrice($order['shipping'])}, // shipping
+                affiliation: '".htmlspecialchars($title, ENT_QUOTES, 'utf-8')."', // affiliation or store name
+                items: [$items]
+            });";
         }
         return $result;
     }

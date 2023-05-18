@@ -107,10 +107,12 @@
                                     {if $order.contact.registered|default:false}
                                         <i class="fas fa-check-circle text-green" title="[`Registered customer`]"></i>
                                     {/if}
-                                    {if $customer.number_of_orders == 1}
-                                        <span class="hint">[`New customer`]</span>
-                                    {else}
-                                        <span class="hint">{_w('%d order', '%d orders', $customer.number_of_orders)}</span>
+                                    {if !empty($customer)}
+                                        {if $customer.number_of_orders == 1}
+                                            <span class="hint">[`New customer`]</span>
+                                        {else}
+                                            <span class="hint">{_w('%d order', '%d orders', $customer.number_of_orders)}</span>
+                                        {/if}
                                     {/if}
                                 </h5>
 
@@ -194,7 +196,7 @@
                                     {if !empty($courier)}
                                         <!-- Courier -->
                                         <h6>
-                                            <span class="gray">[`Courier`] —</span> <a href="#/orders/search/params.courier_id={$courier.id}/" class="bold highlighted">{$courier.name|escape}</a>
+                                            <span class="gray">[`Courier`] —</span> <a href="#/orders/{if isset($courier.enabled)}hash={'search/&params.courier_id='|urlencode|cat:$courier.id}{else}courier_contact_id={$courier.id}{/if}" class="bold highlighted">{$courier.name|escape}</a>
                                         </h6>
                                     {/if}
 
@@ -289,7 +291,7 @@
                                     <span class="gray large">&times;</span> <span class="semibold large">{$item.quantity}</span><br>
                                     <span class="gray small">{wa_currency_html($item.price, $order.currency)}</span>
                                     {if !empty($item.stock_unit)}
-                                        <span class="s-unit">{$item.stock_unit.name_short}</span>
+                                        <span class="s-unit">{$item.stock_unit.name_short|escape}</span>
                                     {/if}
                                 </td>
                                 <td class="align-right nowrap">{wa_currency_html($item.price * $item.quantity, $order.currency)}</td>

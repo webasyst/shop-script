@@ -245,7 +245,7 @@
                                                     <input class="wa-field js-product-quantity {if !empty($_item.error)}wa-error-field{/if}" name="quantity[{$_item.id}]" value="{$_item.quantity|floatval}" {if !empty($_is_out_of_stock) || !empty($_is_product_disabled)}disabled{/if}>
                                                     {if !empty($formatted_units) && !empty($formatted_units[$_item.product["stock_unit_id"]])}
                                                         {$_stock_unit = $formatted_units[$_item.product["stock_unit_id"]]}
-                                                        <span class="wa-unit top">{$_stock_unit["name_short"]}</span>
+                                                        <span class="wa-unit top">{$_stock_unit["name_short"]|escape}</span>
                                                     {/if}
                                                 </label>
                                                 <div class="wa-button-wrapper">
@@ -276,21 +276,21 @@
                                                     {if !empty($_show_fractional)}
                                                         {$_stock_unit = $formatted_units[$_item.product["stock_unit_id"]]}
                                                         {$_base_unit = $formatted_units[$_item.product["base_unit_id"]]}
-                                                        {$_stock_price = $wa->shop->formatPrice($_active_sku["price"], ["unit" => $_stock_unit["name_short"], "currency" => $_currency])}
+                                                        {$_stock_price = $wa->shop->formatPrice($_active_sku["price"], ["unit" => $_stock_unit["name_short"]|escape, "currency" => $_currency])}
                                                         {$_base_price = ($_active_sku["price"]/$_active_sku["stock_base_ratio"])}
-                                                        {$_base_price = $wa->shop->formatPrice($_base_price, ["unit" => $_base_unit["name_short"], "currency" => $_currency])}
+                                                        {$_base_price = $wa->shop->formatPrice($_base_price, ["unit" => $_base_unit["name_short"]|escape, "currency" => $_currency])}
 
                                                         <div class="wa-product-ratio-wrapper" data-ratio="{shop_number_format($_active_sku["stock_base_ratio"])}">
-                                                            <span class="js-stock-value">{$wa->shop->roundNumber($_item.quantity, 3, null, null)}</span>&nbsp;<span>{$_stock_unit["name_short"]}</span>
+                                                            <span class="js-stock-value">{$wa->shop->roundNumber($_item.quantity, 3, null, null)}</span>&nbsp;<span>{$_stock_unit["name_short"]|escape}</span>
                                                             <span>&nbsp;=&nbsp;</span>
-                                                            <span class="js-base-value">{$wa->shop->roundNumber($_item.quantity * $_active_sku["stock_base_ratio"], 3, null, null)}</span>&nbsp;<span>{$_base_unit["name_short"]}</span>
+                                                            <span class="js-base-value">{$wa->shop->roundNumber($_item.quantity * $_active_sku["stock_base_ratio"], 3, null, null)}</span>&nbsp;<span>{$_base_unit["name_short"]|escape}</span>
                                                         </div>
                                                         <div class="wa-product-price">{$_stock_price}</div>
                                                         <div class="wa-product-base-price">{$_base_price}</div>
 
                                                     {elseif $fractional_config["stock_units_enabled"] && !empty($formatted_units) && !empty($formatted_units[$_item.product["stock_unit_id"]])}
                                                         {$_stock_unit = $formatted_units[$_item.product["stock_unit_id"]]}
-                                                        {$_stock_price = $wa->shop->formatPrice($_active_sku["price"], ["unit" => $_stock_unit["name_short"], "currency" => $_currency])}
+                                                        {$_stock_price = $wa->shop->formatPrice($_active_sku["price"], ["unit" => $_stock_unit["name_short"]|escape, "currency" => $_currency])}
                                                         <div class="wa-product-price">{$_stock_price}</div>
                                                     {else}
                                                         <div class="wa-product-price">

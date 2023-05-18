@@ -118,6 +118,11 @@ ul.menu-v.dropdown > li.is-opened > ul { display: block }
     .content.content-mobile-friendly {
         width: calc(100vw - 3rem);
     }
+
+    #reportscontent { --padding-container-width: 32px !important; --main-sidebar-width: 0px; }
+    #reportscontent .graph-wrapper { min-height: 150px; }
+    .s-report-sales h1 .hint { display: block; font-size: 75%; }
+    .s-report-sales .s-report-sales-csv-download { margin-top: 0.5rem; }
 }
 
 /* ORDERS
@@ -745,6 +750,8 @@ body.is-scroll-locked { overflow: hidden; }
 /* REPORTS
 ---------- */
 
+#reportscontent { --padding-container-width: 64px; }
+
 .graph-wrapper { min-height: 250px; position: relative;}
 
 ul.menu-h.s-reports li.selected a { background: #fff; }
@@ -1163,6 +1170,7 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 .ui-datepicker.ui-widget-content .ui-datepicker-next { background-color: var(--background-color-input); right: 7px; top: 5px; width: 1.75em; height: 1.75em; border-radius: 3px; }
 .ui-datepicker.ui-widget-content .ui-datepicker-prev { left: 7px; }
 .ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year { width: 45%; }
+.ui-datepicker .ui-datepicker-calendar .ui-state-disabled, .ui-datepicker .ui-corner-all.ui-state-disabled { cursor: no-drop; opacity: 0.5; }
 
 .state-with-inner-icon input.s-datepicker { width: 8.1em; }
 input.s-datepicker { width: 6.1em; }

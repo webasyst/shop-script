@@ -1,8 +1,8 @@
 {include "./sales_sidebar.html" has_stacked_chart=true inline}
 
-<div class="content">
-        <div class="flexbox middle full-width custom-mb-12">
-            <h1 class="custom-mb-0">
+<div class="content s-report-sales">
+        <div class="flexbox middle full-width custom-mb-12 wrap-mobile space-8">
+            <h1 class="custom-mb-0 h2-mobile">
                 {if $filter}
                     <a href="javascript:void(0)" class="back s-reset-filter" id="s-reset-filter">&larr; <span class="s-back-title"></span></a>
                     <span class="s-header-title">{$filter_title|default:''|escape}</span>
@@ -19,21 +19,21 @@
                 <span class="hint" id="period-description">[`Custom range`]</span>
             </h1>
 
-                {if $abtests}
-                    <div class="flexbox middle space-16">
-                        <i class="fas fa-columns"></i>
-                        <span class="highlighted">[`A/B tests results available`]</span>
-                        <div class="wa-select">
-                            <select id="s-sales-abtest-selector">
-                                <option value="">[`Select test`]</option>
-                                {foreach $abtests as $id => $name}
-                                    <option value="{$id}"{if ifset($request_options.abtest) == $id} selected{/if}>{$name|escape}</option>
-                                {/foreach}
-                            </select>
-                        </div>
+            {if $abtests}
+                <div class="flexbox middle space-16">
+                    <i class="fas fa-columns"></i>
+                    <span class="highlighted">[`A/B tests results available`]</span>
+                    <div class="wa-select">
+                        <select id="s-sales-abtest-selector">
+                            <option value="">[`Select test`]</option>
+                            {foreach $abtests as $id => $name}
+                                <option value="{$id}"{if ifset($request_options.abtest) == $id} selected{/if}>{$name|escape}</option>
+                            {/foreach}
+                        </select>
                     </div>
-                {/if}
-                <a href="?module=reports&action=exportsales&{http_build_query($request_options)}" class="button small nowrap"><i class="fas fa-file-csv"></i> [`Download chart data in CSV`]</a>
+                </div>
+            {/if}
+            <a href="?module=reports&action=exportsales&{http_build_query($request_options)}" class="button light-gray small nowrap s-report-sales-csv-download"><i class="fas fa-file-csv text-blue"></i> [`Download chart data in CSV`]</a>
         </div>
 
         {if $details_graph_data}

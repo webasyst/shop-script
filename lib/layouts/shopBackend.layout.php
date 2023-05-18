@@ -24,20 +24,35 @@ class shopBackendLayout extends waLayout
             $tutorial_progress = shopTutorialActions::getTutorialProgress();
         }
 
-        $contact_settings_model = new waContactSettingsModel();
-        $sidebar_menu_state = $contact_settings_model->getOne(wa()->getUser()->getId(), 'shop', 'sidebar_menu_state');
+        $sidebar_menu_state = (int) wa()->getUser()->getSettings('shop', 'sidebar_menu_state', 1);
 
         $order_model = new shopOrderModel();
         $this->view->assign(array(
-            'page'              => $this->getPage(),
-            'frontend_url'      => wa()->getRouteUrl('shop/frontend'),
-            'backend_menu'      => $this->backendMenuEvent(),
-            'new_orders_count'  => $order_model->getStateCounters('new'),
-            'tutorial_progress' => $tutorial_progress,
-            'tutorial_visible'  => $tutorial_visible,
-            'embedded_version'  => $this->embedded_version,
-            'sidebar_menu_state' => $sidebar_menu_state === null ? 1 : (int)$sidebar_menu_state,
+            'page'               => $this->getPage(),
+            'frontend_url'       => wa()->getRouteUrl('shop/frontend'),
+            'backend_menu'       => $this->backendMenuEvent(),
+            'new_orders_count'   => $order_model->getStateCounters('new'),
+            'tutorial_progress'  => $tutorial_progress,
+            'tutorial_visible'   => $tutorial_visible,
+            'embedded_version'   => $this->embedded_version,
+            'sidebar_menu_state' => $sidebar_menu_state,
+            'show_mobile_ad'     => $this->shouldShowMobileAd(),
         ));
+    }
+
+    protected function shouldShowMobileAd()
+    {
+        $hide_mobile_ad_till = wa()->getUser()->getSettings('shop', 'hide_mobile_ad_till', null);
+        if ($hide_mobile_ad_till && strtotime($hide_mobile_ad_till) > time()) {
+            return false;
+        }
+
+        $api_tokens_model = new waApiTokensModel();
+        $count = $api_tokens_model->countByField([
+            'client_id' => ['com.webasyst.shopscript', 'com.webasyst.shopscript.android'],
+        ]);
+
+        return $count <= 0;
     }
 
     // Layout is slightly different for different modules.

@@ -439,16 +439,17 @@
                     props: ["modelValue", "readonly", "disabled", "field_class"],
                     emits: ["update:modelValue", "change", "focus"],
                     data: function() {
-                        var self = this;
+                        let start_value = null;
 
-                        if (self.modelValue) {
-                            self.$emit("update:modelValue", self.modelValue.toLowerCase());
+                        if (this.modelValue) {
+                            start_value = this.modelValue.toLowerCase();
+                            this.$emit("update:modelValue", start_value);
                         }
 
                         return {
                             is_ready: true,
                             extended: false,
-                            start_value: self.modelValue
+                            start_value
                         };
                     },
                     template: that.components["component-color-picker"],
@@ -456,16 +457,12 @@
                     computed: {
                         prop_readonly() { return (typeof this.readonly === "boolean" ? this.readonly : false) },
                         prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false) },
-                        is_changed: function() {
-                            var self = this;
-                            return (self.start_value !== self.modelValue);
-                        }
+                        is_changed: function() { return (this.start_value !== this.modelValue); }
                     },
                     methods: {
                         onFocus: function() {
-                            var self = this;
-                            if (!self.extended) {
-                                self.toggle(true);
+                            if (!this.extended) {
+                                this.toggle(true);
                             }
                         },
                         onInput: function(e) {
@@ -473,56 +470,51 @@
                             this.setColor();
                         },
                         onChange: function(e) {
-                            this.change(e.target.value);
+                            this.change();
                         },
                         toggle: function(show) {
-                            var self = this;
+                            if (this.prop_readonly || this.prop_disabled) { return false; }
 
-                            if (self.prop_readonly || self.prop_disabled) { return false; }
-
-                            show = (typeof show === "boolean" ? show : !self.extended);
-                            self.extended = show;
+                            show = (typeof show === "boolean" ? show : !this.extended);
+                            this.extended = show;
 
                             if (show) {
-                                self.$document.on("mousedown", self.watchOff);
-                                self.setColor();
-                                self.$emit("focus");
+                                this.$document.on("mousedown", this.watchOff);
+                                this.setColor();
+                                this.$emit("focus");
 
                             } else {
-                                self.$document.off("mousedown", self.watchOff);
-                                self.change();
+                                this.$document.off("mousedown", this.watchOff);
+                                this.change();
                             }
                         },
                         setColor: function() {
-                            var self = this,
-                                color = (self.modelValue ? self.modelValue : "#000000");
+                            var color = (this.modelValue ? this.modelValue : "#000000");
 
-                            self.is_ready = false;
-                            self.farbtastic.setColor(color);
-                            self.is_ready = true;
+                            this.is_ready = false;
+                            this.farbtastic.setColor(color);
+                            this.is_ready = true;
                         },
                         watchOff: function(event) {
-                            var self = this,
-                                is_target = self.$wrapper[0].contains(event.target);
+                            var is_target = this.$wrapper[0].contains(event.target);
                             if (!is_target) {
-                                if (self.extended) { self.toggle(false); }
-                                self.$document.off("mousedown", self.watchOff);
+                                if (this.extended) { this.toggle(false); }
+                                this.$document.off("mousedown", this.watchOff);
                             }
                         },
-                        change: function(value) {
-                            var self = this;
-                            if (self.is_changed) {
-                                self.$emit("update:modelValue", value);
+                        change: function() {
+                            if (this.is_changed) {
+                                this.$emit('change', this.modelValue);
                             }
                         }
                     },
                     mounted: function() {
-                        var self = this;
+                        const self = this;
 
                         self.$document = $(document);
                         self.$wrapper = $(self.$el);
 
-                        var $picker = self.$wrapper.find(".js-color-picker");
+                        const $picker = self.$wrapper.find(".js-color-picker");
 
                         self.farbtastic = $.farbtastic($picker, onChangeColor);
 

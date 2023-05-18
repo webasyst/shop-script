@@ -93,25 +93,38 @@
         </ul>
     </div>
 
-    {if !empty($couriers) && $wa->user()->getRights('shop', 'orders') != shopRightConfig::RIGHT_ORDERS_COURIER}
+    {if (!empty($couriers) || !empty($contacts_as_courier)) && $wa->user()->getRights('shop', 'orders') != shopRightConfig::RIGHT_ORDERS_COURIER}
         <div class="block">
             <h5 class="heading collapse-handler">
                 [`Couriers`]
             </h5>
             <ul class="menu-v collapsible with-icons">
-                {foreach $couriers as $courier}
-                    <li data-courier-id="{$courier.id|escape}" class="list">
-                        <span class="count">{$courier.count}</span>
-                        <a href="#/orders/search/params.courier_id={$courier.id}/">
-                            {if $courier.contact_id}
-                                <i class="icon16 userpic20" style="background-image: url({waContact::getPhotoUrl($courier.contact_id, $courier.photo, 40)})"></i>
-                            {else}
-                                <i class="icon16 ss courier"></i>
-                            {/if}
-                            {$courier.name|escape}
-                        </a>
-                    </li>
-                {/foreach}
+                {if !empty($couriers)}
+                    {foreach $couriers as $courier}
+                        <li data-courier-id="{$courier.id|escape}" class="list">
+                            <span class="count">{$courier.count}</span>
+                            <a href="#/orders/hash={'search/&params.courier_id='|urlencode|cat:$courier.id}">
+                                {if $courier.contact_id}
+                                    <i class="icon16 userpic20" style="background-image: url({waContact::getPhotoUrl($courier.contact_id, $courier.photo, 40)})"></i>
+                                {else}
+                                    <i class="icon16 ss courier"></i>
+                                {/if}
+                                {$courier.name|escape}
+                            </a>
+                        </li>
+                    {/foreach}
+                {/if}
+                {if !empty($contacts_as_courier)}
+                    {foreach $contacts_as_courier as $courier}
+                        <li class="list">
+                            <span class="count">{$courier.count}</span>
+                            <a href="#/orders/courier_contact_id={$courier.id}/">
+                                <i class="icon16 userpic20" style="background-image: url({waContact::getPhotoUrl($courier.id, $courier.photo, 40)})"></i>
+                                {$courier.name|escape}
+                            </a>
+                        </li>
+                    {/foreach}
+                {/if}
             </ul>
         </div>
     {/if}

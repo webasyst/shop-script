@@ -34,7 +34,8 @@ var Kanban = (($) => {
             $.getJSON(this.buildLoadListUrl(this.lastOrderId))
                 .done(response => {
                     if (response.data.count) {
-                        response.data.orders.forEach(order => this.$listFooter.before(Column.orderTmpl(order)));
+                        response.data.orders.forEach(order => this.$listFooter.before(Column.getOrderHTML(order)));
+                        $("#s-orders [data-wa-tooltip-content]").waTooltip();
                     }
 
                     this.listLength = this.$list.find("[data-order-id]").length;
@@ -45,31 +46,17 @@ var Kanban = (($) => {
                 });
         }
 
-        static orderTmpl(order) {
-            return `<div data-order-id="${order.id}" class="order_ s-kanban__list__body__item custom-p-8 custom-mb-8 blank">
-                    <div class="flexbox">
-                        <div class="s-kanban-item-title custom-mr-8">
-                            <span class="userpic userpic48 ${(order.state_id == 'new') ? 'highlighted' : ''} bold" title="">
-                                <img src="${order.contact.photo_50x50}" alt="">
-                            </span>
-                        </div>
-                        <div class="flexbox vertical s-kanban-item-body wide">
-                            <p ${(order.style) ? 'style="' + order.style + '"' : ''} class="flexbox full-width custom-m-0">
-                                <a ${(order.style) ? 'style="' + order.style + '"' : ''} class="custom-mr-8" href="?action=orders#/order/${order.id}/">${order.id_str}</a>
-                                <span>${order.total_str}</span>
-                            </p>
-                            <p class="custom-m-0">${order.contact.name}</p>
-                            <p class="hint custom-m-0">${order.create_datetime_str}</p>
-                        </div>
-                    </div>
+        static getOrderHTML(order) {
+            const state = order.state_id;
+            const { name, options } = getStateById(state);
 
-
-                    <div class="flexbox vertical s-kanban-item-body wide">
-                        <a href="?action=orders#/order/${order.id}/"><i class="fas fa-truck"></i> ${order.shipping_name}</a>
-                        ${(order.courier_name) ? '<a href="?action=orders#/order/' + order.id + '/" class="custom-mb-8"><span class="gray">' + order.courier_name + order.shipping_interval + '</span></a>' : ''}
-                        <a href="?action=orders#/order/${order.id}/"><i class="fas fa-money-check-alt"></i> ${order.payment_name}</a>
-                    </div>
-                </div>`;
+            return tmpl('template-order-list-kanban-card', {
+                    order,
+                    state,
+                    state_name: name || '',
+                    state_color: (options ? options.style.color : '') || '',
+                }
+            );
         }
 
         buildLoadListUrl(id, lt, counters) {
@@ -92,13 +79,17 @@ var Kanban = (($) => {
 
     const changeStateName = ($order, new_state_id) => {
         // Need a more reliable way to get a status map
-        const state = $.order_list.options.state_names[new_state_id];
+        const state = getStateById(new_state_id);
         if (!state) return;
 
         const { name, options } = state;
-        $order.find('.js-state')
+        const $order_state = $order.find('.js-state')
             .text(name)
             .css('background', options.style.color);
+
+        if ($order_state.data('tooltip')) {
+            $order_state.data('tooltip').$wrapper._tippy.setContent(name);
+        }
     }
 
     const addSortable = (cols, sttr, locale) => {
@@ -269,6 +260,10 @@ var Kanban = (($) => {
             addLazyLoad($kanbanCols);
         });
     };
+
+    function getStateById(id) {
+        return $.order_list.options.state_names[id] || {};
+    }
 
     return { init };
 })(jQuery);

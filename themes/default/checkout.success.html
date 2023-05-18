@@ -7,8 +7,8 @@
 
     .checkout .checkout-result { margin: 100px 0; text-align: center; }
     .checkout .checkout-result a { text-decoration: none; }
-    .checkout .checkout-result .s-image-wrapper { margin: 0 0 20px; }
-    .checkout .checkout-result .s-image-wrapper img { vertical-align: top; width: 100%; max-height: 160px; }
+    .checkout .checkout-result .s-image-wrapper { margin: 0 0 20px; display: inline-flex; width: 180px; height: 180px; border-radius: 50%; background-color: #e3e3e3; }
+    .checkout .checkout-result .s-image-wrapper svg { width: 100%; max-height: 105px; color: #fff; align-self: center; margin-bottom: 1rem; }
     .checkout .checkout-result .s-header { margin: 0; font-size: 36px; line-height: 1.472222222222222em; font-weight: bold; color: #000; }
     .checkout .checkout-result .s-description { margin: 20px 0 0; }
     .checkout .checkout-result .s-plugin-wrapper { margin: 30px 0 0; }
@@ -17,7 +17,7 @@
 
 <div class="checkout-result success">
     <div class="s-image-wrapper">
-        <img src="{$wa_theme_url}img/svg/order/cart_success.svg" alt="[`Your shopping cart is empty.`]">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path fill="currentColor" d="M313.4 32.9c26 5.2 42.9 30.5 37.7 56.5l-2.3 11.4c-5.3 26.7-15.1 52.1-28.8 75.2H464c26.5 0 48 21.5 48 48c0 18.5-10.5 34.6-25.9 42.6C497 275.4 504 288.9 504 304c0 23.4-16.8 42.9-38.9 47.1c4.4 7.3 6.9 15.8 6.9 24.9c0 21.3-13.9 39.4-33.1 45.6c.7 3.3 1.1 6.8 1.1 10.4c0 26.5-21.5 48-48 48H294.5c-19 0-37.5-5.6-53.3-16.1l-38.5-25.7C176 420.4 160 390.4 160 358.3V320 272 247.1c0-29.2 13.3-56.7 36-75l7.4-5.9c26.5-21.2 44.6-51 51.2-84.2l2.3-11.4c5.2-26 30.5-42.9 56.5-37.7zM32 192H96c17.7 0 32 14.3 32 32V448c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32V224c0-17.7 14.3-32 32-32z"/></svg>
     </div>
 
     <h1 class="s-header">
@@ -32,7 +32,7 @@
         {/if}
     </h1>
 
-    <div class="s-description">
+    <p class="s-description">
         {if !empty($payment_success) && !empty($theme_settings["checkout_payment_success_description"])}
             {$theme_settings["checkout_payment_success_description"]}
 
@@ -42,7 +42,7 @@
         {else}
             [`We successfully accepted your order, and will contact you asap.`] [`Your order number is `] <a href="{$wa->getUrl('shop/frontend/myOrder', ['id' => $order._id])}">{$order.id}</a>.
         {/if}
-    </div>
+    </p>
 
     {if !empty($payment)}
         <div class="s-plugin-wrapper">{$payment}</div>

@@ -866,4 +866,21 @@ SQL;
         }
         return (float)$this->query($sql, array('cid' => $contact_id))->fetchField();
     }
+
+    public function getOrderCounts(&$couriers)
+    {
+        if (!$couriers) {
+            return;
+        }
+        $sql = "SELECT courier_contact_id, count(*) `order_count`
+                FROM {$this->getTableName()}
+                WHERE courier_contact_id IN (?)
+                    AND state_id NOT IN ('completed', 'refunded', 'deleted')
+                GROUP BY courier_contact_id";
+        $counts = $this->query($sql, array(array_keys($couriers)))->fetchAll('courier_contact_id', true);
+        foreach($couriers as &$c) {
+            $c['count'] = ifset($counts[$c['id']], 0);
+        }
+        unset($c);
+    }
 }

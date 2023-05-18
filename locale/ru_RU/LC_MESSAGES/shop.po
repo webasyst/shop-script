@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.3\n"
+"X-Generator: Poedit 3.1.1\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -13056,3 +13056,9 @@ msgstr "Для списков не поддерживается вложенно
 
 msgid "Unknown list type: %s."
 msgstr "Неизвестный тип списка: %s."
+
+msgid "Mobile app"
+msgstr "Приложение"
+
+msgid "Install Webasyst Shop-Script mobile app on your phone today:"
+msgstr "Установите Webasyst Shop-Script на свой телефон:"

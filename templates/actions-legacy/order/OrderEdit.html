@@ -305,7 +305,7 @@
                                value="{$product.item.quantity|default:1|floatval}"
                                class="s-orders-quantity short numerical js-quantity-field">
                         {if !empty($_stock_unit)}
-                            <span class="s-unit">{$_stock_unit["name_short"]}</span>
+                            <span class="s-unit">{$_stock_unit["name_short"]|escape}</span>
                         {/if}
                     </div>
                 </div>
@@ -315,14 +315,14 @@
                             <span class="s-label">[`Step`]=</span>
                             <span class="s-value">{$product["order_multiplicity_factor"]|default:1|floatval}</span>
                             {if !empty($_stock_unit)}
-                                <span class="s-unit">{$_stock_unit["name_short"]}</span>
+                                <span class="s-unit">{$_stock_unit["name_short"]|escape}</span>
                             {/if}
                         </div>
                         <div class="s-min js-order_count_min">
                             <span class="s-label">[`Min.`]=</span>
                             <span class="s-value js-value">{$_order_count_min|floatval}</span>
                             {if !empty($_stock_unit)}
-                                <span class="s-unit">{$_stock_unit["name_short"]}</span>
+                                <span class="s-unit">{$_stock_unit["name_short"]|escape}</span>
                             {/if}
                         </div>
                     </div>

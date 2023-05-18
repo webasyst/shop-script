@@ -250,21 +250,20 @@
             }
 
             if (options.sort && options.sort[0]) {
-                options.sort[0] = '' + options.sort[0];
-                var available_sort_values = $('.js-orders-sort .s-sort').map(function () {
-                    var sort = $(this).data('sort') || '';
-                    return sort ? sort : false;
-                }).toArray();
-                if (available_sort_values.indexOf(options.sort[0]) < 0) {
-                    options.sort[0] = available_sort_values[0];
-                }
-                options.sort[1] = (options.sort[1] || '');
-                options.sort[1] = options.sort[1].toLowerCase() === 'desc' ? 'desc' : 'asc';
-                this.sort = options.sort;
-            }
+                $(document).on('wa_orders_nav_teleport_done', () => {
+                    options.sort[0] = '' + options.sort[0];
+                    var available_sort_values = $('.js-orders-sort .s-sort').map(function () {
+                        var sort = $(this).data('sort') || '';
+                        return sort ? sort : false;
+                    }).toArray();
 
-            if (options.total_processing) {
-                this.updateTotalProcessing(options.total_processing);
+                    if (available_sort_values.indexOf(options.sort[0]) < 0) {
+                        options.sort[0] = available_sort_values[0];
+                    }
+                    options.sort[1] = (options.sort[1] || '');
+                    options.sort[1] = options.sort[1].toLowerCase() === 'desc' ? 'desc' : 'asc';
+                    this.sort = options.sort;
+                })
             }
 
             // if opened order/{id}/
@@ -279,6 +278,10 @@
                 this.selectionMenuTeleport();
 
                 $.orders.$nav.trigger('wa_init_orders_nav', [options.view]);
+            }
+
+            if (options.total_processing) {
+                this.updateTotalProcessing(options.total_processing);
             }
 
             this.initView();
@@ -1223,9 +1226,10 @@
                     sidebar = $('#s-sidebar');
                 }
 
-                this.updateTotalProcessing(counters.total_processing);
+                if (counters.total_processing) {
+                    this.updateTotalProcessing(counters.total_processing);
+                }
 
-                var ext_new_counter = $('#s-pending-orders .small');
                 for (var name in counters) {
                     if (counters.hasOwnProperty(name)) {
                         var cntrs = counters[name];
@@ -1256,7 +1260,6 @@
                                     item.text(cnt);
                                 }
                                 if (id == 'new') {
-                                    ext_new_counter.text(cnt ? '+' + cnt : '');
                                     $.shop.updateAppCounter(cnt);
                                     this.updateTitle(this.options.title_suffix, parseInt(cnt, 10));
                                 }
@@ -1294,7 +1297,9 @@
         },
 
         updateTotalProcessing: function(total) {
-            $('.js-total_processing-orders').html(total);
+            if (!total) return;
+
+            $('.js-total_processing-orders').html(total.replace(',', '.'));
         },
 
         hideListItems: function (id) {
@@ -1387,6 +1392,14 @@
          * @returns {String}
          */
         buildLoadListUrl: function (id, lt, counters, order_update_datetime = null) {
+
+            if (order_update_datetime && this.filter_params_str && this.filter_params_str.includes('hash')) {
+                this.filter_params_str = this.filter_params_str + encodeURIComponent(`&update_datetime>=${order_update_datetime}`);
+                order_update_datetime = null;
+            }
+
+            console.log(this.sort)
+
             return '?module=orders&action=loadList&id=' + id +
                 (this.filter_params_str ? '&' + this.filter_params_str : '') +
                 (lt ? '&lt=1' : '') +
@@ -1421,7 +1434,11 @@
                     const formattedDate = updatedDatetime(options.last_update_datetime);
 
                     if (self.options?.view && self.options.view === 'kanban') {
-                        id = parseInt($('#order-list').find('[data-order-id]').length, 10) || 0;
+                        id = 0;
+                        const order_ids = Array.from(document.querySelectorAll('#order-list [data-order-id]')).map(div => div.getAttribute('data-order-id'));
+                        if (order_ids.length) {
+                            id = Math.max(...order_ids);
+                        }
                     }
 
                     return $.getJSON(self.buildLoadListUrl(id, true, true, formattedDate),
@@ -1439,6 +1456,7 @@
                                         if (self.options.view === 'kanban') {
                                             const $kanban_first_column = self.container.find('[data-kanban-list-status-id="new"]');
                                             if ($kanban_first_column.length) {
+                                                r.data.orders.reverse();
                                                 r.data.orders.forEach(order => $kanban_first_column.prepend(tmpl('template-order-list-kanban-card', {
                                                     order,
                                                     state: 'new',
@@ -1657,6 +1675,8 @@
                     $('#s-content').before($ordersNav)
                     $.orders.initDropdown();
                 }
+
+                $(document).trigger('wa_orders_nav_teleport_done')
             }
         },
 
