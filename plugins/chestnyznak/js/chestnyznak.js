@@ -2,10 +2,13 @@ var ShopChestnyznakPlugin = ( function($) {
 
     var ShopChestnyznakPlugin = function(options) {
         var that = this;
-
         // DOM
         that.$dialog = options.$dialog;
-        that.$form = options.$form;
+        if (options.$form.length) {
+            that.$form = options.$form;
+        }else{
+            that.$form = options.$dialog.find('form');
+        }
 
         // dialog's controller - for init plugin
         that.controller = options.controller;

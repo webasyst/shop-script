@@ -23,6 +23,10 @@
         background: rgba(123, 123, 123, 0.1);
         border-color: rgba(123, 123, 123, 0.1);
     }
+
+    .is-wa2 #plugins-settings-form .field > .value:not(:first-child) {
+        display: block;
+    }
 </style>
 
 <script type="text/javascript">
@@ -80,7 +84,7 @@
         };
 
         var toggleBlock = function (input) {
-            var is_checked = input.attr("checked"),
+            var is_checked = input.prop("checked"),
                     block = input.closest(".value"),
                     activeClass = "is-active";
 

@@ -92,7 +92,7 @@ class shopRedirectPlugin extends shopPlugin
     <td>%s</td>
     <td>&rarr;</td>
     <td>%s</td>
-    <td><a href="#/redirect/delete/" class="inline-link js-action"><i class="icon16 delete"></i></a></td>
+    <td><a href="#/redirect/delete/" class="inline-link js-action"><i class="icon16 delete fas fa-trash-alt text-red"></i></a></td>
 </tr>
 HTML;
 
@@ -110,7 +110,7 @@ HTML;
         $control .= "<tfoot>";
         $control_row = <<<HTML
 <tr>
-    <td colspan="6"><a href="#/redirect/add/" class="inline-link js-action"><i class="icon16 add"></i> %s</a></td>
+    <td colspan="6"><a href="#/redirect/add/" class="inline-link js-action"><i class="icon16 add fas fa-plus-circle text-green"></i> %s</a></td>
 </tr>
 HTML;
 
@@ -173,23 +173,36 @@ HTML;
                 )
             ));
 
-            $control .= sprintf($template, '<i class="icon16 sort"></i>', $regex, $pattern, $replacement);
+            $control .= sprintf($template, '<span class="js-sort"><i class="icon16 sort fas fa-grip-vertical"></i></span>', $regex, $pattern, $replacement);
         }
         $control .= "</tbody>";
 
 
         $control .= "</table><script type='text/javascript'>";
-        $control .= <<<JS
-$('table.zebra ').sortable({
-                distance: 5,
-                opacity: 0.75,
-                items: '>tbody>tr',
-                axis: 'y',
-                containment: 'parent',
-                handle:'i.sort',
-                tolerance: 'pointer'
-            });
+
+if (wa()->whichUI() === '1.3') {
+$control .= <<<JS
+    $('table.zebra ').sortable({
+        distance: 5,
+        opacity: 0.75,
+        items: '>tbody>tr',
+        axis: 'y',
+        containment: 'parent',
+        handle:'.js-sort',
+        tolerance: 'pointer'
+    });
 JS;
+} else {
+$control .= <<<JS
+    Sortable.create($('table.zebra tbody')[0], {
+        handle: '.js-sort',
+        draggable: 'tr',
+        animation: 100,
+        removeCloneOnHide: true
+    });
+JS;
+}
+
         $control .= '</script>';
 
         return $control;

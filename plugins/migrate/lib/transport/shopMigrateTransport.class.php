@@ -559,18 +559,18 @@ abstract class shopMigrateTransport implements Serializable
                     if (!isset($properties['class'])) {
                         $properties['class'] = array();
                     }
-                    $properties['class'] = array_merge((array)$properties['class'], array('error'));
+                    $properties['class'] = array_merge((array)$properties['class'], array('error', 'state-error'));
                     if (!isset($properties['description'])) {
-                        $properties['description'] = '</span><span class="errormsg">';
+                        $properties['description'] = '</span><span class="errormsg flexbox state-error-hint">';
                     } else {
-                        $properties['description'] .= '</span><span class="errormsg">';
+                        $properties['description'] .= '</span><span class="errormsg flexbox state-error-hint">';
                     }
                     $properties['description'] .= $errors[$field];
                 } elseif (!empty($properties['valid']) && !isset($properties['control_wrapper'])) {
                     $properties['control_wrapper'] = '
 <div class="field">
 %s
-<div class="value no-shift">%s&nbsp;<i class="icon16 yes"></i>%s</div>
+<div class="value no-shift">%s&nbsp;<i class="icon16 yes fas fa-check-circle"></i>%s</div>
 </div>';
                 }
                 if (!empty($properties['cache'])) {

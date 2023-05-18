@@ -134,8 +134,8 @@ class shopMigratePluginBackendRunController extends waLongActionController
 
     protected function report()
     {
-        $report = '<div class="successmsg">';
-        $report .= sprintf('<i class="icon16 yes"></i>%s ', _wp('Successfully imported'));
+        $report = '<div class="successmsg state-success-hint">';
+        $report .= sprintf('<i class="icon16 yes fas fa-check-circle text-green"></i>%s ', _wp('Successfully imported'));
         $chunks = array();
         foreach ($this->data['current'] as $stage => $current) {
             if ($current) {

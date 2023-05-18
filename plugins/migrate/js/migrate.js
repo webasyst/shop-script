@@ -16,7 +16,7 @@
             $container.find('.plugin-migrate-transport-description:visible').hide();
             $.importexport.plugins.migrate.validate = false;
             $("#plugin-migrate-transport-" + $(this).val()).show();
-            $("#plugin-migrate-transport-fields").html($_('Loading...') + '<i class="icon16 loading"></i>').load("?plugin=migrate&action=transport", {
+            $("#plugin-migrate-transport-fields").removeClass('hidden').html($_('Loading...') + '<i class="icon16 loading"></i>').load("?plugin=migrate&action=transport", {
                 'transport': $(this).val()
             }, function () {
                 $("#plugin-migrate-submit").show();

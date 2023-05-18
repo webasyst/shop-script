@@ -1,27 +1,34 @@
+<style>
+    #wa-plugins-container .content { background-color: var(--background-color); }
+    #wa-plugins-container .fields-group { background-color: var(--background-color-blank); }
+</style>
+
 <h1>[`Brands`]</h1>
 <div class="fields form">
     <form action="?module=plugins&id=brands&action=save" method="post" id="plugins-settings-form">
     {$wa->csrf()}
 
-    <div class="field">
-        <div class="name">
-            [`Brand feature`]
-        </div>
-        <div class="value">
-            <select name="shop_brands[feature_id]">
-                {foreach $features as $f}
-                <option {if $f.id == $feature_id}selected="true"{/if} value="{$f.id}">{$f.name}</option>
-                {/foreach}
-            </select>
-            <p class="hint">[`Select the feature you want products to be filtered by`]</p>
+    <div class="fields-group custom-mt-16">
+        <div class="field">
+            <div class="name">
+                [`Brand feature`]
+            </div>
+            <div class="value">
+                <select name="shop_brands[feature_id]">
+                    {foreach $features as $f}
+                    <option {if $f.id == $feature_id}selected="true"{/if} value="{$f.id}">{$f.name}</option>
+                    {/foreach}
+                </select>
+                <p class="hint">[`Select the feature you want products to be filtered by`]</p>
+            </div>
         </div>
     </div>
     <div class="field">
         <div class="value submit">
-            <input type="submit" class="button green" value="[`Save`]">
-            <span id="plugins-settings-form-status" style="display:none">
-                <i style="vertical-align:middle" class="icon16 yes"></i> [`Saved`]
-            </span>
+            <div class="custom-pl-16">
+                <input type="submit" class="button green" value="[`Save`]">
+                <span id="plugins-settings-form-status" style="display:none">[`Saved`]</span>
+            </div>
         </div>
     </div>
     </form>

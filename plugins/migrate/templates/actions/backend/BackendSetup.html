@@ -1,9 +1,9 @@
-<div class="block double-padded" id="s-migrate-form">
+<div class="block double-padded custom-mt-32" id="s-migrate-form">
    <p>[`Transfer data from third-party ecommerce platforms and sources to Shop-Script.`]</p>
    <form id="s-plugin-migrate" method="post" action="?plugin=migrate&action=run">
     <div class="fields form">
-        <h6 class="heading">[`Source`]</h6>
-        <div class="field-group" id="plugin-migrate-transport-group">
+        <h6 class="heading custom-ml-4">[`Source`]</h6>
+        <div class="field-group custom-mt-0" id="plugin-migrate-transport-group">
             <div class="field">
                 <div class="name"><label for="plugin-migrate-transport">[`Platform`]</label></div>
                 <div class="value no-shift">
@@ -32,7 +32,7 @@
             </div>
         </div>
 
-        <div class="field-group" id="plugin-migrate-transport-fields">
+        <div class="field-group hidden" id="plugin-migrate-transport-fields">
         </div>
 
         <div class="clear-left"></div>
@@ -55,8 +55,8 @@
                         <span class="small italic">
                             [`Please do not close your browser window and do not leave this page until the entire migration process is finished.`]
                         </span>
-                    </div><br><br>
-                    <em class="errormsg"></em>
+                    </div><br><br class="hidden">
+                    <em class="errormsg state-error-hint"></em>
                 </div>
             </div>
         </div>
@@ -72,7 +72,7 @@
 <div class="clear"></div>
 <script type="text/javascript">
     $.wa.locale = $.extend($.wa.locale, {
-        'Loading...':'[`Loading...`]'}
+        'Loading...':'[`Loading...`] <i class="fas fa-spinner wa-animation-spin text-gray"></i>'}
     );
 {include file="../../../js/migrate.js"}
 </script>
