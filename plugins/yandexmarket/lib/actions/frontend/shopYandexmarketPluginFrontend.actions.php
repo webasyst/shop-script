@@ -14,6 +14,9 @@ class shopYandexmarketPluginFrontendActions extends waActions
         list($path, $profile_id) = $plugin->getInfoByHash(waRequest::param('hash'));
         if ($profile_id) {
             $profile = $profile_helper->getConfig($profile_id);
+            if (!empty($profile['id']) && $profile['id'] != $profile_id) {
+                $profile = null;
+            }
             if (empty($profile) || empty($profile['id'])) {
                 throw new waException('Profile not found', 404);
             }

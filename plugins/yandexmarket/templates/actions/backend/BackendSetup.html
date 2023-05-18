@@ -3,7 +3,7 @@
 <span class="icon baseline size-12 custom-mr-4 text-dark-gray"><i class="fas fa-info-circle"></i></span>
 {/capture}
 {assign var=currency_warning value=
-'<div class="alert warning">
+'<div class="alert small warning">
     <i class="fas fa-exclamation-triangle"></i>
     <strong>Экспортированные цены товаров могут отличаться от цен товаров на витрине</strong>
     <br><br>
@@ -19,17 +19,12 @@
 
 <div class="ymarket-setup-page ymarket-setup-page-wa-2" id="s-yandexmarket-form">
     <p>Экспорт каталога товаров в формате YML</p>
-    <div class="box">
-        <div>
-            <i class="fas fa-question-circle text-dark-gray"></i>&nbsp;
-            <a href="https://support.webasyst.ru/shop-script/276/shop-script-yandexmarket/" target="_blank" class="underline">
-                Документация пользователя&nbsp;
-                <i class="fas fa-external-link-alt fa-xs"></i>
-            </a>
-        </div>
-        <p class="custom-mt-12">
-            Для изменения дополнительных параметров экспорта перейдите в <a href="?action=plugins#/yandexmarket/" class="underline bold">настройки плагина</a>.
-        </p>
+    <div class="alert small custom-mt-24">
+        Для изменения дополнительных параметров экспорта перейдите в <a href="?action=plugins#/yandexmarket/" class="bold">настройки плагина</a>.
+        <a href="https://support.webasyst.ru/shop-script/276/shop-script-yandexmarket/" target="_blank" class="gray">
+            &nbsp;Документация пользователя
+            <i class="fas fa-external-link-alt fa-xs"></i>
+        </a>
     </div>
 {if $settlements}
     <form id="s-plugin-yandexmarket" method="post" action="?plugin=yandexmarket&module=run">

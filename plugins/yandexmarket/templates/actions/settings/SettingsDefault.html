@@ -1,11 +1,15 @@
 <div id="s-yandexmarket-plugin-settings" class="custom-mt-16">
 
+    <style>
+        #wa-plugins-container .content { background-color: var(--background-color); }
+        #wa-plugins-container .fields-group { background-color: var(--background-color-blank); }
+    </style>
+
     <h1>Яндекс.Маркет</h1>
 
-    <p>
-        <a href="https://support.webasyst.ru/shop-script/276/shop-script-yandexmarket/" target="_blank" class="inline"><i class="fas fa-question-circle text-dark-gray"></i>&nbsp;Документация пользователя&nbsp;<i class="fas fa-external-link-alt fa-xs"></i></a></i>
-        <br/><br/>
+    <p class="small">
         Экспорт данных в «Яндекс.Маркет» выполняется в разделе «<a href="?action=importexport#/yandexmarket:/" class="bold nowrap">Импорт/экспорт → Яндекс.Маркет</a>».
+        <a href="https://support.webasyst.ru/shop-script/276/shop-script-yandexmarket/" target="_blank" class="gray">Документация пользователя&nbsp;<i class="fas fa-external-link-alt fa-xs"></i></a>
     </p>
 
     <ul class="tabs custom-mb-16">
@@ -17,6 +21,7 @@
     <form class="tab-content" action="?module=plugins&id={$plugin_id}&action=save" method="post" id="plugins-settings-form" enctype="multipart/form-data"
           target="plugins-settings-iframe">
         <div class="tab-content fields form" data-tab="_main_">
+          <div class="fields-group">
             {foreach $settings_controls as $name => $control}
                 {if (strpos($name,'order_action_')===false) && (strpos($name,'api_')===false)}
                     <div class="field">
@@ -24,10 +29,11 @@
                     </div>
                 {/if}
             {/foreach}
-
+          </div>
         </div>
 
         <div class="tab-content fields form" data-tab="_api_" style="display:none;">
+          <div class="fields-group">
             {foreach $settings_controls as $name => $control}
                 {if strpos($name,'api_')===0}
                     <div class="field">
@@ -35,13 +41,16 @@
                     </div>
                 {/if}
             {/foreach}
+          </div>
         </div>
 
         <div class="tab-content fields form custom-mt-24" data-tab="_main_ _api_">
             <div class="field">
                 <div class="value submit">
-                    <input type="submit" class="button green" value="[s`Save`]">
-                    <span id="plugins-settings-form-status" style="display:none"><!-- message placeholder --></span>
+                    <div class="custom-pl-16">
+                        <input type="submit" class="button green" value="[s`Save`]">
+                        <span id="plugins-settings-form-status" style="display:none"><!-- message placeholder --></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -50,7 +59,9 @@
     <iframe style="display:none" name="plugins-settings-iframe" id="plugins-settings-iframe"></iframe>
 
     <div class="tab-content fields form" style="box-sizing: border-box;" data-tab="_campaigns_" data-url="?plugin=yandexmarket&module=settings&action=campaigns">
+      <div class="fields-group">
         {include file="./SettingsCampaigns.html"}
+      </div>
     </div>
 
 </div>
