@@ -133,6 +133,9 @@ msgstr "Загрузка..."
 msgid "Payment"
 msgstr "Оплата"
 
+msgid "All payment methods"
+msgstr "Все способы оплаты"
+
 msgid "Countries & Regions"
 msgstr "Страны и регионы"
 
@@ -261,6 +264,9 @@ msgstr "Настроить"
 
 msgid "Shipping methods"
 msgstr "Способы доставки"
+
+msgid "All shipping methods"
+msgstr "Все способы доставки"
 
 msgid "Configure the list of fields requested during the checkout."
 msgstr "Настройте список полей, запрашиваемых во время оформления заказа."
@@ -6447,6 +6453,9 @@ msgstr "Список категорий пуст."
 
 msgid "Couriers"
 msgstr "Курьеры"
+
+msgid "All couriers"
+msgstr "Все курьеры"
 
 msgid "Couriers are your teammates who are assigned to deliver orders to customers and to track and update order information on the go using <a href=\"http://www.shop-script.com/mobile/\" target=\"_blank\">Shop-Script mobile app</a>.<br><br> Unlike common backend users, couriers may not login to the main store backend and can only see orders they were assigned using the mobile app only. An order can be assigned to a courier upon the order SHIP action. <a href=\"https://www.shop-script.com/help/13421/shop-script-couriers/\" target=\"_blank\">Learn more about couriers</a>."
 msgstr "Курьеры &mdash; это ваши сотрудники, ответственные за доставку заказов клиентам, а также за отслеживание и обновление статусов заказов с помощью <a href=\"http://www.shop-script.ru/mobile/\" target=\"_blank\">мобильного приложения Shop-Script</a>.<br><br> В отличие от обычных пользователей бекенда, курьеры не могут входить в основную часть управления магазином, а могут лишь просматривать с помощью мобильного приложения те заказы, за доставку которых они отвечают. Заказ может быть назначен на курьера при выполнении действия ОТПРАВЛЕН. <a href=\"https://www.shop-script.ru/help/13420/shop-script-couriers/\" target=\"_blank\">Подробнее о курьерах</a>."

@@ -19,6 +19,8 @@
                 return true;
             };
 
+            $(document).trigger('shop_reports_init');
+
             const hash = window.location.hash;
             if (hash === '#/' || !hash) {
                 this.dispatch();
@@ -230,6 +232,10 @@
             hash = hash.replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
             var original_hash = this.hash
             this.hash = hash;
+
+            var e = new $.Event('wa_before_dispatched');
+            $(window).trigger(e);
+
             if (hash) {
                 hash = hash.split('/');
                 if (hash[0]) {

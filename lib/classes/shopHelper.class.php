@@ -1888,14 +1888,13 @@ SQL;
         $piece = shopUnitModel::getPc();
         $stock_unit = $piece['storefront_name'];
         $stock_unit_code = $piece['id'];
-        if (shopFrac::isEnabled()) {
+        if (shopUnits::isEnabled()) {
             $unit_model = new shopUnitModel();
             $item_ids = array_column($order_items, 'stock_unit_id');
             $stock_unit_names = $unit_model->getById($item_ids);
         }
 
         foreach ($order_items as $item) {
-
             if ($stock_unit_names) {
                 if (isset($stock_unit_names[$item['stock_unit_id']]['short_name'])) {
                     $stock_unit = $stock_unit_names[$item['stock_unit_id']]['short_name'];

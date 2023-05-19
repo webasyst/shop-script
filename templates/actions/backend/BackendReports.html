@@ -31,4 +31,9 @@
 <script src="{$wa_app_static_url}js/tmpl.min.js?v={$wa->version()}"></script>
 <script src="{$wa_app_static_url}js/lazy.load.js?v={$wa->version()}"></script>
 <script src="{$wa_app_static_url}js/reports.js?v={$wa->version()}"></script>
+
+<!-- plugin hook: 'backend_reports.html' -->
+{* @event backend_reports.%plugin_id%.html *}
+{if !empty($backend_reports)}{foreach $backend_reports as $_}{ifset($_, 'html', '')}{/foreach}{/if}
+
 <script> $.reports.init({ lang: '{$lang}', loading: '{$_spinner|strip}' }); </script>

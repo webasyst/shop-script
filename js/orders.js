@@ -273,11 +273,13 @@
         },
 
         initDropdown: function() {
+            const that = this;
             const highlightedButton = (dropdown) => {
                 dropdown.$button.css({
                     'background': 'var(--highlighted-blue)'
                 })
             };
+            const emptyHashSearch = (params) => params.every(param => !(param.includes('params.') || param.includes('state_id=')));
 
             $('.js-orders-dropdown').waDropdown({
                 hover: false,
@@ -293,6 +295,8 @@
                             .filter(Boolean);
 
                         if (params.length) {
+                            if (emptyHashSearch(params)) return false;
+
                             const $orders_links = dropdown.$menu.find('.js-orders-link');
 
                             if ($orders_links.length) {
@@ -322,10 +326,11 @@
                 },
                 change(event, target, dropdown) {
                     const $target = $(target);
-                    let hash = window.location.hash;
-                    let param = $target.data('param');
                     const search_hash = 'hash=search'
                     const sales_channels = ['params.storefront', 'params.sales_channel']
+                    let hash = window.location.hash;
+                    let param = $target.data('param');
+                    let param_is_clear = false;
 
                     // если хэш уже имеет замиксованные параметры и отсутствует явный параметр у выбранного фильтра
                     if (hash.includes(search_hash) && !param) {
@@ -353,11 +358,26 @@
                         // если среди параметров есть существующий, но с другим значением, то обновляем значение
                         const [_param, _value] = param.split('=');
                         const existed_param_key = params.findIndex(item => item.includes(_param));
-                        if (existed_param_key !== -1) {
-                            params[existed_param_key] = _param + '=' + _value
+                        param_is_clear = _param === 'all';
+                        if (param_is_clear) {
+                            const values = _value.split('|');
+
+                            values.forEach(val => {
+                                params.forEach((param, index) => {
+                                    if (param.startsWith(val)) {
+                                        params.splice(index, 1);
+                                    }
+                                });
+                            });
+
                         } else {
-                            params.push(param)
+                            if (existed_param_key !== -1) {
+                                params[existed_param_key] = _param + '=' + _value
+                            } else {
+                                params.push(param)
+                            }
                         }
+
                         let existed_courier_id = -1;
                         if (_param === 'courier_contact_id') {
                             existed_courier_id = params.findIndex(item => item.includes('params.courier_id'));
@@ -382,24 +402,38 @@
                             return channel_last_index;
                         }, null);
 
+                        if (param_is_clear) {
+                            that.clearFilter(dropdown.$wrapper);
+
+                            if (dropdown.$before) {
+                                dropdown.$before.parent().removeClass('selected');
+                            }
+
+                            if (emptyHashSearch(params)) {
+                                that.clearFilters();
+                            }
+                        } else {
+                            $('.js-remove-filters-link').toggleClass('hidden', false);
+
+                            $('.js-order-nav-brick').each(function () {
+                                $(this).removeClass('selected');
+                            });
+                        }
+
                         const encoded_params = encodeURIComponent(`/${params.join('&')}`);
 
                         hash = '/orders/' + search_hash.concat(encoded_params);
 
                         $.wa.setHash(hash);
 
-                        $('.js-remove-filters-link').toggleClass('hidden', false);
-
-                        highlightedButton(dropdown);
-
-                        $('.js-order-nav-brick').each(function () {
-                            $(this).removeClass('selected');
-                        });
                     } else {
                         location.replace($(target).attr('href'));
                     }
 
-                    dropdown.$button.html($(target).html());
+                    if (!param_is_clear) {
+                        highlightedButton(dropdown);
+                        dropdown.$button.html($(target).html());
+                    }
                 }
             });
 
@@ -418,16 +452,20 @@
             }
         },
 
+        clearFilter: function($dropdown) {
+            $btn = $dropdown
+                .find('.dropdown-toggle')
+                .removeAttr('style');
+
+            const text = $btn.data('text');
+            if (text) {
+                $btn.text(text);
+            }
+        },
+
         clearFilters: function() {
-            $('.js-orders-dropdown').find('.dropdown-toggle').each(function () {
-                const $btn = $(this);
-
-                $btn.removeAttr('style');
-
-                const text = $btn.data('text');
-                if (text) {
-                    $btn.text(text);
-                }
+            $('.js-orders-dropdown').each((i, dropdown) => {
+                this.clearFilter($(dropdown));
             });
 
             $('.js-remove-filters-link').addClass('hidden');

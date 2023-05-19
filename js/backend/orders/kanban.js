@@ -103,11 +103,12 @@ var Kanban = (($) => {
 
         var xhr = null;
 
+        let item_pos = -1;
+
         cols.each((i, list) => {
             Sortable.create(list, {
                 group: {
                     name: "statuses",
-                    pull: "clone",
                     put: true
                 },
                 animation: 150,
@@ -117,7 +118,7 @@ var Kanban = (($) => {
 
                 // Called on start of dragging. Asks server which columns given order_id can be moved into.
                 onStart: (evt) => {
-                    $(evt.clone).addClass('hidden')
+                    item_pos = $(evt.item).index();
                     const order_id = $(evt.item).data('order-id');
                     xhr = $.post('?module=orders&action=availableActions', { id: order_id }, 'json');
                 },
@@ -174,11 +175,11 @@ var Kanban = (($) => {
                     }).then((all_fine) => {
                         // Sortable is set up to put a copy of original order element in both columns.
                         // We have to delete one or the other depending on whether operation is successfull.
-                        if (all_fine) {
-                            $(evt.clone).remove(); // clone is in the initial column
-                        } else {
-                            $(evt.clone).removeClass('hidden');
-                            $(evt.item).remove(); // item is in the final column
+                        if (!all_fine) {
+                            const $item = $(evt.item).detach();
+                            const sibling = $(evt.from).children().get(item_pos);
+
+                            $item.insertBefore(sibling);
                         }
                     });
                 },

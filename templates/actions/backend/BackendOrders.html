@@ -181,6 +181,11 @@
                 <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Couriers`]">[`Couriers`]</button>
                 <div class="dropdown-body">
                     <ul class="menu">
+                        <li>
+                            <a href="javascript:void(0)" class="custom-pl-16" data-param="all=params.courier_id">
+                                <span>[`All couriers`]</span>
+                            </a>
+                        </li>
                         {if !empty($couriers)}
                             {foreach $couriers as $courier}
                                 <li>
@@ -221,6 +226,11 @@
                 <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Shipping`]">[`Shipping`]</button>
                 <div class="dropdown-body">
                     <ul class="menu">
+                        <li>
+                            <a href="javascript:void(0)" class="custom-pl-12" data-param="all=params.shipping_id">
+                                <span>[`All shipping methods`]</span>
+                            </a>
+                        </li>
                         {foreach $shipping as $s}
                             <li>
                                 <a href="javascript:void(0)" data-param="params.shipping_id={$s.id|escape}" class="js-orders-link">
@@ -247,6 +257,11 @@
                 <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Payment`]">[`Payment`]</button>
                 <div class="dropdown-body">
                     <ul class="menu">
+                        <li>
+                            <a href="javascript:void(0)" class="custom-pl-16" data-param="all=params.payment_id">
+                                <span>[`All payment methods`]</span>
+                            </a>
+                        </li>
                         {foreach $payments as $payment}
                             <li>
                                 <a href="javascript:void(0)" data-param="params.payment_id={$payment.id|escape}" class="js-orders-link">
@@ -275,16 +290,15 @@
 
             <div class="dropdown-body">
                 <ul class="menu">
+                    <li>
+                        <a href="javascript:void(0)" class="custom-pl-12" data-param="all=state_id">
+                            <span>[`All statuses`]</span>
+                        </a>
+                    </li>
+
                     <!-- plugin hook: 'backend_orders.sidebar_top_li' -->
                     {* @event backend_orders.%plugin_id%.sidebar_top_li *}
                     {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
-
-                    {*<li>
-                        <a href="#/orders/all/" class="js-orders-link" id="s-all-orders">
-                            <span class="count">{if !empty($all_count)}{$all_count}{else}0{/if}</span>
-                            <span class="label semibold">[`All statuses`]</span>
-                        </a>
-                    </li>*}
 
                     {foreach $states as $id => $state}
                         <li data-state-id="{$id}">
@@ -306,13 +320,11 @@
 
             <div class="dropdown-body">
                 <ul class="menu menus-storefronts-filter">
-
-                    {*<li>
-                        <a href="#/orders/all/" class="js-orders-link" id="s-all-orders">
-                            <span class="count">{if !empty($all_count)}{$all_count}{else}0{/if}</span>
-                            <span class="label semibold">[`All channels`]</span>
+                    <li>
+                        <a href="javascript:void(0)" class="custom-pl-16" data-param="all=params.storefront|params.sales_channel">
+                            <span>[`All channels`]</span>
                         </a>
-                    </li>*}
+                    </li>
 
                     {foreach $sales_channels as $channel_id => $channel}
                         {$channel_id_escaped = {$channel_id|escape}}
