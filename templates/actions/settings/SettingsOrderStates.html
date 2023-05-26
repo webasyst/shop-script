@@ -14,7 +14,7 @@
                     <a href="#/orderStates/{$id}/" style="{$s->getStyle()}">
                         {$state_icon = $s->getOption('icon')}
                         <span class="icon">
-                            <i class="{$wa->shop->convertIcon($state_icon, true)}"></i>
+                            <i class="{$wa->shop->convertIcon($state_icon)}"></i>
                         </span>
                         <span>{$s->getName()|escape}</span>
                         <span class="count js-sort-handle"><i class="fas fa-grip-vertical text-gray"></i></span>
@@ -151,11 +151,12 @@
                                     {$state_icon = str_replace('icon16 ss ', '', $info.options.icon)}
                                 {/if}
                                 {foreach $icons as $icon}
-                                <li class="custom-my-4 {if $icon == $state_icon}selected{/if}" data-icon="{$icon|escape}">
-                                    <a href="#" class="js-select-icon">
-                                        <i class="{$wa->shop->convertIcon("icon16 ss `$icon`", true)}"></i>
-                                    </a>
-                                </li>
+                                    {if strpos($icon, 'flag-') !== false && strpos($icon, 'flag-white') === false}{continue}{/if}
+                                    <li class="custom-my-4 {if $icon == $state_icon}selected{/if}" data-icon="{$icon|escape}">
+                                        <a href="#" class="js-select-icon">
+                                            <i class="{$wa->shop->convertIcon("icon16 ss `$icon`")}"></i>
+                                        </a>
+                                    </li>
                                 {/foreach}
                             </ul>
                         </div>
@@ -341,7 +342,7 @@
                                                     <ul class="chips custom-my-0">
                                                         {foreach $action_icons as $icon}
                                                         <li class="custom-my-4" data-icon="{$icon|escape}">
-                                                            <a href="#"><i class="{$wa->shop->convertIcon("icon16 `$icon`", true)}"></i></a>
+                                                            <a href="#"><i class="{$wa->shop->convertIcon("icon16 `$icon`")}"></i></a>
                                                         </li>
                                                         {/foreach}
                                                     </ul>

@@ -22,8 +22,9 @@
         .s-printable .s-order .workflow-actions,
         .s-printable .s-order .workflow-content,
         .s-printable .s-order .s-order-timeline,
-        .s-printable .s-order h1 .back { display: none; }
-        .s-printable .s-order h1 .hint { display: none; }
+        .s-printable .s-order h1 .back,
+        .s-printable .s-order h1 .hint,
+        .s-printable .s-order .map > a { display: none; }
         .s-printable .s-order h1 .hint.s-print-only { display: inline !important; }
         .s-printable .s-order .s-printable-print-button { display: block; }
         .s-printable .s-order .s-order-comment { background: #fff; border: 1px dashed #aaa; margin: 20px 0; }
@@ -83,7 +84,7 @@
                         </div>
 
                         {* CUSTOMER INFO *}
-                        <div class="profile flexbox space-16">
+                        <div class="profile flexbox space-16 custom-mt-4 custom-mb-12">
                             <div class="image">
                                 {if $order.contact.id|default:'0'}
                                     <a href="?action=customers#/id/{$order.contact.id|default:'0'}">
@@ -143,11 +144,10 @@
                                     {/if}
                                 </ul>
                             </div>
-                            {* MAP
+                            {* MAP *}
                             {if $shipping_address}
-                                <div class="s-order-aux width-20 nowrap">{$map}</div>
+                                <div class="map custom-ml-auto" style="transform: scale(0.9);-webkit-transform: scale(0.9); margin: 0 -8px -10px 0;">{$map}</div>
                             {/if}
-                            *}
                         </div>
 
                         {* ORDER COMMENT *}
@@ -157,11 +157,12 @@
 
                         {$has_payment = !empty($params.payment_name)}
                         {$has_shipping = !empty($params.shipping_name)}
-                        {if $has_payment || $has_shipping}
+                        {$has_shipping_address = !empty($shipping_address)}
+                        {if $has_shipping_address || $has_payment || $has_shipping}
                         <div class="flexbox space-8">
                             {* SHIPPING *}
                             <div class="bordered s-block width-{if $has_payment}50{else}100{/if}">
-                            {if ($shipping_address) || $has_shipping}
+                            {if $has_shipping_address || $has_shipping}
                                 <h6><span class="gray">[`Shipping`]{if $has_shipping} —{/if}</span> <strong>{ifset($params.shipping_name)}</strong></h6>
                                 {if $shipping_address}
                                     <p class="s-order-address">

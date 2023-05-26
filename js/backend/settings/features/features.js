@@ -3496,7 +3496,6 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
         var that = this,
             $window = $(window);
 
-        //that.setHeight();
         that.initContent();
 
         that.$wrapper
@@ -3504,52 +3503,6 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             .data("ready")
                 .resolve(that);
 
-        $window.on("resize", resizeWatcher);
-        function resizeWatcher() {
-            var is_exist = $.contains(document, that.$wrapper[0]);
-            if (is_exist) {
-                that.setHeight();
-            } else {
-                $window.off("resize", resizeWatcher);
-            }
-        }
-    };
-
-    Page.prototype.setHeight = function() {
-        var that = this;
-
-        var wrapper_top = that.$wrapper.offset().top,
-            display_h = $(window).height(),
-            lift = 20;
-
-        var height = display_h - wrapper_top - lift;
-
-        var min_height = 800,
-            indent = 20,
-            sidebar_h = $(".sidebar .s-inner-sidebar").first().outerHeight();
-
-        min_height = ( sidebar_h > min_height ? sidebar_h : min_height);
-
-        if (height < min_height) {
-            height = min_height - indent;
-        }
-
-        that.$wrapper.height(height);
-
-        var $sidebar = that.$wrapper.find(".js-sidebar-section"),
-            $content = that.$wrapper.find(".js-content-section");
-
-        $([$sidebar, $content]).each( function(i, $wrapper) {
-            var $header = $wrapper.find("> .s-section-header"),
-                $body = $wrapper.find("> .s-section-body");
-
-            var padding = $wrapper.outerHeight() - $wrapper.height();
-
-            var body_h = height - $header.outerHeight() - padding;
-            $body.height(body_h);
-        });
-
-        that.$wrapper.closest("#s-settings-content").css("margin-bottom", lift - 5 + "px");
     };
 
     Page.prototype.initSidebar = function(options) {

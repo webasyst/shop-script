@@ -742,8 +742,10 @@
 {capture assign="_dropdown_feature_options"}
     <div class="dropdown s-dropdown-feature-options" v-bind:class="{ 'wide': columns, 'is-disabled' : prop_disabled }" v-show="!feature.show_form">
         <button type="button" class="button dropdown-toggle light-gray small">
-            <span class="s-icon" v-if="feature.active_option.code">
-                <span class="icon size-12 rounded bordered shift-2" v-bind:style="{ 'background-color': feature.active_option.code }"></span>
+            <span class="s-icon">
+                <template v-if="feature.active_option.code">
+                    <span class="icon size-12 rounded bordered shift-2" v-bind:style="{ 'background-color': feature.active_option.code }"></span>
+                </template>
             </span>
             &nbsp;
             <span class="s-name">{ { prop_disabled ? {_w("Not defined")|json_encode}: feature.active_option.name } }</span>

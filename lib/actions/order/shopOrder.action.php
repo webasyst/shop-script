@@ -233,7 +233,17 @@ class shopOrderAction extends waViewAction
         foreach ($this->filter_params as $p => $v) {
             $params_str .= '&'.$p.'='.(is_array($v) ? implode('|', $v) : $v);
         }
-        return substr($params_str, 1);
+
+        $params_str = substr($params_str, 1);
+
+        if (!$params_str) {
+            $hash = waRequest::get('hash');
+            if ($hash) {
+                $params_str = 'hash=' . urlencode($hash);
+            }
+        }
+
+        return $params_str;
     }
 
     private function extendOrderItems($order)

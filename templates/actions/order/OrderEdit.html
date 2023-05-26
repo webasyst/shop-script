@@ -381,10 +381,9 @@
                 {shop_currency_html(-$product.item.total_discount,$currency,$currency)|string_format:"[`Total discount for this order item: %s.`]"}{/if}
             </span>
         </td>
-        <td class="valign-top min-width"><a href="#" class="s-order-item-delete" title="[`Remove from the order`]"><i class="fas fa-trash-alt text-red"></i></a></td>
-
         <input type="hidden" name="item[edit][{$index}]" value="{$product.item.id}">
         <input type="hidden" name="product[edit][{$product.item.id}]" value="{$product.id}">
+        <td class="valign-top"><a href="#" class="s-order-item-delete" title="[`Remove from the order`]"><i class="fas fa-trash-alt text-red"></i></a></td>
     </tr>
 {/function}
 
@@ -457,9 +456,7 @@
                     </td>
                     <td class="align-right nowrap">
                         {if empty($order.id)}
-                            <span class="s-order-item">
-                                <input type="text" class="number shorter small js-order-edit-item-price" name="price[edit][0]" id="productless-subtotal">
-                            </span>
+                            <input type="text" class="number shorter small js-order-edit-item-price" name="price[edit][0]" id="productless-subtotal">
                         {/if}
                         <span id="subtotal" class="semibold {if empty($order.id)}hidden{/if}">{$order.subtotal|default:null}</span>
                         <span class="currency semibold">{$currency}</span>

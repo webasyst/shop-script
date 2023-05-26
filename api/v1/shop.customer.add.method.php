@@ -21,7 +21,7 @@ class shopCustomerAddMethod extends shopApiMethod
             'create_method' => 'api_stub',
             'create_contact_id' => wa()->getUser()->getId(),
             'is_user' => 0,
-        ] + $data;
+        ] + array_filter($data);
         unset($data['id']);
 
         $c = new waContact();

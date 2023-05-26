@@ -16,9 +16,9 @@
                     {if $top_field.id == 'phone'}
                         {$_formatted_phone_value = $top_field.default_value.value|regex_replace:'/^(8|(\+)?7)/':'+7'}
                         <span>{$top_field.default_value.formatted}</span>
-                        <div class="dropdown js-messengers nowrap">
+                        <div class="dropdown js-messengers nowrap width-100-mobile">
                             <span class="dropdown-toggle badge button-light-gray small rounded">[`Message`]</span>
-                            <div class="dropdown-body">
+                            <div class="dropdown-body right">
                                 <ul class="menu">
                                     <li>
                                         <a href="https://wa.me/{if $wa->locale() == 'ru_RU'}{$_formatted_phone_value}{else}{$top_field.default_value.value}{/if}" target="_blank"><i class="fab fa-whatsapp" style="color: #25D366;"></i><span>WhatsApp</span></a>

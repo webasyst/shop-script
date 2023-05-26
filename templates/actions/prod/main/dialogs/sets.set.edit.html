@@ -52,7 +52,7 @@
                                     v-on:input="onChangeName"
                                     v-bind:placeholder="'{_w("Set name")|escape}'"></component-flex-textarea>
                             </div>
-                            <div class="state-error"
+                            <div class="state-error-hint"
                                  v-if="errors['set_name']"
                                  v-html="errors['set_name'].text"></div>
                         </div>
@@ -70,7 +70,7 @@
                                 <span>")&#125;</span>
                             </div>
                             {/strip}
-                            <div class="state-error" v-if="errors['set_id']" v-html="errors['set_id'].text"></div>
+                            <div class="state-error-hint" v-if="errors['set_id']" v-html="errors['set_id'].text"></div>
 
                             <p>[`Set ID is used in the code for embedding product set into frontend design templates and pages.`]</p>
 

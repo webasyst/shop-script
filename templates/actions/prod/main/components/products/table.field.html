@@ -23,14 +23,14 @@
         <template v-else-if="column.column_type === 'image_crop_small'">
             <div class="vue-column-type-image">
                 <div class="s-photo-wrapper">
-                    <div class="s-photo" v-bind:class="{ 'has-many-photos' : (product.photos.length > 1), 'has-photo' : !!product_photo, 'is-empty' : !product_photo }">
+                    <a v-bind:href="'{$wa_app_url}' + product_url" @mouseover="states.is_hovered=true" @mouseleave="states.is_hovered=false" class="s-photo" v-bind:class="{ 'has-many-photos' : (product.photos.length > 1), 'has-photo' : !!product_photo, 'is-empty' : !product_photo }">
                         <template v-if="product_photo">
                             <div class="s-image" v-bind:style="{ 'background-image' : 'url('+ product_photo.url +')' }"></div>
                         </template>
                         <template v-else>
                             <span class="s-icon icon size-18"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>
                         </template>
-                    </div>
+                    </a>
                 </div>
             </div>
         </template>

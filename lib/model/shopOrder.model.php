@@ -103,7 +103,7 @@ class shopOrderModel extends waModel
                 SELECT $item_fields, id, order_id FROM `shop_order_items`
                 WHERE order_id IN ('".implode("','", array_keys($data))."')
                 ORDER BY order_id";
-            $items = $this->query($sql);
+            $items = $this->query($sql)->fetchAll();
             shopOrderItemsModel::sortItemsByGeneralSettings($items);
 
             foreach ($items as $item) {

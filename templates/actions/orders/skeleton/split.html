@@ -3,25 +3,22 @@
 <div class="skeleton">
     <div class="flexbox not-blank">
         {if empty($no_sidebar)}
-        <div class="sidebar width-adaptive-widest height-auto custom-mr-0 box bordered-right wide-mobile" id="js-split-order-sidebar">
+        <div class="sidebar width-adaptive-widest height-auto custom-mr-0 box bordered-right wide-mobile blank" id="js-split-order-sidebar">
 
             {if empty($only_orders)}
-            <div class="flexbox full-width">
-                <span class="skeleton-line" style="width: 37%; height: 30px;"></span>
-                <span class="skeleton-custom-circle" style="width: 34px;height: 34px;"></span>
+            <div class="flexbox middle custom-mb-16 custom-pt-4">
+                <span class="button light-gray rounded custom-mr-16" style="width: 38px;height: 30px;"></span>
+                <span class="skeleton-custom-circle custom-m-0 custom-mr-16" style="width: 16px;height: 16px;"></span>
+                <span class="skeleton-line custom-m-0 custom-ml-8 custom-mr-16" style="width: 15px;height: 15px;"></span>
+                <span class="skeleton-custom-circle custom-ml-auto custom-mb-0 custom-mr-16" style="width: 16px;height: 16px;"></span>
+                <span class="skeleton-custom-circle custom-mb-0 custom-mr-16" style="width: 16px;height: 16px;"></span>
+                <span class="skeleton-custom-circle custom-mb-0" style="width: 30px;height: 30px;"></span>
             </div>
 
             <div class="flexbox full-width">
                 <span class="skeleton-custom-box" style="width: 49%; height: 69px;"></span>
                 <span class="skeleton-custom-box" style="width: 49%; height: 69px;"></span>
             </div>
-
-            <div class="flexbox">
-                <span class="skeleton-line" style="width: 25%; height: 25px;"></span>
-                <span class="skeleton-line custom-ml-16" style="width: 35%; height: 18px;"></span>
-            </div>
-
-            <span class="skeleton-line"></span>
             {/if}
 
             {split_orders count=5}

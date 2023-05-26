@@ -100,7 +100,9 @@
          v-on:mouseleave="onMouseLeave">
         <div class="s-slider-list">
             <div class="s-slide-wrapper" v-for="photo in photos" v-bind:key="photo.id">
-                <div class="s-photo-wrapper" v-bind:style="{ 'background-image': 'url('+photo.url+')'}"></div>
+                {/literal}<a v-bind:href="'{$wa_app_url}' + product_url" class="js-iamge-link">{literal}
+                    <div class="s-photo-wrapper" v-bind:style="{ 'background-image': 'url('+photo.url+')'}"></div>
+                </a>
             </div>
         </div>
         <div class="s-slider-actions" v-if="photos.length > 1">

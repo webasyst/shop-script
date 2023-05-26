@@ -415,7 +415,6 @@
                     </div>
                 </div>
 
-                {strip}
                 {capture assign="_cron_dialog"}
                     <div id="cron-message-dialog" class="dialog">
                         <div class="dialog-background"></div>
@@ -434,7 +433,6 @@
                         </div>
                     </div>
                 {/capture}
-                {/strip}
 
                 {foreach $backend_followup_edit as $plugin_id => $_}
                     <div class="hidden followup-plugin-wrapper {$plugin_id}">{$_}</div>

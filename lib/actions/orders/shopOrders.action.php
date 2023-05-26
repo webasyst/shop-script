@@ -131,8 +131,9 @@ class shopOrdersAction extends shopOrderListAction {
             'currency'             => $currency,
             'state_names'          => $state_names,
             'plugin_hash'          => waRequest::get('hash', '', waRequest::TYPE_STRING_TRIM),
-            'params'               => $this->getFilterParams(),
+            'params'               => $filter_params,
             'params_str'           => $this->getFilterParams(true),
+            'params_extended'      => $this->getFilterParamsExtended($filter_params, $orders),
             'view'                 => $view,
             'timeout'              => $config->getOption('orders_update_list'),
             'actions'              => $actions,
@@ -201,5 +202,84 @@ class shopOrdersAction extends shopOrderListAction {
             return current($orders);
         }
         return null;
+    }
+
+    protected function getFilterParamsExtended($filter_params, $orders)
+    {
+        $result = [];
+        if (isset($filter_params['product_id'])) {
+            $result['product_id'] = [
+                'id' => $filter_params['product_id'],
+                'name' => '',
+            ];
+
+            if ($orders) {
+                $order = reset($orders);
+                if (isset($order['items'])) {
+                    foreach($order['items'] as $item) {
+                        if (ifset($item, 'product', 'id', null) == $filter_params['product_id']) {
+                            $result['product_id']['name'] = ifset($item, 'product', 'name', '');
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (empty($result['product_id']['name'])) {
+                $product_model = new shopProductModel();
+                $product = $product_model->getById($filter_params['product_id']);
+                if ($product) {
+                    $result['product_id']['name'] = $product['name'];
+                }
+            }
+        }
+
+        if (isset($filter_params['contact_id'])) {
+            $result['contact_id'] = [
+                'id' => $filter_params['contact_id'],
+                'name' => '',
+            ];
+
+            $contact_model = new waContactModel();
+            $contact_name = $contact_model->getName($filter_params['contact_id']);
+            if ($contact_name) {
+                $result['contact_id']['name'] = $contact_name;
+            }
+        }
+
+        $payment_id = ifset($filter_params, 'payment_id', null);
+        $shipping_id = ifset($filter_params, 'shipping_id', null);
+        if ($payment_id || $shipping_id) {
+
+            $plugins = [];
+            foreach($orders as $o) {
+                if ($payment_id && ifempty($o, 'params', 'payment_id', null) == $payment_id) {
+                    $plugins[$payment_id] = ['name' => ifempty($o, 'params', 'payment_name', '')];
+                    break;
+                }
+                if ($shipping_id && ifempty($o, 'params', 'shipping_id', null) == $shipping_id) {
+                    $plugins[$shipping_id] = ['name' => ifempty($o, 'params', 'shipping_name', '')];
+                    break;
+                }
+            }
+
+            if (!$plugins) {
+                $plugin_model = new shopPluginModel();
+                $plugins = $plugin_model->getByField([
+                    'id' => array_filter([$payment_id, $shipping_id]),
+                ], 'id');
+            }
+
+            foreach(['shipping_id', 'payment_id'] as $key) {
+                if (isset($filter_params[$key]) && !empty($plugins[$filter_params[$key]]['name'])) {
+                    $result[$key] = [
+                        'id' => $filter_params[$key],
+                        'name' => $plugins[$filter_params[$key]]['name'],
+                    ];
+                }
+            }
+        }
+
+        return $result;
     }
 }

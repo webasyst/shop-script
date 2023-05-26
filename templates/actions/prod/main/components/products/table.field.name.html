@@ -1,5 +1,5 @@
 {capture assign="_component_product_column_name"}
-    <div class="vue-component-product-column-name" v-bind:class="{ 'is-extended' : states.is_extended }">
+    <div class="vue-component-product-column-name" v-bind:class="{ 'is-extended' : states.is_extended, 'is-hovered' : image_hovered }">
 
         <template v-if="states.is_product_col">
             <template v-if="states.is_edit && column_data.editable">

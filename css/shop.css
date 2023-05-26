@@ -249,9 +249,6 @@ ul.s-orders.list > .item .highlighted, ul.s-orders.list > .item .highlighted > *
 .s-split-order-wrapper.fixed-to-top { position: fixed; top: 0;}
 .s-split-order-wrapper.fixed-to-bottom { position: fixed; bottom: 0; }
 
-.s-order-nav-sort .menu a:not(.selected) .count,
-.s-order-nav-sort .dropdown-toggle .count { display: none; }
-
 .s-order-aux li .fa-envelope.on-hover-only { display: none; }
 .s-order-aux li:hover .fa-envelope.on-hover-only { display: inline-block; }
 

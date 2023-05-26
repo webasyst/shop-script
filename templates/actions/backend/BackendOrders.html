@@ -69,8 +69,9 @@
             <div class="s-order-nav-sort js-orders-sort">
                 <div class="flexbox space-8">
                     <div class="dropdown s-orders-sort-dropdown js-sort-dropdown">
-                        <button type="button" class="dropdown-toggle without-arrow button nobutton circle nowrap text-gray light-gray" title="[`Sort`]" data-sort="">
-                            <i class="fas fa-sort-amount-up-alt count"></i>
+                        <button type="button" class="dropdown-toggle without-arrow button nobutton circle nowrap text-gray light-gray" title="[`Sort`]" data-sort="" data-order="">
+                            <i class="fas fa-sort-amount-up count hidden asc"></i>
+                            <i class="fas fa-sort-amount-down count hidden desc"></i>
                         </button>
 
                         <div class="dropdown-body right">
@@ -78,40 +79,40 @@
                                 <li class="s-sort" data-sort="create_datetime">
                                     <a href="#" data-sort="create_datetime">
                                         <span>[`Time created`]</span>
-                                        <i class="fas fa-sort-amount-up-alt count asc small"></i>
-                                        <i class="fas fa-sort-amount-down count desc "></i>
+                                        <i class="fas fa-sort-amount-up count hidden asc"></i>
+                                        <i class="fas fa-sort-amount-down count hidden desc"></i>
                                     </a>
                                 </li>
 
                                 <li class="s-sort" data-sort="updated">
                                     <a href="#" data-sort="updated">
                                         <span>[`Time updated`]</span>
-                                        <i class="fas fa-sort-amount-up count desc"></i>
-                                        <i class="fas fa-sort-amount-down count asc"></i>
+                                        <i class="fas fa-sort-amount-up count hidden asc"></i>
+                                        <i class="fas fa-sort-amount-down count hidden desc"></i>
                                     </a>
                                 </li>
 
-                                <li class="s-sort" data-sort="paid_date">
-                                    <a href="#" data-sort="paid_date">
+                                <li class="s-sort" data-sort="paid_datetime">
+                                    <a href="#" data-sort="paid_datetime">
                                         <span>[`Time paid`]</span>
-                                        <i class="fas fa-sort-amount-up count desc"></i>
-                                        <i class="fas fa-sort-amount-down count asc"></i>
+                                        <i class="fas fa-sort-amount-up count hidden asc"></i>
+                                        <i class="fas fa-sort-amount-down count hidden desc"></i>
                                     </a>
                                 </li>
 
                                 <li class="s-sort" data-sort="shipping_datetime">
                                     <a href="#" data-sort="shipping_datetime">
                                         <span>[`Shipping time`]</span>
-                                        <i class="fas fa-sort-amount-up count desc"></i>
-                                        <i class="fas fa-sort-amount-down count asc"></i>
+                                        <i class="fas fa-sort-amount-up count hidden asc"></i>
+                                        <i class="fas fa-sort-amount-down count hidden desc"></i>
                                     </a>
                                 </li>
 
                                 <li class="s-sort" data-sort="state_id">
                                     <a href="#" data-sort="state_id">
                                         <span>[`Order status`]</span>
-                                        <i class="fas fa-sort-amount-up count desc"></i>
-                                        <i class="fas fa-sort-amount-down count asc"></i>
+                                        <i class="fas fa-sort-amount-up count hidden asc"></i>
+                                        <i class="fas fa-sort-amount-down count hidden desc"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -127,8 +128,8 @@
                 <div class="s-order-search hidden" id="js-order-search">
                     <div class="search-wrapper">
                         <input type="search" id="s-orders-search" class="search-input small" placeholder="[`Search orders`]">
-                        <button type="button" class="button nobutton light-gray circle s-orders-search js-orders-search">
-                            <span class="icon text-gray custom-mr-4"><i class="fas fa-times"></i></span>
+                        <button type="button" class="button light-gray circle custom-pr-4 js-orders-search">
+                            <span class="icon"><i class="fas fa-times"></i></span>
                         </button>
                     </div>
                 </div>
@@ -153,8 +154,8 @@
             <a href="#/orders/state_id=new|processing|auth|paid" class="brick shadowed js-orders-link js-orders-hide-filters js-order-nav-brick" id="s-pending-orders">
                 {$_pending_count = {(empty($pending_count)) ? 0 : $pending_count}}
                 <span class="custom-pr-4 icon js-pending_counters-orders bold">{$_pending_count}</span>
-                <span class="count js-total_processing-orders"></span>
-                <span class="label semibold">[`Processing`]</span>
+                {if $wa->user()->getRights('shop', 'orders') > 1}<span class="count js-total_processing-orders"></span>{/if}
+                <span class="label nowrap semibold">[`Processing`]{if $state_counters.new} <span class="small highlighted custom-px-4 js-new-order-counter">+{$state_counters.new}</span>{/if}</span>
             </a>
             <a href="#/orders/all/" class="brick shadowed js-orders-link js-orders-show-filters js-order-nav-brick" id="s-all-orders">
                 <span class="icon"><i class="fas fa-shopping-cart"></i></span>
@@ -167,22 +168,23 @@
     <!-- SECONDAY FILTERS -->
     <div class="s-order-nav-block s-order-nav-block-chips js-order-nav-block-secondary s-order-nav-block-filters" style="display: none;">
     <ul class="chips small custom-m-0">
+        <li class="s-order-nav-button-wrapper s-order-nav-only-table-kanban">
+            <a href="#/orders/state_id=new|processing|auth|paid" class="button light-gray js-orders-link js-orders-hide-filters js-order-nav-button s-order-nav-button js-pending-orders">
+                <span class="label">[`Processing`]</span>
+                <span class="small highlighted custom-px-4 js-new-order-counter">+{$state_counters.new}</span>
+                <span class="hint">
+                    <span class="js-pending_counters-orders">{$_pending_count},</span>
+                    <span class="js-total_processing-orders"></span>
+                </span>
+            </a>
+        </li>
         {if !empty($couriers) || !empty($contacts_as_courier)}
-            <li class="s-order-nav-button-wrapper s-order-nav-only-table-kanban">
-                <a href="#/orders/state_id=new|processing|auth|paid" class="button light-gray js-orders-link js-orders-hide-filters js-order-nav-button s-order-nav-button js-pending-orders">
-                    <span class="label">[`Processing`]</span>
-                    <span class="hint">
-                        <span class="js-pending_counters-orders">{$_pending_count},</span>
-                        <span class="js-total_processing-orders"></span>
-                    </span>
-                </a>
-            </li>
             <li class="dropdown js-orders-dropdown">
                 <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Couriers`]">[`Couriers`]</button>
                 <div class="dropdown-body">
                     <ul class="menu">
                         <li>
-                            <a href="javascript:void(0)" class="custom-pl-16" data-param="all=params.courier_id">
+                            <a href="javascript:void(0)" class="custom-pl-16" data-param="all=params.courier_id|courier_contact_id">
                                 <span>[`All couriers`]</span>
                             </a>
                         </li>
@@ -208,7 +210,7 @@
                                 <li>
                                     <a href="javascript:void(0)" data-param="courier_contact_id={$courier.id|escape}" class="js-orders-link">
                                         <span class="icon">
-                                            <i style="background-image: url({waContact::getPhotoUrl($courier.id, $courier.photo, 40)});vertical-align: middle;"></i>
+                                            <i class="userpic" style="background-image: url({waContact::getPhotoUrl($courier.id, $courier.photo, 20)});"></i>
                                         </span>
                                         <span>{$courier.name|escape}</span>
                                         <span class="count">{$courier.count}</span>
@@ -303,7 +305,7 @@
                     {foreach $states as $id => $state}
                         <li data-state-id="{$id}">
                             <a href="#/orders/state_id={$id}/" data-param="state_id={$id|escape}" class="js-orders-link" style="{$state->getStyle()}">
-                                <span class="icon"><i class="{$wa->shop->convertIcon($state->getOption('icon'), true)}" style="{$state->getStyle()}"></i></span>
+                                <span class="icon"><i class="{$wa->shop->convertIcon($state->getOption('icon'))}" style="{$state->getStyle()}"></i></span>
                                 <span class="label">{$state->getName()|escape}</span>
                                 <span class="count">{if isset($state_counters[$id])}{$state_counters[$id]}{else}0{/if}</span>
                             </a>
@@ -529,7 +531,7 @@
             {% } %}
             <br/><span class="hint js-item-total-discount" data-discount-id="{%#index%}"></span>
         </td>
-        <td class="valign-top min-width"><a href="#" class="s-order-item-delete"><i class="fas fa-trash-alt text-red"></i></a></td>
+        <td class="valign-top"><a href="#" class="s-order-item-delete"><i class="fas fa-trash-alt text-red"></i></a></td>
     </tr>
 {/literal}
 {/capture}

@@ -113,8 +113,9 @@ class shopOrderListAction extends waViewAction
     {
         if ($this->hash === null) {
 
-            $filter_params = $this->getFilterParams();
             $hash = '';
+            $filter_conditions = [];
+            $filter_params = $this->getFilterParams();
             if ($filter_params) {
                 $updated_orders_param = '';
                 if (!empty($filter_params['updated_orders'])) {
@@ -122,9 +123,7 @@ class shopOrderListAction extends waViewAction
                     unset($filter_params['updated_orders']);
                 }
 
-                if (count($filter_params) == 1) {
-                    $k = key($filter_params);
-                    $v = $filter_params[$k];
+                foreach($filter_params as $k => $v) {
                     if (is_array($v)) {
                         $v = implode("||", $v);
                     }
@@ -149,14 +148,23 @@ class shopOrderListAction extends waViewAction
                     } elseif (!$this->model->fieldExists($k)) {
                         $k = 'params.'.$k;
                     }
-                    $hash = "search/{$k}{$op}{$v}";
-                    if ($updated_orders_param) {
-                        $hash .= '&amp;' . $updated_orders_param;
-                    }
+                    $filter_conditions[] = "{$k}{$op}{$v}";
                 }
-            } elseif (waRequest::get('hash')) {
-                $hash = waRequest::get('hash');
+
+                if ($updated_orders_param) {
+                    $filter_conditions[] = $updated_orders_param;
+                }
             }
+
+            if (waRequest::get('hash')) {
+                $hash = waRequest::get('hash');
+                if ($filter_conditions && substr($hash, 0, 7) == 'search/') {
+                    $hash .= '&'.join('&', $filter_conditions);
+                }
+            } else if ($filter_conditions) {
+                $hash = 'search/'.join('&', $filter_conditions);
+            }
+
             $this->hash = $hash;
         }
         return $this->hash;
@@ -323,7 +331,7 @@ class shopOrderListAction extends waViewAction
             $sort_order = (string) ifset($sort[1]);
         }
 
-        if (!in_array($sort_field, array('create_datetime', 'updated', 'paid_date', 'shipping_datetime', 'state_id'))) {
+        if (!in_array($sort_field, array('create_datetime', 'updated', 'paid_date', 'shipping_datetime', 'state_id', 'paid_datetime'))) {
             $sort_field = 'create_datetime';
             $sort_order = 'desc';
         }

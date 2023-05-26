@@ -297,7 +297,7 @@
                 },
 
                 "component-dropdown": {
-                    props: ["modelValue", "options", "disabled", "button_class", "body_width", "body_class", "empty_option"],
+                    props: ["modelValue", "options", "disabled", "button_class", "body_width", "body_class", "empty_option", "container_selector"],
                     emits: ["update:modelValue", "change", "focus", "blur"],
                     data: function() {
                         return {
@@ -363,8 +363,11 @@
 
                         if (self.prop_disabled) { return false; }
 
+                        const container = self.container_selector ? $(self.container_selector) : null;
                         self.dropdown = $(self.$el).waDropdown({
                             hover : false,
+                            container: container,
+                            protect: { bottom: container ? 40 : null },
                             open: function() {
                                 self.$emit("focus");
                             },
@@ -3117,7 +3120,7 @@
                         components: {
                             "component-checkbox": that.vue_components["component-checkbox"],
                             "component-product-slider": {
-                                props: ["photos", "photo_id"],
+                                props: ["photos", "photo_id", "product_states"],
                                 data: function() {
                                     var self = this,
                                         index = 0;
@@ -3223,7 +3226,10 @@
                                             before_count: before_count,
                                             after_count : after_count
                                         }
-                                    }
+                                    },
+                                    product_url: function() {
+                                        return this.$parent.product_url;
+                                    },
                                 },
                                 methods: {
                                     next: function() {
@@ -3248,8 +3254,7 @@
                                         self.$list.scrollLeft(left);
                                     },
                                     onMouseEnter: function() {
-                                        var self = this;
-                                        clearTimeout(self.timer);
+                                        clearTimeout(this.timer);
                                     },
                                     onMouseLeave: function() {
                                         var self = this;
@@ -3350,7 +3355,10 @@
                                 }
 
                                 return result.join(" ");
-                            }
+                            },
+                            image_hovered: function() {
+                                return this.product.states.image_hovered;
+                            },
                         },
                         methods: {
                         }
@@ -3627,7 +3635,8 @@
                                             is_extended   : is_extended,
                                             is_product_col: is_product_col,
                                             is_sku_col    : is_sku_col,
-                                            is_sku_mod_col: is_sku_mod_col
+                                            is_sku_mod_col: is_sku_mod_col,
+                                            is_hovered    : false
                                         },
                                         errors: {}
                                     };
@@ -3751,6 +3760,11 @@
                                 },
                                 template: that.components["component-products-table-field"],
                                 delimiters: ['{ { ', ' } }'],
+                                watch: {
+                                    'states.is_hovered': function(val) {
+                                        this.product.states.image_hovered = val;
+                                    }
+                                },
                                 computed: {
                                     product_photo: function() {
                                         var self = this,
@@ -3772,7 +3786,10 @@
                                         var self = this,
                                             align_right_array = ['price', 'compare_price', 'purchase_price', 'total_sales', 'stock_worth', 'sales_30days', 'rating_count', 'sku_count', 'image_count'];
                                         return (align_right_array.indexOf(self.column.column_type) >= 0);
-                                    }
+                                    },
+                                    product_url: function() {
+                                        return "products/" + this.product.id + "/?presentation=" + that.presentation.id;
+                                    },
                                 },
                                 components: {
                                     "component-input": that.vue_components["component-input"],
@@ -3812,7 +3829,7 @@
                                         },
                                         computed: {
                                             product_url: function() {
-                                                return "products/" + this.product.id + "/?presentation=" + that.presentation.id;
+                                                return this.$parent.product_url;
                                             },
                                             sku_mod_photo: function() {
                                                 var self = this,
@@ -3852,6 +3869,9 @@
                                                 }
 
                                                 return result.join(" ");
+                                            },
+                                            image_hovered: function() {
+                                                return this.product.states.image_hovered;
                                             }
                                         },
                                         methods: {

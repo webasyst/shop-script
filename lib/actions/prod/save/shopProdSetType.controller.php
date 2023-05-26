@@ -64,6 +64,7 @@ class shopProdSetTypeController extends waJsonController
             }
             $filtered = $product_model->filterAllowedProductIds($product_ids);
             $product_model->updateType($filtered, $type_id);
+            $this->updateBasePrice($filtered);
             $all_updated_products = array_merge($all_updated_products, $product_ids);
             $offset += count($product_ids);
         }
@@ -109,5 +110,63 @@ class shopProdSetTypeController extends waJsonController
                 return $type_id;
             }
         }
+    }
+
+    public static function updateBasePrice($ids)
+    {
+        if (!$ids) {
+            return false;
+        }
+        $product_model = new shopProductModel();
+        $sql = "SELECT p.id product_id, p.stock_base_ratio, p.sku_id = ps.id is_main_sku, p.currency, ps.price sku_price
+                FROM {$product_model->getTableName()} p
+                JOIN shop_product_skus ps ON p.id = ps.product_id
+                WHERE p.id IN (?)";
+        $skus = $product_model->query($sql, [$ids])->fetchAll();
+
+        $config = wa('shop')->getConfig();
+        $currency = $config->getCurrency();
+        $currency_model = new shopCurrencyModel();
+
+        $product_id = null;
+        foreach ($skus as $sku) {
+            if ((int)$sku['product_id'] !== $product_id) {
+                if ($product_id) {
+                    $product_model->updateById($product_id, [
+                        'base_price' => $currency_model->convert($product_base_price, $product_currency, $currency),
+                        'min_base_price' => $currency_model->convert(min($base_prices), $product_currency, $currency),
+                        'max_base_price' => $currency_model->convert(max($base_prices), $product_currency, $currency),
+                    ]);
+                }
+
+                $base_prices = [];
+                $product_base_price = 0;
+                $product_id = (int)$sku['product_id'];
+                $product_currency = $sku['currency'];
+            }
+
+            $base_price = 0;
+            if ($sku['stock_base_ratio'] > 0) {
+                $base_price = $sku['sku_price'] / $sku['stock_base_ratio'];
+            }
+            $base_price = min(99999999999.9999, max(0.0001, $base_price));
+            if ($sku['is_main_sku']) {
+                $product_base_price = $base_price;
+            }
+            $base_prices[] = $base_price;
+            if (!$base_prices) {
+                $base_prices[] = 0;
+            }
+        }
+
+        if ($product_id) {
+            $product_model->updateById($product_id, [
+                'base_price' => $currency_model->convert($product_base_price, $product_currency, $currency),
+                'min_base_price' => $currency_model->convert(min($base_prices), $product_currency, $currency),
+                'max_base_price' => $currency_model->convert(max($base_prices), $product_currency, $currency),
+            ]);
+        }
+
+        return true;
     }
 }

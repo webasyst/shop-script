@@ -144,6 +144,9 @@ let initMainWaSidebar;
             const hashTest = (pattern = '#') => new RegExp(pattern).test(hash);
 
             switch (href) {
+                case pathname + '?action=products#/services/':
+                    result = search === '?action=products' && hashTest('#\\/services\\/');
+                    break;
                 case pathname + '?action=reports':
                     result = search === '?action=reports' && hashTest('#sales');
                     break;
@@ -153,16 +156,6 @@ let initMainWaSidebar;
                 case pathname + '?action=storefronts#/design/pages/':
                     result = search === '?action=storefronts' && hashTest('\\/pages\\/');
                     break;
-                case pathname + '?action=plugins#installed/':
-                    result = search === '?action=plugins' && hashTest();
-                    break;
-                case pathname + '?action=settings':
-                    result = search === '?action=settings' && hashTest();
-                    break;
-                case pathname + '?action=importexport':
-                    result = search === '?action=importexport' && hashTest();
-                    break;
-
                 default:
                     break;
             }
@@ -246,6 +239,7 @@ let initMainWaSidebar;
                 var $links = that.$wrapper.find("a[href^='" + that.app_url + "']"),
                     relative_path = location.pathname + location.search + location.hash,
                     location_string = location.pathname,
+                    location_search = location.search,
                     max_length = 0,
                     link_index = 0;
 
@@ -264,6 +258,8 @@ let initMainWaSidebar;
                             max_length = href_length;
                             link_index = index;
                         }
+                    } else if (location_search && href.includes(location_search)) {
+                        link_index = index;
                     }
                 });
 

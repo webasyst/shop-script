@@ -12,14 +12,18 @@
                 <span class="s-icon icon size-14" v-if="product.product_from_subcategory" data-tooltip-id="product_from_subcategories"><svg><use xlink:href='{$_sprite_url}#folder-tree'></use></svg></span>
             </div>
         </div>
-        <div class="s-section-images">
+        <div class="s-section-images" @mouseover="product.states.image_hovered=true" @mouseleave="product.states.image_hovered=false">
             <template v-if="product.photos.length">
                 <component-product-slider v-bind:photos="product.photos" v-bind:photo_id="product.image_id"></component-product-slider>
             </template>
             <template v-else>
-                <div class="s-photo-empty">
-                    <span class="s-icon icon"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>
-                </div>
+                <a class="s-name"
+                    v-bind:title="product.name"
+                    v-bind:href="'{$wa_app_url}' + product_url">
+                    <div class="s-photo-empty">
+                        <span class="s-icon icon"><svg><use xlink:href='{$_sprite_url}#empty-image-2'></use></svg></span>
+                    </div>
+                </a>
             </template>
         </div>
         <div class="s-section-body">
@@ -29,7 +33,7 @@
                     <div class="s-status">{ { product_status } }</div>
                 </div>
             {/strip}
-            <div class="s-name-wrapper" v-bind:class="name_class">
+            <div class="s-name-wrapper" v-bind:class="[name_class, image_hovered ? 'is-hovered' : '']">
                 <a class="s-name"
                    v-bind:title="product.name"
                    v-bind:href="'{$wa_app_url}' + product_url">{ { product.name } }</a>

@@ -55,16 +55,15 @@
 {$_components["component-table-filters-search"] = $_component_table_filters_search|strip}
 
 {capture assign="_component_table_product_search"}
-    <div class="component-table-filters-search flexbox space-8">
-        <div class="s-icon">
-            <span class="icon"><i class="fas fa-search"></i></span>
-        </div>
+{literal}
+    <div class="component-table-filters-search flexbox middle space-8">
+        <span class="icon"><i class="fas fa-search"></i></span>
         <div class="s-field-wrapper wide">
             <component-input class="s-field js-autocomplete"
                              v-bind:model-value="modelValue"
                              v-on:input="onInput"
                              v-bind:cancel="true"
-                             v-bind:placeholder="(placeholder ? placeholder : '{_w("Search")|escape}')"></component-input>
+                             v-bind:placeholder="(placeholder ? placeholder : '[`Search`]')"></component-input>
         </div>
         <template v-if="modelValue.length && states.show_reset">
             <div class="s-actions-wrapper flexbox space-8">
@@ -75,6 +74,7 @@
             </div>
         </template>
     </div>
+{/literal}
 {/capture}
 {$_components["component-table-product-search"] = $_component_table_product_search|strip}
 

@@ -1369,6 +1369,9 @@ class shopOrdersCollection
                 case 'shipping_datetime':
                     $this->order_by = "(o.shipping_datetime IS NOT NULL) DESC, o.shipping_datetime {$order}";
                     break;
+                case 'paid_datetime':
+                    $this->order_by = "o.paid_date {$order}, o.paid_datetime {$order}";
+                    break;
                 case 'updated':
                     $this->order_by = "IFNULL(o.update_datetime, o.create_datetime) {$order}";
                     break;

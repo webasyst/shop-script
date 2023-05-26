@@ -370,10 +370,12 @@ class shopProdPresentationUpdateProductController extends waJsonController
             });
             $changed_column_value['params'] = $params;
 
+            $is_changed_type = false;
             if ($field_id == 'type_id' && $product->type_id != $value) {
                 $type_model = new shopTypeModel();
                 $type = $type_model->getById($value);
                 if ($type) {
+                    $is_changed_type = true;
                     foreach (['order_multiplicity_factor', 'stock_unit_id', 'base_unit_id', 'stock_base_ratio', 'order_count_min', 'order_count_step'] as $field) {
                         $changed_column_value[$field] = $type[$field];
                         if ($field == 'stock_base_ratio' || $field == 'order_count_min' || $field == 'order_count_step') {
@@ -386,17 +388,18 @@ class shopProdPresentationUpdateProductController extends waJsonController
                 }
             }
 
-            if ($field_id == 'currency' || $field_id == 'sku_id') {
+            if (in_array($field_id, ['currency', 'sku_id', 'stock_base_ratio']) || $is_changed_type) {
                 $currency_model = new shopCurrencyModel();
                 $primary_currency = wa('shop')->getConfig()->getCurrency();
                 $from_currency = $field_id == 'currency' ? $changed_column_value['currency'] : $primary_currency;
                 $price = [];
                 $base_prices = [];
                 $product_price = $product_compare_price = $product_base_price = 0;
+                $product_stock_base_ratio = $is_changed_type ? $changed_column_value['stock_base_ratio'] : $product->stock_base_ratio;
                 foreach ($changed_column_value['skus'] as &$sku) {
                     $sku_price = $sku['price'];
                     $price[] = $sku_price;
-                    $stock_base_ratio = isset($sku['stock_base_ratio']) ? $sku['stock_base_ratio'] : $product->stock_base_ratio;
+                    $stock_base_ratio = isset($sku['stock_base_ratio']) ? $sku['stock_base_ratio'] : $product_stock_base_ratio;
                     $base_price = 0;
                     if ($stock_base_ratio > 0) {
                         $base_price = $sku_price / $stock_base_ratio;

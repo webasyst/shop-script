@@ -425,9 +425,16 @@ $.extend($.settings || {}, {
                 }
             };
 
+            var timer = null;
             changeListener(function () {
-                $('#s-settings-order-states-submit').removeClass('green').addClass('yellow');
-                ($(this).is(':radio') ? updatePreviewRadio : updatePreview).call(this);
+                var self = this;
+
+                clearInterval(timer);
+
+                timer = setTimeout(function () {
+                    $('#s-settings-order-states-submit').removeClass('green').addClass('yellow');
+                    ($(self).is(':radio') ? updatePreviewRadio : updatePreview).call(self);
+                }, 300);
             });
 
         })();

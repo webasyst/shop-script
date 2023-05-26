@@ -3,8 +3,8 @@
 {$filter_id = $filter_id|default:null}
 {capture assign="customers_list"}
     {foreach $customers as $c}
-        <tr class="s-customer" data-customer-id="{$c.id}">
-            <td class="min-width valign-top s-userpic custom-mt-24-mobile">
+        <tr class="s-customer custom-mb-32-mobile" data-customer-id="{$c.id}">
+            <td class="min-width valign-top s-userpic">
                 <a href="#/id/{$c.id}"><img src="{$c.photo|escape}" class="userpic"></a>
             </td>
             <td class="align-left s-name">
@@ -87,7 +87,7 @@
                 {else}
                 <div class="js-customers-header-buttons s-customers-header-buttons nowrap custom-mt-8">
                     {if $category_id}
-                        <a href="#/editcategory/{$category_id}" class="button rounded light-gray small"><i class="fas fa-edit text-blue"></i> [`Edit`]</a>
+                        <a href="#/editcategory/{$category_id}" class="button rounded light-gray small s-customers-edit"><i class="fas fa-edit text-blue"></i><span> [`Edit`]</span></a>
                         <a href="javascript:void(0)" class="button light-gray circle small" id="delete-category" title="[`Delete`]"><i class="fas fa-trash-alt text-red"></i></a>
                     {/if}
 
@@ -95,7 +95,7 @@
                         <a href="javascript:void(0);" id="s-customers-add-filter" class="button green rounded small">[`Save this search`]</a>
                         <a href="#/searchform/{$query|escape}/" class="button rounded small">[`Change search conditions`]</a>
                     {elseif $filter_id}
-                        <a href="javascript:void(0);" id="s-customers-edit-filter" class="button rounded light-gray small"><i class="fas fa-edit text-blue"></i> [`Edit`]</a>
+                        <a href="javascript:void(0);" id="s-customers-edit-filter" class="button rounded light-gray small s-customers-edit"><i class="fas fa-edit text-blue"></i><span> [`Edit`]</span></a>
                     {/if}
                 </div>
                 {/if}
@@ -134,7 +134,7 @@
                 {else}
                     {* Fake table. A need to take a certain width so that the interface does not swell when there is no table *}
                     <div class="table-scrollable-x s-customers-table-scrollable-x" style="overflow: hidden;">
-                        <table class="s-customers small" style="visibility: hidden;">
+                        <table class="s-customers custom-mb-32-mobile" style="visibility: hidden;">
                             <thead>
                                 <tr>
                                     <th class="min-width"></th>
@@ -147,7 +147,7 @@
                             </thead>
                             <tbody>
                                 <tr class="s-customer ui-draggable" style="visibility: hidden;">
-                                    <td class="min-width valign-top s-userpic custom-mt-24-mobile"><div style="width: 50px;height: 50px;"></div> </td>
+                                    <td class="min-width valign-top s-userpic"><div style="width: 50px;height: 50px;"></div> </td>
                                     <td class="align-left s-name">
                                         <h3 class="large name custom-mb-4"></h3>
                                         <div class="s-customer-fields-section small break-words"></div>

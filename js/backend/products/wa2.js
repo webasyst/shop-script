@@ -753,7 +753,8 @@
                     use_protect: (typeof options["protect"] === "boolean" ? options["protect"] : true),
                     right: (typeof options["protect"] === "object" && typeof options["protect"]["right"] === "number" ? options["protect"]["right"] : 20),
                     bottom: (typeof options["protect"] === "object" && typeof options["protect"]["bottom"] === "number" ? options["protect"]["bottom"] : 70)
-                }
+                },
+                container: (typeof options["container"] === "object" ? options["container"] : null)
             };
 
             // DYNAMIC VARS
@@ -974,7 +975,60 @@
             var that = this;
 
             // Защита от всплывания окна за правой/нижней границей экрана
-            if (that.options.protect.use_protect) { protect(); }
+            if (that.options.protect.use_protect) {
+                that.options.container ? protectUseContainer(that.options.container) : protect()
+            }
+
+            function protectUseContainer(container) {
+                var top_class = "top",
+                    right_class = "right",
+                    max_height = 500;
+
+                // clear
+                that.$menu
+                    .removeClass(top_class)
+                    .removeClass(right_class)
+                    .css('max-height', '');
+
+                var $window = $(window),
+                    container_rect = $(container)[0].getBoundingClientRect(),
+                    rect = that.$wrapper[0].getBoundingClientRect(),
+                    menu_rect = that.$menu[0].getBoundingClientRect();
+
+                // BOTTOM PROTECTION
+                var top_space = rect.top - container_rect.top,
+                    bottom_space = container_rect.bottom - rect.top - rect.height;
+
+                var is_menu_top = false;
+                // Если места снизу под меню не хватает
+                if (bottom_space < menu_rect.height - that.options.protect.bottom) {
+                    // Если места сверху хватает под меню ЛИБО места сверху больше чем снизу
+                    if (top_space > menu_rect.height || top_space > bottom_space) {
+                        that.$menu.addClass(top_class);
+                        is_menu_top = true;
+                    }
+                }
+
+                rect = that.$wrapper[0].getBoundingClientRect();
+
+                if (is_menu_top) {
+                    var _max_height = rect.top - container_rect.top - that.options.protect.bottom
+                } else {
+                    var _max_height = container_rect.bottom - rect.bottom - that.options.protect.bottom;
+                }
+
+                if (_max_height < max_height) {
+                    that.$menu.css('max-height', _max_height);
+                }
+
+                // RIGHT PROTECTION
+                var right_space = $window.width() - rect.x - that.$menu.outerWidth(),
+                    use_right = ($window.width() - menu_rect.right < that.options.protect.right);
+
+                if (use_right) {
+                    that.$menu.addClass(right_class);
+                }
+            }
 
             function protect() {
                 var top_class = "top",

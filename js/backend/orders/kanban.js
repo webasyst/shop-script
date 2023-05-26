@@ -60,16 +60,8 @@ var Kanban = (($) => {
         }
 
         buildLoadListUrl(id, lt, counters) {
-
-            const url = `?module=orders
-                    &action=loadList
-                    &state_id=${this.statusId}
-                    &id=${id}${(lt ? '&lt=1' : '')}${(counters ? '&counters=1' : '')}
-                    &view=kanban
-                    &sort[0]=0
-                    &sort[1]=desc`;
-
-            return url.replace(/\s+/g, '');
+            const sort = ['0', 'desc']; // or remove from logic?
+            return $.order_list.buildLoadListUrl(id, lt, counters, null, sort, this.statusId);
         }
     }
 

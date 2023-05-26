@@ -90,7 +90,7 @@ class shopWorkflowAction extends waWorkflowAction
 
             if (wa()->whichUI() >= '2.0') {
 
-                $icon = wa()->getView()->getHelper()->shop->convertIcon("icon16 {$this->getOption('icon')}", true);
+                $icon = wa()->getView()->getHelper()->shop->convertIcon("icon16 {$this->getOption('icon')}");
 
                 return <<<HTML
                 <a {$attrs} href="#" class="wf-action actions-link {$this->getOption('button_class')}" data-action-id="{$this->getId()}" title="{$description}">

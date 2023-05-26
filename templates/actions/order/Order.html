@@ -285,9 +285,10 @@
                     <!-- order content -->
 
                     <table id="s-order-items" class="s-order-items-table s-order-readable">
-                        {$has_granted_calc_profit = $wa->user()->getRights('shop', 'products') && $wa->user()->getRights('shop', 'orders')}
-                        {$sum_purchase_price = 0}
-                        {$sum_unaccounted_purchase = 0}
+                        {$_has_granted_calc_profit = $wa->user()->getRights('shop', 'products') && $wa->user()->getRights('shop', 'orders') > 1}
+                        {$_sum_purchase_price = 0}
+                        {$_total_items_profit = 0}
+                        {$_total_service_items_profit = 0}
                         {if $order.items}
                             <thead>
                                 <tr>
@@ -311,9 +312,6 @@
                                         {$link_edit = "?action=products#/services/{$item.service_id}/"}
                                     {/if}
 
-                                    {$sum_purchase_price = $sum_purchase_price + $item.purchase_price * $item.quantity}
-                                    {$do_calc_profit = $item.purchase_price > 0}
-                                    {if !$do_calc_profit}{$sum_unaccounted_purchase = $sum_unaccounted_purchase + $item.price * $item.quantity}{/if}
                                     <tr class="s-product-wrapper {if $item.type == 'service'}is-product small{/if}" data-id="{$item.id}" aria-label="">
                                         <td class="min-width custom-mx-auto-mobile valign-top">
                                             {if $item.type != 'service'}
@@ -410,9 +408,24 @@
                                         </td>
                                         <td aria-label="[`Total`]" class="align-right nowrap">
                                             <div{if $item.total_discount > 0} title="{sprintf_wp("Total discount for this order item: %s.", wa_currency($item.total_discount, $order.currency))|escape}"{/if}>{wa_currency_html($item.price * $item.quantity, $order.currency)}</div>
-                                            {if $has_granted_calc_profit && $do_calc_profit}
-                                                {$percent_profit = (($item.price - $item.purchase_price)/$item.price*100)|round}
-                                                <div class="bold smaller text-{if $item.price - $item.purchase_price >= 0}green{else}red{/if}" title="[`Estimated profit`]">{if $item.price - $item.purchase_price >= 0}+{else}&minus;{/if} {wa_currency_html(abs(($item.price - $item.purchase_price) * $item.quantity), $order.currency)} ({if $item.quantity > 0}{$percent_profit}{else}0{/if}%)</div>
+                                            {if $_has_granted_calc_profit && $item.purchase_price > 0}
+                                                {if $item.tax_included == '1'}
+                                                    {$_item_profit = ($item.price - $item.purchase_price - $item.price / (100 + $item.tax_percent) * $item.tax_percent) * $item.quantity}
+                                                {else}
+                                                    {$_item_profit = ($item.price - $item.purchase_price) * $item.quantity}
+                                                {/if}
+
+                                                {$_percent_profit = (($_item_profit / $item.purchase_price) * 100)|round}
+
+                                                {$_total_items_profit = $_total_items_profit + $_item_profit}
+
+                                                {$_sum_purchase_price = $_sum_purchase_price + $item.purchase_price * $item.quantity}
+
+                                                <div class="bold smaller text-{if $item.price - $item.purchase_price > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Price`] &minus; [`Purchase price`]{if $item.tax_included == '1'} &minus; [`Tax`]{/if}">{if $item.price - $item.purchase_price > 0}&plus;{/if}{wa_currency_html($_item_profit, $order.currency)} ({if $item.quantity > 0}{$_percent_profit}{else}0{/if}%)</div>
+                                            {/if}
+
+                                            {if $_has_granted_calc_profit && $item.type == 'service'}
+                                                {$_total_service_items_profit = $_total_service_items_profit + $item.price * $item.quantity}
                                             {/if}
                                         </td>
                                     </tr>
@@ -429,13 +442,13 @@
                         <tfoot>
                             {if !empty($subtotal)}
                                 <tr>
-                                    <td colspan="2"></td>
+                                    <td colspan="2" class="width-100-mobile"></td>
                                     <td class="align-right"><br>[`Subtotal`]</td>
                                     <td class="align-right nowrap"><br>{wa_currency_html($subtotal, $order.currency)}</td>
                                 </tr>
                             {/if}
                             <tr class="no-border">
-                                <td colspan="2"></td>
+                                <td colspan="2" class="width-100-mobile"></td>
                                 <td class="align-right">
                                     [`Discount`]
                                     {if !empty($order.coupon.code)}
@@ -452,26 +465,29 @@
                             </tr>
                             {if isset($params.shipping_name) || $order.shipping > 0}
                                 <tr>
-                                    <td colspan="2"></td>
+                                    <td colspan="2" class="width-100-mobile"></td>
                                     <td class="align-right">[`Shipping`]</td>
                                     <td class="align-right nowrap">{wa_currency_html($order.shipping, $order.currency)}</td>
                                 </tr>
                             {/if}
                             {if !empty($order.tax|default:'')}
                                 <tr>
-                                    <td colspan="2"></td>
+                                    <td colspan="2" class="width-100-mobile"></td>
                                     <td class="align-right">[`Tax`]</td>
                                     <td class="align-right nowrap">{wa_currency_html($order.tax, $order.currency)}</td>
                                 </tr>
                             {/if}
                             <tr class="bold larger">
-                                <td colspan="2"></td>
+                                <td colspan="2" class="width-100-mobile"></td>
                                 <td class="align-right">[`Total`]</td>
                                 <td class="align-right nowrap">
                                     <div>{wa_currency_html($order.total, $order.currency)}</div>
-                                    {if $has_granted_calc_profit && $sum_purchase_price}
-                                        {$total_percent_profit = (($order.total - $order.shipping - $sum_unaccounted_purchase - $sum_purchase_price)/$order.total*100)|round}
-                                        <div class="bold smaller text-{if $total_percent_profit >= 0}green{else}red{/if}" title="[`Estimated profit`]">{if $total_percent_profit >= 0}+{else}&minus;{/if} {wa_currency_html(abs($order.total - $order.shipping - $sum_unaccounted_purchase - $sum_purchase_price), $order.currency)} ({$total_percent_profit}%)</div>
+                                    {if $_has_granted_calc_profit && $_sum_purchase_price}
+                                        {$_total_profit = $_total_items_profit + $_total_service_items_profit - $order.discount}
+
+                                        {$_total_percent_profit = (($_total_profit / $_sum_purchase_price) * 100)|round}
+
+                                        <div class="bold smaller text-{if $order.total - $order.shipping - $_sum_purchase_price > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Profit by all products`] &plus; [`Services`] &minus; [`Discount`]">{if $order.total - $order.shipping - $_sum_purchase_price > 0}+{/if}{wa_currency_html($_total_profit, $order.currency)} ({$_total_percent_profit}%)</div>
                                     {/if}
                                 </td>
                             </tr>

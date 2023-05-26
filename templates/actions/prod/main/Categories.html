@@ -326,7 +326,8 @@
 {capture assign="_component_search_categories"}
 <div class="s-search-section-wrapper" @click.prevent="$refs.input.focus()">
     <div class="s-search-section flexbox space-8">
-        <div class="s-field-wrapper wide">
+        <div class="s-field-wrapper wide flexbox middle space-8">
+            <span class="icon"><i class="fas fa-search"></i></span>
             <input class="s-field" ref="input" placeholder="[`Search`]" v-model="search_string" v-on:input="search">
         </div>
         <template v-if="search_string.length">

@@ -62,6 +62,12 @@
         filter_params_str: '',
 
         /**
+         * Params by which list is searched (for passing to input:search)
+         * {Object}
+         */
+        filter_params_extended: [],
+
+        /**
          * Params of dispatching
          * {Object}|null
          */
@@ -249,33 +255,36 @@
                 this.updateProcess('run', options.update_process);
             }
 
-            if (options.sort && options.sort[0]) {
-                options.sort[0] = '' + options.sort[0];
-                var available_sort_values = $('.js-orders-sort .s-sort').map(function () {
-                    var sort = $(this).data('sort') || '';
-                    return sort ? sort : false;
-                }).toArray();
 
-                if (available_sort_values.indexOf(options.sort[0]) < 0) {
-                    options.sort[0] = available_sort_values[0];
-                }
-                options.sort[1] = (options.sort[1] || '');
-                options.sort[1] = options.sort[1].toLowerCase() === 'desc' ? 'desc' : 'asc';
-                this.sort = options.sort;
-            }
-
+            const $order_nav = $('#s-order-nav');
             // if open order/{id}/
             if (new RegExp('order\\/\\d+').test($.orders.hash)) {
-                $.orders.$nav.addClass('hidden');
+                $order_nav.addClass('hidden');
 
             } else {
-                $.orders.$nav.removeClass('hidden');
+                $order_nav.removeClass('hidden');
 
                 this.ordersNavTeleport();
-                this.initSortMenu();
                 this.selectionMenuTeleport();
 
-                $.orders.$nav.trigger('wa_init_orders_nav', [options.view]);
+                if (options.sort && options.sort[0]) {
+                    options.sort[0] = '' + options.sort[0];
+                    var available_sort_values = $('.js-orders-sort .s-sort').map(function () {
+                        var sort = $(this).data('sort') || '';
+                        return sort ? sort : false;
+                    }).toArray();
+
+                    if (available_sort_values.indexOf(options.sort[0]) < 0) {
+                        options.sort[0] = available_sort_values[0];
+                    }
+                    options.sort[1] = (options.sort[1] || '');
+                    options.sort[1] = options.sort[1].toLowerCase() === 'desc' ? 'desc' : 'asc';
+                    this.sort = options.sort;
+                }
+
+                this.initSortMenu();
+
+                $.orders.$wrapper.trigger('wa_init_orders_nav', [options]);
             }
 
             if (options.total_processing) {
@@ -689,8 +698,9 @@
             const update = (sort, change_hash) => {
                 const [sort_field, sort_order] = sort;
 
-                dropdownData.$button.data('sort', sort_field);
-                dropdownData.$button.data('order', sort_order);
+                dropdownData.$button
+                    .data('sort', sort_field)
+                    .data('order', sort_order);
 
                 if (!change_hash) {
                     return;
@@ -707,7 +717,7 @@
                 hash = hash.replace(/(&*sort\[[01]\]=.*?[&\/]|&*sort\[[01]\]=.*?$)/g, '');
 
                 // check if exists any params in hash
-                const params_tail_exists = hash.indexOf('=') > 0;
+                const params_tail_exists = hash.indexOf('=') > 0 || hash.includes('all');
 
                 if (params_tail_exists) {
                     // delete / and & in the end of hash
@@ -727,7 +737,19 @@
                     items: '.menu > li > a',
                     ready(dropdown) {
                         dropdownData = dropdown;
-                        dropdown.setValue('sort', that.sort[0]);
+
+                        const sort = that.sort[0] ? that.sort[0] : 'create_datetime';
+                        const order = that.sort[1] ? that.sort[1] : 'desc';
+
+                        if (!dropdownData.$button.data('sort')) {
+                            dropdown.$wrapper.find('.count').addClass('hidden');
+
+                            dropdown.$button.find(`.${order}`).removeClass('hidden');
+                            dropdown.$menu.find(`a[data-sort="${sort}"]`).find(`.${order}`).removeClass('hidden');
+                        }
+
+                        dropdownData.$button.data('sort', sort);
+                        dropdownData.$button.data('order', order);
                     },
                     change(event, element, dropdown) {
                         const el = $(element);
@@ -742,7 +764,10 @@
                             sort_order = 'desc';
                         }
 
-                        el.find(`.${sort_order}`).removeClass('hidden').siblings('.count').addClass('hidden')
+
+                        dropdown.$menu.find('.count').addClass('hidden');
+                        el.find(`.${sort_order}`).removeClass('hidden');
+
                         dropdown.$button.find(`.${sort_order}`).removeClass('hidden').siblings('.count').addClass('hidden')
 
                         update([sort_field, sort_order], true);
@@ -1260,6 +1285,7 @@
                                 if (id == 'new') {
                                     $.shop.updateAppCounter(cnt);
                                     this.updateTitle(this.options.title_suffix, parseInt(cnt, 10));
+                                    $(document).find('.js-new-order-counter').text(`+${cnt}`);
                                 }
                             }
                         }
@@ -1389,22 +1415,23 @@
          * @param {String} order_update_datetime (load list updated orders). Default: falsy
          * @returns {String}
          */
-        buildLoadListUrl: function (id, lt, counters, order_update_datetime = null) {
+        buildLoadListUrl: function (id, lt, counters, order_update_datetime = null, sort = null, state_id = null) {
 
             if (order_update_datetime && this.filter_params_str && this.filter_params_str.includes('hash')) {
                 this.filter_params_str = this.filter_params_str + encodeURIComponent(`&update_datetime>=${order_update_datetime}`);
                 order_update_datetime = null;
             }
 
-            console.log(this.sort)
+            let param_state_id = state_id ? `&state_id=${state_id}` : '';
+            sort = sort || this.sort;
 
-            return '?module=orders&action=loadList&id=' + id +
+            return `?module=orders&action=loadList${param_state_id}&id=${id}` +
                 (this.filter_params_str ? '&' + this.filter_params_str : '') +
                 (lt ? '&lt=1' : '') +
                 (counters ? '&counters=1' : '') +
                 (this.options.view ? '&view=' + this.options.view : '') +
                 ((order_update_datetime) ? '&search=update_datetime>=' + order_update_datetime : '') +
-                ('&sort[0]=' + this.sort[0] + '&sort[1]=' + this.sort[1]);
+                ('&sort[0]=' + sort[0] + '&sort[1]=' + sort[1]);
         },
 
         updateProcess: function (status, options) {
@@ -1667,10 +1694,10 @@
             if ($ordersNav !== undefined && $.orders !== undefined) {
                 $ordersNav.show();
                 if (this.options.view === 'split') {
-                    $('#s-orders').find('.sidebar-header').prepend($ordersNav)
+                    $('#s-orders').find('.sidebar-header').prepend($ordersNav);
                     $.orders.initDropdown();
                 } else {
-                    $('#s-content').before($ordersNav)
+                    $('#s-content').before($ordersNav);
                     $.orders.initDropdown();
                 }
             }

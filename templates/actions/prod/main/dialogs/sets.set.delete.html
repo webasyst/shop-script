@@ -4,7 +4,7 @@
         <div class="js-vue-section" style="visibility: hidden;">
             <div class="dialog-header">
                 <h3>[`Set deletion`]</h3>
-                <div class="s-description">{sprintf_wp("Set “%s” will be deleted without the ability to restore.", "{ { set.name } }")}</div>
+                <div class="s-description break-words">{sprintf_wp("Set “%s” will be deleted without the ability to restore.", "{ { set.name } }")}</div>
             </div>
             <div class="dialog-footer">
                 <button class="js-delete-button button red" type="button" v-on:click.prevent="deleteSet">

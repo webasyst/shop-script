@@ -1352,12 +1352,24 @@
                                     self.states.locked = false;
                                 })
                                 .fail( function(errors) {
-                                    if (errors.length && errors[0].id === "id_in_use") {
-                                        self.errors["set_id"] = {
-                                            id: "set_id",
-                                            text: errors[0].text
-                                        };
+                                    if (!Array.isArray(errors) || !errors.length) {
+                                        return;
                                     }
+
+                                    const typesErrors = {
+                                        set_name: ['incorrect_length_name'],
+                                        set_id: ['incorrect_length_id', 'incorrect_id', 'set_not_found', 'id_in_use']
+                                    };
+                                    errors.forEach(error => {
+                                        for (const [type, typeErrors] of Object.entries(typesErrors)) {
+                                            if (typeErrors.includes(error.id)) {
+                                                self.errors[type] = {
+                                                    id: type,
+                                                    text: error.text
+                                                };
+                                            }
+                                        }
+                                    });
                                 })
                                 .done( function(set) {
                                     dialog.options.onSuccess(set);

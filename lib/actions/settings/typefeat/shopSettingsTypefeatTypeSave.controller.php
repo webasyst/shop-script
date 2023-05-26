@@ -58,7 +58,11 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
                 if (!$this->errors) {
                     if ($data['id'] > 0) {
                         $update_data = $this->formatProductsFractionalData($data);
-                        $this->updateProducts($data['id'], $update_data);
+                        $disabled_base_unit = shopTypeModel::PARAM_DISABLED;
+                        $condition = $data['base_unit_fixed'] == $disabled_base_unit ? '!' : '';
+                        $is_changed_base_unit = $model->select("base_unit_fixed $condition= $disabled_base_unit is_changed_base_unit")
+                            ->where('id = ?', $data['id'])->fetchField('is_changed_base_unit');
+                        $this->updateProducts($data['id'], $update_data, $is_changed_base_unit);
                     }
                     $data = array_intersect_key($data, $model->getEmptyRow());
                     if (!empty($data['id'])) {
@@ -294,26 +298,36 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
         ];
     }
 
-    protected function updateProducts($type_id, $data)
+    protected function updateProducts($type_id, $data, $update_base_prices = false)
     {
         if (!empty($data['p'])) {
             $params = [];
-            $model = new waModel();
+            $product_model = new shopProductModel();
             foreach ($data as $table => $update_data) {
                 foreach ($update_data as $field => $value) {
                     if ($value === null) {
                         $value = 'NULL';
                     }
                     if (strlen((string)$value) != 0) {
-                        $params[] = $table . '.' . $field . ' = ' . $model->escape($value);
+                        $params[] = $table . '.' . $field . ' = ' . $product_model->escape($value);
                     }
                 }
-
             }
-            $query = 'UPDATE shop_product p
+
+            $query = "UPDATE {$product_model->getTableName()} p
                         JOIN shop_product_skus ps ON p.id = ps.product_id
-                      SET ' . implode(', ', $params) . ' WHERE p.type_id = ' . $type_id;
-            $model->exec($query);
+                      SET " . implode(', ', $params) . " WHERE p.type_id = $type_id";
+            $product_model->exec($query);
+
+            if ($update_base_prices) {
+                $step = 0;
+                $limit = 100;
+                do {
+                    $product_ids = $product_model->select('id')->where('type_id = ?', $type_id)->limit("$step, $limit")->fetchAll(null, true);
+                    shopProdSetTypeController::updateBasePrice($product_ids);
+                    $step += $limit;
+                } while ($product_ids);
+            }
         }
     }
 

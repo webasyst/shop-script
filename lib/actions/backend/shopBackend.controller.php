@@ -13,8 +13,19 @@ class shopBackendController extends waViewController {
             $this->executeAction(new shopBackendReportsAction());
         } else if (wa()->getUser()->getRights('shop', 'settings')) {
             $this->executeAction(new shopBackendSettingsAction());
-        } else {
+        } else if (wa()->getUser()->getRights('shop', 'products')) {
             $this->executeAction(new shopBackendProductsAction());
+        } else if (wa()->getUser()->getRights('shop', 'marketing')) {
+            $wa_app_url = wa('shop')->getAppUrl(null, true);
+            $this->redirect("{$wa_app_url}marketing/");
+        } else if (wa()->getUser()->getRights('shop', 'customers')) {
+            $this->setLayout(new shopBackendLayout());
+            $this->executeAction(new shopCustomersAction());
+        } else if (wa()->getUser()->getRights('shop', 'importexport')) {
+            $this->executeAction(new shopBackendImportexportAction());
+        } else {
+            $this->setLayout(new shopBackendLayout());
+            $this->blocks['content'] = _w("Access denied");
         }
     }
 }
