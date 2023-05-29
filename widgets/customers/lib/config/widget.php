@@ -8,7 +8,7 @@ return array (
     2 => '1x1',
   ),
   'img' => 'img/customers.png',
-  'version' => '1.1',
+  'version' => '1.2.0',
   'vendor' => 'webasyst',
   'rights' => array(
       'shop' => array(
