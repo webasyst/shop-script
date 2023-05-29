@@ -3374,12 +3374,16 @@ HTML;
                     if ($date) {
                         $date = wa_date('date', $date, waDateTime::getDefaultTimezone());
 
-                        $time = array(
-                            sprintf('%02d:%02d', $delivery_time['from_hours'], $delivery_time['from_minutes']),
-                            sprintf('%02d:%02d', $delivery_time['to_hours'], $delivery_time['to_minutes']),
-                        );
+                        if ($delivery_time) {
+                            $time = array(
+                                sprintf('%02d:%02d', $delivery_time['from_hours'], $delivery_time['from_minutes']),
+                                sprintf('%02d:%02d', $delivery_time['to_hours'], $delivery_time['to_minutes']),
+                            );
 
-                        $value = trim(sprintf('%s %s', $date, implode(' - ', array_unique($time))));
+                            $value = trim(sprintf('%s %s', $date, implode(' - ', array_unique($time))));
+                        } else {
+                            $value = $date;
+                        }
                     } elseif (!empty($params['shipping_params_desired_delivery.date_str'])) {
                         $value = $params['shipping_params_desired_delivery.date_str'];
                     }
