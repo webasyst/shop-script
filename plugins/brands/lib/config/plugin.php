@@ -4,7 +4,7 @@ return array(
     'name' => /*_wp*/('Brands'),
     'description' => /*_wp*/('Storefront’s product filtering by brand (manufacturer)'),
     'vendor'=>'webasyst',
-    'version'=>'1.3.2',
+    'version'=>'1.4.0',
     'img'=>'img/brands.png',
     'shop_settings' => true,
     'frontend'    => true,
