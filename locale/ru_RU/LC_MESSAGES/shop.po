@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 2.3\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -2860,14 +2860,14 @@ msgstr "Этот товар временно недоступен для зак�
 msgid "Display Gravatar userpics"
 msgstr "Показывать юзерпики Gravatar"
 
-msgid "Gravatar.com (Globally Recognized Avatars) is a web service that returns userpic (profile photo, avatar) by email address. In case userpic is not uploaded in the Contacts app for a particular customer, his Gravatar userpic will be displayed."
-msgstr "Gravatar.com (Globally Recognized Avatars) — это веб-сервис, который возвращает юзерпик пользователя (фотографию, аватар) по его email-адресу. Если фотография не загружена для покупателя в его профиле в приложении «Контакты», будет показан его юзерпик из сервиса Gravatar."
+msgid "Gravatar.com (Globally Recognized Avatars) is a web service that returns a userpic (profile photo, avatar) by an email address. If no photo has uploaded to a customer profile, their Gravatar userpic will be displayed instead."
+msgstr "Gravatar.com (Globally Recognized Avatars) — это веб-сервис, который возвращает юзерпик пользователя (фотографию, аватар) по его email-адресу. Если фотография не загружена в профиле покупателя, будет показан его юзерпик из сервиса Gravatar."
 
 msgid "In case there were no Gravatar userpic uploaded"
 msgstr "Если у покупателя не загружен юзерпик в сервисе Gravatar"
 
 msgid "Use default userpic"
-msgstr "Использовать стандартное изображение из приложения «Контакты»"
+msgstr "Использовать стандартное изображение"
 
 msgid "by day"
 msgstr "по дням"
@@ -6577,8 +6577,8 @@ msgstr "часов после перевода заказа в статус"
 msgid "Array of courier data"
 msgstr "Массив данных курьера"
 
-msgid "Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact"
-msgstr "Массив данных контакта курьера из приложения «Контакты», если курьер связан с существующим контактом"
+msgid "Array of data of a courier contact if a courier is linked to an existing contact."
+msgstr "Массив данных контакта курьера, если курьер связан с существующим контактом."
 
 msgid "Courier contact’s default email address"
 msgstr "Email-адрес контакта курьера"
@@ -12818,7 +12818,7 @@ msgid "Select the categories from which selected products must be removed. Only 
 msgstr "Отметьте категории, из которых нужно исключить выделенные товары. Для выбора доступны только те категории, в которые добавлен хотя бы один из выделенных товаров."
 
 msgid "Select the type to be set for selected products."
-msgstr "Выберите тип, который нужно присвоить выделенным товаам."
+msgstr "Выберите тип, который нужно присвоить выделенным товарам."
 
 msgid "Select the badge to be added to selected products."
 msgstr "Выберите наклейку, которую нужно добавить к выделенным товарам."

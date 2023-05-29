@@ -348,7 +348,7 @@ return array(
             '$courier'                                                 => _w('Array of courier data'),
             '$courier.name'                                            => _w('Courier name'),
             '$courier.note'                                            => _w('Note'),
-            '$courier.contact'                                         => _w('Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact'),
+            '$courier.contact'                                         => _w('Array of data of a courier contact if a courier is linked to an existing contact.'),
             '$courier.contact->get(\'email\', \'default\')'            => _w('Courier contact’s default email address'),
             '$courier.contact->get(\'phone\', \'default\')'            => _w("Courier contact’s default phone number"),
             /** OTHER **/
@@ -481,7 +481,7 @@ return array(
             '$courier'                                                 => _w('Array of courier data'),
             '$courier.name'                                            => _w('Courier name'),
             '$courier.note'                                            => _w('Note'),
-            '$courier.contact'                                         => _w('Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact'),
+            '$courier.contact'                                         => _w('Array of data of a courier contact if a courier is linked to an existing contact.'),
             '$courier.contact->get(\'email\', \'default\')'            => _w('Courier contact’s default email address'),
             '$courier.contact->get(\'phone\', \'default\')'            => _w("Courier contact’s default phone number"),
             /** ACTION DATA **/
@@ -564,7 +564,7 @@ return array(
             '$courier'                                                    => _w('Array of courier data'),
             '$courier.name'                                               => _w('Courier name'),
             '$courier.note'                                               => _w('Note'),
-            '$courier.contact'                                            => _w('Array of data of a courier contact stored in Contacts app, if courier is linked to an existing contact'),
+            '$courier.contact'                                            => _w('Array of data of a courier contact if a courier is linked to an existing contact.'),
             '$courier.contact->get(\'email\', \'default\')'               => _w('Courier contact’s default email address'),
             '$courier.contact->get(\'phone\', \'default\')'               => _w("Courier contact’s default phone number"),
             /** OTHER **/

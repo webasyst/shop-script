@@ -224,7 +224,7 @@ class shopMainMenu
 
         // Editor picks, Webasyst apps
         wa('installer');
-        if (class_exists('installerStoreInAppAction')) { // !!! TODO: remove condition before release
+        if (class_exists('installerStoreInAppAction')) {
             $result[] = [
                 "name" => _w("Editor picks"),
                 "url" => "{$wa_app_url}?module=plugins&page=home",
