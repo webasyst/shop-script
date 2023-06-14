@@ -10,7 +10,7 @@ https://www.webasyst.com
   * Web Server
 		* Apache, nginx or IIS
 
-	* PHP 5.6+
+	* PHP 7.4+
 		* spl
 		* mbstring
 		* iconv
