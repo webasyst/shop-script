@@ -47,10 +47,11 @@ class shopDemoDataImporter
 
             $import_table_data = $table_data;
             unset($import_table_data['site_page'], $import_table_data['site_page_params']);
+            unset($import_table_data['shop_page'], $import_table_data['shop_page_params']);
 
             $this->importTablesData($import_table_data);
         } else {
-            self::printLog("Couldn't find tables dir after unpacking source zip of source data");
+            static::printLog("Couldn't find tables dir after unpacking source zip of source data");
         }
 
         //
@@ -62,29 +63,33 @@ class shopDemoDataImporter
         $this->backupWaConfig();
 
         // IMPORT wa-config/routing.php for SHOP app
-        $import_routing_result = $this->importRoutingSettings($tmp_config_files_dir);
+        $import_options = $this->importShopRoutingSettings($tmp_config_files_dir);
 
         // IMPORT wa-config/apps/shop
-        $this->importShopConfigs($tmp_config_files_dir, $import_routing_result);
+        $this->importShopConfigs($tmp_config_files_dir, $import_options);
 
-        // IMPORT wa-config/routing.php for SITE app
-        $import_routing_result = $this->importSiteRoutingSettings($tmp_config_files_dir);
+        // IMPORT wa-config/routing.php for SITE and other apps
+        $import_options += $this->importOtherRoutingSettings($tmp_config_files_dir);
 
         // IMPORT site "The array defining core website navigation menu" setting
-        $this->importSiteNavigationMenuSettings($tmp_config_files_dir, $import_routing_result);
+        $this->importSiteNavigationMenuSettings($tmp_config_files_dir, $import_options);
 
         // Import site_page and site_page_params tables
-        $site_pages_table_data = array();
-        foreach (array('site_page', 'site_page_params') as $table_name) {
-            if (isset($table_data[$table_name])) {
-                $site_pages_table_data[$table_name] = $table_data[$table_name];
-            }
-        }
+        $site_pages_table_data = array_intersect_key($table_data, ['site_page' => 1, 'site_page_params' => 1]);
+        $shop_pages_table_data = array_intersect_key($table_data, ['shop_page' => 1, 'shop_page_params' => 1]);
 
-        if ($site_pages_table_data && wa()->appExists('site')) {
-            $import_options = $import_routing_result;
-            $import_options['current_domain_id'] = $this->getCurrentDomainId();
-            $this->importSitePagesTableData($site_pages_table_data, $import_options);
+        if ($shop_pages_table_data || $site_pages_table_data) {
+            if ($shop_pages_table_data) {
+                list(
+                    $import_options['current_domain'],
+                    $import_options['current_shop_url']
+                ) = $this->getCurrentDomainShopSettlementUrl();
+                $this->importShopPagesTableData($shop_pages_table_data, $import_options);
+            }
+            if ($site_pages_table_data && wa()->appExists('site')) {
+                $import_options['current_domain_id'] = $this->getCurrentDomainId();
+                $this->importSitePagesTableData($site_pages_table_data, $import_options);
+            }
         }
 
         if (wa()->appExists('installer')) {
@@ -194,10 +199,40 @@ class shopDemoDataImporter
                 }
             } catch (waDbException $e) {
                 // ignore or maybe log
-                self::printLog($e);
+                static::printLog($e);
                 throw $e;
             }
         }
+    }
+
+    protected function importShopPagesTableData($tables_data, $options = array())
+    {
+        if (empty($tables_data['shop_page'])) {
+            return;
+        }
+
+        $tables_data = array_intersect_key($tables_data, ['shop_page' => 1, 'shop_page_params' => 1]);
+
+        // Prepare pages by preplacing domain id and route
+        $tables_data['shop_page'] = $this->prepareShopPageData($tables_data['shop_page'], $options);
+
+        $this->importTablesData($tables_data);
+    }
+
+    protected function prepareShopPageData($data, $options = array())
+    {
+        foreach ($data as &$item) {
+            if (isset($options['current_domain'])) {
+                $item['domain'] = $options['current_domain'];
+            }
+            if (isset($options['current_shop_url'])) {
+                $item['route'] = $options['current_shop_url'];
+            }
+
+        }
+        unset($item);
+
+        return $data;
     }
 
     /**
@@ -259,7 +294,7 @@ class shopDemoDataImporter
 
             } catch (waDbException $e) {
                 // ignore or maybe log
-                self::printLog($e);
+                static::printLog($e);
                 throw $e;
             }
         }
@@ -283,7 +318,7 @@ class shopDemoDataImporter
                 $table->insert($item, 1);
             } catch (waDbException $e) {
                 // ignore or maybe log
-                self::printLog($e);
+                static::printLog($e);
                 throw $e;
             }
         }
@@ -335,8 +370,8 @@ class shopDemoDataImporter
         try {
             waFiles::copy($tmp_public_files_dir, $app_public_files_dir);
         } catch (Exception $e) {
-            self::printLog("Couldn't find 'wa-data/public/shop/' dir after unpacking source zip of source data");
-            self::printLog($e->getMessage());
+            static::printLog("Couldn't find 'wa-data/public/shop/' dir after unpacking source zip of source data");
+            static::printLog($e->getMessage());
         }
     }
 
@@ -348,8 +383,8 @@ class shopDemoDataImporter
         try {
             waFiles::copy($tmp_public_files_dir, $app_public_files_dir);
         } catch (Exception $e) {
-            self::printLog("Couldn't find 'wa-data/protected/shop/' dir after unpacking source zip of source data");
-            self::printLog($e->getMessage());
+            static::printLog("Couldn't find 'wa-data/protected/shop/' dir after unpacking source zip of source data");
+            static::printLog($e->getMessage());
         }
     }
 
@@ -361,8 +396,8 @@ class shopDemoDataImporter
         try {
             waFiles::copy($tmp_site_themes_dir, $current_site_themes_dir);
         } catch (Exception $e) {
-            self::printLog("Couldn't find 'wa-data/public/site/themes' dir after unpacking source zip of source data");
-            self::printLog($e->getMessage());
+            static::printLog("Couldn't find 'wa-data/public/site/themes' dir after unpacking source zip of source data");
+            static::printLog($e->getMessage());
         }
     }
 
@@ -395,7 +430,17 @@ class shopDemoDataImporter
         }
     }
 
-    protected function importRoutingSettings($config_files_dir)
+    protected function getCurrentRoutingConfig()
+    {
+        $current_config_files_dir = wa()->getConfigPath();
+        $current_config_routing_file = $current_config_files_dir . '/routing.php';
+        if (file_exists($current_config_routing_file)) {
+            return include($current_config_routing_file);
+        }
+        return [];
+    }
+
+    protected function importShopRoutingSettings($config_files_dir)
     {
         // distribute all settings of shop routing of exporter throughout all shop-settlements of importer
 
@@ -424,13 +469,7 @@ class shopDemoDataImporter
             return array();
         }
 
-        $current_routing_config = array();
-        $current_config_files_dir = wa()->getConfigPath();
-        $current_config_routing_file = $current_config_files_dir . '/routing.php';
-        if (file_exists($current_config_routing_file)) {
-            $current_routing_config = include($current_config_routing_file);
-        }
-
+        $current_routing_config = $this->getCurrentRoutingConfig();
         $changed = false;
 
         $checkout_storefront_ids = array();
@@ -467,7 +506,7 @@ class shopDemoDataImporter
             return array();
         }
 
-        waUtils::varExportToFile($current_routing_config, $current_config_routing_file);
+        $this->varExportToFile($current_routing_config, wa()->getConfigPath() . '/routing.php');
 
         return array(
             // will need for update checkout2 config
@@ -477,7 +516,27 @@ class shopDemoDataImporter
 
     }
 
+    protected function getCurrentDomainShopSettlementUrl()
+    {
+        $domain = $this->getCurrentDomain();
+        foreach ($this->getCurrentRoutingConfig() as $d => $settlements) {
+            if ($d === $domain && is_array($settlements)) {
+                foreach ($settlements as $settlement) {
+                    if (is_array($settlement) && ifset($settlement, 'app', null) === 'shop' && isset($settlement['url'])) {
+                        return [
+                            $domain,
+                            $settlement['url']
+                        ];
+                    }
+                }
+            }
+        }
+        return [$domain, null];
+    }
+
     /**
+     * Change settlement settings in current installation accodding to settlement settings in archive we're importing.
+     *
      * @param $config_files_dir
      * @return array $result
      *      - bool $result['changed']
@@ -486,7 +545,7 @@ class shopDemoDataImporter
      *
      * @throws waException
      */
-    protected function importSiteRoutingSettings($config_files_dir)
+    protected function importOtherRoutingSettings($config_files_dir)
     {
         $result = array(
             'changed' => false,
@@ -494,79 +553,88 @@ class shopDemoDataImporter
             'current_site_url' => null
         );
 
-        // distribute all settings of site routing of exporter throughout all site-settlements of importer
-
         $config_routing_file = $config_files_dir . 'routing.php';
-
         if (!file_exists($config_routing_file)) {
             return $result;
         }
 
-        $exported_routing_config = include($config_routing_file);
+        $routing_config_being_imported = include($config_routing_file);
+        $apps_to_update = array_fill_keys($this->getImportantInstalledApps(), true);
 
-        // get first site settlement
-        $exporter_site_settlement_config = null;
-        foreach ($exported_routing_config as $domain => $domain_routing_config) {
-            // may be 'mirror' - 'mirror' is scalar value, not array
-            if (is_array($domain_routing_config)) {
-                foreach ($domain_routing_config as $settlement_config) {
-                    if (is_array($settlement_config) && isset($settlement_config['app']) && $settlement_config['app'] == 'site') {
-                        $exporter_site_settlement_config = $settlement_config;
-                        break;
+        // from archive being imported, get first settlement of each app we need to update
+        $routing_app_rules_being_imported = [];
+        foreach ($routing_config_being_imported as $domain => $domain_routing_config) {
+            if (!is_array($domain_routing_config)) {
+                continue; // may be string 'mirror'
+            }
+
+            foreach ($domain_routing_config as $settlement_config) {
+                if (is_array($settlement_config)) {
+                    $app_id = ifset($settlement_config, 'app', null);
+                    if ($app_id && !isset($routing_app_rules_being_imported[$app_id]) && isset($apps_to_update[$app_id])) {
+                        $routing_app_rules_being_imported[$app_id] = $settlement_config;
                     }
                 }
             }
         }
 
-        if (!$exporter_site_settlement_config) {
+        if (!$routing_app_rules_being_imported) {
             return $result;
         }
 
-        $current_routing_config = array();
-        $current_config_files_dir = wa()->getConfigPath();
-        $current_config_routing_file = $current_config_files_dir . '/routing.php';
-        if (file_exists($current_config_routing_file)) {
-            $current_routing_config = include($current_config_routing_file);
-        }
+        // Read routing config from current installation
+        $current_routing_config = $this->getCurrentRoutingConfig();
 
-        // Create new site settlement on each domain that has shop settlement but no site settlement
-        list($changed, $current_routing_config) = $this->createEmptySiteSettlements($current_routing_config);
+        // Create new site (and other apps) settlement on each domain that has shop settlement but no site settlement
+        list($changed, $current_routing_config) = $this->createEmptySettlements($current_routing_config, $routing_app_rules_being_imported);
 
-        // get first site settlement of current domain
+        // `$imported_site_settlement_config` will be set to first site settlement of current domain
+        // we'll return this to be used later ouside this method
         $imported_site_settlement_config = null;
         $domain = $this->getCurrentDomain();
 
         foreach ($current_routing_config as $current_domain => &$current_domain_routing_config) {
-            // may be 'mirror' - 'mirror' is scalar value, not array
-            if (is_array($current_domain_routing_config)) {
-                foreach ($current_domain_routing_config as &$current_settlement_config) {
-                    if (is_array($current_settlement_config) && ifset($current_settlement_config, 'app', null) === 'site' && empty($current_settlement_config['theme'])) {
-
-                        // url will not be changed
-                        $url = $current_settlement_config['url'];
-
-                        $current_settlement_config = $exporter_site_settlement_config;
-                        $current_settlement_config['url'] = $url;
-
-                        // get first site settlement of current domain
-                        if ($current_domain === $domain && !$imported_site_settlement_config) {
-                            $imported_site_settlement_config = $current_settlement_config;
-                        }
-
-                        $changed = true;
-                    }
-                }
-                unset($current_settlement_config);
+            if (!is_array($current_domain_routing_config)) {
+                continue; // may be string 'mirror'
             }
+
+            foreach ($current_domain_routing_config as &$current_settlement_config) {
+                if (!is_array($current_settlement_config)) {
+                    continue;
+                }
+
+                $app_id = ifset($current_settlement_config, 'app', null);
+                if (!$app_id || empty($routing_app_rules_being_imported[$app_id])) {
+                    // not interested in importing this app
+                    continue;
+                }
+
+                // do not modify any settlement that already has a theme selected
+                // it means that user already set it up by hand, we don't want to break that
+                if (empty($current_settlement_config['theme'])) {
+                    $current_settlement_config = [
+                        // URL should stay as set up on current installation, not taken from archive being imported
+                        'url' => ifset($current_settlement_config, 'url', $routing_app_rules_being_imported[$app_id]['url']),
+                    ] + $routing_app_rules_being_imported[$app_id];
+                }
+
+                // first site settlement of current domain is to be used later outside of this method
+                if ($app_id == 'site' && $current_domain === $domain && !$imported_site_settlement_config) {
+                    $imported_site_settlement_config = $current_settlement_config;
+                }
+
+                $changed = true;
+            }
+            unset($current_settlement_config);
         }
         unset($current_domain_routing_config);
 
         if ($changed) {
-            waUtils::varExportToFile($current_routing_config, $current_config_routing_file);
+            $this->varExportToFile($current_routing_config, wa()->getConfigPath() . '/routing.php');
         }
 
         $result['changed'] = $changed;
-        $result['exported_site_url'] = $exporter_site_settlement_config['url'];
+        $result['exported_site_url'] = $routing_app_rules_being_imported['site']['url'];
         if ($imported_site_settlement_config) {
             $result['current_site_url'] = $imported_site_settlement_config['url'];
         }
@@ -574,14 +642,27 @@ class shopDemoDataImporter
         return $result;
     }
 
+    protected function getImportantInstalledApps()
+    {
+        $apps_to_check = ['site'];
+        foreach(['hub', 'blog', 'photos', 'helpdesk'] as $app_id) {
+            if (wa()->appExists($app_id)) {
+                $apps_to_check[] = $app_id;
+            }
+        }
+        return $apps_to_check;
+    }
+
     /**
      * For each domain in $current_routing_config, if domain has a shop settlement
-     * but no site settlement, add a site settlement to that domain.
+     * but no settlement of site (or another important app we care about), add a settlement to that domain.
      * Site settlement will be added as root (url=*) if domain has no root settlement,
      * otherwise url=site/*
      */
-    protected function createEmptySiteSettlements($current_routing_config)
+    protected function createEmptySettlements($current_routing_config, array $routing_app_rules_being_imported)
     {
+        $apps_to_check = array_keys($routing_app_rules_being_imported + ['shop' => true, 'site' => true]);
+
         // Figure out which domains need a new site settlement
         $changed = false;
         $affected_domains = []; // domain => route url
@@ -589,31 +670,36 @@ class shopDemoDataImporter
             if (!is_array($current_domain_routing_config)) {
                 continue;
             }
-            $domain_has_shop = false;
-            $domain_has_site = false;
+            $domain_has_app = [];
             $domain_has_root_settlement = false;
             foreach ($current_domain_routing_config as $current_settlement_config) {
                 if (!is_array($current_settlement_config)) {
                     continue;
                 }
 
-                $domain_has_shop = $domain_has_shop || ifset($current_settlement_config, 'app', null) === 'shop';
-                $domain_has_site = $domain_has_site || ifset($current_settlement_config, 'app', null) === 'site';
                 $domain_has_root_settlement = $domain_has_root_settlement || ifset($current_settlement_config, 'url', null) === '*';
+                foreach ($apps_to_check as $app_id) {
+                    $domain_has_app[$app_id] = !empty($domain_has_app[$app_id]) || ifset($current_settlement_config, 'app', null) === $app_id;
+                }
             }
 
-            if ($domain_has_shop && !$domain_has_site) {
-                $changed = true;
-                if ($domain_has_root_settlement) {
-                    array_unshift($current_routing_config[$current_domain], [
-                        'url' => 'site/*',
-                        'app' => 'site',
-                    ]);
-                } else {
-                    $current_routing_config[$current_domain][] = [
-                        'url' => '*',
-                        'app' => 'site',
-                    ];
+            if ($domain_has_app['shop']) {
+                foreach ($apps_to_check as $app_id) {
+                    if ($app_id == 'shop' || !empty($domain_has_app[$app_id])) {
+                        continue;
+                    }
+                    $changed = true;
+                    if ($app_id == 'site' && !$domain_has_root_settlement) {
+                        $current_routing_config[$current_domain][] = [
+                            'url' => '*',
+                            'app' => 'site',
+                        ];
+                    } else {
+                        array_unshift($current_routing_config[$current_domain], [
+                            'url' => $app_id.'/*',
+                            'app' => $app_id,
+                        ]);
+                    }
                 }
             }
         }
@@ -682,7 +768,7 @@ class shopDemoDataImporter
 
                         }
                     } else {
-                        waUtils::varExportToFile($current_checkout2_config, $current_checkout2_config_path);
+                        $this->varExportToFile($current_checkout2_config, $current_checkout2_config_path);
                     }
                 }
 
@@ -750,8 +836,13 @@ class shopDemoDataImporter
         $domain_settings['apps'] = $navigation_menu_settings;
 
         waFiles::create($current_configs_path);
-        waUtils::varExportToFile($domain_settings, $current_configs_path_filepath);
+        $this->varExportToFile($domain_settings, $current_configs_path_filepath);
 
+    }
+
+    protected function varExportToFile($data, $path)
+    {
+        return waUtils::varExportToFile($data, $path);
     }
 
     /**

@@ -59,8 +59,7 @@
                     event.preventDefault();
 
                     const form = $(this);
-                    form.find(':submit').prop('disabled', true).append('<span class="s-msg-after-button"><i class="fas fa-spinner fa-spin"></i></span>');
-                    send_test_button.prop('disabled', true);
+                    form.find('#n-send-button').prop('disabled', true).append('<span class="s-msg-after-button"><i class="fas fa-spinner fa-spin"></i></span>');
 
                     // find out transport in add and edit mode
                     let transport = form.find('input[name="data[transport]"]:checked').val();
@@ -89,14 +88,15 @@
                         }
 
                         const n = response.data;
-                        if ($("#notification-" + n.id).length) {
-                            $("#notification-" + n.id + ' a').html( '<span class="icon">' + $.icon_convert[n.icon] + '</span><span>' + n.name + ' </span>');
+                        const $notification = $("#notification-" + n.id);
+
+                        if ($notification.length) {
+                            $notification.find('a').html( '<span class="icon">' + $.icon_convert[n.icon] + '</span><span class="name">' + n.name + ' </span>');
                             form.find(':submit').prop('disabled', false);
-                            send_test_button.prop('disabled', false);
                         } else {
                             const $li = $('<li class="rounded" id="notification-' + n.id + '">' +
                                             '<a href="#/notifications/' + n.id + '/">' +
-                                            '<span class="icon">' + $.icon_convert[n.icon] + '</span><span>' + n.name + ' </span></a></li>');
+                                            '<span class="icon">' + $.icon_convert[n.icon] + '</span><span class="name">' + n.name + ' </span></a></li>');
 
                             $("#notifications").append($li);
 
@@ -104,9 +104,11 @@
                         }
 
                         if (n.status == '0') {
-                            $("#notification-" + n.id).addClass('gray');
+                            $notification.find('.icon').addClass('opacity-50');
+                            $notification.find('.name').addClass('gray');
                         } else {
-                            $("#notification-" + n.id).removeClass('gray');
+                            $notification.find('span').removeClass('opacity-50');
+                            $notification.find('.name').removeClass('gray');
                         }
 
                         form.find('span.s-msg-after-button')

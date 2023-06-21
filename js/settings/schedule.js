@@ -137,7 +137,7 @@ ShopSettingsSchedule = (function ($) {
 
                 $tr.find('input[data-name]').each(function () {
                     $(this).attr('name', 'data[extra_workdays]['+ i +']['+ $(this).data('name') +']');
-                })
+                });
             });
         }
 
@@ -149,7 +149,7 @@ ShopSettingsSchedule = (function ($) {
 
                 $tr.find('.js-extra-weekend').each(function () {
                     $(this).attr('name', 'data[extra_weekends]['+ i +']');
-                })
+                });
             });
         }
 

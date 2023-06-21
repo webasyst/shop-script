@@ -5,8 +5,7 @@ class shopOrdersAction extends shopOrderListAction {
         /** @var shopConfig $config */
         $config = $this->getConfig();
 
-        $default_view = $config->getOption('orders_default_view');
-        $view = waRequest::get('view', $default_view, waRequest::TYPE_STRING_TRIM);
+        $view = $this->getOrdersView();
 
         $orders = [];
 
@@ -15,15 +14,21 @@ class shopOrdersAction extends shopOrderListAction {
         $workflow = new shopWorkflow();
 
         $count = $this->getCount();
+        $counters = ['state_counters' => []];
         $available_states = $workflow->getAvailableStates();
-        if ($view == 'kanban' && (!isset($this->filter_params['state_id']) || is_array($this->filter_params['state_id']))) {
-            if (!empty($this->filter_params['state_id'])) {
-                $available_states = array_intersect_key($available_states, array_flip($this->filter_params['state_id']));
+        $filter_state_id = $this->getStateId();
+        if ($view == 'kanban') {
+            if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
+                throw new waException(_w('Access denied'), 403);
+            }
+            if ($filter_state_id) {
+                $available_states = array_intersect_key($available_states, array_flip($filter_state_id));
             }
             foreach ($available_states as $state_id => $state) {
                 $temp_where = "o.state_id = '$state_id'";
                 $this->collection->addWhere($temp_where);
                 $orders += $this->getOrders(0, $count);
+                $counters['state_counters'][$state_id] = $this->collection->count(true);
                 $this->collection->deleteTempWhere($temp_where);
             }
         } else {
@@ -73,35 +78,32 @@ class shopOrdersAction extends shopOrderListAction {
             }
         }
 
-        $counters = [
-            'state_counters' => [
-                'new' => $this->model->getStateCounters('new'),
-            ],
-        ];
-
         $filter_params = $this->getFilterParams();
-        if (isset($filter_params['state_id'])) {
-            $filter_params['state_id'] = (array)$filter_params['state_id'];
-            sort($filter_params['state_id']);
-            if ($filter_params['state_id'] == ['new', 'paid', 'processing']) {
-                $total = 0;
-                foreach ($filter_params['state_id'] as $st) {
-                    $total += (int)$this->model->getStateCounters($st);
+        if ($view != 'kanban') {
+            $counters['state_counters']['new'] = $this->model->getStateCounters('new');
+            if ($filter_state_id) {
+                $filter_params['state_id'] = $filter_state_id;
+                sort($filter_params['state_id']);
+                if ($filter_params['state_id'] == ['new', 'paid', 'processing']) {
+                    $total = 0;
+                    foreach ($filter_params['state_id'] as $st) {
+                        $total += (int)$this->model->getStateCounters($st);
+                    }
+                    $counters['common_counters'] = [
+                        'pending' => $total,
+                    ];
+                } else {
+                    foreach ($filter_params['state_id'] as $st) {
+                        $counters['state_counters'][$st] = (int)$this->model->getStateCounters($st);
+                    }
                 }
-                $counters['common_counters'] = [
-                    'pending' => $total,
-                ];
+            } else if (isset($filter_params['storefront'])) {
+                $counters['storefront_counters'][$filter_params['storefront']] = count($orders);
             } else {
-                foreach ($filter_params['state_id'] as $st) {
-                    $counters['state_counters'][$st] = (int)$this->model->getStateCounters($st);
-                }
+                $counters['common_counters'] = [
+                    'all' => $this->model->countAll(),
+                ];
             }
-        } else if (isset($filter_params['storefront'])) {
-            $counters['storefront_counters'][$filter_params['storefront']] = count($orders);
-        } else {
-            $counters['common_counters'] = [
-                'all' => $this->model->countAll(),
-            ];
         }
 
         // for define which actions available for whole order list
@@ -114,15 +116,14 @@ class shopOrdersAction extends shopOrderListAction {
 
         $state_counters = null;
         $state_transitions = null;
-        $order_model = new shopOrderModel();
         if ($view === 'kanban') {
-            $state_counters = $order_model->getStateCounters();
+            $state_counters = $this->model->getStateCounters();
             $state_transitions = $this->getStateTransitions($workflow, array_keys($state_counters));
         }
 
 
         $currency =  $config->getCurrency();
-        $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $currency, '%k{h}');
+        $total_processing = wa_currency_html($this->model->getTotalSalesByInProcessingStates(), $currency, '%k{h}');
         $this->assign([
             'orders'               => array_values($orders),
             'total_count'          => $this->getTotalCount(),
@@ -281,5 +282,15 @@ class shopOrdersAction extends shopOrderListAction {
         }
 
         return $result;
+    }
+
+    protected function getOrdersView()
+    {
+        $default_view = wa('shop')->getConfig()->getOption('orders_default_view');
+        $view = waRequest::get('view', $default_view, waRequest::TYPE_STRING_TRIM);
+        if (!in_array($view, ['split','table','kanban'])) {
+            return $default_view;
+        }
+        return $view;
     }
 }

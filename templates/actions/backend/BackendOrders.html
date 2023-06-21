@@ -38,7 +38,7 @@
 </div>
 {/if}
 
-
+{$is_courier = $wa->user()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER}
 <div id="s-order-nav" class="flexbox wrap-mobile s-order-nav" style="display:none;">
 
     <div class="s-order-nav-block flexbox wide-mobile">
@@ -53,10 +53,11 @@
                 <li data-view="table" class="rounded transparent custom-mx-0">
                     <a href="#" title="[`Table`]"><i class="fas fa-list"></i></a>
                 </li>
-
-                <li data-view="kanban" class="rounded transparent custom-mx-0">
-                    <a href="#" title="[`Kanban`]"><i class="fas fa-table"></i></a>
-                </li>
+                {if !$is_courier}
+                    <li data-view="kanban" class="rounded transparent custom-mx-0">
+                        <a href="#" title="[`Kanban`]"><i class="fas fa-table"></i></a>
+                    </li>
+                {/if}
 
                 <!-- plugin hook: 'backend_orders.viewmode_li' -->
                 {* @event backend_orders.%plugin_id%.viewmode_li *}
@@ -134,15 +135,18 @@
                     </div>
                 </div>
             </div>
-            <!-- NEW ORDER -->
-            <a class="rounded button small nowrap s-order-nav-plus-button" href="#/orders/new/" title="[`New order`]">
-                <span class="icon"><i class="fas fa-plus"></i></span>
-                <span class="s-order-nav-plus-button-label">[`New order`]</span>
-            </a>
+            {if !$is_courier}
+                <!-- NEW ORDER -->
+                <a class="rounded button small nowrap s-order-nav-plus-button" href="#/orders/new/" title="[`New order`]">
+                    <span class="icon"><i class="fas fa-plus"></i></span>
+                    <span class="s-order-nav-plus-button-label">[`New order`]</span>
+                </a>
+            {/if}
         </div>
 
     </div>
 
+    {if !$is_courier}
     <!-- PRIMARY FILTERS -->
     <div class="s-order-nav-block s-order-nav-block-split-filters">
 
@@ -363,6 +367,7 @@
         </li>
     </ul>
     </div>
+    {/if}
 
 </div>
 <div class="flexbox" id="s-content">

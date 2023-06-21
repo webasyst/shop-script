@@ -148,7 +148,7 @@
             // save service info for services page
             var $submit = $('#s-save-service-submit');
             $submit.on('click', function () {
-                $(this).attr('disabled', true);
+                $submit.attr('disabled', true);
                 var showSuccessIcon = function () {
                     $submit.parent().find('.js-yes').show();
                     setTimeout(function () {
@@ -159,6 +159,11 @@
                     var p = $submit.parent();
                     p.find('.js-yes').hide();
                     p.find('.js-loading').show();
+                };
+                var hideLoadingIcon = function () {
+                    var p = $submit.parent();
+                    p.find('.js-yes').hide();
+                    p.find('.js-loading').hide();
                 };
                 // after update services hash, dispatching and load proper content
                 // 'afterServicesAction' will be called. Extend this handler
@@ -179,6 +184,10 @@
                         } else {
                             $.wa.setHash('#/services/' + r.data.id + '/');
                         }
+                    }, function (e) {
+                        $submit.attr('disabled', false);
+                        hideLoadingIcon();
+                        renderErrors(e.errors);
                     }
                 );
                 return false;
@@ -189,6 +198,33 @@
                 $('#s-service-currency-code').val(val);
             });
             this.initHandlers();
+
+            function renderErrors(errors) {
+                var $price = form.find('[name="price[]"]');
+
+                $.each(errors, function(i, error) {
+                    if (error.text) {
+                        var $field = $price.eq(error.id);
+                        if ($field.length) {
+                            renderError(error, $field);
+                        }
+                    }
+                });
+
+                function renderError(error, $field) {
+                    var $error = $('<div class="errormsg"></div>').text(error.text);
+                    var error_class = 'error';
+
+                    if (!$field.hasClass(error_class)) {
+                        $field.on('change keyup', removeFieldError).addClass(error_class).closest('td').append($error);
+                    }
+
+                    function removeFieldError() {
+                        $field.off('change keyup', removeFieldError).removeClass(error_class);
+                        $error.remove();
+                    }
+                }
+            }
         },
 
         initEditable: function () {

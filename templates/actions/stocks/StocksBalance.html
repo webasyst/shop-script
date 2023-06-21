@@ -1,32 +1,33 @@
 {if !empty($product_stocks)}
 
-    <table id="s-product-stocks">
-        <thead>
-            <tr class="header white">
-                <th colspan=2>&nbsp;</th>
-                {foreach $stocks as $stock}
+    <div class="s-table-scrollable-x" style="transform: rotateX(180deg);">
+        <table id="s-product-stocks" class="s-product-stocks bigdata nowrap" style="transform: rotateX(180deg);">
+            <thead>
+                <tr class="header">
+                    <th>&nbsp;</th>
+                    {foreach $stocks as $stock}
+                        <th>{strip}
+                            {$sort_key = 'stock_count_'|cat:$stock.id}
+                            <a href="#/stocks/stock_count_{$stock.id}_{if $sort == $sort_key && $order == 'asc'}desc{else}asc{/if}">
+                                {$stock.name|escape}
+                                {if $sort == $sort_key}
+                                    <span class="icon baseline"><i class="fas fa-caret-{if $order == 'desc'}down{else}up{/if}"></i></span>
+                                {/if}
+                            </a>
+                        {/strip}</th>
+                    {/foreach}
                     <th>{strip}
-                        {$sort_key = 'stock_count_'|cat:$stock.id}
-                        <a href="#/stocks/stock_count_{$stock.id}_{if $sort == $sort_key && $order == 'asc'}desc{else}asc{/if}">
-                            {$stock.name|escape}
-                            {if $sort == $sort_key}
-                                <span class="icon baseline"><i class="fas fa-caret-{if $order == 'desc'}down{else}up{/if}"></i></span>
+                        <a href="#/stocks/{if $sort === 'count' && $order == 'asc'}desc{else}asc{/if}/" class="s-sort-handler bold">
+                            [`All stocks`]
+                            {if $sort === 'count'}
+                            <span class="icon baseline"><i class="fas fa-caret-{if $order == 'desc'}down{else}up{/if}"></i></span>
                             {/if}
                         </a>
                     {/strip}</th>
-                {/foreach}
-                <th>{strip}
-                    <a href="#/stocks/{if $sort === 'count' && $order == 'asc'}desc{else}asc{/if}/" class="s-sort-handler bold">
-                        [`All stocks`]
-                        {if $sort === 'count'}
-                        <span class="icon baseline"><i class="fas fa-caret-{if $order == 'desc'}down{else}up{/if}"></i></span>
-                        {/if}
-                    </a>
-                {/strip}</th>
-            </tr>
-        </thead>
-    </table>
-
+                </tr>
+            </thead>
+        </table>
+    </div>
     <div class="lazyloading-wrapper align-center box">
         <div class="lazyloading-progress-string custom-mb-8">{_w('%d product','%d products', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
         <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more products`]</a>
@@ -57,7 +58,8 @@
             {% var sku_count = skus.length; %}
             <tr class="s-product" data-id="{%#product.id%}">
                 {% var hash = '{/literal}{shopHelper::getBackendEditorUrl('@s', 'prices')}{literal}'.replace('@s', product.id); %}
-                <td class="s-product min-width">
+                <td class="s-product min-width not-blank" style="position: sticky; left: 0;">
+                    <div class="flexbox middle">
                     <a href="{%#hash%}">
                         {% if (product.url_crop_small) { %}
                             <img src="{%#product.url_crop_small%}">
@@ -65,12 +67,9 @@
                             <img src="{/literal}{$wa_app_static_url}{literal}img/image-dummy-small.png" class="not-found">
                         {% } %}
                     </a>
+                    <a class="custom-ml-12" href="{%#hash%}">{%=product.name%}</a>
+                    </div>
                 </td>
-
-                <td class="s-product">
-                    <a href="{%#hash%}">{%=product.name%}</a>
-                </td>
-
                 <!-- detailed by stocks -->
                 {% for (var k = 0, l = stocks.length; k < l; k += 1) { %}
                     {% var stock_id = o.stocks[k].id; %}

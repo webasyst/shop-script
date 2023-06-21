@@ -199,7 +199,7 @@ ul.homepage-bxslider li { list-style: none; margin: 0; padding: 0; max-height: 3
 .product-topbar .compare-remove { color: var(--gray1) !important; }
 .product-topbar .compare-add span, .product-topbar .compare-remove span { vertical-align: text-top; margin-left: 6px; }
 
-.product-media-purchase { display: flex; flex-wrap: wrap; background: var(--white); box-shadow: var(--shadow); border-radius: 15px; padding: 30px; margin-bottom: 32px }
+.product-media-purchase { display: flex; flex-wrap: wrap; background: var(--white); box-shadow: var(--shadow); border-radius: 15px; padding: 30px; margin-bottom: 32px; overflow: hidden; }
 
 .product-media { display: flex; }
 
@@ -423,8 +423,8 @@ table.rating-distribution td .bar .filling { background: var(--orange); height: 
 .review .summary a { display: inline; padding: 0; }
 .review .summary .image { width: 24px; height: 24px; border-radius: 50%; }
 .review .summary .date { color: var(--gray20); line-height: normal; }
-.review p { }
 .review .actions a { padding: 0 !important; }
+.review .s-images-list .s-image { max-width: 100%; }
 
 .write-review-closed .col.w4 { padding-top: 127px; }
 @media screen and (max-width: 1024px){
@@ -506,7 +506,7 @@ input.error, textarea.error { border: 2px solid var(--red); }
 .filters .filters-form-wrapper {gap: 16px; }
 .filters .filter-param:not(:first-child) { margin-top: 34px;}
 .filters .filter-param input { font-size: 75%; }
-.filters .filter-param:not(:first-child) input { margin-right: 8px; }
+.filters .filter-param:not(:first-child) input { margin-right: 2px; }
 .filters .filter-param:first-child input { font-size: 120%; }
 .filters h5 { margin-bottom: 16px; font-weight: normal}
 .filters label { display: block; color: var(--gray1); }

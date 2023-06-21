@@ -2,36 +2,36 @@
 
 class shopServiceSaveController extends waJsonController
 {
+    protected $service_model;
+
     public function execute()
     {
-        $service_model = new shopServiceModel();
+        $this->service_model = new shopServiceModel();
         $service_product_model = new shopProductServicesModel();
 
         $id = waRequest::get('id', null, waRequest::TYPE_INT);
 
         $edit = waRequest::get('edit', null, waRequest::TYPE_STRING_TRIM);
         if ($edit == 'name') {
-            $service_model->updateById($id, array(
+            $this->service_model->updateById($id, array(
                 'name' => waRequest::post('name', '', waRequest::TYPE_STRING_TRIM)
             ));
             return;
         }
 
-        if ($id) {
-            $service = $service_model->getById($id);
-            if (!$service) {
-                $this->errors[] = _w("Unknown service to update");
-                return;
-            }
+        $data = $this->getData();
+        $this->validateData($id, $data);
+        if ($this->errors) {
+            return;
         }
-        
+
         if ($id) {
             // delete products
             $delete_products = waRequest::post('delete_product', array(), waRequest::TYPE_ARRAY_INT);
             $service_product_model->deleteByProducts($delete_products, $id);
         }
         
-        $id = $service_model->save($this->getData(), $id, true);
+        $id = $this->service_model->save($data, $id, true);
         $this->response = array(
             'id' => $id
         );
@@ -76,5 +76,25 @@ class shopServiceSaveController extends waJsonController
         }
 
         return $data;
+    }
+
+    protected function validateData($id, $data)
+    {
+        if ($id) {
+            $service = $this->service_model->getById($id);
+            if (!$service) {
+                $this->errors[] = _w("Unknown service to update");
+                return;
+            }
+        }
+
+        foreach ($data['variants'] as $i => $variant) {
+            if (is_numeric($variant['price']) && $variant['price'] < 0) {
+                $this->errors[] = [
+                    'id' => $i,
+                    'text' => _w('Стоимость услуги не может быть отрицательной'),
+                ];
+            }
+        }
     }
 }

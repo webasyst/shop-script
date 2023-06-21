@@ -12,7 +12,6 @@
 /* wa-2.0.css overrides based on Shop-Script specific dimmed-background layout */
 
 .s-hide-scrollbar::-webkit-scrollbar { display: none; }
-.s-hide-scrollbar { -ms-overflow-style: none; scrollbar-color: transparent transparent; scrollbar-width: none; }
 
 body { overflow-x: hidden; }
 
@@ -97,6 +96,7 @@ ul.tags a { display: inline-block; }
 ul.menu-v.dropdown > li.is-opened > ul { display: block }
 
 @media (max-width: 760px) {
+    body { --main-sidebar-width: 0px; }
     .sidebar.shop-second-sidebar {
         width: 3rem;
         transition: all var(--timing-fast);
@@ -119,7 +119,8 @@ ul.menu-v.dropdown > li.is-opened > ul { display: block }
         width: calc(100vw - 3rem);
     }
 
-    #reportscontent { --padding-container-width: 32px !important; --main-sidebar-width: 0px; }
+
+    #reportscontent, #s-stocks-container { --padding-container-width: 32px !important;  }
     #reportscontent .graph-wrapper { min-height: 150px; }
     .s-report-sales h1 .hint { display: block; font-size: 75%; }
     .s-report-sales .s-report-sales-csv-download { margin-top: 0.5rem; }
@@ -243,7 +244,9 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 ul.s-orders.list > .item.selected { background: var(--accent-color); color: var(--white); }
 ul.s-orders.list > .item.selected * { color: var(--white); }
 ul.s-orders.list > .item { -webkit-tap-highlight-color: transparent; }
-ul.s-orders.list > .item .highlighted, ul.s-orders.list > .item .highlighted > * { padding: 0.1rem 0.3rem; color: var(--bricks-glyph-color-selected) !important; }
+ul.s-orders.list > .item .highlighted { padding: 0.1rem 0.3rem; }
+ul.s-orders.list > .item .highlighted,
+ul.s-orders.list > .item .highlighted > * { color: var(--bricks-glyph-color-selected) !important; }
 
 .s-split-order-wrapper { position: relative; }
 .s-split-order-wrapper.fixed-to-top { position: fixed; top: 0;}
@@ -705,7 +708,9 @@ table#s-product-stocks.zebra td.drag-active.first{ border-left: 1px dashed #ddd;
 }
 #s-settings-stock-rules-form .stock-rule-condition div.tagsinput:focus-within input::placeholder { color: var(--light-gray); }
 #s-settings-stock-rules-form .stock-rule-condition div.tagsinput .tag { display: none; }
-
+#s-stocks-container { --padding-container-width: 64px; }
+#s-stocks-container .s-stocks-log td:nth-child(2), #s-stocks-container .s-product-stocks td:nth-child(2) { white-space: normal; min-width: 20rem; max-width: 25rem; }
+.s-table-scrollable-x { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: calc(100vw - var(--main-sidebar-width) - var(--padding-container-width)); }
 #s-transfer-list td a { color: inherit; }
 .s-transfer-status-sent { color: #da0; font-weight: bold; }
 .s-transfer-status-completed { color: #0a0; }
@@ -761,7 +766,7 @@ ul.menu-h.s-reports-timeframe li.s-custom-timeframe:hover { background: #fff; }
 ul.menu-h.s-reports-timeframe li.s-custom-timeframe input { width: 100px; }
 
 .s-reports-table-sort th a { display: flex; justify-content: end; align-items: baseline; gap: 0.25rem; }
-.s-reports-table-sort th { vertical-align: top; };
+.s-reports-table-sort th { vertical-align: top; }
 
 .s-graph { margin: 20px; }
 .s-profit { color: #a00; }
@@ -986,10 +991,10 @@ table#s-customers-report-table.mode-profit .toggled.profit { display: table-cell
 
 #s_import_csv_table .value { display: block; }
 
-table.s-csv { border: 0; background-color: #ECE9D8; font-size: 10pt; font-family: arial; border-spacing: 0px; white-space: nowrap; border-collapse: collapse; margin: 0 auto 0 0; }
+table.s-csv { border: 0; background-color: #ECE9D8; font-size: 10pt !important; font-family: arial; border-spacing: 0px; white-space: nowrap; border-collapse: collapse; margin: 0 auto 0 0; }
 table.s-csv caption { color: #888888; font-size: 0.95em; text-align: left; }
-table.s-csv td { background-color: white; padding: 0 4px 0 2px; border-color: #e6e6e6 #e6e6e6 white; border-style: solid solid none; border-width: 1px 1px 0; overflow: hidden; max-width: 200px; display: inline-block; height: auto; }
-table.s-csv .heading { margin: 0; color: inherit; font-weight: normal; }
+table.s-csv td { background-color: white; padding: 0 4px 0 2px; border-color: #e6e6e6 #e6e6e6 white !important; border-style: solid solid none !important; border-width: 1px 1px 0 !important; overflow: hidden; max-width: 200px; display: inline-block; height: auto; font-size: inherit !important; }
+table.s-csv .heading { margin: 0 !important; color: inherit; font-weight: normal; }
 
 table.s-csv tfoot td { color: #888888; background-color: #ECE9D8 !important; font-size: 0.95em; text-align: left; vertical-align: top; }
 table.s-csv thead td { color: #888888; background-color: #ECE9D8 !important; font-size: 0.95em; text-align: center; vertical-align: top; }

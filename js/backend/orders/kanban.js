@@ -60,8 +60,11 @@ var Kanban = (($) => {
         }
 
         buildLoadListUrl(id, lt, counters) {
+            if (filterParamsStr) {
+                $.order_list.filter_params_str = filterParamsStr;
+            }
             const sort = ['0', 'desc']; // or remove from logic?
-            return $.order_list.buildLoadListUrl(id, lt, counters, null, sort, this.statusId);
+            return $.order_list.buildLoadListUrl(id, lt, counters, null, sort, filterParamsStr ? null : this.statusId);
         }
     }
 

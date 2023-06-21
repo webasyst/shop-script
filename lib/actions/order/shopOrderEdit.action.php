@@ -90,8 +90,10 @@ class shopOrderEditAction extends waViewAction
         // Make sure edit is allowed
         $workflow = new shopWorkflow();
         $edit_action = $workflow->getActionById('edit');
-        if (!$edit_action->isAvailable($this->order)) {
-            throw new waException('Access denied', 403);
+        if (!$edit_action->isAvailable($this->order)
+            || wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER
+        ) {
+            throw new waException(_w('Access denied'), 403);
         }
 
         /**

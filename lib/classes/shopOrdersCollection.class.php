@@ -387,9 +387,9 @@ class shopOrdersCollection
      *
      * @return int
      */
-    public function count()
+    public function count($recount = false)
     {
-        if ($this->count !== null) {
+        if ($this->count !== null && !$recount) {
             return $this->count;
         }
         $sql = $this->getSQL([

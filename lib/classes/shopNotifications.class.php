@@ -1066,10 +1066,11 @@ SQL;
             wa($current_app, 1);
         }
 
-        $a = wa()->getApp();
+        $a = 'shop';
         $v = wa($a)->getVersion($a);
 
         foreach ($host_client_ids as $shop_url => $client_ids) {
+            $include_player_ids = array_values($client_ids);
             $request_data = [
                 'push' => [
                     'message'            => $notification_text,
@@ -1077,7 +1078,7 @@ SQL;
                         'order_id' => $order['id'],
                         'shop_url' => $shop_url
                     ],
-                    'include_player_ids' => array_values($client_ids),
+                    'include_player_ids' => $include_player_ids,
                 ]
             ];
 
@@ -1094,9 +1095,14 @@ SQL;
                 $net->query($request_url, $request_data, waNet::METHOD_POST);
                 $result = $net->getResponse();
                 $result = json_decode($result, true);
+
                 if (!empty($result['errors'])) {
                     if (!empty($result['errors']['invalid_player_ids'])) {
                         $push_client_model->deleteById($result['errors']['invalid_player_ids']);
+                    } elseif (!empty($result['errors'][0])
+                        && $result['errors'][0] == 'All included players are not subscribed'
+                    ) {
+                        $push_client_model->deleteById($include_player_ids);
                     } else {
                         waLog::log('Unable to send PUSH notifications: '.wa_dump_helper($result));
                     }

@@ -81,7 +81,8 @@ class shopBackendLocAction extends waViewAction
             'Confirmed', // _w('Confirmed')
             'Product type adding error.', // _w('Product type adding error.')
             'Cannot save the value of the “GTIN” feature for this product.', // _w('Cannot save the value of the “GTIN” feature for this product.')
-            'Cannot save the value of the “GTIN” feature for an SKU of this product.' // _w('Cannot save the value of the “GTIN” feature for an SKU of this product.')
+            'Cannot save the value of the “GTIN” feature for an SKU of this product.', // _w('Cannot save the value of the “GTIN” feature for an SKU of this product.')
+            'An error occurred', // _w('An error occurred')
         ) as $s) {
             $strings[$s] = _w($s);
         }

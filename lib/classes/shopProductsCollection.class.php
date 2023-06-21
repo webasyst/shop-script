@@ -734,13 +734,12 @@ class shopProductsCollection
                     $feature_id = $features[$feature_code]['id'];
                     if (wa('shop')->getConfig()->getOption('filters_features') == 'exists') {
                         $t = 'tpf'.($alias_index++);
+                        $join_where = "{$t}.product_id = p.id";
                         if (!empty($skus_alias)) {
                             $sku_where = " AND ({$t}.sku_id IS NULL OR {$t}.sku_id = {$skus_alias}.id)";
                         } else {
                             $sku_where = '';
                         }
-                        $skus_joins = $this->getJoinsByTableName('shop_product_skus');
-                        $join_where = $skus_joins ? $skus_joins[0]['alias'] . ".id = $t.sku_id" : "p.id = $t.product_id";
                         $this->where[] = <<<SQL
 EXISTS (
   SELECT
@@ -772,6 +771,26 @@ SQL;
             }
         }
         $this->filtered = true;
+    }
+
+    protected function presentationPrepare($params, $auto_title = false)
+    {
+        $product_ids = array_map('intval', explode(',', $params));
+        $presentation_id = array_shift($product_ids);
+
+        if ($presentation_id <= 0) {
+            $this->where[] = '0';
+            return;
+        }
+        $presentation = new shopPresentation($presentation_id);
+        $filter = $presentation->getFilter();
+        if ($filter->getId()) {
+            $this->filterPrepare($filter->getId());
+        }
+        if ($product_ids) {
+            $product_ids = array_keys(array_flip($product_ids)); // unique
+            $this->excludeProducts($product_ids);
+        }
     }
 
     /**
@@ -904,7 +923,7 @@ SQL;
                         $set_alias = $this->addJoin('shop_set_products');
                         $this->where[] = $set_alias . ".set_id = '" . $set_model->escape($set['id']) . "'";
                     } else {
-                        $inner_select = 'DISTINCT p.*';
+                        $inner_select = 'DISTINCT p.id';
                         $inner_from = 'shop_product p';
                         $rule = ifset($set, 'rule', false);
                         $json_params = ifset($set, 'json_params', '');
@@ -924,20 +943,14 @@ SQL;
                         }
 
                         $inner_where = [];
-                        $group_by = '';
                         if ($rule === shopSetModel::BESTSELLERS_RULE) {
                             $inner_select .= ", $alias_items.price * $alias_order.rate * $alias_items.quantity AS sales";
-                            $group_by = 'p.id';
                             $order_by = 'sales DESC';
                         } elseif ($rule === shopSetModel::TOTAL_COUNT_RULE) {
                             $inner_select .= ", SUM($alias_items.quantity) AS sum_quantity";
-                            $group_by = 'p.id';
                             $order_by = 'sum_quantity DESC';
                         } elseif ($rule == 'compare_price DESC') {
                             $set_alias = 'p';
-                            if (isset($this->join_index['ps'])) {
-                                $set_alias = 'ps1';
-                            }
                             $inner_where[] = "$set_alias.compare_price > $set_alias.price";
                             $order_by = "$set_alias.compare_price DESC";
                         } else {
@@ -956,13 +969,9 @@ SQL;
                         if ($inner_where) {
                             $inner_sql .= "\nWHERE " . implode(' AND ', $inner_where);
                         }
-                        if ($group_by) {
-                            $inner_sql .= "\nGROUP BY $group_by";
-                        }
                         $inner_sql .= "\nORDER BY $order_by, p.id";
-                        $limit = $this->count();
-                        if ($limit) {
-                            $inner_sql .= "\nLIMIT $limit";
+                        if (!empty($set['count']) && wa_is_int($set['count'])) {
+                            $inner_sql .= "\nLIMIT ".((int)$set['count']);
                         }
                         $this->addJoin([
                             'table' => '(' . $inner_sql . ')',

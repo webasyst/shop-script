@@ -105,7 +105,8 @@
                                 <h5>[`Price`]</h5>
                                 <div class="slider nowrap">
                                     [`from`] <input type="text" class="min" name="price_min" {if $wa->get('price_min')}value="{(int)$wa->get('price_min')}"{/if} placeholder="{floor($filter.min)}">
-                                    [`to`] <input type="text" class="max" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="{ceil($filter.max)}"> {$c.sign}
+                                    [`to`] <input type="text" class="max" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="{ceil($filter.max)}">
+                                    <span title="{$c.sign}"> {$c.sign}</span>
                                 </div>
                             {else}
                                 <h5>{$filter.name|escape}</h5>
@@ -169,9 +170,9 @@
                                     {$_v = $wa->get($filter.code)}
                                     <div class="slider nowrap">
                                         [`from`] <input type="text" class="min" name="{$filter.code}[min]" placeholder="{$filter.min}" {if !empty($_v.min)}value="{$_v.min}"{/if}>
-                                        [`to`] <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max}"{/if}>
+                                        [`to`]</span> <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max}"{/if}>
                                         {if !empty($filter.unit)}
-                                            {$filter.unit.title}
+                                            <span title="{$filter.unit.title}">{$filter.unit.title}</span>
                                             {if $filter.unit.value != $filter.base_unit.value}<input type="hidden" name="{$filter.code}[unit]" value="{$filter.unit.value}">{/if}
                                         {/if}
                                     </div>

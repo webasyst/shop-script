@@ -92,6 +92,11 @@ class shopWebPushNotifications
             if (!$push->isEnabled()) {
                 return false;
             }
+        } catch (waException $e) {
+            return false;
+        }
+
+        try {
             $push->sendByContact($shop_user_ids, $push_data);
         } catch (Exception $ex) {
             if (wa()->getConfig()->isDebug()) {

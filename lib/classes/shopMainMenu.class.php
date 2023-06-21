@@ -207,6 +207,113 @@ class shopMainMenu
         return array_values($result);
     }
 
+    /**
+     * Helper for plugins to create 1-st level sections in main menu.
+     * If section with this id already exists, will return existing record.
+     *
+     * Possible additional $options:
+     * - icon: font awesome acon for section, e.g. '<i class="fas fa-cog"></i>'
+     * - insert_before: new section will be inserted before given section id.
+     * - insert_after: new section will be inserted after given section id.
+     *   When neither insert_before or insert_after is specified, new section is added at the end.
+     * - placement: can be 'body' or 'footer'. Defaults to same as section (if specified)
+     *   insert_before or insert_after, or 'body' otherwise.
+     * - url: new section will open given page. Only supported by sections with no submenu.
+     * - submenu: list of submenu links, each being array ['url' => string, 'name' => string]
+     *
+     * @param array|null &$menu to add section to; during backend_extended_menu event this should be $params['menu']
+     * @param string $section_id new section id
+     * @param string $title human readable section name
+     * @param array $options optional additional parameters
+     * @return array  section just created
+     * @since 10.0.2
+     */
+    public static function createSection(&$menu, $section_id, $title, $options=[])
+    {
+        if ($menu !== null && isset($menu[$section_id])) {
+            return $menu[$section_id];
+        }
+
+        $section = [
+            'id' => $section_id,
+            'name' => $title,
+        ] + $options + [
+            'icon' => '<i class="fas fa-solid fa-gears"></i>',
+        ];
+        unset($section['insert_before'], $section['insert_after']);
+
+        if (empty($section['url'])) {
+            $section['submenu'] = [];
+        } else if (!empty($section['submenu'])) {
+            unset($section['url']);
+        } else if ($section['url'][0] == '?') {
+            $section['url'] = wa('shop')->getAppUrl(null, true).$section['url'];
+        }
+
+        if (!isset($section['placement'])) {
+            if (isset($options['insert_before']) && isset($menu[$options['insert_before']]['placement'])) {
+                $section['placement'] = $menu[$options['insert_before']]['placement'];
+            } else if (isset($options['insert_after']) && isset($menu[$options['insert_after']]['placement'])) {
+                $section['placement'] = $menu[$options['insert_after']]['placement'];
+            }
+            if (!isset($section['placement'])) {
+                $section['placement'] = 'body';
+            }
+        }
+
+        $offset = false;
+        if (isset($options['insert_before'])) {
+            $offset = array_search($options['insert_before'], array_keys($menu));
+        } else if (isset($options['insert_after'])) {
+            $offset = array_search($options['insert_after'], array_keys($menu));
+            if ($offset !== false) {
+                $offset += 1;
+            }
+        }
+
+        if ($offset === false) {
+            $menu[$section_id] = $section;
+        } else {
+            $menu = array_merge(
+                array_slice($menu, 0, $offset),
+                [$section_id => $section],
+                array_slice($menu, $offset, null)
+            );
+        }
+
+        return $menu[$section_id];
+    }
+
+    /**
+     * Helper for plugins to create 2-nd level subsections in main menu.
+     *
+     * @param array|null &$menu to add section to; during backend_extended_menu event this should be $params['menu']
+     * @param string $parent_id section to add new link to
+     * @param string $title human readable link name
+     * @param string $url link to open
+     * @param array $options additional parameters (not used; reserved for future use)
+     * @return array subsection just created
+     * @throws waException when parent section $parent_id does not exist in (non-null) $menu
+     * @since 10.0.2
+     */
+    public static function createSubsection(&$menu, $parent_id, $title, $url, $options=[])
+    {
+        if ($menu !== null && !isset($menu[$parent_id])) {
+            throw new waException('Section with id='.$parent_id.' does not exist.');
+        }
+
+        if ($url && $url[0] == '?') {
+            $url = wa('shop')->getAppUrl(null, true).$url;
+        }
+
+        $subsection = [
+            "url" => $url,
+            "name" => $title,
+        ] + $options;
+        $menu[$parent_id]['submenu'][] = $subsection;
+        return $subsection;
+    }
+
     protected static function getPluginsSubmenu()
     {
         $result = [];

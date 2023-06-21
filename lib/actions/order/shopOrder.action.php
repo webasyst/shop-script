@@ -52,12 +52,10 @@ class shopOrderAction extends waViewAction
         $order_model = new shopOrderModel();
         $order_data_array = $_order->dataArray();
 
-        $order_data_array['payment_url'] = null;
-        //if (!empty($order_data_array['params']['payment_id'])) {
-            $order_data_array['payment_url'] = $link_template = wa()->getRouting()->getUrl('shop/frontend/paymentLink', [
-                'hash' => $_order->getPaymentLinkHash(),
-            ], true);
-        //}
+        $payment_storefront = $this->getPaymentStorefront($params);
+        $order_data_array['payment_url'] = wa()->getRouting()->getUrl('shop/frontend/paymentLink', [
+            'hash' => $_order->getPaymentLinkHash(),
+        ], true, $payment_storefront['domain'], $payment_storefront['route']);
 
         $order_items = $this->extendOrderItems($order_data_array);
         $order_data_array['contact'] = $_order->contact_essentials;
@@ -213,7 +211,7 @@ class shopOrderAction extends waViewAction
         if ($this->filter_params === null) {
             $params = array();
             $state_id = waRequest::get('state_id', null);
-            if ($state_id) {
+            if ($state_id && wa()->getUser()->getRights('shop', 'orders') != shopRightConfig::RIGHT_ORDERS_COURIER) {
                 if (strstr($state_id, '|') !== false) {
                     $params['state_id'] = explode('|', $state_id);
                 } else {
@@ -439,5 +437,40 @@ class shopOrderAction extends waViewAction
                 return $sales_channel['icon_url'];
             }
         }
+    }
+
+    /**
+     * @param $params
+     * @return array
+     * @throws waException
+     */
+    protected function getPaymentStorefront($params)
+    {
+        $storefront = [
+            'domain' => null,
+            'route' => null,
+        ];
+        if (!empty($params['storefront_decoded'])) {
+            $storefront_exploded = explode('/', $params['storefront_decoded'], 2);
+            $domains = wa()->getRouting()->getDomains();
+            foreach ($domains as $domain) {
+                if ($domain == $storefront_exploded[0]) {
+                    $storefront['domain'] = $domain;
+                    if (isset($storefront_exploded[1])) {
+                        $routes = wa()->getRouting()->getRoutes($domain);
+                        foreach ($routes as $route) {
+                            if (isset($route['app']) && $route['app'] == $this->getAppId()
+                                && isset($route['url']) && rtrim($route['url'], '/*') == rtrim($storefront_exploded[1], '/*')
+                            ) {
+                                $storefront['route'] = $route['url'];
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        return $storefront;
     }
 }

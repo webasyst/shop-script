@@ -9,8 +9,12 @@ class shopVirtualstockModel extends waModel
             return false;
         }
         $data['sort'] = $this->query("SELECT MAX(sort) FROM {$this->table}")->fetchField() + 1;
-        $data['low_count'] = ifempty($data['low_count'], shopStockModel::LOW_DEFAULT);
-        $data['critical_count'] = ifempty($data['critical_count'], shopStockModel::CRITICAL_DEFAULT);
+        if (!isset($data['low_count']) || $data['low_count'] < 0) {
+            $data['low_count'] = shopStockModel::LOW_DEFAULT;
+        }
+        if (!isset($data['critical_count']) || $data['critical_count'] < 0) {
+            $data['critical_count'] = shopStockModel::CRITICAL_DEFAULT;
+        }
         return $this->insert(array_intersect_key($data, $this->getMetadata()));
     }
 }

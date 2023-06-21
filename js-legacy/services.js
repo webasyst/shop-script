@@ -153,17 +153,23 @@
 
             // save service info for services page
             $('#s-save-service-submit').click(function () {
-                $(this).attr('disabled', true);
+                var that = this;
+                $(that).attr('disabled', true);
                 var showSuccessIcon = function () {
-                    var icon = $('#s-save-service-submit').parent().find('i.yes').show();
+                    var icon = $(that).parent().find('i.yes').show();
                     setTimeout(function () {
                         icon.hide();
                     }, 3000);
                 };
                 var showLoadingIcon = function () {
-                    var p = $('#s-save-service-submit').parent();
+                    var p = $(that).parent();
                     p.find('i.yes').hide();
                     p.find('i.loading').show();
+                };
+                var hideLoadingIcon = function () {
+                    var p = $(that).parent();
+                    p.find('i.yes').hide();
+                    p.find('i.loading').hide();
                 };
                 // after update services hash, dispatching and load proper content
                 // 'afterServicesAction' will be called. Extend this handler
@@ -184,6 +190,10 @@
                         } else {
                             $.wa.setHash('#/services/' + r.data.id + '/');
                         }
+                    }, function (e) {
+                        $(that).attr('disabled', false);
+                        hideLoadingIcon();
+                        renderErrors(e.errors);
                     }
                 );
                 return false;
@@ -194,6 +204,33 @@
                 $('#s-service-currency-code').val(val);
             });
             this.initHandlers();
+
+            function renderErrors(errors) {
+                var $price = form.find('[name="price[]"]');
+
+                $.each(errors, function(i, error) {
+                    if (error.text) {
+                        var $field = $price.eq(error.id);
+                        if ($field.length) {
+                            renderError(error, $field);
+                        }
+                    }
+                });
+
+                function renderError(error, $field) {
+                    var $error = $('<em class="errormsg"></em>').text(error.text);
+                    var error_class = 'error';
+
+                    if (!$field.hasClass(error_class)) {
+                        $field.on('change keyup', removeFieldError).addClass(error_class).closest('td').append($error);
+                    }
+
+                    function removeFieldError() {
+                        $field.off('change keyup', removeFieldError).removeClass(error_class);
+                        $error.remove();
+                    }
+                }
+            }
         },
 
         initEditable: function () {

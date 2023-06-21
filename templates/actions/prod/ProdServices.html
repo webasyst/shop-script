@@ -263,7 +263,7 @@
                                                                v-model="service.variants[0].price"
                                                                v-bind:placeholder="service.variants[0].base_price"
                                                                v-bind:class="{ 'state-error' : !!errors['service['+service.id+'][price]'] }"
-                                                               v-on:input="validate($event, 'price', service, 'price', 'service['+service.id+'][price]')">
+                                                               v-on:input="validate($event, 'price', service.variants[0], 'price', 'service['+service.id+'][price]')">
                                                         <span class="s-currency bold">{ { service.currency } }</span>
                                                     </div>
 

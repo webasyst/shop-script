@@ -201,19 +201,52 @@ $.product = $.extend(
                 }
             }
 
-            var self = this;
-
-            return $.shop.jsonPost(
-                $form.attr('action'),
-                sparse_data,
-                function (r) {
-                    $.each(r.data.status, function (service_id, status) {
-                        self.editTabServicesHelper.changesHandler(service_id, false, status);
-                    });
-
-                    $.product.editTabServicesHelper.updateCounter(r.data.count);
+            var default_error_handler = function(r) {
+                if (console) {
+                    if (r && r.errors) {
+                        console.error(r.errors);
+                    } else if (r && r.responseText) {
+                        console.error(r.responseText);
+                    } else if (r) {
+                        console.error(r);
+                    } else {
+                        console.error('Error on query');
+                    }
                 }
-            );
+            };
+
+            var self = this,
+                is_error = false;
+            var save_result = $.ajax({
+                type: 'post',
+                url: $form.attr('action'),
+                data: sparse_data,
+                dataType: 'json',
+                async: false,
+                success: function (r) {
+                    if (r && r.status === 'ok') {
+                        $.each(r.data.status, function (service_id, status) {
+                            self.editTabServicesHelper.changesHandler(service_id, false, status);
+                        });
+
+                        $.product.editTabServicesHelper.updateCounter(r.data.count);
+                    } else {
+                        $.product.editTabServicesHelper.renderErrors(r.errors);
+                        is_error = true;
+
+                        setTimeout(() => {
+                            $('#s-product-edit-save-panel :submit').removeClass('yellow').addClass('green');
+
+                        }, 1000);
+                    }
+                },
+                error: function (jqXHR) {
+                    default_error_handler(jqXHR);
+                    is_error = true;
+                }
+            });
+
+            return is_error ? false : save_result;
         },
 
         // unfold skus to this service variant
@@ -274,6 +307,32 @@ $.product = $.extend(
                 } else {
                     $menu_item.addClass('gray');
                     $controls.addClass('gray');
+                }
+            },
+
+            renderErrors: function (errors) {
+                var $form = $.product.getData('services', '$form');
+                $.each(errors, function(i, error) {
+                    if (error.id && error.text) {
+                        var $field = $form.find('[name="' + error.id + '"]');
+                        if ($field.length) {
+                            renderError(error, $field);
+                        }
+                    }
+                });
+
+                function renderError(error, $field) {
+                    var $error = $('<em class="errormsg"></em>').text(error.text);
+                    var error_class = 'error';
+
+                    if (!$field.hasClass(error_class)) {
+                        $field.on('change keyup', removeFieldError).addClass(error_class).closest('label').append($error);
+                    }
+
+                    function removeFieldError() {
+                        $field.off('change keyup', removeFieldError).removeClass(error_class);
+                        $error.remove();
+                    }
                 }
             },
 

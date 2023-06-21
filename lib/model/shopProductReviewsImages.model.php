@@ -67,7 +67,7 @@ class shopProductReviewsImagesModel extends waModel
         }
 
         if ($target_path) {
-            $image->save($path);
+            waFiles::copy($file_path, $target_path);
         }
 
         return $data;

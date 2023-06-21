@@ -19,7 +19,7 @@ class shopCheckoutPaymentStep extends shopCheckoutStep
             );
         }
 
-        if (!empty($config['shipping']['used'])) {
+        if (!empty($config['shipping']['used']) && !empty($data['shipping']['selected_variant'])) {
             // Filter based on shipping variant selected on previous step
             $selected_shipping_plugin_id = explode('.', $data['shipping']['selected_variant']['variant_id'], 2)[0];
             $selected_shipping_type = $data['shipping']['selected_variant']['type'];

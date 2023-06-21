@@ -3,7 +3,7 @@
         <td class="min-width"></td>
         <td>
             <label>
-                <input data-name="date" class="s-date js-datepicker" autocomplete="off" value="{$day.date|default:null|wa_date|escape}" />
+                <input data-name="date" class="s-date js-datepicker" autocomplete="off" value="{wa_date('date', $day.date|default:null, 'server')|escape}" />
                 <i class="icon16 calendar"></i>
             </label>
         </td>
@@ -27,7 +27,7 @@
         <td class="min-width"></td>
         <td>
             <label>
-                <input class="s-date js-datepicker js-extra-weekend" autocomplete="off" value="{$date|wa_date|escape}" />
+                <input class="s-date js-datepicker js-extra-weekend" autocomplete="off" value="{wa_date('date', $date, 'server')|escape}" />
                 <i class="icon16 calendar"></i>
             </label>
         </td>

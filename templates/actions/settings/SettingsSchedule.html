@@ -2,7 +2,7 @@
 <tr class="js-day-wrapper worked">
     <td>
         <input type="date" class="small shorter js-datepicker" value="{$day.date|date_format:'%Y-%m-%d'|default:null|escape}">
-        <input type="hidden" data-name="date" value="{$day.date|default:null|wa_date|escape}">
+        <input type="hidden" data-name="date" value="{wa_date('date', $day.date|default:null, 'server')|escape}">
     </td>
     <td class="nowrap">
         [`from`]
@@ -23,7 +23,8 @@
 <tr class="js-day-wrapper">
     <td class="nowrap">
         <label>
-            <input type="date" class="small shorter js-extra-weekend js-datepicker" value="{$date|wa_date|escape}">
+            <input type="date" class="small shorter js-datepicker" value="{$date|date_format:'%Y-%m-%d'|escape}">
+            <input type="hidden" class="js-extra-weekend" value="{wa_date('date', $date|default:null, 'server')|escape}">
         </label>
         <i class="js-day-remove fas fa-trash-alt text-red cursor-pointer text-right"></i>
     </td>

@@ -2007,7 +2007,12 @@ class shopOrder implements ArrayAccess
             $coupon_model = new shopCouponModel();
             $coupon = $coupon_model->getByField('code', $params['coupon_code']);
             if ($coupon) {
-                $params['coupon_id'] = $coupon['id'];
+                if (!$this->getId() && !shopCouponModel::isEnabled($coupon)) {
+                    // Ignore expired coupons when creating new order
+                    unset($params['coupon_code']);
+                } else {
+                    $params['coupon_id'] = $coupon['id'];
+                }
             }
         }
 

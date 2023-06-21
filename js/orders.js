@@ -38,10 +38,10 @@
                 if ((xhr.status === 403) || (xhr.status === 404) ) {
                     var text = $(xhr.responseText);
                     if (text.find('.dialog-content').length) {
-                        text = $('<div class="block double-padded"></div>').append(text.find('.dialog-content *'));
+                        text = $('<div class="box contentbox"></div>').append(text.find('.dialog-content'));
 
                     } else {
-                        text = $('<div class="block double-padded"></div>').append(text.find(':not(style)'));
+                        text = $('<div class="box contentbox"></div>').append(text.find(':not(style)'));
                     }
 
                     var container_type = 'content';
@@ -73,7 +73,13 @@
                 }
                 return true;
             };
+
             var hash = window.location.hash;
+            var hash_from_storage = $.storage.get('shop/orders/filters_hash');
+            if (hash_from_storage && (!hash || hash === '#/orders/')) {
+                hash = hash_from_storage;
+            }
+
             if (hash === '#/' || !hash) {
                 this.dispatch();
             } else {
@@ -125,12 +131,21 @@
             this.ordersNavDetach();
             this.initWaLoading();
 
-            this.$wrapper.on('wa_init_orders_nav', (e, options) => {
+            const saveFiltersHash = () => $.storage.set('shop/orders/filters_hash', this.hash);
 
+            this.$wrapper.on('wa_init_orders_nav', (e, options) => {
                 this.initSearch(options.filter_params_extended);
 
-                if (options.view === 'split' && this.hasFiltersInUrl()) {
-                    this.visibilityFilters(true);
+                if (this.hasFiltersInUrl()) {
+                    if (options.view === 'split') {
+                        this.visibilityFilters(true);
+                    }
+
+                    saveFiltersHash();
+                }
+
+                if (['orders/all', 'orders/state_id=new|processing|auth|paid'].includes(this.hash)) {
+                    saveFiltersHash();
                 }
             });
         },
@@ -839,7 +854,11 @@
             })
             .fail( function(data) {
                 if (data.responseText) {
-                    console.error(data.responseText);
+                    if (data.status === 403) {
+                        $.wa.errorHandler(data);
+                    } else {
+                        console.error(data.responseText);
+                    }
                 }
                 self.$wrapper.trigger("wa_load_fail.wa_loading");
             });

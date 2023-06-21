@@ -31,11 +31,12 @@ if (typeof($) != 'undefined') {
               }
             }
 
+            const $toggleStatus = $('#s-toggle-status');
             $toggle.waSwitch({
                 change(enabled, switcher) {
                     const $oldStatus = switcher.$wrapper.siblings('.gray');
                     $oldStatus.removeClass('gray').siblings('span').addClass('gray');
-
+                    $toggleStatus.val(Number(enabled));
                     if (enabled) {
                         $disabledSection.hide();
                         $enabledSection.fadeIn(200);
@@ -43,19 +44,21 @@ if (typeof($) != 'undefined') {
                         $disabledSection.fadeIn(200);
                         $enabledSection.hide();
                     }
+                    formChanged(true);
                 }
             });
 
             $(':input').on('input', formChanged);
-            $toggle.on('change', formChanged);
-            form.on('change', formChanged);
 
             $submitButton.on('click', function(event) {
                 event.preventDefault();
 
                 $.post(form.attr('action'), form.serialize(), function() {
                     formChanged(false);
-                    $submitMessage.show().fadeOut(5000);
+                    if ($toggleStatus.val() === '1') {
+                        $submitMessage.show().fadeOut(5000);
+                    }
+
                     $submitButtonMessage.removeClass('hidden');
 
                     setTimeout(() => {

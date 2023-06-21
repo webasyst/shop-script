@@ -24,7 +24,7 @@
                     var text = $(xhr.responseText);
                     console.log(text);
                     if (text.find('.dialog-content').length) {
-                        text = $('<div class="block double-padded"></div>').append(text.find('.dialog-content *'));
+                        text = $('<div class="block double-padded"></div>').append(text.find('.dialog-content'));
 
                     } else {
                         text = $('<div class="block double-padded"></div>').append(text.find(':not(style)'));

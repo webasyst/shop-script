@@ -6,6 +6,9 @@ class shopOrderAddInvoiceMethod extends shopApiMethod
 
     public function execute()
     {
+        if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
+            throw new waAPIException('access_denied', 'Action not available for user', 403);
+        }
         $contact_id = $this->post('contact_id');
         if ($contact_id !== null) {
             if  ($contact_id > 0) {

@@ -10,7 +10,7 @@
                     <span{if !empty($smart)} class="gray"{/if}>[`Basic`]</span>
 
                     <div class="switch js-toggle-status">
-                        <input type="checkbox" id="s-toggle-status" name="enabled" value="1"{if !empty($smart)} checked{/if}>
+                        <input type="checkbox" value="1"{if !empty($smart)} checked{/if}>
                     </div>
 
                     <span{if empty($smart)} class="gray"{/if}>[`Smart`]</span>
@@ -25,7 +25,7 @@
 
     <form action="?module=settings&action=searchSave" method="post" id="s-settings-form">
         <div class="custom-mt-16 js-smart-enabled"{if empty($smart)} style="display: none;"{/if}>
-
+            <input type="hidden" id="s-toggle-status" name="smart" value="{if empty($smart)}0{else}1{/if}">
             <div id="s-settings-block">
                 <div class="fields form">
                     <div class="fields-group">

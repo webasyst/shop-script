@@ -98,8 +98,9 @@
     {/strip}{/function}
 
     {if $log}
+        <div class="s-table-scrollable-x">
         {if $stocks_count < 1}
-            <table class="s-stocks-log">
+            <table class="s-stocks-log bigdata">
                 <tr class="header white">
                     <th class="min-width"></th>
                     <th></th>
@@ -110,7 +111,7 @@
                 {$log_list}
             </table>
         {else}
-            <table class="s-stocks-log">
+            <table class="s-stocks-log bigdata">
                 <tr class="header white">
                     <th class="min-width"></th>
                     <th></th>
@@ -124,6 +125,7 @@
                 {$log_list}
             </table>
         {/if}
+        </div>
 
         {$lazy_loading_footer}
 

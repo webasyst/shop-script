@@ -2,8 +2,8 @@
 {$_id = uniqid($_class)}
 {$_new_checkouts = $storefronts.2}
 {$_old_checkouts = $storefronts.1}
-<div id="{$_id}" class="sidebar overflow-visible s-sidebar-section width-16rem {$_class}">
-    <div class="sidebar-header">
+<div id="{$_id}" class="sidebar flexbox overflow-visible s-sidebar-section width-16rem {$_class}">
+    <div class="sidebar-body">
     {if !empty($_new_checkouts)}
         <div class="box custom-px-0">
             <h5 class="heading heading-group js-list-header flexbox" data-version="2">

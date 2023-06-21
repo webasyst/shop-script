@@ -98,7 +98,7 @@
                         is_active = $input.is(":checked");
 
                     checked_types = (is_active ? types_count : 0);
-                    $type_fields.attr("checked", is_active);
+                    $type_fields.prop("checked", is_active);
                 });
 
                 that.$wrapper.on("change", ".js-type-field", function() {
@@ -106,7 +106,7 @@
                         is_active = $input.is(":checked");
 
                     checked_types += (is_active ? 1 : -1);
-                    $all_types_field.attr("checked", (checked_types >= types_count));
+                    $all_types_field.prop("checked", (checked_types >= types_count));
                 });
 
                 function getCheckedTypesCount() {

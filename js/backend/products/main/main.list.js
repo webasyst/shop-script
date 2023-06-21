@@ -7868,18 +7868,21 @@
                     break;
 
                 default:
+                    var submit_data = getSubmitData();
                     var products_hash;
                     if (is_all_products) {
                         products_hash = 'presentation/'+that.presentation.id;
+                        if (submit_data.product_ids) {
+                            products_hash += ','+submit_data.product_ids.join(",");
+                        }
                     } else {
                         products_hash = 'id/'+product_ids.join(",");
                     }
+                    submit_data.products_hash = products_hash;
 
                     if (action.action_url) {
                         action.states.is_locked = true;
-                        $.post(action.action_url, $.extend(getSubmitData(), {
-                            products_hash: products_hash
-                        }), "json")
+                        $.post(action.action_url, submit_data, "json")
                             .always( function() {
                                 action.states.is_locked = false;
                             })
@@ -7895,6 +7898,24 @@
                         var $link = $('<a />', { href: redirect_url });
                         that.$wrapper.prepend($link);
                         $link.trigger("click").remove();
+                        break;
+                    } else if (action.dialog_url) {
+                        $.post(action.dialog_url, submit_data, "json")
+                            .always( function() {
+                                action.states.is_locked = false;
+                            })
+                            .done( function(html) {
+                                $.waDialog({
+                                    html: html,
+                                    options: {},
+                                    onOpen: function($dialog, dialog) {
+                                        $dialog.trigger('wa_dialog_ready', [action, submit_data, dialog, $dialog]);
+                                    }
+                                });
+                            });
+                        break;
+                    } else if (action.custom_handler) {
+                        $('#js-products-page-content').trigger('wa_custom_mass_action', [action, submit_data]);
                         break;
                     }
 

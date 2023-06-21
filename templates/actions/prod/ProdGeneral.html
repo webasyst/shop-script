@@ -281,40 +281,31 @@
                                     {$_locales["storefronts_show"] = _w("Show %d storefront on which the product is available", "Show %d storefronts on which the product is available", $_count)}
                                     {$_locales["storefronts_hide"] = _w("Hide storefront list")}
 
-                                    <ul class="wa-list space-12 s-storefronts-list js-storefronts-list">
-                                        {if !empty($_show_toggle)}
-                                            <li>
-                                                <a class="s-action js-list-toggle" href="javascript:void(0);">{$_locales["storefronts_show"]|escape}</a>
-                                            </li>
-
+                                    <div class="s-storefronts-list js-storefronts-list">
+                                    {if !empty($_show_toggle)}
+                                        <a class="s-action js-list-toggle" href="javascript:void(0);">{$_locales["storefronts_show"]|escape}</a>
+                                        <ul class="list custom-my-8">
                                             {foreach $frontend_urls as $_front}
-                                                <li class="s-extended-item" style="display: none;">
+                                                <li class="s-extended-item custom-pb-4" style="display: none;">
                                                     <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
                                                 </li>
                                             {/foreach}
-
-                                            {*
-                                            {if $total_storefronts_count > $_count}
-                                                <li class="s-extended-item" style="display: none;">
-                                                    [`Not all storefronts are included in this list.`]
-                                                    [`Open “SEO” tab to view the full list.`]
-                                                </li>
-                                            {/if}
-                                            *}
-
-                                            {if $_count > 10}
-                                                <li class="s-extended-item" style="display: none;">
-                                                    <a class="s-action js-list-close" href="javascript:void(0);">{_w("Hide storefronts")}</a>
-                                                </li>
-                                            {/if}
-                                        {else}
-                                            {foreach $frontend_urls as $_front}
-                                                <li>
-                                                    <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
-                                                </li>
-                                            {/foreach}
+                                        </ul>
+                                        {if $_count > 10}
+                                            <div class="s-extended-item" style="display: none;">
+                                                <a class="s-action js-list-close" href="javascript:void(0);">{_w("Hide storefronts")}</a>
+                                            </div>
                                         {/if}
-                                    </ul>
+                                    {else}
+                                        <ul class="list custom-mt-8">
+                                            {foreach $frontend_urls as $_front}
+                                                <li class="custom-pb-4">
+                                                    <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>
+                                                </li>
+                                            {/foreach}
+                                        </ul>
+                                    {/if}
+                                    </div>
                                 {/if}
                             </div>
                         </div>

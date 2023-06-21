@@ -33,7 +33,7 @@
                 if ((xhr.status === 403) || (xhr.status === 404) ) {
                     var text = $(xhr.responseText);
                     if (text.find('.dialog-content').length) {
-                        text = $('<div class="block double-padded"></div>').append(text.find('.dialog-content *'));
+                        text = $('<div class="block double-padded"></div>').append(text.find('.dialog-content'));
 
                     } else {
                         text = $('<div class="block double-padded"></div>').append(text.find(':not(style)'));
@@ -488,10 +488,19 @@
 
 
                 $('.level2').show();
-                $('#s-sidebar').width(200).show();
+                if (!self.options.is_courier) {
+                    $('#s-sidebar').width(200).show();
+                }
 
 
                 self.checkAlerts();
+            }).always(function() {
+                if (self.options.is_courier && !self.options.is_output_hook_data) {
+                    var $content = $('#s-content');
+                    $('#s-sidebar').hide();
+                    $content.removeClass('left200px');
+                    $content.find('#s-orders').removeClass('bordered-left');
+                }
             });
 
             function showOrdersViewToggle() {

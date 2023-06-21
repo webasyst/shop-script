@@ -565,9 +565,7 @@
                 mounted: function() {
                     that.$wrapper.trigger("section_mounted", ["reviews", that]);
                 }
-            });
-
-            vue_model.mount($view_section[0]);
+            }).mount($view_section[0]);
 
             return vue_model;
         };

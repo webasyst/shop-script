@@ -107,6 +107,7 @@
         },
 
 
+
         init: function (options) {
             this.options = options = options || {};
             this.plugin_hash = options.plugin_hash || '';
@@ -813,7 +814,7 @@
             var $prev_li_selected = sidebar.find('.selected').removeClass('selected');
             if (this.filter_params.state_id) {
                 // Highlight a state
-                if ($.isArray(this.filter_params.state_id)) {
+                if ($.isArray(this.filter_params.state_id) && this.filter_params.state_id.length > 1) {
                     $('#s-pending-orders').addClass('selected');
                     $('.js-pending-orders').parent().addClass('selected');
                 } else {

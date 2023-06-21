@@ -175,7 +175,7 @@ class shopOrderListAction extends waViewAction
         if ($this->filter_params === null) {
             $params = array();
             $state_id = waRequest::get('state_id');
-            if ($state_id) {
+            if ($state_id && wa()->getUser()->getRights('shop', 'orders') != shopRightConfig::RIGHT_ORDERS_COURIER) {
                 if (strstr($state_id, '|') !== false) {
                     $params['state_id'] = explode('|', $state_id);
                 } else {
@@ -340,5 +340,22 @@ class shopOrderListAction extends waViewAction
         $csm->set(wa()->getUser()->getId(), 'shop', 'order_list_sort', "{$sort_field}/{$sort_order}");
 
         return array($sort_field, $sort_order);
+    }
+
+    public function getStateId()
+    {
+        $hash = $this->collection->getHash();
+        if (is_array($hash)) {
+            foreach ($hash as $hash_param) {
+                if (mb_strpos($hash_param, 'state_id') !== false) {
+                    $parse_conditions = shopOrdersCollection::parseConditions($hash_param);
+                    if (isset($parse_conditions['state_id']) && isset($parse_conditions['state_id'][1])) {
+                        return explode('||', $parse_conditions['state_id'][1]);
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }

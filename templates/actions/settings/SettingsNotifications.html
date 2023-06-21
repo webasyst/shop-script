@@ -8,23 +8,23 @@
     'globe-small' => $wa->shop->getIcon('globe-small')
 ]}
 <div class="flexbox space-8">
-    <div class="sidebar overflow-visible s-sidebar-section">
-        <div class="sidebar-header">
+    <div class="sidebar flexbox overflow-visible s-sidebar-section">
+        <div class="sidebar-body">
             <ul class="menu ellipsis custom-mb-8" id="notifications">
                 {foreach $notifications as $n}
                 <li  id="notification-{$n.id}" class="rounded">
                     <a href="#/notifications/{$n.id}/" title="{$n.name}">
                         {if isset($transports[$n.transport].icon)}
-                        <span class="icon">{$icon_convert[$transports[$n.transport].icon]}</span>
+                        <span class="icon {if !$n.status}opacity-50{/if}">{$icon_convert[$transports[$n.transport].icon]}</span>
                         {/if}
-                        <span>{$n.name}</span>
+                        <span class="name {if !$n.status}gray{/if}">{$n.name}</span>
                     </a>
                 </li>
                 {/foreach}
             </ul>
         </div>
 
-        <div class="custom-pl-8">
+        <div class="sidebar-footer custom-pt-16">
             <a href="#/notifications/add/" class="button nobutton smaller light-gray rounded">
                 <i class="fas fa-plus-circle text-green"></i>
                 [`Add custom notification`]

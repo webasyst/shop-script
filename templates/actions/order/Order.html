@@ -4,7 +4,7 @@
         <p class="gray large custom-mt-48">[`There are no orders in this view.`]</p>
     </div>
 {else}
-    <div class="s-order not-blank width-100" id="s-order-block">
+    <div class="s-order not-blank width-100 height-100" id="s-order-block">
         <div class="article wider">
         <div class="article-body custom-py-20">
 
@@ -229,7 +229,7 @@
                                     {/if}
 
                                     {if !empty($edit_shipping_details_available)}
-                                        <a href="javascript:void(0)" class="wf-action button light-gray smaller" data-action-id="editshippingdetails" data-container="#workflow-content">[`Edit shipping details`]</a>
+                                        <a href="javascript:void(0)" class="wf-action button light-gray smaller" data-action-id="editshippingdetails" data-container="#workflow-content"><i class="fas fa-truck opacity-30 custom-mr-4"></i> [`Shipping details`]</a>
                                     {/if}
                                 </div>
                             </div>
@@ -272,7 +272,7 @@
                                             <a href="[`https://www.shop-script.com/help/44627/payment-by-link/`]" target="_blank" class="h6 gray">[`Payment link`] <i class="fas fa-info-circle"></i></a>
 
                                             <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre>
-                                            <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs"></i></a>
+                                            <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs opacity-30"></i></a>
                                             <button class="button smaller nowrap js-copy-btn" data-copy-target="#js-payment-url" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]">[`Copy link`]</button>
                                         {/if}
                                     {/if}
@@ -415,13 +415,13 @@
                                                     {$_item_profit = ($item.price - $item.purchase_price) * $item.quantity}
                                                 {/if}
 
-                                                {$_percent_profit = (($_item_profit / $item.purchase_price) * 100)|round}
+                                                {$_item_percent_profit = (($_item_profit / $item.purchase_price) * 100 / $item.quantity)|round}
 
                                                 {$_total_items_profit = $_total_items_profit + $_item_profit}
 
                                                 {$_sum_purchase_price = $_sum_purchase_price + $item.purchase_price * $item.quantity}
 
-                                                <div class="bold smaller text-{if $item.price - $item.purchase_price > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Price`] &minus; [`Purchase price`]{if $item.tax_included == '1'} &minus; [`Tax`]{/if}">{if $item.price - $item.purchase_price > 0}&plus;{/if}{wa_currency_html($_item_profit, $order.currency)} ({if $item.quantity > 0}{$_percent_profit}{else}0{/if}%)</div>
+                                                <div class="bold smaller text-{if $item.price - $item.purchase_price > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Price`] &minus; [`Purchase price`]{if $item.tax_included == '1'} &minus; [`Tax`]{/if}">{if $item.price - $item.purchase_price > 0}&plus;{/if}{wa_currency_html($_item_profit, $order.currency)} ({if $item.quantity > 0}{$_item_percent_profit}{else}0{/if}%)</div>
                                             {/if}
 
                                             {if $_has_granted_calc_profit && $item.type == 'service'}
@@ -487,7 +487,7 @@
 
                                         {$_total_percent_profit = (($_total_profit / $_sum_purchase_price) * 100)|round}
 
-                                        <div class="bold smaller text-{if $order.total - $order.shipping - $_sum_purchase_price > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Profit by all products`] &plus; [`Services`] &minus; [`Discount`]">{if $order.total - $order.shipping - $_sum_purchase_price > 0}+{/if}{wa_currency_html($_total_profit, $order.currency)} ({$_total_percent_profit}%)</div>
+                                        <div class="bold smaller text-{if $_total_profit > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Profit by all products`] &plus; [`Services`] &minus; [`Discount`]">{if $_total_profit > 0}+{/if}{wa_currency_html($_total_profit, $order.currency)} ({$_total_percent_profit}%)</div>
                                     {/if}
                                 </td>
                             </tr>

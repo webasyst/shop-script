@@ -322,9 +322,7 @@
 
                     that.$wrapper.trigger("section_mounted", ["services", that]);
                 }
-            });
-
-            vue_model.mount($view_section[0]);
+            }).mount($view_section[0]);
 
             return vue_model;
         };

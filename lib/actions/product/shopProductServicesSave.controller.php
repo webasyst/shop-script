@@ -41,6 +41,11 @@ class shopProductServicesSaveController extends waJsonController
 
         $this->getServiceVariants($service_ids);
 
+        $this->validateData($post_data);
+        if ($this->errors) {
+            return;
+        }
+
         foreach ($post_data as $service_id => $service_data) {
             $product_services_model->save($this->product_id, $service_id, $this->getData($service_id, $service_data));
         }
@@ -180,5 +185,33 @@ class shopProductServicesSaveController extends waJsonController
     private function formatPrice($price)
     {
         return $price === "" ? null : str_replace(',', '.', $price);
+    }
+
+    protected function validateData($post_data)
+    {
+        foreach ($post_data as $service_id => $service_data) {
+            foreach ($service_data['variants'] as $variant_id => $variant) {
+                $default_price = floatval($this->formatPrice(ifset($variant, 'price', '')));
+                if ($default_price < 0) {
+                    $this->errors[] = [
+                        'id' => "product_services[$service_id][variants][$variant_id][price]",
+                        'text' => _w('Стоимость услуги не может быть отрицательной'),
+                    ];
+                }
+                if (!empty($variant['skus'])) {
+                    foreach ($variant['skus'] as $sku_id => $sku) {
+                        if (!empty($sku['status'])) {
+                            $sku_price = floatval($this->formatPrice(ifset($sku, 'price', '')));
+                            if ($sku_price < 0) {
+                                $this->errors[] = [
+                                    'id' => "product_services[$service_id][variants][$variant_id][skus][$sku_id][price]",
+                                    'text' => _w('Стоимость услуги не может быть отрицательной'),
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -1901,7 +1901,7 @@
 
             var $select = $section.find(".js-product-type-select"),
                 $link = $section.find(".js-setup-type-link"),
-                $input = $select.find("input");
+                $input = $select.find('input[name="product[type_id]"]');
 
             var href = $link.data("href");
 
@@ -1982,7 +1982,7 @@
             var $section = that.$wrapper.find(".s-product-main-category-section"),
                 $form = $section.find(".js-add-main-category-form"),
                 $select = $section.find("#js-product-main-category-select"),
-                $input = $select.find("input");
+                $input = $select.find('input[name="product[category_id]"]');
 
             $select.waDropdown({
                 hover: false,

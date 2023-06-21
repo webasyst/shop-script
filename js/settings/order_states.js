@@ -86,9 +86,9 @@ $.extend($.settings || {}, {
                         if (r.status !== 'ok') {
                             alert(r.errors);
                             $.waDialog.alert({
-                                title: "An error occurred",
+                                title: $.wa.locale['An error occurred'],
                                 text: r.errors,
-                                button_title: $.wa.locale['close'],
+                                button_title: $.wa.locale['Close'],
                                 button_class: 'warning',
                             });
 

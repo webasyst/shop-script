@@ -115,9 +115,34 @@ class shopOrdersLoadListController extends shopOrderListAction
 
     public function getListCounters()
     {
-        return array(
-            'state_counters'   => $this->model->getStateCounters()
-        );
+        $view = waRequest::get('view', '', waRequest::TYPE_STRING_TRIM);
+        $counters = [];
+        if ($view == 'kanban') {
+            $workflow = new shopWorkflow();
+            $available_states = $workflow->getAvailableStates();
+            $filter_state_id = $this->getStateId();
+            $conditions = explode('&', $this->getHash());
+            foreach ($conditions as $key => $condition) {
+                if (mb_strpos($condition, 'state_id') === 0 || mb_strpos($condition, 'update_datetime') === 0) {
+                    unset($conditions[$key]);
+                }
+            }
+            $collection = new shopOrdersCollection(implode('&', $conditions));
+            $counters['state_counters'] = array_fill_keys(array_keys($available_states), 0);
+            if ($filter_state_id) {
+                $available_states = array_intersect_key($available_states, array_flip($filter_state_id));
+            }
+            foreach ($available_states as $state_id => $state) {
+                $temp_where = "o.state_id = '$state_id'";
+                $collection->addWhere($temp_where);
+                $counters['state_counters'][$state_id] = $collection->count(true);
+                $collection->deleteTempWhere($temp_where);
+            }
+        } else {
+            $counters['state_counters'] = $this->model->getStateCounters();
+        }
+
+        return $counters;
     }
 
     public function assign($data)

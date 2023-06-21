@@ -171,6 +171,6 @@ class shopSettingsOrderEditorAction extends waViewAction
     protected function getRegions()
     {
         $rm = new waRegionModel();
-        return $rm->getAll();
+        return $rm->order('country_iso3, name')->fetchAll();
     }
 }

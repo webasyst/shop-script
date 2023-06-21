@@ -64,20 +64,22 @@ class shopCsvProductviewController extends waJsonController
         } catch (waException $e) {
             $type = $e->getMessage();
         }
+
+        $isWA2 = wa()->whichUI() == '2.0';
         switch ($type) {
             case shopCsvProductrunController::STAGE_CATEGORY:
-                $td = '<i class="icon16 folder" title="'.htmlentities(_w('Will be imported as category'), ENT_QUOTES, 'utf-8').'"></i>';
+                $td = '<i class="'.($isWA2 ? 'fas fa-folder text-blue' : 'icon16 folder').'" title="'.htmlentities(_w('Will be imported as category'), ENT_QUOTES, 'utf-8').'"></i>';
                 break;
             case shopCsvProductrunController::STAGE_DYNAMIC_CATEGORY:
-                $td = '<i class="icon16 funnel" title="'.htmlentities(_w('Will be imported as a dynamic category'), ENT_QUOTES, 'utf-8').'"></i>';
+                $td = '<i class="'.($isWA2 ? 'fas fa-filter' : 'icon16 funnel').'" title="'.htmlentities(_w('Will be imported as a dynamic category'), ENT_QUOTES, 'utf-8').'"></i>';
                 break;
             case shopCsvProductrunController::STAGE_PRODUCT:
             case shopCsvProductrunController::STAGE_PRODUCT_VARIANT:
             case shopCsvProductrunController::STAGE_VARIANT:
-                $td = '<i class="icon16 box" title="'.htmlentities(_w('Will be imported as product'), ENT_QUOTES, 'utf-8').'"></i>';
+                $td = '<i class="'.($isWA2 ? 'fas fa-box text-yellow' : 'icon16 box').'" title="'.htmlentities(_w('Will be imported as product'), ENT_QUOTES, 'utf-8').'"></i>';
                 break;
             default:
-                $td = '<i class="icon16 no"></i>';
+                $td = '<i class="'.($isWA2 ? 'fas fa-times-circle text-red' : 'icon16 no').'"></i>';
                 break;
         }
         return $td;

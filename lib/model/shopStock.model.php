@@ -49,10 +49,10 @@ class shopStockModel extends waModel
             $this->query("UPDATE {$this->table} SET sort = sort + 1 WHERE sort >= {$before['sort']}");
             $sort = (int)$before['sort'];
         }
-        if (empty($data['low_count'])) {
+        if (!isset($data['low_count']) || $data['low_count'] < 0) {
             $data['low_count'] = shopStockModel::LOW_DEFAULT;
         }
-        if (empty($data['critical_count'])) {
+        if (!isset($data['critical_count']) || $data['critical_count'] < 0) {
             $data['critical_count'] = shopStockModel::CRITICAL_DEFAULT;
         }
         $data['sort'] = $sort;
