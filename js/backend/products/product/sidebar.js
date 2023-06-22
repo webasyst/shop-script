@@ -72,6 +72,15 @@
                     tab_id = $item.find('a').data('tab-id'),
                     params = '';
 
+                if (!tab_id) {
+                    tab_id = $item.find('a').attr('href').match(/\d+\/([^\/]+)\/?$/);
+                    if (tab_id) {
+                        tab_id = tab_id[1];
+                    } else {
+                        tab_id = 'general';
+                    }
+                }
+
                 if (that.context.presentation > 0) {
                     var context = {
                         presentation: that.context.presentation,

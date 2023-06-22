@@ -1,4 +1,7 @@
-{$is_product_page = ($wa->param('module') == 'prod')|default:false}
+{strip}
+{if empty($is_product_page)}
+    {$is_product_page = false}
+{/if}
 
 {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
 
@@ -67,6 +70,7 @@
     {* @event backend_products.%plugin_id%.sidebar_top_li *}
     {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
 {/function}
+{/strip}
 
 
 {if !$is_product_page}

@@ -12,6 +12,7 @@ return array(
         'weight' => array(
             'name' => 'Packaging weight',
             'type' => shopFeatureModel::TYPE_DIMENSION.'.weight',
+            'available_for_sku' => 1,
             'builtin' => 1
         ),
         'packaging' => array(

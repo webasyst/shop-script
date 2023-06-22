@@ -56,6 +56,7 @@ class shopProductsCollection
      *     'search/name=SuperProduct' — search by 'name' field (exact match)
      *     'search/color.value_id=6' — search by value with id=6 of 'checkboxes'-type feature with code 'color'
      *     'filter/6' - search for all products matching the filter
+     *     'presentation/42' - search by saved view's filter settings specified in the backend
      * @param array $options Extra options:
      *     'filters'    => whether products must be filtered according to GET request conditions
      *     'product'    => shopProduct object to select upselling items for; for upselling-type collections only
