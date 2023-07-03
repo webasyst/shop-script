@@ -2965,11 +2965,11 @@ SQL;
                         $warning_message = _w('The add-to-cart step value was not updated because it must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
                         $error_message = _w('The add-to-cart step value must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
                     } elseif ($field == 'order_count_min') {
-                        $warning_message = _w('The minimum orderable quantity must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
-                        $error_message = _w('The minimum orderable quantity must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
+                        $warning_message = _w('The minimum orderable quantity must be divisible without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
+                        $error_message = _w('The minimum orderable quantity must be divisible without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
                     } else {
-                        $warning_message = _w('The quantity adjustment value via “+/-” buttons must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
-                        $error_message = _w('The quantity adjustment value via “+/-” buttons must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
+                        $warning_message = _w('The quantity adjustment value via “+/-” buttons must be divisible without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
+                        $error_message = _w('The quantity adjustment value via “+/-” buttons must be divisible without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits.');
                     }
                     if ($is_update_product) {
                         $this->writeImportError($warning_message);

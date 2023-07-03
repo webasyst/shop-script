@@ -30,13 +30,13 @@ class shopServiceSaveController extends waJsonController
             $delete_products = waRequest::post('delete_product', array(), waRequest::TYPE_ARRAY_INT);
             $service_product_model->deleteByProducts($delete_products, $id);
         }
-        
+
         $id = $this->service_model->save($data, $id, true);
         $this->response = array(
             'id' => $id
         );
     }
-    
+
     public function getData()
     {
         $data = array(
@@ -45,10 +45,10 @@ class shopServiceSaveController extends waJsonController
             'variants' => array()
         );
 
-        $data['currency'] = !$data['currency'] ? 
-                wa('shop')->getConfig()->getCurrency() : 
+        $data['currency'] = !$data['currency'] ?
+                wa('shop')->getConfig()->getCurrency() :
                 $data['currency'];
-        
+
         $variants = waRequest::post('variant', array(), waRequest::TYPE_ARRAY_INT);
         $names    = waRequest::post('name', array());
         $prices   = waRequest::post('price', array());
@@ -92,7 +92,7 @@ class shopServiceSaveController extends waJsonController
             if (is_numeric($variant['price']) && $variant['price'] < 0) {
                 $this->errors[] = [
                     'id' => $i,
-                    'text' => _w('Стоимость услуги не может быть отрицательной'),
+                    'text' => _w('Service price cannot be negative.'),
                 ];
             }
         }

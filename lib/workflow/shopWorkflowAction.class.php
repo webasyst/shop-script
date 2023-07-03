@@ -71,25 +71,21 @@ class shopWorkflowAction extends waWorkflowAction
      */
     public function getButton()
     {
+        $is_wa2 = wa()->whichUI() >= '2.0';
         $name = htmlspecialchars($this->getName(), ENT_QUOTES, 'utf-8');
         if (func_num_args()) {
             $attrs = func_get_arg(0);
         } else {
             $attrs = '';
         }
+
         $description = htmlspecialchars($this->getOption('description', ''), ENT_QUOTES, 'utf-8');
-
-        $class_icon = 'icon16';
-        if (wa()->whichUI() >= '2.0') {
-            $class_icon = 'icon';
-        }
-
+        $class_icon = $is_wa2 ? 'icon' : 'icon16';
         if ($this->getOption('position') || $this->getOption('top')) {
 
             // LINK
 
-            if (wa()->whichUI() >= '2.0') {
-
+            if ($is_wa2) {
                 $icon = wa()->getView()->getHelper()->shop->convertIcon("icon16 {$this->getOption('icon')}");
 
                 return <<<HTML
@@ -108,13 +104,12 @@ HTML;
         } else {
 
             // BUTTON
-
             $class = array(
                 'wf-action',
                 'button',
                 $this->getOption('button_class'),
             );
-            if (wa()->whichUI() >= '2.0') {
+            if ($is_wa2) {
                 $class[] = 'rounded white';
             }
             $class = implode(' ', array_filter($class));
@@ -132,17 +127,15 @@ HTML;
 
             $style = array();
             if ($this->getOption('border_color')) {
-                $style[] = 'border-color: #'.$this->getOption('border_color');
+                $bc = '#'.$this->getOption('border_color');
+                $style[] = $is_wa2 ? "color: $bc" : "border-color: $bc";
             }
             $style = implode(' ', $style);
 
-
-            if (wa()->whichUI() >= '2.0') {
-
+            if ($is_wa2) {
                 return <<<HTML
     <a href="#" {$attrs} class="{$class}" data-action-id="{$this->getId()}" title="{$description}"><i class="fas fa-circle custom-mr-4 small text-{$this->getOption('button_class')} js-icon" style="{$style}"></i> {$name}<span class="smaller">{$icons}</span></a>
 HTML;
-
             }
 
             // 1.3 fallback

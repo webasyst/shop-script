@@ -12,6 +12,7 @@
 /* wa-2.0.css overrides based on Shop-Script specific dimmed-background layout */
 
 .s-hide-scrollbar::-webkit-scrollbar { display: none; }
+.s-scroll-y { overflow-y: scroll !important; overscroll-behavior-y: contain; }
 
 body { overflow-x: hidden; }
 
@@ -258,7 +259,7 @@ ul.s-orders.list > .item .highlighted > * { color: var(--bricks-glyph-color-sele
 .s-order-actions { margin-left: -0.125em; margin-bottom: 0.75rem; }
 .s-order-actions .button { border-radius: 1.5em; margin-bottom: 0.5rem; margin-right: 0.25rem; font-size: 1.1875rem; background: var(--background-color-blank); color: var(--text-color-input); }
 
-.s-order-comment { white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; border-radius: 0.75rem; overflow: hidden; padding:  }
+.s-order-comment { white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word; border-radius: 0.75rem; overflow: hidden; }
 .s-order-comment-edit textarea { display: block; width: 100%; height: 8em; margin: 5px 0 15px; }
 
 #tooltip { position: absolute; z-index: 3000; border: 1px solid var(--alert-border-color); background-color: var(--alert-background-color); padding: 5px; }
@@ -1178,7 +1179,7 @@ ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 input.s-datepicker { width: 6.1em; }
 
 /* Colorpicker */
-.s-color-picker svg { border: 1px solid #33333375; border-radius: 50%; }
+.s-color-picker { border: 1px solid #33333330; border-radius: 50%; }
 
 /* SVG ICONS */
 .svg-icon { display: inline-block; vertical-align: baseline; width: 1em; height: 1em; line-height: 0; background: transparent 50% no-repeat; background-size: contain; }

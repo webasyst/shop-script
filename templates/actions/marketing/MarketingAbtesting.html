@@ -42,9 +42,9 @@
             <div class="box s-abtest-border">
                 <input type="hidden" name="id" value="{$test.id|default:new}">
                 {if $test.id}
-                    <div class="flexbox middle wrap custom-mb-24">
-                        <h1 class="custom-mb-0 wide">{$test.name|escape}</h1>
-                        <a href="javascript:void(0)" id="delete-link" class="text-red"><i class="fas fa-trash-alt custom-mr-4"></i>[`Delete`]</a>
+                    <div class="flexbox custom-mb-24">
+                        <h1 class="break-word custom-mb-0 wide">{$test.name|escape}</h1>
+                        <a href="javascript:void(0)" id="delete-link" class="custom-mt-8 nowrap text-red"><i class="fas fa-trash-alt custom-mr-4"></i>[`Delete`]</a>
                     </div>
 
 
@@ -69,7 +69,7 @@
                         <div class="field">
                             <div class="name custom-pt-4">[`Name`]</div>
                             <div class="value">
-                                <input type="text" class="large" name="test[name]" value="{$test.name|escape}" required>
+                                <input type="text" class="large long" name="test[name]" value="{$test.name|escape}" required>
                             </div>
                         </div>
                         {if $test.id}

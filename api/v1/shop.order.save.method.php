@@ -53,7 +53,7 @@ class shopOrderSaveMethod extends shopApiMethod
     protected function validate($post)
     {
         if (empty($post['items']) && empty($post['id'])) {
-            $this->errors[] = _w('Items not found');
+            $this->errors[] = _w('Order items not found.');
         }
 
         //convert discount for shopOrder.

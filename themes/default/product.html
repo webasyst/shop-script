@@ -344,17 +344,20 @@
                 skus_features_html: {$_skus_features_html|json_encode}
             });
 
-            const observer = new MutationObserver(mutations => {
-                for (const mutation of mutations) {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-                       mutation.target.srcset = '';
+            const $product_image = document.querySelector('#product-image');
+            if ($product_image) {
+                const observer = new MutationObserver(mutations => {
+                    for (const mutation of mutations) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                            mutation.target.srcset = '';
+                        }
                     }
-                }
-            });
-            observer.observe(document.querySelector('#product-image'), {
-                attributes: true,
-                attributeFilter: ['src']
-            });
+                });
+                observer.observe($product_image, {
+                    attributes: true,
+                    attributeFilter: ['src']
+                });
+            }
         })(jQuery);
     </script>
 </article>

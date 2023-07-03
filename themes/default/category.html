@@ -102,14 +102,17 @@
                         <div class="filter-param">
                             {if $fid == 'price'}
                                 {$c = $wa->shop->currency(true)}
-                                <h5>[`Price`]</h5>
+                                <h5>[`Price`] ({$c.sign})</h5>
                                 <div class="slider nowrap">
                                     [`from`] <input type="text" class="min" name="price_min" {if $wa->get('price_min')}value="{(int)$wa->get('price_min')}"{/if} placeholder="{floor($filter.min)}">
                                     [`to`] <input type="text" class="max" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="{ceil($filter.max)}">
-                                    <span title="{$c.sign}"> {$c.sign}</span>
                                 </div>
                             {else}
-                                <h5>{$filter.name|escape}</h5>
+                                {$is_unit = !empty($filter.unit)}
+                                <h5>
+                                    {$filter.name|escape}
+                                    {if $is_unit} ({$filter.unit.title}){/if}
+                                </h5>
                                 {if $filter.type == 'boolean'}
                                     <label><input type="radio" name="{$filter.code}"{if $wa->get($filter.code)} checked{/if} value="1"> [`Yes`]</label>
                                     <label><input type="radio" name="{$filter.code}"{if $wa->get($filter.code) === '0'} checked{/if} value="0"> [`No`]</label>
@@ -145,7 +148,10 @@
                                                         minDate: formatDate($filter.data("min")),
                                                         maxDate: formatDate($filter.data("max")),
                                                         changeMonth: true,
-                                                        changeYear: true
+                                                        changeYear: true,
+                                                        beforeShow: function (input, instance) {
+                                                            $(instance.dpDiv).addClass("s-ui-datepicker");
+                                                        }
                                                     });
 
                                                     $datepicker.on("change", function() {
@@ -171,10 +177,7 @@
                                     <div class="slider nowrap">
                                         [`from`] <input type="text" class="min" name="{$filter.code}[min]" placeholder="{$filter.min}" {if !empty($_v.min)}value="{$_v.min}"{/if}>
                                         [`to`]</span> <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max}"{/if}>
-                                        {if !empty($filter.unit)}
-                                            <span title="{$filter.unit.title}">{$filter.unit.title}</span>
-                                            {if $filter.unit.value != $filter.base_unit.value}<input type="hidden" name="{$filter.code}[unit]" value="{$filter.unit.value}">{/if}
-                                        {/if}
+                                        {if $is_unit && $filter.unit.value != $filter.base_unit.value}<input type="hidden" name="{$filter.code}[unit]" value="{$filter.unit.value}">{/if}
                                     </div>
                                 {else}
                                     {foreach $filter.values as $v_id => $v}

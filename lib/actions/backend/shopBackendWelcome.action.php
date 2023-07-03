@@ -151,6 +151,7 @@ class shopBackendWelcomeAction extends waViewAction
         $this->view->assign(array(
             'countries'         => $countries,
             'country_iso'       => $country_iso3,
+            'locale_currency'   => ifset($locale['currency']),
             'translate'         => $this->translate,
             'actions'           => shopTutorialActions::getActions(true),
             'currencies'        => $this->getCurrencies(),

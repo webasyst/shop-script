@@ -477,6 +477,7 @@ $.extend($.settings || {}, {
         // Helper to init icon selector in custom action form
         function initActionIcons($block) {
             const $input = $block.find('.s-action-icon');
+            const $color_picker = $block.find('.js-color-picker');
 
             const $icons = $block.find('.s-action-icons').on('click', 'a', function(event) {
                 event.preventDefault();
@@ -496,10 +497,12 @@ $.extend($.settings || {}, {
             function showIcons() {
                 $icons.show();
                 $input.attr('disabled', false);
+                $color_picker.hide();
             }
             function hideIcons() {
                 $icons.hide();
                 $input.attr('disabled', true);
+                $color_picker.show();
             }
         }
 

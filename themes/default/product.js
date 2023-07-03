@@ -188,7 +188,7 @@ Product.prototype.getEscapedText = function( bad_string ) {
     return $("<div>").text( bad_string ).html();
 };
 
-Product.prototype.currencyFormat = function (number, no_html) {
+Product.prototype.currencyFormat = function (number, no_html, no_sign = false) {
     // Format a number with grouped thousands
     //
     // +   original by: Jonas Raoni Soares Silva (http://www.jsfromhell.com)
@@ -226,6 +226,9 @@ Product.prototype.currencyFormat = function (number, no_html) {
 
 
     var number = km + kw + kd;
+    if (no_sign) {
+        return number;
+    }
     var s = no_html ? this.currency.sign : this.currency.sign_html;
     if (!this.currency.sign_position) {
         return s + this.currency.sign_delim + number;
@@ -284,7 +287,7 @@ Product.prototype.updatePrice = function (price, compare_price) {
             price = parseFloat(input_checked.data('price'));
             compare_price = parseFloat(input_checked.data('compare-price'));
         } else {
-            price = parseFloat(this.add2cart_top.find(".price").data('price'));
+            price = parseFloat(this.add2cart_top.find("[data-price]").data('price'));
             compare_price = this.compare_price;
         }
     }
@@ -300,7 +303,7 @@ Product.prototype.updatePrice = function (price, compare_price) {
         }
     });
 
-    this.add2cart_top.find(".price").html(this.currencyFormat(price + service_price));
+    this.add2cart_top.find(".price").html(this.currencyFormat(price + service_price, false, true));
 
     if (compare_price) {
         if (!this.add2cart_top.find(".compare-at-price").length) {

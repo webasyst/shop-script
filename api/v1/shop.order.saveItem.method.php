@@ -74,7 +74,7 @@ class shopOrderSaveItemMethod extends shopApiMethod
     protected function validate($post)
     {
         if (empty($post['item_id'])) {
-            $this->errors[] = _w('No items in the request');
+            $this->errors[] = _w('No order items specified.');
         }
 
         if ($this->errors) {

@@ -13,7 +13,7 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '10.0.2', // developer preview
+    'version'          => '10.0.2',
     'critical'         => '10.0.2',
     'vendor'           => 'webasyst',
     'csrf'             => true,

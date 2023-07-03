@@ -70,7 +70,7 @@ class shopOrderCalculateMethod extends shopApiMethod
     protected function validate($post)
     {
         if (empty($post['id'])) {
-            $this->errors[] = _w('Order id not found');
+            $this->errors[] = _w('Order ID not specified.');
         }
 
         // 'true' is the legacy version of the API

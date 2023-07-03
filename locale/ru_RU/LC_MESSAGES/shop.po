@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 2.3\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -11872,10 +11872,10 @@ msgstr "Значение шага добавления в корзину не б
 msgid "The add-to-cart step value must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits."
 msgstr "Значение шага (кратности) должно быть в диапазоне от 0,001 до 999 999,999 и должно содержать не более 3 знаков после запятой."
 
-msgid "The minimum orderable quantity must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits."
+msgid "The minimum orderable quantity must be divisible without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits."
 msgstr "Минимальное количество для заказа должно делиться без остатка на шаг добавления товара в корзину, быть в диапазоне от 0,001 до 999 999,999 и содержать не более 3 знаков после запятой."
 
-msgid "The quantity adjustment value via “+/-” buttons must be divisable without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits."
+msgid "The quantity adjustment value via “+/-” buttons must be divisible without remainder by the add-to-cart step value, must be in the range from 0.001 to 999,999.999 and may contain a maximum of 3 decimal digits."
 msgstr "Значение изменения количества кнопками «+/-» должно делиться без остатка на шаг добавления товара в корзину, быть в диапазоне от 0,001 до 999 999,999 и содержать не более 3 знаков после запятой."
 
 msgid "The stock quantity unit was not updated because it may not be changed according to product type settings."
@@ -12033,9 +12033,6 @@ msgstr "в начало"
 
 msgid "to end"
 msgstr "в конец"
-
-msgid "Sort"
-msgstr "Порядок"
 
 msgid "By name (in reverse order)"
 msgstr "По названию (в обратном порядке)"
@@ -13077,3 +13074,15 @@ msgstr "Установите Webasyst Shop-Script на свой телефон:"
 
 msgid "Profit by all products"
 msgstr "Прибыль по всем товарам"
+
+msgid "Service price cannot be negative."
+msgstr "Цена услуги не может быть отрицательной."
+
+msgid "Order items not found."
+msgstr "Позиции заказа не найдены."
+
+msgid "Order ID not specified."
+msgstr "Не указан ID заказа."
+
+msgid "No order items specified."
+msgstr "Не указаны позиции заказа."

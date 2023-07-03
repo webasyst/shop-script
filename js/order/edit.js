@@ -1510,7 +1510,7 @@ $.order_edit = {
                     is_new: true
                 });
                 if ($.order_edit.slide(false, true)) {
-                    location.href = '#/orders/state_id=new&view=split&id=' + r.data.order.id + '/';
+                    location.href = '#/orders/state_id=new|processing|auth|paid&view=split&id=' + r.data.order.id + '/';
                 }
             };
         } else {

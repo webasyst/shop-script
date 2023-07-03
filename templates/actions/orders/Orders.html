@@ -70,7 +70,7 @@
                             <a class="image" href="#/orders/{/literal}{if $params_str}{$params_str}&{/if}{literal}id={%#order.id%}/">
                                 <img src="{%#order.contact.photo_50x50%}" class="userpic userpic-48">
                             </a>
-                            {% var state_color = '#ссс'; %}
+                            {% var state_color = '#ccc'; %}
                             {% var state_name = ''; %}
                             {% var paid_state_name = ''; %}
                             {% if (order.state_id in o.states) { %}

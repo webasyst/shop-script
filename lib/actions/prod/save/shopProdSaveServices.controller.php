@@ -192,7 +192,7 @@ class shopProdSaveServicesController extends waJsonController
                 if ($default_price < 0) {
                     $this->errors[] = [
                         'id' => "service[$service_id][price]",
-                        'text' => _w('Стоимость услуги не может быть отрицательной'),
+                        'text' => _w('Service price cannot be negative.'),
                     ];
                 }
                 if (!empty($variant['skus'])) {
@@ -202,7 +202,7 @@ class shopProdSaveServicesController extends waJsonController
                             if ($sku_price < 0) {
                                 $this->errors[] = [
                                     'id' => "service[$service_id][variant][$variant_id][price]",
-                                    'text' => _w('Стоимость услуги не может быть отрицательной'),
+                                    'text' => _w('Service price cannot be negative.'),
                                 ];
                             }
                         }
