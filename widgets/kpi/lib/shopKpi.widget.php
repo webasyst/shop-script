@@ -251,7 +251,7 @@ class shopKpiWidget extends waWidget
             if ($s) {
                 $result['storefront']['options'][] = array(
                     'value' => $s,
-                    'title' => $s,
+                    'title' => waIdna::dec($s),
                 );
             }
         }

@@ -22,7 +22,7 @@ class shopSourcesWidget extends waWidget
         $def_cur = wa('shop')->getConfig()->getCurrency(true);
         foreach($table_data as &$row) {
             $row['metric'] = $row[$settings['metric']];
-            if ($settings['metric'] != 'orders') {
+            if ($settings['metric'] != 'order_count') {
                 $row['metric_html'] = shop_currency_html($row['metric'], $def_cur, $def_cur);
             } else {
                 $row['metric_html'] = $row['metric'];
@@ -54,7 +54,7 @@ class shopSourcesWidget extends waWidget
             if ($s) {
                 $result['storefront']['options'][] = array(
                     'value' => $s,
-                    'title' => $s,
+                    'title' => waIdna::dec($s),
                 );
             }
         }

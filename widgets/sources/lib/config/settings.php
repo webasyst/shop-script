@@ -8,7 +8,7 @@ return array(
         'options' => array(
             array('value' => 'sales', 'title' => /*_wp*/('Sales')),
             array('value' => 'profit', 'title' => /*_wp*/('Profit')),
-            array('value' => 'orders', 'title' => /*_wp*/('Number of paid orders')),
+            array('value' => 'order_count', 'title' => /*_wp*/('Number of paid orders')),
         ),
     ),
     'period' => array(
