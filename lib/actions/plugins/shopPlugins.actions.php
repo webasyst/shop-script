@@ -55,6 +55,8 @@ class shopPluginsActions extends waPluginsActions {
                 return $installer_url.'?module=store&action=inApp';
             case 'apps':
                 return $installer_url.'?module=store&action=inApp&filter[type]=app';
+            case 'onlinecash':
+                return $installer_url.'?module=store&action=inApp&filter[tag]=fz54';
             case 'marketplaces':
                 return $installer_url.'?module=plugins&action=view&slug=shop&filter[tag]=marketplaces';
             default:

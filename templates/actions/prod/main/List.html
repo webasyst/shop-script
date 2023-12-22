@@ -131,6 +131,121 @@
 {/capture}
 {$_components["component-product-slider"] = $_component_product_slider|strip}
 
+{capture assign="_component_tree_menu"}
+    {literal}
+    <li
+        v-show="displayItem"
+        class="vue-component-tree-menu"
+        :class="{ 'selected': item.is_selected }"
+        @click.stop="onClick"
+    >
+        <span class="s-item item flexbox"
+            :class="itemClass"
+            :style="indent"
+        >
+            <div
+                v-if="item[childrenProp] && item[childrenProp].length"
+                class="s-caret-wrapper custom-ml-0 custom-mr-4"
+                @click.stop="toggleChildren"
+            >
+                <span v-if="isShowChildren" class="icon custom-m-0">
+                    <i class="fas fa-caret-down"></i>
+                </span>
+                <span v-else class="icon custom-m-0">
+                    <i class="fas fa-caret-right"></i>
+                </span>
+            </div>
+            <div v-else class="custom-mr-20"></div>
+
+            <div
+                v-if="$slots.icon"
+                class="s-icon-wrapper"
+            >
+                <slot
+                    name="icon"
+                    :item="item"
+                    :toggle-children="toggleChildren"
+                />
+            </div>
+
+            <div class="s-name-wrapper wide">
+                <span class="s-name"
+                    :class="[item.is_locked ? 'is-locked' : 'cursor-pointer', { 'link' : !item.is_group && !item.is_locked, 'is-group' : item.is_group }]"
+                >%item.name%</span>
+            </div>
+            <!-- <div class="count gray smaller">
+                %item.count%
+            </div> -->
+        </span>
+        <slot v-if="displayChildren" name="children">
+            <ul class="menu">
+                <component-tree-menu
+                    v-for="child of item[childrenProp]"
+                    :item="child"
+                    :children-prop="childrenProp"
+                    :search-string="searchString"
+                    :depth="depth + 1"
+                    @use-item="useItem"
+                >
+                    <template v-for="(_, name) in $slots" v-slot:[name]="slotData">
+                        <slot :name="name" v-bind="slotData" />
+                    </template>
+                </component-tree-menu>
+            </ul>
+        </slot>
+    </li>
+    {/literal}
+{/capture}
+{$_components["component-tree-menu"] = $_component_tree_menu|strip}
+
+{capture assign="_component_sidebar_section"}
+    {literal}
+    <section
+        class="vue-component-sidebar-section"
+        :class="{ 'is-collapsed': isCollapsed }"
+        :data-id="value"
+    >
+        <header
+            class="heading cursor-pointer"
+            @click="$emit('toggle-collapse', (isCollapsed ? value : ''))"
+        >
+            <span class="flexbox middle space-4">
+                <span class="icon">
+                    <span v-if="isCollapsed" class="caret">
+                        <i class="fas fa-caret-right"></i>
+                    </span>
+                    <span v-else class="caret">
+                        <i class="fas fa-caret-down"></i>
+                    </span>
+                </span>
+
+                <span v-if="$slots.icon" class="s-icon icon shift-0">
+                    <slot name="icon"></slot>
+                </span>
+
+               <span class="s-name">%label%</span>
+            </span>
+            <a
+                v-if="useButtonNew"
+                class="count s-new-item"
+                href="#"
+                :title="titleForNew"
+            >
+                <i class="fas fa-plus-circle"></i>
+            </a>
+        </header>
+
+        <div
+            v-if="!isCollapsed"
+            class="s-sidebar-list-wrapper"
+        >
+            <slot></slot>
+        </div>
+    </section>
+    {/literal}
+{/capture}
+{$_components["component-sidebar-section"] = $_component_sidebar_section|strip}
+
 {* ШАБЛОНЫ *}
 {$_templates = []}
 
@@ -174,9 +289,9 @@
 
 {* ЛОКАЛИЗАЦИЯ *}
 {$_locales = [
-    "hidden" => _w("Hidden"),
-    "published" => _w("Published"),
-    "unpublished" => _w("Unpublished"),
+    "hidden" => _w("Hidden, not for sale"),
+    "published" => _w("Published, for sale"),
+    "unpublished" => _w("Unpublished, not for sale"),
     "products_forms" => [
         _w("%d product", "%d products", 1, false),
         _w("%d product", "%d products", 2, false),
@@ -204,6 +319,7 @@
 {include file="./components/products/presentations_dropdown.html" scope="parent" inline}
 {include file="./dialogs/errors.html" scope="parent" inline}
 {include file="./dialogs/list.column_manager.html" scope="parent" inline}
+{include file="./components/products/empty_content.html" scope="parent" inline}
 
 <div class="s-products-list-page" id="js-products-list-page">
     <div class="s-page-wrapper" id="js-vue-section" style="visibility: hidden;">
@@ -248,7 +364,11 @@
 
                 <component-table-filters></component-table-filters>
             </div>
-            <div class="s-page-body flexbox">
+            <div class="s-page-body flexbox space-8">
+                {* SIDEBAR FILTERS *}
+                <div v-if="!states.sidebar_filters_hide" class="s-body-aside sidebar">
+                    <component-table-filters-categories-sets-types></component-table-filters-categories-sets-types>
+                </div>
                 {* PRODUCTS TABLE *}
                 <div class="s-products-table-section" v-if="presentation.view !== 'thumbs'" v-on:scroll="onScrollProductsSection">
                     {* BODY *}
@@ -260,12 +380,13 @@
                 <div class="s-products-thumbs-section" v-if="presentation.view === 'thumbs'" v-on:scroll="onScrollProductsSection">
                     <div class="s-section-body">
                         <div class="s-thumbs-list">
-                            <component-product-thumb v-for="product in products" v-bind:key="product.id" v-bind:product="product"></component-product-thumb>
+                            <component-product-thumb v-if="products.length" v-for="product in products" v-bind:key="product.id" v-bind:product="product"></component-product-thumb>
+                            <component-empty-content v-else type="products"></component-empty-content>
                         </div>
                     </div>
                 </div>
-                {* PINNED MASS ACTIONS *}
-                <template v-if="show_mass_actions && states.mass_actions_pinned">
+                {* MASS ACTIONS *}
+                <template v-if="show_mass_actions">
                     <div class="s-body-aside" v-bind:class="{ 'is-unpinned' : presentation.view === 'thumbs' }">
                         <component-mass-actions
                             v-bind:type="'aside'"
@@ -310,13 +431,6 @@
                 </div>
             </div>
         </div>
-
-        <template v-if="show_mass_actions && !states.mass_actions_pinned">
-            <component-mass-actions
-                v-bind:type="'footer'"
-                v-bind:products="selected_products"
-                v-bind:key="keys.mass_actions"></component-mass-actions>
-        </template>
     </div>
 
     <script>

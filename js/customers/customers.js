@@ -64,8 +64,7 @@
 
                 const search = (event) => {
                     event.preventDefault();
-
-                    let q = this.value.trim();
+                    let q = search_field.val().trim();
                     let query = '';
 
                     if (q.match(/^\+*[0-9\s\-\(\)]+$/)) {

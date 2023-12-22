@@ -1960,7 +1960,10 @@ SQL;
         }
 
         if ($file = reset($this->data['map'][self::STAGE_IMAGE])) {
-            $description = reset($this->data['map'][self::STAGE_IMAGE_DESCRIPTION]);
+            $description = null;
+            if (!empty($this->data['map'][self::STAGE_IMAGE_DESCRIPTION])) {
+                $description = reset($this->data['map'][self::STAGE_IMAGE_DESCRIPTION]);
+            }
             /** @var shopProductImagesModel $model */
             $model = $this->model('product_images');
 

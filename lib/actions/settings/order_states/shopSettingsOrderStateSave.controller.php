@@ -316,7 +316,10 @@ class shopSettingsOrderStateSaveController extends waJsonController
             $info['new_id'] = waRequest::post('new_id', '', waRequest::TYPE_STRING_TRIM);
         }
         if ($add) {
-            $info['id'] = $info['new_id'] = shopWorkflow::generateStateId($name);
+            if (empty($info['new_id'])) {
+                $info['new_id'] = shopWorkflow::generateStateId($name);
+            }
+            $info['id'] = $info['new_id'];
         }
         return $info;
     }

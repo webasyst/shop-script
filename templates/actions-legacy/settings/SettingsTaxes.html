@@ -12,7 +12,7 @@
             </li>
         </ul>
         <div class="block double-padded hr align-center hint">
-            <p>{sprintf('[`To customize the list of countries and regions, use <a href="%s">Countries & Regions</a> screen.`]','#/regions/')}</p>
+            <p>{$wa_backend_url|cat:'webasyst/settings/regions/'|string_format:'[`Edit the list of countries and regions in the <a href="%s">Settings</a> app.`]'}</p>
         </div>
     </div>
 </div>

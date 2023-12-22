@@ -152,7 +152,7 @@
         <a href="javascript:void(0)" class="inline-link load-more-link"><b>[`Load more...`]</b></a>
     </div>
 
-    <div class="graph-wrapper width-20 custom-pl-16">
+    <div class="graph-wrapper width-20 custom-pl-16"{if !$total.customers_count} style="min-height: 0;"{/if}>
         {if $total.customers_count > 0}
             <div class="pie-wrapper"></div>
             <div class="hint-wrapper"></div>
@@ -192,20 +192,6 @@
 </div>
 
 <div class="flexbox space-4">
-    <style>
-        .datamaps-subunits { transform: translateY(-130px); }
-        @media screen and (max-width: 1535px){
-            .datamaps-subunits { transform: translateY(-95px); }
-        }
-        @media screen and (max-width: 1300px){
-            .datamaps-subunits { transform: translateY(-35px); }
-            .s-country-list { font-size: 75% !important; }
-
-        }
-        @media screen and (max-width: 1024px){
-            .datamaps-subunits { transform: translateY(0); }
-        }
-    </style>
     <div class="map-wrapper wide"></div>
 
     <div>
@@ -337,6 +323,11 @@
         }
     })().done(function() {
         showMapGraph({json_encode($map_chart_data)}, {json_encode($country_names)});
+        $(window).on('resize', function () {
+            $(".map-wrapper").empty();
+            showMapGraph({json_encode($map_chart_data)}, {json_encode($country_names)});
+        })
+
     });
 
 })();</script>

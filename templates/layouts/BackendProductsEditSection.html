@@ -18,6 +18,12 @@
         <div class="wide width-100" style="max-width: calc(100% - var(--main-sidebar-width) - 2px);overflow-x: clip;">
             <header class="s-page-header bordered-bottom nowrap">
                 <div class="flexbox middle space-8">
+                    {* NAVIGATE BACK *}
+                    <a href="{$wa_app_url}products/{if isset($context.presentation) || isset($context.page)}?{if ifset($context.page) > 1}page={$context.page}&{/if}{if ifset($context.presentation)}presentation={$context.presentation}{/if}{/if}"
+                        title="[`Back`]"
+                        class="back"
+                    ><span class="icon size-32"><i class="fas fa-arrow-circle-left"></i></span></a>
+
                     {if !empty($product.id) && !empty($product_list_data)}
                         {$_tooltips = []}
                         <div class="s-actions flexbox middle space-8 nowrap js-nearest-products">

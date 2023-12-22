@@ -35,7 +35,7 @@
                                     </div>
                                 </li>
                                 <li class="custom-mt-0 field-settings nowrap"{if !$type.cross_selling} style="display:none"{/if}>
-                                    <div class="wa-select custom-mr-0">
+                                    <div class="wa-select smaller custom-mr-0">
                                         <select class="text-ellipsis width-100">
                                             <option value="alsobought" {if !$type.cross_selling || $type.cross_selling == 'alsobought'}selected{/if}>[`Auto (based on what other customers purchased with a particular product)`]</option>
                                             <optgroup label="[`Random products from a category`]">
@@ -129,3 +129,60 @@
 
 </div>
 </div>
+<style>
+    .ui-slider {
+        width: 200px;
+        position: relative;
+    }
+    .ui-slider-horizontal {
+        height: 2px;
+        border: none;
+    }
+    .ui-slider-horizontal.ui-widget-content {
+        background: #bbb;
+    }
+    .ui-slider .ui-slider-range {
+        position: absolute;
+        z-index: 1;
+        font-size: .7em;
+        display: block;
+        border: 0;
+    }
+    .ui-slider-horizontal .ui-slider-range {
+        top: 0;
+        height: 100%;
+    }
+    .ui-slider-horizontal .ui-widget-header {
+        background: #0a0;
+        height: 4px;
+        position: relative;
+        top: -1px;
+    }
+    .ui-state-default, .ui-widget-content .ui-state-default {
+        border: 1px solid #d3d3d3;
+        background: #e6e6e6;
+        font-weight: normal;
+        color: #555555;
+        outline: none;
+    }
+    .ui-slider .ui-slider-handle {
+        position: absolute;
+        z-index: 2;
+        width: 1.2em;
+        height: 1.2em;
+        cursor: default;
+    }
+    .ui-slider-horizontal .ui-slider-handle {
+        top: -0.3em;
+        margin-left: -0.6em;
+    }
+    .ui-slider-horizontal .ui-slider-handle, .ui-slider-horizontal .ui-slider-handle.ui-state-focus {
+        top: -0.55em;
+        margin-left: -0.4em;
+        height: 1.1em;
+        width: 1.1em;
+        border-color: #aaa;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        border-radius: 50%;
+    }
+</style>

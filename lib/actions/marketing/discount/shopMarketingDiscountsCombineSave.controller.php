@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Save setting: how to conbine several applicable discounts, max or sum.
+ * Save setting: how to combine several applicable discounts, max or sum.
  */
 class shopMarketingDiscountsCombineSaveController extends shopMarketingSettingsJsonController
 {

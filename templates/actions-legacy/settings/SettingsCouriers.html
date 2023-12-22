@@ -34,7 +34,14 @@
      *}
     <div class="s-alert" style="border-left: 0;">
         <a href="javascript:void(0)" class="s-alert-close">&times;</a>
-        [`Couriers are your teammates who are assigned to deliver orders to customers and to track and update order information on the go using <a href="http://www.shop-script.com/mobile/" target="_blank">Shop-Script mobile app</a>.<br><br> Unlike common backend users, couriers may not login to the main store backend and can only see orders they were assigned using the mobile app only. An order can be assigned to a courier upon the order SHIP action. <a href="https://www.shop-script.com/help/13421/shop-script-couriers/" target="_blank">Learn more about couriers</a>.`]
+        {* TODO: DEPRECATE PERMANENTlY *}
+        {if $wa->locale() == 'ru_RU'}
+            <strong>Раздел упразднен в Shop-Script 10.0.</strong> Новая инструкция по подключению курьеров в Shop-Script 10.0 и выше:
+            <a href="https://support.webasyst.ru/shop-script/44882/shop-couriers-mobile-app/" target="_blank">https://support.webasyst.ru/shop-script/44882/shop-couriers-mobile-app/</a>
+        {else}
+            <strong>Deprecated in Shop-Script 10.0.</strong> Please follow these guides on how to invite a courier in Shop-Script 10.0+:
+            <a href="https://support.webasyst.com/shop-script/44941/shop-couriers-mobile-app/" target="_blank">https://support.webasyst.com/shop-script/44941/shop-couriers-mobile-app/</a>
+        {/if}
     </div>
 
     <div class="block double-padded">

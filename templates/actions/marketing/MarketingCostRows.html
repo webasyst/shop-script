@@ -28,10 +28,10 @@
 {foreach $expenses as $e}
     <tr class="expense-row{if $e.type == 'campaign'} s-tr-campaign{/if}" data-expense-id="{$e.id}">
         <td class="channel width-20" title="{$e.name|escape}">
-            <div>{$e.name|escape}<i class="shortener"></i></div>
+            <div>{$e.name|escape}</div>
         </td>
         <td class="note gray width-20 custom-p-0" title="{$e.note|escape}">
-            <div>{$e.note|escape}<i class="shortener"></i></div>
+            <div>{$e.note|escape}</div>
         </td>
         <td class="period-td width-30">
             <div class="period" style="width:0;" data-start-ts="{$e.start_ts}" data-end-ts="{$e.end_ts}">
@@ -46,7 +46,6 @@
                 <span class="period-dates">
                     {format_nice_date s=$e.start e=$e.end}
                 </span>
-                <i class="shortener"></i>
             </div>
         </td>
         <td class="min-width">

@@ -92,11 +92,11 @@
                     </div>
                     <div class="s-indicator-wrapper">
                         <div class="s-label">[`Sales`]</div>
-                        <div class="s-value green">{shop_currency_html(ifset($promos_stats, $_promo.id, 'sales', 0))}</div>
+                        <div class="s-value green" title="{shop_currency(ifset($promos_stats, $_promo.id, 'sales', 0))}">{shop_currency_html(ifset($promos_stats, $_promo.id, 'sales', 0))}</div>
                     </div>
                     <div class="s-indicator-wrapper">
                         <div class="s-label">[`ROI`]</div>
-                        <div class="s-value {$roi_class}">
+                        <div class="s-value {$roi_class}"{if $roi_value !== null} title="{$roi_value}%"{/if}>
                             {if $roi_value !== null}
                                 {$roi_value}%
                             {else}

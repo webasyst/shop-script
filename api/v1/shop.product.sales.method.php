@@ -23,7 +23,7 @@ class shopProductSalesMethod extends shopApiMethod
         $sales_data = $order_model->getSalesByProduct($product['id'], date('Y-m-d', $date));
         $sales_by_day = array();
         $empty_row = array_fill_keys(array_keys($sales_total), 0);
-        for ($i = 0; $i < 30; $i++) {
+        for ($i = 0; $i <= 30; $i++) {
             $date = date('Y-m-d', $date);
             if (empty($sales_data[$date])) {
                 $sales_by_day[$date] = array(

@@ -30,7 +30,7 @@
                 {$plugin_names[$info.id] = $info.name|default:$info.id|escape}
                 <li>
                     <a href="#/{$info.id}{if isset($info.default_profile)}:{$info.default_profile}{/if}/">
-                        {if empty($info.img)}<i class="icon16 {$info.icon|default:'plugins'}"></i>{else}<i class="icon16" style="background: url('{$wa_url}{$info.img|escape}');"></i>{/if}{$info.name|default:$info.id|escape}
+                        {if empty($info.img)}<i class="icon16 {$info.icon|default:'plugins'}"></i>{else}<i class="icon16" style="background: url('{$wa_url}{$info.img|escape}'); background-size: 100%;"></i>{/if}{$info.name|default:$info.id|escape}
                         <span class="hint">{$info.description|default:''|escape}</span>
                     </a>
                 </li>

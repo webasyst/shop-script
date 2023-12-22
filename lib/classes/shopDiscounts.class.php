@@ -94,7 +94,7 @@ HTML;
                     $description .= '<ul>'.$order_discount_description.'</ul>';
                 }
                 $description .= <<<HTML
-<i class="icon16  ss discounts-bw"></i>
+<i class="icon16  ss discounts-bw fas fa-tags text-gray custom-mr-4"></i>
 HTML;
                 $description .= sprintf_wp('Shop is set up to use sum of all discounts: %s', shop_currency_html($discount, $currency, $currency));
             } else {
@@ -110,7 +110,7 @@ HTML;
                 }
 
                 $description .= <<<HTML
-<i class="icon16 ss discounts-bw"></i>
+<i class="icon16 ss discounts-bw fas fa-tags text-gray custom-mr-4"></i>
 HTML;
                 $description .= sprintf_wp('Shop is set up to use single largest of all discounts: %s', shop_currency_html($discount, $currency, $currency));
             }

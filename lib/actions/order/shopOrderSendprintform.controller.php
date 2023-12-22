@@ -70,7 +70,7 @@ class shopOrderSendprintformController extends waJsonController
 
                                 $mail->setFrom($from);
                                 if ($mail->send()) {
-                                    $text = sprintf('<i class="icon16 email" title="%s"></i>', htmlentities($order->contact_email, ENT_QUOTES, 'utf-8'));
+                                    $text = sprintf('<i class="icon16 email fas fa-envelope text-gray custom-mr-4" title="%s"></i>', htmlentities($order->contact_email, ENT_QUOTES, 'utf-8'));
                                     $text .= sprintf(_w("Printable form <strong>%s</strong> sent to customer."), $forms[$form]['name']);
 
                                     $log = array(

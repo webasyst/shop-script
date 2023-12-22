@@ -27,6 +27,8 @@ if (typeof ($) != 'undefined') {
             const self = this;
             const $form = $('#s-settings-shipping-params-form');
 
+            this.$shipping_plugins_container = this.$container.find('#s-settings-shipping-plugins');
+
             this.formChanged($form);
 
             $('#s-settings-content').on('click', 'a.js-action', function () {
@@ -163,6 +165,11 @@ if (typeof ($) != 'undefined') {
                 $('#s-settings-shipping-setup').html(this.shipping_options.loading).hide();
                 $content.find('h1.js-bread-crumbs:not(:first)').remove();
                 $content.find('h1:first').show();
+                if (this.$shipping_plugins_container.is(':empty')) {
+                    this.loadInstallerPlugins();
+                } else {
+                    this.$shipping_plugins_container.show();
+                }
             }
         },
 
@@ -298,7 +305,8 @@ if (typeof ($) != 'undefined') {
         },
 
         shippingPluginShow: function (plugin_id, callback) {
-            const self = this;
+            this.$shipping_plugins_container.hide();
+
             const $content = $('#s-settings-content');
             $content.find('#s-shipping-menu, #s-settings-shipping-params, #s-settings-shipping-rounding,' +
                           '#s-settings-shipping-cron, #shipping-methods-title').hide();
@@ -306,6 +314,7 @@ if (typeof ($) != 'undefined') {
             const $plugins = $content.find('#s-settings-shipping');
             $plugins.hide();
 
+            const self = this;
             const url = '?module=settings&action=shippingSetup&plugin_id=' + plugin_id;
             $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url, function () {
                 if (typeof (callback) == 'function') {
@@ -474,8 +483,7 @@ if (typeof ($) != 'undefined') {
 
         shippingPlugins: function () {
             $('#s-settings-content').find('#s-settings-shipping').hide();
-            const url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
-            $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url);
+            this.loadInstallerPlugins();
         },
 
         shippingHelper: {
@@ -542,6 +550,11 @@ if (typeof ($) != 'undefined') {
                 $submit.removeClass('yellow').addClass('green');
             });
         },
+
+        loadInstallerPlugins: function () {
+            const url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
+            this.$shipping_plugins_container.show().html(this.shipping_options.loading).load(url);
+        }
 
     });
 } else {

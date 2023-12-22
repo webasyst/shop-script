@@ -20,7 +20,7 @@ class shopProdSetSortDialogAction extends waViewAction
         $count = $collection->count();
 
         $render_products = waRequest::request("force", 0, waRequest::TYPE_INT);
-        $fuse = 30;
+        $fuse = 150;
 
         $products = [];
         if ($render_products || $count < $fuse) {

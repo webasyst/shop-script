@@ -1,9 +1,9 @@
 <?php
 /**
- * Controller for processling links directly to order payment.
+ * Controller for processing links directly to order payment.
  * 1) Renders HTML form that redirects to self (via POST). This protects from messenger prefetch bots:
  *    we don't want to initialize payment plugins unless it's a real human.
- * 2) Then renders a proper form as returned by paument plugin. Most of the time it autosubmits.
+ * 2) Then renders a proper form as returned by payment plugin. Most of the time it auto-submits.
  *    In anu case, this second form is supposed to redirect user to payment gateway.
  *
  * Template for this action is in app templates, not in theme.

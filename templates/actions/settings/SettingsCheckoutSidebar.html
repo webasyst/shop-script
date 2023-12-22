@@ -5,17 +5,7 @@
 <div id="{$_id}" class="sidebar flexbox overflow-visible s-sidebar-section width-16rem {$_class}">
     <div class="sidebar-body">
     {if !empty($_new_checkouts)}
-        <div class="box custom-px-0">
-            <h5 class="heading heading-group js-list-header flexbox" data-version="2">
-                <span class="icon custom-mr-4"><i class="fas fa-angle-down"></i></span>
-
-                <a href="#" class="wide">
-                    [`In-cart checkout`]&nbsp;({$_new_checkouts|count})
-                </a>
-            </h5>
-        </div>
-
-        <ul class="menu ellipsis custom-mt-0 custom-ml-24 js-storefronts-list" data-version="2">
+        <ul class="menu ellipsis custom-mt-4 js-storefronts-list" data-version="2">
             {* Routes with new checkout *}
             {foreach $_new_checkouts as $_route}
                 {$_domain = waIdna::dec($_route.domain)}
@@ -30,23 +20,21 @@
         </ul>
     {/if}
 
+    {if !empty($_old_checkouts)}
     <div class="box custom-px-0">
         <h5 class="heading heading-group js-list-header js-old-checkout flexbox rounded" data-version="1">
-            <span class="icon custom-mr-4"><i class="fas fa-angle-down"></i></span>
 
             <span class="wide">
                 <a href="#">[`Multi-step checkout`]&nbsp;({$_old_checkouts|count})</a>
             </span>
 
-            {if empty($_old_checkouts)}
-                <span class="count custom-ml-4">
-                    <a class="js-link" href="?action=settings#/checkout&r=1"><i class="fas fa-cog text-dark-gray"></i></a>
-                </span>
-            {/if}
+            <span class="count custom-ml-4">
+                <a class="js-link" href="?action=settings#/checkout&r=1"><i class="fas fa-cog text-dark-gray"></i></a>
+            </span>
         </h5>
     </div>
 
-    <ul class="menu ellipsis custom-mt-0 custom-ml-24 js-storefronts-list" data-version="1">
+    <ul class="menu ellipsis custom-mt-0 js-storefronts-list" data-version="1">
         {* Routes with old checkout *}
         {foreach $_old_checkouts as $_route}
             {$_domain = waIdna::dec($_route.domain)}
@@ -59,6 +47,18 @@
             </li>
         {/foreach}
     </ul>
+    {/if}
+
+    <div class="small">
+        <hr>
+        <p class="align-center">
+            <a href="[`https://www.shop-script.com/help/29577/in-cart-checkout-settings/`]" class="custom-ml-8" target="_blank">
+                <i class="fas fa-info-circle fa-sm"></i>
+                <span>[`Setup instructions`]</span>
+            </a>
+        </p>
+    </div>
+
     </div>
 </div>
 <script src="{$wa_app_static_url}js/settings/checkout_sidebar.js?{$wa->version()}"></script>

@@ -58,7 +58,7 @@ $.extend($.settings = $.settings || {}, {
     recommendationsRenderEdit: function (elem) {
         var type_id = elem.data('type-id');
         var data = this.recommendations_options.data[type_id];
-        var table = $('<table class="zebra"></table>');
+        var table = $('<table class="zebra small"></table>');
         var self = this;
         var form = $('<form method="post"><input type="hidden" name="value" value="1"><input type="hidden" name="type_id" value="' + type_id + '"></form>').submit(function () {
             $.post("?module=marketingRecommendationsSave&setting=upselling", $(this).serialize(), function (response) {

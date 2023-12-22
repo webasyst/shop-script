@@ -8,8 +8,8 @@
  *
  * `get` returns JSON describing current cart state. `add` and `save` use the same output as `get`.
  *
- * `render` returns cart HTML as would be rendered by $wa->shop->cgeckout()->cart().
- * `add` and `save` can optionally render cart instead of returhing JSON if a certain parameter is passed in.
+ * `render` returns cart HTML as would be rendered by $wa->shop->checkout()->cart().
+ * `add` and `save` can optionally render cart instead of returning JSON if a certain parameter is passed in.
  */
 class shopFrontendOrderCartActions extends waJsonActions
 {
@@ -505,7 +505,7 @@ class shopFrontendOrderCartActions extends waJsonActions
                     continue;
                 }
                 // no data came for this service
-                // this may happen in old carts if service since was disaabled for this product
+                // this may happen in old carts if service since was disabled for this product
                 // behave as if service was marked for removal
                 $new_items_data[$s['id']] = false;
             }

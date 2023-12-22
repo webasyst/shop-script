@@ -75,9 +75,8 @@
             };
 
             var hash = window.location.hash;
-            var hash_from_storage = $.storage.get('shop/orders/filters_hash');
-            if (hash_from_storage && (!hash || hash === '#/orders/')) {
-                hash = hash_from_storage;
+            if (!hash || hash === '#/orders/') {
+                hash = '/orders/' + this.getFiltersHashStorage();
             }
 
             if (hash === '#/' || !hash) {
@@ -131,21 +130,19 @@
             this.ordersNavDetach();
             this.initWaLoading();
 
-            const saveFiltersHash = () => $.storage.set('shop/orders/filters_hash', this.hash);
+            this.$wrapper.on('wa_init_orders_nav_before', (e, options) => {
+                if (['orders/all', 'orders/state_id=new|processing|auth|paid'].includes(this.hash)) {
+                    this.setFiltersHashStorage(this.hash);
+                }
+            });
 
-            this.$wrapper.on('wa_init_orders_nav', (e, options) => {
+            this.$wrapper.on('wa_init_orders_nav_after', (e, options) => {
                 this.initSearch(options.filter_params_extended);
 
                 if (this.hasFiltersInUrl()) {
                     if (options.view === 'split') {
                         this.visibilityFilters(true);
                     }
-
-                    saveFiltersHash();
-                }
-
-                if (['orders/all', 'orders/state_id=new|processing|auth|paid'].includes(this.hash)) {
-                    saveFiltersHash();
                 }
             });
         },
@@ -164,8 +161,7 @@
 
         initSearch: function(filter_params_extended) {
             var that = this;
-            var search_input = $("#s-orders-search");
-
+            var $search_input = $("#s-orders-search");
             var autocomplete_url = '?action=autocomplete&type=order';
             var last_response = [];
 
@@ -184,17 +180,17 @@
                     case 'order':
                         that.search_item_param = null;
                         $.wa.setHash('#/order/' + autocomplete_item.id + '/');
-                        search_input.val(autocomplete_item.value);
+                        $search_input.val(autocomplete_item.value);
                         break;
                     case 'contact':
                         that.search_item_param = 'contact_id=' + autocomplete_item.id;
                         $.wa.setHash('#/orders/' + that.search_item_param + '/');
-                        search_input.val(autocomplete_item.value);
+                        $search_input.val(autocomplete_item.value);
                         break;
                     case 'product':
                         that.search_item_param = 'product_id=' + autocomplete_item.id;
                         $.wa.setHash('#/orders/' + that.search_item_param + '/');
-                        search_input.val(autocomplete_item.value);
+                        $search_input.val(autocomplete_item.value);
                         break;
                     case 'coupon':
                         that.search_item_param = 'coupon_id=' + autocomplete_item.id;
@@ -235,7 +231,7 @@
                 }
             };
 
-            search_input.unbind('keydown').
+            $search_input.unbind('keydown').
                 bind('keydown', function(event) {
                     if (event.keyCode == 13 || event.keyCode == 10) { // 'Enter'
                         // search is running...
@@ -258,7 +254,7 @@
                     }
                 });
 
-            search_input.autocomplete({
+            $search_input.autocomplete({
                 minLength: 1,
                 delay: 300,
                 html: true,
@@ -281,49 +277,78 @@
                 }
             });
 
-            const $wrapper = $('#js-order-search');
-            const $input = $wrapper.find('#s-orders-search');
+            const searchShowSelector = '.js-orders-search-show';
+            const searchHideSelector = '.js-orders-search-hide';
+            const $wrapper = $('.js-orders-search');
+            const hideSearchIcon = () => {
+                if ($wrapper.hasClass('js-orders-search-split-and-mobile')) {
+                    $(searchShowSelector).removeClass('hidden');
+                } else {
+                    $(searchShowSelector).addClass('hidden');
+                }
+            };
+            const hideSearchInput = () => {
+                $(searchShowSelector).removeClass('hidden')
+                $wrapper.removeClass('show');
+                $wrapper.removeClass('hide');
+                $wrapper.addClass('hidden');
+            };
 
-            if (typeof filter_params_extended === "object") {
-                let hash = that.pre_search_hash || window.location.hash;
+            if (filter_params_extended && typeof filter_params_extended === "object") {
+                if (Array.isArray(filter_params_extended)) {
+                    $search_input.val('');
+                    hideSearchInput();
+                } else {
+                    let hash = that.pre_search_hash || window.location.hash;
+                    for (let key in filter_params_extended) {
+                        const param = filter_params_extended[key];
+                        that.search_item_param = `${key}=${param.id}`;
+                        that.pre_search_hash = hash.replace(`/${that.search_item_param}`, '');
 
-                for (let key in filter_params_extended) {
-                    const param = filter_params_extended[key];
-                    that.search_item_param = `/${key}=${param.id}`;
-                    that.pre_search_hash = hash.replace(that.search_item_param, '');
-
-                    // add only first value to search input
-                    $input.val(param.name);
-                    $wrapper.addClass('open').removeClass('hidden');
-                    break;
+                        // add only first value to search input
+                        hideSearchIcon();
+                        $search_input.val(param.name);
+                        $wrapper.addClass('show').removeClass('hidden');
+                        break;
+                    }
                 }
             }
 
-            // Button search
-            $(document).on('click', '.js-orders-search', function(e) {
+            // show search
+            $(document).on('click', searchShowSelector, function(e) {
                 e.preventDefault();
 
-                if ($wrapper.hasClass('open')) {
-                    $wrapper.addClass('close');
-                    $input.val('');
+                hideSearchIcon();
+                $wrapper.removeClass('hidden');
+                setTimeout(() => {
+                    $wrapper.addClass('show');
+                    $search_input.focus();
+                }, 5)
+            });
 
-                    setTimeout(() => {
-                        $wrapper.removeClass('open');
-                        $wrapper.removeClass('close');
-                        $wrapper.addClass('hidden');
-                    }, 500);
+            // hide search
+            $(document).on('click', searchHideSelector, function(e) {
+                e.preventDefault();
+                if (!$wrapper.hasClass('show')) {
+                    return false;
+                }
 
-                    if (that.pre_search_hash && that.search_item_param) {
-                        $.wa.setHash(that.pre_search_hash);
-                        that.search_item_param = null;
-                        that.pre_search_hash = null;
+                $wrapper.addClass('hide');
+                $search_input.val('');
+                setTimeout(() => hideSearchInput(), 180);
+
+                if (that.pre_search_hash && that.search_item_param) {
+                    let prevHash = that.pre_search_hash;
+                    if ($.order_list.options.view && prevHash.includes('view=')) {
+                        prevHash = prevHash.replace(new RegExp('view=(split|table|kanban)'), `view=${$.order_list.options.view}`)
                     }
-                } else {
-                    $wrapper.removeClass('hidden');
-                    setTimeout(() => {
-                        $wrapper.addClass('open');
-                        $input.focus();
-                    });
+                    if (prevHash.includes(that.search_item_param)) {
+                        prevHash = '#/orders/';
+                    }
+
+                    $.wa.setHash(prevHash);
+                    that.search_item_param = null;
+                    that.pre_search_hash = null;
                 }
             });
         },
@@ -347,10 +372,16 @@
                 hover: false,
                 items: ".menu > li > a",
                 ready(dropdown) {
-                    const hash = removeLastSlash(window.location.hash);
+                    let hash = removeLastSlash(window.location.hash);
+                    if (!hash || !hash.includes(search_hash)) {
+                        const hash_from_storage = decodeURIComponent(that.getFiltersHashStorage());
+                        if (hash_from_storage) {
+                            hash = hash_from_storage;
+                        }
+                    }
                     if (hash) {
                         let params = decodeURIComponent(hash)
-                            .replace(new RegExp(`#\\/orders\\/|${search_hash}\\/$`, 'g'), "")
+                            .replace(new RegExp(`#(\\/?)orders(\\/?)|${search_hash}\\/$`, 'g'), "")
                             .split('&')
                             .filter(Boolean);
 
@@ -403,12 +434,12 @@
                         if (typeof hash === "string" && hash.includes(that.search_item_param)) {
                             hash = hash.replace(that.search_item_param, '');
                             that.pre_search_hash = that.search_item_param = null;
-                            $('.js-orders-search').trigger('click');
+                            $('.js-orders-search-hide').trigger('click');
                         }
 
                         // готовим массив параметров
                         const params = decodeURIComponent(hash)
-                            .replace(new RegExp(`#\\/orders\\/|${search_hash}\\/|&id=\\d+|$`, 'g'), "")
+                            .replace(new RegExp(`#(\\/?)orders(\\/?)|${search_hash}\\/|&id=\\d+|$`, 'g'), "")
                             .split('&')
                             .filter(Boolean);
 
@@ -489,14 +520,16 @@
                                 return true;
                             }
 
-                            params_filters.push(param);
+                            // filter parameters only
+                            if (allowed_filters_mask.some(filter_mask => param.startsWith(filter_mask))) {
+                                params_filters.push(param);
+                            }
 
                             return false;
                         });
 
                         let params_filters_str = params_filters.join('&');
-                        // if only filter parameters, then add a slash to the beginning
-                        if (params.every(param => allowed_filters_mask.some(filter_mask => param.startsWith(filter_mask)))) {
+                        if (params_filters.length) {
                             params_filters_str = '&' + params_filters_str;
                         }
                         params_filters_str = encodeURIComponent(params_filters_str);
@@ -506,7 +539,7 @@
                             params_sorts_str = '&' + params_sorts.join('&');
                         }
 
-                        let _hash = '/orders/';
+                        let _hash = '';
                         if (emptyHashSearch(params_filters)) {
                             _hash += 'all/';
                             that.clearFilters();
@@ -514,7 +547,8 @@
                             _hash += `${search_hash}/${params_filters_str}${params_sorts_str}/`
                         }
 
-                        $.wa.setHash(_hash);
+                        that.setFiltersHashStorage(_hash);
+                        $.wa.setHash(`/orders/${_hash}`);
 
                     } else {
                         location.replace($target.attr('href'));
@@ -700,6 +734,13 @@
         },
 
         ordersAction: function(params) {
+            if (!params) {
+                arguments = this.argsLastFilters();
+                if (arguments[0] === 'all') {
+                    arguments = [];
+                    params = 'all';
+                }
+            }
 
             let show_filters = true;
             const states_processing = "new|processing|auth|paid";
@@ -740,7 +781,7 @@
                     $.order_list.finit();
                 }
                 this.load('?module=orders&'+this.buildOrdersUrlComponent(params), () => {
-                    $(window).trigger('wa_loaded', [['table']]);
+                    $(window).trigger('wa_loaded', [['table', 'kanban']]);
                     if ($.order_list) {
                         $.order_list.dispatch(params);
                     }
@@ -929,6 +970,46 @@
 
         hasFiltersInUrl() {
             return window.location.hash ? window.location.hash.includes('hash=search') : false;
+        },
+
+        setFiltersHashStorage (hash) {
+            if (hash) {
+                $.storage.set('shop/orders/filters_hash', hash.replace('orders/', ''));
+            }
+        },
+
+        getFiltersHashStorage () {
+            let filters_hash = $.storage.get('shop/orders/filters_hash');
+            if (filters_hash) {
+                return filters_hash.replace('orders/', '');
+            }
+
+            return '';
+        },
+
+        argsLastFilters () {
+            let args = [];
+            const hash_from_storage = this.getFiltersHashStorage();
+            if (hash_from_storage) {
+                args = hash_from_storage.split('/').filter(Boolean);
+
+                $.wa.setHash('/orders/' + hash_from_storage);
+            }
+
+            return args;
+        },
+
+        orderNav () {
+            const $order_nav = $('#s-order-nav');
+            const class_hide = 'hidden';
+            return {
+                hide () {
+                    $order_nav.addClass(class_hide);
+                },
+                show () {
+                    $order_nav.removeClass(class_hide);
+                }
+            }
         }
     };
 })(jQuery);

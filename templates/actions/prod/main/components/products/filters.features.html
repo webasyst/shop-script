@@ -1,28 +1,29 @@
 {capture assign="_component_table_filters_features"}
 <div class="s-filter-features-section s-pane-item dropbox">
     <div class="s-dropbox-toggle js-dropbox-toggle">
-        <span class="s-icon icon shift-0"><i class="fas fa-filter"></i></span>
-        <span class="s-name is-adaptive">[`Filtering`]</span>
+        <span class="s-icon icon shift-0 text-light-gray"><i class="fas fa-filter"></i></span>
+        <span class="s-name is-adaptive">[`Features`]</span>
     </div>
     <div class="dropbox-body right">
         <div class="s-dropbox-content-section">
             <div class="s-section-header">
                 <component-table-filters-search
-                    v-if="features.length"
+                    v-if="items.length"
                     class="s-search-form"
                     v-model="search_string"
                     v-bind:placeholder="'{_w("Find parameter")|escape}'"></component-table-filters-search>
                 <div class="s-empty-wrapper" v-else>[`Parameters not found.`]</div>
             </div>
-            <div class="s-section-body" v-if="features.length">
+            <div class="s-section-body" v-if="items.length">
                 <div class="s-features-list">
                     <template v-for="item in items">
                         <component-table-filters-features-item
+                            v-show="!item.is_hide"
                             v-bind:item="item"
                             v-on:success="success"
                             v-on:feature_dialog="hide"></component-table-filters-features-item>
                     </template>
-                    <div class="s-empty-wrapper" v-if="!items.length">[`Parameters not found.`]</div>
+                    <div class="s-empty-wrapper" v-if="empty_search_result">[`Parameters not found.`]</div>
                 </div>
             </div>
         </div>

@@ -30,13 +30,14 @@
 
             var $form = $('#coupon-editor-form'),
                 $submit_button = $form.find('.js-submit-button'),
-                $coupon_name = that.$wrapper.find('#coupon-name');
+                $coupon_name = that.$wrapper.find('#coupon-name'),
+                $coupon_code = that.$wrapper.find('.js-coupon-code');
 
             $.importexport.products.init($form);
 
             // When user types in code input, change the <h1> on the fly
-            $form.find('[name="coupon[code]"]').keyup(function() {
-                $form.siblings('h1').text($(this).val());
+            $form.find('[name="coupon[code]"]').on('input', function() {
+                $coupon_code.text($(this).val());
             });
 
             if ($coupon_name.length) {
@@ -57,7 +58,7 @@
             }
 
             // Form validation
-            var isValid = function() {
+            var isValid = function(is_init = true) {
                 $form.find('.state-error-hint').remove();
                 $form.find('.state-error').removeClass('state-error');
 
@@ -68,13 +69,15 @@
                     code_field.addClass('state-error').after($('<em class="state-error-hint custom-ml-4"></em>').text(that.locales["required"]));
                 }
 
-                var discount_value = 0;
-                var discount_input = $('[name="coupon[value]"]');
-                if ($('[name="coupon[type]"]').val() === '%') {
-                    discount_value = parseInt(discount_input.val(), 10);
-                    if (isNaN(discount_value) || discount_value < 0 || discount_value > 100) {
-                        valid = false;
-                        discount_input.addClass('state-error').nextAll().after($('<em class="state-error-hint custom-ml-4"></em>').text(that.locales["incorrect_1"]));
+                if (!is_init) {
+                    var discount_value = 0;
+                    var discount_input = $('[name="coupon[value]"]');
+                    if ($('[name="coupon[type]"]').val() === '%') {
+                        discount_value = parseInt(discount_input.val(), 10);
+                        if (isNaN(discount_value) || discount_value < 0 || discount_value > 100) {
+                            valid = false;
+                            discount_input.addClass('state-error').nextAll().after($('<em class="state-error-hint custom-ml-4"></em>').text(that.locales["incorrect_1"]));
+                        }
                     }
                 }
 
@@ -164,7 +167,7 @@
                 $form.on("submit", function(event) {
                     event.preventDefault();
 
-                    var is_valid = isValid();
+                    var is_valid = isValid(false);
                     if (!is_locked && is_valid) {
                         is_locked = true;
 

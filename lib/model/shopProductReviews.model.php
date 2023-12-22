@@ -369,7 +369,7 @@ class shopProductReviewsModel extends waNestedSetModel
                     }
                 }
 
-                if (wa()->whichUI() == '1.3') {
+                if (wa()->getEnv() !== 'backend' || wa()->whichUI() == '1.3') {
                     $image_size = wa('shop')->getConfig()->getImageSize('crop_small');
                     $prop_product_url_crop = 'product_url_crop_small';
                 } else {

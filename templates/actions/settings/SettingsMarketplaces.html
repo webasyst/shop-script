@@ -13,12 +13,6 @@
     {* HEADER *}
     <div class="s-page-header">
         <h1 class="s-title">{$_page_title}</h1>
-        <ul>
-            <li>[`Below are listed plugins for connecting your online store to various online marketplaces.`]</li>
-            <li>[`Select and install the plugins for the online marketplaces you want to work with.`]</li>
-            <li>[`After the plugins have been installed, their additional settings will become available in various backend sections.`]</li>
-            <li>[`Please find the user manual to learn how to work with each of the plugins on its page in the Webasyst Store.`]</li>
-        </ul>
     </div>
 
     {* BODY *}
@@ -27,8 +21,7 @@
         {if !empty($backend_settings_marketplaces)}{foreach $backend_settings_marketplaces as $_}{ifset($_.middle)}{/foreach}{/if}
 
         <div class="s-marketplace-wrapper">
-            <h2 class="s-title">[`Online marketplaces plugins`]</h2>
-            <div class="s-frame-wrapper " id="js-marketplace-plugins"></div>
+            <div class="s-frame-wrapper custom-mt-12" id="js-marketplace-plugins"></div>
             <script>( function($) {
                 var plugins_url = sessionStorage.getItem("shop/settings/marketplaces");
                 plugins_url = (plugins_url ? plugins_url : {$marketplace_plugins_url|json_encode});

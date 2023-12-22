@@ -1,11 +1,11 @@
 <?php
 /**
  * shopAffiliate::discount()
- * - Calculate and/or apply duscount when user spends affiliate bonus on an order.
+ * - Calculate and/or apply discount when user spends affiliate bonus on an order.
  * - This is called as a part of shopDiscount::calculate() / ::apply() and should not be directly called by hand.
  * - When applying:
  *   - Decrease order total (by applying a discount).
- *   - Decrease customer's affiliate bunus.
+ *   - Decrease customer's affiliate bonus.
  *   - Save amount of affiliate points used to order params `affiliate_bonus`.
  *
  * shopAffiliate::refundDiscount()
@@ -19,7 +19,7 @@
  *
  *
  * shopAffiliate::calculateBonus()
- * - Used everyehere to calculate amount of affiliation points to be credited
+ * - Used everywhere to calculate amount of affiliation points to be credited
  *   to customer's account when they properly pay for a given order.
  * - Does not update anything, just performs the calculation.
  *

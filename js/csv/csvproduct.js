@@ -901,7 +901,7 @@ if (typeof ($) != 'undefined') {
                     if (mode_name == 'import') {
                         $navigator.find('>li[data-mode="finish"]').addClass('s-current');
                     }
-
+                    setTimeout(() => document.documentElement.scrollIntoView({behavior: 'smooth', block:'end'}),500)
                     break;
 
                 case 'complete':
@@ -1056,7 +1056,9 @@ if (typeof ($) != 'undefined') {
             if (response && response.report) {
                 $report.find('.value:first').html(response.report);
             }
-
+            $report.get(0).scrollIntoView({
+                behavior: "smooth"
+            })
             this.csv_productMode('complete', true);
         },
 

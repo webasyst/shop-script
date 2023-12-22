@@ -595,7 +595,7 @@
 
         reload: function () {
             $.order_edit.slide(false);
-            if (!$.order_list || ($.order_list && $.order_list.options && $.order_list.options.view == 'table')) {
+            if (!$.order_list || ($.order_list && $.order_list.options && ['table', 'kanban'].includes($.order_list.options.view))) {
                 $.orders.dispatch();
             } else if ($.order_list) {
                 $.order_list.dispatch('id=' + $.order.id, true);

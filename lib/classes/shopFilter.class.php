@@ -98,7 +98,16 @@ class shopFilter
         $sets = $this->getSetsWithGroups();
 
         $type_model = new shopTypeModel();
-        $types = $type_model->select('`id`, `name`')->order('name')->fetchAll();
+        $types = $type_model->select('`id`, `name`, `icon`')->order('name')->fetchAll();
+        foreach ($types as $key => $type) {
+            if (!empty($type['icon'])) {
+                if ($type['icon'] === 'ss pt box') {
+                    $types[$key]['icon'] = null;
+                } else {
+                    $types[$key]['icon'] = wa()->getView()->getHelper()->shop->getIcon($type["icon"], null);
+                }
+            }
+        }
 
         $storefronts = [];
         $all_storefronts = shopStorefrontList::getAllStorefronts(true);
@@ -378,17 +387,17 @@ class shopFilter
                     case 'status':
                         $item['options'] = [
                             [
-                                'name' => _w('Published'),
+                                'name' => _w('Published, for sale'),
                                 'value' => '1',
                                 'icon' => 'fas fa-check color-green-dark'
                             ],
                             [
-                                'name' => _w('Hidden'),
+                                'name' => _w('Hidden, not for sale'),
                                 'value' => '0',
                                 'icon' => 'fas fa-times color-yellow'
                             ],
                             [
-                                'name' => _w('Unpublished'),
+                                'name' => _w('Unpublished, not for sale'),
                                 'value' => '-1',
                                 'icon' => 'fas fa-times color-red'
                             ]
@@ -542,7 +551,12 @@ class shopFilter
                     break;
             }
             if (isset($type['display_type']) && $type['display_type'] == 'feature') {
-                if ($count && ($type['selectable'] || $type['multiple']
+                $type['type'] = ifset($type, 'type', null);
+                $type['render_type'] = ifset($type, 'render_type', null);
+
+                if ($type['render_type'] === 'custom') {
+                    $correct_params = [(string)$rule_params[0]];
+                } elseif ($count && ($type['selectable'] || $type['multiple']
                     || in_array($type['type'], [shopFeatureModel::TYPE_VARCHAR, shopFeatureModel::TYPE_BOOLEAN, shopFeatureModel::TYPE_COLOR]))
                 ) {
                     foreach ($rule_params as $param) {
@@ -706,5 +720,71 @@ class shopFilter
         }
 
         return $models[$entity];
+    }
+
+    public static function shopProdFiltersEvent(?array &$filter, array &$filter_options, ?shopProductsCollection $collection=null)
+    {
+        /**
+         * @event backend_prod_filters
+         * @since 10.1.0
+         */
+        $event_result = wa('shop')->event('backend_prod_filters', ref([
+            "filter"         => &$filter,           // can be null
+            "filter_options" => &$filter_options,
+            "collection"     => $collection,        // can be null
+        ]));
+
+        foreach($event_result as $rule_types) {
+            if (isset($rule_types['rule_type'])) {
+                $rule_types = [$rule_types];
+            }
+            foreach($rule_types as $rule_type) {
+                if (!isset($rule_type['rule_type']) || isset($filter_options['features'][$rule_type['rule_type']])) {
+                    continue;
+                }
+                // Plugin rules pretend to be a feature.
+                // This must do well with shopFilter::validateValue()
+                // as well as vue rendering logic in list.feature_value.html
+                $rule_type['display_type'] = 'feature';
+                switch($rule_type['render_type']) {
+                    case 'radio':
+                        $rule_type['render_type'] = 'boolean';
+                        $rule_type['selectable'] = true;
+                        $rule_type['multiple'] = false;
+                        $rule_type['type'] = shopFeatureModel::TYPE_VARCHAR;
+                        break;
+                    case 'checklist':
+                        $rule_type['render_type'] = 'checkbox';
+                        $rule_type['type'] = shopFeatureModel::TYPE_VARCHAR;
+                        $rule_type['selectable'] = true;
+                        $rule_type['multiple'] = true;
+                        break;
+                    case 'range.date':
+                        $rule_type['type'] = shopFeatureModel::TYPE_DATE;
+                        $rule_type['selectable'] = false;
+                        $rule_type['multiple'] = false;
+                        break;
+                    case 'range':
+                        $rule_type['type'] = shopFeatureModel::TYPE_DOUBLE;
+                        $rule_type['selectable'] = false;
+                        $rule_type['multiple'] = false;
+                        break;
+                    default: // 'custom'
+                        // !!!! TODO
+                        break;
+                }
+                $filter_options['features'][$rule_type['rule_type']] = $rule_type;
+            }
+        }
+    }
+
+    public static function flattenTypes($filter_options)
+    {
+        $types = $filter_options;
+        foreach(['product_fields', 'sku_fields', 'dynamic_fields', 'features'] as $k) {
+            $types += $filter_options[$k];
+            unset($types[$k]);
+        }
+        return $types;
     }
 }

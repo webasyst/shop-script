@@ -102,7 +102,7 @@ class shopReportsSalesAction extends waViewAction
             unset($v);
         }
 
-        $this->prepareTableData($type_id, $table_data);
+        $formatter_params = $this->prepareTableData($type_id, $table_data);
 
         // For lazy-loading and sorting return just the table alone
         if (waRequest::request('table_only')) {
@@ -181,7 +181,7 @@ class shopReportsSalesAction extends waViewAction
             'def_cur'            => $def_cur,
             'totals'             => $totals,
             'filter'             => $filter,
-            'filter_title'       => $this->getFilterTitle($filter, $type_id),
+            'filter_title'       => $this->getFilterTitle($filter, $type_id, $formatter_params),
             'type_id'            => $type_id,
             'is_details'         => $this->isDetails(),
             'details_graph_data' => $details_graph_data,
@@ -206,11 +206,11 @@ class shopReportsSalesAction extends waViewAction
         }
     }
 
-    public function getFilterTitle($filter, $type_id)
+    public function getFilterTitle($filter, $type_id, $params)
     {
         $title = '';
         if (isset($filter['name'])) {
-            $title = $this->formatTableRowName($type_id, $filter['name']);
+            $title = $this->formatTableRowName($type_id, $filter['name'], $params);
         }
         if (!$title) {
             $title = _w('(not defined)');
@@ -489,7 +489,7 @@ class shopReportsSalesAction extends waViewAction
         return $name;
     }
 
-    protected function formatTableRowNameByTypeSalesChannels($name)
+    protected function formatTableRowNameByTypeSalesChannels($name, $channels)
     {
         if ($name === 'buy_button:') {
             $name = _w('Buy button');
@@ -497,13 +497,14 @@ class shopReportsSalesAction extends waViewAction
             $name = _w('Backend');
         } elseif (!$name) {
             $name = _w('(not defined)');
+        } else if (isset($channels[$name])) {
+            $name = $channels[$name]['name'];
         }
         return $name;
     }
 
     protected function prepareTableData($type_id, &$table_data)
     {
-
         $params = array();
         if ($type_id === 'coupons') {
             $coupon_ids = array();
@@ -520,6 +521,10 @@ class shopReportsSalesAction extends waViewAction
                 $coupons = $coupon_model->getById($coupon_ids);
                 $params = $coupons;
             }
+        } else if ($type_id === 'sales_channels') {
+            $channel_ids = array_keys(array_flip(array_column($table_data, 'name')));
+            $channel_ids = array_map(['shopSalesChannels', 'canonicId'], $channel_ids);
+            $params = $channels = shopSalesChannels::describeChannels($channel_ids);
         }
 
         foreach ($table_data as $i => &$row) {
@@ -545,6 +550,8 @@ class shopReportsSalesAction extends waViewAction
             }
             unset($row);
         }
+
+        return $params;
     }
 
     public function getFilter()

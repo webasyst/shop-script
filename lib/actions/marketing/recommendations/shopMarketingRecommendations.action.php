@@ -94,9 +94,9 @@ class shopMarketingRecommendationsAction extends shopMarketingSettingsViewAction
             }
             if (!empty($row['feature_id'])) {
                 if ($features) {
-                    $html = $features[$row['feature_id']]['name'];
+                    $html = htmlspecialchars($features[$row['feature_id']]['name']);
                 } else {
-                    $html = $row['feature_name'];
+                    $html = htmlspecialchars($row['feature_name']);
                 }
             } else {
                 if ($row['feature'] == 'price') {
@@ -113,10 +113,14 @@ class shopMarketingRecommendationsAction extends shopMarketingSettingsViewAction
             switch ($row['cond']) {
                 case 'between':
                     $v = explode(',', $row['value']);
-                    $html .= '<span class="s-plus-minus">'.($v[1] > 0 ? '+' : '').$v[1].'%<br>'.($v[0] > 0 ? '+' : '').$v[0].'%</span>';
+                    $html .= '<span class="s-plus-minus">'.htmlspecialchars(($v[1] > 0 ? '+' : '').$v[1]).'%<br>'.htmlspecialchars(($v[0] > 0 ? '+' : '').$v[0]).'%</span>';
                     break;
                 case 'contain':
-                    $html .= $row['cond'].' "'.$row['value'].'"';
+                    if ($row['feature'] == 'tag') {
+                        $html = sprintf_wp('Tags contain “%s”', htmlspecialchars($row['value']));
+                    } else {
+                        $html = sprintf_wp('%s contains “%s”', $html, htmlspecialchars($row['value']));
+                    }
                     break;
                 case 'same':
                     $html .= _w('matches base product value');
@@ -139,7 +143,7 @@ class shopMarketingRecommendationsAction extends shopMarketingSettingsViewAction
                     if ($row['feature'] == 'type_id') {
                         $type_model = new shopTypeModel();
                         $type = $type_model->getById($row['value']);
-                        $html .= $type['name'];
+                        $html .= htmlspecialchars($type['name']);
                     } else {
                         $feature_values_model = shopFeatureModel::getValuesModel($features ? $features[$row['feature_id']]['type'] : $row['feature_type']);
                         if (strpos($row['value'], ',') !== false) {
@@ -148,9 +152,9 @@ class shopMarketingRecommendationsAction extends shopMarketingSettingsViewAction
                             foreach ($value_ids as $v_id) {
                                 $values[] = $feature_values_model->getFeatureValue($v_id);
                             }
-                            $html .= implode(', ', $values);
+                            $html .= htmlspecialchars(implode(', ', $values));
                         } else {
-                            $html .= $feature_values_model->getFeatureValue($row['value']);
+                            $html .= htmlspecialchars($feature_values_model->getFeatureValue($row['value']));
                         }
                     }
                     break;

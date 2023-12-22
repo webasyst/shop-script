@@ -13,7 +13,6 @@
                         <td class="s-price-column">
                             <div>
                                 <span class="s-price">{shop_currency_html($_cost.amount)}</span>
-                                <i class="shortener"></i>
                             </div>
                         </td>
                         <td class="s-date-column">
@@ -25,14 +24,12 @@
                                         <span class="s-date">{$_cost.end|wa_date}</span>
                                     {/if}
                                 {/if}
-                                <i class="shortener"></i>
                             </div>
                         </td>
                         <td class="s-description-column">
                             {if !empty($_cost.note)}
                             <div>
                                 <span class="s-note">{$_cost.note|escape}</span>
-                                <i class="shortener"></i>
                             </div>
                             {/if}
                         </td>

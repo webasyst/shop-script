@@ -313,12 +313,12 @@ class shopProdSaveSkuController extends waJsonController
                         $full_formatting_needed = $full_formatting_needed || $feature['type'] == 'date' || $feature['type'] == 'boolean';
 
                         if ($full_formatting_needed) {
-                            // $value_formatted is an object convertable to string.
+                            // $value_formatted is an object convertible to string.
                             $value_id = $feature_model->getValueId($feature, $value, true);
                             $value_formatted = $feature_model->getValuesModel($feature['type'])->getFeatureValue($value_id);
                             $sku_name_parts[] = (string) $value_formatted;
                         } else {
-                            // For everythinng else we already have the sting in the data
+                            // For everything else we already have the sting in the data
                             if (is_array($value)) {
                                 $sku_name_parts[] = (string) $value['value'];
                             } else {

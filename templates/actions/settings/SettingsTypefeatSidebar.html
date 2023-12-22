@@ -2,31 +2,27 @@
     {* HEADER *}
     <div class="s-section-header sidebar-header" style="padding: 0 0.75rem 1.5rem 0;">
         {* LIST *}
-        <ul class="menu custom-mt-0">
+        <ul class="menu custom-mt-4">
             <li class="js-type-wrapper">
                 <a href="{$wa_app_url}?action=settings#/typefeat/">
-                    <i class="fas fa-filter"></i>
                     <span class="s-name">[`All features`]</span>
                     <span class="s-counter js-counter count">{$count_all_features}</span>
                 </a>
             </li>
             <li class="js-type-wrapper" data-id="all_existing">
                 <a href="{$wa_app_url}?action=settings#/typefeat/all_existing/">
-                    <i class="fas fa-filter"></i>
                     <span class="s-name">[`Available for all product types`]</span>
                     <span class="s-counter js-counter count">{$count_features_all_types}</span>
                 </a>
             </li>
             <li class="js-type-wrapper" data-id="empty">
                 <a href="{$wa_app_url}?action=settings#/typefeat/empty/">
-                    <i class="fas fa-filter"></i>
                     <span class="s-name">[`Not available for any product type`]</span>
                     <span class="s-counter js-counter count">{$count_features_no_types}</span>
                 </a>
             </li>
             <li class="js-type-wrapper" data-id="builtin">
                 <a href="{$wa_app_url}?action=settings#/typefeat/builtin/">
-                    <i class="fas fa-filter"></i>
                     <span class="s-name">[`System features list`]</span>
                     <span class="s-counter js-counter count">{$count_features_builtin}</span>
                 </a>
@@ -34,11 +30,11 @@
         </ul>
 
         {* TYPES *}
-        <div class="custom-mt-16 custom-mb-8 custom-px-8 flexbox middle">
+        <div class="custom-mt-16 custom-mb-8 custom-pr-8 flexbox middle">
             <h5 class="heading custom-m-0 custom-pl-12">
                 <span class="nowrap custom-mr-4">[`Product types`]</span>
             </h5>
-            <span class="wa-tooltip" data-wa-tooltip-content="[`Each product type; e.g., “TVs”, “Phones”, or “Clocks”, can have its own set of features. You can select for the storefront which product types should be visible to customers. Separate access rights to product types can be set up for store backend users and user groups.`]"><i class="fas fa-info-circle text-dark-gray"></i></span>
+            <span class="wa-tooltip" data-wa-tooltip-content="[`Each product type; e.g., “TVs”, “Phones”, or “Clocks”, can have its own set of features. You can select for the storefront which product types should be visible to customers. Separate access rights to product types can be set up for store backend users and user groups.`]"><i class="fas fa-info-circle text-gray small"></i></span>
             <span class="count action js-type-add text-green cursor-pointer custom-ml-auto" title="[`New product type`]">
                 <i class="fas fa-plus-circle"></i>
             </span>
@@ -47,14 +43,14 @@
 
         {* SEARCH *}
         {if count($types) > 5}
-            <div class="s-search-section state-with-inner-icon left small">
+            <div class="s-search-section state-with-inner-icon left small custom-mt-4">
                 <input class="s-search-field js-search-field" type="text" name="search" placeholder="{_w('Type a product type name')|escape}">
                 <button class="icon js-run-search"><i class="fas fa-search"></i></button>
             </div>
         {/if}
 
         {* LIST *}
-        <ul class="s-types-list menu js-types-list">
+        <ul class="s-types-list menu custom-mt-8 js-types-list">
             {foreach $types as $_type}
                 {if empty($_type.id)}{continue}{/if}
 

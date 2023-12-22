@@ -70,7 +70,7 @@
                     </div>
 
                     <!-- customer info -->
-                    <div class="s-block s-order-customer">
+                    <div class="s-order-customer custom-mb-24">
                     <div class="flexbox space-16">
                         <div class="image">
                             {if $customer_essentials.id|default:'0'}
@@ -285,7 +285,7 @@
                     <!-- order content -->
 
                     <table id="s-order-items" class="s-order-items-table s-order-readable">
-                        {$_has_granted_calc_profit = $wa->user()->getRights('shop', 'products') && $wa->user()->getRights('shop', 'orders') > 1}
+                        {$_has_granted_calc_profit = $wa->user()->getRights('shop', 'reports')}
                         {$_sum_purchase_price = 0}
                         {$_total_items_profit = 0}
                         {$_total_service_items_profit = 0}

@@ -39,7 +39,10 @@ class shopColorValue implements ArrayAccess
 
     public function __set($field, $value)
     {
-        return $this->$field = $value;
+        if (property_exists($this, $field)) {
+            $this->$field = $value;
+        }
+        return $value;
     }
 
     public function __get($field)

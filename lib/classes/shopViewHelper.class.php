@@ -1058,7 +1058,7 @@ SQL;
             return array();
         }
         $cats = $category_model->getTree($id, $depth, false, $route['domain'].'/'.$route['url']);
-        $url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'), false, $route['domain'], $route['url']);
+        $url = (string) wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'), false, $route['domain'], $route['url']);
 
         foreach ($cats as $c_id => $c) {
             if ($c['parent_id'] && $c['id'] != $id && !isset($cats[$c['parent_id']])) {

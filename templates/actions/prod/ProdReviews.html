@@ -67,7 +67,7 @@
                 <div class="s-status-wrapper tablebox middle space-24">
                     <div class="s-column-status">
                         <span class="text-red bold" v-if="review.status === '{$review_states["deleted"]}'">[`Deleted`]</span>
-                        <span class="text-green bold" v-if="review.status === '{$review_states["published"]}'">[`Published`]</span>
+                        <span class="text-green bold" v-if="review.status === '{$review_states["published"]}'">[`Visible`]</span>
                         <span class="text-orange bold" v-if="review.status === '{$review_states["moderation"]}'">[`Under moderation`]</span>
                     </div>
                     <div class="s-column-actions align-right">

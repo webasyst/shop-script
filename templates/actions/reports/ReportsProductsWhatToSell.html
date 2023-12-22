@@ -3,13 +3,13 @@
 
         <div class="flexbox middle full-width">
             <h1>[`What to sell`]</h1>
-            <div class="wa-select custom-ml-auto">
+            <div class="wa-select small custom-ml-auto">
                 <select id="only-sold-selector">
                     <option value="">[`All products sorted by margin`]</option>
                     <option value="1"{if $only_sold} selected{/if}>[`Purchased at least once during the selected report period`]</option>
                 </select>
             </div>
-            <div class="wa-select custom-ml-4">
+            <div class="wa-select small custom-ml-4">
                 <select id="limit-selector">
                     {foreach [100, 250, 500] as $l}
                         <option value="{$l|escape}"{if $l == $limit} selected{/if}>{sprintf('[`Up to %d products`]', $l|escape)}</option>
@@ -22,15 +22,15 @@
             <thead>
                 <tr class="s-marked-row">
                     <td colspan="5" style="padding-left: 0 !important; padding-top: 0 !important;">
-                        <ul class="chips s-product-reports">
+                        <ul class="chips s-product-reports transparent rounded">
                             <li><a href="#/products/bestsellers/">[`Best sellers`]</a></li>
                             <li><a href="#/products/assets/">[`Assets`]</a></li>
-                            <li class="selected"><a href="#/products/whattosell/">[`What to sell`]</a></li>
+                            <li class="accented"><a href="#/products/whattosell/">[`What to sell`]</a></li>
                         </ul>
                     </td>
                     <td class="marked-column" colspan="4" style="text-align: center; vertical-align: middle;">
                         <span class="s-prediction">*</span>[`Forecast period`]:
-                        <div class="wa-select">
+                        <div class="wa-select small">
                         <select id="future-period-selector">
                             <option value="1">[`1 month`]</option>
                             <option value="3">[`3 months`]</option>
@@ -152,12 +152,12 @@
         $.each(products, function(i, p) {
             var $tr = $template_tr.clone().removeClass('hidden template').attr('data-id', p.id).data('product', p);
             if (p.image_id) {
-                $tr.find('> .col-img a').attr('href', '?action=products#/product/'+p.id+'/');
+                $tr.find('> .col-img a').attr('href', 'products/'+p.id+'/');
                 $tr.find('> .col-img img').attr('src', p.image_url);
             } else {
                 $tr.find('> .col-img').empty();
             }
-            $tr.find('> .col-name a').attr('href', '?action=products#/product/'+p.id+'/');
+            $tr.find('> .col-name a').attr('href', 'products/'+p.id+'/');
             $tr.find('> .col-name .product-name').text(p.name);
             $tr.find('> .col-name .sku-names').text(p.sku_names);
             $tr.find('> .col-margin input').attr('placeholder', p.margin);

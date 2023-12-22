@@ -15,9 +15,9 @@
     <td class="bold">{$c.name|escape}</td>
 
     <td>
-        <div class="global-country-rate custom-mb-12">
+        <div class="global-country-rate custom-my-4">
             <span class="small">[`Global rate`]:</span>
-            <input type="number" class="small shortest numerical" min="0" name="countries[{$c.iso3}]" value="{$c.global_rate}" placeholder="0">%
+            <input type="number" step="any" class="small shortest numerical" min="0" name="countries[{$c.iso3}]" value="{$c.global_rate}" placeholder="0">%
 
             <div class="custom-mt-4">
                 <button type="button" class="button small light-gray nowrap back-to-simple-mode-link rounded">
@@ -25,20 +25,22 @@
                     [`Simple mode`]
                 </button>
             </div>
-        </div>
-        {if $c.regions}
-        <div class="custom-mt-4">
-            <button type="button" class="button small light-gray nowrap setup-by-regions-link rounded">
-                <i class="fas fa-cog text-blue"></i>
-                [`Setup by regions`]
-            </button>
 
-            <button type="button" class="button small light-gray nowrap advanced-settings-link rounded">
-                <i class="fas fa-cog text-blue"></i>
-                [`Advanced settings`]
-            </button>
+            {if $c.regions}
+            <div class="custom-mt-4">
+                <button type="button" class="button smaller light-gray nowrap setup-by-regions-link rounded">
+                    <i class="fas fa-cog text-blue"></i>
+                    [`Setup by regions`]
+                </button>
+
+                <button type="button" class="button smaller light-gray nowrap advanced-settings-link rounded">
+                    <i class="fas fa-cog text-blue"></i>
+                    [`Advanced settings`]
+                </button>
+            </div>
+            {/if}
+            
         </div>
-        {/if}
 
         <em class="small commit-delete-message">[`Click “Save” button below to commit the delete.`]</em>
     </td>

@@ -943,13 +943,16 @@ SQL;
                             $inner_from .= "\nJOIN shop_order $alias_order ON $alias_items.order_id=$alias_order.id";
                         }
 
+                        $group_by = '';
                         $inner_where = [];
                         if ($rule === shopSetModel::BESTSELLERS_RULE) {
                             $inner_select .= ", $alias_items.price * $alias_order.rate * $alias_items.quantity AS sales";
                             $order_by = 'sales DESC';
+                            $group_by = 'p.id';
                         } elseif ($rule === shopSetModel::TOTAL_COUNT_RULE) {
                             $inner_select .= ", SUM($alias_items.quantity) AS sum_quantity";
                             $order_by = 'sum_quantity DESC';
+                            $group_by = 'p.id';
                         } elseif ($rule == 'compare_price DESC') {
                             $set_alias = 'p';
                             $inner_where[] = "$set_alias.compare_price > $set_alias.price";
@@ -969,6 +972,9 @@ SQL;
                         $inner_sql = 'SELECT ' . $inner_select . "\nFROM " . $inner_from;
                         if ($inner_where) {
                             $inner_sql .= "\nWHERE " . implode(' AND ', $inner_where);
+                        }
+                        if ($group_by) {
+                            $inner_sql .= "\nGROUP BY $group_by";
                         }
                         $inner_sql .= "\nORDER BY $order_by, p.id";
                         if (!empty($set['count']) && wa_is_int($set['count'])) {
@@ -2227,7 +2233,7 @@ SQL;
         }
 
         if (false !== strpos(join('', $fields), 'price')) {
-            $fields[] = 'currency'; // required for proper rounding and convertion
+            $fields[] = 'currency'; // required for proper rounding and conversion
             $fields[] = 'sku_id'; // be sure to get the main sku to find it in the promo
         }
 
@@ -2242,6 +2248,7 @@ SQL;
             'stock_worth',
             'stock_counts',
             'reviews_count',
+            'params',
             'sku',
             'sku_filtered',
             'skus_filtered',
@@ -2935,7 +2942,7 @@ SQL;
                         // If list is filtered by features, we must not include SKUs
                         // that don't match all the feature conditions we're filtering against.
                         // SKU may match either because it has a needed feature
-                        // or because a product has the featre and therefore all its SKUs have it, too.
+                        // or because a product has the feature and therefore all its SKUs have it, too.
                         if ($skus && $this->filtered_by_features) {
 
                             // Build a list of conditions like:

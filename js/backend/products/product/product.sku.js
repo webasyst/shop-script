@@ -231,15 +231,35 @@
             var ComponentSkuNameTextarea = {
                 props: ["sku"],
                 template: that.templates["component-sku-name-textarea"],
+                data() {
+                    return {
+                        timerId: null
+                    }
+                },
                 updated: function() {
-                    var self = this;
-                    var $textarea = $(self.$el);
-                    that.toggleHeight($textarea);
+                    this.toggleHeight();
                 },
                 mounted: function() {
-                    var self = this;
-                    var $textarea = $(self.$el);
-                    that.toggleHeight($textarea);
+                    this.toggleHeight();
+                    window.addEventListener('resize', this.toggleHeight);
+                },
+                beforeUnmount: function () {
+                    window.removeEventListener('resize', this.toggleHeight);
+                },
+                methods: {
+                    toggleHeight: function () {
+                        const $textarea = $(this.$el);
+                        if (this.timerId) {
+                            return;
+                        } else {
+                            that.toggleHeight($textarea);
+                        }
+
+                        this.timerId = setTimeout(() => {
+                            that.toggleHeight($textarea, "auto");
+                            this.timerId = null;
+                        }, 200)
+                    }
                 }
             };
 
@@ -1558,6 +1578,22 @@
                             }
 
                             return value;
+                        }
+                    },
+                    stock_icon_class: function() {
+                        return function(stock_value, stock) {
+                            stock_value = (stock_value ? parseInt(stock_value) : null);
+
+                            var result = "";
+                            if (stock_value > parseInt(stock.low_count) || stock_value === null) {
+                                result = "text-green";
+                            } else if (stock_value > parseInt(stock.critical_count) && stock_value <= parseInt(stock.low_count)) {
+                                result = "text-orange";
+                            } else if (stock_value <= parseInt(stock.critical_count)) {
+                                result = "text-red";
+                            }
+
+                            return result;
                         }
                     }
                 },
@@ -5618,8 +5654,8 @@
             }
         };
 
-        Section.prototype.toggleHeight = function($textarea) {
-            $textarea.css("min-height", 0);
+        Section.prototype.toggleHeight = function($textarea, initMinHeight = 0) {
+            $textarea.css("min-height", initMinHeight);
             var scroll_h = $textarea[0].scrollHeight;
             $textarea.css("min-height", scroll_h + "px");
         };

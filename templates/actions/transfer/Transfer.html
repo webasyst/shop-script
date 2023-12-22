@@ -84,7 +84,7 @@
                                     [`Products`]
                                 </div>
                                 <div class="value">
-                                    <input type="search" class="s-transfer-products-add-autocomplete search long" placeholder="[`Enter a product name, an SKU name, or an SKU code`]">
+                                    <input type="search" class="s-transfer-products-add-autocomplete search longer" placeholder="[`Enter a product name, an SKU name, or an SKU code`]">
                                     <p class="hint"><i class="fas fa-info-circle text-dark-gray"></i> [`If you have not found a certain product, enter a more detailed search query to see more exact results.`]</p>
                                     <table>
                                         <tbody class="s-transfer-products-list"></tbody>
@@ -153,7 +153,7 @@
             var item = $('.s-transfer-product-item.s-tmpl', $dialog).clone();
             item.removeClass('s-tmpl');
             item.data('id', data.id);
-            item.find('a').attr('href', '?action=products#/product/' + data.product_id + '/');
+            item.find('a').attr('href', 'products/' + data.product_id + '/');
             item.find('img').attr('src', data.image_url);
             item.find('.s-product-name').text(data.product_name);
             item.find('.s-sku-name').text(data.name);

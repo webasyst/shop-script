@@ -116,7 +116,7 @@ SQL;
 
         $product_features_selectable_model = new shopProductFeaturesSelectableModel();
 
-        // delete unbinded old values in shop_product_features_selectable
+        // delete unbound old values in shop_product_features_selectable
         $sql = "SELECT DISTINCT ps.product_id, pf.feature_id FROM `shop_product_skus` ps
                 JOIN `shop_product_features` pf ON ps.product_id = pf.product_id AND ps.id = pf.sku_id
                 LEFT JOIN `shop_product_features_selectable` fs ON fs.product_id = pf.product_id AND fs.feature_id = pf.feature_id AND fs.value_id = pf.feature_value_id

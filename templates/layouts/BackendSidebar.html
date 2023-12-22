@@ -96,54 +96,12 @@
                 <!-- plugin hook: 'backend_products.sidebar_section' -->
                 {* @event backend_products.%plugin_id%.sidebar_section *}
                 {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
+
+                <div class="desktop-and-tablet-only js-overlapped-element" style="margin-top: -1.5rem;"></div>
             </div>
-            <div class="sidebar-footer">
 
-                {if !empty($show_mobile_ad)}
-                    <div class="s-tiny-ad box custom-pb-0">
-                        <div class="s-tiny-ad-box">
-
-                            <a href="javascript:void(0)" class="s-tiny-ad-close" title="[`Close`]">&times;</a>
-                            <h5 class="heading">[`Mobile app`]</h5>
-
-                            <div class="align-center">
-                                <p>
-                                    [`Install Webasyst Shop-Script mobile app on your phone today:`]
-                                </p>
-
-                                {if $wa->locale() == 'ru_RU'}
-                                    {$lang = '-ru'}
-                                {else}
-                                    {$lang = '-en'}
-                                {/if}
-
-                                <a href="https://apps.apple.com/us/app/webasyst-shop-script/id6443853956" target="_blank">
-                                    <img src="{$wa_app_static_url}img/badge-appstore{$lang}.png" class="s-mobile-badge" alt="App Store">
-                                </a>
-                                <a href="https://play.google.com/store/apps/details?id=com.webasyst.shopscript" target="_blank">
-                                    <img src="{$wa_app_static_url}img/badge-google-play{$lang}.png" class="s-mobile-badge" alt="Google Play">
-                                </a>
-                                {if $wa->locale() == 'ru_RU'}
-                                    <a href="https://apps.rustore.ru/app/com.webasyst.shopscript" target="_blank">
-                                        <img src="{$wa_app_static_url}img/badge-rustore.svg" class="s-mobile-badge" alt="RuStore">
-                                    </a>
-                                {/if}
-
-                            </div>
-
-                        </div>
-                    </div>
-                {/if}
-
-                <div class="s-main-menu box align-center custom-py-24">
-                    <a href="{$frontend_url}" target="_blank" class="s-menu-link button white small rounded">
-                        <span class="s-name">[`Open storefront`]</span>
-                        <i class="s-icon fas fa-external-link-alt fa-xs s-menu-link-new-window"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="sidebar-footer shadowed">
-                <ul class="menu s-main-menu custom-mb-0 custom-mt-0-mobile">
+            <div class="sidebar-footer js-overflowing-gradient">
+                <ul class="menu s-main-menu custom-mb-0 custom-mt-4 custom-mt-0-mobile">
                     {_sidebar_menu placement="footer"}
                     <li>
                         <a class="item" href="[`https://support.webasyst.com/`]" target="_blank">
@@ -161,6 +119,12 @@
                         </div>
                     </li>
                 </ul>
+                <div class="s-main-menu box align-center custom-pb-24 custom-pt-16">
+                    <a href="{$frontend_url}" target="_blank" class="s-menu-link button white small rounded">
+                        <span class="s-name">[`Open storefront`]</span>
+                        <i class="s-icon fas fa-external-link-alt fa-xs s-menu-link-new-window"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -219,3 +183,42 @@
         })(jQuery);
     </script>
 {/if}
+<style>
+    .overflowing {
+        position: relative;
+    }
+    .overflowing::before {
+        content: "";
+        position: absolute;
+        top: -1.25rem;
+        height: 1.25rem;
+        width: 100%;
+        background: linear-gradient(180deg, var(--background-color-wa-header-transparent) 0%, var(--border-color-input-outlined) 100%);
+        z-index: 100;
+    }
+</style>
+<script>
+    $(function () {
+        const $overlappedEl = $('.js-overlapped-element');
+        if (!$overlappedEl.length || $overlappedEl.is(':hidden')) {
+            return;
+        }
+
+        const templateArrow = `
+            <div class="align-center gray small js-overflowing-arrow" style="margin-top: -1rem">
+                <i class="fas fa-angle-down"></i>
+            </div>
+        `;
+        const intersectionObserver = new IntersectionObserver((entries) => {
+            if (entries[0].intersectionRatio <= 0) {
+                $('.js-overflowing-gradient')
+                    .addClass('overflowing')
+                    .prepend(templateArrow);
+            } else {
+                $('.js-overflowing-gradient').removeClass('overflowing');
+                $('.js-overflowing-arrow').remove();
+            }
+        });
+        intersectionObserver.observe($overlappedEl.get(0));
+    })
+</script>

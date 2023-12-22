@@ -368,6 +368,7 @@
             <input class="s-field small full-width s-square-field is-number" type="text" readonly
                    v-bind:disabled="!column_data.editable"
                    v-on:click="togglePreview(false)"
+                   v-on:focus="togglePreview(false)"
                    v-bind:value="formatted_value">
         </template>
         <template v-else>

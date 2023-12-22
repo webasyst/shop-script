@@ -7,9 +7,6 @@
                                         v-model="search_string"
                                         v-on:search_change="applySearch"></component-table-product-search>
 
-        {* CATEGORY *}
-        <component-table-filters-categories-sets-types v-on:success="applyCategories"></component-table-filters-categories-sets-types>
-
         {* STOREFRONTS *}
         <component-table-filters-storefronts v-on:success="applyStorefronts"></component-table-filters-storefronts>
 
@@ -30,11 +27,11 @@
 {$_components["component-table-filters"] = $_component_table_filters|strip}
 
 {capture assign="_component_table_filters_search"}
-    <div class="component-table-filters-search flexbox space-8">
+    <div class="component-table-filters-search flexbox space-4">
         <div class="s-icon" v-if="prop_search_icon">
             <span class="icon"><i class="fas fa-search"></i></span>
         </div>
-        <div class="s-field-wrapper wide">
+        <div class="s-field-wrapper">
             <component-input class="s-field js-autofocus"
                              v-bind:model-value="modelValue"
                              v-on:input="onInput"
@@ -43,8 +40,8 @@
                              v-bind:placeholder="(placeholder ? placeholder : '{_w("Search")|escape}')"></component-input>
         </div>
         <template v-if="modelValue.length">
-            <div class="s-actions-wrapper flexbox space-8">
-                <div class="s-action is-active"
+            <div class="s-actions-wrapper flexbox middle">
+                <div class="s-action is-active cursor-pointer"
                      v-on:click.prevent="revert">
                     <span class="s-icon icon size-14"><i class="fas fa-times"></i></span>
                 </div>

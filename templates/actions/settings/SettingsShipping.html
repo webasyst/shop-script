@@ -1,5 +1,148 @@
-<div id="s-settings-shipping-params">
-    <h1 class="js-bread-crumbs">[`Shipping`]</h1>
+<div class="flexbox middle space-12 wrap-mobile">
+    <div class="wide custom-mb-8-mobile">
+        <h1 class="js-bread-crumbs">[`Shipping`]</h1>
+    </div>
+    <div class="wide align-right align-center-mobile">
+        <div class="dropdown" id="s-shipping-menu">
+            <button class="dropdown-toggle button nowrap small rounded light-gray">
+                <i class="fas fa-plus-circle text-green"></i>
+                [`Add shipping option`]
+            </button>
+
+            <div class="dropdown-body">
+                <ul class="menu">
+                    {foreach $plugins as $id => $plugin}
+                        <li>
+                            <a href="#/shipping/plugin/add/{$id}/">
+                            <span class="icon">
+                                {if empty($plugin.icon.16)}
+                                    <i class="fas fa-shipping-fast"></i>
+                                {else}
+                                    {shopHelper::getIcon($plugin.icon.16)}
+                                {/if}
+                            </span>
+
+                                <span>
+                                {$plugin.name|escape}
+
+                                <span class="hint flexbox custom-mt-4">{strip_tags($plugin.description)}</span>
+                            </span>
+                            </a>
+                        </li>
+                    {/foreach}
+
+                    <li class="bordered-top custom-p-8">
+                        {if !empty($installer)}
+                            <div class="align-center">
+                                <a href="#/shipping/plugins/">[`Browse shipping plugins...`]</a>
+                            </div>
+                        {/if}
+
+                        <div class="hint align-center custom-mt-4">[`Multiple instances of every shipping option with custom settings can be created.`]</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function ($) {
+            $("#s-shipping-menu").waDropdown();
+        })(jQuery);
+    </script>
+</div>
+
+<div id="s-settings-shipping" class="fields">
+    <div class="fields-group custom-pl-8-mobile">
+        <table>
+            <tbody>
+            {foreach $instances as $id => $plugin}
+
+                <tr data-id="{$id}">
+                    <td class="min-width custom-pl-8-mobile custom-pr-4-mobile"><i class="fas fa-grip-vertical js-sort text-light-gray cursor-pointer"></i></td>
+                    <td class="min-width custom-p-4-mobile">
+                        {if empty($plugin.installed)}
+                            <i class="fas fa-exclamation-triangle"></i>
+                        {else}
+                            {if !empty($plugin.logo)}
+                                <img src="{$plugin.logo}" class="s-payment-shipping-logo">
+                            {elseif !empty($plugin.img)}
+                                <img src="{$plugin.img}" class="s-payment-shipping-logo">
+                            {/if}
+                        {/if}
+                    </td>
+                    <td class="custom-p-4-mobile">
+                        <strong class="{if empty($plugin.status)}gray{/if} large js-plugin-title h6-mobile">
+                            {$plugin.name|escape}
+                            {if empty($plugin.status)}([`disabled`]){/if}
+                            {if empty($plugin.installed)}
+                                <span class="red">[`deleted`]</span>
+                            {/if}
+                        </strong>
+
+                        {if empty($plugin.installed)}
+                            <span><i class="fa fa-info-circle"></i>
+                            {if $installer}
+                                {"#/shipping/plugins/"|string_format:'[`You can remove settings or install the <a href="%s" class="inline">plugin</a>.`]'}
+                            {else}
+                                [`You can remove settings or install the plugin.`]
+                            {/if}
+                        </span>
+                        {/if}
+
+                        <div class="hint custom-mt-4">
+                            {$descr = strip_tags($plugin.description)}
+                            <div class="desktop-only">{$descr}</div>
+                            <div class="tablet-only" title="{$descr}">{$descr|truncate:50}</div>
+                        </div>
+                    </td>
+                    <td class="custom-p-4-mobile">
+                        <div class="flexbox vertical-mobile">
+                            <a href="#/shipping/plugin/setup/{$id}/"
+                               class="js-shipping-plugin-setup button custom-mb-4-mobile nowrap rounded light-gray smaller"
+                               style="width: min-content;" title="[`Configure`]">
+                                <i class="fas fa-cog text-blue"></i>
+                                <span class="desktop-only">[`Settings`]</span>
+                            </a>
+                            <div class="custom-mb-8-mobile dropdown secondary-actions">
+                                <button class="dropdown-toggle button smaller rounded light-gray custom-pl-0" type="button"
+                                        title="[`Actions`]">&nbsp;</button>
+                                <div class="dropdown-body right">
+                                    <ul class="menu">
+                                        <li>
+                                            <a href="#" class="js-shipping-plugin-clone" title="[`Create a copy`]">
+                                                <i class="fas fa-copy text-gray"></i>
+                                                <span>[`Create a copy`]</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="#/shipping/plugin/delete/{$id}/" class="js-action js-confirm js-shipping-plugin-delete"
+                                               data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]"
+                                               title="[`Delete`]" data-cancel="[`Cancel`]">
+                                                <i class="fas fa-trash-alt text-red"></i>
+                                                <span>[`Delete`]</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {foreachelse}
+                <tr>
+                    <td colspan="4">
+                        <em class="gray">[`No shipping options are defined.`]</em>
+                    </td>
+                </tr>
+            {/foreach}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="s-settings-shipping-setup" class="fields form"></div>
+
+<div id="s-settings-shipping-params" class="custom-mt-32">
 
     <div class="flexbox space-12 custom-mb-16">
         <div class="wide">
@@ -165,148 +308,9 @@
 
 <div id="s-settings-shipping-rounding" class="s-settings-shipping-rounding">
     <div class="custom-mt-40 custom-mb-32 small">{sprintf_wp("Rounding of fractional shipping costs can be set up in %scurrency settings%s.", '<a href="#/currencies/">', '</a>')}</div>
-    <div class="flexbox middle vertical-mobile space-12">
-        <div class="wide">
-            <h4 id="shipping-methods-title" class="h4-mobile custom-mb-16-mobile">[`Shipping methods`]</h4>
-        </div>
-        <div class="dropdown" id="s-shipping-menu">
-            <button class="dropdown-toggle button nowrap small rounded light-gray">
-                <i class="fas fa-plus-circle text-green"></i>
-                [`Add shipping option`]
-            </button>
-
-            <div class="dropdown-body">
-                <ul class="menu">
-                    {foreach $plugins as $id => $plugin}
-                    <li>
-                        <a href="#/shipping/plugin/add/{$id}/">
-                            <span class="icon">
-                                {if empty($plugin.icon.16)}
-                                <i class="fas fa-shipping-fast"></i>
-                                {else}
-                                {shopHelper::getIcon($plugin.icon.16)}
-                                {/if}
-                            </span>
-
-                            <span>
-                                {$plugin.name|escape}
-
-                                <span class="hint flexbox custom-mt-4">{strip_tags($plugin.description)}</span>
-                            </span>
-                        </a>
-                    </li>
-                    {/foreach}
-
-                    <li class="bordered-top custom-p-8">
-                        {if !empty($installer)}
-                        <div class="align-center">
-                            <a href="#/shipping/plugins/">[`Browse shipping plugins...`]</a>
-                        </div>
-                        {/if}
-
-                        <div class="hint align-center custom-mt-4">[`Multiple instances of every shipping option with custom settings can be created.`]</div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <script>
-            (function ($) {
-                $("#s-shipping-menu").waDropdown();
-            })(jQuery);
-        </script>
-    </div>
-</div>
-<div id="s-settings-shipping" class="fields">
-    <div class="fields-group custom-pl-8-mobile">
-        <table>
-            <tbody>
-                {foreach $instances as $id => $plugin}
-
-                <tr data-id="{$id}">
-                    <td class="min-width custom-pl-8-mobile custom-pr-4-mobile"><i class="fas fa-grip-vertical js-sort text-light-gray cursor-pointer"></i></td>
-                    <td class="min-width custom-p-4-mobile">
-                        {if empty($plugin.installed)}
-                        <i class="fas fa-exclamation-triangle"></i>
-                        {else}
-                        {if !empty($plugin.logo)}
-                        <img src="{$plugin.logo}" class="s-payment-shipping-logo">
-                        {elseif !empty($plugin.img)}
-                        <img src="{$plugin.img}" class="s-payment-shipping-logo">
-                        {/if}
-                        {/if}
-                    </td>
-                    <td class="custom-p-4-mobile">
-                        <strong class="{if empty($plugin.status)}gray{/if} large js-plugin-title h6-mobile">
-                            {$plugin.name|escape}
-                            {if empty($plugin.status)}([`disabled`]){/if}
-                            {if empty($plugin.installed)}
-                            <span class="red">[`deleted`]</span>
-                            {/if}
-                        </strong>
-
-                        {if empty($plugin.installed)}
-                        <span><i class="fa fa-info-circle"></i>
-                            {if $installer}
-                            {"#/shipping/plugins/"|string_format:'[`You can remove settings or install the <a href="%s" class="inline">plugin</a>.`]'}
-                            {else}
-                            [`You can remove settings or install the plugin.`]
-                            {/if}
-                        </span>
-                        {/if}
-
-                        <div class="hint custom-mt-4">
-                            {$descr = strip_tags($plugin.description)}
-                            <div class="desktop-only">{$descr}</div>
-                            <div class="tablet-only" title="{$descr}">{$descr|truncate:50}</div>
-                        </div>
-                    </td>
-                    <td class="custom-p-4-mobile">
-                        <div class="flexbox vertical-mobile">
-                            <a href="#/shipping/plugin/setup/{$id}/"
-                                class="js-shipping-plugin-setup button custom-mb-4-mobile nowrap rounded light-gray smaller"
-                                style="width: min-content;" title="[`Configure`]">
-                                <i class="fas fa-cog text-blue"></i>
-                                <span class="desktop-only">[`Settings`]</span>
-                            </a>
-                            <div class="custom-mb-8-mobile dropdown secondary-actions">
-                                <button class="dropdown-toggle button smaller rounded light-gray custom-pl-0" type="button"
-                                    title="[`Actions`]">&nbsp;</button>
-                                <div class="dropdown-body right">
-                                    <ul class="menu">
-                                        <li>
-                                            <a href="#" class="js-shipping-plugin-clone" title="[`Create a copy`]">
-                                                <i class="fas fa-copy text-gray"></i>
-                                                <span>[`Create a copy`]</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="#/shipping/plugin/delete/{$id}/" class="js-action js-confirm js-shipping-plugin-delete"
-                                                data-confirm-text="[`This will permanently delete this shipping option. Are you sure?`]"
-                                                title="[`Delete`]" data-cancel="[`Cancel`]">
-                                                <i class="fas fa-trash-alt text-red"></i>
-                                                <span>[`Delete`]</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-                {foreachelse}
-                <tr>
-                    <td colspan="4">
-                        <em class="gray">[`No shipping options are defined.`]</em>
-                    </td>
-                </tr>
-                {/foreach}
-            </tbody>
-        </table>
-    </div>
 </div>
 
-<div id="s-settings-shipping-setup" class="fields form"></div>
+<div id="s-settings-shipping-plugins" class="custom-mt-48"></div>
 
 <script src="{$wa_app_static_url}js/settings/shipping.js?{$wa->version()}"></script>
 <script>(function() {

@@ -70,6 +70,10 @@
         Section.prototype.initVue = function() {
             var that = this;
 
+            if (typeof $.vue_app === "object" && typeof $.vue_app.unmount === "function") {
+                $.vue_app.unmount();
+            }
+
             // DOM
             var $view_section = that.$wrapper.find(".js-product-reviews-section");
 

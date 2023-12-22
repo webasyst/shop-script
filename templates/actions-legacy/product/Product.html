@@ -415,9 +415,9 @@
                         <div class="s-product-status">
                             <i class="icon10 {if $product.status}yes{else}no-bw{/if}"></i>
                             <select name="product[status]">
-                                <option {if $product.status > 0}selected{/if} value="1">[`Visible`]</option>
-                                <option {if !$product.status}selected{/if} value="0">[`Hidden`]</option>
-                                <option {if $product.status < 0}selected{/if} value="-1">[`Hidden and unavailable (404)`]</option>
+                                <option {if $product.status > 0}selected{/if} value="1">[`Published, for sale`]</option>
+                                <option {if !$product.status}selected{/if} value="0">[`Hidden, not for sale`]</option>
+                                <option {if $product.status < 0}selected{/if} value="-1">[`Unpublished, not for sale`]</option>
                             </select>
                         </div>
 

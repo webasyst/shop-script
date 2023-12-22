@@ -18,6 +18,7 @@
                     <input class="s-field small full-width is-number s-square-field" type="text" readonly
                            v-bind:class="{ 'strike' : column.column_type === 'compare_price' }"
                            v-on:click="edit(true)"
+                           v-on:focus="edit(true)"
                            v-bind:value="formatted_value">
                     <span class="s-currency" v-html="column_data.currency.sign_html"></span>
                 </div>

@@ -5,7 +5,7 @@
     {if !count($orders)}
         <p class="small gray">{sprintf('[`%s did not purchase anything yet.`]', $contact.name|escape)}</p>
     {else}
-        <table class="zebra s-customer-orders single-lined" id="s-order-list">
+        <table class="zebra bigdata s-customer-orders single-lined" id="s-order-list">
             {foreach $orders as $o}
                 <tr>
                     <td class="nowrap">

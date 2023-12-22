@@ -6,10 +6,6 @@ class shopSettingsUnitAction extends waViewAction
 {
     public function execute()
     {
-        if (shopLicensing::isStandard()) {
-            throw new waRightsException(_ws('Access denied.'));
-        }
-
         $units = $this->getUnits();
 
         /* выпилить "штуки" */
@@ -52,6 +48,7 @@ class shopSettingsUnitAction extends waViewAction
             'types_with_stock_units' => $types_with_stock_units,
             'types_with_base_units' => $types_with_base_units,
             'units' => $units,
+            'is_teaser' => shopLicensing::isStandard(),
         ]);
     }
 

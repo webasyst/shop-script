@@ -680,7 +680,7 @@ SQL;
             'order_id'        => $order_id,
             'contact_id'      => null,
             'action_id'       => '',
-            'text'            => '<i class="icon16 email"></i> '.$log,
+            'text'            => '<i class="icon16 email fas fa-envelope text-gray custom-mr-4"></i> '.$log,
             'before_state_id' => $data['order']['state_id'],
             'after_state_id'  => $data['order']['state_id'],
         ));
@@ -768,7 +768,7 @@ SQL;
             'order_id'        => $order_id,
             'contact_id'      => null,
             'action_id'       => '',
-            'text'            => '<i class="icon16 mobile"></i> '.$log,
+            'text'            => '<i class="icon16 mobile fas fa-mobile-alt text-gray custom-mr-4"></i> '.$log,
             'before_state_id' => $data['order']['state_id'],
             'after_state_id'  => $data['order']['state_id'],
         ));
@@ -840,7 +840,7 @@ SQL;
                 'order_id' => $order_id,
                 'contact_id' => null,
                 'action_id' => '',
-                'text' => '<i class="icon16 globe"></i> ' . $log,
+                'text' => '<i class="icon16 globe fas fa-globe text-gray custom-mr-4"></i> ' . $log,
                 'before_state_id' => $data['order']['state_id'],
                 'after_state_id' => $data['order']['state_id'],
             ]
@@ -917,7 +917,7 @@ SQL;
 
         // Figure out recipients.
         // Users are notified about new orders.
-        // Couriers are notified about orders assighed to them.
+        // Couriers are notified about orders assigned to them.
         $host_client_ids = array();
         if ($event == 'order.create') {
 
@@ -925,8 +925,11 @@ SQL;
             $web_push = new shopWebPushNotifications();
             $web_push->send($data);
 
-            // Fetch all users to send mobile push notifications to
-            foreach ($push_client_model->getAllMobileClients() as $push_client) {
+            // Users to send mobile push notifications to
+            // do not include users without access to new orders
+            $push_clients = $push_client_model->getAllMobileClients();
+            $push_clients = self::filterOutByRights($push_clients);
+            foreach ($push_clients as $push_client) {
                 $host_client_ids[$push_client['shop_url']][$push_client['client_id']] = $push_client['client_id'];
             }
 
@@ -979,21 +982,30 @@ SQL;
                     $web_push->sendByContactId($data, $notification_text, [$data['order']['courier_contact_id']], $push_data);
                 }
 
-                $push_client = $push_client_model->getByField([
+                $push_clients = $push_client_model->getByField([
                     'contact_id' => $data['order']['courier_contact_id'],
                     'type' => ['', 'mobile']
-                ]);
-                if ($push_client) {
+                ], true);
+                if ($push_clients) {
+
+                    $delete_push_clients = [];
+
                     // Make sure client's API token is still valid
                     $api_token_model = new waApiTokensModel();
-                    $api_token = $api_token_model->getById($push_client['api_token']);
+                    $api_tokens = $api_token_model->getById(array_column($push_clients, 'api_token'));
 
-                    if ($is_user && $can_access && $api_token && (!$api_token['expires'] || strtotime($api_token['expires']) > time())) {
-                        // Add to recipients
-                        $host_client_ids[$push_client['shop_url']][$push_client['client_id']] = $push_client['client_id'];
-                    } else {
-                        // Forget the client if their API token is invalid
-                        $push_client_model->deleteByField('client_id', $push_client['client_id']);
+                    foreach ($push_clients as $push_client) {
+                        $api_token = ifset($api_tokens, $push_client['api_token'], null);
+                        if ($is_user && $can_access && $api_token && (!$api_token['expires'] || strtotime($api_token['expires']) > time())) {
+                            // Add to recipients
+                            $host_client_ids[$push_client['shop_url']][$push_client['client_id']] = $push_client['client_id'];
+                        } else {
+                            // Forget the client if their API token is invalid
+                            $delete_push_clients[$push_client['client_id']] = $push_client['client_id'];
+                        }
+                    }
+                    if ($delete_push_clients) {
+                        $push_client_model->deleteByField('client_id', array_values($delete_push_clients));
                     }
                 }
             }
@@ -1116,5 +1128,28 @@ SQL;
         }
 
         return $results;
+    }
+
+    public static function filterOutByRights(array $push_clients)
+    {
+        $contact_ids = [];
+        foreach ($push_clients as $push_client) {
+            if (!empty($push_client['is_courier'])) {
+                continue;
+            }
+            $contact_ids[$push_client['contact_id']] = $push_client['contact_id'];
+        }
+        if (!$contact_ids) {
+            return [];
+        }
+
+        $contact_rights = (new waContactRightsModel())->getByIds(array_values($contact_ids), 'shop', 'orders');
+        $contact_rights = array_filter($contact_rights, function($v) {
+            return $v > shopRightConfig::RIGHT_ORDERS_COURIER;
+        });
+
+        return array_filter($push_clients, function($push_client) use ($contact_rights) {
+            return empty($push_client['is_courier']) && isset($contact_rights[$push_client['contact_id']]);
+        });
     }
 }

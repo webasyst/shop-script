@@ -3,36 +3,40 @@
 <span class="sorting-indicator"><i class="fas fa-caret-down"></i></span>
 {/capture}
 <div class="content">
-        <h1>
+        <h1 class="custom-mb-0">
             [`In-stock assets`]
         </h1>
         <div class="flexbox middle full-width">
-            <ul class="chips s-product-reports">
-                <li><a href="#/products/bestsellers/">[`Best sellers`]</a></li>
-                <li class="selected"><a href="#/products/assets/">[`Assets`]</a></li>
-                <li><a href="#/products/whattosell/">[`What to sell`]</a></li>
-            </ul>
-            {if $stocks}
-                <div class="custom-ml-auto custom-mr-16">
-                    [`Stock`]:
+            <div class="wide">
+                <ul class="chips rounded transparent s-product-reports">
+                    <li><a href="#/products/bestsellers/">[`Best sellers`]</a></li>
+                    <li class="accented"><a href="#/products/assets/">[`Assets`]</a></li>
+                    <li><a href="#/products/whattosell/">[`What to sell`]</a></li>
+                </ul>
+            </div>
+            <div class="small flexbox space-8">
+                {if $stocks}
+                    <div class="custom-ml-auto custom-mr-16">
+                        [`Stock`]:
+                        <div class="wa-select">
+                            <select id="stock-selector">
+                                <option value="">[`All stocks`]</option>
+                                {foreach $stocks as $s}
+                                    <option value="{$s.id|escape}"{if $request_options.stock == $s.id} selected{/if}>{$s.name|escape}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+                    </div>
+                {/if}
+                <div{if !$stocks} class="custom-ml-auto"{/if}>
+                    [`Number of products:`]
                     <div class="wa-select">
-                        <select id="stock-selector">
-                            <option value="">[`All stocks`]</option>
-                            {foreach $stocks as $s}
-                                <option value="{$s.id|escape}"{if $request_options.stock == $s.id} selected{/if}>{$s.name|escape}</option>
+                        <select id="limit-selector">
+                            {foreach [100, 250, 500] as $l}
+                                <option value="{$l|escape}"{if $l == $limit} selected{/if}>{$l|escape}</option>
                             {/foreach}
                         </select>
                     </div>
-                </div>
-            {/if}
-            <div{if !$stocks} class="custom-ml-auto"{/if}>
-                [`Number of products:`]
-                <div class="wa-select">
-                    <select id="limit-selector">
-                        {foreach [100, 250, 500] as $l}
-                            <option value="{$l|escape}"{if $l == $limit} selected{/if}>{$l|escape}</option>
-                        {/foreach}
-                    </select>
                 </div>
             </div>
         </div>
@@ -70,8 +74,8 @@
                 {/if}
                 {foreach $products as $p}
                     <tr>
-                        <td><a href="?action=products#/product/{$p.id}/">{$wa->shop->getProductImgHtml($p, $size, ['height' => 48, 'width' => 48])}</a></td>
-                        <td><a href="?action=products#/product/{$p.id}/">{$p.name|escape}</a></td>
+                        <td><a href="products/{$p.id}/">{$wa->shop->getProductImgHtml($p, $size, ['height' => 48, 'width' => 48])}</a></td>
+                        <td><a href="products/{$p.id}/">{$p.name|escape}</a></td>
                         <td class="align-right nowrap s-wider-cell">
                             {if $p.count > 5}
                                 <i class="fas fa-circle text-green"></i>

@@ -190,11 +190,11 @@
 <div class="s-checkout-field-group custom-my-12">
     <div class="fields js-block-wrapper" data-block="design">
         {* Default design style *}
-        <div class="fields-group">
-            <div class="field">
-                <div class="name for-switch">[`Enable default design`]</div>
+        <div class="fields-group" style="background: transparent !important;">
+            <div class="flexbox space-16 custom-mb-24">
+                <div class="wide gray custom-pt-4">[`Enable default fallback design`]</div>
 
-                <div class="value">
+                <div>
                     <input type="hidden" name="data[design][custom]" value="0">
                     <span class="switch small custom-mt-8 js-design-toggle">
                         <input type="checkbox" name="data[design][custom]" value="1"{if $settings.custom} checked{/if}>
@@ -340,9 +340,9 @@
 <div class="s-checkout-field-group fields custom-my-12">
     {* Block name *}
     <div class="field">
-        <div class="name">[`Block name`]</div>
+        <div class="name for-input">[`Block name`]</div>
         <div class="value input">
-            <input type="text" name="data[cart][block_name]" class="long" value="{$settings.block_name|escape}" autocomplete="off" />
+            <input type="text" name="data[cart][block_name]" class="long bold" value="{$settings.block_name|escape}" autocomplete="off" />
         </div>
     </div>
 
@@ -444,9 +444,9 @@
    	</div>
     {* Block name *}
     <div class="field">
-        <div class="name">[`Block name`]</div>
+        <div class="name for-input">[`Block name`]</div>
         <div class="value input">
-            <input type="text" name="data[recommendations][block_name]" class="long" value="{$settings.block_name|escape}" autocomplete="off" />
+            <input type="text" name="data[recommendations][block_name]" class="long bold" value="{$settings.block_name|escape}" autocomplete="off" />
         </div>
     </div>
 </div>
@@ -458,11 +458,11 @@
 <div class="s-checkout-field-group fields custom-my-12">
     {* Block name *}
     <div class="field">
-        <div class="name bold">
+        <div class="name for-input">
             <label for="order_block_name">[`Block name`]</label>
         </div>
         <div class="value input">
-            <input id="order_block_name" type="text" name="data[order][block_name]" class="long" autocomplete="off" value="{$settings.block_name|escape}" />
+            <input id="order_block_name" type="text" name="data[order][block_name]" class="long bold" autocomplete="off" value="{$settings.block_name|escape}" />
         </div>
     </div>
 
@@ -625,12 +625,12 @@
 {function customer_block settings=[]}
 <div class="s-checkout-field-group fields custom-my-12">
     {* Block name *}
-    <div class="field">
+    <div class="field for-input">
         <div class="name">
             <label for="customer_block_name">[`Block name`]</label>
         </div>
         <div class="value input">
-            <input id="customer_block_name" class="long" type="text" name="data[customer][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
+            <input id="customer_block_name" class="long bold" type="text" name="data[customer][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
         </div>
     </div>
 
@@ -658,6 +658,7 @@
     <div class="field vertical">
         <div class="name for-checkbox s-table-field-name bold">[`Customer types`]</div>
         <div class="value s-table-field-value radio js-customer-type-wrapper">
+            <div class="flexbox space-12 custom-my-16 bold">
             {foreach $customer_type_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
                     <label>
@@ -669,9 +670,10 @@
                     </label>
                 </div>
             {/foreach}
+            </div>
             <div class="s-variant-params  js-variant-params"></div>
 
-            <div class="js-person-company-settings custom-pt-0 fields-group vertical">
+            <div class="js-person-company-settings custom-pt-0 custom-mx-0 fields-group vertical">
                 <div class="field">
                     <div class="name">
                         <label for="customer_person_mode_name">[`Person mode name`]</label>
@@ -690,7 +692,7 @@
                 </div>
             </div>
 
-            <div class="js-company-settings custom-mt-0 custom-pt-0 fields-group vertical">
+            <div class="js-company-settings custom-mt-0 custom-pt-0 custom-mx-0 fields-group vertical">
                 <div class="field">
                     <div class="name">
                         <label for="customer_company_hint">[`Hint text for companies`]</label>
@@ -709,7 +711,7 @@
                 </div>
             </div>
 
-            <div class="js-fields-editor fields-group custom-pt-0 custom-mt-0" data-type="person">
+            <div class="js-fields-editor fields-group custom-pt-0 custom-mx-0 custom-mt-0" data-type="person">
                 <div class="heading js-contact-type">[`Persons:`]</div>
                 <table class="custom-mt-0 zebra s-sort-table js-sort-table">
                     <tbody>
@@ -723,7 +725,7 @@
                 </div>
             </div>
 
-            <div class="js-fields-editor fields-group custom-pt-0 custom-mt-0" data-type="company">
+            <div class="js-fields-editor fields-group custom-pt-0 custom-mx-0 custom-mt-0" data-type="company">
                 <div class="heading js-contact-type">[`Companies:`]</div>
                 <table class="custom-mt-0 zebra s-sort-table js-sort-table">
                     <tbody>
@@ -773,15 +775,14 @@
 {* Shipping block *}
 {function shipping_block settings=[]}
     <div class="s-checkout-field-group fields custom-my-4">
-        {$textAddAndConfigure = str_replace('icon16 new-window', 'fas fa-external-link-alt smaller', _w('<a href="%s" target="_blank">Add and configure shipping methods <i class="icon16 new-window"></i></a>'))}
-        <div>{sprintf($textAddAndConfigure, '?action=settings#/shipping/')}</div>
+
         {* Block name *}
         <div class="field">
-            <div class="name">
+            <div class="name for-input">
                 <label for="shipping_block_name">[`Block name`]</label>
             </div>
             <div class="value input">
-                <input id="shipping_block_name" class="long" type="text" name="data[shipping][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
+                <input id="shipping_block_name" class="long bold" type="text" name="data[shipping][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
             </div>
         </div>
 
@@ -846,7 +847,7 @@
         <div class="field vertical">
             <div class="name s-table-field-name bold">[`Shipping area selection`]</div>
             <div class="value s-table-field-value radio js-shipping-mode-wrapper">
-                <ul>
+                <ul class="custom-mt-12">
                 {foreach $shipping_mode_variants as $_id => $_variant}
                     <li class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
                         <label>
@@ -854,7 +855,7 @@
                                 <input class="js-shipping-mode-variant" type="radio" name="data[shipping][mode]" value="{$_id|escape}"{if $settings.mode === $_id} checked{/if} />
                                 <span></span>
                             </span>
-                            {$_variant.name|escape}
+                            <strong>{$_variant.name|escape}</strong>
                         </label>
                         {if !empty($_variant.description)}
                             <div class="s-description hint" style="margin: 10px 0 20px 18px;">{$_variant.description}</div>
@@ -950,7 +951,7 @@
                     {$_is_active = false}
                     {if $settings.show_pickuppoint_map === $_map_variant_id}{$_is_active = true}{/if}
 
-                    <div class="s-checkout-radio-variant js-variant" data-id="{$_map_variant_id|escape}">
+                    <div class="s-checkout-radio-variant custom-mb-16 js-variant" data-id="{$_map_variant_id|escape}">
                         <label>
                             <span class="wa-radio">
                                 <input class="s-radio js-radio" type="radio" name="data[shipping][show_pickuppoint_map]" value="{$_map_variant_id|escape}"{if !empty($_is_active)} checked{/if}>
@@ -979,7 +980,7 @@
             <div class="value s-table-field-value js-fields-editor" data-type="address">
 
                 {* Ask zip *}
-                <div class="custom-p-0 fields-group vertical">
+                <div class="custom-p-0 custom-mt-0 fields-group vertical">
                     <div class="field" style="margin-top: 0;">
                         <div class="name">
                             [`ZIP code`]
@@ -1144,15 +1145,13 @@
 {* Payment block *}
 {function payment_block settings=[]}
 <div class="s-checkout-field-group fields custom-my-4">
-    {$textAddAndConfigure = str_replace('icon16 new-window', 'fas fa-external-link-alt smaller', _w('<a href="%s" target="_blank">Add and configure shipping methods <i class="icon16 new-window"></i></a>'))}
-    <div>{sprintf_wp($textAddAndConfigure, '?action=settings#/payment/')}</div>
     {* Block name *}
     <div class="field">
-        <div class="name">
+        <div class="name for-input">
             <label for="payment_block_name">[`Block name`]</label>
         </div>
         <div class="value input">
-            <input id="payment_block_name" type="text" class="long" name="data[payment][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
+            <input id="payment_block_name" type="text" class="long bold" name="data[payment][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
         </div>
     </div>
 </div>
@@ -1292,7 +1291,7 @@
             <div class="hint">HTML</div>
         </div>
         <div class="value">
-            <textarea id="confirmation_thankyou_content" name="data[confirmation][thankyou_content]">{$settings.thankyou_content|escape}</textarea>
+            <textarea id="confirmation_thankyou_content" class="width-100" name="data[confirmation][thankyou_content]">{$settings.thankyou_content|escape}</textarea>
         </div>
     </div>
 </div>

@@ -41,7 +41,7 @@ class shopWorkflowShipAction extends shopWorkflowEditshippingdetailsAction
 
     public function getButton()
     {
-        // Cancel special behaviour of Editshippingdetails action
+        // Cancel special behavior of Editshippingdetails action
         return shopWorkflowAction::getButton();
     }
 

@@ -15,53 +15,54 @@
     <div class="hr"></div>
     <div class="box custom-px-20 small">
         <p class="custom-mb-12">[`How total discount should be calculated if multiple rules are applicable for an order:`]</p>
-        <p class="custom-my-12">
-            <label>
-                <span class="wa-radio">
-                    <input type="radio" name="combiner" value="max"{if $combiner != 'sum'} checked{/if}>
-                    <span></span>
-                </span>
-                [`maximum of order-related discounts calculated after applying of order items’ individual maximum discounts`]
-            </label>
-        </p>
-        <p class="custom-my-12">
-            <label>
-                <span class="wa-radio">
-                    <input type="radio" name="combiner" value="sum"{if $combiner == 'sum'} checked{/if}>
-                    <span></span>
-                </span>
-                [`all discounts for entire order and for order items`]
-            </label>
-        </p>
-        <input type="button" class="button smallest" id="combiner-save-button" value="[`Save`]" style="display:none">
+        <blockquote>
+            <p>
+                <label>
+                    <span class="wa-radio">
+                        <input type="radio" name="combiner" value="max"{if $combiner != 'sum'} checked{/if}>
+                        <span></span>
+                    </span>
+                    [`maximum of order-related discounts calculated after applying of order items’ individual maximum discounts`]
+                </label>
+            </p>
+            <p>
+                <label>
+                    <span class="wa-radio">
+                        <input type="radio" name="combiner" value="sum"{if $combiner == 'sum'} checked{/if}>
+                        <span></span>
+                    </span>
+                    [`all discounts for entire order and for order items`]
+                </label>
+            </p>
+            <input type="button" class="button smaller" id="combiner-save-button" value="[`Save`]" style="display:none">
+        </blockquote>
     </div>
 
-    <div class="hr"></div>
     <div class="box custom-px-20 small">
         <p class="custom-mb-12">[`How to save discount calculation description:`]</p>
-        <p class="custom-my-12">
-            <label>
-                <span class="wa-radio">
-                    <input type="radio" name="discount_description" value="1" {if $discount_description}checked{/if}>
-                    <span></span>
-                </span>
-                [`for each product`]
-            </label>
-        </p>
-        <p class="custom-my-12">
-            <label>
-                <span class="wa-radio">
-                    <input type="radio" name="discount_description" value="0" {if !$discount_description}checked{/if}>
-                    <span></span>
-                </span>
-                [`for entire order`]
-            </label>
-        </p>
-        <p class="gray custom-my-8">[`Depending on your store setup, different levels of discount description detail may be useful.`]</p>
-        <input type="button" class="button smallest" id="discount-desc-save-button" value="[`Save`]" style="display:none">
+        <blockquote>
+            <p>
+                <label>
+                    <span class="wa-radio">
+                        <input type="radio" name="discount_description" value="1" {if $discount_description}checked{/if}>
+                        <span></span>
+                    </span>
+                    [`for each product`]
+                </label>
+            </p>
+            <p>
+                <label>
+                    <span class="wa-radio">
+                        <input type="radio" name="discount_description" value="0" {if !$discount_description}checked{/if}>
+                        <span></span>
+                    </span>
+                    [`for entire order`]
+                </label>
+            </p>
+            <input type="button" class="button smaller" id="discount-desc-save-button" value="[`Save`]" style="display:none">
+        </blockquote>
     </div>
 
-    <div class="hr"></div>
     <div class="box custom-px-20">
         <div class="hint">
             {sprintf_wp("Rounding of fractional discount values can be set up in %scurrency settings%s.", "<a href=\"`$wa_app_url`?action=settings#/currencies/\">", '</a>')}

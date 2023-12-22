@@ -38,9 +38,9 @@ class shopProductImageRestoreController extends waJsonController
             $paths[] = $backup_image_path;
             if (!waFiles::move($original_image_path, $image_path)) {
                 if (!waFiles::move($backup_image_path, $image_path)) {
-                    throw new waException("Error while restore. Current file corupted but backuped" );
+                    throw new waException("Error while restoring. Current file is corrupted but has been backed up.");
                 }
-                throw new waException("Error while restore. Operation canceled");
+                throw new waException("Error while restore. Operation canceled.");
             }
 
             $data = $this->getData($image_path);

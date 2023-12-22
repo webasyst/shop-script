@@ -129,7 +129,7 @@
                                 <div class="s-checkbox-list">
                                     <label class="s-checkbox-wrapper">
                                         <span class="wa-checkbox">
-                                            <input class="js-visibility-field" type="checkbox" name="feature[visible_in_frontend]" value="1" {if !empty($feature.visible_in_frontend)}checked{/if}>
+                                            <input class="js-visibility-field" type="checkbox" name="feature[visible_in_frontend]" value="1" {if !empty($feature.visible_in_frontend)}checked{/if} data-unchecked>
                                             <span>
                                                 <span class="icon">
                                                     <i class="fas fa-check"></i>
@@ -145,7 +145,7 @@
                                         <label class="s-checkbox-wrapper">
                                             <span class="wa-checkbox">
                                                 {if $can_disable_sku}
-                                                <input class="js-available-field" type="checkbox" name="feature[available_for_sku]" value="1" {if !empty($feature.available_for_sku)}checked{/if}>
+                                                <input class="js-available-field" type="checkbox" name="feature[available_for_sku]" value="1" {if !empty($feature.available_for_sku)}checked{/if} data-unchecked>
                                                 {else}
                                                 <input type="checkbox" checked disabled>
                                                 {/if}

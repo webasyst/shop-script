@@ -8,7 +8,7 @@
     <div class="box s-coupon-border">
         <div class="flexbox middle custom-mb-16">
             <h1 class="custom-mb-0">
-                <span{if $coupon.id && !$is_enabled} class="gray strike"{/if}>{$coupon.code|escape}</span>
+                <span class="{if $coupon.id && !$is_enabled}gray strike {/if}js-coupon-code">{$coupon.code|escape}</span>
                 {if $coupon.id && !$is_enabled}<span class="hint custom-ml-8">[`Unavailable`]</span>{/if}
             </h1>
             {if $formatted_value}

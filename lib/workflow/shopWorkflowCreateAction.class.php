@@ -672,7 +672,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                             'order_id'        => $data['order_id'],
                             'contact_id'      => $order['contact_id'],
                             'action_id'       => '',
-                            'text'            => '<i class="icon16 email"></i> '.$log,
+                            'text'            => '<i class="icon16 email fas fa-envelope text-gray custom-mr-4"></i>'.$log,
                             'before_state_id' => $data['after_state_id'],
                             'after_state_id'  => $data['after_state_id'],
                         ));

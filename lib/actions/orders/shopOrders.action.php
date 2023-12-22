@@ -145,7 +145,24 @@ class shopOrdersAction extends shopOrderListAction {
             'state_transitions'    => $state_transitions,
             'last_update_datetime' => $this->getLastUpdateDatetime($orders),
             'total_processing'     => $total_processing,
+            'show_mobile_ad'       => $this->shouldShowMobileAd(),
+            'is_orders_empty'      => !($this->model->countAll()),
         ]);
+    }
+
+    protected function shouldShowMobileAd()
+    {
+        $hide_mobile_ad_till = wa()->getUser()->getSettings('shop', 'hide_mobile_ad_till', null);
+        if ($hide_mobile_ad_till && strtotime($hide_mobile_ad_till) > time()) {
+            return false;
+        }
+
+        $api_tokens_model = new waApiTokensModel();
+        $count = $api_tokens_model->countByField([
+            'client_id' => ['com.webasyst.shopscript', 'com.webasyst.shopscript.android'],
+        ]);
+
+        return $count <= 0;
     }
 
     protected function getLastUpdateDatetime($orders)

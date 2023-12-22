@@ -1,6 +1,6 @@
 <?php
 /**
- * API couriers editor accessable via Orders sidebar.
+ * API couriers editor accessible via Orders sidebar.
  */
 class shopSettingsCouriersAction extends waViewAction
 {

@@ -501,6 +501,13 @@
              * Add validation for this case?.. Or not ¯\_(ツ)_/¯
              */
 
+            setTimeout(() => {
+                const $region_select = form.find('select[name="contact_info.address[region]"]');
+                const val = $region_select.data('val');
+                if (val) {
+                    $region_select.find('option[value="' + val + '"]').attr('selected', true);
+                }
+            }, 500)
         })($('#{$container_id}'));
 
         function makeChoosePeriodControl(el) {

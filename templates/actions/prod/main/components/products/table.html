@@ -113,13 +113,13 @@
 {/capture}
 {$_components["component-products-table"] = $_component_products_table|strip}
 
-{capture assign="_component_products_table_mass_selecttion"}
-    <div class="s-check-all-section" v-bind:class="{ 'is-disabled' : states.is_disabled }">
+{capture assign="_component_products_table_mass_selection"}
+    <div v-if="products_length" class="s-check-all-section" v-bind:class="{ 'is-disabled' : states.is_disabled }">
         <div class="s-visible">
             <component-checkbox v-if="selected_all_products" v-bind:model-value="true" v-on:change="checkAll"></component-checkbox>
             <component-checkbox v-else v-on:change="checkAll"></component-checkbox>
         </div>
-        <div class="s-hidden">
+        <div v-if="products_length !== {$products_total_count}"  class="s-hidden">
             <div class="s-hidden-menu">
                 <div class="s-options-list">
                     <div class="s-option">
@@ -152,7 +152,7 @@
         </div>
     </div>
 {/capture}
-{$_components["component-products-table-mass-selection"] = $_component_products_table_mass_selecttion|strip}
+{$_components["component-products-table-mass-selection"] = $_component_products_table_mass_selection|strip}
 
 {* Компонент: заголовок колонки *}
 {include file="./table.header.html" scope="parent" inline}

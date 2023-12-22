@@ -23,7 +23,7 @@
                     <li class="col w6 wa-flex justify-content-between">
                         <span class="name">{$_feature.name|escape}</span>
                         <span class="feature-dot-divider wa-flex-fill"></span>
-                        <span class="value" itemprop="{$_itemprop|escape}">
+                        <span class="value"{if !empty($_itemprop)} itemprop="{$_itemprop|escape}"{/if}>
                         {if is_array($_feature_value)}
                             {if $_feature.type == 'color'}
                                 {implode('<br>', $_feature_value)}
@@ -106,7 +106,7 @@
                                 <rect x="12" y="16" width="13" height="3" rx="1" transform="rotate(-90 12 16)" fill="currentColor"/>
                             </svg>
                         </a>
-                        <a id="compare-link" class="wa-ml-8" {if count($compare) lt 2}style="display:none"{/if} rel="nofollow" href="{$wa->getUrl('/frontend/compare/', ['id' => implode(',', $compare) ])}" class="bold">[`Compare`] <span class="count">{count($compare)}</span></a>
+                        <a id="compare-link" class="bold wa-ml-8" {if count($compare) lt 2}style="display:none"{/if} rel="nofollow" href="{$wa->getUrl('/frontend/compare', ['id' => implode(',', $compare) ])}">[`Compare`] <span class="count">{count($compare)}</span></a>
                     </div>
                 </li>
             {/if}

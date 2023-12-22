@@ -1,23 +1,23 @@
 {capture assign="_component_table_filters_tags"}
 <div class="s-filter-tags-section s-pane-item dropbox">
     <div class="s-dropbox-toggle js-dropbox-toggle" v-bind:class="{ 'text-blue' : has_value }">
-        <span class="s-icon icon shift-0"><i class="fas fa-tag"></i></span>
+        <span class="s-icon icon shift-0 text-light-gray"><i class="fas fa-tag"></i></span>
         <span class="s-name is-adaptive">[`Tags`]</span>
     </div>
     <div class="dropbox-body right">
         <div class="s-dropbox-content-section">
             <div class="s-section-header">
                 <component-table-filters-search
-                    v-if="tags.length"
+                    v-if="items.length"
                     class="s-search-form"
                     v-model="search_string"
                     v-bind:placeholder="'{_w("Find tags")|escape}'"></component-table-filters-search>
                 <span v-else>[`You have no tags`]</span>
             </div>
-            <div class="s-section-body" v-if="tags.length">
+            <div class="s-section-body" v-if="items.length">
                 <div class="s-tags-list">
-                    <template v-for="tag in items">
-                        <div class="s-tag-wrapper flexbox space-8">
+                    <template v-for="tag of items">
+                        <div v-show="!tag.is_hide" class="s-tag-wrapper flexbox space-8">
                             <div class="s-checkbox-wrapper">
                                 <template v-if="tag.is_locked">
                                     <component-checkbox v-bind:model-value="true" v-bind:disabled="true"></component-checkbox>
@@ -28,22 +28,22 @@
                             </div>
                             <div class="s-name-wrapper wide">
                                 <span class="s-name"
-                                      v-text="tag.name"
-                                      v-bind:class="{ 'cursor-pointer' : !tag.is_locked }"
-                                      v-on:click="changeTag(tag)"></span>
+                                    v-text="tag.name"
+                                    v-bind:class="{ 'cursor-pointer' : !tag.is_locked }"
+                                    v-on:click="changeTag(tag)"></span>
                             </div>
                         </div>
                     </template>
-                    <div class="s-tag-wrapper" v-if="!items.length">[`Tags not found.`]</div>
+                    <div class="s-tag-wrapper" v-if="empty_search_result">[`Tags not found.`]</div>
                 </div>
             </div>
-            <div class="s-section-footer" v-if="tags.length">
+            <div class="s-section-footer" v-if="items.length">
                 <button class="button small blue" type="button"
-                        v-bind:disabled="!states.is_changed || !has_value"
-                        v-on:click="save">[`Apply`]</button>
+                    v-bind:disabled="!states.is_changed || !has_value"
+                    v-on:click="save">[`Apply`]</button>
                 <button class="button small outlined" type="button"
-                        v-bind:disabled="!has_value"
-                        v-on:click="reset">[`Reset filter`]</button>
+                    v-bind:disabled="!has_value"
+                    v-on:click="reset">[`Reset filter`]</button>
             </div>
         </div>
     </div>

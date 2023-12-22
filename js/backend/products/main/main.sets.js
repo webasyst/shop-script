@@ -802,7 +802,11 @@
                                 localStorage.setItem(self.storage_name, data);
                             }
                         }
-                    }
+                    },
+                    "component-empty-content": {
+                        props: ["type"],
+                        template: that.components["component-empty-content"],
+                    },
                 },
                 methods: {
                     addSet: function() {

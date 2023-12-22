@@ -20,6 +20,9 @@ class shopRangeValue implements ArrayAccess
     private $unit;
     private $type;
 
+    private $begin_base_unit;
+    private $end_base_unit;
+
     /**
      * @param array $row
      */
@@ -135,7 +138,10 @@ class shopRangeValue implements ArrayAccess
 
     public function __set($field, $value)
     {
-        return $this->$field = $value;
+        if (property_exists($this, $field)) {
+            $this->$field = $value;
+        }
+        return $value;
     }
 
     public function __get($field)

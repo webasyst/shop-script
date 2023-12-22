@@ -2,82 +2,13 @@
 {literal}
     <div class="vue-component-mass-actions">
         <component-mass-actions-aside
-            v-if="prop_type === 'aside'"
             v-bind:actions="actions"
             v-bind:products="products"
             v-on:call_action="callAction"></component-mass-actions-aside>
-        <component-mass-actions-footer
-            v-else
-            v-bind:actions="actions"
-            v-bind:products="products"
-            v-on:call_action="callAction"></component-mass-actions-footer>
     </div>
 {/literal}
 {/capture}
 {$_components["component-mass-actions"] = $_component_mass_actions|strip}
-
-{capture assign="_component_mass_actions_footer"}
-{literal}
-    <div class="vue-mass-actions-footer">
-        <div class="s-section-body">
-            <div class="flexbox space-24 nowrap">
-                <div class="s-checkbox-wrapper" v-on:click.prevent="close">
-                    <component-checkbox v-bind:model-value="true"></component-checkbox>
-                </div>
-                <div class="s-counter-wrapper">
-                    <span class="s-label">[`Selected`]</span>
-                    <span class="s-count" v-text="products_length"></span>
-                </div>
-                <div class="s-actions-list js-actions-list flexbox space-12">
-                    <template v-for="action in pinned_actions">
-                        <div class="s-action bold link"
-                             v-if="action.states.visible"
-                             v-bind:key="action.id"
-                             v-on:click.prevent="callAction(action)">
-                            <span class="s-icon icon shift-inherit" v-if="action.states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
-                            <span class="s-icon icon shift-inherit" v-else-if="action.icon" v-html="action.icon"></span>
-                            <span class="s-name" v-text="action.name"></span>
-                        </div>
-                    </template>
-                </div>
-                <div class="s-more-actions">
-
-                    <div class="dropdown">
-                        <div class="dropdown-toggle bold link cursor-pointer">
-                            <span class="s-icon"><i class="fas fa-ellipsis-h"></i></span>
-                            <span class="s-name">[`All actions`]</span>
-                        </div>
-                        <div class="dropdown-body">
-                            <template v-for="group in dropdown_actions">
-                                <div class="dropdown-group" v-if="group.actions.length">
-                                    <div class="s-group-name" v-text="group.name"></div>
-                                    <template v-for="action in group.actions">
-                                        <div class="dropdown-item" v-on:click.prevent="callAction(action)">
-                                            <span class="s-icon icon shift-inherit" v-if="action.states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
-                                            <span class="s-icon icon shift-inherit" v-else-if="action.icon" v-html="action.icon"></span>
-                                            <span class="s-name" v-text="action.name"></span>
-                                        </div>
-                                    </template>
-                                </div>
-                            </template>
-
-                            <div class="dropdown-item s-lock-actions cursor-pointer" v-on:click.prevent="pin">
-                                <span class="s-name link">[`Pin the toolbar`]</span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="s-action-close cursor-pointer"
-                     v-on:click.prevent="close">
-                    <span class="s-icon icon size-16"><i class="fas fa-times"></i></span>
-                </div>
-            </div>
-        </div>
-    </div>
-{/literal}
-{/capture}
-{$_components["component-mass-actions-footer"] = $_component_mass_actions_footer|strip}
 
 {capture assign="_component_mass_actions_aside"}
 {literal}
@@ -105,24 +36,21 @@
         <div class="s-section-body">
             <div class="s-actions-list js-actions-list">
                 <template v-for="group in actions">
-                    <div class="s-group-wrapper" v-if="group.actions.length">
-                        <div class="s-group-name" v-text="group.name"></div>
-                        <template v-for="action in group.actions">
-                            <div class="s-action-wrapper">
-                                <div class="s-action" v-on:click.prevent="callAction(action)">
-                                    <span class="s-icon icon shift-inherit" v-if="action.states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
-                                    <span class="s-icon icon shift-inherit" v-else-if="action.icon" v-html="action.icon"></span>
-                                    <span class="s-name" v-text="action.name"></span>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
+                    <section v-if="group.actions.length" class="s-group-wrapper">
+                        <h1 class="s-group-heading heading" v-text="group.name"></h1>
+                        <ul class="menu custom-mt-0">
+                            <template v-for="action in group.actions">
+                                <li class="s-action-wrapper">
+                                    <a class="s-action" v-on:click.prevent="callAction(action)">
+                                        <span class="icon" v-if="action.states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
+                                        <span :class="['icon', `icon-${action.id}`]" v-else-if="action.icon" v-html="action.icon"></span>
+                                        <span v-text="action.name"></span>
+                                    </a>
+                                </li>
+                            </template>
+                        </ul>
+                    </section>
                 </template>
-                <div class="s-action-wrapper s-action-unpin">
-                    <div class="s-action link" v-on:click.prevent="unpin">
-                        <span class="s-name">[`Unpin the toolbar`]</span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

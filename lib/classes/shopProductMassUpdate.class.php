@@ -14,7 +14,7 @@ class shopProductMassUpdate
      * $raw_skus is a list of arrays containing data to update in `shop_product_skus` DB table.
      * 'id' is required in each array, everything else is optional. Some fields like
      * 'product_id' and 'virtual' have special meaning and will be ignored.
-     * 'count' and 'stock' have special behaviour described below.
+     * 'count' and 'stock' have special behavior described below.
      *
      * $raw_skus[i]['stock'] allows to update per-stock counts of a SKU.
      * It must be an array [stock_id => value]. Value may be an integer to set finite supply,
@@ -23,7 +23,7 @@ class shopProductMassUpdate
      *
      * Only one of $raw_skus[i]['stock'] and $raw_skus[i]['count'] should be specified.
      * If 'stock' is specified, 'count' will be set automatically according to stock counts.
-     * Otherwise, when 'count' is specified, all by-stock coutns for the SKU will be deleted
+     * Otherwise, when 'count' is specified, all by-stock counts for the SKU will be deleted
      * and only a single total SKU count saved.
      * When neither 'stock' nor 'count' is specified, SKU counts will not change.
      *
