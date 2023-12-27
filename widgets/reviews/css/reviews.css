@@ -115,6 +115,7 @@
   background: -ms-linear-gradient(top, rgba(255,255,255,0) 0%, #fff 50%);
   background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, #fff 50%);
   transition: opacity 0.5s;
+  z-index: 10;
 }
 .widget-1x1 .s-reviews-widget .sr-review {
   margin-top: 0;
