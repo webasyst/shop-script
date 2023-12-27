@@ -12,13 +12,21 @@
         <a href="https://support.webasyst.ru/shop-script/276/shop-script-yandexmarket/" target="_blank" class="gray">Документация пользователя&nbsp;<i class="fas fa-external-link-alt fa-xs"></i></a>
     </p>
 
-    <ul class="tabs custom-mb-16">
+    <div class="alert warning">
+        <p>
+            {* TODO: DEPRECATE PERMANENTlY *}
+            <strong>Раздел упразднен в Shop-Script 10.0.</strong>
+            Используйте функциональность экспорта товаров в формате YML по ссылке выше или новые плагины интеграции с «Яндекс.Маркетом», доступные в «Инсталлере».
+        </p>
+    </div>
+
+    <ul class="tabs custom-mb-16 opacity-50">
         <li class="selected"><a href="#/yandexmarket/" data-alias="campaigns">Кампании на Маркете</a></li>
         <li><a href="#/yandexmarket/main/" data-alias="main">Общие настройки</a></li>
         <li><a href="#/yandexmarket/api/">Авторизация партнерского API</a></li>
     </ul>
 
-    <form class="tab-content" action="?module=plugins&id={$plugin_id}&action=save" method="post" id="plugins-settings-form" enctype="multipart/form-data"
+    <form class="tab-content opacity-50" action="?module=plugins&id={$plugin_id}&action=save" method="post" id="plugins-settings-form" enctype="multipart/form-data"
           target="plugins-settings-iframe">
         <div class="tab-content fields form" data-tab="_main_">
           <div class="fields-group">
@@ -58,7 +66,7 @@
     </form>
     <iframe style="display:none" name="plugins-settings-iframe" id="plugins-settings-iframe"></iframe>
 
-    <div class="tab-content fields form" style="box-sizing: border-box;" data-tab="_campaigns_" data-url="?plugin=yandexmarket&module=settings&action=campaigns">
+    <div class="opacity-50 tab-content fields form" style="box-sizing: border-box;" data-tab="_campaigns_" data-url="?plugin=yandexmarket&module=settings&action=campaigns">
       <div class="fields-group">
         {include file="./SettingsCampaigns.html"}
       </div>
