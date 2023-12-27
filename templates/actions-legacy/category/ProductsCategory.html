@@ -423,7 +423,7 @@
                                 <div class="value no-shift">
                                     <select name="sort_products" class="js-sort-type">
                                         {if $settings.type == shopCategoryModel::TYPE_STATIC}
-                                            <option value="" {if empty($settings.sort_products)}selected="selected"{/if} {if $settings.include_sub_categories|default:'0'}disabled="disabled"{/if}>[`Manual (as defined in the backend)`]</option>
+                                            <option value="" {if empty($settings.sort_products)}selected="selected"{/if} {if $settings.include_sub_categories|default:'0'}disabled="disabled"{/if}>[`Manual`]</option>
                                         {/if}
                                         <option value="name ASC" {if $settings.sort_products == 'name ASC'}selected="selected"{/if}>[`By name`]</option>
                                         <option value="price DESC" {if $settings.sort_products == 'price DESC'}selected="selected"{/if}>[`Most expensive`]</option>
@@ -445,7 +445,7 @@
                                         <input type="checkbox" name="enable_sorting" {if $settings.enable_sorting}checked="checked"{/if} value="1"> [`Customers can select preferable product sort order`]
                                     </label>
                                     <br>
-                                    <span class="hint">{sprintf_wp('Sorting option “%s” is available only when the “%s” setting is disabled.', _w('Manual (as defined in the backend)'), _w('Include products from subcategories'))}</span>
+                                    <span class="hint">{sprintf_wp('Sorting option “%s” is available only when the “%s” setting is disabled.', _w('Manual'), _w('Include products from subcategories'))}</span>
                                 </div>
                             </div>
                         </div>
@@ -684,4 +684,3 @@
         });
     })(jQuery);
 </script>
-

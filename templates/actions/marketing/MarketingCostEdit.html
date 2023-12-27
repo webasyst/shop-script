@@ -43,35 +43,37 @@
             <div class="field">
                 <div class="name">[`Channel`]</div>
                 <div class="value" id="channel_controls">
+                    <div class="flexbox wrap space-8">
                     <div class="wa-select">
-                    <select class="channel-selector" name="channel_selector">
-                        <option></option>
-                        {if !empty($promos)}
-                            <option disabled>--- [`Promos`] ---</option>
-                            {foreach $promos as $p}
-                                <option value="{$p.name|escape}" data-channel-type="promo" data-color="{$p.color}"{if $expense.type == 'promo' && $expense.name == $p.name} selected{/if}>{$p.label|escape}</option>
+                        <select class="channel-selector" name="channel_selector">
+                            <option></option>
+                            {if !empty($promos)}
+                                <option disabled>--- [`Promos`] ---</option>
+                                {foreach $promos as $p}
+                                    <option value="{$p.name|escape}" data-channel-type="promo" data-color="{$p.color}"{if $expense.type == 'promo' && $expense.name == $p.name} selected{/if}>{$p.label|escape}</option>
+                                {/foreach}
+                            {/if}
+                            <option disabled>--- [`Sources`] ---</option>
+                            {foreach $sources as $ch}
+                                <option value="{$ch.name|escape}" data-channel-type="source" data-color="{$ch.color}"{if $expense.type == 'source' && $expense.name == $ch.name} selected{/if}>{$ch.label|escape}</option>
                             {/foreach}
-                        {/if}
-                        <option disabled>--- [`Sources`] ---</option>
-                        {foreach $sources as $ch}
-                            <option value="{$ch.name|escape}" data-channel-type="source" data-color="{$ch.color}"{if $expense.type == 'source' && $expense.name == $ch.name} selected{/if}>{$ch.label|escape}</option>
-                        {/foreach}
-                        <option value="" data-channel-type="source"{if $expense.type == 'source' && empty($expense.name)} selected{/if}>[`Enter domain name...`]</option>
-                        <option disabled>--- [`Campaigns`] ---</option>
-                        {foreach $campaigns as $ch}
-                            <option value="{$ch.name|escape}" data-channel-type="campaign" data-color="{$ch.color}"{if $expense.type == 'campaign' && $expense.name == $ch.name} selected{/if}>{$ch.label|escape}</option>
-                        {/foreach}
-                        <option value="" data-channel-type="campaign"{if $expense.type == 'campaign' && empty($expense.name)} selected{/if}>[`Enter UTM campaign ID...`]</option>
-                    </select>
+                            <option value="" data-channel-type="source"{if $expense.type == 'source' && empty($expense.name)} selected{/if}>[`Enter domain name...`]</option>
+                            <option disabled>--- [`Campaigns`] ---</option>
+                            {foreach $campaigns as $ch}
+                                <option value="{$ch.name|escape}" data-channel-type="campaign" data-color="{$ch.color}"{if $expense.type == 'campaign' && $expense.name == $ch.name} selected{/if}>{$ch.label|escape}</option>
+                            {/foreach}
+                            <option value="" data-channel-type="campaign"{if $expense.type == 'campaign' && empty($expense.name)} selected{/if}>[`Enter UTM campaign ID...`]</option>
+                        </select>
                     </div>
                     <input type="hidden" name="expense[color]" value="{$expense.color|escape}">
                     <input type="hidden" name="expense[type]" value="{$expense.type|escape}">
                     <input type="text" name="expense[name]" value="{$expense.name|escape}" style="display:none">
-                    <span class="js-color s-color-picker large">
+                    <span class="js-color s-color-picker large" style="color: #ff6c00;">
                         <i class="fas fa-circle"></i>
                     </span>
 
                     <div class="js-colorpicker" style="display:none"></div>
+                    </div>
                 </div>
             </div>
             <div class="field">

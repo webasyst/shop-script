@@ -18,26 +18,35 @@
                     {%#o.order.total_str%}
                 </span>
             </p>
-            <p class="custom-mt-0 custom-mb-8" style="line-height: 1.2;">
-                <a href="?action=orders#/order/{%=o.order.id%}/" class="semibold custom-mr-4">{%=o.order.id_str%}</a>
-                <span class="opacity-80">{% if (o.order.contact.name) { %}{%=o.order.contact.name%}{% } %}</span>
-            </p>
-            <p class="hint custom-mt-4">
-                [`Created`] {%=o.order.create_datetime_str%}
-                {%if (o.order.paid_date_str) { %}
-                <br>[`Paid`] {%=o.order.paid_datetime_str %}
-                {% } %}
-            </p>
+            <div class="flexbox space-4">
+                <div class="wide">
+                    <p class="custom-mt-0 custom-mb-4" style="line-height: 1.2;">
+                        <a href="?action=orders#/order/{%=o.order.id%}/" class="semibold custom-mr-4">{%=o.order.id_str%}</a>
+                        <span class="opacity-80 break-words">{% if (o.order.contact.name) { %}{%=o.order.contact.name%}{% } %}</span>
+                    </p>
+                    <p class="hint custom-mt-4">
+                        <span>
+                        [`Created`] {%=o.order.create_datetime_str%}
+                        {%if (o.order.paid_date_str) { %}
+                        <br>[`Paid`] {%=o.order.paid_datetime_str %}
+                        {% } %}
+                        </span>
+                    </p>
+                </div>
+                <span class="align-right">
+                    {%if (o.order.shipping_logo) { %}
+                    <img style="max-height: 24px;vertical-align: text-top;" src="{%#o.order.shipping_logo%}" alt="{%#o.order.shipping_name.replace(/(<([^>]+)>)/gi, '')%}" title="{%#o.order.shipping_name.replace(/(<([^>]+)>)/gi, '')%}">
+                    {% } %}
+                    {%if (o.order.payment_logo) { %}
+                    <img class="custom-ml-4" style="max-height: 24px;vertical-align: text-top;" src="{%#o.order.payment_logo%}" alt="{%#o.order.payment_name.replace(/(<([^>]+)>)/gi, '')%}" title="{%#o.order.payment_name.replace(/(<([^>]+)>)/gi, '')%}">
+                    {% } %}
+                </span>
+            </div>
         </div>
     </div>
 
-    <div class="flexbox vertical s-kanban-item-body wide bordered-top custom-mt-8 custom-pt-12 small gray">
-        <span><i class="fas fa-truck custom-mr-4"></i> {%#o.order.shipping_name%}</span>
-        {%if (o.order.courier_name) { %}
-        <span><i class="fas fa-walking custom-mr-4"></i> {%=o.order.courier_name%} {%=o.order.shipping_interval || '' %}</span>
-        {% } %}
-        <span><i class="fas fa-credit-card custom-mr-4"></i> {%#o.order.payment_name%}</span>
+    {/literal}{*{literal}<div class="flexbox vertical s-kanban-item-body wide bordered-top custom-mt-8 custom-pt-12 small gray">
         <!-- TODO add plugin hook here -->
-    </div>
+    </div>{/literal}*}{literal}
 </div>
 {/literal}

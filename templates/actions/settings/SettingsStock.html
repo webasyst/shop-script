@@ -389,8 +389,9 @@
                             <tr class="s-stock-rule disabled">
                                 <td class="min-width"></td>
                                 <td>[`Storefront`] {waIdna::dec($row.storefront)|escape}</td>
-                                <td class="min-width"><i class="fas fa-arrows-alt"></i></td>
-                                <td>{$row.stock_name|escape}</td>
+                                <td>
+                                  {$row.stock_name|escape} <a href="?action=storefronts"><i class="fas fa-cog text-gray"></i></a>
+                                </td>
                                 <td class="min-width"></td>
                             </tr>
                         {/foreach}

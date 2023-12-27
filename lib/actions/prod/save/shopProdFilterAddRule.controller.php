@@ -25,9 +25,12 @@ class shopProdFilterAddRuleController extends waJsonController
         }
 
         $open_interval = null;
-        $types = shopFilter::getAllTypes(true);
+        $filter_options = shopFilter::getAllTypes();
         $filter_model = new shopFilterModel();
         $filter = $filter_model->getById($filter_id);
+        shopFilter::shopProdFiltersEvent(ref(null), $filter_options);
+        $types = shopFilter::flattenTypes($filter_options);
+
         $this->validateData($types, $filter, $rule_type, $rule_params, $open_interval);
         if (!$this->errors) {
             $this->filter_rules_model = new shopFilterRulesModel();

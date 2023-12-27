@@ -26,7 +26,7 @@
             {$plugin_names[$info.id] = $info.name|default:$info.id|escape}
             <li>
                 <a href="#/{$info.id}{if isset($info.default_profile)}:{$info.default_profile}{/if}/">
-                    {if empty($info.img)}<i class="fas fa-{$info.icon|default:'plugins'}"></i>{else}<i class="icon" style="background: url('{$wa_url}{$info.img|escape}');"></i>{/if}
+                    {if empty($info.img)}<i class="fas fa-{$info.icon|default:'plugins'}"></i>{else}<i class="icon" style="background: url('{$wa_url}{$info.img|escape}'); background-size: 100%;"></i>{/if}
                     <span>
                         {$info.name|default:$info.id|escape}<br>
                         <span class="hint">{$info.description|default:''|escape}</span>

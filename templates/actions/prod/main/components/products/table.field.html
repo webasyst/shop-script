@@ -23,7 +23,7 @@
         <template v-else-if="column.column_type === 'image_crop_small'">
             <div class="vue-column-type-image">
                 <div class="s-photo-wrapper">
-                    <a v-bind:href="'{$wa_app_url}' + product_url" @mouseover="states.is_hovered=true" @mouseleave="states.is_hovered=false" class="s-photo" v-bind:class="{ 'has-many-photos' : (product.photos.length > 1), 'has-photo' : !!product_photo, 'is-empty' : !product_photo }">
+                    <a v-bind:href="'{$wa_app_url}' + product_url" @mouseover="states.is_hovered=true" @mouseleave="states.is_hovered=false" class="s-photo" v-bind:class="{ 'has-photo' : !!product_photo, 'is-empty' : !product_photo }">
                         <template v-if="product_photo">
                             <div class="s-image" v-bind:style="{ 'background-image' : 'url('+ product_photo.url +')' }"></div>
                         </template>
@@ -117,7 +117,7 @@
         {* SKU_TYPE *}
         <template v-else-if="column.column_type === 'sku_type'">
             <div class="vue-render-type-text">
-                <span v-if="column_data.value === '1'">[`SKUs`]</span>
+                <span v-if="column_data.value != '1'">[`SKUs`]</span>
                 <span v-else>[`Features`]</span>
             </div>
         </template>

@@ -13,7 +13,7 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
     {
         $result = [];
 
-        // When error occured in previous step, process() will not run.
+        // When error occurred in previous step, process() will not run.
         // But we still need to do certain stuff.
         if (!empty($data['error_step_id'])) {
             // Render template

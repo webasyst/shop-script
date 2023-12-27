@@ -1,6 +1,6 @@
 <?php
 
-class shopWorkflowMessageAction extends shopWorkflowAction
+class shopWorkflowMessageAction extends shopWorkflowAction implements shopWorkflowActionApiInterface
 {
     public function getDefaultOptions()
     {
@@ -13,6 +13,10 @@ class shopWorkflowMessageAction extends shopWorkflowAction
     {
         if ($order === null) {
             return true;
+        }
+
+        if (!($order instanceof shopOrder) && (empty($order['contact']) || !($order['contact'] instanceof waContact))) {
+            $order = new shopOrder($order['id']);
         }
 
         if (!empty($order['contact'])) {
@@ -115,11 +119,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         }
 
         $notification_model = new shopNotificationModel();
-        $sql = "SELECT DISTINCT ns.source, n.transport, np.value FROM shop_notification n
-                JOIN shop_notification_params np ON n.id = np.notification_id
-                JOIN shop_notification_sources ns ON n.id = ns.notification_id
-                WHERE np.name = 'from'";
-        $rows = $notification_model->query($sql)->fetchAll();
+        $rows = $notification_model->getAllTransportSources();
 
         $transport = '';
 
@@ -237,7 +237,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction
         }
 
         $transport = waRequest::post('transport');
-        $from = waRequest::post('sender', $this->getConfig()->getGeneralSettings('email'), 'string');
+        $from = waRequest::post('sender', $transport == 'email' ? $this->getConfig()->getGeneralSettings('email') : null, 'string');
         $text = waRequest::post('text');
         $success = false;
         if ($transport == 'email') {
@@ -247,13 +247,13 @@ class shopWorkflowMessageAction extends shopWorkflowAction
             $message->setTo(array(
                 $email => $contact->getName()
             ));
-            $text = '<i class="icon16 email float-right" title="'.htmlspecialchars($email, ENT_QUOTES, 'utf-8').'"></i> '.nl2br(htmlspecialchars($text, ENT_QUOTES, 'utf-8'));
+            $text = '<i class="icon16 email fas fa-envelope text-gray float-right custom-mr-4" title="'.htmlspecialchars($email, ENT_QUOTES, 'utf-8').'"></i> '.nl2br(htmlspecialchars($text, ENT_QUOTES, 'utf-8'));
             $success = $message->send();
         } elseif ($transport == 'sms') {
             $sms = new waSMS();
             $phone = $contact->get('phone', 'default');
             $success = $sms->send($phone, $text, $from ? $from : null);
-            $text = '<i class="icon16 mobile float-right" title="'.htmlspecialchars($phone, ENT_QUOTES, 'utf-8').'"></i> '.nl2br(htmlspecialchars($text, ENT_QUOTES, 'utf-8'));
+            $text = '<i class="icon16 mobile fas fa-mobile-alt text-gray float-right custom-mr-4" title="'.htmlspecialchars($phone, ENT_QUOTES, 'utf-8').'"></i> '.nl2br(htmlspecialchars($text, ENT_QUOTES, 'utf-8'));
         }
 
         if ($success) {
@@ -271,5 +271,68 @@ class shopWorkflowMessageAction extends shopWorkflowAction
     public function getButton()
     {
         return parent::getButton('data-container="#workflow-content"');
+    }
+
+    public function getApiActionOptions($order_id)
+    {
+        $order = $this->order_model->getById($order_id);
+        if (!$order) {
+            return [];
+        }
+
+        $contact = new waContact($order['contact_id']);
+        $source = ifset($order, 'params', 'storefront', '');
+        if ($source && $source != 'backend' && $source != 'all_sources') {
+            $source = trim($source, '/*').'/*';
+        }
+
+        $contact_email = $contact->get('email', 'default');
+        $contact_phone = $contact->get('phone', 'default');
+
+        $sms_config = [];
+        if ($contact_phone) {
+            $sms_config = wa()->getConfig()->getConfigFile('sms');
+        }
+
+        $notification_model = new shopNotificationModel();
+        $senders = [];
+        foreach ($notification_model->getAllTransportSources() as $row) {
+            if ($row['transport'] === 'sms') {
+                if (!$contact_phone) {
+                    continue;
+                }
+                unset($sms_config[$row['value']]);
+            } else {
+                if (!$contact_email) {
+                    continue;
+                }
+            }
+            $senders[] = [
+                'transport' => $row['transport'],
+                'source' => $row['source'],
+                'sender' => $row['value'],
+            ];
+        }
+
+        if ($contact_phone && $sms_config) {
+            foreach ($sms_config as $from => $options) {
+                if ($from === '*') {
+                    $from = null; // default (assigned by SMS sender plugin)
+                }
+                $senders[] = [
+                    'transport' => 'sms',
+                    'source' => null,
+                    'sender' => $from,
+                ];
+            }
+        }
+
+        return [
+            'contact_phone' => $contact_phone,
+            'contact_phone_formatted' => $contact->get('phone', 'default|value'),
+            'contact_email' => $contact_email,
+            'order_source' => $source,
+            'senders' => $senders,
+        ];
     }
 }

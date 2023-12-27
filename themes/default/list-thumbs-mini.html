@@ -19,6 +19,8 @@
                     {/if}
                 </div>
             </div>
+            <meta itemprop="name" content="{$p.name|escape}">
+            <meta itemprop="description" content="{$p.description|strip_tags:false|truncate:'100'}">
         </a>
 
         <div class="pricing wa-flex wa-flex-wrap justify-content-between align-items-center">
@@ -26,14 +28,14 @@
             {if $available && $p.compare_price > 0}
                 <span class="compare-at-price nowrap small"> {shop_currency_html($p.compare_price)}</span>
             {/if}
-            <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
-            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
         </div>
 
         {if $p.rating > 0}
             <span class="rating nowrap wa-mt-8">{$wa->shop->ratingHtml($p.rating, 16)}</span>
         {/if}
         <div itemprop="offers" class="offers wa-mt-auto wa-pt-8 wa-mt-8" itemscope itemtype="http://schema.org/Offer">
+            <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
             <a href="{$p.frontend_url}" title="{$p.name}">
                 <h5 class="wa-mb-20"><span itemprop="name">{$p.name}</span></h5>
             </a>
@@ -52,7 +54,7 @@
                         <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $_cart_url)}</span>
                     </form>
                 {/if}
-                <link itemprop="availability" href="http://schema.org/InStock" />
+                <link itemprop="availability" href="http://schema.org/InStock">
             {else}
                 <div class="out-of-stock">
                     <strong>
@@ -63,7 +65,7 @@
                         {/if}
                     </strong>
                 </div>
-                <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                <link itemprop="availability" href="http://schema.org/OutOfStock">
             {/if}
         </div>
     </li>

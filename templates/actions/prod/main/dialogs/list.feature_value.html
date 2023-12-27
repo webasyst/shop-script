@@ -13,9 +13,9 @@
         <div class="js-vue-section" style="visibility: hidden;">
             <div class="dialog-header">
                 <h3 class="s-title">[`Adding a filtering parameter`]</h3>
-                <p class="hint" style="margin-top: -.5rem;">[`Specify a value of this parameter to show only products with that value using a filter.`]</p>
+                <p class="hint" v-if="item_data.render_type !== 'custom'" style="margin-top: -.5rem;">[`Specify a value of this parameter to show only products with that value using a filter.`]</p>
                 <div class="s-details">
-                    <span class="s-label" v-if="item_data.display_type === 'feature'">[`Feature`]</span>
+                    <span class="s-label" v-if="item_data.display_type === 'feature' && item_data.render_type !== 'custom'">[`Feature`]</span>
                     <span class="s-label" v-if="item_data.display_type === 'product'">[`Product property`]</span>
                     <span class="s-label" v-if="item_data.display_type === 'sku'">[`SKU property`]</span>
                     <span class="s-label" v-if="item_data.display_type === 'dynamic'">[`Dynamic property`]</span>
@@ -25,7 +25,7 @@
             <div class="dialog-content">
 
                 <div class="s-item-section">
-                    {* BOOLEAN *}
+                    {* BOOLEAN (radio) *}
                     <template v-if="item_data.render_type === 'boolean'">
                         <div class="s-fields-wrapper wa-list space-12">
                             <template v-for="option in item_data.options">
@@ -44,7 +44,7 @@
                     <template v-else-if="item_data.render_type === 'range'">
                         <div class="s-fields-wrapper flexbox space-12">
                             <template v-for="(option, index) in item_data.options">
-                                <div class="s-field-wrapper with-divider" v-bind:class="{ 'is-price' : format === 'price' }">
+                                <div class="s-field-wrapper with-divider" v-bind:class="{ 'is-price' : format === 'price', 'custom-pl-4': index > 0 }">
                                     <component-input class="s-field small"
                                                      v-model="option.value"
                                                      v-bind:class="{ 'state-error': errors['value_error_' + index] }"
@@ -52,7 +52,7 @@
                                                      v-bind:format="format"></component-input>
                                     <span class="s-currency" v-if="item_data.currency" v-html="item_data.currency.sign_html"></span>
 
-                                    <div class="state-error" v-if="errors['value_error_' + index]">
+                                    <div class="state-error custom-mt-4" v-if="errors['value_error_' + index]">
                                         {_w("Invalid value")|escape}
                                         <span class="s-tooltip-icon" data-tooltip-id="price-error"><i class="fas fa-question-circle text-red"></i></span>
                                     </div>
@@ -101,12 +101,29 @@
                         </div>
                     </template>
 
+                    {* CHECKBOX (checklist) *}
                     <template v-else-if="item_data.render_type === 'checkbox'">
                         <component-feature-value-checkbox v-bind:item_data="item_data"></component-feature-value-checkbox>
                     </template>
 
+                    {* CUSTOM dialog from plugin controller *}
+                    <template v-else-if="item_data.render_type === 'custom'">
+                        <div v-if="custom_html_error">
+                            [`Unable to load content from URL:`]
+                            <br>{ { item_data.dialog_url } }
+                        </div>
+                        <div class="skeleton" v-else-if="!custom_html">
+                            <span class="skeleton-line"></span>
+                            <span class="skeleton-line"></span>
+                            <span class="skeleton-line"></span>
+                        </div>
+                        <div v-else-if="custom_html">
+                            <form v-html="custom_html"></form>
+                        </div>
+                    </template>
+
                     <template v-else>
-                        TODO: неизвестный формат
+                        <span id="s-unknown-render-type">[`Error: unknown “render_type” (possibly broken field from a plugin).`]</span>
                     </template>
                 </div>
 
@@ -117,6 +134,7 @@
             </div>
             <div class="dialog-footer">
                 <button class="button" type="button"
+                        v-if="!custom_html_error"
                         v-bind:disabled="disabled"
                         v-on:click.prevent="save">
                     <span class="s-icon" v-if="states.locked"><i class="fas fa-spinner fa-spin"></i></span>

@@ -327,6 +327,10 @@ class shopMainMenu
                 "name" => _w("Marketplaces"),
                 "url" => "{$wa_app_url}?module=plugins&page=marketplaces",
             ];
+            $result[] = [
+                "name" => _w("Онлайн-кассы"),
+                "url" => "{$wa_app_url}?module=plugins&page=onlinecash",
+            ];
         }
 
         // Editor picks, Webasyst apps

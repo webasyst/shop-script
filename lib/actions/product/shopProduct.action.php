@@ -355,7 +355,7 @@ class shopProductAction extends waViewAction
      * this may make it incompatible with the old editor.
      * This method checks for that. When incompatibility found, part of the old editor
      * becomes disabled.
-     * @depecated
+     * @deprecated
      */
     public static function productHasIncompatibleFeaturesSelectable(shopProduct $product)
     {

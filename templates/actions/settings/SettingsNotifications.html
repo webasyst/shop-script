@@ -7,7 +7,7 @@
     'mobile' => $wa->shop->getIcon('mobile'),
     'globe-small' => $wa->shop->getIcon('globe-small')
 ]}
-<div class="flexbox space-8">
+<div class="flexbox space-16">
     <div class="sidebar flexbox overflow-visible s-sidebar-section">
         <div class="sidebar-body">
             <ul class="menu ellipsis custom-mb-8" id="notifications">
@@ -22,10 +22,7 @@
                 </li>
                 {/foreach}
             </ul>
-        </div>
-
-        <div class="sidebar-footer custom-pt-16">
-            <a href="#/notifications/add/" class="button nobutton smaller light-gray rounded">
+            <a href="#/notifications/add/" class="button nobutton smaller light-gray rounded custom-mt-16">
                 <i class="fas fa-plus-circle text-green"></i>
                 [`Add custom notification`]
             </a>

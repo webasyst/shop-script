@@ -1,0 +1,17 @@
+{capture assign="_component_empty_content"}
+    <div class="flexbox middle align-center" style="position:absolute;inset: 0px 0px 0px -50px;justify-content:center;">
+        <div v-if="type === 'products'">
+            <i class="fas fa-archive icon size-96 text-light-gray"></i>
+            <p class="gray">[`No products here just yet.`]</p>
+        </div>
+        <div v-else-if="type === 'categories'">
+            <i class="fas fa-folder icon size-96 text-light-gray"></i>
+            <p class="gray">[`No categories`]</p>
+        </div>
+        <div v-else-if="type === 'sets'">
+            <i class="fas fa-cube icon size-96 text-light-gray"></i>
+            <p class="gray">[`No product lists`]</p>
+        </div>
+    </div>
+{/capture}
+{$_components["component-empty-content"] = $_component_empty_content|strip}

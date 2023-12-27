@@ -3,7 +3,7 @@
 <span class="icon baseline size-12 custom-mr-4 text-dark-gray"><i class="fas fa-info-circle"></i></span>
 {/capture}
 {assign var=currency_warning value=
-'<div class="alert small warning">
+'<div class="alert small warning custom-mt-24">
     <i class="fas fa-exclamation-triangle"></i>
     <strong>Экспортированные цены товаров могут отличаться от цен товаров на витрине</strong>
     <br><br>
@@ -19,13 +19,6 @@
 
 <div class="ymarket-setup-page ymarket-setup-page-wa-2" id="s-yandexmarket-form">
     <p>Экспорт каталога товаров в формате YML</p>
-    <div class="alert small custom-mt-24">
-        Для изменения дополнительных параметров экспорта перейдите в <a href="?action=plugins#/yandexmarket/" class="bold">настройки плагина</a>.
-        <a href="https://support.webasyst.ru/shop-script/276/shop-script-yandexmarket/" target="_blank" class="gray">
-            &nbsp;Документация пользователя
-            <i class="fas fa-external-link-alt fa-xs"></i>
-        </a>
-    </div>
 {if $settlements}
     <form id="s-plugin-yandexmarket" method="post" action="?plugin=yandexmarket&module=run">
     <div class="fields form">
@@ -697,9 +690,9 @@
         {$currency_warning}
     </div>
 
-    <div class="field-group" id="plugin-yandexmarket-submit">
+    <div class="custom-m-24" id="plugin-yandexmarket-submit">
         <div class="field">
-            <div class="value submit">
+            <div class="submit">
                 <input type="submit" class="button green" value="Сохранить и экспортировать">
                 <div class="custom-mt-12 js-profile-notice italic small">Изменения в настройках сохранятся во время экспорта и будут автоматически применены к последующим сессиям экспорта с использованием этого профиля.</div>
                 <div class="js-progressbar-container" style="display:none;">
@@ -708,7 +701,7 @@
                             <div class="progressbar-inner" style="width: 0;"></div>
                         </div>
                     </div>
-                    <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif"/>
+                    <img style="float:left; margin-top:8px; margin-right: 16px; margin-bottom: 20px;" src="{$wa_url}wa-content/img/loading32.gif"/>
                     <span class="progressbar" id="progressbar-load"></span>
                     <div class="clear"></div>
                     <span class="progressbar-description"></span>
@@ -720,10 +713,10 @@
             </div>
         </div>
     </div>
-    <div class="field-group" id="plugin-yandexmarket-report" style="display: none;">
+    <div class="custom-m-24" id="plugin-yandexmarket-report" style="display: none;">
         <div class="field vertical">
-            <div class="submit value"></div>
-            <div class="submit value"><a href="#/yandexmarket{if !empty($profile.id)}:{$profile.id}{/if}/" name="/yandexmarket/" onclick="$.importexport.plugins.yandexmarket.getLink();" class="bold">Получить ссылку на файл</a></div>
+            <div class="submit"></div>
+            <div class="submit"><a href="#/yandexmarket{if !empty($profile.id)}:{$profile.id}{/if}/" name="/yandexmarket/" onclick="$.importexport.plugins.yandexmarket.getLink();" class="bold">Получить ссылку на файл</a></div>
         </div>
     </div>
     </div>

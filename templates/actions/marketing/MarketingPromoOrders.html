@@ -15,7 +15,7 @@
         {_w('%d paid order', '%d paid orders', $orders_paid_count)} (<span class="s-price">{shop_currency_html($orders_paid_sum)}</span>).
     </div>
 
-    <table class="zebra single-lined padded s-orders-table" data-pages="{$pages_count|default:1|escape}">
+    <table class="zebra single-lined padded s-order-table" data-pages="{$pages_count|default:1|escape}">
     {/if}
 
     {foreach $orders as $_order}
@@ -25,26 +25,22 @@
             <td style="{$_order.style}" class="nowrap">
                 <div>
                     <a href="{$_order_link}">
-                        <i class="{$_order.icon}"></i><span {if ($_order.state_id == 'new')}class="highlighted"{/if}>{$_order.id_str|default:""}</span>
+                        <i class="{$wa->shop->convertIcon($_order.icon)} custom-mr-4"></i><span {if ($_order.state_id == 'new')}class="highlighted"{/if}>{$_order.id_str|default:""}</span>
                     </a>
                 </div>
             </td>
             <td style="{$_order.style}">
                 <div>
                     <a href="{$_order_link}">{$_order.create_datetime_str|default:""}</a>
-                    <i class="shortener"></i>
                 </div>
             </td>
             <td style="{$_order.style}">
                 <div>
                     <a href="{$_order_link}">{$_order.contact.name|default:""}</a>
-                    <i class="shortener"></i>
                 </div>
             </td>
             <td style="{$_order.style}" class="nowrap align-right">
-                <div>
-                    <a href="{$_order_link}">{$_order.total_str|default:""}</a>
-                </div>
+                <a href="{$_order_link}">{$_order.total_str|default:""}</a>
             </td>
             <td style="{$_order.style}">
                 <div>
@@ -53,7 +49,7 @@
             </td>
             <td style="{$_order.style}">
                 <div>
-                    <a href="{$_order_link}"><span style="color:#888">{$_order.courier_name|default:""} {$_order.shipping_interval|default:""}</span></a>
+                    <a href="{$_order_link}">{$_order.courier_name|default:""} {$_order.shipping_interval|default:""}</a>
                 </div>
             </td>
             <td style="{$_order.style}">

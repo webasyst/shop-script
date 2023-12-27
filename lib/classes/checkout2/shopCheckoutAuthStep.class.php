@@ -1,13 +1,13 @@
 <?php
 
 /**
- * First checkout step: user auth or gathering of essencial customer contact data.
+ * First checkout step: user auth or gathering of essential customer contact data.
  */
 class shopCheckoutAuthStep extends shopCheckoutStep
 {
     public function process($data, $prepare_result)
     {
-        // Authorised contact we get from shopOrder
+        // Authorized contact we get from shopOrder
         /** @var waContact $contact */
         $contact = $data['order']['contact'];
         $contact_id = ifempty($contact, 'id', null);
@@ -23,7 +23,7 @@ class shopCheckoutAuthStep extends shopCheckoutStep
 
         $data['contact'] = $contact;
 
-        // Mode selected by user we get from POST (unless user is authorised)
+        // Mode selected by user we get from POST (unless user is authorized)
         if ($contact_id) {
             $selected_mode = $contact['is_company'] ? shopCheckoutConfig::CUSTOMER_TYPE_COMPANY : shopCheckoutConfig::CUSTOMER_TYPE_PERSON;
         } else {
@@ -39,14 +39,14 @@ class shopCheckoutAuthStep extends shopCheckoutStep
             $selected_mode = key($auth_fields);
             if ($contact_id) {
                 if ($contact['is_company'] && $selected_mode == shopCheckoutConfig::CUSTOMER_TYPE_PERSON) {
-                    // Authorised as company but company mode is disabled in checkout. Cannot proceed.
+                    // Authorized as company but company mode is disabled in checkout. Cannot proceed.
                     $errors[] = [
                         'name'    => 'auth[mode]',
                         'text'    => _w('You are logged in as a company. Please log out and login again as a person.'),
                         'section' => $this->getId(),
                     ];
                 } elseif (!$contact['is_company'] && $selected_mode == shopCheckoutConfig::CUSTOMER_TYPE_COMPANY) {
-                    // Authorised as person but person mode is disabled in checkout. Cannot proceed.
+                    // Authorized as person but person mode is disabled in checkout. Cannot proceed.
                     $errors[] = [
                         'name'    => 'auth[mode]',
                         'text'    => _w('You are logged in as a person. Please log out and log in again as a company.'),

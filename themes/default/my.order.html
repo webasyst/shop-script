@@ -7,12 +7,10 @@
         {if $wrong_pin}
             <p style="color:red">[`PIN is not valid`]</p>
         {/if}
-        <p>[`Please enter a 4-digit PIN that you received with your order receipt by email.`]</p>
+        <p>[`Please enter a 4-digit PIN that you have received in a notification from our online store.`]</p>
         <div>
             <input type="text" name="pin">
-        </div>
-        <div>
-            <input type="submit" value="[`View order`]">
+            <button type="submit" class="text-white wa-ml-8">[`View order`]</button>
         </div>
     </form>
 {else}
@@ -55,14 +53,14 @@
             &mdash; <strong>{$order.payment_name}</strong>
         {/if}
     </h3>
-    
+
     <!-- payment plugin output -->
     {if !empty($payment)}
         <div class="plugin">
             {$payment}
         </div>
     {/if}
-    
+
     <p>
         {$contact.name|escape}<br>
         {if $billing_address}

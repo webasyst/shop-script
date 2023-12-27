@@ -21,10 +21,10 @@
                             <div class="dropdown-body right">
                                 <ul class="menu">
                                     <li>
-                                        <a href="https://wa.me/{if $wa->locale() == 'ru_RU'}{$_formatted_phone_value}{else}{$top_field.default_value.value}{/if}" target="_blank"><i class="fab fa-whatsapp" style="color: #25D366;"></i><span>WhatsApp</span></a>
+                                        <a href="https://wa.me/{if $wa->locale() == 'ru_RU'}{$_formatted_phone_value|escape}{else}{$top_field.default_value.value|escape}{/if}" target="_blank"><i class="fab fa-whatsapp" style="color: #25D366;"></i><span>WhatsApp</span></a>
                                     </li>
                                     <li>
-                                        <a href="https://t.me/{if $wa->locale() == 'ru_RU'}{$_formatted_phone_value}{else}{$top_field.default_value.value}{/if}" target="_blank"><i class="fab fa-telegram" style="color: #2AABEE;"></i><span>Telegram</span></a>
+                                        <a href="https://t.me/{if $wa->locale() == 'ru_RU'}{$_formatted_phone_value|escape}{else}{$top_field.default_value.value|escape}{/if}" target="_blank"><i class="fab fa-telegram" style="color: #2AABEE;"></i><span>Telegram</span></a>
                                     </li>
                                 </ul>
                             </div>
@@ -43,10 +43,10 @@
                             <span class="custom-mr-4">
                                 {if $customers_rights}
                                     <a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}"
-                                      id="js-client-duplicate-tooltip-email" class="nowrap badge small orange"
+                                      id="js-client-duplicate-tooltip-email" class="nowrap badge small orange text-white"
                                       data-wa-tooltip-content="{_w('%d more customer found with the same email address', '%d more customers found with the same email address', $similar_contacts.email.count)}">
                                         <i class="fas fa-user-friends small custom-ml-4"></i>
-                                        {$similar_contacts.email.count}
+                                        +{$similar_contacts.email.count}
                                     </a>
                                     <script>
                                         ( function($) {
@@ -61,10 +61,10 @@
                             <span class="custom-mr-4">
                                 {if $customers_rights}
                                     <a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}"
-                                      id="js-client-duplicate-tooltip-phone" class="nowrap badge small orange"
+                                      id="js-client-duplicate-tooltip-phone" class="nowrap badge small orange text-white"
                                       data-wa-tooltip-content="{_w('%d more customer found with the same phone number', '%d more customers found with the same phone number', $similar_contacts.phone.count)}">
                                         <i class="fas fa-user-friends small custom-ml-4"></i>
-                                        {$similar_contacts.phone.count}
+                                        +{$similar_contacts.phone.count}
                                     </a>
                                     <script>
                                         ( function($) {
@@ -85,7 +85,7 @@
 
                         <li class="s-customer-top-field-other-value-item flexbox middle space-4" style="display: none;">
                             {if $top_field.id !== 'im'}
-                                <i class="fas fa-{if $top_field.id == 'email'}envelope{else}{$top_field.id}{/if}{if $value.is_confirmed} text-green{/if}" {if $value.is_confirmed}title="[`Confirmed`]"{/if}></i>
+                                <i class="fas fa-{if $top_field.id == 'email'}envelope{else}{$top_field.id}{/if}{if $value.is_confirmed} text-green{else} text-gray{/if}" {if $value.is_confirmed}title="[`Confirmed`]"{/if}></i>
                             {/if}
 
                             {$value.formatted}

@@ -933,8 +933,9 @@ class shopOrdersCollection
         if (isset($postprocess_fields['order_icon'])) {
             $host_url = wa()->getConfig()->getHostUrl();
             foreach ($data as &$o) {
-                if (!empty($o['contact']['photo'])) {
-                    $o['order_icon'] = $host_url.waContact::getPhotoUrl($o['contact']['id'], $o['contact']['photo']);
+                if (!empty($o['contact']['photo']) || !empty($o['contact']['is_company'])) {
+                    $type = !empty($o['contact']['is_company']) ? 'company' : 'person';
+                    $o['order_icon'] = $host_url.waContact::getPhotoUrl($o['contact']['id'], $o['contact']['photo'], null, null, $type);
                 } else {
                     $sales_channel = ifset($o, 'sales_channel', $default_values['sales_channel']);
                     $o['order_icon'] = $sales_channel['icon_url'];
@@ -1286,7 +1287,13 @@ class shopOrdersCollection
                     if ($param == 'id') {
                         $decoded_id = shopHelper::decodeOrderId($val);
                         if (!$decoded_id) {
-                            // legacy: this allows to decode strings like '1001234' => '1234', i.e. without '#' at the begining
+                            $format = wa('shop')->getConfig()->getOrderFormat();
+                            if ($format && $format[0] === '#') {
+                                $decoded_id = shopHelper::decodeOrderId('#'.$val);
+                            }
+                        }
+                        if (!$decoded_id) {
+                            // legacy: a more complicated attempt to decode strings like '1001234' => '1234', i.e. without '#' at the beginning
                             $decoded_id = shopBackendAutocompleteController::decodeOrderId($val);
                         }
                         if ($decoded_id) {

@@ -85,6 +85,8 @@ $.order_edit = {
         this.initDiscountControl();
         this.initCouponControl();
         this.initCustomerSourceControl(options.customer_sources);
+
+        $.orders.orderNav().hide();
     },
 
     /**
@@ -1510,7 +1512,9 @@ $.order_edit = {
                     is_new: true
                 });
                 if ($.order_edit.slide(false, true)) {
-                    location.href = '#/orders/state_id=new|processing|auth|paid&view=split&id=' + r.data.order.id + '/';
+                    const states_processing = 'state_id=new|processing|auth|paid';
+                    $.orders.setFiltersHashStorage(states_processing);
+                    location.href = `#/orders/${states_processing}&view=split&id=${r.data.order.id}/`;
                 }
             };
         } else {

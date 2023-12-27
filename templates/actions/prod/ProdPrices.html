@@ -491,23 +491,23 @@
                 <div class="s-section-body">
                     <div class="s-status-message wa-message small gray">
                         {if $product.status === "1"}
-                            <div class="s-title flexbox space-8 middle">
+                            <div class="s-title flexbox space-8 middle custom-py-4">
                                 <div class="message-icon"><i class="fas fa-check text-green"></i></div>
-                                <div class="message-text wide">[`Published`]</div>
+                                <div class="message-text wide">[`Published, for sale`]</div>
                             </div>
                             <div class="hint">[`The product is visible in listings in the storefront but its availability for ordering depends on its individual SKUs’ & variants’ properties.`]</div>
 
                         {elseif $product.status === "0"}
                             <div class="s-title flexbox space-8 middle">
                                 <div class="message-icon"><i class="fas fa-times text-yellow"></i></div>
-                                <div class="message-text wide">[`Hidden`]</div>
+                                <div class="message-text wide">[`Hidden, not for sale`]</div>
                             </div>
                             <div class="hint">[`The product is not shown among other products in the storefront, is not available for purchase, and can be viewed at its direct URL only.`]</div>
 
                         {elseif $product.status === "-1"}
                             <div class="s-title flexbox space-8 middle">
                                 <div class="message-icon"><i class="fas fa-times text-red"></i></div>
-                                <div class="message-text wide">[`Unpublished`]</div>
+                                <div class="message-text wide">[`Unpublished, not for sale`]</div>
                             </div>
                             <div class="hint">
                                 {sprintf(
@@ -547,7 +547,7 @@
                         </div>
                     {/if}
                     <div class="s-section-body">
-                        <ul class="s-storefronts-list wa-list space-12">
+                        <ul class="custom-ml-4 list s-storefronts-list">
                             {if empty($_show_toggle)}
                                 {foreach $frontend_urls as $_front}
                                     <li class="s-storefront">

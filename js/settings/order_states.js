@@ -28,6 +28,7 @@ $.extend($.settings || {}, {
         const $hidden = $section.find(".js-hidden");
         const $status = $wrapper.find('input[name="name"]');
         const $submitButton = $('.js-settings-order-states-submit');
+        let deleteStateDialogOpened = false;
         const formChanged = () => $submitButton.removeClass('green').addClass('yellow');
 
         if ('' === $status.val().trim()) {
@@ -72,8 +73,11 @@ $.extend($.settings || {}, {
 
         // Link to delete custom state
         $('.js-delete-state').unbind('click').bind('click', function(e) {
+            if (deleteStateDialogOpened) {
+                return;
+            }
             e.preventDefault();
-
+            deleteStateDialogOpened = true;
             const url = $(this).data('href');
             $.waDialog.confirm({
                 title: $_('This will delete this order state. Are you sure?'),
@@ -96,7 +100,7 @@ $.extend($.settings || {}, {
                         }
 
                         dialog.close();
-
+                        deleteStateDialogOpened = false;
                         const $dropdown = $('.s-settings-order-states');
                         const $selected = $dropdown.find('li.selected');
                         const $prev = $selected.prev('.dr');
@@ -113,6 +117,9 @@ $.extend($.settings || {}, {
                             }
                         }
                     }, "json");
+                },
+                onCancel() {
+                    deleteStateDialogOpened = false;
                 }
             });
         });

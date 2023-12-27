@@ -16,7 +16,7 @@
                                 {/if}
                             </td>
                             <td>
-                                <a href="?action=products#/product/{$item.product_id}/">{$item.name}</a>
+                                <a href="products/{$item.product_id}/">{$item.name}</a>
                             </td>
                             <td>&times; {$item.quantity}</td>
                             <td>{$order.create_datetime|wa_date:'humandatetime'}</td>

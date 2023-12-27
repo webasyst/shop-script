@@ -896,6 +896,28 @@ class shopHelper
                     $order['payment_name'] = '<span class="hint">'._w('not specified').'</span>';
                 }
 
+                // Shipping and payment logos
+                if (isset($order['params']['shipping_id'])) {
+                    $shipping_data = ifempty(self::getShippingMethods()[$order['params']['shipping_id']], []);
+                    if (!empty($shipping_data['logo'])) {
+                        $order['shipping_logo'] = htmlspecialchars($shipping_data['logo']);
+                    }elseif (!empty($shipping_data['info']['logo'])) {
+                        $order['shipping_logo'] = htmlspecialchars($shipping_data['info']['logo']);
+                    }else{
+                        $order['shipping_logo'] = '';
+                    }
+                }
+                if (isset($order['params']['payment_id'])) {
+                    $payment_data = ifempty(self::getPaymentMethods()[$order['params']['payment_id']], []);
+                    if (!empty($payment_data['logo'])) {
+                        $order['payment_logo'] = htmlspecialchars($payment_data['logo']);
+                    }elseif (!empty($payment_data['info']['logo'])) {
+                        $order['payment_logo'] = htmlspecialchars($payment_data['info']['logo']);
+                    }else{
+                        $order['payment_logo'] = '';
+                    }
+                }
+
                 // Order delivery interval
                 list($date, $time_from, $time_to) = shopHelper::getOrderShippingInterval($order['params']);
                 if ($date) {
@@ -1416,7 +1438,7 @@ class shopHelper
      */
     public static function getRatingHtml($rating, $size = 10, $show_when_zero = false)
     {
-        if(wa()->whichUI() == '1.3') {
+        if(wa()->whichUI() == '1.3' || wa()->getEnv() !== 'backend') {
             $icon = '<i class="icon'.$size.' star';
             $start_half = '-half';
             $start_empty = '-empty';
@@ -1704,7 +1726,7 @@ SQL;
         }
         $found_products = $col->getProducts('id,name', 0, 1);
         $found_product = reset($found_products);
-        $backend_url = sprintf('%sshop/?action=products#/product/%d/', wa()->getConfig()->getBackendUrl(true), $found_product['id']);
+        $backend_url = sprintf('%sshop/' . (wa()->whichUI() === '1.3' ? '?action=products#/product/' : 'products/') . '%d/', wa()->getConfig()->getBackendUrl(true), $found_product['id']);
         $template = _w('The URL <strong>:url</strong> is already in use by another product (<a href=":another_product_backend_url" target="_blank" class="bold">:another_product_name</a>). You may still save this product with the same URL, but the storefront will display only one (any) product by this URL.');
 
         return str_replace(
@@ -1726,7 +1748,7 @@ SQL;
         if (version_compare(PHP_VERSION, '5.4.0', '>=') && !(defined('JSON_C_VERSION') && PHP_INT_SIZE > 4)) {
             /** In PHP >=5.4.0, json_decode() accepts an options parameter, that allows you
              * to specify that large ints (like Steam Transaction IDs) should be treated as
-             * strings, rather than the PHP default behaviour of converting them to floats.
+             * strings, rather than the PHP default behavior of converting them to floats.
              */
             $obj = json_decode($input, $assoc, 512, JSON_BIGINT_AS_STRING);
         } else {
@@ -2279,7 +2301,7 @@ SQL;
      * @param $chapter
      * @param $options
      * @return string
-     * @depecated
+     * @deprecated
      * @throws waException
      */
     public static function getBackendChapterUrl($chapter, $options = [])
@@ -2334,7 +2356,7 @@ SQL;
     /**
      * @param string $default_chapter new_chapter/old_chapter
      * @return void
-     * @depecated
+     * @deprecated
      * @throws waException
      */
     public static function setChapter($default_chapter = '')

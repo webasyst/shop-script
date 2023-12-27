@@ -276,7 +276,7 @@
                                 </td>
                                 <td>
                                     {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span> {/if}
-                                    <a href="?action=products#/{if $item.type=='product'}product/{$item.product_id}{else}services/{$item.service_id}{/if}/">{$item.name|escape|default:"[`(no name)`]"}</a>
+                                    <a href="{if $item.type=='product'}products/{$item.product_id}{else}?action=products#/services/{$item.service_id}{/if}/" target="_blank">{$item.name|escape|default:"[`(no name)`]"}</a>
                                     {if isset($item.sku_code)}
                                         <br><span class="hint">{$item.sku_code|escape}</span>
                                     {/if}

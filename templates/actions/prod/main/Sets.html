@@ -179,8 +179,8 @@
              v-bind:data-is-group="item.is_group"
              v-bind:key="(item.set_id ? item.set_id : (item.group_id ? item.group_id : '')) + '' + item.render_key">
             <div class="s-column s-column-toggle">
-                <div class="s-toggle-wrapper" draggable="true"
-                     v-bind:class="{ 'cursor-move js-item-move-toggle text-gray' : !root_states.move_locked, 'text-light-gray' : root_states.move_locked }">
+                <div class="s-toggle-wrapper text-light-gray" draggable="true"
+                     v-bind:class="[root_states.move_locked ? 'opacity-50' :'cursor-move js-item-move-toggle']">
                     <span class="s-icon icon size-14"
                           v-if="!item.states.move_locked"
                           v-bind:key="'fa-bars'"><svg><use xlink:href='{$_sprite_url}#grip'></use></svg></span>
@@ -199,10 +199,10 @@
 
                         <template v-if="item.is_group">
                             <div class="s-action cursor-pointer s-expand-toggle" v-on:click="itemExtend">
-                                <span class="s-icon icon size-18"
+                                <span class="s-icon icon size-18 gray"
                                       v-bind:key="'fa-caret-right'"
                                       v-if="!item.states.expanded"><i class="fas fa-caret-right"></i></span>
-                                <span class="s-icon icon size-18"
+                                <span class="s-icon icon size-18 gray"
                                       v-bind:key="'fa-caret-down'"
                                       v-if="item.states.expanded"><i class="fas fa-caret-down"></i></span>
                             </div>
@@ -220,13 +220,13 @@
                             </template>
                             <template v-else>
                                 <template v-if="!item.sets.length">
-                                    <div class="s-icon icon size-14 text-light-gray" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></div>
+                                    <div class="s-icon icon size-14 text-red" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></div>
                                 </template>
                                 <template v-else-if="!item.states.expanded">
-                                    <div class="s-icon icon size-14 text-light-gray" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></div>
+                                    <div class="s-icon icon size-14 text-red" v-bind:key="'fa-folder'"><i class="far fa-folder"></i></div>
                                 </template>
                                 <template v-else-if="item.states.expanded">
-                                    <div class="s-icon icon size-14 text-light-gray" v-bind:key="'fa-folder-open'"><i class="far fa-folder-open"></i></div>
+                                    <div class="s-icon icon size-14 text-red" v-bind:key="'fa-folder-open'"><i class="far fa-folder-open"></i></div>
                                 </template>
                             </template>
                             <input class="s-field s-square-field" type="text" v-model="item.name" v-on:change="onChangeName" v-bind:disabled="states.name_locked">
@@ -237,10 +237,10 @@
                             </template>
                             <template v-else>
                                 <template v-if="item.type === '0'">
-                                    <div class="s-icon icon size-14 text-light-gray"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></div>
+                                    <div class="s-icon icon size-14 text-red"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></div>
                                 </template>
                                 <template v-else>
-                                    <div class="s-icon icon size-14 text-light-gray"><svg><use xlink:href="{$_sprite_url}#list-auto"></use></svg></div>
+                                    <div class="s-icon icon size-14 text-red"><svg><use xlink:href="{$_sprite_url}#list-auto"></use></svg></div>
                                 </template>
                             </template>
                             <input class="s-field s-square-field" type="text" v-model="item.name" v-on:change="onChangeName" v-bind:disabled="states.name_locked">
@@ -337,6 +337,8 @@
     "error_set_id" => "{_w("Invalid value")} <span class=\"s-icon\" data-tooltip-id=\"error-set-id\"><i class=\"fas fa-question-circle\"></i></span>"
 ]}
 
+{include file="./components/products/empty_content.html" scope="parent" inline}
+
 <div class="s-sets-page" id="js-sets-page">
     <div class="s-page-wrapper" id="js-vue-section" style="visibility: hidden;">
         <div class="s-page-flexbox">
@@ -398,7 +400,8 @@
                 <div class="s-sets-table-section">
                     {* BODY *}
                     <div class="s-sets-table">
-                        <component-sets v-bind:model="model"></component-sets>
+                        <component-sets v-if="model.length" v-bind:model="model"></component-sets>
+                        <component-empty-content v-else type="sets"></component-empty-content>
                     </div>
                 </div>
             </div>

@@ -489,7 +489,7 @@
 
             function showChangeMessage() {
                 if ($list.length) {
-                    $("<li>").text(that.locales["storefront_changed"]).prependTo($list);
+                    $('<div class="s-message-change">').text(that.locales["storefront_changed"]).prependTo($list);
                     change_message_is_displayed = true;
                 }
             }
@@ -1047,6 +1047,22 @@
                                 result = locales[1];
                             } else {
                                 result = locales[0];
+                            }
+
+                            return result;
+                        }
+                    },
+                    stock_icon_class: function() {
+                        return function(stock_value, stock) {
+                            stock_value = (stock_value ? parseInt(stock_value) : null);
+
+                            var result = "";
+                            if (stock_value > parseInt(stock.low_count) || stock_value === null) {
+                                result = "text-green";
+                            } else if (stock_value > parseInt(stock.critical_count) && stock_value <= parseInt(stock.low_count)) {
+                                result = "text-orange";
+                            } else if (stock_value <= parseInt(stock.critical_count)) {
+                                result = "text-red";
                             }
 
                             return result;

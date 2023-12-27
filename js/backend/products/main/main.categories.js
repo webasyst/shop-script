@@ -1309,7 +1309,11 @@
                                 localStorage.setItem(self.storage_name, data);
                             }
                         }
-                    }
+                    },
+                    "component-empty-content": {
+                        props: ["type"],
+                        template: that.components["component-empty-content"],
+                    },
                 },
                 methods: {
                     categoryAdd: function() {
@@ -1558,8 +1562,6 @@
             var $wrapper = that.$wrapper,
                 $droparea = $("<div />", { class: "s-drop-area js-drop-area" });
 
-            var categories = that.categories_object;
-
             // Drop по зоне триггерит дроп по привязанной категории
             $droparea
                 .on("dragover", function(event) {
@@ -1670,8 +1672,6 @@
                 off();
             }
 
-            //
-
             function moveCategory($drop_category) {
                 var category_id = "" + $drop_category.attr("data-id"),
                     drop_category = getCategory(category_id),
@@ -1695,12 +1695,23 @@
                     return false;
 
                 } else {
-                    set(move_category, drop_category, drag_data.before);
+                    const { parent_id: prev_parent_id, depth: prev_depth } = move_category;
+                    const { categories, index: prevIndex } = getNeedCategoriesAndIndex(move_category);
 
+                    set(move_category, drop_category, drag_data.before);
                     move_category.states.move_locked = true;
+
                     moveRequest(move_category)
-                        .always( function() {
+                        .always(function () {
                             move_category.states.move_locked = false;
+                        })
+                        .fail(function () {
+                            remove(that.categories_object[move_category.id]);
+
+                            categories.splice(prevIndex, 0, Object.assign(move_category, {
+                                parent_id: prev_parent_id,
+                                depth: prev_depth
+                            }))
                         });
                 }
 
@@ -1717,16 +1728,7 @@
 
                         // Вставляем выше drop_category
                         case true:
-                            var categories = that.categories,
-                                parent_id = "0";
-
-                            if (drop_category.parent_id !== "0") {
-                                var parent_category = that.categories_object[drop_category.parent_id];
-                                categories = parent_category.categories;
-                                parent_id = parent_category.id;
-                            }
-
-                            var index = categories.indexOf(drop_category);
+                            const { parent_id, categories, index } = getNeedCategoriesAndIndex(drop_category);
 
                             categories.splice(index, 0, move_category);
 
@@ -1744,21 +1746,30 @@
                             break;
                     }
 
-                    function remove(move_category) {
-                        var categories = that.categories;
+                }
 
-                        if (move_category.parent_id !== "0") {
-                            var parent_category = that.categories_object[move_category.parent_id];
-                            categories = parent_category.categories;
-                        }
-
-                        var index = categories.indexOf(move_category);
-                        if (index >= 0) {
-                            categories.splice(index, 1);
-                        } else {
-                            console.log( "ERROR: remove category from array" );
-                        }
+                function remove(move_category) {
+                    const { categories, index } = getNeedCategoriesAndIndex(move_category);
+                    if (index >= 0) {
+                        categories.splice(index, 1);
+                    } else {
+                        console.log( "ERROR: remove category from array" );
                     }
+                }
+
+                function getNeedCategoriesAndIndex (category) {
+                    let categories = that.categories,
+                        parent_id = "0";
+
+                    if (category.parent_id !== "0") {
+                        const parent_category = that.categories_object[category.parent_id];
+                        categories = parent_category.categories;
+                        parent_id = parent_category.parent_id;
+                    }
+
+                    let index = categories.indexOf(category);
+
+                    return { parent_id, categories, index }
                 }
             }
 
@@ -1784,8 +1795,10 @@
                         if (response.status === "ok") {
                             deferred.resolve();
                         } else {
-                            alert("Error: category move");
-                            console.log(response.errors);
+                            if (response.errors && 'text' in response.errors) {
+                                $.wa_shop_products.alert(that.locales["warn"], response.errors.text);
+                            }
+
                             deferred.reject(response.errors);
                         }
                     });
@@ -1810,7 +1823,7 @@
                 }
             }
 
-            //
+            var categories = that.categories_object;
 
             function getCategory(category_id) {
                 return (categories[category_id] ? categories[category_id] : null);
@@ -3291,8 +3304,33 @@
 
                         save: function() {
                             const self = this;
+                            const $category_form = $dialog.find('.s-category-form');
 
                             var data = getData(self.category);
+
+                            // Submit data from fields added by plugins
+                            $category_form.find('label.js-do-not-submit input[type="radio"]:not(.js-do-not-submit)').addClass('js-do-not-submit');
+                            var additional_data = $category_form.find(':input[name]:not(.js-do-not-submit)').serializeArray();
+                            additional_data.forEach(function(pair) {
+                                if (!Object.hasOwnProperty(data, pair.name)) {
+                                    data[pair.name] = pair.value;
+                                }
+                            });
+
+                            // plugin JS validation and data collection
+                            var evt = $.Event('wa_before_save', {
+                                category: self.category,
+                                form_data: data
+                            });
+                            $category_form.trigger(evt);
+                            if (evt.isDefaultPrevented()) {
+                                return;
+                            }
+
+                            $category_form.trigger($.Event('wa_save', {
+                                category: self.category,
+                                form_data: data
+                            }));
 
                             self.states.locked = true;
 
@@ -3310,6 +3348,12 @@
                                         console.error( response.errors );
                                         self.states.locked = false;
                                     }
+
+                                    $category_form.trigger($.Event('wa_after_save', {
+                                        category: self.category,
+                                        response: response,
+                                        form_data: data
+                                    }));
                                 });
 
                             function getData(category) {

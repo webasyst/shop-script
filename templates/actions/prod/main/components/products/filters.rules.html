@@ -68,7 +68,7 @@
         </div>
         <div class="s-name-wrapper">
             <template v-if="label">
-                <span class="s-label">{ { label } }:</span>
+                <span class="s-label">{ { label } }<span v-if="names.length > 0">:</span></span>
             </template>
             <template v-if="names.length > 1">
                 <template v-for="name in names">
@@ -76,7 +76,7 @@
                 </template>
             </template>
             <template v-else>
-                <span class="s-name" v-html="names[0]"></span>
+                <span class="s-name" v-html="names[0]" v-if="names[0]"></span>
             </template>
         </div>
         <div class="s-action-wrapper">

@@ -538,7 +538,7 @@ class shopBackendAutocompleteController extends waController
                         if ($this->match($email, $term_safe)) {
                             $email = $this->prepare($email, $term_safe, false);
                             if ($email) {
-                                $email = '<i class="icon16 email"></i>'.$email;
+                                $email = '<i class="icon16 email fas fa-envelope"></i> '.$email;
                             }
                             $match = true;
                         }
@@ -546,7 +546,7 @@ class shopBackendAutocompleteController extends waController
                         if ($this->match($phone, $term_safe)) {
                             $phone = $this->prepare($phone, $term_safe, false);
                             if ($phone) {
-                                $phone = '<i class="icon16 phone"></i>'.$phone;
+                                $phone = '<i class="icon16 phone fas fa-mobile-alt"></i> '.$phone;
                             }
                             $match = true;
                         }
@@ -898,7 +898,7 @@ SQL;
             $emails = array();
             foreach ($c['email_formatted'] as $email) {
                 if ($this->match($email, $term_safe, false)) {
-                    $emails[] = '<i class="icon16 email"></i>'.$this->prepare($email, $term_safe, false);
+                    $emails[] = '<i class="icon16 email fas fa-envelope"></i> '.$this->prepare($email, $term_safe, false);
                     break;
                 }
             }
@@ -909,7 +909,7 @@ SQL;
                 foreach ($phone_terms as $phone_term) {
                     $phone_term_safe = htmlspecialchars($phone_term, ENT_QUOTES, 'utf-8');
                     if ($this->match($phone, $phone_term_safe, false)) {
-                        $phones[] = '<i class="icon16 phone"></i>'.$this->prepare($phone, $phone_term_safe, false);
+                        $phones[] = '<i class="icon16 phone fas fa-mobile-alt"></i> '.$this->prepare($phone, $phone_term_safe, false);
                         break 2;
                     }
                 }

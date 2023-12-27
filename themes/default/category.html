@@ -99,7 +99,7 @@
                 </div>
                 <form class="filters-form-wrapper" method="get" action="{$wa->currentUrl(0,1)}" data-loading='{$_filters_form_skeleton|strip}'>
                     {foreach $filters as $fid => $filter}
-                        <div class="filter-param">
+                        <div class="filter-param {if $fid == 'price'}-price{/if}">
                             {if $fid == 'price'}
                                 {$c = $wa->shop->currency(true)}
                                 <h5>[`Price`] ({$c.sign})</h5>

@@ -393,6 +393,7 @@ class shopPresentation
             'count' => [
                 'name' => _w('In stock'),
                 'editing_rule' => self::EDITING_RULE_SIMPLE_MODE,
+                'min_width' => 86
             ],
             'tax_id' => [
                 'name' => _w('Tax'),
@@ -540,10 +541,10 @@ class shopPresentation
                 'sortable' => false,
             ],
             'visibility' => [
-                'name' => _w('Visibility in the storefront and availability for purchase'),
+                'name' => _w('Visibility'),
                 'editing_rule' => self::EDITING_RULE_SIMPLE_MODE,
                 'sortable' => false,
-                'width' => 70,
+                'width' => 75,
                 'width_locked' => true
             ],
         ];

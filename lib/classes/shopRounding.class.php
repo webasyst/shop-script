@@ -115,7 +115,7 @@ class shopRounding
                 $p['unconverted_currency'] = $p['currency'];
 
                 // If rounding is disabled for currency, we pass to template unmodified currency.
-                // If rouding is enabled, product currency is converted to frontend currency.
+                // If rounding is enabled, product currency is converted to frontend currency.
                 if (!empty($curs[$out_currency]['rounding'])) {
                     $p['currency'] = $out_currency;
                 }

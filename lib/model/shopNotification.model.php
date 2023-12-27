@@ -36,7 +36,7 @@ class shopNotificationModel extends waModel
                 JOIN shop_notification_params np ON n.id = np.notification_id
                 LEFT JOIN shop_notification_sources ns ON n.id = ns.notification_id
                 WHERE n.status = 1
-                      AND (ns.source = 'all_sources' OR ns.source IS NULL OR ns.source = s:0) 
+                      AND (ns.source = 'all_sources' OR ns.source IS NULL OR ns.source = s:0)
                       AND np.name = 'to' AND np.value = 'customer'";
         $rows = $this->query($sql, $source);
 
@@ -49,7 +49,7 @@ class shopNotificationModel extends waModel
         }
         return $result;
     }
-    
+
     public function getOne($id)
     {
         $data = $this->getById($id);
@@ -77,5 +77,17 @@ class shopNotificationModel extends waModel
             return $this->deleteById($id);
         }
         return false;
+    }
+
+    public function getAllTransportSources()
+    {
+        $sql = "SELECT DISTINCT ns.source, n.transport, np.value
+                FROM shop_notification n
+                    JOIN shop_notification_params np
+                        ON n.id = np.notification_id
+                    JOIN shop_notification_sources ns
+                        ON n.id = ns.notification_id
+                WHERE np.name = 'from'";
+        return $this->query($sql)->fetchAll();
     }
 }

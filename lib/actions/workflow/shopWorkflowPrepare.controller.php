@@ -5,7 +5,7 @@
  *
  * For actions with form, returns form HTML.
  * For actions without form, performs action and returns <script> tag to reload request page.
- * For actions that cannot be performed by backend users, throws an excepton.
+ * For actions that cannot be performed by backend users, throws an exception.
  */
 class shopWorkflowPrepareController extends waController
 {

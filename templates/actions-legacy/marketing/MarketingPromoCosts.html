@@ -28,14 +28,14 @@
                                 <i class="shortener"></i>
                             </div>
                         </td>
-                        {if !empty($_cost.note)}
-                            <td class="s-description-column">
+                        <td class="s-description-column">
+                            {if !empty($_cost.note)}
                                 <div>
                                     <span class="s-note">{$_cost.note|escape}</span>
                                     <i class="shortener"></i>
                                 </div>
-                            </td>
-                        {/if}
+                            {/if}
+                        </td>
                         <td class="s-actions-column">
                             <a href="{$marketing_url}costs/?cost_id={$_cost.id|escape}" class="s-edit-link" title="[`Edit`]"><i class="icon16 edit"></i></a>
                         </td>

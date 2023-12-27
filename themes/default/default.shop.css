@@ -67,7 +67,7 @@ ul.thumbs .out-of-stock { display: inline-block; margin: 3px 5px; }
 ul.thumbs .purchase { margin: 0; }
 ul.thumbs .purchase [type="submit"] { color: var(--white); }
 ul.thumbs .purchase .icon16.compare { margin-top: 4px; }
-ul.thumbs .added2cart { display: inline; padding: 0; font-size: 0.9em; }
+ul.thumbs .added2cart { display: inline; padding: 10px; font-size: 0.9em; }
 .page-content.with-sidebar ul.thumbs li { width: 300px; }
 
 ul.thumbs.mini { text-align: left; margin: 0; }
@@ -108,8 +108,6 @@ ul.thumbs li a:hover.compare { color: var(--gray1) !important; }
 
 /* Homepage
 ----------- */
-
-.welcome { margin: 0 80px 30px; }
 
 ul.homepage-bxslider { padding: 0; margin: 0; overflow: hidden; position: relative; max-height: 360px; }
 ul.homepage-bxslider li { list-style: none; margin: 0; padding: 0; max-height: 360px; }
@@ -271,7 +269,7 @@ ul.product-nav li.selected a { background-color: var(--link-color) !important; c
     background-color: var(--white);
     border-radius:    10px;
     text-indent:      -9999px;
-    z-index:          9999;
+    z-index:          1;
 }
 .img-thumbs .bx-wrapper .bx-next {
     left:       0;
@@ -506,11 +504,15 @@ input.error, textarea.error { border: 2px solid var(--red); }
 .filters input[type="submit"] { font-size: 0.95em; padding: .678em .857em; font-weight: 400; width: 100%; margin-top: 50px; color: var(--link-color); position: sticky; bottom: 1em; z-index: 1; }
 .filters .filters-form-wrapper {gap: 16px; }
 .filters .filter-param:not(:first-child) { margin-top: 34px;}
-.filters .filter-param input { font-size: 75%; }
-.filters .filter-param:not(:first-child) input { margin-right: 2px; }
-.filters .filter-param:first-child input { font-size: 120%; }
-.filters h5 { margin-bottom: 16px; font-weight: normal}
-.filters label { display: block; color: var(--gray1); }
+.filters .filter-param input { font-size: 75%; flex-shrink: 0; }
+.filters .filter-param:not(.-price) input { margin-right: 0.55em; }
+.filters .filter-param:not(.-price) [type=checkbox] { margin-top: -0.2em; }
+.filters .filter-param.-price input { font-size: 120%; }
+.filters .filter-param input[name^="color"] { margin-top: 1px !important; }
+.filters .filter-param input[name^="color"] ~ span { display: inline-flex; align-items: center; gap:4px; white-space: nowrap; }
+.filters .filter-param input[name^="color"] ~ span > .icon16 { margin:1px 0 0 0; }
+.filters h5 { margin-bottom: 16px; font-weight: normal; word-break: break-word; }
+.filters label { display: flex; color: var(--gray1); }
 .filters label:not(:last-child) { margin-bottom: 8px;}
 
 .filters .slider { background: transparent; }
@@ -598,7 +600,7 @@ input.error, textarea.error { border: 2px solid var(--red); }
 
 #checkout-contact-form input[type="checkbox"] { margin: 0; transform: translate(0, 5px); }
 
-
+.wa-order-form-wrapper .wa-login-link { color: var(--link-color); }
 /* Dialogs
 ---------- */
 
@@ -638,32 +640,32 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 
 /* Datepicker UI */
 .s-ui-datepicker.ui-datepicker table {
-  font-size: 0.9em;
-  line-height: 1.2em;
-  margin: 0
+    font-size: 0.9em;
+    line-height: 1.2em;
+    margin: 0
 }
 .s-ui-datepicker.ui-datepicker th {
-  font-weight: 500;
+    font-weight: 500;
 }
 
 .s-ui-datepicker .ui-datepicker-prev span {
-  background: transparent url("../../img/frontend/order/svg/sprite.background.svg#arrow-left") 50% no-repeat;
-  -webkit-background-size: 6.34px 11px;
-  -moz-background-size: 6.34px 11px;
-  background-size: 6.34px 11px
+    background: transparent url("../../img/frontend/order/svg/sprite.background.svg#arrow-left") 50% no-repeat;
+    -webkit-background-size: 6.34px 11px;
+    -moz-background-size: 6.34px 11px;
+    background-size: 6.34px 11px
 }
 .s-ui-datepicker .ui-datepicker-next span {
-  background: transparent url("../../img/frontend/order/svg/sprite.background.svg#arrow-right") 50% no-repeat;
-  -webkit-background-size: 6.34px 11px;
-  -moz-background-size: 6.34px 11px;
-  background-size: 6.34px 11px
+    background: transparent url("../../img/frontend/order/svg/sprite.background.svg#arrow-right") 50% no-repeat;
+    -webkit-background-size: 6.34px 11px;
+    -moz-background-size: 6.34px 11px;
+    background-size: 6.34px 11px
 }
 
 .s-ui-datepicker .ui-widget-header {
-  border: solid #efefef;
-  border-width: 0 0 1px;
-  border-radius: 0;
-  background: transparent;
+    border: solid #efefef;
+    border-width: 0 0 1px;
+    border-radius: 0;
+    background: transparent;
 }
 
 .s-ui-datepicker .ui-state-default,
@@ -672,11 +674,11 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 .s-ui-datepicker .ui-button,
 .s-ui-datepicker .ui-button.ui-state-disabled:hover,
 .s-ui-datepicker .ui-button.ui-state-disabled:active {
-  border: 1px solid transparent;
-  background: transparent;
-  font-weight: normal;
-  color: #333;
-  text-align: center
+    border: 1px solid transparent;
+    background: transparent;
+    font-weight: normal;
+    color: #333;
+    text-align: center
 }
 .s-ui-datepicker .ui-state-active,
 .s-ui-datepicker.ui-widget-content .ui-state-active,
@@ -684,10 +686,10 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 .s-ui-datepicker a.ui-button:active,
 .s-ui-datepicker .ui-button:active,
 .s-ui-datepicker .ui-button.ui-state-active:hover {
-  border: 1px solid transparent;
-  background: transparent;
-  font-weight: bold;
-  color: #000
+    border: 1px solid transparent;
+    background: transparent;
+    font-weight: bold;
+    color: #000
 }
 
 .s-ui-datepicker select { padding: 0.275em 1.5em 0.275em 0.5em; }
@@ -695,10 +697,10 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 
 /* LAPTOP only */
 @media screen and (min-width: 1025px) and (max-width: 1299px) {
-  .container { min-width: 998px; max-width: 1024px; margin: 0 auto; padding: 0; }
+    .container { min-width: 998px; max-width: 1024px; margin: 0 auto; padding: 0; }
 
-  ul.thumbs .purchase .addtocart-btn { min-width: 81px; font-size: 0.93em; padding: 0.7em 0.7em; white-space: nowrap; }
-  .filters .filter-param .slider input { font-size: 90%; padding: 0.5rem; width: 72px; }
+    ul.thumbs .purchase .addtocart-btn { min-width: 81px; font-size: 0.93em; padding: 0.7em 0.7em; white-space: nowrap; }
+    .filters .filter-param .slider input { font-size: 90%; padding: 0.5rem; width: 72px; }
 }
 
 /* TABLET only
@@ -740,9 +742,13 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 
     .welcome { }
 
+    header ul.flyout-nav li .flyout ul.menu-v { display: flex; flex-wrap: wrap; --gap: 10px; gap: var(--gap); }
+    header ul.flyout-nav li .flyout ul.menu-v ul.menu-v { display: block; }
+    header ul.flyout-nav li .flyout ul.menu-v li a { padding-inline: 0; }
+
     header ul.flyout-nav li .flyout { padding: 15px; }
 
-    header ul.flyout-nav li .flyout .departments ul.menu-v li { width: 42%; }
+    header ul.flyout-nav li .flyout .departments > ul.menu-v > li { width: calc(50% - var(--gap)); margin: 0; }
 
     .bestsellers .bestsellers-header { font-size: 1.4em; line-height: 1.4em; }
 
@@ -783,7 +789,7 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 
     .image#product-core-image { float: none; }
 
-    .image img { height: auto !important; }
+    .image img { height: auto !important; border-radius: 15px; }
 
     .product-gallery { margin-right: 0; }
 
@@ -919,10 +925,10 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 
 /* Fix plugins */
 #swipebox-slider .slide-loading {
-  background: url(img/svg/spinner-solid.svg?v2) no-repeat center center !important;
-  background-size: 48px 48px !important;
-  -webkit-animation: rotating 1s linear infinite;
-  animation: rotating 1s linear infinite;
+    background: url(img/svg/spinner-solid.svg?v2) no-repeat center center !important;
+    background-size: 48px 48px !important;
+    -webkit-animation: rotating 1s linear infinite;
+    animation: rotating 1s linear infinite;
 }
 
 
@@ -942,28 +948,28 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
 }
 
 @-webkit-keyframes rotating {
-  from {
-      -webkit-transform: rotate(0deg);
-      transform: rotate(0deg);
-    }
-    to {
-      -webkit-transform: rotate(360deg);
-      transform: rotate(360deg);
-    }
-  }
-  @keyframes rotating {
     from {
-      -webkit-transform: rotate(0deg);
-      transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
     }
     to {
-      -webkit-transform: rotate(360deg);
-      transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
     }
-  }
+}
+@keyframes rotating {
+    from {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
 
 @keyframes animation-skeleton-flickering {
-  0% { opacity: 1;}
-  50% { opacity: 0.4; }
-  100% { opacity: 1; }
+    0% { opacity: 1;}
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
 }

@@ -64,7 +64,7 @@
                 <footer class="sr-footer">
                     {sprintf(
                     '[`<a class="sr-review-product-name" href="%s">%s</a>`]',
-                    "{$wa_backend_url}shop/?action=products#/product/{$review.product_id}/",
+                    "{$wa_backend_url}shop/products/{$review.product_id}/",
                     {$review.product_name|escape}
                     )}
 
@@ -144,7 +144,7 @@
                     <p class="sr-review-subtext hint">
                         {sprintf(
                         '[`on <a href="%s">%s</a>`]',
-                        "{$wa_backend_url}shop/?action=products#/product/{$review.product_id}/",
+                        "{$wa_backend_url}shop/products/{$review.product_id}/",
                         {$review.product_name|escape}
                         )}
                     </p>

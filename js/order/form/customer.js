@@ -167,7 +167,7 @@ var ShopBackendOrderEditorCustomerForm = ( function($) {
         activate = typeof activate === 'undefined' ? true : activate;
         if (activate) {
             that.disable(false);
-            $autocomplete.val('').hide(200);
+            $autocomplete.val('').closest('.flexbox').hide(200);
             $new_customer_link.hide(200);
         } else {
             that.disable();

@@ -38,8 +38,6 @@
             {if $available && $p.compare_price > 0}
                 <span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)}</span>
             {/if}
-            <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
-            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
         </div>
 
         <a href="{$p.frontend_url}" title="{$p.name}">
@@ -73,6 +71,8 @@
             <span class="rating nowrap wa-mt-8">{$wa->shop->ratingHtml($p.rating, 16)}</span>
         {/if}
         <div itemprop="offers" class="offers wa-mt-auto wa-pt-20" itemscope itemtype="http://schema.org/Offer">
+            <meta itemprop="price" content="{shop_currency($p.price, null, null, 0)}">
+            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
             {if $available}
                 <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
                     <input type="hidden" name="product_id" value="{$p.id}">
@@ -87,7 +87,7 @@
                         <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $p.name, $_cart_url)}</span>
                     </div>
                 </form>
-                <link itemprop="availability" href="http://schema.org/InStock" />
+                <link itemprop="availability" href="http://schema.org/InStock">
             {else}
                 <div class="out-of-stock">
                     <strong>
@@ -98,7 +98,7 @@
                         {/if}
                     </strong>
                 </div>
-                <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                <link itemprop="availability" href="http://schema.org/OutOfStock">
             {/if}
         </div>
     </li>

@@ -32,6 +32,7 @@
                         <template v-if="states.is_preview">
                             <input class="s-field small full-width s-square-field align-right" placeholder="∞" type="text" readonly
                                    v-bind:class="{ 'state-error' : errors['stock_error'] }"
+                                   v-on:focus="togglePreview(false)"
                                    v-on:click="togglePreview(false)"
                                    v-model="formatted_value">
                         </template>

@@ -421,7 +421,7 @@ class shopProduct implements ArrayAccess
      * @param bool $absolute Whether absolute or relative image URLs must be returned.
      *
      * @return array Array containing sub-arrays of individual product images
-     * @see shopConfig::$image_sizes — actual image size values correspondings to size ids
+     * @see shopConfig::$image_sizes — actual image size values corresponding to size ids
      *
      */
     public function getImages($sizes = array(), $absolute = false)

@@ -1044,7 +1044,7 @@
                                     </div>
                                     {/strip}
 
-                                    <div class="hint">{_w("You can change the product type on the “Basic data” tab.")}</div>
+                                    <div class="hint">{_w("You can change the product type under the “Basic data” tab.")}</div>
 
                                 {else}
                                     <div class="text-red">[`Error: product type does not exist.`]</div>
@@ -1301,11 +1301,19 @@
                                                <div class="value">
 
                                                    <component-sku-name-textarea v-bind:sku="sku" v-on:input="changeSkuName(sku, sku_index)">
-                                                       {capture assign="_component_sku_name_textarea"}
-                                                           <textarea class="full-width small js-toggle-height" v-model="sku.name" v-on:change="$emit('change')" v-on:input="$emit('input')"
-                                                           ></textarea>
-                                                       {/capture}
-                                                       {$_templates["component-sku-name-textarea"] = $_component_sku_name_textarea}
+                                                        {capture assign="_component_sku_name_textarea"}
+                                                            {literal}
+                                                            <textarea
+                                                                v-model="sku.name"
+                                                                rows="1"
+                                                                class="full-width small js-toggle-height"
+                                                                style="height: auto;"
+                                                                v-on:change="$emit('change')"
+                                                                v-on:input="$emit('input')"
+                                                            ></textarea>
+                                                           {/literal}
+                                                        {/capture}
+                                                        {$_templates["component-sku-name-textarea"] = $_component_sku_name_textarea}
                                                    </component-sku-name-textarea>
 
                                                </div>
@@ -1639,7 +1647,7 @@
 
                                                                                 <div class="s-column">
                                                                                     <div class="s-field-wrapper">
-                                                                                        <div class="s-icon left" v-bind:class="{ 'text-green' : sku_mod.stock[stock.id] > stock.low_count || sku_mod.stock[stock.id] === '', 'text-orange' : sku_mod.stock[stock.id] > stock.critical_count && sku_mod.stock[stock.id] <= stock.low_count, 'text-red' : sku_mod.stock[stock.id] <= stock.critical_count && sku_mod.stock[stock.id] !== '' }">
+                                                                                        <div class="s-icon left" v-bind:class="stock_icon_class(sku_mod.stock[stock.id], stock)">
                                                                                             <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
                                                                                         </div>
                                                                                         <input class="small s-field full-width is-number" type="text" placeholder="∞"

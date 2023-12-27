@@ -41,7 +41,7 @@
 {$is_courier = $wa->user()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER}
 <div id="s-order-nav" class="flexbox wrap-mobile s-order-nav" style="display:none;">
 
-    <div class="s-order-nav-block flexbox wide-mobile">
+    <div class="s-order-nav-block js-order-nav-view flexbox space-8 wide-mobile">
 
         <!-- VIEW -->
         <div class="s-order-nav-view s-order-view-toggle js-order-view wide">
@@ -53,11 +53,9 @@
                 <li data-view="table" class="rounded transparent custom-mx-0">
                     <a href="#" title="[`Table`]"><i class="fas fa-list"></i></a>
                 </li>
-                {if !$is_courier}
-                    <li data-view="kanban" class="rounded transparent custom-mx-0">
-                        <a href="#" title="[`Kanban`]"><i class="fas fa-table"></i></a>
-                    </li>
-                {/if}
+                <li data-view="kanban" class="rounded transparent custom-mx-0">
+                    <a href="#" title="[`Kanban`]"><i class="fas fa-table"></i></a>
+                </li>
 
                 <!-- plugin hook: 'backend_orders.viewmode_li' -->
                 {* @event backend_orders.%plugin_id%.viewmode_li *}
@@ -65,7 +63,7 @@
             </ul>
         </div>
 
-        <div class="s-order-nav-view flexbox middle space-8">
+        <div class="s-order-nav-view flexbox space-8">
             <!-- SORT -->
             <div class="s-order-nav-sort js-orders-sort">
                 <div class="flexbox space-8">
@@ -123,13 +121,14 @@
             </div>
             <!-- SEARCH -->
             <div class="s-order-nav-search">
-                <button type="button" class="button nobutton light-gray circle js-orders-search">
+                <button type="button" class="button nobutton light-gray circle js-orders-search-show">
                     <span class="icon text-gray"><i class="fas fa-search"></i></span>
                 </button>
-                <div class="s-order-search hidden" id="js-order-search">
+                <!-- teleport for view=split or mobile after parent block -->
+                <div class="s-order-search hidden js-orders-search">
                     <div class="search-wrapper">
                         <input type="search" id="s-orders-search" class="search-input small" placeholder="[`Search orders`]">
-                        <button type="button" class="button light-gray circle custom-pr-4 js-orders-search">
+                        <button type="button" class="button light-gray circle custom-pr-4 js-orders-search-hide">
                             <span class="icon"><i class="fas fa-times"></i></span>
                         </button>
                     </div>
@@ -139,7 +138,7 @@
                 <!-- NEW ORDER -->
                 <a class="rounded button small nowrap s-order-nav-plus-button" href="#/orders/new/" title="[`New order`]">
                     <span class="icon"><i class="fas fa-plus"></i></span>
-                    <span class="s-order-nav-plus-button-label">[`New order`]</span>
+                    <span class="s-order-nav-plus-button-label"><span class="desktop-and-tablet-only">[`New order`]</span></span>
                 </a>
             {/if}
         </div>
@@ -173,7 +172,7 @@
     <div class="s-order-nav-block s-order-nav-block-chips js-order-nav-block-secondary s-order-nav-block-filters" style="display: none;">
     <ul class="chips small custom-m-0">
         <li class="s-order-nav-button-wrapper s-order-nav-only-table-kanban">
-            <a href="#/orders/state_id=new|processing|auth|paid" class="button light-gray js-orders-link js-orders-hide-filters js-order-nav-button s-order-nav-button js-pending-orders">
+            <a href="#/orders/state_id=new|processing|auth|paid" class="button light-gray js-orders-link js-orders-hide-filters js-order-nav-brick s-order-nav-button js-pending-orders">
                 <span class="label">[`Processing`]</span>
                 <span class="small highlighted custom-px-4 js-new-order-counter">+{$state_counters.new}</span>
                 <span class="hint">
@@ -228,7 +227,7 @@
         {/if}
 
         {if !empty($shipping)}
-            <li class="dropdown js-orders-dropdown">
+            <li class="dropdown js-orders-dropdown more-indent-icon">
                 <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Shipping`]">[`Shipping`]</button>
                 <div class="dropdown-body">
                     <ul class="menu">
@@ -259,7 +258,7 @@
         {/if}
 
         {if !empty($payments)}
-            <li class="dropdown js-orders-dropdown">
+            <li class="dropdown js-orders-dropdown more-indent-icon">
                 <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Payment`]">[`Payment`]</button>
                 <div class="dropdown-body">
                     <ul class="menu">

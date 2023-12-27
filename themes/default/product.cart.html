@@ -141,9 +141,9 @@
                 <meta itemprop="price" content="{shop_currency($sku.price, $product.currency, null, 0)}">
                 <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                 {if (!($sku.count === null) && $sku.count <= 0)}
-                    <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                    <link itemprop="availability" href="http://schema.org/OutOfStock">
                 {else}
-                    <link itemprop="availability" href="http://schema.org/InStock" />
+                    <link itemprop="availability" href="http://schema.org/InStock">
                 {/if}
             </div>
         {/foreach}
@@ -166,9 +166,9 @@
                     <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                     <span class="price tiny nowrap">{shop_currency_html($sku.price, $product.currency)}</span>
                     {if (!($sku.count === null) && $sku.count <= 0)}
-                        <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                        <link itemprop="availability" href="http://schema.org/OutOfStock">
                     {else}
-                        <link itemprop="availability" href="http://schema.org/InStock" />
+                        <link itemprop="availability" href="http://schema.org/InStock">
                     {/if}
                     </label>
                 </li>
@@ -186,13 +186,13 @@
                 <meta itemprop="price" content="{shop_currency($sku.price, $product.currency, null, 0)}">
                 <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
                 {if !$sku.available}
-                <link itemprop="availability" href="http://schema.org/Discontinued" />
+                <link itemprop="availability" href="http://schema.org/Discontinued">
                 <p><em class="bold error">[`This product is not available for purchase`]</em></p>
                 {elseif !$wa->shop->settings('ignore_stock_count') && !($sku.count === null || $sku.count > 0)}
-                <link itemprop="availability" href="http://schema.org/OutOfStock" />
+                <link itemprop="availability" href="http://schema.org/OutOfStock">
                 <div class="stocks"><strong class="stock-none"><i class="icon16 stock-transparent"></i>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}</strong></div>
                 {else}
-                <link itemprop="availability" href="http://schema.org/InStock" />
+                <link itemprop="availability" href="http://schema.org/InStock">
                 {/if}
                 <input name="sku_id" type="hidden" value="{$product.sku_id}">
                 {$product_available = $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}

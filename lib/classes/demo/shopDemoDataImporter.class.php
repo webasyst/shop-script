@@ -213,7 +213,7 @@ class shopDemoDataImporter
 
         $tables_data = array_intersect_key($tables_data, ['shop_page' => 1, 'shop_page_params' => 1]);
 
-        // Prepare pages by preplacing domain id and route
+        // Prepare pages by replacing domain id and route
         $tables_data['shop_page'] = $this->prepareShopPageData($tables_data['shop_page'], $options);
 
         $this->importTablesData($tables_data);
@@ -535,7 +535,7 @@ class shopDemoDataImporter
     }
 
     /**
-     * Change settlement settings in current installation accodding to settlement settings in archive we're importing.
+     * Change settlement settings in current installation according to settlement settings in archive we're importing.
      *
      * @param $config_files_dir
      * @return array $result

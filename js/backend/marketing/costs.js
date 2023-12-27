@@ -879,7 +879,7 @@
                 if (channel_name || !channel_type) {
                     $channel_input_text.val(channel_name).hide();
                 } else {
-                    $channel_input_text.show();
+                    $channel_input_text.val('').show();
                 }
 
                 // Period selector logic

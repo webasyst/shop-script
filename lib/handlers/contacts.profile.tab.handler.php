@@ -10,7 +10,8 @@ class shopContactsProfileTabHandler extends waEventHandler
             return null;
         }
 
-        $contact_id = $params;
+        $contact_id = (is_array($params) ? ifset($params, 'id', 0) : $params);
+        $counter_inside = is_array($params) ? ifset($params, 'counter_inside', true) : waRequest::param('profile_tab_counter_inside', true);
         $om = new shopOrderModel();
 
         $total_orders = $om->countByField('contact_id', $contact_id);
@@ -18,8 +19,8 @@ class shopContactsProfileTabHandler extends waEventHandler
         return array(
             'html' => '',
             'url' => wa()->getAppUrl('shop').'?module=customers&action=profileTab&id='.$contact_id,
-            'count' => 0,
-            'title' => _wd('shop', 'Shop').($total_orders ? ' ('.$total_orders.')' : ''),
+            'count' => ($counter_inside ? 0 : $total_orders),
+            'title' => _wd('shop', 'Shop').($counter_inside && $total_orders ? ' ('.$total_orders.')' : ''),
         );
     }
 }

@@ -8,7 +8,7 @@
     <div class="sidebar flexbox overflow-visible s-sidebar-section js-sidebar-section custom-mt-8" id="js-features-settings-sidebar">
         <div class="s-section-header sidebar-body">
             {* STATES *}
-            <ul class="menu ui-sortable" id="s-settings-order-states-list">
+            <ul class="menu ui-sortable custom-mt-12" id="s-settings-order-states-list">
                 {foreach $states as $id => $s}
                 <li class="dr {if $id == $info.id}selected{/if} rounded" id="state-{$id}">
                     <a href="#/orderStates/{$id}/" style="{$s->getStyle()}">
@@ -36,9 +36,9 @@
             </div>
         </div>
     </div>
-    <div class="content custom-ml-8">
+    <div class="content custom-ml-16">
         <div class="fields vertical">
-            <div class="fields-group">
+            <div class="custom-mx-4 custom-my-16">
                 <div class="flexbox">
                     <div class="wide">
                         <h1>{$info.name|escape}</h1>

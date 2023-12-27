@@ -110,7 +110,7 @@
             <span class="s-text" v-if="!states.expanded" v-html="selected_storefronts_string"></span>
             <span class="s-text" v-else>[`Hide storefront list`]</span>
         </div>
-        <div class="s-storefronts-list" v-if="states.expanded">
+        <div class="s-storefronts-list break-words" v-if="states.expanded">
             <template v-for="storefront in selected_storefronts">
                 <div class="s-storefront-wrapper">
                     <a class="hover-blue" v-bind:href="storefront.url" v-text="storefront.name" target="_blank"></a>
@@ -193,6 +193,7 @@
                             <label class="flexbox middle space-8">
                                 <component-radio v-model="type"
                                                  v-bind:val="'all'"
+                                                 class="js-do-not-submit"
                                                  v-bind:name="radio_name"></component-radio>
                                 <span class="s-label">[`All storefronts`]</span>
                             </label>
@@ -203,6 +204,7 @@
                             <label class="flexbox middle space-8">
                                 <component-radio v-model="type"
                                                  v-bind:val="'selection'"
+                                                 class="js-do-not-submit"
                                                  v-bind:name="radio_name"></component-radio>
                                 <span class="s-label">{_w("Selected storefronts")|escape} ({ { selected_storefronts.length } })</span>
                             </label>
@@ -256,7 +258,7 @@
 
             <div class="s-section-body">
                 <div class="s-wysiwyg-editor js-wysiwyg-editor">
-                    <textarea class="js-product-description-textarea" v-bind:value="modelValue"></textarea>
+                    <textarea class="js-product-description-textarea js-do-not-submit" v-bind:value="modelValue"></textarea>
                 </div>
                 <div class="s-html-editor js-html-editor"></div>
             </div>
@@ -420,7 +422,7 @@
 
                                     <div class="s-field-wrapper wide">
                                         <div class="s-url-field-wrapper" v-bind:class="{ 'is-focus' : states.category_url_focus }">
-                                            <span class="s-tail" v-text="category.frontend_base_url"></span>
+                                            <span class="s-tail text-ellipsis" v-bind:title="category.frontend_base_url" v-text="category.frontend_base_url"></span>
                                             <input type="text" class="s-field full-width"
                                                    v-model="category.url"
                                                    v-on:focus="states.category_url_focus = true"
@@ -522,6 +524,10 @@
                             </div>
                         </div>
 
+                        <!-- plugin hook: 'backend_prod_category_dialog.top' -->
+                        {* @event backend_prod_category_dialog.%plugin_id%.top *}
+                        {if !empty($backend_prod_category_dialog)}{foreach $backend_prod_category_dialog as $_}{ifset($_, 'top', '')}{/foreach}{/if}
+
                         {* PARAMS *}
                         <template v-if="category.type === '1'">
                             <component-category-features-section></component-category-features-section>
@@ -577,7 +583,7 @@
                                         </div>
                                         <div class="s-description hint">
                                             <template v-if="!category.include_sub_categories">[`The sort order that will be applied to the product listing when the category page is opened.`]</template>
-                                            <template v-else>{sprintf_wp('Sorting option “%s” is available only when the “%s” setting is disabled.', _w('Manual (as defined in the backend)'), _w('Include products from subcategories'))}</template>
+                                            <template v-else>{sprintf_wp('Sorting option “%s” is available only when the “%s” setting is disabled.', _w('Manual (as defined in the backend)'), _w('Displaying products from subcategories'))}</template>
                                         </div>
 
                                     </div>
@@ -639,6 +645,10 @@
                                     </div>
                                 </div>
 
+                                <!-- plugin hook: 'backend_prod_category_dialog.storefront' -->
+                                {* @event backend_prod_category_dialog.%plugin_id%.storefront *}
+                                {if !empty($backend_prod_category_dialog)}{foreach $backend_prod_category_dialog as $_}{ifset($_, 'storefront', '')}{/foreach}{/if}
+
                                 {* Описание категории *}
                                 <div class="field">
                                     <div class="name shift-0">
@@ -663,6 +673,11 @@
                                 v-bind:category_data="category_data"
                                 v-bind:storefronts="storefronts"></component-category-storefronts-section>
                         </div>
+
+                        <!-- plugin hook: 'backend_prod_category_dialog.publication' -->
+                        {* @event backend_prod_category_dialog.%plugin_id%.publication *}
+                        {if !empty($backend_prod_category_dialog)}{foreach $backend_prod_category_dialog as $_}{ifset($_, 'publication', '')}{/foreach}{/if}
+
                     </div>
 
                     {* Отображение в поисковых системах *}
@@ -733,6 +748,11 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- plugin hook: 'backend_prod_category_dialog.seo' -->
+                                {* @event backend_prod_category_dialog.%plugin_id%.seo *}
+                                {if !empty($backend_prod_category_dialog)}{foreach $backend_prod_category_dialog as $_}{ifset($_, 'seo', '')}{/foreach}{/if}
+
                             </div>
 
                         </div>
@@ -851,6 +871,10 @@
                                         </div>
                                     </div>
                                 </template>
+
+                                <!-- plugin hook: 'backend_prod_category_dialog.og' -->
+                                {* @event backend_prod_category_dialog.%plugin_id%.og *}
+                                {if !empty($backend_prod_category_dialog)}{foreach $backend_prod_category_dialog as $_}{ifset($_, 'og', '')}{/foreach}{/if}
                             </div>
 
                         </div>
@@ -876,6 +900,10 @@
                                 v-bind:class="'small wide'"></component-textarea>
                         </div>
                     </div>
+
+                    <!-- plugin hook: 'backend_prod_category_dialog.bottom' -->
+                    {* @event backend_prod_category_dialog.%plugin_id%.bottom *}
+                    {if !empty($backend_prod_category_dialog)}{foreach $backend_prod_category_dialog as $_}{ifset($_, 'bottom', '')}{/foreach}{/if}
                 </div>
 
             </div>

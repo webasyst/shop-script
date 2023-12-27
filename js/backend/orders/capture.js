@@ -54,9 +54,7 @@ var OrderCaptureSection = (function ($) {
 
         var $unsupported_plugins_message = null;
 
-        // EVENTS
-
-        that.$wrapper.on("change", ".js-mode-toggle", function () {
+        var toggleMode = function () {
             var $toggle = that.$wrapper.find(".js-mode-toggle:checked"),
                 is_active = $toggle.is(":checked");
 
@@ -97,7 +95,12 @@ var OrderCaptureSection = (function ($) {
                     }
                 }
             }
-        });
+        }
+        toggleMode();
+
+        // EVENTS
+
+        that.$wrapper.on("change", ".js-mode-toggle", toggleMode);
 
         that.$products.on("keydown", ".js-quantity-field", function (event) {
             var key = event.keyCode,

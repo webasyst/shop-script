@@ -310,7 +310,7 @@ class shopCheckoutShippingStep extends shopCheckoutStep
             }
 
             if ($type['id'] !== 'post') {
-                // Today and tommorrow
+                // Today and tomorrow
                 $date = waDateTime::format('Ymd', $type['date_min_ts']);
                 if ($date == waDateTime::format('Ymd')) {
                     $type['date_formatted'] = _ws('Today');

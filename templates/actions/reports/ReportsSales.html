@@ -21,9 +21,13 @@
 
             {if $abtests}
                 <div class="flexbox middle space-16">
-                    <i class="fas fa-columns"></i>
-                    <span class="highlighted">[`A/B tests results available`]</span>
-                    <div class="wa-select">
+                    <div>
+                        <span class="icon text-gray">
+                            <i class="fas fa-columns"></i>
+                        </span>
+                        <span class="highlighted" style="padding: 0 5px 3px;margin-left: 0.4rem">[`A/B tests results available`]</span>
+                    </div>
+                    <div class="wa-select smaller">
                         <select id="s-sales-abtest-selector">
                             <option value="">[`Select test`]</option>
                             {foreach $abtests as $id => $name}

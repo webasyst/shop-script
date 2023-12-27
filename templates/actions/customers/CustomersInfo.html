@@ -20,7 +20,7 @@
     </div>
 </div>
 
-<div class="custom-mb-16">
+<div>
 
     <!-- plugin hook: 'backend_customer.action_link' -->
     {* @event backend_customer.%plugin_id%.action_link *}
@@ -34,17 +34,24 @@
 
 </div>
 
-<div class="s-block custom-my-16">
+<div class="custom-my-16">
     <div class="flexbox full-width space-12 wrap-mobile">
         <div class="flexbox space-12 wide">
             <div>
-                <i class="fas {if !empty($contact['password'])}fa-check-circle text-green{else}fa-user-secret text-gray{/if} largest custom-mt-4"></i>
+                <i class="fas {if !empty($contact['password'])}fa-check-circle text-green{else}fa-user-secret text-gray custom-ml-8{/if} largest custom-mt-4"></i>
             </div>
 
             <div class="wide">
                 {if !empty($contact['password'])}
-                    [`Permanent user account`]
-                    <p class="hint">
+                    <span>
+                        {if $contact.is_user}
+                            [`Permanent user account with Webasyst backend access`]
+                            <i class="icon webasyst-magic-wand small custom-ml-4" title="[`Can access Webasyst backend`]"></i>
+                        {else}
+                            [`Permanent user account`]
+                        {/if}
+                    </span>
+                    <p class="hint custom-mt-0">
                         {sprintf('[`%s has personal account on your site.`]', $contact_name)}
                         [`Last login`]: <strong>{$contact.last_login_datetime|wa_datetime:"humandatetime"|default:'[`Never`]'}</strong>
                     </p>

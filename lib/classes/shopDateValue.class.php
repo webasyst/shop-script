@@ -31,7 +31,10 @@ class shopDateValue implements ArrayAccess
             $field = 'timestamp';
             $value = strtotime($value);
         }
-        return $this->$field = $value;
+        if (property_exists($this, $field)) {
+            $this->$field = $value;
+        }
+        return $value;
     }
 
     public function __get($field)

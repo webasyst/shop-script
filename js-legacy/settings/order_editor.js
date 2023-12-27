@@ -16,8 +16,6 @@ var ShopSettingsOrderEditor = ( function($) {
         that.$loading = that.$wrapper.find('.js-loading');
 
         // VARS
-        that.locale = options["locale"];
-
         that.name_format_full_fields = ['firstname', 'middlename', 'lastname'];
         that.name_format_one_fields = ['name'];
 
@@ -32,8 +30,6 @@ var ShopSettingsOrderEditor = ( function($) {
         var that = this;
 
         //
-        that.initCustomConfigToggle();
-        //
         that.initFixDeliveryArea();
         //
         that.initBigTable();
@@ -47,30 +43,6 @@ var ShopSettingsOrderEditor = ( function($) {
         that.initSubmit();
         //
         $(window).trigger('scroll');
-    };
-
-    ShopSettingsOrderEditor.prototype.initCustomConfigToggle = function() {
-        var that = this,
-            $toggle = that.$wrapper.find('.js-custom-config-toggle'),
-            $toggle_status = that.$wrapper.find('.js-toggle-status'),
-            $big_table = that.$wrapper.find('.js-big-table');
-
-        $toggle.iButton({
-            labelOn : "",
-            labelOff : "",
-            className: 'mini inline-toggle'
-        }).change(function() {
-            if (this.checked) {
-                $toggle_status.text(that.locale["use"]).removeClass('disabled');
-                $big_table.show();
-            } else {
-                $toggle_status.text(that.locale["dont_use"]).addClass('disabled');
-                $big_table.hide();
-            }
-            that.buttonViewToggle(true);
-
-            $(window).trigger('scroll');
-        });
     };
 
     ShopSettingsOrderEditor.prototype.initFixDeliveryArea = function() {

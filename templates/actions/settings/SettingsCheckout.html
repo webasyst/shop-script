@@ -10,6 +10,22 @@
     {/if}
 {* Render content *}
 <div class="content">
+
+  <div class="alert warning">
+      <p>
+          {* TODO: DEPRECATE PERMANENTlY *}
+          {if $wa->locale() == 'ru_RU'}
+              <strong>Раздел упразднен в Shop-Script 10.0.</strong>
+              Для настройки упраздненного пошагового оформления заказа используйте старый интерфейс или переключите витрину в новый режим оформления заказа в корзине в настройках витрины (поселения).
+          {else}
+              <strong>Deprecated in Shop-Script 10.0.</strong>
+              To set up the deprecated multi-step checkout, use the old UI mode. Or enable the in-cart checkout mode in the storefront (routing) settings.
+          {/if}
+      </p>
+  </div>
+
+  <div class="opacity-50">
+
     {if empty($old_storefronts)}
     <div style="margin: 80px auto; text-align: center;">
         {sprintf('[`No storefronts with multi-step checkout. Go to the storefronts <a href="%s">settings</a>.`]', '?action=storefronts#/design/action=settings')}

@@ -727,6 +727,7 @@ html.is-order-page .container {
   padding: 0;
   margin: 0;
   border: 0;
+  border-radius: 0;
   line-height: 1em;
   border-color: transparent;
   color: #c4c4c4;

@@ -100,6 +100,38 @@
         </div>
         <div class="clear-left"></div>
     </div>
+    {if !empty($show_mobile_ad) && $view == 'split'}
+            <div class="s-tiny-ad-box">
+
+                <a href="javascript:void(0)" class="s-tiny-ad-close" title="[`Close`]">&times;</a>
+                <h5 class="heading"><img src="{$wa_app_static_url}img/shop.svg" style="width: 20px; height: 20px; position: relative; margin-top: -3px;" alt="Shop-Script" /> [`Mobile app`]</h5>
+
+                <div class="flexbox space-12">
+                    <div>
+                        <a href="https://apps.apple.com/{if $wa->locale() == 'ru_RU'}ru{else}us{/if}/app/webasyst-shop-script/id6443853956" target="_blank">
+                            <img src="{$wa_app_static_url}img/badge-appstore{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="App Store">
+                        </a>
+                        <a href="https://play.google.com/store/apps/details?id=com.webasyst.shopscript" target="_blank">
+                            <img src="{$wa_app_static_url}img/badge-google-play{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="Google Play">
+                        </a>
+                        {if $wa->locale() == 'ru_RU'}
+                            <a href="https://apps.rustore.ru/app/com.webasyst.shopscript" target="_blank">
+                                <img src="{$wa_app_static_url}img/badge-rustore.svg" class="s-mobile-badge" alt="RuStore">
+                            </a>
+                        {/if}
+                    </div>
+
+                    <div class="align-center middle">
+                        <a href="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/mobile/" target="_blank">
+                            <img src="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/wa-apps/site/themes/webasystcom/img/mobile-qr-{if $wa->locale() == 'ru_RU'}ru{else}en{/if}.webp" class="s-mobile-qr {if $wa->locale() != 'ru_RU'}s-tiny{/if}" />
+                        </a>
+                        <p{if $wa->locale() != 'ru_RU'} class="s-tiny"{/if}>
+                            [`Install Webasyst Shop-Script mobile app on your phone today:`]
+                        </p>
+                    </div>
+                </div>
+            </div>
+    {/if}
 </div>
 <div class="content {if $view != 'table'}left300px{/if}" id="s-order" {if $view == 'table'}style="display:none;"{/if}></div>
 
@@ -166,5 +198,16 @@
         $selectionMenu: $("#s-orders-selection-menu"),
         sort: {$sort|json_encode}
     });
+
+    {if $view == 'split'}
+        $(".s-tiny-ad-box .s-tiny-ad-close").on('click', function (e) {
+            e.preventDefault();
+            $(this).closest('.s-tiny-ad-box').hide();
+            $.post("{$wa_app_url}?module=backend&action=sidebarMenuSaveState", {
+                hide_mobile_ad: 1
+            });
+        });
+
+    {/if}
 })(jQuery);
 </script>

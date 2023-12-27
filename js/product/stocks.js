@@ -82,7 +82,7 @@
                                 $('.lazyloading-progress').hide();
                                 $('.lazyloading-chunk').text(r.data.progress.chunk);
 
-                                if (offset >= total_count) {
+                                if (offset >= total_count || r.data.count < 1) {
                                     $(window).lazyLoad('stop');
                                     $('.lazyloading-link').hide();
                                 } else {

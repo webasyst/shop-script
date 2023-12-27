@@ -68,6 +68,10 @@
         Section.prototype.initVue = function() {
             var that = this;
 
+            if (typeof $.vue_app === "object" && typeof $.vue_app.unmount === "function") {
+                $.vue_app.unmount();
+            }
+
             // DOM
             var $view_section = that.$wrapper.find(".js-product-media-section");
 
@@ -637,10 +641,6 @@
 
                         // Добавляем фотку в модели данных
                         self.photos.push(photo);
-                        // Исправляем баг с кешированием в DOM новой фотографии, перерисовывая её
-                        self.$nextTick( function() {
-                            photo.render_key += "_updated";
-                        });
 
                         // удаляем UI загрузки
                         var index = self.files.indexOf(data.file);
@@ -738,10 +738,10 @@
             return vue_model.mount($view_section[0]);
 
             function formatPhoto(photo) {
+                photo.id = String(photo.id);
                 photo.expanded = false;
                 photo.is_checked = false;
                 photo.is_moving = false;
-                photo.render_key = photo.id;
 
                 if (typeof photo.description !== "string") { photo.description = ""; }
                 photo.description_before = photo.description;
@@ -835,13 +835,10 @@
                 }
             }
 
-            //
-
             function getPhoto(photo_id) {
                 var result = null;
 
                 $.each(vue_model.product.photos, function(i, photo) {
-                    photo.id = (typeof photo.id === "number" ? "" + photo.id : photo.id);
                     if (photo.id === photo_id) {
                         result = photo;
                         return false;

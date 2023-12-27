@@ -4,39 +4,33 @@
     </div>
 </div>
 <form id="s-tax-form" action="?module=settings&action=taxes">{* Submitted via XHR *}
-    {if $tax.id}
-    [`Tax`]:
-    <div class="dropdown js-tax-dropdown custom-ml-8">
-        <button class="dropdown-toggle button small white rounded">{$tax.name|escape}</button>
+    <h1>[`Taxes`]</h1>
 
-        <div class="dropdown-body">
-            <ul class="menu">
-                {foreach $taxes as $t}
-                <li class="{if $t.id == $tax.id}selected{/if}">
-                    <a href="#/taxes/{$t.id}">
-                        <i class="fas fa-percent"></i>
-                        {$t.name|escape}
-                    </a>
-                </li>
-                {/foreach}
-            </ul>
-        </div>
-    </div>
-    {else}
-    <h1>[`New tax rule`]</h1>
-    {/if}
-
-    <div class="hint custom-mt-16">{sprintf('[`To customize the list of countries and regions, use <a href="%s">Countries & Regions</a> screen.`]','#/regions/')}</div>
+    <ul class="tabs">
+        {foreach $taxes as $t}
+        <li class="{if $t.id == $tax.id}selected{/if}">
+            <a href="#/taxes/{$t.id}">
+                {$t.name|escape}
+            </a>
+        </li>
+        {/foreach}
+        <li{if !$tax.id} class="selected"{/if}>
+            <a href="#/taxes/new" class="light-gray">
+                <i class="fas fa-plus-circle text-green"></i>
+                [`New tax rule`]
+            </a>
+        </li>
+    </ul>
 
     <div class="fields custom-mt-16">
         <div class="fields-group">
             <div class="field">
-                <div class="name">
+                <div class="name for-input">
                     [`Tax name`]
                 </div>
 
                 <div class="value">
-                    <input type="text" class="small" name="tax[name]" value="{$tax.name|escape}">
+                    <input type="text" class="bold" name="tax[name]" value="{$tax.name|escape}">
                 </div>
             </div>
 
@@ -103,7 +97,7 @@
                 </div>
 
                 <div class="value">
-                    <table id="s-tax-regions-table" class="zebra">
+                    <table id="s-tax-regions-table" class="bigdata">
                         <thead>
                             <tr>
                                 <th colspan="2" class="nowrap">[`Destination`]</th>
@@ -124,12 +118,11 @@
                             </tr>
 
                             <tr class="white">
-                                <td colspan="4"></td>
+                                <td colspan="4" style="border-bottom: none;"></td>
                             </tr>
 
                             <tr>
-                                <td class="min-width"></td>
-                                <td colspan="3" class="nowrap">
+                                <td colspan="4" class="nowrap"style="border-bottom: none;">
                                     <div class="wa-select small">
                                         <select id="s-add-new-tax-country">
                                             <option selected value="">[`Add country`]</option>
@@ -147,6 +140,10 @@
                             </tr>
                         </tbody>
                     </table>
+
+                    <p class="hint custom-ml-12">
+                        {$wa_backend_url|cat:'webasyst/settings/regions/'|string_format:'[`Edit the list of countries and regions in the <a href="%s">Settings</a> app.`]'}
+                    </p>
                 </div>
             </div>
         </div>
@@ -157,7 +154,7 @@
                 </div>
 
                 <div class="value">
-                    <p>[`If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asterisk (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is OK for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided.`]</p>
+                    <p class="small">[`If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asterisk (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is OK for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided.`]</p>
 
                     <table id="s-tax-zip-codes-table" class="zebra">
                         <thead>
@@ -171,7 +168,7 @@
                         <tbody>
                             <tr class="empty-row{if $tax_zip_codes} hidden{/if}">
                                 <td colspan="4">
-                                    <em class="grey">[`No county taxes are defined.`]</em>
+                                    <em class="gray small">[`No county taxes are defined.`]</em>
                                 </td>
                             </tr>
 
@@ -199,7 +196,7 @@
 
                             <tr class="buttons">
                                 <td colspan="4">
-                                    <button type="button" class="button small light-gray rounded js-add-zip-code-link">
+                                    <button type="button" class="button smaller light-gray rounded js-add-zip-code-link">
                                         <i class="fas fa-plus-circle text-green"></i>
                                         [`Add ZIP`]
                                     </button>
@@ -219,13 +216,8 @@
             </div>
 
             <div>
-                <a href="#/taxes/new" class="button small light-gray">
-                    <i class="fas fa-plus-circle text-green"></i>
-                    [`New tax rule`]
-                </a>
-
                 {if $tax.id}
-                <button type="button" class="button small red js-delete-tax-link" title="[`Delete rule`]"><i class="fas fa-trash-alt"></i></a>
+                <button type="button" class="button small red outlined js-delete-tax-link" title="[`Delete rule`]"><i class="fas fa-trash-alt"></i> [`Delete rule`]</a>
                 <input type="hidden" name="id" value="{$tax.id|escape}">
                 {else}
                 <input type="hidden" name="id" value="new">

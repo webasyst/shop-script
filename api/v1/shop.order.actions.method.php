@@ -93,6 +93,11 @@ class shopOrderActionsMethod extends shopApiMethod
                     $type = 'link_head';
                 }
 
+                $options = [];
+                if ($a instanceof shopWorkflowActionApiInterface) {
+                    $options = ['options' => $a->getApiActionOptions($order_id)];
+                }
+
                 $result[] = array(
                     'id'            => $id,
                     'type'          => $type,
@@ -100,8 +105,8 @@ class shopOrderActionsMethod extends shopApiMethod
                     'name'          => $a->getName(),
                     'data_required' => $id == 'edit' || !!$a->getHTML($order_id),
                     'color'         => $color,
-                );
-            } catch (waException $e) {
+                ) + $options;
+            } catch (Throwable $e) {
                 // ignore actions if they err
             }
         }

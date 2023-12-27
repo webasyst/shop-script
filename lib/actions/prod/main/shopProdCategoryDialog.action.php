@@ -36,9 +36,20 @@ class shopProdCategoryDialogAction extends waViewAction
             }
         }
 
+        /**
+         * @event backend_prod_category_dialog
+         * @since 10.1.0
+         * @param array $category
+         * @return string
+         */
+        $backend_prod_category_dialog = wa('shop')->event('backend_prod_category_dialog', ref([
+            'category' => &$category,
+        ]));
+
         $this->view->assign([
             "parent_id" => $_parent_category_id,
             "category" => $category,
+            "backend_prod_category_dialog" => $backend_prod_category_dialog,
             "category_sort_variants" => shopProdCategoriesAction::getCategorySortVariants()
         ]);
 

@@ -107,7 +107,7 @@
             <div class="s-column s-column-toggle">
                 <div class="s-toggle-wrapper text-light-gray"
                      draggable="true"
-                     v-bind:class="{ 'cursor-move js-category-move-toggle' : !root_states.move_locked }">
+                     v-bind:class="[root_states.move_locked ? 'opacity-50' :'cursor-move js-category-move-toggle']">
                     <span class="s-icon icon size-14"
                           v-if="!category.states.move_locked"
                           v-bind:key="'fa-bars'">
@@ -126,16 +126,16 @@
                         </div>
 
                         <div class="s-action s-expand-toggle" v-on:click.prevent="extendCategory" v-bind:style="{ 'visibility' : (category.categories.length ? '' : 'hidden' )}">
-                            <span class="s-icon icon size-18 text-light-gray"
+                            <span class="s-icon icon size-18 gray"
                                   v-bind:key="'fa-caret-right'"
                                   v-if="!category.states.expanded"><i class="fas fa-caret-right"></i></span>
-                            <span class="s-icon icon size-18 text-light-gray"
+                            <span class="s-icon icon size-18 gray"
                                   v-bind:key="'fa-caret-down'"
                                   v-if="category.states.expanded"><i class="fas fa-caret-down"></i></span>
                         </div>
                         <div class="s-action">
                             <template v-if="!states.status_locked">
-                                <span class="s-icon icon size-18 text-blue"
+                                <span class="s-icon icon size-18 gray"
                                       v-if="category.states.visible"
                                       v-bind:key="'fa-eye'"
                                       v-on:click.prevent="changeStatus"><i class="far fa-eye"></i></span>
@@ -157,10 +157,10 @@
                             </template>
                             <template v-else>
                                 <template v-if="category.type === '0'">
-                                    <span class="s-icon icon size-14 text-light-gray" v-bind:key="'fa-folder'"><i class="fas fa-folder"></i></span>
+                                    <span class="s-icon icon size-14 text-blue" v-bind:key="'fa-folder'"><i class="fas fa-folder"></i></span>
                                 </template>
                                 <template v-else>
-                                    <span class="s-icon icon size-18 text-light-gray" v-bind:key="'fa-folder'">
+                                    <span class="s-icon icon size-18 text-blue" v-bind:key="'fa-folder'">
                                         <svg><use xlink:href="{$_sprite_url}#folder-dynamic"></use></svg>
                                     </span>
                                 </template>
@@ -408,10 +408,14 @@
 ]}
 
 {* ЛОКАЛИЗАЦИЯ *}
-{$_locales = []}
+{$_locales = [
+    "warn" => sprintf("%s%s", _w("Warning"), "!")
+]}
 
 {* template will update components array *}
 {include file="./components/main.html" scope="parent" inline}
+
+{include file="./components/products/empty_content.html" scope="parent" inline}
 
 <div class="s-categories-page" id="js-categories-page">
     <div class="s-page-wrapper" id="js-vue-section" style="visibility: hidden;">
@@ -436,8 +440,7 @@
                     </div>
 
                     <div class="flexbox middle space-20">
-                        <div class="s-categories-sorting-section flexbox middle space-12">
-                            <div class="s-description">[`Warning: the sort order selected in this section corresponds to the category sorting in the storefront.`]</div>
+                        <div class="s-categories-sorting-section">
                             <div class="s-dropdown-wrapper">
                                 <component-dropdown-categories-sorting v-on:change="sortCategories"></component-dropdown-categories-sorting>
                             </div>
@@ -454,7 +457,8 @@
                 <div class="s-categories-table-section">
                     {* BODY *}
                     <div class="s-categories-table">
-                        <component-categories v-bind:categories="categories"></component-categories>
+                        <component-categories v-if="categories.length" v-bind:categories="categories"></component-categories>
+                        <component-empty-content v-else type="categories"></component-empty-content>
                     </div>
                 </div>
             </div>

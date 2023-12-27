@@ -423,9 +423,10 @@ class shopOrderAction extends waViewAction
         } catch (Exception $e) {
             $photo = '';
         }
-        if (!empty($photo)) {
+        if (!empty($photo) || !empty($order->contact['is_company'])) {
             $host_url = wa()->getConfig()->getHostUrl();
-            return $host_url.waContact::getPhotoUrl($order->contact->getId(), $photo);
+            $type = !empty($order->contact['is_company']) ? 'company' : 'person';
+            return $host_url.waContact::getPhotoUrl($order->contact->getId(), $photo, null, null, $type);
         } else {
             $order_params = $order->params;
             $channel_id = ifset($order_params, 'sales_channel', null);

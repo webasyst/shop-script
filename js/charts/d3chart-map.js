@@ -75,7 +75,7 @@ var showMapGraph = function(data, country_names) {
 
     // Render Map
     $map.datamaps({
-        height: width * 0.6,
+        height: width * 0.45,
         fills: getFills(59,164,237),
         data: getFillsData(data),
         geographyConfig: {

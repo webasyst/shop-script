@@ -36,8 +36,6 @@ let initMainWaSidebar;
 
             that.initPin();
 
-            that.initMobileAd();
-
             const $menu_toggle = that.$active_menu_item.parent('ul').parent('li').find('.js-group-toggle');
 
             // Скрываем меню у остальных
@@ -334,19 +332,6 @@ let initMainWaSidebar;
 
                 return deferred.promise();
             }
-        };
-
-        Sidebar.prototype.initMobileAd = function() {
-            var that = this,
-                $close_button = that.$wrapper.find(".s-tiny-ad .s-tiny-ad-close");
-
-            $close_button.click(function (e) {
-                e.preventDefault();
-                $(this).closest('.s-tiny-ad').hide();
-                $.post(that.urls["sidebar_menu_state"], {
-                    hide_mobile_ad: 1
-                });
-            });
         };
 
         Sidebar.prototype.signSidebarPinned = function(class_container, is_pin) {

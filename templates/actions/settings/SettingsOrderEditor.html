@@ -66,37 +66,16 @@
 {$_class = 's-settings-order-editor'}
 {$_id = uniqid($_class)}
 <form action="?module=SettingsOrderEditorSave" id="{$_id}">
+    <input type="hidden" name="data[use_custom_config]" value="1">
     <h1>[`Manually added orders’ editor`]</h1>
 
 
-    <p class="custom-my-4">{sprintf('[`Select which fields must available for the editing of orders with selected order source “%s”.`]', '[`Manual order`]')}</p>
-    <p class="custom-mt-0">[`If a storefront is selected as an order’s source then that storefront’s checkout settings define which fields are available for order editing.`]</p>
+    <p class="custom-my-4 small">
+      {sprintf('[`Select which fields must available for the editing of orders with selected order source “%s”.`]', '[`Manual order`]')}
+      [`If a storefront is selected as an order’s source then that storefront’s checkout settings define which fields are available for order editing.`]
+    </p>
 
-
-    <div class="fields custom-mt-16">
-        <div class="fields-group">
-            <div class="field s-custom-config-toggle-field">
-                <div class="name for-switch">[`Use custom settings`]</div>
-
-                <div class="value">
-                    <div class="flexbox middle space-8 custom-mt-4">
-                        <input type="hidden" name="data[use_custom_config]" value="0">
-
-                        <span class="js-custom-config-toggle small switch">
-                            <input type="checkbox" id="use-custom-config" name="data[use_custom_config]" {if $config.use_custom_config} checked="checked"{/if}>
-                        </span>
-
-                        <label for="use-custom-config" class="{if !$config.use_custom_config}gray{/if}">
-                            {if $config.use_custom_config}[`Use`]{else}[`Do not use`]{/if}
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <table class="js-big-table s-table-transparent" {if empty($config.use_custom_config)}style="display: none;"{/if}>
+    <table class="js-big-table s-table-transparent">
         <tbody class="fields">
             {* GENERAL SETTINGS *}
             <tr class="js-block-wrapper tr" data-block="general">
@@ -355,11 +334,6 @@
 <script>
     (function ($) {
         document.title = '{$_title}';
-
-        $.wa.locale = $.extend($.wa.locale || {}, {
-            "use": "[`Use`]",
-            "dont_use": "[`Do not use`]"
-        });
 
         new ShopSettingsOrderEditor($("#{$_id}"));
     })(jQuery);

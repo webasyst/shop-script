@@ -8,27 +8,11 @@
     {$checkout_sidebar}
 
     {if $route && $checkout_config}
-    <div id="{$_id}" class="{$_class}">
+    <div id="{$_id}" class="{$_class} custom-ml-16">
         <form action="?module=SettingsCheckout2Save">
             <div>
                 <h1>{sprintf_wp('<span>In-cart checkout</span> setting for <br><span class="gray"><span class="icon shift-5"><i class="fas fa-circle text-green smallest"></i></span>%s/%s</span>', {$route.domain}, {$route.url|default:null|escape})}</h1>
             </div>
-            <div>
-                <a href="[`https://www.shop-script.com/help/29577/in-cart-checkout-settings/`]" class="custom-ml-8 flexbox middle space-4" target="_blank">
-                    <i class="fas fa-info-circle fa-sm"></i>
-                    <span>[`Setup instructions`]</span>
-                </a>
-            </div>
-            <div class="alert outlined custom-mt-32 custom-mb-32">
-                <div>
-                    {$_storefront_settings_path = sprintf("?action=storefronts#/design/theme=%s&domain=%s&route=%s&action=settings", $route.theme|default:'default'|urlencode, waIdna::enc($route.domain)|urlencode, $route.route_id|urlencode)}
-                    {$text = str_replace('icon16 new-window', 'fas fa-external-link-alt smaller', _w('In <a href="%s" target="_blank">storefront settings <i class="icon16 new-window"></i></a> you can switch between <strong>multi-step checkout</strong> and <strong>in-cart checkout</strong>.'))}
-                    {sprintf_wp($text, $_storefront_settings_path)}
-                </div>
-            </div>
-
-            {* DESIGN SETTINGS *}
-            {design_block settings=$checkout_config.design}
 
             <table class="s-big-table js-big-table s-table-transparent">
             <tbody class="fields">
@@ -239,6 +223,9 @@
                 </tr>
             </tbody>
             </table>
+
+            {* DESIGN SETTINGS *}
+            {design_block settings=$checkout_config.design}
 
             <input type="hidden" name="storefront_id" value="{$route.checkout_storefront_id|default:null|escape}">
 

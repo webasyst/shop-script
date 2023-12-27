@@ -53,7 +53,7 @@
                                 <rect x="12" y="16" width="13" height="3" rx="1" transform="rotate(-90 12 16)" fill="currentColor"/>
                             </svg>
                         </a>
-                        <a id="compare-link" class="wa-ml-8" {if count($compare) lt 2}style="display:none"{/if} rel="nofollow" href="{$wa->getUrl('/frontend/compare/', ['id' => implode(',', $compare) ])}" class="bold">[`Compare`] <span class="count">{count($compare)}</span></a>
+                        <a id="compare-link" class="bold wa-ml-8" {if count($compare) lt 2}style="display:none"{/if} rel="nofollow" href="{$wa->getUrl('/frontend/compare', ['id' => implode(',', $compare) ])}">[`Compare`] <span class="count">{count($compare)}</span></a>
                     </div>
                 </li>
             {/if}

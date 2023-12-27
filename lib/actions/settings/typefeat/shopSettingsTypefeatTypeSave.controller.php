@@ -93,6 +93,17 @@ class shopSettingsTypefeatTypeSaveController extends waJsonController
         }
 
         if ($data) {
+
+            /**
+             * @event backend_type_save
+             * @since 10.1.0
+             * @param array $type
+             * @return void
+             */
+            wa('shop')->event('backend_type_save', ref([
+                'type' => &$data,
+            ]));
+
             $data['icon_html'] = shopHelper::getIcon($data['icon'], 'icon.box');
             $data['name_html'] = '<span class="js-type-icon">'.$data['icon_html'].'</span>
                     <span class="js-type-name">'.htmlspecialchars($data['name'], ENT_QUOTES, 'utf-8').'</span>';

@@ -193,6 +193,10 @@
         Section.prototype.initVue = function() {
             var that = this;
 
+            if (typeof $.vue_app === "object" && typeof $.vue_app.unmount === "function") {
+                $.vue_app.unmount();
+            }
+
             // VARS
             var storefronts_extended = that.storage("storefronts_extended");
 
@@ -230,16 +234,15 @@
                         computed: {
                             stock_icon_class: function() {
                                 return function(stock_value, stock) {
-                                    var result = "";
+                                    stock_value = (stock_value ? parseInt(stock_value) : null);
 
-                                    if (stock_value > stock.low_count || stock_value === "") {
-                                        result = "color-green-dark";
-                                    } else
-                                    if (stock_value > stock.critical_count && stock_value <= stock.low_count) {
-                                        result = "color-orange";
-                                    } else
-                                    if (stock_value <= stock.critical_count) {
-                                        result = "color-red";
+                                    var result = "";
+                                    if (stock_value > parseInt(stock.low_count) || stock_value === null) {
+                                        result = "text-green";
+                                    } else if (stock_value > parseInt(stock.critical_count) && stock_value <= parseInt(stock.low_count)) {
+                                        result = "text-orange";
+                                    } else if (stock_value <= parseInt(stock.critical_count)) {
+                                        result = "text-red";
                                     }
 
                                     return result;

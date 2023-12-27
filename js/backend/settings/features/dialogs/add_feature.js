@@ -670,6 +670,10 @@
                     },
                     data = $form.serializeArray();
 
+                $form.find('input[data-unchecked]:not(:checked)').each(function() {
+                    data.push({ name: $(this).attr('name'), value: "" });
+                });
+
                 $.each(data, function(index, item) {
                     result.data.push(item);
                 });

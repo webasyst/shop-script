@@ -86,7 +86,7 @@ function Product(form, options) {
                 self.form.find(".sku-no-stock").show();
                 self.button.attr('disabled', 'disabled');
             }
-            self.add2cart_top.find(".price").data('price', sku.price);
+            self.add2cart_top.find(".js-product-price").data('price', sku.price);
             self.updatePrice(sku.price, sku.compare_price);
         } else {
             self.form.find("div.stocks div").hide();
@@ -253,24 +253,24 @@ Product.prototype.updateSkuServices = function (sku_id) {
             this.form.find(".service-" + service_id).hide().find('input,select').attr('disabled', 'disabled').removeAttr('checked');
         } else {
             this.form.find(".service-" + service_id).show().find('input').removeAttr('disabled');
-            if (typeof (variants) == 'string' || typeof (variants) === "number") {
+            if (typeof (variants) === "string" || typeof (variants) === "number") {
                 this.form.find(".service-" + service_id + ' .service-price').html(this.currencyFormat(variants));
                 this.form.find(".service-" + service_id + ' input').data('price', variants);
             } else {
                 var select = this.form.find(".service-" + service_id + ' .service-variants');
                 var selected_variant_id = select.val();
+                var is_hidden_default_variant = variants[selected_variant_id] === false;
                 for (var variant_id in variants) {
                     var obj = select.find('option[value=' + variant_id + ']');
-                    if (variants[variant_id] === false) {
-                        obj.hide();
-                        if (obj.attr('value') == selected_variant_id) {
-                            selected_variant_id = false;
-                        }
-                    } else {
-                        if (!selected_variant_id) {
+                    if (variants[variant_id]) {
+                        obj.replaceWith(this.serviceVariantHtml(variant_id, variants[variant_id][0], variants[variant_id][1]));
+
+                        if (is_hidden_default_variant) {
+                            is_hidden_default_variant = false;
                             selected_variant_id = variant_id;
                         }
-                        obj.replaceWith(this.serviceVariantHtml(variant_id, variants[variant_id][0], variants[variant_id][1]));
+                    } else {
+                        obj.hide();
                     }
                 }
                 this.form.find(".service-" + service_id + ' .service-variants').val(selected_variant_id);

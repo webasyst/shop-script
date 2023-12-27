@@ -28,7 +28,7 @@
 
                     {if !empty($installer)}
                         <div class="align-center hint bordered-top box">
-                            <p>
+                            <p class="custom-m-12">
                                 <a href="javascript:void(0);" data-url="{$wa_backend_url|cat:'installer/?module=plugins&action=view&slug=shop&filter[tag]=affiliate'}" class="bold">[`Browse plugins`]</a><br>
                                 [`Install new plugins from the Webasyst Store using the Installer app`]
                             </p>
@@ -159,12 +159,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="fields-group"{if !$enabled} style="display:none;"{/if}>
-                                <div class="field">
-                                    <div class="value submit">
-                                        <input type="submit" class="button green js-submit-button" value="[`Save`]">
-                                    </div>
-                                </div>
+                            <div class="custom-mx-16 custom-my-20"{if !$enabled} style="display:none;"{/if}>
+                                <input type="submit" class="button green js-submit-button" value="[`Save`]">
                             </div>
                         </div>
                     </form>

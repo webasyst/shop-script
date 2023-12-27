@@ -63,8 +63,8 @@ var Kanban = (($) => {
             if (filterParamsStr) {
                 $.order_list.filter_params_str = filterParamsStr;
             }
-            const sort = ['0', 'desc']; // or remove from logic?
-            return $.order_list.buildLoadListUrl(id, lt, counters, null, sort, filterParamsStr ? null : this.statusId);
+            const sort = ['0', 'desc'];
+            return $.order_list.buildLoadListUrl(id, lt, counters, null, sort, this.statusId);
         }
     }
 
@@ -216,10 +216,8 @@ var Kanban = (($) => {
     };
 
     const setFilterParams = () => {
-
         filterParams = this.options.filter_params
         filterParamsStr = this.options.filter_params_str
-
     };
 
     const setWidth = () => {

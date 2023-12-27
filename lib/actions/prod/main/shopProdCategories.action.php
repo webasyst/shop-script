@@ -96,7 +96,7 @@ class shopProdCategoriesAction extends waViewAction
     public static function getCategorySortVariants() {
         $result = [
             [
-                "name" => _w("Manually (as selected in the backend)"),
+                "name" => _w("Manual"),
                 "value" => ""
             ],
             [

@@ -252,7 +252,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
                         'order_id'        => $order->id,
                         'contact_id'      => null,
                         'action_id'       => '',
-                        'text'            => '<i class="icon16 email"></i> '.$log,
+                        'text'            => '<i class="icon16 email fas fa-envelope text-gray custom-mr-4"></i>'.$log,
                         'before_state_id' => $order->state_id,
                         'after_state_id'  => $order->state_id,
                     ));

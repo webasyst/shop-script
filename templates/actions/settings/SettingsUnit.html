@@ -314,7 +314,7 @@
                     <li>
                         <div class="wa-table-box">
                             <span class="s-column-icon">1.&nbsp;</span>
-                            <p>{sprintf_wp('Verify the compatibility in section “%s → %s”.', _wp('Settings'), _wp('PREMIUM license compatibility'))}</p>
+                            <p>{sprintf_wp('Verify the compatibility in section “%s → %s”.', _wp('Settings'), _wp('Plugins compatibility'))}</p>
                         </div>
                     </li>
                     <li>
@@ -362,7 +362,7 @@
                     <li>
                         <div class="wa-table-box">
                             <span class="s-column-icon">1.&nbsp;</span>
-                            <p>{sprintf_wp('Verify the compatibility in section “%s → %s”.', _wp('Settings'), _wp('PREMIUM license compatibility'))}</p>
+                            <p>{sprintf_wp('Verify the compatibility in section “%s → %s”.', _wp('Settings'), _wp('Plugins compatibility'))}</p>
                         </div>
                     </li>
                     <li>
@@ -404,7 +404,7 @@
                     <li>
                         <div class="wa-table-box">
                             <span class="s-column-icon">1.&nbsp;</span>
-                            <p>{sprintf_wp('Verify the compatibility in section “%s → %s”.', _wp('Settings'), _wp('PREMIUM license compatibility'))}</p>
+                            <p>{sprintf_wp('Verify the compatibility in section “%s → %s”.', _wp('Settings'), _wp('Plugins compatibility'))}</p>
                         </div>
                     </li>
                     <li>
@@ -437,6 +437,20 @@
         {* HEADER *}
         <div class="s-section-header">
             <h1 class="s-title">{$_page_title}</h1>
+
+            <p>
+                <a href="?action=settings#/compatibility/" class="button light-gray">
+                    <span class="icon custom-mr-8"><i class="fas fa-puzzle-piece"></i></span>
+                    <span class="shop-sidebar-hidden">[`Plugins compatibility`]</span>
+                </a>
+            </p>
+            {if $is_teaser}
+            <div class="align-center box blank" style="padding: 3rem; border-radius: 0.5rem;">
+                <i class="fas fa-star text-yellow" style="font-size: 5rem; margin-right: 1.5rem;"></i>
+                <p class="custom-mx-auto">[`This feature is available only with the premium license.`]</p>
+                <a href="{$wa_app_url}?action=settings#/premium/" class="button yellow large rounded">[`See what’s more in premium`]</a>
+            </div>
+            {/if}
             <div class="alert small s-section-header-help custom-mt-32">
                 <div class="box">
                     <div class="flexbox space-8">
@@ -445,14 +459,14 @@
                             <span class="cursor-pointer select-none" @click="states.help_display = !states.help_display">[`Description of available settings options`]</span>
                             <div class="small custom-mt-4 semibold">
                                 <a href="javascript:void(0);" class="cursor-pointer select-none" @click="states.help_display = !states.help_display">
-                                    <template v-if="states.help_display">[`Collapse`]</template>
+                                    <template v-if="{if $is_teaser}!{/if}states.help_display">[`Collapse`]</template>
                                     <template v-else>[`Expand`]</template>
                                 </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="s-sections-list custom-mt-16" v-if="states.help_display">
+                    <div class="s-sections-list custom-mt-16" v-if="{if $is_teaser}!{/if}states.help_display">
                         {* 1 *}
                         <div class="s-section-wrapper">
                             <div class="s-section-header">
@@ -560,7 +574,7 @@
                         {* END *}
                         <div class="s-section-wrapper">
                             <div class="small custom-mt-4 semibold">
-                                <a href="javascript:void(0);" class="cursor-pointer select-none" @click="closeHelp">[`Collapse`]</a>
+                                <a href="javascript:void(0);" class="cursor-pointer select-none" @click="{if $is_teaser}states.help_display = !states.help_display{else}closeHelp{/if}">[`Collapse`]</a>
                             </div>
                         </div>
                     </div>
@@ -570,7 +584,7 @@
         </div>
 
         {* BODY *}
-        <div class="s-section-body">
+        <div class="s-section-body{if $is_teaser} opacity-50 custom-mb-48{/if}">
             <div class="s-settings-section s-content-section">
                 <div class="s-section-body">
                     <div class="fields">
@@ -578,15 +592,15 @@
                             <div class="field">
                                 <div class="name">[`Products adding to the shopping cart`]</div>
                                 <div class="value">
-                                    <div class="s-radio-group"
+                                    <div class="s-radio-group{if $is_teaser} is-locked{/if}"
                                         v-bind:class="{ 'is-locked' : states.change_type }"
-                                        v-on:change="onFractionalChange">
+                                         {if !$is_teaser}v-on:change="onFractionalChange"{/if}>
                                         <div class="s-radio-wrapper">
                                             <label :data-tooltip-id="(fractional.locked ? 'fractional_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="0"
-                                                       v-model="fractional.enabled"
-                                                       v-bind:disabled="fractional.locked">
+                                                           {if !$is_teaser}v-model="fractional.enabled"
+                                                       v-bind:disabled="fractional.locked"{/if}>
                                                     <span></span>
                                                 </span>
                                                 [`Only integer quantity values, with the add-to-cart step equal to 1.`]
@@ -596,8 +610,8 @@
                                             <label :data-tooltip-id="(fractional.locked ? 'fractional_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="1"
-                                                        v-model="fractional.enabled"
-                                                        v-bind:disabled="fractional.locked">
+                                                           {if !$is_teaser}v-model="fractional.enabled"
+                                                        v-bind:disabled="fractional.locked"{/if}>
                                                     <span></span>
                                                 </span>
                                                  [`Fractional quantities, with the option to set up an arbitrary add-to-cart step, a minimum orderable quantity, and a quantity adjustment value for “+/-” buttons.`]
@@ -621,15 +635,15 @@
                             <div class="field">
                                 <div class="name">[`Product stock quantity unit`]</div>
                                 <div class="value">
-                                    <div class="s-radio-group"
+                                    <div class="s-radio-group{if $is_teaser} is-locked{/if}"
                                         v-bind:class="{ 'is-locked' : states.change_stock_units }"
-                                        v-on:change="onStockUnitsChange">
+                                         {if !$is_teaser}v-on:change="onStockUnitsChange"{/if}>
                                         <div class="s-radio-wrapper">
                                             <label :data-tooltip-id="(fractional.stock_units.locked ? 'stock_units_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="0"
-                                                        v-model="fractional.stock_units.enabled"
-                                                        v-bind:disabled="fractional.stock_units.locked">
+                                                           {if !$is_teaser}v-model="fractional.stock_units.enabled"
+                                                        v-bind:disabled="fractional.stock_units.locked"{/if}>
                                                     <span></span>
                                                 </span>
                                                 [`Pieces for all product types.`]
@@ -640,8 +654,8 @@
                                             <label :data-tooltip-id="(fractional.stock_units.locked ? 'stock_units_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="1"
-                                                        v-model="fractional.stock_units.enabled"
-                                                        v-bind:disabled="fractional.stock_units.locked">
+                                                           {if !$is_teaser}v-model="fractional.stock_units.enabled"
+                                                        v-bind:disabled="fractional.stock_units.locked"{/if}>
                                                     <span></span>
                                                 </span>
                                                 [`Products can be available for order with different quantity units.`]
@@ -658,16 +672,16 @@
                             <div class="field">
                                 <div class="name">[`Base product quantity unit`]</div>
                                 <div class="value">
-                                    <div class="s-radio-group"
+                                    <div class="s-radio-group{if $is_teaser} is-locked{/if}"
                                          v-bind:class="{ 'is-locked' : states.change_base_units }"
                                          v-if="fractional.stock_units.enabled === '1'"
-                                         v-on:change="onBaseUnitsChange">
+                                         {if !$is_teaser}v-on:change="onBaseUnitsChange"{/if}>
                                         <div class="s-radio-wrapper">
                                             <label :data-tooltip-id="(fractional.base_units.locked ? 'base_units_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="0"
-                                                        v-model="fractional.base_units.enabled"
-                                                        v-bind:disabled="fractional.base_units.locked">
+                                                           {if !$is_teaser}v-model="fractional.base_units.enabled"
+                                                        v-bind:disabled="fractional.base_units.locked"{/if}>
                                                     <span></span>
                                                 </span>
                                                 [`Not used.`]
@@ -677,8 +691,8 @@
                                             <label :data-tooltip-id="(fractional.base_units.locked ? 'base_units_locked' : '')">
                                                 <span class="wa-radio">
                                                     <input type="radio" value="1"
-                                                        v-model="fractional.base_units.enabled"
-                                                        v-bind:disabled="fractional.base_units.locked">
+                                                           {if !$is_teaser}v-model="fractional.base_units.enabled"
+                                                        v-bind:disabled="fractional.base_units.locked"{/if}>
                                                     <span></span>
                                                 </span>
                                                 [`You can set up base quantity units for products.`]
@@ -700,7 +714,7 @@
 
                 </div>
             </div>
-
+            {if !$is_teaser}
             <div class="s-units-section s-content-section">
                 <div class="s-section-header">
                     <h5 class="s-title">[`Product quantity units`]</h5>
@@ -760,6 +774,7 @@
                     </div>
                 </div>
             </div>
+            {/if}
         </div>
     </div>
 
@@ -794,6 +809,7 @@
                     templates: {$_templates|json_encode},
                     tooltips: {$_tooltips|json_encode},
                     locales: {$_locales|json_encode},
+                    {if !$is_teaser}
                     urls: {
                         "reload": {$wa_app_url|json_encode} + "?module=settings&action=Unit",
                         "unit_edit_dialog": {$wa_app_url|json_encode} + "?module=settingsUnit&action=EditDialog",
@@ -806,6 +822,7 @@
                         "change_stock_units": {$wa_app_url|json_encode} + "?module=settingsUnit&action=changeStockUnits",
                         "change_base_units": {$wa_app_url|json_encode} + "?module=settingsUnit&action=changeBaseUnits"
                     },
+                    {/if}
                     fractional: {
                         "enabled": {if !empty($frac_enabled)}1{else}0{/if},
                         "locked" : {if !empty($fractional_locked)}true{else}false{/if},

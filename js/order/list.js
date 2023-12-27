@@ -106,6 +106,11 @@
             printforms: null
         },
 
+        /**
+         * HTML Templates
+         * {Object}
+         */
+        templates: {},
 
 
         init: function (options) {
@@ -114,6 +119,7 @@
             this.filter_params = options.filter_params || {};
             this.filter_params_str = options.filter_params_str || '';
             this.container = $('#order-list');
+            this.templates = options.templates || {};
 
             if (options.view == 'table') {
                 this.container = $('#order-list').find('tbody:first');
@@ -257,13 +263,13 @@
             }
 
 
-            const $order_nav = $('#s-order-nav');
+            $.orders.$wrapper.trigger('wa_init_orders_nav_before', [options]);
+
             // if open order/{id}/
             if (new RegExp('order\\/\\d+').test($.orders.hash)) {
-                $order_nav.addClass('hidden');
-
+                $.orders.orderNav().hide();
             } else {
-                $order_nav.removeClass('hidden');
+                $.orders.orderNav().show();
 
                 this.ordersNavTeleport();
                 this.selectionMenuTeleport();
@@ -285,7 +291,7 @@
 
                 this.initSortMenu();
 
-                $.orders.$wrapper.trigger('wa_init_orders_nav', [options]);
+                $.orders.$wrapper.trigger('wa_init_orders_nav_after', [options]);
             }
 
             if (options.total_processing) {
@@ -406,12 +412,12 @@
             var that = this;
 
             this.initSidebar();
-            if (this.options.view == 'table' && that.$selectionMenu && that.$selectionMenu.length) {
+            if (this.options.view === 'table' && that.$selectionMenu && that.$selectionMenu.length) {
                 this.initSelecting();
-            }
-            if (this.options.id) {
+            } else if (this.options.view === 'split' && this.options.id) {
                 this.loadOrder(this.options.id);
             }
+
             var orders_view_ul = $('#s-orders-views');
             var order_nav = $('#s-order-nav');
             orders_view_ul.find('li.selected').removeClass('selected');
@@ -487,8 +493,7 @@
 
                     var showEmptyListHtml = function () {
                         if (!that.container.find('.order:not(:hidden):first').length) {
-                            var html = '<div class="block double-padded align-center blank"><br><br><br><br><span class="gray large">' + $_("There are no orders in this view.") + '</span><div class="clear-left"></div></div></div>';
-                            $('#s-content').html(html);
+                            $('#s-content').html(that.templates['dummy_no_orders_body']);
                         }
                     };
 
@@ -631,7 +636,6 @@
         },
 
         loadOrder: function (order_id) {
-
             this.container.find('.selected').removeClass('selected');
             this.container.find('[data-order-id=' + order_id + ']').addClass('selected');
 
@@ -640,7 +644,7 @@
                 {content: $('#s-order')},
                 function () {
                     this.id = order_id;
-                    $(window).trigger('wa_loaded', [['split', 'kanban']]);
+                    $(window).trigger('wa_loaded', [['split']]);
                     $('#order-list').trigger('wa_order_mobile_loaded', [order_id]);
                 }
             );
@@ -844,7 +848,7 @@
             sidebar.find('.js-orders-link').unbind('click.order_list').bind('click.order_list', function () {
                 // Highlight link in sidebar right avay after a click to be responsive.
                 sidebar.find('.selected').removeClass('selected');
-                if ($(this).hasClass('brick')) {
+                if ($(this).hasClass('js-order-nav-brick')) {
                     $(this).addClass('selected');
                 } else {
                     $(this).closest('li').addClass('selected');
@@ -1281,7 +1285,11 @@
                                     item.text(cnt);
                                 } else {
                                     cnt = parseInt(cntrs[id], 10) || 0;
-                                    item.text(cnt);
+                                    if (cntrs[id] == 'undefined') {
+                                        item.find('.js-new-order-counter').text(`+${counters?.state_counters?.new ?? 0}`)
+                                    }else{
+                                        item.text(cnt);
+                                    }
                                 }
                                 if (id == 'new') {
                                     $.shop.updateAppCounter(cnt);
@@ -1318,7 +1326,18 @@
                 });
                 rendered.remove();
                 self.container.trigger('append_order_list', [data]);
+
+                self.getAndUpdateCounters();
             }
+        },
+
+        getAndUpdateCounters: function() {
+            const id = parseInt(this.container.find('.order:first').attr('data-order-id'), 10) || 0;
+            $.getJSON(this.buildLoadListUrl(id, true, true), response => {
+                if (response.status == 'ok' && response?.data?.counters) {
+                    this.updateCounters(response.data.counters)
+                }
+            })
         },
 
         updateTotalProcessing: function(total) {
@@ -1369,7 +1388,7 @@
                             // console.log('$.order_list.filter_params_str', $.order_list.filter_params_str);
                         }
                         $.order_list.dispatch(params);
-                        $(window).trigger('wa_loaded', [['table']]);
+                        $(window).trigger('wa_loaded', [['table', 'kanban']]);
                     });
                 },
                 order: function () {
@@ -1692,14 +1711,30 @@
 
         ordersNavTeleport() {
             const $ordersNav = window.ordersNav;
-            if ($ordersNav !== undefined && $.orders !== undefined) {
-                $ordersNav.show();
-                if (this.options.view === 'split') {
-                    $('#s-orders').find('.sidebar-header').prepend($ordersNav);
-                    $.orders.initDropdown();
-                } else {
-                    $('#s-content').before($ordersNav);
-                    $.orders.initDropdown();
+            if (!$ordersNav || !$.orders) {
+                return;
+            }
+
+            $ordersNav.show();
+            if (this.options.view === 'split') {
+                $('#s-orders').find('.sidebar-header').prepend($ordersNav);
+                $.orders.initDropdown();
+            } else {
+                $('#s-content').before($ordersNav);
+                $.orders.initDropdown();
+            }
+
+            // teleport search input
+            const searchSplitOrMobileClass = 'js-orders-search-split-and-mobile';
+            if (this.options.view === 'split' || this.isMobile()) {
+                const $ordersSearch = $('.js-orders-search').detach();
+                $ordersSearch.addClass(searchSplitOrMobileClass);
+                $('#s-order-nav .js-order-nav-view').after($ordersSearch)
+            } else {
+                const $ordersSearch = $(`.${searchSplitOrMobileClass}`);
+                if ($ordersSearch.length) {
+                    $ordersSearch.removeClass(searchSplitOrMobileClass);
+                    $('#s-order-nav .s-order-nav-search').append($ordersSearch.detach())
                 }
             }
         },

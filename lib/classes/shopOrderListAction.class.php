@@ -272,8 +272,6 @@ class shopOrderListAction extends waViewAction
 
         $emails = array();
 
-        // TODO: rework to use shopCustomer::getUserpics()
-
         foreach ($orders as &$o) {
             if (isset($o['contact'])) {
                 if (!$o['contact']['photo'] && $use_gravatar) {
@@ -290,7 +288,8 @@ class shopOrderListAction extends waViewAction
                         'is_company' => !empty($o['contact']['is_company'])
                     ));
                 } else {
-                    $o['contact']['photo_50x50'] = waContact::getPhotoUrl($o['contact']['id'], $o['contact']['photo'], 50, 50);
+                    $type = !empty($o['contact']['is_company']) ? 'company' : 'person';
+                    $o['contact']['photo_50x50'] = waContact::getPhotoUrl($o['contact']['id'], $o['contact']['photo'], 50, 50, $type);
                 }
             } else { // contact deleted
                 $o['contact']['name'] = isset($o['params']['contact_name']) ? $o['params']['contact_name'] : '';

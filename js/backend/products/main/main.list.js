@@ -34,9 +34,7 @@
 
             that.model_data = {};
             that.states = reactive({
-                $animation: null,
-                mass_actions_pinned: false,
-                mass_actions_storage_key: "shop_products/mass_actions_pinned"
+                $animation: null
             });
             that.keys = {
                 table: 0,
@@ -76,21 +74,49 @@
                 options.categories_object = getCategoriesObject(options.categories);
                 options.sets_object = getSetsObject(options.sets);
 
+                const selectedAndShowParentsRecursively = (child, groupType) => {
+                    child.is_selected = true;
+
+                    const groupMap = {
+                        categories: {
+                            parentProp: 'parent_id',
+                            items: options.categories_object
+                        },
+                        sets: {
+                            parentProp: 'group_id',
+                            items: options.sets.filter(s => s.group_id).reduce((acc, s) => ({ ...acc, [s.group_id]: s }), {})
+                        }
+                    };
+                    const group = groupMap[groupType];
+                    let parentId = child[group.parentProp];
+                    while (parentId && parentId !== "0") {
+                        const parent = group.items[parentId];
+
+                        parent.is_open = true;
+                        if (parentId === parent[group.parentProp]) {
+                            break;
+                        }
+                        parentId = parent[group.parentProp];
+                    }
+                };
                 $.each(active_rules, function(i, group) {
                     $.each(group.rules, function(i, rule) {
                         switch (group.type) {
                             case "categories":
                                 var category = options.categories_object[rule.rule_params];
                                 category.is_locked = true;
+                                selectedAndShowParentsRecursively(category, group.type);
                                 break;
                             case "sets":
                                 var set = options.sets_object[rule.rule_params];
                                 set.is_locked = true;
+                                selectedAndShowParentsRecursively(set, group.type);
                                 break;
                             case "types":
                                 var type_search = options.types.filter( type => (type.id === rule.rule_params));
                                 if (type_search.length) {
                                     type_search[0].is_locked = true;
+                                    type_search[0].is_selected = true;
                                 }
                                 break;
                             case "storefronts":
@@ -172,8 +198,14 @@
                 };
 
                 $.each(presentation.columns, function(i, column) {
-                    var column_info = that.columns[column.column_type];
-                    if (column_info.width > 0) { column.width = column_info.width; }
+                    const column_info = that.columns[column.column_type];
+                    if (column_info.width > 0) {
+                        column.width = column_info.width;
+
+                        if (column_info.min_width && column_info.min_width > Number(column.width)) {
+                            column.width = column_info.min_width;
+                        }
+                    }
 
                     presentation.sort_order = presentation.sort_order.toUpperCase();
 
@@ -202,17 +234,11 @@
         }
 
         Page.prototype.init = function() {
-            var that = this;
-
-            // Режим отображения массовых действий
-            var mass_storage = localStorage.getItem(that.states.mass_actions_storage_key);
-            if (mass_storage) { that.states.mass_actions_pinned = true; }
-
-            $.each(that.tooltips, function(i, tooltip) {
+            $.each(this.tooltips, (i, tooltip) => {
                 $.wa.new.Tooltip(tooltip);
             });
 
-            that.updatePageURL();
+            this.updatePageURL();
         };
 
         Page.prototype.initVue = function() {
@@ -833,6 +859,94 @@
                         }
                     }
                 },
+                "component-sidebar-section": {
+                    props: ["value", "modelValue", "label", "useButtonNew", "titleForNew"],
+                    emits: ["toggle-collapse"],
+                    template: that.components["component-sidebar-section"],
+                    delimiters: ['%', '%'],
+                    computed: {
+                        isCollapsed() {
+                            return this.value !== this.modelValue
+                        }
+                    }
+                },
+
+                "component-tree-menu": {
+                    props: {
+                        item: Object,
+                        childrenProp: String,
+                        searchString: String,
+                        depth: {
+                            type: Number,
+                            default: 0
+                        }
+                    },
+                    emits: ['use-item'],
+                    delimiters: ['%', '%'],
+                    template: that.components["component-tree-menu"],
+                    data() {
+                        return { showChildren: false }
+                    },
+                    created() {
+                        this.$.components = this.$parent.$.components;
+
+                        if ('is_group' in this.item) {
+                            this.item.states.is_open = !!this.item.is_open;
+                        } else {
+                            this.showChildren = !!this.item.is_open;
+                        }
+                    },
+                    computed: {
+                        isShowChildren() {
+                            return this.item.is_group ? this.item.states.is_open : this.showChildren
+                        },
+                        indent() {
+                            return { paddingLeft: `${(this.depth + 1) * 22}px !important` }
+                        },
+                        displayItem() {
+                            return (this.searchString === "" || this.item.states.is_wanted || this.item.states.is_wanted_inside);
+                        },
+                        displayChildren() {
+                            return !!this.childrenProp && (this.isShowChildren || !!this.searchString?.trim())
+                        },
+                        itemClass() {
+                            const result = [];
+                            if (this.searchString !== "") {
+                                if (this.item.states.is_wanted) {
+                                    result.push("is-wanted");
+                                }
+                                if (this.item.states.is_wanted_inside) {
+                                    result.push("is-wanted-inside");
+                                }
+                            }
+
+                            if (!this.item.is_selected && this.item.is_locked) {
+                                result.push("is-locked");
+                            }
+
+                            return result;
+                        }
+                    },
+                    methods: {
+                        toggleChildren() {
+                            if (this.item.is_group) {
+                                this.item.states.is_open = !this.item.states.is_open;
+                            } else {
+                                this.showChildren = !this.showChildren;
+                            }
+                        },
+                        useItem(item) {
+                            this.$emit("use-item", item);
+                        },
+                        onClick() {
+                            if (this.item.is_group) {
+                                this.toggleChildren();
+                            } else {
+                                this.useItem(this.item);
+                            }
+                        },
+                    }
+                },
             };
 
             Object.assign(that.vue_components, {
@@ -904,6 +1018,71 @@
                 }
             });
 
+            const FilterApiMixin = {
+                methods: {
+                    save(values) {
+                        that.animate(true);
+
+                        that.broadcast.getPresentationsIds().done((ids) => {
+                            const data = $.extend({
+                                filter_id: that.filter.id,
+                                presentation_id: that.presentation.id,
+                                open_presentations: ids
+                            }, values);
+
+                            $.post(that.urls["filter_rule_add"], data, "json")
+                                .done((response) => {
+                                    if (response.status === "ok") {
+                                        that.reload({
+                                            page: 1,
+                                            presentation: (response.data.new_presentation_id || that.presentation.id)
+                                        });
+                                    } else {
+                                        that.reload({ page: 1 });
+                                    }
+                                });
+                        });
+                    }
+                }
+            };
+            const FilterSearchMixin = {
+                data() {
+                    return {
+                        items: [],
+                        search_string: ""
+                    };
+                },
+                watch: {
+                    search_string(q) {
+                        this.items.forEach(item => {
+                            if (q.trim() && item.name.toLowerCase().indexOf(this.search_string.toLowerCase()) < 0) {
+                                item.is_hide = true;
+                            } else {
+                                delete item.is_hide;
+                            }
+                        });
+                    }
+                },
+                computed: {
+                    has_value: function() {
+                        return !!this.items.filter(item => item.states.enabled).length;
+                    },
+                    empty_search_result: function() {
+                        return this.items.every(t => t.is_hide);
+                    }
+                },
+                mounted() {
+                    const $wrapper = $(this.$el);
+
+                    this.dropbox = $.wa.new.Dropbox({
+                        $wrapper: $wrapper,
+                        protect: false,
+                        open: function() {
+                            $wrapper.find("input.js-autofocus").trigger("focus");
+                        }
+                    });
+                }
+            };
 
             $.vue_app = Vue.createApp({
                 data() {
@@ -1483,6 +1662,7 @@
                         },
                         template: that.components["component-table-filters"],
                         delimiters: ['{ { ', ' } }'],
+                        mixins: [FilterApiMixin],
                         components: {
                             "component-table-product-search": {
                                 props: ["modelValue", "placeholder"],
@@ -1619,433 +1799,19 @@
                                     self.initAutocomplete($input);
                                 }
                             },
-                            "component-table-filters-categories-sets-types": {
-                                data: function() {
-                                    return {
-                                        content_type: "category"
-                                    };
-                                },
-                                template: that.components["component-table-filters-categories-sets-types"],
-                                delimiters: ['{ { ', ' } }'],
-                                components: {
-                                    "component-table-filters-categories": {
-                                        emits: ["success"],
-                                        data: function() {
-                                            let options = $.wa.clone(that.filter_options),
-                                                categories = options.categories,
-                                                categories_object = formatCategories(getCategoriesObject(categories));
-
-                                            return {
-                                                search_string: "",
-                                                categories: categories,
-                                                categories_object: categories_object
-                                            };
-
-                                            function formatCategories(items) {
-                                                $.each(items, function(i, item) {
-                                                    item.states = {
-                                                        // enabled: false,
-                                                        // locked: false,
-                                                        is_wanted: false,
-                                                        is_wanted_inside: false
-                                                    }
-                                                });
-
-                                                return items;
-                                            }
-
-                                            function getCategoriesObject(categories) {
-                                                var result = {};
-
-                                                addCategoryToObject(categories);
-
-                                                return result;
-
-                                                function addCategoryToObject(categories) {
-                                                    $.each(categories, function(i, category) {
-                                                        result[category.id] = category;
-                                                        if (category.categories) {
-                                                            addCategoryToObject(category.categories);
-                                                        }
-                                                    });
-                                                }
-                                            }
-                                        },
-                                        template: that.components["component-table-filters-categories"],
-                                        delimiters: ['{ { ', ' } }'],
-                                        components: {
-                                            "component-table-filters-search": that.vue_components["component-table-filters-search"],
-                                            "component-table-filters-categories-category": {
-                                                name: "component-table-filters-categories-category",
-                                                props: ["category", "search_string"],
-                                                data: function() {
-                                                    var self = this;
-                                                    return {
-                                                        states: {
-                                                            is_opened: false
-                                                        }
-                                                    };
-                                                },
-                                                template: that.components["component-table-filters-categories-category"],
-                                                delimiters: ['{ { ', ' } }'],
-                                                computed: {
-                                                    display_item: function() {
-                                                        const self = this;
-                                                        return (self.search_string === "" || self.category.states.is_wanted || self.category.states.is_wanted_inside);
-                                                    },
-                                                    item_class: function() {
-                                                        const self = this;
-
-                                                        var result = [];
-
-                                                        if (self.search_string !== "") {
-                                                            if (self.category.states.is_wanted) {
-                                                                result.push("is-wanted");
-                                                            }
-                                                            if (self.category.states.is_wanted_inside) {
-                                                                result.push("is-wanted-inside");
-                                                            }
-                                                        }
-
-                                                        if (self.category.is_locked) {
-                                                            result.push("is-locked");
-                                                        }
-
-                                                        return result.join(" ");
-                                                    }
-                                                },
-                                                methods: {
-                                                    toggle: function() {
-                                                        const self = this;
-                                                        self.states.is_opened = !self.states.is_opened;
-                                                    },
-                                                    useCategory: function(category) {
-                                                        const self = this;
-                                                        self.$emit("use_category", category);
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        computed: {
-                                            items: function() {
-                                                const self = this;
-
-                                                checkCategories(self.categories);
-
-                                                return self.categories;
-
-                                                /**
-                                                 * @param {Object|Array} categories
-                                                 * @return {Boolean}
-                                                 * */
-                                                function checkCategories(categories) {
-                                                    var result = false;
-
-                                                    $.each(categories, function(i, category) {
-                                                        var is_wanted = checkCategory(category);
-                                                        if (is_wanted) {
-                                                            result = true;
-                                                        }
-                                                    });
-
-                                                    return result;
-                                                }
-
-                                                /**
-                                                 * @param {Object} category
-                                                 * @return {Boolean}
-                                                 * */
-                                                function checkCategory(category) {
-                                                    var is_wanted = (self.search_string === "" || category.name.toLowerCase().indexOf( self.search_string.toLowerCase() ) >= 0);
-
-                                                    category.states.is_wanted = is_wanted;
-                                                    category.states.is_wanted_inside = false;
-
-                                                    if (category.categories.length) {
-                                                        category.states.is_wanted_inside = checkCategories(category.categories);
-                                                    }
-
-                                                    return category.states.is_wanted || category.states.is_wanted_inside;
-                                                }
-                                            },
-                                        },
-                                        methods: {
-                                            changeItem: function(item) {
-                                                if (item.is_locked) { return false; }
-                                                item.states.enabled = !item.states.enabled;
-                                                this.save(item);
-                                            },
-                                            save: function(item) {
-                                                this.$emit("success", {
-                                                    type: "category",
-                                                    item: item
-                                                });
-                                            }
-                                        },
-                                        mounted: function() {
-                                            const self = this;
-                                            self.dropbox = $.wa.new.Dropbox({
-                                                $wrapper: $(self.$el),
-                                                protect: false
-                                            });
-                                        }
-                                    },
-                                    "component-table-filters-sets": {
-                                        data: function() {
-                                            let options = $.wa.clone(that.filter_options);
-
-                                            return {
-                                                search_string: "",
-                                                sets: formatSets(options.sets)
-                                            };
-
-                                            function formatSets(items) {
-                                                $.each(items, function(i, item) {
-                                                    if (item.is_group) {
-                                                        item.states = {
-                                                            is_open: false,
-                                                            is_wanted: false,
-                                                            is_wanted_inside: false,
-                                                        }
-                                                        if (item.sets.length) {
-                                                            formatSets(item.sets);
-                                                        }
-                                                    } else {
-                                                        item.states = {
-                                                            // enabled: false,
-                                                            // locked: false,
-                                                            is_wanted: false,
-                                                            is_wanted_inside: false,
-                                                        }
-                                                    }
-                                                });
-                                                return items;
-                                            }
-                                        },
-                                        template: that.components["component-table-filters-sets"],
-                                        delimiters: ['{ { ', ' } }'],
-                                        components: {
-                                            "component-table-filters-search": that.vue_components["component-table-filters-search"],
-                                            "component-table-filters-sets-set": {
-                                                name: "component-table-filters-sets-set",
-                                                props: ["set", "search_string"],
-                                                emits: ["use_set"],
-                                                data: function() {
-                                                    return {
-                                                        states: {
-                                                            is_opened: false
-                                                        }
-                                                    };
-                                                },
-                                                template: that.components["component-table-filters-sets-set"],
-                                                delimiters: ['{ { ', ' } }'],
-                                                computed: {
-                                                    display_item: function() {
-                                                        const self = this;
-                                                        return (self.search_string === "" || self.set.states.is_wanted || self.set.states.is_wanted_inside);
-                                                    },
-                                                    item_class: function() {
-                                                        const self = this;
-
-                                                        var result = [];
-
-                                                        if (self.search_string !== "") {
-                                                            if (self.set.states.is_wanted) {
-                                                                result.push("is-wanted");
-                                                            }
-                                                            if (self.set.states.is_wanted_inside) {
-                                                                result.push("is-wanted-inside");
-                                                            }
-                                                        }
-
-                                                        if (self.set.is_locked) {
-                                                            result.push("is-locked");
-                                                        }
-
-                                                        return result.join(" ");
-                                                    }
-                                                },
-                                                methods: {
-                                                    toggle: function() {
-                                                        const self = this;
-                                                        self.states.is_opened = !self.states.is_opened;
-                                                    },
-                                                    onClick: function() {
-                                                        const self = this;
-
-                                                        if (self.set.is_group) {
-                                                            self.set.states.is_open = !self.set.states.is_open;
-                                                        } else {
-                                                            self.useSet(self.set);
-                                                        }
-                                                    },
-                                                    useSet: function(set) {
-                                                        const self = this;
-                                                        self.$emit("use_set", set);
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        computed: {
-                                            items: function() {
-                                                const self = this;
-
-                                                checkSets(self.sets);
-
-                                                return self.sets;
-
-                                                /**
-                                                 * @param {Object|Array} sets
-                                                 * @return {Boolean}
-                                                 * */
-                                                function checkSets(sets) {
-                                                    var result = false;
-
-                                                    $.each(sets, function(i, set) {
-                                                        var is_wanted = checkSet(set);
-                                                        if (is_wanted) {
-                                                            result = true;
-                                                        }
-                                                    });
-
-                                                    return result;
-                                                }
-
-                                                /**
-                                                 * @param {Object} set
-                                                 * @return {Boolean}
-                                                 * */
-                                                function checkSet(set) {
-                                                    var is_wanted = (self.search_string === "" || set.name.toLowerCase().indexOf( self.search_string.toLowerCase() ) >= 0);
-
-                                                    set.states.is_wanted = is_wanted;
-                                                    set.states.is_wanted_inside = false;
-
-                                                    if (set.is_group && set.sets.length) {
-                                                        set.states.is_wanted_inside = checkSets(set.sets);
-                                                    }
-
-                                                    return is_wanted || set.states.is_wanted_inside;
-                                                }
-                                            }
-                                        },
-                                        methods: {
-                                            changeItem: function(item) {
-                                                if (item.is_locked) { return false; }
-                                                const self = this;
-                                                item.states.enabled = !item.states.enabled;
-                                                self.save(item);
-                                            },
-                                            save: function(item) {
-                                                const self = this;
-                                                self.$emit("success", {
-                                                    type: "set",
-                                                    item: item
-                                                });
-                                            }
-                                        },
-                                        mounted: function() {
-                                            const self = this;
-
-                                            self.dropbox = $.wa.new.Dropbox({
-                                                $wrapper: $(self.$el),
-                                                protect: false
-                                            });
-                                        }
-                                    },
-                                    "component-table-filters-types": {
-                                        emits: ["success"],
-                                        data: function() {
-                                            let options = $.wa.clone(that.filter_options);
-
-                                            return {
-                                                search_string: "",
-                                                types: formatOptions(options.types)
-                                            };
-
-                                            function formatOptions(items) {
-                                                $.each(items, function(i, item) {
-                                                    item.states = {
-                                                        enabled: false,
-                                                        locked: false
-                                                    }
-                                                });
-                                                return items;
-                                            }
-                                        },
-                                        template: that.components["component-table-filters-types"],
-                                        delimiters: ['{ { ', ' } }'],
-                                        components: {
-                                            "component-table-filters-search": that.vue_components["component-table-filters-search"],
-                                        },
-                                        computed: {
-                                            items: function() {
-                                                const self = this;
-                                                return self.types.filter( function(item) {
-                                                    return (item.name.toLowerCase().indexOf(self.search_string.toLowerCase()) >= 0);
-                                                });
-                                            }
-                                        },
-                                        methods: {
-                                            setType: function(type) {
-                                                if (type.is_locked) { return false; }
-                                                const self = this;
-                                                type.states.enabled = true;
-                                                self.save(type);
-                                            },
-                                            save: function(type) {
-                                                const self = this;
-                                                self.$emit("success", {
-                                                    type: "type",
-                                                    item: type
-                                                });
-                                            }
-                                        },
-                                        mounted: function() {
-                                            const self = this;
-                                            self.dropbox = $.wa.new.Dropbox({
-                                                $wrapper: $(self.$el),
-                                                protect: false
-                                            });
-                                        }
-                                    }
-                                },
-                                methods: {
-                                    setType: function(type) {
-                                        const self = this;
-                                        self.content_type = type;
-                                        self.autofocus();
-                                    },
-                                    success: function(data) {
-                                        const self = this;
-                                        self.dropbox.hide();
-                                        self.$emit("success", data);
-                                    },
-                                    autofocus: function() {
-                                        const self = this;
-                                        self.$nextTick( function() {
-                                            $(self.$el).find("input.js-autofocus").trigger("focus");
-                                        });
-                                    }
-                                },
-                                mounted: function() {
-                                    const self = this;
-                                    self.dropbox = $.wa.new.Dropbox({
-                                        $wrapper: $(self.$el),
-                                        protect: false,
-                                        open: function() {
-                                            self.autofocus();
-                                        }
-                                    });
-                                }
-                            },
                             "component-table-filters-storefronts": {
+                                template: that.components["component-table-filters-storefronts"],
+                                delimiters: ['{ { ', ' } }'],
+                                mixins: [FilterSearchMixin],
+                                components: {
+                                    "component-checkbox": that.vue_components["component-checkbox"],
+                                    "component-table-filters-search": that.vue_components["component-table-filters-search"],
+                                },
                                 data: function() {
                                     let options = $.wa.clone(that.filter_options);
 
                                     return {
-                                        storefronts: formatOptions(options.storefronts),
-                                        search_string: "",
+                                        items: formatOptions(options.storefronts),
                                         states: {
                                             is_changed: false
                                         }
@@ -2061,23 +1827,7 @@
                                         return items;
                                     }
                                 },
-                                template: that.components["component-table-filters-storefronts"],
-                                delimiters: ['{ { ', ' } }'],
-                                components: {
-                                    "component-checkbox": that.vue_components["component-checkbox"],
-                                    "component-table-filters-search": that.vue_components["component-table-filters-search"],
-                                },
-                                computed: {
-                                    has_value: function() {
-                                        return !!this.storefronts.filter( storefront => storefront.states.enabled).length;
-                                    },
-                                    items: function() {
-                                        const self = this;
-                                        return self.storefronts.filter( function(item) {
-                                            return (item.name.toLowerCase().indexOf(self.search_string.toLowerCase()) >= 0);
-                                        });
-                                    }
-                                },
+                                computed: { },
                                 methods: {
                                     onChange: function() {
                                         if (!this.states.is_changed) {
@@ -2091,30 +1841,16 @@
                                         this.onChange();
                                     },
                                     reset: function() {
-                                        const self = this;
-
-                                        $.each(self.storefronts, function(i, storefront) {
+                                        $.each(this.items, function(i, storefront) {
                                             storefront.states.enabled = false;
                                         });
 
-                                        self.onChange();
+                                        this.onChange();
                                     },
                                     save: function() {
                                         this.dropbox.hide();
-                                        this.$emit("success", this.storefronts);
+                                        this.$emit("success", this.items);
                                     }
-                                },
-                                mounted: function() {
-                                    const self = this,
-                                          $wrapper = $(self.$el);
-
-                                    self.dropbox = $.wa.new.Dropbox({
-                                        $wrapper: $wrapper,
-                                        protect: false,
-                                        open: function() {
-                                            $wrapper.find("input.js-autofocus").trigger("focus");
-                                        }
-                                    });
                                 }
                             },
                             "component-table-filters-tags": {
@@ -2122,12 +1858,12 @@
                                     "component-checkbox": that.vue_components["component-checkbox"],
                                     "component-table-filters-search": that.vue_components["component-table-filters-search"],
                                 },
+                                mixins: [FilterSearchMixin],
                                 data: function() {
                                     let options = $.wa.clone(that.filter_options);
 
                                     return {
-                                        tags: formatOptions(options.tags),
-                                        search_string: "",
+                                        items: formatOptions(options.tags),
                                         states: {
                                             is_changed: false
                                         }
@@ -2145,67 +1881,40 @@
                                 },
                                 template: that.components["component-table-filters-tags"],
                                 delimiters: ['{ { ', ' } }'],
-                                computed: {
-                                    has_value: function() {
-                                        const self = this;
-                                        return !!self.tags.filter( tag => tag.states.enabled).length;
-                                    },
-                                    items: function() {
-                                        const self = this;
-                                        return self.tags.filter( function(item) {
-                                            return (item.name.toLowerCase().indexOf(self.search_string.toLowerCase()) >= 0);
-                                        });
-                                    }
-                                },
+                                computed: { },
                                 methods: {
                                     onChange: function() {
-                                        const self = this;
-
-                                        if (!self.states.is_changed) {
-                                            self.states.is_changed = true;
+                                        if (!this.states.is_changed) {
+                                            this.states.is_changed = true;
                                         }
                                     },
                                     changeTag: function(tag) {
                                         if (tag.is_locked) { return false; }
-                                        const self = this;
                                         tag.states.enabled = !tag.states.enabled;
-                                        self.onChange();
+                                        this.onChange();
                                     },
                                     reset: function() {
-                                        const self = this;
-
-                                        $.each(self.tags, function(i, tag) {
+                                        $.each(this.items, function(i, tag) {
                                             tag.states.enabled = false;
                                         });
 
-                                        self.onChange();
+                                        this.onChange();
                                     },
                                     save: function() {
-                                        const self = this;
-                                        self.dropbox.hide();
-                                        self.$emit("success", self.tags);
+                                        this.dropbox.hide();
+                                        this.$emit("success", this.items);
                                     }
-                                },
-                                mounted: function() {
-                                    const self = this,
-                                          $wrapper = $(self.$el);
-
-                                    self.dropbox = $.wa.new.Dropbox({
-                                        $wrapper: $wrapper,
-                                        protect: false,
-                                        open: function() {
-                                            $wrapper.find("input.js-autofocus").trigger("focus");
-                                        }
-                                    });
                                 }
                             },
                             "component-table-filters-features": {
+                                template: that.components["component-table-filters-features"],
+                                delimiters: ['{ { ', ' } }'],
+                                mixins: [FilterSearchMixin],
                                 data: function() {
                                     let options = $.wa.clone(that.filter_options);
 
                                     return {
-                                        features: formatOptions(options.features),
-                                        search_string: "",
+                                        items: formatOptions(options.features),
                                         states: {}
                                     };
 
@@ -2213,8 +1922,6 @@
                                         return items;
                                     }
                                 },
-                                template: that.components["component-table-filters-features"],
-                                delimiters: ['{ { ', ' } }'],
                                 components: {
                                     "component-table-filters-search": that.vue_components["component-table-filters-search"],
                                     "component-table-filters-features-item": {
@@ -2224,14 +1931,12 @@
                                         delimiters: ['{ { ', ' } }'],
                                         methods: {
                                             toggle: function() {
-                                                const self = this;
-
-                                                var dialog = $.waDialog({
+                                                const dialog = $.waDialog({
                                                     html: that.templates["dialog-list-feature-value"],
                                                     options: {
-                                                        item_data: self.item,
-                                                        onSuccess: function(data) {
-                                                            self.$emit("success", data);
+                                                        item_data: this.item,
+                                                        onSuccess: (data) => {
+                                                            this.$emit("success", data);
                                                         }
                                                     },
                                                     onOpen: function($dialog, dialog) {
@@ -2239,46 +1944,20 @@
                                                     }
                                                 });
 
-                                                self.$emit("feature_dialog", dialog);
+                                                this.$emit("feature_dialog", dialog);
                                             }
                                         }
                                     }
                                 },
-                                computed: {
-                                    items: function() {
-                                        const self = this;
-                                        return self.features.filter( function(item) {
-                                            var result = false;
-
-                                            if (typeof item.name === "string") {
-                                                result = (item.name.toLowerCase().indexOf(self.search_string.toLowerCase()) >= 0);
-                                            }
-
-                                            return result;
-                                        });
-                                    }
-                                },
+                                computed: { },
                                 methods: {
                                     hide: function(item) {
-                                        const self = this;
-                                        self.search_string = "";
-                                        self.dropbox.hide();
+                                        this.search_string = "";
+                                        this.dropbox.hide();
                                     },
                                     success: function(data) {
-                                        const self = this;
-                                        self.$emit("success", data);
+                                        this.$emit("success", data);
                                     }
-                                },
-                                mounted: function() {
-                                    const self = this,
-                                        $wrapper = $(self.$el);
-                                    self.dropbox = $.wa.new.Dropbox({
-                                        $wrapper: $wrapper,
-                                        protect: false,
-                                        open: function() {
-                                            $wrapper.find("input.js-autofocus").trigger("focus");
-                                        }
-                                    });
                                 }
                             },
                             "component-table-filters-list": {
@@ -2762,7 +2441,9 @@
                                                 } else {
                                                     $.each(self.group["rules"], function(i, rule) {
                                                         var name = getName(rule);
-                                                        result.push(name);
+                                                        if (typeof name == 'string' && name.length > 0) {
+                                                            result.push(name);
+                                                        }
                                                     });
                                                 }
 
@@ -2772,6 +2453,14 @@
                                                     var result = "";
 
                                                     var options = that.filter_options[self.group.type];
+                                                    if (!options) {
+                                                        var fts = that.filter_options.features.filter(function(ft) {
+                                                            return ft.rule_type == self.group.type;
+                                                        });
+                                                        if (fts.length) {
+                                                            options = fts[0].options;
+                                                        }
+                                                    }
                                                     if (options) {
                                                         switch (self.group.type) {
                                                             case "categories":
@@ -2783,7 +2472,7 @@
                                                         }
 
                                                         $.each(options, function(i, option) {
-                                                            if (option.id === rule.rule_params) {
+                                                            if ((option.id||option.value) === rule.rule_params) {
                                                                 result = option.name;
                                                             }
                                                         });
@@ -3027,34 +2716,6 @@
                                     });
                                 }
                             },
-
-                            applyCategories: function(data) {
-                                const self = this;
-
-                                var result = {
-                                    rule_params: []
-                                };
-
-                                switch (data.type) {
-                                    case "set":
-                                        var set_id = (data.item.set_id || data.item.id);
-                                        result.rule_type = "sets";
-                                        result.rule_params = [set_id];
-                                        break;
-
-                                    case "type":
-                                        result.rule_type = "types";
-                                        result.rule_params = [data.item.id];
-                                        break;
-
-                                    case "category":
-                                        result.rule_type = "categories";
-                                        result.rule_params = [data.item.id];
-                                        break;
-                                }
-
-                                self.save(result);
-                            },
                             applyStorefronts: function(storefronts) {
                                 const self = this;
 
@@ -3085,34 +2746,14 @@
                             },
                             applyFeatures : function(features_data) {
                                 this.save(features_data);
-                            },
-
-                            save: function(values) {
-                                that.animate(true);
-
-                                that.broadcast.getPresentationsIds().done( function(ids) {
-                                    var data = $.extend({
-                                        filter_id: that.filter.id,
-                                        presentation_id: that.presentation.id,
-                                        open_presentations: ids
-                                    }, values);
-
-                                    $.post(that.urls["filter_rule_add"], data, "json")
-                                        .done( function(response) {
-                                            if (response.status === "ok") {
-                                                that.reload({
-                                                    page: 1,
-                                                    presentation: (response.data.new_presentation_id || that.presentation.id)
-                                                });
-                                            } else {
-                                                that.reload({ page: 1 });
-                                            }
-                                        });
-                                });
                             }
                         }
                     },
 
+                    "component-empty-content": {
+                        props: ["type"],
+                        template: that.components["component-empty-content"],
+                    },
                     "component-product-thumb": {
                         props: ["product"],
                         template: that.components["component-product-thumb"],
@@ -4204,6 +3845,10 @@
                                                                 }
                                                             }
                                                         },
+                                                        components: {
+                                                            "component-dropdown": that.vue_components["component-dropdown"],
+                                                            "component-radio": that.vue_components["component-radio"]
+                                                        },
                                                         delimiters: ['{ { ', ' } }'],
                                                         computed: {
                                                             errors: function() {
@@ -4339,6 +3984,12 @@
                                         computed: {
                                             show_readonly: function() {
                                                 var self = this;
+                                                if (this.$el && (self.states.is_edit)) {
+                                                    this.$nextTick(() => {
+                                                        this.$el.querySelector('input').focus()
+                                                    })
+                                                }
+
                                                 return (self.format && !self.states.is_edit);
                                             },
                                             formatted_value: function() {
@@ -4523,7 +4174,6 @@
                                                 // set
                                                 data[key] = value;
                                             },
-
                                             edit: function(show) {
                                                 var self = this;
                                                 show = (typeof show === "boolean" ? show : true);
@@ -6084,18 +5734,19 @@
                                     "component-radio": that.vue_components["component-radio"]
                                 },
                                 computed: {
+                                    products_length: function() {
+                                        return this.products.length;
+                                    },
                                     current_page_smart_string: function() {
                                         return $.wa.locale_plural(that.products.length, that.locales["products_forms"]);
                                     },
                                     selected_products: function() {
-                                        var self = this;
-                                        return self.products.filter( function(product) {
+                                        return this.products.filter( function(product) {
                                             return product.states.selected;
                                         });
                                     },
                                     selected_all_products: function() {
-                                        var self = this;
-                                        return (self.selected_products.length === self.products.length);
+                                        return (this.selected_products.length === this.products_length);
                                     },
                                     bool_all_products: function () {
                                         return this.all_products === 'true';
@@ -6228,8 +5879,312 @@
                         }
                     },
 
+                    "component-table-filters-categories-sets-types": {
+                        data() {
+                            const TYPE_FILTERS = ['categories', 'sets', 'types'];
+                            let contentType = TYPE_FILTERS[0];
+
+                            // define contentType from filter request
+                            if (that.filter.rules?.length) {
+                                const parentRule = that.filter.rules.find(r => TYPE_FILTERS.includes(r.type))
+                                if (parentRule) {
+                                    contentType = parentRule.type;
+                                }
+                            }
+
+                            return {
+                                contentType
+                            }
+                        },
+                        template: that.components["component-table-filters-categories-sets-types"],
+                        delimiters: ['{ { ', ' } }'],
+                        mixins: [FilterApiMixin],
+                        components: {
+                            "component-sidebar-section": that.vue_components["component-sidebar-section"],
+                            "component-table-filters-categories": {
+                                emits: ["success"],
+                                data: function() {
+                                    const options = $.wa.clone(that.filter_options),
+                                        categories = options.categories,
+                                        categories_object = formatCategories(getCategoriesObject(categories));
+                                    return {
+                                        search_string: "",
+                                        categories: categories,
+                                        categories_object: categories_object
+                                    };
+
+                                    function formatCategories(items) {
+                                        $.each(items, function(i, item) {
+                                            item.states = {
+                                                is_wanted: false,
+                                                is_wanted_inside: false
+                                            }
+                                        });
+
+                                        return items;
+                                    }
+
+                                    function getCategoriesObject(categories) {
+                                        const result = {};
+
+                                        addCategoryToObject(categories);
+
+                                        return result;
+
+                                        function addCategoryToObject(categories) {
+                                            $.each(categories, function(i, category) {
+                                                result[category.id] = category;
+                                                if (category.categories) {
+                                                    addCategoryToObject(category.categories);
+                                                }
+                                            });
+                                        }
+                                    }
+                                },
+                                template: that.components["component-table-filters-categories"],
+                                delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-table-filters-search": that.vue_components["component-table-filters-search"],
+                                    "component-tree-menu": that.vue_components["component-tree-menu"]
+                                },
+                                computed: {
+                                    items: function() {
+                                        const checkCategories = (categories) => {
+                                            let result = false;
+                                            for (let i = 0; i < categories.length; i++) {
+                                                if (checkCategory(categories[i])) {
+                                                    result = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            return result;
+                                        };
+
+                                        const checkCategory = (category) => {
+                                            const is_wanted = (this.search_string === "" || category.name.toLowerCase().indexOf( this.search_string.toLowerCase() ) >= 0);
+
+                                            category.states.is_wanted = is_wanted;
+                                            category.states.is_wanted_inside = false;
+
+                                            if (category.categories.length) {
+                                                category.states.is_wanted_inside = checkCategories(category.categories);
+                                            }
+
+                                            return category.states.is_wanted || category.states.is_wanted_inside;
+                                        };
+
+                                        checkCategories(this.categories);
+
+                                        if (this.search_string.trim()) {
+                                            return this.categories.filter(c => c.states.is_wanted || c.states.is_wanted_inside);
+                                        }
+                                        return this.categories;
+                                    },
+                                },
+                                methods: {
+                                    changeItem: function(item) {
+                                        if (item.is_locked) { return false; }
+                                        item.states.enabled = !item.states.enabled;
+                                        this.save(item);
+                                    },
+                                    save: function(item) {
+                                        this.$emit("success", {
+                                            type: "category",
+                                            item: item
+                                        });
+                                    }
+                                }
+                            },
+                            "component-table-filters-sets": {
+                                data: function() {
+                                    const options = $.wa.clone(that.filter_options);
+
+                                    return {
+                                        search_string: "",
+                                        sets: formatSets(options.sets)
+                                    };
+
+                                    function formatSets(items) {
+                                        $.each(items, function(i, item) {
+                                            if (item.is_group) {
+                                                item.states = {
+                                                    is_open: false,
+                                                    is_wanted: false,
+                                                    is_wanted_inside: false,
+                                                }
+                                                if (item.sets.length) {
+                                                    formatSets(item.sets);
+                                                }
+                                            } else {
+                                                item.states = {
+                                                    is_wanted: false,
+                                                    is_wanted_inside: false,
+                                                }
+                                            }
+                                        });
+                                        return items;
+                                    }
+                                },
+                                template: that.components["component-table-filters-sets"],
+                                delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-table-filters-search": that.vue_components["component-table-filters-search"],
+                                    "component-tree-menu": that.vue_components["component-tree-menu"],
+                                },
+                                computed: {
+                                    items: function() {
+                                        /**
+                                         * @param {Object} set
+                                         * @return {Boolean}
+                                         * */
+                                        const checkSet = (set) => {
+                                            const is_wanted = (this.search_string === "" || set.name.toLowerCase().indexOf( this.search_string.toLowerCase() ) >= 0);
+
+                                            set.states.is_wanted = is_wanted;
+                                            set.states.is_wanted_inside = false;
+
+                                            if (set.is_group && set.sets.length) {
+                                                set.states.is_wanted_inside = checkSets(set.sets);
+                                            }
+
+                                            return is_wanted || set.states.is_wanted_inside;
+                                        };
+                                        /**
+                                         * @param {Object|Array} sets
+                                         * @return {Boolean}
+                                         * */
+                                        const checkSets = (sets) => {
+                                            let result = false;
+
+                                            for (let i = 0; i < sets.length; i++) {
+                                                if (checkSet(sets[i])) {
+                                                    result = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            return result;
+                                        };
+
+                                        checkSets(this.sets);
+
+                                        if (this.search_string.trim()) {
+                                            return this.sets.filter(s => s.states.is_wanted || s.states.is_wanted_inside);
+                                        }
+                                        return this.sets;
+                                    }
+                                },
+                                methods: {
+                                    changeItem: function(item) {
+                                        if (item.is_locked) { return false; }
+                                        const self = this;
+                                        item.states.enabled = !item.states.enabled;
+                                        self.save(item);
+                                    },
+                                    save: function(item) {
+                                        const self = this;
+                                        self.$emit("success", {
+                                            type: "set",
+                                            item: item
+                                        });
+                                    }
+                                }
+                            },
+                            "component-table-filters-types": {
+                                emits: ["success"],
+                                data: function() {
+                                    const options = $.wa.clone(that.filter_options);
+
+                                    return {
+                                        search_string: "",
+                                        types: formatOptions(options.types)
+                                    };
+
+
+                                    function formatOptions(items) {
+                                        $.each(items, function(i, item) {
+                                            item.states = {
+                                                enabled: false,
+                                                locked: false,
+                                                is_wanted: false
+                                            }
+                                        });
+                                        return items;
+                                    }
+                                },
+                                template: that.components["component-table-filters-types"],
+                                delimiters: ['{ { ', ' } }'],
+                                components: {
+                                    "component-table-filters-search": that.vue_components["component-table-filters-search"],
+                                    "component-tree-menu": that.vue_components["component-tree-menu"]
+                                },
+                                computed: {
+                                    items: function() {
+                                        return this.types.filter((item) => {
+                                            item.states.is_wanted = (item.name.toLowerCase().indexOf(this.search_string.toLowerCase()) >= 0)
+                                            return item.states.is_wanted;
+                                        });
+                                    }
+                                },
+                                methods: {
+                                    setType: function(type) {
+                                        if (type.is_locked) { return false; }
+                                        type.states.enabled = true;
+                                        this.save(type);
+                                    },
+                                    save: function(type) {
+                                        this.$emit("success", {
+                                            type: "type",
+                                            item: type
+                                        });
+                                    }
+                                }
+                            }
+                        },
+                        methods: {
+                            setType: function(type) {
+                                this.contentType = type;
+                                // TODO: remove
+                                // this.autofocus();
+                            },
+                            success: function(data) {
+                                this.applyCategories(data);
+                            },
+                            autofocus: function() {
+                                this.$nextTick(() => {
+                                    $(this.$el).find("input.js-autofocus").trigger("focus");
+                                });
+                            },
+                            applyCategories: function(data) {
+                                const result = {
+                                    rule_params: []
+                                };
+
+                                switch (data.type) {
+                                    case "set":
+                                        var set_id = (data.item.set_id || data.item.id);
+                                        result.rule_type = "sets";
+                                        result.rule_params = [set_id];
+                                        break;
+
+                                    case "type":
+                                        result.rule_type = "types";
+                                        result.rule_params = [data.item.id];
+                                        break;
+
+                                    case "category":
+                                        result.rule_type = "categories";
+                                        result.rule_params = [data.item.id];
+                                        break;
+                                }
+                                this.save(result);
+                            }
+                        }
+                    },
+
                     "component-mass-actions": {
-                        props: ["products", "type"],
+                        props: ["products"],
                         data: function() {
                             return {
                                 actions: that.mass_actions
@@ -6238,140 +6193,6 @@
                         template: that.components["component-mass-actions"],
                         delimiters: ['{ { ', ' } }'],
                         components: {
-                            "component-mass-actions-footer": {
-                                props: ["products", "actions"],
-                                emits: ["call_action"],
-                                data: function() {
-                                    return {
-                                        states: {
-                                            resize_timer: 0
-                                        }
-                                    }
-                                },
-                                template: that.components["component-mass-actions-footer"],
-                                delimiters: ['{ { ', ' } }'],
-                                components: { "component-checkbox": that.vue_components["component-checkbox"] },
-                                computed: {
-                                    products_length: function() {
-                                        let self = this,
-                                            result = self.products.length,
-                                            unselected = that.products.length - self.products.length;
-
-                                        if (that.products_selection.value === "all_products") {
-                                            result = that.products_total_count - unselected;
-                                        }
-
-                                        return result;
-                                    },
-                                    pinned_actions: function() {
-                                        var self = this,
-                                            result = [];
-
-                                        $.each(self.actions, function(i, group) {
-                                            $.each(group.actions, function(j, action) {
-                                                if (action.pinned) {
-                                                    result.push(action);
-                                                }
-                                            });
-                                        });
-
-                                        return result;
-                                    },
-                                    dropdown_actions: function() {
-                                        var self = this;
-                                        return self.actions;
-                                    }
-                                },
-                                methods: {
-                                    resize: function(entry) {
-                                        var self = this,
-                                            $wrapper = $(self.$el);
-
-                                        $wrapper.css("visibility", "hidden");
-                                        clearTimeout(self.states.resize_timeout);
-                                        self.states.resize_timeout = setTimeout(function() {
-                                            resize();
-                                            $wrapper.css("visibility", "");
-                                        }, 100);
-
-                                        function resize() {
-                                            // Включаем всё
-                                            $.each(self.pinned_actions, function(i, action) {
-                                                action.states.visible = true;
-                                            });
-
-                                            // Дожидаемся ререндера
-                                            self.$nextTick( function() {
-                                                var list_w = self.$list.width();
-
-                                                var width = 0,
-                                                    visible_count = 0;
-
-                                                // Считаем сколько пунктов влезает
-                                                self.$list.find(".s-action").each( function() {
-                                                    var $action = $(this),
-                                                        action_w = $action.outerWidth(true);
-
-                                                    width += action_w;
-                                                    if (width <= list_w) {
-                                                        visible_count += 1;
-                                                    } else {
-                                                        return false;
-                                                    }
-                                                });
-
-                                                // Показываем часть пунктов что влезли
-                                                $.each(self.pinned_actions, function(i, action) {
-                                                    action.states.visible = (i < visible_count);
-                                                });
-                                            });
-                                        }
-                                    },
-                                    pin: function() {
-                                        that.states.mass_actions_pinned = true;
-                                        localStorage.setItem(that.states.mass_actions_storage_key, true);
-                                    },
-                                    close: function() {
-                                        var self = this;
-
-                                        $.each(self.products, function(i, product) {
-                                            product.states.selected = false;
-                                        });
-                                    },
-
-                                    callAction: function(action) {
-                                        const self = this;
-                                        self.$emit("call_action", action);
-                                    }
-                                },
-                                mounted: function() {
-                                    var self = this,
-                                        $wrapper = $(self.$el);
-
-                                    self.$list = $wrapper.find(".js-actions-list");
-
-                                    $wrapper.find(".dropdown").each( function() {
-                                        $(this).waDropdown({ hover : false });
-                                    });
-
-                                    initObserver(self.$el);
-
-                                    function initObserver(wrapper) {
-                                        var resizeObserver = new ResizeObserver(onSizeChange);
-                                        resizeObserver.observe(wrapper);
-                                        function onSizeChange(entries) {
-                                            var is_exist = $.contains(document, wrapper);
-                                            if (is_exist) {
-                                                var entry = entries[0].contentRect;
-                                                self.resize(entry);
-                                            } else {
-                                                resizeObserver.unobserve(wrapper);
-                                                resizeObserver.disconnect();
-                                            }
-                                        }
-                                    }
-                                }
-                            },
                             "component-mass-actions-aside": {
                                 props: ["products", "actions"],
                                 emits: ["call_action"],
@@ -6398,10 +6219,8 @@
                                         $.each(self.products, function(i, product) {
                                             product.states.selected = false;
                                         });
-                                    },
-                                    unpin: function() {
-                                        that.states.mass_actions_pinned = false;
-                                        localStorage.removeItem(that.states.mass_actions_storage_key);
+
+                                        that.products_selection.value = 'visible_products';
                                     },
 
                                     callAction: function(action) {
@@ -6410,9 +6229,6 @@
                                     }
                                 }
                             }
-                        },
-                        computed: {
-                            prop_type() { return (typeof this.type !== "string" ? "footer" : this.type); }
                         },
                         methods: {
                             callAction: function(action) {
@@ -6656,21 +6472,22 @@
             $link.trigger("click").remove();
 
             that.animate(true);
+            $(document).on("wa_loaded", ()=> that.animate(false));
         };
 
         Page.prototype.animate = function(show) {
             var that = this;
 
-            const locked_class = "is-locked",
-                  animation = "<div class=\"s-locked-animation\"><i class=\"fas fa-spinner fa-spin\"></i></div>";
-
+            const locked_class = "is-locked";
             if (show) {
                 if (!that.states.$animation) {
-                    that.states.$animation = $(animation).appendTo( that.$wrapper.addClass(locked_class) );
+                    that.states.$animation = $.waLoading({top: "4rem"});
+                    that.$wrapper.addClass(locked_class)
+                    that.states.$animation.animate(500, 98, false);
                 }
             } else {
                 if (that.states.$animation) {
-                    that.states.$animation.remove();
+                    that.states.$animation.hide();
                     that.states.$animation = null;
                     that.$wrapper.removeClass(locked_class);
                 }
@@ -6848,13 +6665,12 @@
         Page.prototype.initDialogFeatureValue = function($dialog, dialog) {
             var that = this;
 
-            console.log( dialog.options.item_data );
-
             var $section = $dialog.find(".js-vue-section");
 
             var vue_model = Vue.createApp({
                 data() {
                     return {
+                        custom_html_error: Vue.ref(false),
                         item_data: getItemData(),
                         items_keys: {},
                         states: {
@@ -7063,6 +6879,32 @@
                             return result;
                         }
                     },
+                    custom_html: function() {
+                        const self = this;
+                        if (self.item_data.render_type !== 'custom') {
+                            return '';
+                        }
+                        if (self.item_data.html) {
+                            return self.item_data.html;
+                        }
+                        if (self.item_data.dialog_url && !self.custom_html_xhr) {
+                            self.custom_html_xhr = $.get(self.item_data.dialog_url).then(function(html) {
+                                self.item_data.html = html;
+
+                                self.$nextTick(function () {
+                                    // This will run <script>s provided by plugins. Vue does not attach them inside HTML.
+                                    var $script_wrapper = $('<div style="display:none">').html(html);
+                                    $script_wrapper.find(':not(script)').remove();
+                                    $script_wrapper.appendTo(that.$wrapper);
+                                });
+                            }, function() {
+                                self.custom_html_error.value = true;
+                            });
+                        } else {
+                            self.custom_html_error.value = true;
+                        }
+                        return '';
+                    },
                     disabled: function() {
                         const self = this;
                         var result = false;
@@ -7126,6 +6968,9 @@
                                     break;
                                 case "boolean":
                                     result.push(self.item_data.value);
+                                    break;
+                                case "custom":
+                                    result.push($(self.$el.parentElement).find('[name="rule_params"]').first().val());
                                     break;
                             }
 
@@ -7708,12 +7553,12 @@
                 case "export_csv":
                     var redirect_url = action.redirect_url;
                     if (is_all_products) {
-                        redirect_url = action.redirect_url.replace("id/", "presentation/");
-                        product_ids.unshift(that.presentation.id);
+                        redirect_url = action.redirect_url.replace("id/", "all/");
+                    }else{
+                        redirect_url = redirect_url + product_ids.join(",");
                     }
 
-                    var href = redirect_url + product_ids.join(",");
-                    var $link = $("<a />", { href: href });
+                    var $link = $("<a />", { href: redirect_url });
                     that.$wrapper.prepend($link);
                     $link.trigger("click").remove();
                     break;
@@ -9589,7 +9434,7 @@
 
                     that.updateRootVariables(options);
 
-                    var vue_model = Vue.createApp({
+                    Vue.createApp({
                         data() {
                             return {
                                 states: {

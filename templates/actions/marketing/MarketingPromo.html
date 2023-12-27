@@ -58,16 +58,16 @@
     {else}
         <form>
             {* HEADER *}
-            <header class="s-page-header flexbox middle space-16 custom-mb-32">
+            <header class="s-page-header flexbox space-12 custom-mb-32">
                 <div class="s-column s-title-column">
-                    <h1 class="s-title">
-                        <a href="{$marketing_url}" class="back nowrap"><i class="fas fa-arrow-circle-left"></i></a>
-                        <span class="editable js-name-editable">{$_name|escape}</span>
+                    <h1 class="s-title flexbox">
+                        <a href="{$marketing_url}" class="back"><i class="fas fa-arrow-circle-left"></i></a>
+                        <span class="s-title-name editable js-name-editable">{$_name|escape}</span>
                         <input class="s-title-field js-title-field" type="text" value="{$promo.name|default:''|escape}">
                     </h1>
                 </div>
                 {if !empty($promo.id)}
-                    <div class="s-column">
+                    <div class="s-column custom-mt-4">
 
                         <div class="s-actions-wrapper">
                             <span>
@@ -239,14 +239,14 @@
                             <div class="s-status-section js-status-section {if empty($_is_active)}is-disabled{/if}">
                                 <input class="s-checkbox" type="checkbox" name="promo[enabled]" value="1" {if !empty($_is_active)}checked{/if}>
                                 <div class="s-visible tablebox middle">
-                                    <span class="text-green" style="width: 13%;">
+                                    <span class="text-green nowrap" style="width: 13%;">
                                         <i class="fas fa-{$_status_icon_class|escape} custom-mr-8"></i>
                                         <span class="s-title">{$_status_title|escape}</span>
                                     </span>
                                     <button type="button" class="button light-gray rounded js-stop-status">[`Stop`]</button>
                                 </div>
                                 <div class="s-hidden tablebox middle">
-                                    <span class="text-red" style="width: 13%;">
+                                    <span class="text-red nowrap" style="width: 13%;">
                                         <i class="fas fa-pause custom-mr-8"></i>
                                         <span class="s-title">[`Stopped`]</span>
                                     </span>

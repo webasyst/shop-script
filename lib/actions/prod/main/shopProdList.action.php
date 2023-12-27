@@ -97,11 +97,6 @@ class shopProdListAction extends waViewAction
         if ($offset === null) {
             $offset = ($page - 1) * $limit;
         }
-        $products = $presentation->getProducts($collection, [
-            'offset' => $offset,
-            'limit' => $limit,
-            'format' => true,
-        ]);
 
         $columns = $this->mergeColumns($presentation->getColumnsList(), $active_presentation['columns']);
         $columns = $this->formatColumns($columns);
@@ -122,9 +117,16 @@ class shopProdListAction extends waViewAction
         }
 
         $filter['rules'] = $this->getFilterGroups($filter['rules']);
+        $this->shopProdFiltersEvent($filter, $filter_options, $collection);
         $filter_model = new shopFilterModel();
         $filters = array_values($filter_model->getTemplatesByUser($user_id, ['fields' => ['id', 'name']]));
         $this->getRulesLabels($filter['rules'], $filter_options, $categories);
+
+        $products = $presentation->getProducts($collection, [
+            'offset' => $offset,
+            'limit' => $limit,
+            'format' => true,
+        ]);
 
         /**
          * @event backend_prod_list
@@ -182,6 +184,12 @@ class shopProdListAction extends waViewAction
         }
 
         return array_values($groups);
+    }
+
+    protected function shopProdFiltersEvent(&$filter, &$filter_options, $collection)
+    {
+        shopFilter::shopProdFiltersEvent($filter, $filter_options, $collection);
+        $filter_options['features'] = array_values($filter_options['features']);
     }
 
     protected function getRulesLabels(&$rules, $options, $categories)
@@ -724,17 +732,17 @@ class shopProdListAction extends waViewAction
                             "statuses" => [
                                 [
                                     "value" => "1",
-                                    "name" => _w("Published"),
+                                    "name" => _w("Published, for sale"),
                                     "icon" => "<i class='fas fa-check color-green-dark'></i>"
                                 ],
                                 [
                                     "value" => "0",
-                                    "name" => _w("Hidden"),
+                                    "name" => _w("Hidden, not for sale"),
                                     "icon" => "<i class='fas fa-times color-yellow'></i>"
                                 ],
                                 [
                                     "value" => "-1",
-                                    "name" => _w("Unpublished"),
+                                    "name" => _w("Unpublished, not for sale"),
                                     "icon" => "<i class='fas fa-times color-red'></i>"
                                 ]
                             ],
@@ -1092,7 +1100,7 @@ class shopProdListAction extends waViewAction
                     [
                         "id" => "export_csv",
                         "name" => _w("Export to CSV"),
-                        "icon" => '<i class="fas fa-file-csv"></i>',
+                        "icon" => '<i class="fas fa-file-csv" style="color:var(--alert-info-border-color)"></i>',
                         "redirect_url" => $wa_app_url."?action=importexport#/csv:product:export/hash/id/"
                     ]
                 ]
@@ -1104,39 +1112,39 @@ class shopProdListAction extends waViewAction
                     [
                         "id" => "add_to_categories",
                         "name" => _w("Add to category"),
-                        "icon" => '<i class="fas fa-folder-plus"></i>',
+                        "icon" => '<i class="fas fa-folder-plus text-blue"></i>',
                         "action_url" => $wa_app_url."?module=prod&action=addToCategoriesDialog",
                         "pinned" => true
                     ],
                     [
                         "id" => "exclude_from_categories",
                         "name" => _w("Remove from category"),
-                        "icon" => '<i class="fas fa-folder-minus"></i>',
+                        "icon" => '<i class="fas fa-folder-minus text-gray"></i>',
                         "action_url" => $wa_app_url."?module=prod&action=excludeFromCategoriesDialog"
                     ],
                     [
                         "id" => "add_to_sets",
                         "name" => _w("Add to set"),
-                        "icon" => '<svg><use xlink:href="'.$_sprite_url.'#list-plus"></use></svg>',
+                        "icon" => '<svg class="text-red"><use xlink:href="'.$_sprite_url.'#list-plus"></use></svg>',
                         "action_url" => $wa_app_url."?module=prod&action=addToSetsDialog",
                         "pinned" => true
                     ],
                     [
                         "id" => "exclude_from_sets",
                         "name" => _w("Remove from set"),
-                        "icon" => '<svg><use xlink:href="'.$_sprite_url.'#list-minus"></use></svg>',
+                        "icon" => '<svg class="text-gray"><use xlink:href="'.$_sprite_url.'#list-minus"></use></svg>',
                         "action_url" => $wa_app_url."?module=prod&action=excludeFromSetsDialog"
                     ],
                     [
                         "id" => "assign_tags",
                         "name" => _w("Assign tags"),
-                        "icon" => '<i class="fas fa-tag"></i>',
+                        "icon" => '<i class="fas fa-tag" style="color: var(--menu-tags-link-color)"></i>',
                         "action_url" => $wa_app_url."?module=prod&action=assignTagsDialog"
                     ],
                     [
                         "id" => "remove_tags",
                         "name" => _w("Remove tags"),
-                        "icon" => '<svg><use xlink:href="'.$_sprite_url.'#tag-minus"></use></svg>',
+                        "icon" => '<svg class="text-gray"><use xlink:href="'.$_sprite_url.'#tag-minus"></use></svg>',
                         "action_url" => $wa_app_url."?module=prod&action=removeTagsDialog"
                     ]
                 ]
@@ -1148,21 +1156,21 @@ class shopProdListAction extends waViewAction
                     [
                         "id" => "set_badge",
                         "name" => _w("Badge"),
-                        "icon" => '<i class="fas fa-certificate"></i>',
+                        "icon" => '<i class="fas fa-certificate text-yellow"></i>',
                         "action_url" => $wa_app_url."?module=prod&action=setBadgeDialog",
                         "pinned" => true
                     ],
                     [
                         "id" => "set_publication",
                         "name" => _w("Availability in the storefront"),
-                        "icon" => '<i class="fas fa-share"></i>',
+                        "icon" => '<i class="fas fa-share text-dark-gray" style="color:var(--text-color)"></i>',
                         "action_url" => $wa_app_url."?module=prod&action=setPublicationDialog",
                         "pinned" => true
                     ],
                     [
                         "id" => "set_type",
                         "name" => _w("Change product type"),
-                        "icon" => '<i class="fas fa-cube"></i>',
+                        "icon" => '<i class="fas fa-cube text-brown"></i>',
                         "action_url" => $wa_app_url."?module=prod&action=setTypeDialog"
                     ],
                     [
@@ -1175,7 +1183,7 @@ class shopProdListAction extends waViewAction
                     [
                         "id" => "delete",
                         "name" => _w("Delete"),
-                        "icon" => '<i class="fas fa-times"></i>',
+                        "icon" => '<i class="fas fa-trash-alt text-red"></i>',
                         "action_url" => $wa_app_url."?module=prod&action=deleteProductsDialog",
                         "pinned" => true
                     ]
@@ -1188,13 +1196,13 @@ class shopProdListAction extends waViewAction
                     [
                         "id" => "discount_coupons",
                         "name" => _w("Discount coupons"),
-                        "icon" => '<i class="fas fa-percentage"></i>',
+                        "icon" => '<i class="fas fa-percentage text-pink"></i>',
                         "redirect_url" => $wa_app_url."marketing/coupons/create/?products_hash=id/"
                     ],
                     [
                         "id" => "associate_promo",
                         "name" => _w("Add to promo"),
-                        "icon" => '<i class="fas fa-bullhorn"></i>',
+                        "icon" => '<i class="fas fa-bullhorn text-purple"></i>',
                         "action_url" => $wa_app_url."?module=prod&action=associatePromoDialog"
                     ]
                 ]

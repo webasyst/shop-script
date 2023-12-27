@@ -1,11 +1,11 @@
 <?php
 
 return array(
-    'name'            => 'Яндекс.Маркет',
-    'description'     => 'Экспорт каталога товаров в формате YML',
+    'name'            => 'Экспорт в YML (Яндекс Маркет)',
+    'description'     => 'Экспорт товаров в формате YML',
     'img'             => 'img/yandexmarket.png',
     'vendor'          => 'webasyst',
-    'version'         => '2.5.0',
+    'version'         => '2.5.1',
     'importexport'    => 'profiles',
     'export_profile'  => true,
     'custom_settings' => true,

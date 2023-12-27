@@ -253,7 +253,7 @@ class shopCustomersCollectionPreparator
         }
     }
 
-    // Used in tonstructor to set options depending on search query
+    // Used in constructor to set options depending on search query
     protected function parseOptionsFromSearchQuery($query)
     {
         $options = [];

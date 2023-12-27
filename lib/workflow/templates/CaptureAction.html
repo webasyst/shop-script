@@ -60,7 +60,7 @@
             {strip}
 
                 {capture assign="_warning_message"}
-                    <div class="s-message yellow"><i class="fas fa-exclamation-triangle"></i>[`Money will be captured via the payment gateway.`]</div>
+                    <div class="s-message yellow alert warning"><i class="fas fa-exclamation-triangle"></i> [`Money will be captured via the payment gateway.`]</div>
                 {/capture}
                 <div class="s-messages-place">
                     {$_warning_message}
@@ -235,8 +235,7 @@
                     {* ".js-form-footer-actions" and ".js-submit-button" classes are required for dialog in CRM app. *}
                     <div class="s-actions js-form-footer-actions">
                         <input class="button {$button_class} js-submit-button" type="submit" value="[`Complete the funds capture`]">
-                        [`or`]
-                        <a class="js-close-section inline-link" href="javascript:void(0);"><b><i>[`cancel`]</i></b></a>
+                        <a class="js-close-section button light-gray" href="javascript:void(0);">[`Cancel`]</a>
                     </div>
 
                 </div>

@@ -72,6 +72,7 @@ class shopPushClientModel extends waModel
 
                 // If courier's token, check if active
                 if (isset($couriers[$token])) {
+                    $c['is_courier'] = true;
                     $courier = $couriers[$token];
                     if ($result_with_couriers && $courier['enabled']) {
                         $active_clients[] = $c;
@@ -83,6 +84,7 @@ class shopPushClientModel extends waModel
             }
 
             // Check user's access rights
+            $c['is_user'] = true;
             if (empty($can_access_app[$c['contact_id']])) {
                 if (empty($contact_exists[$c['contact_id']])) {
                     $inactive_clients[] = $c['client_id'];

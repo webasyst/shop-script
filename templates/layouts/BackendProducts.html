@@ -76,6 +76,14 @@
                     }
                 });
             }
+
+            $.wa_shop_products.alert = function (title, text) {
+                $.wa.notice({
+                    title,
+                    text: '<div style="line-height: 1.5;font-size: 110%;">' + (text || '') + '</div>',
+                    button_name: '[`Close`]'
+                });
+            }
         })(jQuery);
     </script>
 
@@ -110,10 +118,10 @@
                     <p>[`Your changes will be lost if you do not save them.`]
                         [`Uploaded images are always saved until you delete them.`]</p>
                 </div>
-                <div class="dialog-footer">
-                    <button class="js-save-button button yellow" type="button">[`Save`]</button>
-                    <button class="js-leave-button button gray" type="button">[`Leave without saving`]</button>
-                    <button class="js-dialog-close button blue" type="button">[`Stay`]</button>
+                <div class="dialog-footer flexbox middle">
+                    <button class="js-save-button button green" type="button">[`Save`]</button>
+                    <button class="js-dialog-close button light-gray" type="button">[`Stay`]</button>
+                    <button class="js-leave-button button outlined orange custom-ml-auto" type="button">[`Leave without saving`]</button>
                 </div>
             </div>
         </div>

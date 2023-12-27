@@ -22,6 +22,7 @@ class shopDimensionValue implements ArrayAccess
     private $units;
     private $value_base_unit;
     private $base_code;
+    private $unit_name;
     private $format = false;
 
     public function __construct($row)
@@ -33,7 +34,10 @@ class shopDimensionValue implements ArrayAccess
 
     public function __set($field, $value)
     {
-        return $this->{$field} = $value;
+        if (property_exists($this, $field)) {
+            $this->$field = $value;
+        }
+        return $value;
     }
 
     public function __get($field)

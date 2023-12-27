@@ -1,3 +1,17 @@
+<div class="alert warning">
+    <p>
+        {* TODO: DEPRECATE PERMANENTlY *}
+        {if $wa->locale() == 'ru_RU'}
+            <strong>Раздел упразднен в Shop-Script 10.0.</strong> Новая инструкция по подключению курьеров в Shop-Script 10.0 и выше:
+            <a href="https://support.webasyst.ru/shop-script/44882/shop-couriers-mobile-app/" target="_blank">https://support.webasyst.ru/shop-script/44882/shop-couriers-mobile-app/</a>
+        {else}
+            <strong>Deprecated in Shop-Script 10.0.</strong> Please follow this guide on how to add a courier in Shop-Script 10.0+:
+            <a href="https://support.webasyst.com/shop-script/44941/shop-couriers-mobile-app/" target="_blank">https://support.webasyst.com/shop-script/44941/shop-couriers-mobile-app/</a>
+        {/if}
+    </p>
+</div>
+
+<div class="opacity-50">
 <div class="flexbox space-12">
     <div class="wide">
         <div class="dropdown js-courier-list">
@@ -279,6 +293,7 @@
         </div>
     </div>
 </form>
+</div>
 
 <script>$(function() {
     document.title = "[`Couriers`]";

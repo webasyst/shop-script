@@ -19,7 +19,7 @@ class shopProdAddFeatureValueController extends waJsonController
         $value_id = $feature_model->getValueId($feature, $value, true);
 
         // Get actual value, this applies formatting specific to feature type, if needed.
-        // This can be an object, but always convertable to string.
+        // This can be an object, but always convertible to string.
         $value_saved = $feature_model->getValuesModel($feature['type'])->getFeatureValue($value_id);
 
         $this->response = [

@@ -12,10 +12,14 @@
                     <a href="#/id/{$c.id}">
                         <span>{$c.name|default:'[`(no name)`]'|escape}</span>
                         {foreach $c.categories as $cc}
-                            {if $cc.icon}
-                                <span class="icon text-gray">{$wa->shop->getIcon($cc.icon)}</span>
+                            {if $cc.icon && !($cc.system_id == 'shop')}
+                                {* no need for 100500 similar shop-script icons here *}
+                                <span class="icon text-gray custom-ml-4" title="{$cc.name|escape}">{$wa->shop->getIcon($cc.icon)}</span>
                             {/if}
                         {/foreach}
+                        {if $c.is_user}
+                            <i class="icon webasyst-magic-wand smaller custom-ml-4" title="[`Can access Webasyst backend`]"></i>
+                        {/if}
                     </a>
                 </h3>
 

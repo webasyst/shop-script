@@ -117,7 +117,7 @@ class shopProdMediaAction extends waViewAction
 
         foreach ($_images as $_image) {
 
-            // Append file motification time to image URL
+            // Append file notification time to image URL
             // in order to avoid browser caching issues
             $last_modified = '';
             $path = shopImage::getPath($_image);

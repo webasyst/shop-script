@@ -1,23 +1,23 @@
 {capture assign="_component_table_filters_storefronts"}
 <div class="s-filter-storefronts-section s-pane-item dropbox">
     <div class="s-dropbox-toggle js-dropbox-toggle" v-bind:class="{ 'text-blue' : has_value }">
-        <span class="s-icon"><i class="fas fa-store"></i></span>
+        <span class="s-icon text-light-gray"><i class="fas fa-store"></i></span>
         <span class="s-name is-adaptive">[`Storefronts`]</span>
     </div>
     <div class="dropbox-body right">
         <div class="s-dropbox-content-section">
             <div class="s-section-header">
                 <component-table-filters-search
-                    v-if="storefronts.length"
+                    v-if="items.length"
                     class="s-search-form"
                     v-model="search_string"
                     v-bind:placeholder="'{_w("Find a storefront")|escape}'"></component-table-filters-search>
                 <span v-else>[`You have no storefronts.`]</span>
             </div>
-            <div class="s-section-body" v-if="storefronts.length">
+            <div class="s-section-body" v-if="items.length">
                 <div class="s-storefronts-list">
                     <template v-for="storefront in items">
-                        <div class="s-storefront-wrapper flexbox space-8">
+                        <div v-show="!storefront.is_hide" class="s-storefront-wrapper flexbox space-8">
                             <div class="s-checkbox-wrapper">
                                 <template v-if="storefront.is_locked">
                                     <component-checkbox v-bind:model-value="true" v-bind:disabled="true"></component-checkbox>
@@ -34,10 +34,10 @@
                             </div>
                         </div>
                     </template>
-                    <div class="s-storefront-wrapper" v-if="!items.length">[`Storefronts not found.`]</div>
+                    <div class="s-storefront-wrapper" v-if="empty_search_result">[`Storefronts not found.`]</div>
                 </div>
             </div>
-            <div class="s-section-footer" v-if="storefronts.length">
+            <div class="s-section-footer" v-if="items.length">
                 <button class="button small blue" type="button"
                         v-bind:disabled="!states.is_changed || !has_value"
                         v-on:click="save">[`Apply`]</button>

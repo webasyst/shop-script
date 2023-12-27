@@ -32,11 +32,12 @@
                             </td>
 
                             <td class="s-rate editable {if $currency.code == $primary}primary{/if}">
+                              <div class="box">
                                 {if $currency.code == $primary}
-                                <span class="gray italic">[`Primary currency`]</span>
+                                <span class="badge squared small blue">[`Primary currency`]</span>
                                 {else}
-                                1 {$currency.code} = <span id="s-rate-{$currency.code}" class="numerical-readonly">{$currency.rate}</span>
-                                <input type="number" name="rate[{$currency.code}]" value="{(float)$currency.rate}" id="s-rate-{$currency.code}-input" style="display: none;" class="smaller numerical short">
+                                1 {$currency.code} = <span id="s-rate-{$currency.code}" class="numerical-readonly bold">{$currency.rate}</span>
+                                <input type="text" name="rate[{$currency.code}]" value="{(float)$currency.rate}" id="s-rate-{$currency.code}-input" style="display: none;" class="small numerical bold">
                                 {$primary}
                                 {/if}
 
@@ -46,7 +47,7 @@
                                 </div>
 
                                 <div class="rounding custom-mt-4" style="display: none;">
-                                    <div class="small">
+                                    <div class="smaller">
                                         <select name="rounding[{$currency.code}]">
                                             {foreach $rounding_options as $o_value => $o_label}
                                             <option value="{$o_value|escape}"{if empty($o_value) && !empty($currency.precision)} disabled{elseif ifempty($currency.rounding) == $o_value} selected{/if}>{$o_label|escape}</option>
@@ -55,7 +56,7 @@
                                     </div>
                                     <div>
                                         <input type="hidden" name="round_up_only[{$currency.code}]" value="">
-                                        <label class="small">
+                                        <label class="smaller">
                                             <span class="wa-checkbox">
                                                 <input type="checkbox" name="round_up_only[{$currency.code}]" value="1"{if !empty($currency.round_up_only)} checked{/if}>
                                                 <span>
@@ -67,13 +68,13 @@
                                             [`Round fractions up only`]
                                         </label>
                                     </div>
+                                    <button type="button" class="button smallest light-gray save"><span class="icon text-green custom-mr-4"><i class="fas fa-check"></i></span> [`Save`]</button>
                                 </div>
+                              </div>
                             </td>
 
                             <td class="s-actions nowrap">
-                                <button class="button smaller circle light-gray settings"><span class="icon"><i class="fas fa-cog"></i></span></button>
-
-                                <button type="button" class="button smaller circle light-gray save" title="[`Save`]"><span class="icon text-blue"><i class="fas fa-save"></i></span></button>
+                                <button class="button smaller circle light-gray settings"><span class="icon text-blue"><i class="fas fa-edit"></i></span></button>
 
                                 {if $currency.code != $primary}
                                 <button class="button smaller circle light-gray delete">
@@ -134,13 +135,12 @@
                                             [`Round fractions up only`]
                                         </label>
                                     </div>
+                                    <button type="button" class="button smallest light-gray save" title="[`Save`]"><span class="icon text-blue custom-mr-4"><i class="fas fa-save"></i></span> [`Save`]</button>
                                 </div>
                             </td>
 
                             <td class="s-actions nowrap">
                                 <button class="button smaller circle light-gray settings"><span class="icon"><i class="fas fa-cog"></i></span></button>
-
-                                <button type="button" class="button smaller circle light-gray save" title="[`Save`]"><span class="icon text-blue"><i class="fas fa-save"></i></span></button>
 
                                 <button class="button smaller circle light-gray delete">
                                     <span class="js-delete-trash"><span class="icon text-red"><i class="fas fa-trash-alt"></i></span></span>
@@ -152,9 +152,9 @@
 
                         {if !empty($rest_system_currencies)}
                         <tr>
-                            <td class="min-width"></td>
-                            <td colspan="4">
-                                <div class="small">
+                            <td class="min-width" style="border-bottom: none;"></td>
+                            <td colspan="4" style="border-bottom: none;">
+                                <div class="small custom-mt-8">
                                     <select class="add-new-currency">
                                         <option value="0">[`Add currency...`]</option>
 
@@ -375,7 +375,7 @@
     <div class="dialog-body">
         <form method="post" action="?module=settings&action=currencyChange">
             <header class="dialog-header">
-                <h1>[`Change primary currency`] <span>({$primary})</span></h1>
+                <h1>[`Change primary currency`] <span class="gray">({$primary})</span></h1>
             </header>
 
             <main class="dialog-content">
@@ -384,7 +384,7 @@
                         <div class="name">[`New primary currency`]</div>
 
                         <div class="value">
-                            <div class="small">
+                            <div class="large">
                                 <select name="code" data-primary="{$primary}">
                                     {foreach $currencies as $currency}
                                         {if $currency.code != $primary}
@@ -398,18 +398,20 @@
 
                     {if $product_count > 0}
                     <div class="field">
-                        <div class="name">[`Convert prices`]</div>
+                        <div class="name for-radio">[`Convert prices`]</div>
 
-                        <div class="value">
-                            <label>
-                                <span class="wa-radio">
-                                    <input type="radio" name="convert" value="1" checked="checked">
-                                    <span></span>
-                                </span>
-                                <span class="s-convert-text">{$convert_text}</span>
-                            </label>
+                        <div class="value small">
+                            <div class="custom-mt-4">
+                                <label>
+                                    <span class="wa-radio">
+                                        <input type="radio" name="convert" value="1" checked="checked">
+                                        <span></span>
+                                    </span>
+                                    <span class="s-convert-text">{$convert_text}</span>
+                                </label>
+                            </div>
 
-                            <div class="custom-mt-8">
+                            <div class="custom-mt-12">
                                 <label>
                                     <span class="wa-radio">
                                         <input type="radio" name="convert" value="0">

@@ -181,20 +181,14 @@
                         </template>
                     </div>
 
-                    <div class="s-photo-actions flexbox middle wrap space-20 custom-mt-32" v-if="photos.length">
+                    <div v-if="photos.length" class="s-photo-actions flexbox middle wrap space-8">
                         <div class="s-counter" v-if="selected_photos.length">
-                            <span class="s-label">[`Selected`]</span>
-                            <span class="s-count bold text-black">{ { selected_photos.length } }</span>
+                            <span class="s-label custom-mr-4">[`Selected`]</span>
+                            <span class="s-count badge gray">{ { selected_photos.length } }</span>
                         </div>
 
-                        <template v-if="product.normal_mode">
-                            <template v-if="!(unused_photos.length > 0)">
-                                <button class="button light-gray rounded" type="button" disabled title="{_w("No images not selected in SKU variants.")|escape}">
-                                    <span class="s-icon icon top text-dark-gray"><i class="fas fa-minus-square"></i></span>
-                                    <span class="s-name">&nbsp;{sprintf(_w("Not selected in SKU variants (%s)"), "{ { unused_photos.length } }")}</span>
-                                </button>
-                            </template>
-                            <template v-else-if="unused_photos.length !== unused_selected_photos.length">
+                        <template v-if="product.normal_mode && unused_photos.length > 0">
+                            <template v-if="unused_photos.length !== unused_selected_photos.length">
                                 <button class="button light-gray rounded" type="button" v-on:click.prevent="selectUnusedPhotos">
                                     <span class="s-icon icon top text-blue"><i class="fas fa-check-square"></i></span>
                                     <span class="s-name">&nbsp;{sprintf(_w("Not selected in SKU variants (%s)"), "{ { unused_photos.length } }")}</span>
@@ -221,9 +215,10 @@
                             </button>
                         </template>
 
-                        <button class="button light-gray rounded" type="button"
+                        <button v-if="selected_photos.length"
+                                class="button light-gray rounded"
+                                type="button"
                                 title="{_w("Select the images you want to delete")|escape}"
-                                v-bind:disabled="!selected_photos.length"
                                 v-on:click.prevent="deletePhotos(selected_photos)">
                             <span class="s-icon icon top size-14 text-red">
                                 <svg><use xlink:href='{$_sprite_url}#trash-alt'></use></svg>
@@ -236,7 +231,7 @@
 
                         <div class="s-photo-wrapper"
                                 v-for="photo in photos"
-                                v-bind:key="photo.render_key"
+                                v-bind:key="photo.id"
                                 v-bind:class="{ 'is-moving' : photo.is_moving, 'is-main' : isMainPhoto(photo) }"
                                 v-bind:data-id="photo.id">
 
@@ -286,15 +281,15 @@
                                 </div>
                             </div>
 
-                            <div class="s-counter-wrapper">
+                            {*<div class="s-counter-wrapper">
                                 <template v-if="photo.uses_count > 0">
                                     <span class="s-label text-green">[`Used:`] </span>
-                                    <span class="s-count" v-text="photo.uses_count"></span>
+                                    <span class="s-count badge gray large" v-text="photo.uses_count"></span>
                                 </template>
                                 <template v-else>
                                     <span class="s-label text-gray">[`Not used`] </span>
                                 </template>
-                            </div>
+                            </div>*}
                         </div>
 
                         <div v-for="file in files" v-bind:key="file.id" v-bind:data-id="file.id" class="s-photo-wrapper is-new">

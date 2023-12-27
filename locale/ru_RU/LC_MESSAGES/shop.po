@@ -487,8 +487,8 @@ msgstr "Уведомления"
 msgid "New tax rule"
 msgstr "Новое правило налогов"
 
-msgid "To customize the list of countries and regions, use <a href=\"%s\">Countries & Regions</a> screen."
-msgstr "Изменить список стран и регионов можно в разделе <a href=\"%s\">Страны и регионы</a>."
+msgid "Edit the list of countries and regions in the <a href=\"%s\">Settings</a> app."
+msgstr "Изменить список стран и регионов можно в приложении «<a href=\"%s\">Настройки</a>»."
 
 msgid "Delete rule"
 msgstr "Удалить правило"
@@ -2932,11 +2932,11 @@ msgstr "Начать импорт"
 msgid "Please do not close your browser window and do not leave this page until the entire import process is finished."
 msgstr "Не закрывайте браузер и не покидайте эту страницу до окончания импорта."
 
-msgid "Hidden"
-msgstr "Скрыт"
+msgid "Hidden, not for sale"
+msgstr "Временно скрыт, не продается"
 
-msgid "After you delete a product, all it’s sales reports, cross-selling data, and connections to the orders made in the past will be impossible to restore."
-msgstr "При удалении товара все отчеты о его продажах, его данные о перекрестных продажах и связи с ранее оформленными заказами будут также удалены без возможности восстановления."
+msgid "After you delete a product, all its sales reports, cross-selling data, and links to orders will be lost with the possibility to restore."
+msgstr "При удалении товара все отчеты о его продажах, его данные о перекрестных продажах и связи с оформленными заказами будут также удалены без возможности восстановления."
 
 msgid "Delete products"
 msgstr "Удалить товары"
@@ -3084,6 +3084,12 @@ msgstr "Я уже заказывал ранее и у меня есть акка
 
 msgid "Printable version"
 msgstr "Версия для печати"
+
+msgid "Tags contain “%s”"
+msgstr "Теги содержат «%s»"
+
+msgid "%s contains “%s”"
+msgstr "%s содержит «%s»"
 
 msgid "matches base product value"
 msgstr "совпадает с базовым"
@@ -3639,6 +3645,9 @@ msgstr "Диапазон"
 
 msgid "Manual (as defined in the backend)"
 msgstr "Вручную (как задано в бекенде)"
+
+msgid "Manual"
+msgstr "Вручную"
 
 msgid "Customers can select preferable product sort order"
 msgstr "Посетители сайта могут выбирать порядок сортировки"
@@ -4756,6 +4765,12 @@ msgstr "Аналитика"
 msgid "Permanent user account"
 msgstr "Зарегистрированный пользователь"
 
+msgid "Permanent user account with Webasyst backend access"
+msgstr "Зарегистрированный пользователь с доступом в бекенд Webasyst"
+
+msgid "Can access Webasyst backend"
+msgstr "Есть доступ в бекенд Webasyst"
+
 msgid "%s has personal account on your site."
 msgstr "У пользователя %s есть личный кабинет на вашем сайте."
 
@@ -5322,15 +5337,15 @@ msgstr "Количество покупателей с таким же номе�
 
 msgid "%d more customer found with the same email address"
 msgid_plural "%d more customers found with the same email address"
-msgstr[0] "%d покупатель найден с таким же email-адресом"
-msgstr[1] "%d покупателя найдено с таким же email-адресом"
-msgstr[2] "%d покупателей найдено с таким же email-адресом"
+msgstr[0] "Еще %d покупатель найден с таким же email-адресом"
+msgstr[1] "Еще %d покупателя найдено с таким же email-адресом"
+msgstr[2] "Еще %d покупателей найдено с таким же email-адресом"
 
 msgid "%d more customer found with the same phone number"
 msgid_plural "%d more customers found with the same phone number"
-msgstr[0] "%d покупатель найден с таким же номером телефона"
-msgstr[1] "%d покупателя найдено с таким же номером телефона"
-msgstr[2] "%d покупателей найдено с таким же номером телефона"
+msgstr[0] "Еще %d покупатель найден с таким же номером телефона"
+msgstr[1] "Еще %d покупателя найдено с таким же номером телефона"
+msgstr[2] "Еще %d покупателей найдено с таким же номером телефона"
 
 msgid "A/B testing in Shop-Script is a great way to compare several versions of your site content and to find out which one impacts sales the most."
 msgstr "A/Б-тесты в Shop-Script позволяют сравнить несколько вариантов внешнего вида или содержимого сайта и оценить влияние каждого из них на продажи и прибыль."
@@ -7096,6 +7111,9 @@ msgstr "Чтобы редактировать страны и регионы, в
 msgid "Working schedule"
 msgstr "Режим работы"
 
+msgid "Working hours"
+msgstr "Рабочее время"
+
 msgid "Timezone"
 msgstr "Часовой пояс"
 
@@ -7281,6 +7299,9 @@ msgstr "Ширина поля"
 
 msgid "Enable default design"
 msgstr "Включить стандартный стиль дизайна"
+
+msgid "Enable default fallback design"
+msgstr "Использовать дефолтный дизайн"
 
 msgid "Logo"
 msgstr "Логотип"
@@ -9727,11 +9748,11 @@ msgstr "Добавить тег"
 msgid "Editable part of the product address in the storefront."
 msgstr "Редактируемая часть адреса товара на витрине."
 
-msgid "Published"
-msgstr "Опубликован"
+msgid "Published, for sale"
+msgstr "Опубликован, продается"
 
-msgid "Unpublished"
-msgstr "Снят с публикации"
+msgid "Unpublished, not for sale"
+msgstr "Не опубликован, не продается"
 
 msgid "The product is not visible among other products in the storefront, is not available for purchase, cannot be viewed at its direct URL, and is excluded from the %sSitemap file%s."
 msgstr "Товар не виден в списках на витрине, его нельзя добавить в корзину, он недоступен по прямому URL и исключен из %sSitemap-файла%s."
@@ -9838,8 +9859,8 @@ msgstr "Все характеристики товара"
 msgid "Enter a value"
 msgstr "Введите значение"
 
-msgid "You can change the product type on the “Basic data” tab."
-msgstr "Изменить тип товара можно на странице «Основные данные»."
+msgid "You can change the product type under the “Basic data” tab."
+msgstr "Изменить тип товара можно на вкладке «Основные данные»."
 
 msgid "Move by one SKU up"
 msgstr "Переместить на один артикул вверх"
@@ -10199,7 +10220,7 @@ msgid "Non-existent date."
 msgstr "Несуществующая дата."
 
 msgid "Save modified data before leaving?"
-msgstr "Сохранить измененные данные перед тем, как уйти?"
+msgstr "Сохранить изменения?"
 
 msgid "Your changes will be lost if you do not save them."
 msgstr "Ваши изменения будут потеряны, если их не сохранить."
@@ -10895,7 +10916,7 @@ msgid "The image could not be imported."
 msgstr "Не удалось импортировать изображение."
 
 msgid "Sorting option “%s” is available only when the “%s” setting is disabled."
-msgstr "Вариант сортировки «%s» доступен только при выключенной настройке “%s”."
+msgstr "Вариант сортировки «%s» доступен только при выключенной настройке «%s»."
 
 msgid "%s/%s"
 msgstr "%s/%s"
@@ -10990,8 +11011,11 @@ msgstr "В этом товаре более 1 модификации артик�
 msgid "Product quantity units & add-to-cart parameters"
 msgstr "Единицы измерения количества товаров и условия добавления в корзину"
 
-msgid "PREMIUM license compatibility"
-msgstr "Совместимость с лицензией «ПРЕМИУМ»"
+msgid "Plugins compatibility"
+msgstr "Совместимость с плагинами"
+
+msgid "Plugins compatibility with fractional units"
+msgstr "Поддержка дробных единиц измерения плагинами"
 
 msgid "Step"
 msgstr "Шаг"
@@ -11255,7 +11279,7 @@ msgid "The price of a base product quantity unit can be used for convenient pric
 msgstr "Цена базовой единицы количества товара может использоваться для удобства сравнения цен. Например, ламинат продается упаковками, но сравнивать цены разных товаров удобнее в квадратных метрах. В этом случае упаковка считается складской единицей, а квадратный метр — базовой. Чтобы начать использовать базовую единицу, включите для складской единицы режим «%s»."
 
 msgid "Product quantity units"
-msgstr "Единицы измерения количества товаров"
+msgstr "Единицы измерения"
 
 msgid "Select a desired unit from the list and enable it, or add your own unit. Only enabled units will be available in product properties. You can adjust the sort order of enabled units by dragging them by the sorting icons next to their names."
 msgstr "Выберите нужную единицу измерении из справочника и включите ее или добавьте новую единицу. В свойствах товаров будут доступны только те единицы, которые вы включите. Можно настроить порядок сортировки включенных единиц, перетаскивая с помощью иконки слева от названия."
@@ -12421,9 +12445,6 @@ msgstr "Найти теги"
 msgid "Redirection"
 msgstr "Перенаправление"
 
-msgid "This filter can contain either a category, or a set, or a product type. If one of these items is already selected then a new choice will replace the previous value."
-msgstr "В этом фильтре может быть выбрана или одна категория, или один список, или один тип товара. Если что-то из этого уже выбрано, то новый выбор заменит предыдущее значение."
-
 msgid "You have no categories."
 msgstr "У вас нет категорий."
 
@@ -12477,9 +12498,6 @@ msgstr "Недоступна"
 
 msgid "new category"
 msgstr "новая категория"
-
-msgid "Warning: the sort order selected in this section corresponds to the category sorting in the storefront."
-msgstr "Внимание! Выбранная сортировка в этом разделе соответствует порядку категорий на витрине."
 
 msgid "Static"
 msgstr "Статическая"
@@ -12724,6 +12742,9 @@ msgstr "Описание страницы meta description"
 msgid "Visibility in the storefront and availability for purchase"
 msgstr "Видимость на витрине и доступность для покупки"
 
+msgid "Visibility"
+msgstr "Видимость"
+
 msgid "category added by duplicating"
 msgstr "категория добавлена дублированием"
 
@@ -12854,7 +12875,7 @@ msgid "Dynamic set"
 msgstr "Динамический"
 
 msgid "Upgrade to Premium"
-msgstr "Премиум-версия"
+msgstr "Премиум"
 
 msgid "OR"
 msgstr "ИЛИ"
@@ -13039,6 +13060,9 @@ msgstr "Больше возможностей и бесплатные безли
 msgid "Marketplaces"
 msgstr "Маркетплейсы"
 
+msgid "Онлайн-кассы"
+msgstr "Онлайн-кассы"
+
 msgid "Editor picks"
 msgstr "Подборки плагинов"
 
@@ -13067,10 +13091,10 @@ msgid "Unknown list type: %s."
 msgstr "Неизвестный тип списка: %s."
 
 msgid "Mobile app"
-msgstr "Приложение"
+msgstr "Мобильное приложение"
 
 msgid "Install Webasyst Shop-Script mobile app on your phone today:"
-msgstr "Установите Webasyst Shop-Script на свой телефон:"
+msgstr "Установите Webasyst Shop-Script на свой телефон."
 
 msgid "Profit by all products"
 msgstr "Прибыль по всем товарам"
@@ -13086,3 +13110,39 @@ msgstr "Не указан ID заказа."
 
 msgid "No order items specified."
 msgstr "Не указаны позиции заказа."
+
+msgid "New orders will start to land here shortly."
+msgstr "Скоро здесь будет много заказов!"
+
+msgid "How to get my first order"
+msgstr "Как получить первый заказ"
+
+msgid "https://support.webasyst.com/shop-script/45384/getting-your-first-sale/"
+msgstr "https://support.webasyst.ru/shop-script/45383/getting-your-first-sale/"
+
+msgid "Find existing customer..."
+msgstr "Найти покупателя..."
+
+msgid "Create new one"
+msgstr "Создать нового"
+
+msgid "(deprecated)"
+msgstr "(не поддерживается и не рекомендуется)"
+
+msgid "No products here just yet."
+msgstr "Здесь пока нет товаров."
+
+msgid "No products"
+msgstr "Нет товаров"
+
+msgid "No categories"
+msgstr "Нет категорий"
+
+msgid "No product lists"
+msgstr "Нет списков товаров"
+
+msgid "Unable to load content from URL:"
+msgstr "Не удалось загрузить содержимое с адреса:"
+
+msgid "Error: unknown “render_type” (possibly broken field from a plugin)."
+msgstr "Ошибка: неизвестное значение «render_type» (возможно, недопустимое значение, полученное от плагина)."

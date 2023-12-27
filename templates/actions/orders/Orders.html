@@ -1,7 +1,44 @@
 {function name="dummy_no_orders" target=body}
 <i class="fas fa-shopping-cart text-light-gray opacity-80" style="font-size: {if $target === 'body'}10{else}6{/if}rem; margin-right: 1.5rem;"></i>
-<p class="gray {if $target === 'body'}large{/if}">[`There are no orders in this view.`]</p>
+    {if $is_orders_empty}
+        <p class="gray {if $target === 'body'}large{/if}">[`New orders will start to land here shortly.`]</p>
+        <a class="button rounded light-gray{if $target === 'body'} large{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`]</a>
+    {else}
+        <p class="gray {if $target === 'body'}large{/if}">[`There are no orders in this view.`]</p>
+    {/if}
 {/function}
+{capture assign="_dummy_no_orders_body"}
+<div class="content contentbox box blank width-100 s-no-orders-{$view} js-no-orders" style="height: calc(100vh - 7.5rem - 56px); display: grid; place-items:center">
+    <div class="align-center">
+        {if $view == 'split'}
+            <i class="fas fa-shopping-cart text-light-gray opacity-20" style="font-size: 10rem; margin-right: 1.5rem;"></i>
+        {else}
+            {dummy_no_orders}
+        {/if}
+    </div>
+</div>
+{/capture}
+{capture assign="_dummy_kanban_premium"}
+    <div class="s-kanban flexbox js-fix-max-width" style="max-width: calc(100vw - 18rem);">
+        <div class="flexbox fixed space-12 width-100">
+            {for $i=1 to 4}
+                <div class="s-kanban__list">
+                    <div class="s-kanban__list__body hide-scrollbar custom-px-12">
+                        <div class="s-kanban__list__body__footer"></div>
+                    </div>
+                    <div class="s-kanban__list__fade"></div>
+                </div>
+            {/for}
+        </div>
+        <div class="s-kanban-premium">
+            <div class="align-center box blank" style="padding: 3rem; border-radius: 0.5rem;">
+                <i class="fas fa-star text-yellow" style="font-size: 5rem; margin-right: 1.5rem;"></i>
+                <p class="custom-mx-auto">[`This feature is available only with the premium license.`]</p>
+                <a href="{$wa_app_url}?action=settings#/premium/" class="button yellow large rounded">[`See what’s more in premium`]</a>
+            </div>
+        </div>
+    </div>
+{/capture}
 {if empty($orders)}
     {if $view !== 'kanban'}
         {if $view == 'split'}
@@ -14,17 +51,10 @@
             </div>
         </div>
         {/if}
-        <div class="content contentbox box blank width-100 s-no-orders-{$view} js-no-orders" style="height: calc(100vh - 5.5rem - 56px); display: grid; place-items:center">
-            <div class="align-center">
-                {if $view == 'split'}
-                    <i class="fas fa-shopping-cart text-light-gray opacity-20" style="font-size: 10rem; margin-right: 1.5rem;"></i>
-                {else}
-                    {dummy_no_orders}
-                {/if}
-            </div>
-        </div>
+        {$_dummy_no_orders_body}
     {else}
         <link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
+        {if shopLicensing::isPremium()}
         <div class="s-kanban flexbox js-fix-max-width" style="max-width: calc(100vw - 18rem);">
             <div class="flexbox fixed space-12 width-100">
                 {foreach $state_names as $state}
@@ -49,13 +79,16 @@
                 {/foreach}
             </div>
         </div>
+        {else}
+            {$_dummy_kanban_premium}
+        {/if}
     {/if}
 {else}
-<div class="{if $view != 'table' && $view != 'kanban'}sidebar flexbox blank width-adaptive-widest bordered-right wide-mobile ahead-little{else}width-100{/if} overflow-visible" id="s-orders">
+<div class="{if $view != 'table' && $view != 'kanban'}sidebar flexbox blank width-adaptive-widest bordered-right wide-mobile ahead-little{else}width-100{/if} overflow-visible"{if $view == 'split'} style="max-height: calc(100vh - 4rem);overflow: auto;"{/if} id="s-orders">
     {if $view == 'split'}
-        <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
+        <div class="sidebar-header"></div>
     {/if}
-    <div{if $view != 'table' && $view != 'kanban'} class="sidebar-body s-orders-body s-orders-sidebar-body-scrollbar"{/if}>
+    <div{if $view != 'table' && $view != 'kanban'} class="s-orders-body s-orders-sidebar-body-scrollbar"{/if}>
         {if $view == 'split'}
             <ul class="list s-orders" id="order-list">
             </ul>
@@ -104,7 +137,7 @@
                     <p class="small custom-mb-4">
                         <span class="semibold custom-mr-4">{%#o.order.id_str%}</span>
                         {% if (o.order.contact.name) { %}
-                            <span class="opacity-80">{%#o.order.contact.name%}</span>
+                            <span class="opacity-80 break-words">{%#o.order.contact.name%}</span>
                         {% } %}
                     </p>
                     <p class="hint">
@@ -151,7 +184,7 @@
                 {include './skeleton/table.html' no_sidebar=true inline}
             </div>
             <div class="s-order-table-wrapper scrollable-x">
-                <table class="zebra s-order-table custom-mt-0 single-lined" id="order-list" data-skeleton="#skeleton_table">
+                <table class="zebra bigdata s-order-table custom-mt-0 single-lined" id="order-list" data-skeleton="#skeleton_table">
                     <tbody></tbody>
                 </table>
             </div>
@@ -160,8 +193,8 @@
                 {include file='./include.template_order_list_table.html' inline}
             {/capture}
         {elseif $view == 'kanban'}
+            <link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
             {if shopLicensing::isPremium()}
-                <link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
                 <script src="{$wa_app_static_url}js/backend/orders/kanban.js?v={$wa->version()}"></script>
                 <script>
                     Kanban.init({
@@ -189,13 +222,7 @@
                     {include file='./include.template_order_list_kanban_card.html' inline}
                 {/capture}
             {else}
-                <div class="box blank width-100" style="height: calc(100vh - 5.5rem - 56px); display: grid; place-items:center">
-                    <div class="align-center">
-                        <i class="fas fa-star text-light-gray opacity-50" style="font-size: 10rem; margin-right: 1.5rem;"></i>
-                        <p class="custom-mx-auto">[`This feature is available only with the premium license.`]</p>
-                        <a href="{$wa_app_url}?action=settings#/premium/" class="button yellow large rounded">[`See what’s more in premium`]</a>
-                    </div>
-                </div>
+                {$_dummy_kanban_premium}
             {/if}
         {/if}
 
@@ -203,8 +230,8 @@
         <div class="lazyloading-wrapper small {if $view == 'table'}custom-ml-16{else}custom-mb-24{/if}">
             <div class="lazyloading-progress-string custom-mb-16">{_w('%d order','%d orders', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
             {if $count < $total_count}
-                <div class="custom-mb-24">
-                    <a href="javascript:void(0);" class="lazyloading-link">[`Show more orders`]</a>
+                <div>
+                    <a href="javascript:void(0);" class="lazyloading-link custom-mb-24">[`Show more orders`]</a>
                 </div>
             {/if}
             <span class="lazyloading-progress" style="display:none">
@@ -213,6 +240,41 @@
         </div>
         {/if}
     </div>
+
+    {if !empty($show_mobile_ad) && $view == 'split'}
+        <div class="s-tiny-ad">
+            <div class="s-tiny-ad-box">
+
+                <a href="javascript:void(0)" class="s-tiny-ad-close" title="[`Close`]">&times;</a>
+                <h5 class="heading"><span><span class="icon custom-mr-8"><img src="{$wa_app_static_url}img/shop.svg" style="width: 20px; height: 20px; position: relative; top: -2px;" alt="Shop-Script" /></span> [`Mobile app`]</span></h5>
+
+                <div class="flexbox space-12">
+                    <div>
+                        <a href="https://apps.apple.com/{if $wa->locale() == 'ru_RU'}ru{else}us{/if}/app/webasyst-shop-script/id6443853956" target="_blank">
+                            <img src="{$wa_app_static_url}img/badge-appstore{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="App Store">
+                        </a>
+                        <a href="https://play.google.com/store/apps/details?id=com.webasyst.shopscript" target="_blank">
+                            <img src="{$wa_app_static_url}img/badge-google-play{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="Google Play">
+                        </a>
+                        {if $wa->locale() == 'ru_RU'}
+                            <a href="https://apps.rustore.ru/app/com.webasyst.shopscript" target="_blank">
+                                <img src="{$wa_app_static_url}img/badge-rustore.svg" class="s-mobile-badge" alt="RuStore">
+                            </a>
+                        {/if}
+                    </div>
+
+                    <div class="align-center middle">
+                        <a href="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/mobile/" target="_blank">
+                            <img src="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/wa-apps/site/themes/webasystcom/img/mobile-qr-{if $wa->locale() == 'ru_RU'}ru{else}en{/if}.webp" class="s-mobile-qr {if $wa->locale() != 'ru_RU'}s-tiny{/if}" />
+                        </a>
+                        <p class="custom-mt-4{if $wa->locale() != 'ru_RU'} s-tiny{/if}">
+                            [`Install Webasyst Shop-Script mobile app on your phone today:`]
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/if}
 </div>
 
 {if $view == 'split'}
@@ -326,6 +388,9 @@
         sort: {$sort|json_encode},
         locale: {
             'error': "[`An error occurred`]"
+        },
+        templates: {
+            dummy_no_orders_body: {$_dummy_no_orders_body|json_encode}
         }
     });
 
@@ -337,6 +402,15 @@
         } else {
             $('#skeleton_split').addClass(class_hide_mobile);
         }
+
+        $(".s-tiny-ad .s-tiny-ad-close").on('click', function (e) {
+            e.preventDefault();
+            $(this).closest('.s-tiny-ad').hide();
+            $.post("{$wa_app_url}?module=backend&action=sidebarMenuSaveState", {
+                hide_mobile_ad: 1
+            });
+        });
+
     }
 })(jQuery);
 

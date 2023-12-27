@@ -52,9 +52,9 @@
             </div>
 
             <div class="s-actions" v-if="category.type === '0'">
-                <button class="s-action button gray outlined" title="{_w("Add new category")|escape}" v-on:click="toggleForm(true)">
+                <a class="s-action gray" title="{_w("Add new category")|escape}" v-on:click.prevent="toggleForm(true)">
                     <i class="fas fa-plus-circle"></i>
-                </button>
+                </a>
             </div>
         </div>
 

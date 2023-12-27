@@ -461,6 +461,7 @@ return array(
             'state_id' => 'state_id',
             'contact_id' => 'contact_id',
             'shipping_datetime' => 'shipping_datetime',
+            'paid_date' => 'paid_date',
         ),
         ':options' => ['charset' => 'utf8mb4'],
     ),

@@ -6,13 +6,14 @@
 
         <div class="shop-second-sidebar-wrapper">
             <ul class="menu large" id="s-settings-menu">
+
+                <!-- GENERAL -->
                 <li>
                     <a href="?action=settings#/general/">
                         <span class="icon"><i class="fas fa-sliders-h"></i></span>
                         <span class="shop-sidebar-hidden">[`General settings`]</span>
                     </a>
                 </li>
-
                 {if !empty($show_marketplaces)}
                     <li>
                         <a href="?action=settings#/marketplaces/">
@@ -21,95 +22,12 @@
                         </a>
                     </li>
                 {/if}
-
-                <!-- plugin hook: 'backend_settings.sidebar_top_li' -->
-                {* @event backend_settings.%plugin_id%.sidebar_top_li *}
-                {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
-
-
-                <li class="custom-mt-12">
-                    <a href="?action=settings#/typefeat/">
-                        <span class="icon"><i class="fas fa-list"></i></span>
-                        <span class="shop-sidebar-hidden">[`Product types & features`]</span>
-                    </a>
-                </li>
-
-                {if !empty($is_premium)}
-                <li>
-                    <a href="?action=settings#/unit/">
-                        <span class="icon"><i class="fas fa-sliders-h"></i></span>
-                        <span class="shop-sidebar-hidden">[`Product quantity units & add-to-cart parameters`]</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="?action=settings#/compatibility/">
-                        <span class="icon"><i class="fas fa-puzzle-piece"></i></span>
-                        <span class="shop-sidebar-hidden">[`PREMIUM license compatibility`]</span>
-                    </a>
-                </li>
-                {/if}
-
-                <li>
-                    <a href="?action=settings#/images/">
-                        <span class="icon"><i class="fas fa-camera"></i></span>
-                        <span class="shop-sidebar-hidden">[`Images`]</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="?action=settings#/stock/">
-                        <span class="icon"><i class="fas fa-home"></i></span>
-                        <span class="shop-sidebar-hidden">[`Stocks`]</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="?action=settings#/search/">
-                        <span class="icon"><i class="fas fa-search"></i></span>
-                        <span class="shop-sidebar-hidden">[`Product search`]</span>
-                    </a>
-                </li>
-
-                <!-- plugin hook: 'backend_settings.sidebar_middle_li' -->
-                {* @event backend_settings.%plugin_id%.sidebar_middle_li *}
-                {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_middle_li)}{/foreach}{/if}
-
-                <li>
-                    <a href="?action=settings#/orderStates/">
-                        <span class="icon"><i class="fas fa-flag"></i></span>
-                        <span class="shop-sidebar-hidden">[`Order states`]</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="?action=settings#/schedule/">
-                        <span class="icon"><i class="fas fa-clock"></i></span>
-                        <span class="shop-sidebar-hidden">[`Order processing`]</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a href="?action=settings#/orderEditor/">
-                        <span class="icon"><i class="fas fa-money-check"></i></span>
-                        <span class="shop-sidebar-hidden">[`Order editor`]</span>
-                    </a>
-                </li>
-
                 <li>
                     <a href="?action=settings#/shipping/">
                         <span class="icon"><i class="fas fa-truck"></i></span>
                         <span class="shop-sidebar-hidden">[`Shipping`]</span>
                     </a>
                 </li>
-
-                <li>
-                    <a href="?action=settings#/couriers/">
-                        <span class="icon"><i class="fas fa-walking"></i></span>
-                        <span class="shop-sidebar-hidden">[`Couriers`]</span>
-                    </a>
-                </li>
-
                 <li>
                     <a href="?action=settings#/payment/">
                         <span class="icon"><i class="fas fa-credit-card"></i></span>
@@ -117,56 +35,107 @@
                     </a>
                 </li>
 
+                <!-- plugin hook: 'backend_settings.sidebar_top_li' -->
+                {* @event backend_settings.%plugin_id%.sidebar_top_li *}
+                {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+
+
+                <!-- PRODUCTS -->
+                <li class="top-padded">
+                    <a href="?action=settings#/typefeat/">
+                        <span class="icon"><i class="fas fa-cubes"></i></span>
+                        <span class="shop-sidebar-hidden">[`Product types & features`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/unit/">
+                        <span class="icon"><i class="fas fa-vial"></i></span>
+                        <span class="shop-sidebar-hidden{if empty($is_premium)} text-light-gray{/if}">[`Product quantity units`]</span>
+                        {if empty($is_premium)}
+                            <span class="count small"><i class="fas fa-star fa-xs"></i></span>
+                        {/if}
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/search/">
+                        <span class="icon"><i class="fas fa-search"></i></span>
+                        <span class="shop-sidebar-hidden">[`Product search`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/images/">
+                        <span class="icon"><i class="fas fa-camera"></i></span>
+                        <span class="shop-sidebar-hidden">[`Images`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/stock/">
+                        <span class="icon"><i class="fas fa-home"></i></span>
+                        <span class="shop-sidebar-hidden">[`Stocks`]</span>
+                    </a>
+                </li>
+
+                <!-- plugin hook: 'backend_settings.sidebar_middle_li' -->
+                {* @event backend_settings.%plugin_id%.sidebar_middle_li *}
+                {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_middle_li)}{/foreach}{/if}
+
+                <!-- ORDERS -->
+                <li class="top-padded">
+                    <a href="?action=settings#/orderStates/">
+                        <span class="icon"><i class="fas fa-flag"></i></span>
+                        <span class="shop-sidebar-hidden">[`Order states`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/orderEditor/">
+                        <span class="icon"><i class="fas fa-money-check"></i></span>
+                        <span class="shop-sidebar-hidden">[`Order editor`]</span>
+                    </a>
+                </li>
                 <li>
                     <a href="?action=settings#/checkout/">
                         <span class="icon"><i class="fas fa-route"></i></span>
                         <span class="shop-sidebar-hidden">[`Checkout`]</span>
                     </a>
                 </li>
-
                 <li>
-                    <a href="?action=settings#/currencies/">
-                        <span class="icon"><i class="fas fa-dollar-sign"></i></span>
-                        <span class="shop-sidebar-hidden">[`Currencies`]</span>
+                    <a href="?action=settings#/schedule/">
+                        <span class="icon"><i class="fas fa-clock"></i></span>
+                        <span class="shop-sidebar-hidden">[`Working hours`]</span>
                     </a>
                 </li>
 
+                <!-- ETC -->
+                <li class="top-padded">
+                    <a href="?action=settings#/currencies/">
+                        <span class="icon"><i class="fas fa-{if $wa->locale() == 'ru_RU'}ruble{else}dollar{/if}-sign"></i></span>
+                        <span class="shop-sidebar-hidden">[`Currencies`]</span>
+                    </a>
+                </li>
                 <li>
                     <a href="?action=settings#/taxes/">
                         <span class="icon"><i class="fas fa-percent"></i></span>
                         <span class="shop-sidebar-hidden">[`Taxes`]</span>
                     </a>
                 </li>
-
                 <li>
                     <a href="?action=settings#/printform/">
                         <span class="icon"><i class="fas fa-print"></i></span>
                         <span class="shop-sidebar-hidden">[`Printable forms`]</span>
                     </a>
                 </li>
-
                 <li>
                     <a href="?action=settings#/notifications/">
                         <span class="icon"><i class="fas fa-bell"></i></span>
                         <span class="shop-sidebar-hidden">[`Notifications`]</span>
                     </a>
                 </li>
-
                 <li>
                     <a href="?action=settings#/analytics/">
                         <span class="icon"><i class="fas fa-chart-line"></i></span>
                         <span class="shop-sidebar-hidden">[`Analytics`]</span>
                     </a>
                 </li>
-
-                {if $wa->user()->isAdmin() && waSystemConfig::isDebug()}
-                    <li>
-                        <a href="?action=settings#/reset/">
-                            <span class="icon"><i class="fas fa-power-off"></i></span>
-                            <span class="shop-sidebar-hidden">[`Reset`]</span>
-                        </a>
-                    </li>
-                {/if}
 
                 <!-- plugin hook: 'backend_settings.sidebar_bottom_li' -->
                 {* @event backend_settings.%plugin_id%.sidebar_bottom_li *}
@@ -179,6 +148,16 @@
                         <span class="shop-sidebar-hidden">[`Upgrade to Premium`]</span>
                     </a>
                 </li>
+                {/if}
+
+
+                {if $wa->user()->isAdmin() && waSystemConfig::isDebug()}
+                    <li class="top-padded">
+                        <a href="?action=settings#/reset/">
+                            <span class="icon"><i class="fas fa-power-off"></i></span>
+                            <span class="shop-sidebar-hidden">[`Reset`]</span>
+                        </a>
+                    </li>
                 {/if}
 
             </ul>
@@ -210,7 +189,7 @@
         if (['premium'].includes(section)) {
             $article.addClass('wide');
         }
-        if (['typefeat', 'orderStates', 'compatibility', 'notifications', 'printform'].includes(section) || section.startsWith('checkout')) {
+        if (['typefeat', 'orderStates', 'compatibility', 'notifications', 'printform', 'marketplaces'].includes(section) || section.startsWith('checkout')) {
             $article.addClass('wider');
         }
     };

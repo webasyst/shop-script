@@ -333,19 +333,19 @@
                                     "id" => "1",
                                     "ident" => "published",
                                     "icon" => "fas fa-check text-green",
-                                    "name" => _w("Published")
+                                    "name" => _w("Published, for sale")
                                 ],
                                 "0" => [
                                     "id" => "0",
                                     "ident" => "unpublished",
                                     "icon" => "fas fa-times text-yellow",
-                                    "name" => _w("Hidden")
+                                    "name" => _w("Hidden, not for sale")
                                 ],
                                 "-1" => [
                                     "id" => "-1",
                                     "ident" => "hidden",
                                     "icon" => "fas fa-times text-red",
-                                    "name" => _w("Unpublished")
+                                    "name" => _w("Unpublished, not for sale")
                                 ]
                             ]}
 
@@ -364,7 +364,7 @@
                                                 {/if}
                                                 {$_active_status.name|escape}
                                             </button>
-                                            <div class="dropdown-body">
+                                            <div class="dropdown-body" style="min-width: 280px;">
                                                 {foreach $_statuses as $_status}
                                                     {$_is_active = (isset($product.status) && $product.status === $_status.id)}
                                                     <div class="dropdown-item {if !empty($_is_active)}selected{/if}" data-id="{$_status.id|escape}" data-ident="{$_status.ident|escape}">
@@ -778,7 +778,7 @@
 
                                                                                 <div class="s-column">
                                                                                     <div class="s-field-wrapper">
-                                                                                        <div class="s-icon left" v-bind:class="{ 'text-green' : sku_mod.stock[stock.id] > stock.low_count || sku_mod.stock[stock.id] === '', 'text-orange' : sku_mod.stock[stock.id] > stock.critical_count && sku_mod.stock[stock.id] <= stock.low_count, 'text-red' : sku_mod.stock[stock.id] <= stock.critical_count && sku_mod.stock[stock.id] !== '' }">
+                                                                                        <div class="s-icon left" v-bind:class="stock_icon_class(sku_mod.stock[stock.id], stock)">
                                                                                             <i class="icon size-16"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></i>
                                                                                         </div>
                                                                                         <input class="small s-field full-width is-number" type="text" placeholder="∞"

@@ -22,7 +22,7 @@ class shopMarketingCostRowsAction extends shopMarketingViewAction
         }
         unset($e);
 
-        // Update graph unles it's a lazy loading request
+        // Update graph unless it's a lazy loading request
         $graph_data = null;
         if (!$start) {
             list($start_date, $end_date, $group_by) = shopReportsSalesAction::getTimeframeParams();

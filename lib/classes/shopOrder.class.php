@@ -5,7 +5,7 @@
  *
  * @todo DISCLAIMER: class still under construction!
  *
- * `shipping`, `tax`, `discount`, `discount_description` and `total` fields may have special behaviour
+ * `shipping`, `tax`, `discount`, `discount_description` and `total` fields may have special behavior
  * if something else was changed that may trigger recalculation. See self::$dependencies.
  *
  * # fields from shop_order table
@@ -1955,18 +1955,19 @@ class shopOrder implements ArrayAccess
         $original_params = &$this->original_data['params'];
 
         # sales channel & storefront
-        if (!empty($params['storefront'])) {    // storefront passed and not empty
-            $params['sales_channel'] = 'storefront:'.$params['storefront'];
-        } elseif (!empty($original_params['storefront']) && !array_key_exists('storefront', $params)) { // 'storefront' not passed, so restore from original params of order
-            $params['storefront'] = $original_params['storefront'];
-            if (isset($original_params['sales_channel'])) {
-                $params['sales_channel'] = $original_params['sales_channel'];
-            } else {
-                $params['sales_channel'] = 'storefront:'.$original_params['storefront'];
+        if (!array_key_exists('storefront', $params)) {
+            $params['storefront'] = ifempty($original_params, 'storefront', null);
+        }
+        if (!array_key_exists('sales_channel', $params)) {
+            $params['sales_channel'] = ifempty($original_params, 'sales_channel', null);
+            $channel_type = explode(':', ifempty($params, 'sales_channel', 'backend:'), 2)[0];
+            if ($channel_type == 'backend' || $channel_type == 'storefront') {
+                if ($params['storefront']) {
+                    $params['sales_channel'] = 'storefront:'.$params['storefront'];
+                } else {
+                    $params['sales_channel'] = 'backend:';
+                }
             }
-        } else {
-            $params['sales_channel'] = 'backend:';
-            $params['storefront'] = null;
         }
 
         // shipping

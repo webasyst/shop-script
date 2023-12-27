@@ -36,23 +36,7 @@ class shopBackendLayout extends waLayout
             'tutorial_visible'   => $tutorial_visible,
             'embedded_version'   => $this->embedded_version,
             'sidebar_menu_state' => $sidebar_menu_state,
-            'show_mobile_ad'     => $this->shouldShowMobileAd(),
         ));
-    }
-
-    protected function shouldShowMobileAd()
-    {
-        $hide_mobile_ad_till = wa()->getUser()->getSettings('shop', 'hide_mobile_ad_till', null);
-        if ($hide_mobile_ad_till && strtotime($hide_mobile_ad_till) > time()) {
-            return false;
-        }
-
-        $api_tokens_model = new waApiTokensModel();
-        $count = $api_tokens_model->countByField([
-            'client_id' => ['com.webasyst.shopscript', 'com.webasyst.shopscript.android'],
-        ]);
-
-        return $count <= 0;
     }
 
     // Layout is slightly different for different modules.

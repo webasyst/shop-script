@@ -23,6 +23,7 @@ if (typeof ($) != 'undefined') {
 
         $payment_plugin_container: null,
         $payment_container: null,
+        $payment_plugins_container: null,
         $payment_menu: null,
         locales: null,
         /**
@@ -37,6 +38,7 @@ if (typeof ($) != 'undefined') {
 
             this.$payment_plugin_container = this.$container.find('#s-settings-payment-setup');
             this.$payment_container = this.$container.find('#s-settings-payment');
+            this.$payment_plugins_container = this.$container.find('#s-settings-payment-plugins');
             this.$payment_menu = this.$container.find('.js-payment-menu');
 
             this.$container.on('click', 'a.js-action', function () {
@@ -44,7 +46,7 @@ if (typeof ($) != 'undefined') {
             });
 
             this.$payment_menu.waDropdown();
-            this.updateDropdownSecondaryActions()
+            this.updateDropdownSecondaryActions();
 
             Sortable.create(this.$payment_container.find('tbody')[0], {
               group: 'payments-rows',
@@ -143,6 +145,11 @@ if (typeof ($) != 'undefined') {
                 this.$payment_menu.show();
                 this.$payment_container.show();
                 this.$payment_plugin_container.html(this.payment_options.loading).hide();
+                if (this.$payment_plugins_container.is(':empty')) {
+                    this.loadInstallerPlugins();
+                } else {
+                    this.$payment_plugins_container.show();
+                }
                 $('#s-settings-content h1.js-bread-crumbs:not(:first)').remove();
                 $('#s-settings-content h1:first').show();
             }
@@ -229,6 +236,7 @@ if (typeof ($) != 'undefined') {
         },
 
         paymentPluginShow: function (plugin_id, callback) {
+            this.$payment_plugins_container.hide();
             this.$payment_menu.hide();
             this.$payment_container.hide();
 
@@ -324,8 +332,7 @@ if (typeof ($) != 'undefined') {
 
         paymentPlugins: function () {
             this.$payment_container.hide();
-            const url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment&return_hash=/payment/plugin/add/%plugin_id%/';
-            this.$payment_plugin_container.show().html(this.payment_options.loading).load(url);
+            this.loadInstallerPlugins();
         },
 
         paymentHelper: {
@@ -400,6 +407,11 @@ if (typeof ($) != 'undefined') {
                 $submit.removeClass('yellow').addClass('green');
             });
         },
+
+        loadInstallerPlugins: function () {
+            const url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment&return_hash=/payment/plugin/add/%plugin_id%/';
+            this.$payment_plugins_container.show().html(this.payment_options.loading).load(url);
+        }
     });
 } else {
     //

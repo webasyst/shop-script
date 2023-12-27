@@ -1066,7 +1066,7 @@ class shopCheckoutConfig implements ArrayAccess
             $person_config_fields[$field] = $this->prepareFieldParams($person_field_params);
         }
 
-        // Remove unuse person fields
+        // Remove unused person fields
         foreach ($person_config_fields as $field => $params) {
             if (!isset($person_fields[$field])) {
                 unset($person_config_fields[$field]);
@@ -1079,7 +1079,7 @@ class shopCheckoutConfig implements ArrayAccess
             $company_config_fields[$field] = $this->prepareFieldParams($company_field_params);
         }
 
-        // Remove unuse contact fields
+        // Remove unused contact fields
         foreach ($company_config_fields as $field => $params) {
             if (!isset($company_fields[$field])) {
                 unset($company_config_fields[$field]);
@@ -1105,7 +1105,7 @@ class shopCheckoutConfig implements ArrayAccess
             $shipping_address_fields[$field] = $this->prepareFieldParams($shipping_address_field_params);
         }
 
-        // Remove unuse address fields
+        // Remove unused address fields
         foreach ($shipping_address_fields as $field => $params) {
             if (!isset($address_fields[$field])) {
                 unset($shipping_address_fields[$field]);

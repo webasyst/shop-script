@@ -14,7 +14,7 @@ label { cursor: pointer; }
 #wa { background: #fff; }
 #wa.s-no-level2 { background: #f0f0f0; }
 #wa-header { background: #f0f0f0; }
-#wa-app { position: relative; }
+#wa-app { position: relative; overflow: clip; }
 
 #mainmenu { position: absolute; width: 100%; z-index: 101; min-width: 600px; top: 0; }
 #mainmenu ul.tabs { font-size: 15px; background: #f0f0f0; margin: 0; padding-left: 10px; padding-top: 5px; box-shadow: 0 -6px 5px -5px rgba(0, 0, 0, 0.04) inset; border-bottom: 1px solid #ddd; height: 38px; font-family: 'Helvetica Neue', Arial, sans-serif; }
@@ -1152,7 +1152,7 @@ table.s-country-list i.icon16.country { margin-top: 1px; }
 
 #s-mcosts-editor-wrapper { background:#eee; margin-top:20px; }
 #s-reports-marketing-costs-table .expense-row .period-td { width: 30%; padding: 0 0.5em; }
-#s-reports-marketing-costs-table .expense-row .period { float: right; position: relative; height: 1em; color: #999; }
+#s-reports-marketing-costs-table .expense-row .period { float: right; position: relative; height: 1em; color: #999; overflow: unset; }
 #s-reports-marketing-costs-table .expense-row .period .period-dates { display: block; position: relative; left: -65px; white-space: nowrap; }
 #s-reports-marketing-costs-table .expense-row .period-bar { position: absolute; bottom: 0; height: 100%; width: 0; background: #ccc; border-radius: 2px; min-width: 5px; }
 #s-reports-marketing-costs-table .expense-row.s-tr-campaign .period-bar { background-image: url("../img/patterns/report-cost-company-bg.png"); }
@@ -2069,3 +2069,27 @@ and (orientation : portrait) {
         transform: translate3d(10px, 0, 0);
     }
 }
+
+.s-tiny-ad-box { position: sticky; bottom: 16px; z-index: 1; max-width: 290px; border-radius: 0.375rem; background: #fff; box-shadow: 0 0.5rem 1.5rem -0.25rem rgba(0, 0, 0, 0.2); padding: 0.75rem 0.75rem; margin: 16px; font-size: 0.875rem;}
+.s-tiny-ad-box .flexbox { display: flex; gap: 12px;}
+.s-tiny-ad-box .s-tiny-ad-close { float: right; color: #888; font-size: 1.5rem; position: relative; top: -0.6125rem;}
+.s-tiny-ad-box .heading { padding: 0; margin: 0 0 0.75rem; display: flex; align-items: center; gap: 6px;}
+.s-tiny-ad-box img.s-mobile-qr { max-width: 85px;}
+.s-tiny-ad-box img.s-mobile-qr.s-tiny { max-width: 65px;}
+@media (max-width: 1360px) {
+    max-width: 65px;
+}
+.s-tiny-ad-box img.s-mobile-badge { display: inline; max-width: 142px; margin: 0.35rem auto 0;}
+@media (max-width: 1360px) {
+    .s-tiny-ad-box img.s-mobile-badge { max-width: 132px; }
+}
+.s-tiny-ad-box p { font-size: 0.8125rem;}
+.s-tiny-ad-box p.s-tiny { font-size: 0.75rem; line-height: 1.2; margin-top: 0.25rem;}
+@media (max-width: 760px) {
+    .s-tiny-ad-box p { font-size: 0.75rem; }
+}
+.s-tiny-ad-box p.hint { font-size: 0.75rem;}
+@media (max-width: 760px) {
+    .s-tiny-ad-box p.hint { font-size: 0.875rem; }
+}
+.s-tiny-ad-box p.hint a { white-space: nowrap; text-overflow: ellipsis; height: 1rem; max-width: 80%;}
