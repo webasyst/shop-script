@@ -39,7 +39,7 @@
                 </button>
             </div>
             {/if}
-            
+
         </div>
 
         <em class="small commit-delete-message">[`Click “Save” button below to commit the delete.`]</em>
@@ -51,7 +51,7 @@
     <tr class="small s-region {$r.css_class}" rel="{$c.iso3}-region"> {* class="hidden|regions_simple|regions_advanced" *}
         <td class="min-width"></td>
 
-        <td>{$r.name} <span class="gray">{$r.code}</span></td>
+        <td>{$r.name|escape} <span class="gray">{$r.code}</span></td>
 
         <td>
             <input type="text" class="small short s-tax-name" name="country_regions[{$c.iso3}][{$r.code}][name]" value="{$r.tax_name|escape}" placeholder="[`Tax name`]">

@@ -626,8 +626,9 @@
 
                 $banner.find('.js-colorpicker').each(function () {
                     var $colorpicker_wrapper = $(this).hide(),
-                        $icon = $colorpicker_wrapper.closest('.value').find('.icon svg'),
-                        $input = $colorpicker_wrapper.closest('.value').find(':input');
+                        $color_field = $colorpicker_wrapper.closest('.value'),
+                        $icon = $color_field.find('.js-toggle-colorpicker'),
+                        $input = $color_field.find(':input');
 
                     var farbtastic = $.farbtastic($colorpicker_wrapper, setColor);
                     farbtastic.widgetCoords = function (event) {
@@ -642,12 +643,12 @@
                     setColor($input.val() || '#ffffff');
 
                     $input.on('change keyup', function() {
-                        $icon.css('color', $input.val());
+                        $icon.css('background', $input.val());
                         farbtastic.setColor($input.val());
                     });
 
                     function setColor(color) {
-                        $icon.css('color', color);
+                        $icon.css('background', color);
                         farbtastic.setColor(color);
                         $input.val(color);
                     }

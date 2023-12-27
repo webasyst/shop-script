@@ -58,16 +58,16 @@
     {else}
         <form>
             {* HEADER *}
-            <header class="s-page-header flexbox middle space-16 custom-mb-32">
+            <header class="s-page-header flexbox space-12 custom-mb-32">
                 <div class="s-column s-title-column">
-                    <h1 class="s-title">
-                        <a href="{$marketing_url}" class="back nowrap"><i class="fas fa-arrow-circle-left"></i></a>
-                        <span class="editable js-name-editable">{$_name|escape}</span>
+                    <h1 class="s-title flexbox">
+                        <a href="{$marketing_url}" class="back"><i class="fas fa-arrow-circle-left"></i></a>
+                        <span class="s-title-name editable js-name-editable">{$_name|escape}</span>
                         <input class="s-title-field js-title-field" type="text" value="{$promo.name|default:''|escape}">
                     </h1>
                 </div>
                 {if !empty($promo.id)}
-                    <div class="s-column">
+                    <div class="s-column custom-mt-4">
 
                         <div class="s-actions-wrapper">
                             <span>

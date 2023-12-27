@@ -64,9 +64,9 @@
 
         <tr class="js-field" data-id="{$_field_id|escape}">
             {* Sort, used and name *}
-            <td>
-                <i class="fas fa-grip-vertical text-gray custom-mr-8"></i>
-                <label>
+            <td style="min-width: 150px;">
+                <label class="flexbox space-8" style="align-items: baseline;">
+                    <span><i class="fas fa-grip-vertical text-gray"></i></span>
                     <span class="wa-checkbox">
                         <input type="checkbox" data-name="used"{if $_field.used} checked{/if} title="[`Use field`]" />
                         <span>
@@ -75,12 +75,14 @@
                             </span>
                         </span>
                     </span>
-                    {$_f->getName(null, true)}
-                    <i class="hint">{$_field_id} — {fieldLocalizedType field=$_f}</i>
+                    <span class="break-word">
+                        <span class="custom-mr-4">{$_f->getName(null, true)}</span>
+                        <i class="hint">{$_field_id} — {fieldLocalizedType field=$_f}</i>
+                    </span>
                 </label>
             </td>
             {* Required *}
-            <td class="nowrap">
+            <td class="nowrap valign-top">
                 <label>
                     <span class="wa-checkbox small">
                         <input type="checkbox" data-name="required"{if $_field.required} checked{/if} />
@@ -94,7 +96,7 @@
                 </label>
             </td>
             {* Width *}
-            <td class="js-field-width">
+            <td class="js-field-width valign-top">
                 {if !empty($_format_f.type) && $_format_f.type == 'input'}
                     <label class="flexbox middle space-4 nowrap">
                         <i class="small">[`Field width`]</i>
@@ -713,7 +715,7 @@
 
             <div class="js-fields-editor fields-group custom-pt-0 custom-mx-0 custom-mt-0" data-type="person">
                 <div class="heading js-contact-type">[`Persons:`]</div>
-                <table class="custom-mt-0 zebra s-sort-table js-sort-table">
+                <table class="bigdata custom-mt-0 zebra s-sort-table js-sort-table">
                     <tbody>
                         {renderContactFieldsEditor _fields=$settings.fields_person}
                     </tbody>
@@ -727,7 +729,7 @@
 
             <div class="js-fields-editor fields-group custom-pt-0 custom-mx-0 custom-mt-0" data-type="company">
                 <div class="heading js-contact-type">[`Companies:`]</div>
-                <table class="custom-mt-0 zebra s-sort-table js-sort-table">
+                <table class="bigdata custom-mt-0 zebra s-sort-table js-sort-table">
                     <tbody>
                         {renderContactFieldsEditor _fields=$settings.fields_company}
                     </tbody>
@@ -1002,7 +1004,7 @@
                     </div>
                 </div>
 
-                <table class="zebra s-sort-table js-sort-table small s-address-table">
+                <table class="bigdata zebra s-sort-table js-sort-table small s-address-table">
                     <tbody>
                         {* Fake Fields. They are required because there are separate settings for them. *}
                         <tr>

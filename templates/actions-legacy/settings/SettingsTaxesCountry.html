@@ -30,7 +30,7 @@
 {foreach $c.regions as $r}
     <tr class="small s-region {$r.css_class}" rel="{$c.iso3}-region"> {* class="hidden|regions_simple|regions_advanced" *}
         <td class="min-width"></td>
-        <td>{$r.name} <span class="hint">{$r.code}</span></td>
+        <td>{$r.name|escape} <span class="hint">{$r.code}</span></td>
         <td>
             <input type="text" class="short s-tax-name" name="country_regions[{$c.iso3}][{$r.code}][name]" value="{$r.tax_name|escape}" placeholder="[`Tax name`]">
             <input type="text" class="short numerical" name="country_regions[{$c.iso3}][{$r.code}][tax_value]" value="{ifset($r.params.tax_value, $r.tax_value)|escape}" placeholder="0">%
@@ -43,4 +43,3 @@
         <td class="min-width"></td>
     </tr>
 {/foreach}
-

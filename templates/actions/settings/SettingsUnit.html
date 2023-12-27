@@ -637,7 +637,7 @@
                                 <div class="value">
                                     <div class="s-radio-group{if $is_teaser} is-locked{/if}"
                                         v-bind:class="{ 'is-locked' : states.change_stock_units }"
-                                         {if !$is_teaser}v-on:change="onStockUnitsChange1"{/if}>
+                                         {if !$is_teaser}v-on:change="onStockUnitsChange"{/if}>
                                         <div class="s-radio-wrapper">
                                             <label :data-tooltip-id="(fractional.stock_units.locked ? 'stock_units_locked' : '')">
                                                 <span class="wa-radio">

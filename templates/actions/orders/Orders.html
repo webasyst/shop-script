@@ -251,10 +251,10 @@
                 <div class="flexbox space-12">
                     <div>
                         <a href="https://apps.apple.com/{if $wa->locale() == 'ru_RU'}ru{else}us{/if}/app/webasyst-shop-script/id6443853956" target="_blank">
-                            <img src="{$wa_app_static_url}img/badge-appstore{if $wa->locale() == 'ru_RU'}-ru{/if}.png" class="s-mobile-badge" alt="App Store">
+                            <img src="{$wa_app_static_url}img/badge-appstore{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="App Store">
                         </a>
                         <a href="https://play.google.com/store/apps/details?id=com.webasyst.shopscript" target="_blank">
-                            <img src="{$wa_app_static_url}img/badge-google-play{if $wa->locale() == 'ru_RU'}-ru{/if}.png" class="s-mobile-badge" alt="Google Play">
+                            <img src="{$wa_app_static_url}img/badge-google-play{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="Google Play">
                         </a>
                         {if $wa->locale() == 'ru_RU'}
                             <a href="https://apps.rustore.ru/app/com.webasyst.shopscript" target="_blank">
