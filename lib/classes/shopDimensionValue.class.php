@@ -16,10 +16,12 @@
 #[\AllowDynamicProperties]
 class shopDimensionValue implements ArrayAccess
 {
+    private $id;
     private $value;
     private $unit;
     private $type;
     private $units;
+    private $selected;
     private $value_base_unit;
     private $base_code;
     private $unit_name;
@@ -27,8 +29,14 @@ class shopDimensionValue implements ArrayAccess
 
     public function __construct($row)
     {
+        $this->id = null;
+        $this->selected = false;
+        $this->base_code = null;
         foreach ($row as $field => $value) {
             $this->{$field} = $value;
+        }
+        if (isset($this->unit)) {
+            $this->unit_name = $this->getUnitName($this->unit);
         }
     }
 
@@ -50,9 +58,6 @@ class shopDimensionValue implements ArrayAccess
             case 'compare':
                 return $this->value_base_unit;
             case 'unit_name':
-                if (!isset($this->unit_name)) {
-                    $this->unit_name = $this->getUnitName($this->unit);
-                }
                 return $this->unit_name;
             default:
                 return isset($this->{$field}) ? $this->{$field} : $this->convert($field);

@@ -23,15 +23,15 @@ class shopColorValue implements ArrayAccess
     const HSV = 'hsv';
 
     private $row;
-
     private $code;
     private $value;
+    private $selected;
     private $internal_data;
 
     public function __construct($row)
     {
         $this->row = $row;
-
+        $this->selected = false;
         foreach ($row as $field => $value) {
             $this->{$field} = $value;
         }
