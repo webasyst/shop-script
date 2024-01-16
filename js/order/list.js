@@ -1445,6 +1445,10 @@
             let param_state_id = state_id ? `&state_id=${state_id}` : '';
             sort = sort || this.sort;
 
+            if (this.options.view === 'kanban' && this.filter_params_str === 'state_id=new|processing|auth|paid') {
+                this.filter_params_str = null;
+            }
+
             return `?module=orders&action=loadList${param_state_id}&id=${id}` +
                 (this.filter_params_str ? '&' + this.filter_params_str : '') +
                 (lt ? '&lt=1' : '') +

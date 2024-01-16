@@ -7553,7 +7553,8 @@
                 case "export_csv":
                     var redirect_url = action.redirect_url;
                     if (is_all_products) {
-                        redirect_url = action.redirect_url.replace("id/", "all/");
+                        var url_path = that.filter.rules.length > 0 ? `presentation/${that.presentation.id}/` : "all/";
+                        redirect_url = action.redirect_url.replace("id/", url_path);
                     }else{
                         redirect_url = redirect_url + product_ids.join(",");
                     }

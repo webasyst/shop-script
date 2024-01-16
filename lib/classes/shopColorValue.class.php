@@ -22,6 +22,7 @@ class shopColorValue implements ArrayAccess
     const CMYK = 'cmyk';
     const HSV = 'hsv';
 
+    private $id;
     private $row;
     private $code;
     private $value;
@@ -39,9 +40,7 @@ class shopColorValue implements ArrayAccess
 
     public function __set($field, $value)
     {
-        if (property_exists($this, $field)) {
-            $this->$field = $value;
-        }
+        $this->$field = $value;
         return $value;
     }
 
