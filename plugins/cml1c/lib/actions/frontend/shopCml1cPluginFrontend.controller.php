@@ -206,9 +206,7 @@ class shopCml1cPluginFrontendController extends waController
             if ($clean) {
                 try {
                     waFiles::delete($this->plugin()->path(false), true);
-                } catch (waException $ex) {
-                    ;
-                }
+                } catch (waException $ex) {}
             }
 
             $sizes = array(
@@ -270,6 +268,14 @@ class shopCml1cPluginFrontendController extends waController
                 $message = "Error while save target file (expected %d bytes, but get %d)";
                 throw new waException(sprintf($message, $expected_size, $result));
             }
+        }
+        $save_import_files = $this->plugin()->getSettings('save_import_files');
+        $archive_dir = wa()->getDataPath('plugins/', false, 'shop').$this->plugin()->getConfigParam('archive_dir').DIRECTORY_SEPARATOR;
+        if ($save_import_files) {
+            $file_archive = $archive_dir.date('Ymd_His').'.'.pathinfo($filename,  PATHINFO_EXTENSION);
+            waFiles::copy($filename, $file_archive);
+        } else {
+            waFiles::delete($archive_dir, true);
         }
 
         return $filename;

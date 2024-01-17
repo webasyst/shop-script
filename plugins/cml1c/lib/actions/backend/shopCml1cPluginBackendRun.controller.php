@@ -5765,16 +5765,18 @@ SQL;
                 if (is_array($value)) {
                     foreach ((array) $value as &$_value) {
                         $_value = $this->clearSpaces($_value);
-                        $_value = doubleval($_value).' '.$target['dimension'];
+                        $_value = [
+                            'value' => doubleval($_value),
+                            'unit'  => $target['dimension']
+                        ];
                         unset($_value);
                     }
                 } else {
                     $value = $this->clearSpaces($value);
-                    if (is_numeric($value)) {
-                        $value = sprintf('%.10f', floatval($value)).' '.$target['dimension'];
-                    } else {
-                        $value = $value.' '.$target['dimension'];
-                    }
+                    $value = [
+                        'value' => (is_numeric($value) ? sprintf('%.10f', floatval($value)) : $value),
+                        'unit'  => $target['dimension']
+                    ];
                 }
             } elseif (ifset($data, 'type', '') === shopFeatureModel::TYPE_DOUBLE) {
                 $value = $this->clearSpaces($value);

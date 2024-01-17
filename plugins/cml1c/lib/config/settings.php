@@ -531,4 +531,12 @@ HTML
             'windows-1251' => 'Windows-1251',
         ),
     ),
+    'save_import_files' => array(
+        'value'        => false,
+        'title'        => 'Сохранять файлы с данными обмена',
+        'description'  => 'Включите, если вы хотите сохранять импортируемые файлы обмена, которые можно
+<a href="?plugin=cml1c&action=download&file=cml1c_import_files.zip" target="_blank">скачать</a> в виде архива.',
+        'control_type' => waHtmlControl::CHECKBOX,
+        'translate'    => false,
+    ),
 );
