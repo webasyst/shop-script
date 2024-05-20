@@ -31,18 +31,14 @@
             {/for}
         </div>
         <div class="s-kanban-premium">
-            <div class="align-center box blank" style="padding: 3rem; border-radius: 0.5rem;">
-                <i class="fas fa-star text-yellow" style="font-size: 5rem; margin-right: 1.5rem;"></i>
-                <p class="custom-mx-auto">[`This feature is available only with the premium license.`]</p>
-                <a href="{$wa_app_url}?action=settings#/premium/" class="button yellow large rounded">[`See what’s more in premium`]</a>
-            </div>
+            {include file="templates/includes/availableWithPremiumAlert.html" inline}
         </div>
     </div>
 {/capture}
 {if empty($orders)}
     {if $view !== 'kanban'}
         {if $view == 'split'}
-        <div class="sidebar blank width-adaptive-widest wide-mobile ahead-little bordered-right overflow-visible" id="s-orders">
+        <div class="sidebar blank width-adaptive-widest wide-mobile ahead-little overflow-visible" id="s-orders">
             <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
             <div class="sidebar-body">
                 <div class="width-100 align-center custom-mt-32">
@@ -84,11 +80,11 @@
         {/if}
     {/if}
 {else}
-<div class="{if $view != 'table' && $view != 'kanban'}sidebar flexbox blank width-adaptive-widest bordered-right wide-mobile ahead-little{else}width-100{/if} overflow-visible"{if $view == 'split'} style="max-height: calc(100vh - 4rem);overflow: auto;"{/if} id="s-orders">
+<div class="{if $view != 'table' && $view != 'kanban'}sidebar flexbox vertical blank width-adaptive-widest wide-mobile ahead-little{else}width-100{/if} overflow-visible" id="s-orders">
     {if $view == 'split'}
         <div class="sidebar-header"></div>
     {/if}
-    <div{if $view != 'table' && $view != 'kanban'} class="s-orders-body s-orders-sidebar-body-scrollbar"{/if}>
+    <div{if $view != 'table' && $view != 'kanban'} class="s-orders-body wide" style="min-height: 0;"{/if}>
         {if $view == 'split'}
             <ul class="list s-orders" id="order-list">
             </ul>
@@ -227,7 +223,7 @@
         {/if}
 
         {if $view != 'kanban'}
-        <div class="lazyloading-wrapper small {if $view == 'table'}custom-ml-16{else}custom-mb-24{/if}">
+        <div class="lazyloading-wrapper small {if $view == 'table'}custom-ml-16{else}custom-pb-20{/if}">
             <div class="lazyloading-progress-string custom-mb-16">{_w('%d order','%d orders', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
             {if $count < $total_count}
                 <div>
@@ -268,7 +264,7 @@
                             <img src="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/wa-apps/site/themes/webasystcom/img/mobile-qr-{if $wa->locale() == 'ru_RU'}ru{else}en{/if}.webp" class="s-mobile-qr {if $wa->locale() != 'ru_RU'}s-tiny{/if}" />
                         </a>
                         <p class="custom-mt-4{if $wa->locale() != 'ru_RU'} s-tiny{/if}">
-                            [`Install Webasyst Shop-Script mobile app on your phone today:`]
+                            [`Install Shop-Script mobile app on your phone today:`]
                         </p>
                     </div>
                 </div>
@@ -329,20 +325,8 @@
 
 {/if}
 <style>
-/* Only Firefox */
-@supports(-moz-appearance: none) {
-  .s-orders-sidebar-body-scrollbar {
-    scrollbar-gutter: stable;
-    scrollbar-color: var(--scrollbar-color) transparent;
-  }
-}
-/* Not Safari */
-/* Alternative check: (content-visibility: inherit) */
-@supports (-webkit-tap-highlight-color: inherit) {
-  .s-orders-sidebar-body-scrollbar::-webkit-scrollbar { width: 7px; }
-  .s-orders-sidebar-body-scrollbar::-webkit-scrollbar-track { background-color: transparent; }
-  .s-orders-sidebar-body-scrollbar::-webkit-scrollbar-thumb { border-radius: 5px; background-color: var(--scrollbar-color); }
-}
+#wa:has(#wa-nav) { --top-nav-height: 4rem; }
+#s-orders.sidebar { overflow: auto; max-height:calc(100dvh - var(--top-nav-height, 0)); }
 </style>
 <script>
 ( function($) {

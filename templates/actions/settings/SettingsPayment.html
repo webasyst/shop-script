@@ -1,5 +1,5 @@
 
-<div class="flexbox middle space-12 wrap-mobile">
+<div class="s-settings-payment-header flexbox middle space-12 wrap-mobile">
     <div class="wide custom-mb-8-mobile">
         <h1 class="js-bread-crumbs">[`Payment`]</h1>
     </div>
@@ -42,6 +42,9 @@
         </div>
     </div>
 </div>
+<p class="small">
+    [`Enabled payment options will be offered to your customers during the online checkout on your site.`]
+</p>
 <div id="s-settings-payment" class="fields">
     <div class="fields-group custom-pl-8-mobile">
         <table>
@@ -93,11 +96,16 @@
                     <td class="custom-p-4-mobile">
                         <div class="flexbox vertical-mobile">
                             <a href="#/payment/plugin/setup/{$id}/"
-                                class="js-payment-plugin-setup button custom-mb-4-mobile nowrap rounded light-gray smaller"
+                                class="js-payment-plugin-setup button custom-mb-4-mobile nowrap rounded {if empty($plugin.status)}green{else}light-gray{/if} smaller"
                                 style="width: min-content;"
                                 title="[`Configure`]">
-                                <i class="fas fa-cog text-blue"></i>
-                                <span class="desktop-only">[`Settings`]</span>
+                                {if !empty($plugin.status)}
+                                    <i class="fas fa-cog text-blue"></i>
+                                    <span class="desktop-only">[`Settings`]</span>
+                                {else}
+                                    <i class="fas fa-cog"></i>
+                                    <span class="desktop-only">[`Enable`]</span>
+                                {/if}
                             </a>
                             <div class="custom-mb-8-mobile dropdown secondary-actions">
                                 <button class="dropdown-toggle button smaller rounded light-gray custom-pl-0" type="button"

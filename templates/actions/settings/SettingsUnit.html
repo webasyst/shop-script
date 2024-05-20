@@ -445,11 +445,7 @@
                 </a>
             </p>
             {if $is_teaser}
-            <div class="align-center box blank" style="padding: 3rem; border-radius: 0.5rem;">
-                <i class="fas fa-star text-yellow" style="font-size: 5rem; margin-right: 1.5rem;"></i>
-                <p class="custom-mx-auto">[`This feature is available only with the premium license.`]</p>
-                <a href="{$wa_app_url}?action=settings#/premium/" class="button yellow large rounded">[`See what’s more in premium`]</a>
-            </div>
+            {include file="templates/includes/availableWithPremiumAlert.html" inline}
             {/if}
             <div class="alert small s-section-header-help custom-mt-32">
                 <div class="box">

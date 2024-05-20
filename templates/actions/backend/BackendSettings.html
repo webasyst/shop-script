@@ -1,5 +1,5 @@
-<div class="flexbox">
-    <div class="sidebar width-20rem blank shop-second-sidebar bordered-right">
+<div class="flexbox s-settings">
+    <div class="sidebar width-20rem blank shop-second-sidebar">
         <div class="align-center custom-mt-4 mobile-only">
             <button class="button small circle light-gray js-expand-sidebar"><i class="fas fa-arrow-right"></i></button>
         </div>
@@ -38,6 +38,16 @@
                 <!-- plugin hook: 'backend_settings.sidebar_top_li' -->
                 {* @event backend_settings.%plugin_id%.sidebar_top_li *}
                 {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+
+                {if empty($is_premium)}
+                <li class="top-padded">
+                    <a href="?action=settings#/premium/" class="custom-mb-12">
+                        <span class="count"><span class="badge orange">%</span></span>
+                        <span class="icon"><i class="fas fa-star text-yellow"></i></span>
+                        <span class="shop-sidebar-hidden">[`Upgrade to Premium`]</span>
+                    </a>
+                </li>
+                {/if}
 
 
                 <!-- PRODUCTS -->
@@ -141,14 +151,13 @@
                 {* @event backend_settings.%plugin_id%.sidebar_bottom_li *}
                 {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
 
-                {if empty($is_premium)}
                 <li class="top-padded">
-                    <a href="?action=settings#/premium/" class="custom-mb-12">
-                        <span class="icon"><i class="fas fa-star"></i></span>
-                        <span class="shop-sidebar-hidden">[`Upgrade to Premium`]</span>
+                    <a class="item" href="[`https://support.webasyst.com/`]" target="_blank">
+                        <span class="count small"><i class="fas fa-external-link-alt s-menu-link-new-window"></i></span>
+                        <span class="s-icon-main icon"><i class="fas fa-question-circle"></i></span>
+                        <span class="s-name">[`Help`]</span>
                     </a>
                 </li>
-                {/if}
 
 
                 {if $wa->user()->isAdmin() && waSystemConfig::isDebug()}
@@ -166,7 +175,7 @@
     </div>
 
     <div class="content content-mobile-friendly not-blank">
-        <div class="article">
+        <div class="article wide">
             <div class="article-body custom-pb-0" id="s-settings-content">
             </div>
         </div>
@@ -178,19 +187,16 @@
         debug: true,
         loading: null,
         backend_url: {$wa_backend_url|json_encode},
-        shop_marketing_url: {"`$wa_app_url`marketing/"|json_encode}
+        shop_marketing_url: {"`$wa_app_url`marketing/"|json_encode},
+        installer_access: {$wa->user()->isAdmin('installer')|json_encode}
     });
 
     $.settings.onPreLoad = function(section) {
         var $article = $('.article');
+        $article.removeClass('wider').addClass('wide');
 
-        $article.removeClass('wide').removeClass('wider');
-
-        if (['premium'].includes(section)) {
-            $article.addClass('wide');
-        }
         if (['typefeat', 'orderStates', 'compatibility', 'notifications', 'printform', 'marketplaces'].includes(section) || section.startsWith('checkout')) {
-            $article.addClass('wider');
+            $article.addClass('wider').removeClass('wide');
         }
     };
 </script>

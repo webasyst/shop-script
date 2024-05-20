@@ -1,14 +1,29 @@
-<div class="box contentbox wide not-blank" id="s-stocks-container">
+<div class="not-blank width-100">
+<div class="article wider" id="s-stocks-container">
+  <div class="article-body">
 
-    <h1>[`Stocks`]</h1>
+    <h1>[`Transfers`]</h1>
 
-    <div class="custom-ml-16">
+    <div class="alert info small" style="display:none;">
+        <div class="flexbox space-16 full-width">
+            <div class="wide">
+                [`Transfers is an easy way to move inventory from one stock to another. When you create new transfer, it automatically writes off selected products from the source stock. And once transfer has been completed, products are added to the destination stock.`]
+            </div>
+            <div>
+                <a href="javascript:void(0);" class="alert-close"><i class="fas fa-times"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="custom-mt-24">
         <!-- plugin hook: 'backend_stocks.%plugin_id%.stocks' -->
         {* @event backend_stocks.%plugin_id%.stocks *}
         {foreach $backend_stocks_hook as $_}{$_.stocks|default:''}{/foreach}
 
-        <div class="custom-my-32">
-            <a href="javascript:void(0);" id="s-transfer-product" class="bold button light-gray rounded"><i class="fas fa-sign-in-alt text-blue"></i> [`New transfer`]</a>
+        <div>
+            <a href="javascript:void(0);" id="s-new-transfer-product" class="bold button light-gray rounded"><i class="fas fa-exchange-alt text-blue"></i> [`New transfer`]</a>
+
+            <div id="s-new-transfer-container"></div>
 
             <div class="s-stocks-transfers" style="margin: 20px 0 0;" {if $transfers.count <= 0}data-empty="1"{/if}>
                 {$transfers.html}
@@ -16,76 +31,36 @@
 
             {if $transfers.rest_count > 0}
                 <div class="s-stocks-transfers-show-all-wrapper nowrap custom-mt-16">
-                    <a href="javascript:void(0)" class="button s-stocks-transfers-show-all rounded small light-gray"><i>{sprintf('[`Show all %d completed transfers`]', $transfers.rest_count)}</i></a>
+                    <a href="javascript:void(0)" class="button s-stocks-transfers-show-all rounded smaller light-gray">{sprintf('[`Show all %d completed transfers`]', $transfers.rest_count)}</a>
                     <i class="loading fas fa-spinner fa-spin text-gray" style="display: none;"></i>
                 </div>
             {/if}
         </div>
-
-        <ul class="tabs s-stocks-tabs">
-            <li class="s-menu-item {if $tab === 'balance'}selected{/if}" data-tab="balance">
-                <a class="s-menu-item-link" data-tab="balance" href="#/stocks/">[`Stock balance`]</a>
-            </li>
-            <li class="s-menu-item {if $tab === 'log'}selected{/if}" data-tab="log">
-                <a class="s-menu-item-link" data-tab="log" href="#/stockslog/">[`Stock updates`]</a>
-            </li>
-        </ul>
-        <div class="tab-content s-stocks-tab-content">
-            <div class="custom-pt-0 s-tab-block" data-tab="balance" {if $tab !== 'balance'}style="display: none"{/if}>
-                {if $tab === 'balance'}{$content}{/if}
-            </div>
-            <div class="custom-pt-0 s-tab-block" data-tab="log" {if $tab !== 'log'}style="display: none"{/if}>
-                {if $tab === 'log'}{$content}{/if}
-            </div>
-        </div>
     </div>
+
+  </div>
+</div>
 </div>
 
 <script>
     $( function() {
-        var container = $('#s-stocks-container');
-        var menu = $('.s-stocks-tabs', container);
-        var loadTab = function (tab, params) {
-            var block = $('.s-tab-block[data-tab="' + tab + '"]', container);
-            if (!block.length) {
+        // new transfer
+        $('#s-new-transfer-product').click(function () {
+            const $new_transfer_container = $('#s-new-transfer-container');
+            if (!$new_transfer_container.is(':empty')) {
+                $new_transfer_container.children().slideUp(400, function () {
+                    $new_transfer_container.empty();
+                });
                 return;
             }
-            $('.s-tab-block', container).hide();
-            block.show().html('<div class="align-center box large text-gray"><i class="loading fas fa-spinner fa-spin"></i></div>').load('?module=stocks&action=' + tab + (params ? '&' + params : ''));
-            menu.find('.selected').removeClass('selected');
-            menu.find('.s-menu-item[data-tab="' + tab + '"]').addClass('selected');
-        };
-        $('.s-class-menu-item-link', menu).click(function () {
-            var li = $(this).closest('.s-menu-item');
-            if (!li.hasClass('selected')) {
-                var tab = $(this).data('tab');
-                loadTab(tab);
-            }
-        });
 
-        // interface
-        container.bind('load', function (e, tab, params) {
-            loadTab(tab, params);
-        });
-
-        var $body = $("body"),
-            locked_class = "is-locked";
-
-        $body.on("close", function() {
-            $body.removeClass(locked_class);
-        });
-
-        // new transfer
-        $('#s-transfer-product').click(function () {
-            var d = $('#s-transfer-product-dialog');
-            if (d.length) {
-                d.parent().remove();
-            }
-            var p = $('<div></div>').appendTo('body');
-            p.load('?module=transfer', function() {
-                var d = $(this).find('.dialog');
-                $body.addClass(locked_class);
-                d.on('afterSubmit', function(e, r) {
+            const $loading = $('<span><i class="fas fa-spinner fa-spin custom-mr-4"></i></span>');
+            const $self = $(this);
+            $self.find('svg').hide();
+            $self.prepend($loading);
+            $new_transfer_container.load('?module=transfer', function() {
+                $new_transfer_container.children().slideDown(400);
+                $new_transfer_container.off('afterSubmit').on('afterSubmit', function(e, r) {
                     var $list = $('.s-stocks-transfers');
                     if ($list.data('empty')) {
                         $list.data('empty', 0);
@@ -97,9 +72,12 @@
                         $list.find('tbody').prepend(item);
                     }
                 });
+                $loading.remove();
+                $self.find('svg').show();
             });
         });
 
+        var container = $('#s-stocks-container');
         {if $transfers.rest_count > 0}
             $('.s-stocks-transfers-show-all', container).click(function () {
                 var $wrapper = $('.s-stocks-transfers-show-all-wrapper', container).find('.loading').show().end();
@@ -110,6 +88,17 @@
                 });
             });
         {/if}
+
+        var $alert_block = $('.alert:first', container);
+        if ($.storage.get('shop/transfer_alert_hidden')) {
+            $alert_block.hide();
+        } else {
+            $alert_block.show();
+            $('.alert-close', container).click(function() {
+                $alert_block.hide();
+                $.storage.set('shop/transfer_alert_hidden', 1);
+            });
+        }
 
         document.title = '{"[`Stocks`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
     });

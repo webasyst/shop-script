@@ -19,7 +19,7 @@ class shopTransferSkusController extends waController
         $q = $model->escape($term, 'like');
 
         $sql_map = array(
-            "SELECT" => "s.id, s.name, s.count, p.id AS product_id, p.name AS product_name, p.image_id ",
+            "SELECT" => "s.id, s.name, s.count, p.id AS product_id, p.name AS product_name, p.image_id, p.currency, s.price, s.purchase_price ",
             "FROM"   => "`shop_product` p ",
             "JOIN"   => array("`shop_product_skus` s ON p.id = s.product_id "),
             'LEFT JOIN' => array(),
@@ -160,10 +160,31 @@ class shopTransferSkusController extends waController
 
     public function getData()
     {
-        return $this->findSkus(
+        $result = $this->findSkus(
             $this->getRequest()->get('term'),
             $this->getRequest()->get('stock_id')
         );
+
+        if ($result) {
+            $currency = $this->getRequest()->get('currency', '', 'string');
+            foreach ($result as &$sku) {
+                if ($currency) {
+                    $sku['price'] = shop_currency($sku['price'], $sku['currency'], $currency, false);
+                    if ($sku['purchase_price'] > 0) {
+                        $sku['purchase_price'] = shop_currency($sku['purchase_price'], $sku['currency'], $currency, false);
+                    } else {
+                        $sku['purchase_price'] = '';
+                    }
+                } else {
+                    $sku['price'] = '';
+                    $sku['purchase_price'] = '';
+                }
+                unset($sku['currency']);
+            }
+            unset($sku);
+        }
+
+        return $result;
     }
 
     public function render($data)

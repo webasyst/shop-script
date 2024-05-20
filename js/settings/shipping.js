@@ -552,8 +552,38 @@ if (typeof ($) != 'undefined') {
         },
 
         loadInstallerPlugins: function () {
+            if (!$.settings.options.installer_access) {
+                return;
+            }
             const url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
-            this.$shipping_plugins_container.show().html(this.shipping_options.loading).load(url);
+            $.get(url, (html) => {
+                this.$shipping_plugins_container.show().html(html);
+                const $iframe = $('iframe.js-store-frame');
+                const changeIframeTheme = () => {
+                    const message = JSON.stringify({ theme: (document.documentElement.dataset.theme || 'light') });
+                    $iframe[0].contentWindow.postMessage(message, '*');
+                }
+
+                const observer = new MutationObserver((mutationList) => {
+                    for (const mutation of mutationList) {
+                        if (mutation.type === "attributes" && mutation.attributeName === 'data-theme') {
+                            changeIframeTheme();
+                            break;
+                        }
+                    }
+                });
+
+                const prev_title = document.title;
+                $iframe.on('load', () => {
+                    document.title = prev_title;
+                    changeIframeTheme();
+                    observer.observe(document.documentElement, { attributes: true });
+                })
+
+                $.settings.$container.find('> :first').one('remove', function () {
+                    observer.disconnect();
+                })
+            });
         }
 
     });

@@ -955,6 +955,10 @@
                 var $dialog = $("#js-category-edit-dialog").removeAttr("id"),
                     dialog = $dialog.data("dialog");
 
+                // avoid console.log() Template compilation error: Tags with side effect (<script> and <style>) are ignored in client component templates.
+                $dialog.find('script').remove();
+                $dialog.find('style').appendTo('head');
+
                 dialog.options.ready.done( function() {
                     dialog.options.initDialog($dialog, dialog, {
                         components: {$_components|json_encode},

@@ -159,7 +159,7 @@
                         {$has_shipping = !empty($params.shipping_name)}
                         {$has_shipping_address = !empty($shipping_address)}
                         {if $has_shipping_address || $has_payment || $has_shipping}
-                        <div class="flexbox space-8">
+                        <div class="flexbox space-8 break-word">
                             {* SHIPPING *}
                             <div class="bordered s-block width-{if $has_payment}50{else}100{/if}">
                             {if $has_shipping_address || $has_shipping}

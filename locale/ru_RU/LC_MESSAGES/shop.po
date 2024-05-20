@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.3\n"
+"X-Generator: Poedit 3.3.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -6272,7 +6272,7 @@ msgid "Add virtual stock"
 msgstr "Добавить виртуальный склад"
 
 msgid "There are no pending stock transfers."
-msgstr "Нет трансферов в статусе «В пути»."
+msgstr "Нет незавершенных перемещений товаров."
 
 msgid "ID"
 msgstr ""
@@ -13093,8 +13093,8 @@ msgstr "Неизвестный тип списка: %s."
 msgid "Mobile app"
 msgstr "Мобильное приложение"
 
-msgid "Install Webasyst Shop-Script mobile app on your phone today:"
-msgstr "Установите Webasyst Shop-Script на свой телефон."
+msgid "Install Shop-Script mobile app on your phone today:"
+msgstr "Установите Shop-Script на свой телефон."
 
 msgid "Profit by all products"
 msgstr "Прибыль по всем товарам"
@@ -13146,3 +13146,66 @@ msgstr "Не удалось загрузить содержимое с адре�
 
 msgid "Error: unknown “render_type” (possibly broken field from a plugin)."
 msgstr "Ошибка: неизвестное значение «render_type» (возможно, недопустимое значение, полученное от плагина)."
+
+msgid "Order payment was refunded"
+msgstr "Оплата по заказу возвращена"
+
+msgid "Fulfilment mode"
+msgstr "Режим сборки"
+
+msgid "Fulfilment mode is for your personal control of assembling an order. Checked items are not synced with the server and other users."
+msgstr "Режим сборки предназначен для самоконтроля сборки заказа. Отмеченные товары с сервером и другими пользователями не синхронизируются."
+
+msgid "Supported in the new Webasyst 2 UI mode only"
+msgstr "Поддерживается только в новом интерфейсе Webasyst 2"
+
+msgid "Switch to the new UI"
+msgstr "Переключиться в новый интерфейс"
+
+msgid "In stock now"
+msgstr "Остатки"
+
+msgid "Transfers"
+msgstr "Приемка-отгрузка"
+
+msgid "Stock log"
+msgstr "Журнал"
+
+msgid "Total market value"
+msgstr "Рыночная стоимость активов"
+
+msgid "Total purchase costs"
+msgstr "Закупочная стоимость активов"
+
+msgid "Stock settings"
+msgstr "Настроить склады"
+
+msgid "See the general picture of your overall stock assets by every SKU and stock."
+msgstr "Контролируйте складские активы по каждой товарной позиции и складам."
+
+msgid "In stock change and the remaining balance after"
+msgstr "Изменение и общий складской остаток после"
+
+msgid "Products left the source stock and to be added to the destination stock as soon as the transfer is marked as completed."
+msgstr "Товары списаны со склада-источника и будут добавлены на склад назначения, как только трансфер будет отмечен как выполненный."
+
+msgid "Products successfully left the source stock and added to the destination stock."
+msgstr "Товары успешно списаны со склада-источника и добавлены на склад назначения."
+
+msgid "Products were returned to the source stock."
+msgstr "Товары возвращены на склад-источник."
+
+msgid "Enabled payment options will be offered to your customers during the online checkout on your site."
+msgstr "Подключенные способы оплаты будут предложены покупателям во время оформления заказа на сайте."
+
+msgid "Write-off"
+msgstr "Списание"
+
+msgid "Write-off (no destination stock)"
+msgstr "Списать товары (нет склада назначения)"
+
+msgid "Shop-Script brings all orders from various channels into a single stream. Use plugins to set up external order sources."
+msgstr "Shop-Script собирает заказы из разных источников в единый поток продаж. Для подключения каналов продаж используйте плагины."
+
+msgid "Don’t autofill pricing"
+msgstr "Не заполнять цены"

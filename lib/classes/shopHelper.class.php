@@ -1232,7 +1232,7 @@ class shopHelper
                         "</span>";
                 }
                 $icon .=
-                    "<span class='custom-pl-4 small s-stock-left-text $warn'>" .
+                    "<span class='custom-pl-4 s-stock-left-text $warn'>" .
                         _w('%s left', '%s left', shopFrac::discardZeros($count)) . " $all_balance_stocks_text</span>";
             }
         }
@@ -2420,5 +2420,42 @@ SQL;
         }
 
         return $result;
+    }
+
+    /**
+     * @param string  $string
+     * @param integer $max_length
+     * @param string  $etc
+     * @return string
+     */
+    public static function truncate($string, $max_length = 80, $etc = '...') {
+        if ($max_length === 0)
+            return '';
+
+        if (mb_strlen($string, Smarty::$_CHARSET) > $max_length) {
+            $max_length -= min($max_length, mb_strlen($etc, Smarty::$_CHARSET));
+            $subject = mb_substr($string, 0, $max_length + 1, Smarty::$_CHARSET);
+            $string = preg_replace('/\s+?(\S+)?$/' . Smarty::$_UTF8_MODIFIER, '', $subject);
+            return mb_substr($string, 0, $max_length, Smarty::$_CHARSET) . $etc;
+        }
+
+        return $string;
+    }
+
+    /**
+     * @param array   $items
+     * @param integer $max_length
+     * @return array
+     */
+    public static function truncateFieldNameInArray($items, $max_length = 80) {
+        if (!$items)
+            return $items;
+
+        foreach ($items as &$item) {
+            $item['is_truncated'] = mb_strlen($item['name']) > $max_length;
+            $item['truncated_name'] = shopHelper::truncate($item['name'], $max_length);
+        }
+
+        return $items;
     }
 }

@@ -1,3 +1,4 @@
+
 {$container_id = uniqid('s-transfer-list-')}
 <div id="{$container_id}" class="s-transfer-list-container s-table-scrollable-x">
 
@@ -18,7 +19,7 @@
 
 {capture assign="list"}
     {if $transfers}
-        <table class="single-lined" id="s-transfer-list">
+        <table id="s-transfer-list" class="bigdata">
             <thead>
                 <tr class="header white">
                     <th>{field_link field_id='string_id' field_name='[`Transfer ID`]'}</th>
@@ -26,6 +27,8 @@
                     <th>{field_link field_id='stock_from.name' field_name='[`Source stock`]'}</th>
                     <th></th>
                     <th>{field_link field_id='stock_to.name' field_name='[`Destination stock`]'}</th>
+                    <th class="nowrap align-right">{field_link field_id='stock_to.name' field_name='[`Qty`]'}</th>
+                    <th class="nowrap align-right">{field_link field_id='stock_to.name' field_name='[`Amount`]'}</th>
                     <th></th>
                 </tr>
             </thead>
@@ -35,30 +38,44 @@
                         <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}"><span class="link">{$transfer.string_id|escape}</span></a></td>
                         <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">
                             {if $transfer.status == 'sent'}
-                                <em class="s-transfer-status-sent"><i class="fas fa-truck"></i></i> [`On its way`]</em>
+                                <em class="s-transfer-status-sent"><i class="fas fa-truck"></i> [`On its way`]</em>
                             {elseif $transfer.status == 'completed'}
-                                <span class="s-transfer-status-completed"><i class="fas fa-check text-green"></i> [`Completed`]</span>
+                                <span class="s-transfer-status-completed bold"><i class="fas fa-check-circle text-green"></i> [`Completed`]</span>
                             {elseif $transfer.status == 'cancelled'}
-                                <span class="text-red semibold"><i class="fas fa-times"></i> [`Canceled`]</span>
+                                <span class="text-red bold"><i class="fas fa-times"></i> [`Canceled`]</span>
                             {/if}
                             </a></td>
-                        <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{if $transfer.stock_from.name}{$transfer.stock_from.name|escape}{else}<span class="gray" title="[`New arrival`]">&mdash;</span>{/if}</a></td>
+                        <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{if $transfer.stock_from.name}{$transfer.stock_from.name|escape}{else}<span class="gray" title="[`New arrival`]"><i class="fas fa-sign-in-alt"></i> [`New arrival`]</span>{/if}</a></td>
                         <td class="gray"><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">&rarr;</a></td>
-                        <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{$transfer.stock_to.name|escape}</a></td>
-                        <td class="gray"><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{$transfer.create_datetime|wa_date:'humandatetime'}</a></td>
+                        <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{if $transfer.stock_to.name}{$transfer.stock_to.name|escape}{else}<span class="gray" title="[`Write-off`]"><i class="fas fa-times"></i> [`Write-off`]</span>{/if}</a></td>
+                        <td class="nowrap align-right">
+                            {if $transfer.total_count !== null}
+                                {$transfer.total_count|string_format:"%d"}
+                            {else}
+                                <span class="gray">—</span>
+                            {/if}
+                        </td>
+                        <td class="nowrap align-right">
+                            {if $transfer.currency && $transfer.total_amount !== null}
+                                {shop_currency_html($transfer.total_amount, null, $transfer.currency)}
+                            {else}
+                                <span class="gray">—</span>
+                            {/if}
+                        </td>
+                        <td class="gray nowrap align-right"><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{$transfer.create_datetime|wa_date:'humandatetime'}</a></td>
                     </tr>
                 {/foreach}
             </tbody>
         </table>
     {else}
-        <p>[`There are no pending stock transfers.`]</p>
+        <p class="italic">[`There are no pending stock transfers.`]</p>
     {/if}
 {/capture}
 
 {capture assign="lazyloading"}
     {if !$disabled_lazyload}
         <div class="lazyloading-wrapper">
-            <div class="lazyloading-progress-string">
+            <div class="lazyloading-progress-string small">
                 {_w('%d transfer','%d transfers', $already_loaded_count)}&nbsp;{sprintf(_w('of %d'), $total_count)}
             </div><br>
             <a href="javascript:void(0);" class="lazyloading-link" {if $already_loaded_count >= $total_count}style="display:none;"{/if}>
@@ -142,25 +159,6 @@
 
             {/if}
 
-            container.bind('info', function (e, transfer_id) {
-                var d = $('#s-transfer-info-' + transfer_id);
-                if (d.length) {
-                    d.parent().remove();
-                }
-                var p = $('<div></div>').appendTo('body');
-                p.load('?module=transferInfo&id=' + transfer_id, function() {
-                    var d = $(this).find('.dialog');
-                    d.on('afterSubmit', function(e, r) {
-                        if (r.status === 'ok') {
-                            var $list = $('.s-stocks-transfers');
-                            var tmp = $('<div>').html(r.data.html);
-                            var item = $('.s-transfer-item[data-id="' + r.data.transfer.id  + '"]', tmp).addClass('highlighted');
-                            $('.s-transfer-item[data-id="' + r.data.transfer.id  + '"]', $list).replaceWith(item);
-                        }
-                    });
-                });
-            });
-
             container.on('click', '.s-transfer-list-sort', function () {
                 var el = $(this);
                 var container_id = container.attr('id');
@@ -175,9 +173,28 @@
 
             // transfer info
             container.on('click', '.s-transfer-info', function () {
-                var el = $(this);
-                var transfer_id = el.data('id');
-                container.trigger('info', [transfer_id]);
+                const el = $(this);
+                const transfer_id = el.data('id');
+                const $tr = $('.s-transfer-item[data-id="'+transfer_id+'"]');
+
+                const $transfer_edit = $('.s-transfer-edit-item');
+                if ($transfer_edit.length) {
+                    return;
+                }
+
+                $.products.transferInfo(transfer_id).then(function (html) {
+                    const $form_td = $('<td colspan="8"></td>').html(html);
+                    const $form_tr = $('<tr class="s-transfer-edit-item"></tr>').append($form_td).insertAfter($tr);
+                    $form_tr.find('form').on('afterSubmit', function(e, r) {
+                        if (r.status === 'ok') {
+                            var $list = $('.s-stocks-transfers');
+                            var tmp = $('<div>').html(r.data.html);
+                            var item = $('.s-transfer-item[data-id="' + r.data.transfer.id  + '"]', tmp).addClass('highlighted');
+                            $('.s-transfer-item[data-id="' + r.data.transfer.id  + '"]', $list).replaceWith(item);
+                        }
+                    });
+                    $form_td.children().slideDown(300);
+                });
             });
         })
     </script>

@@ -1,27 +1,4 @@
 (function ($) {
-
-    // This should probably be somewhere else...
-    if (!Array.prototype.filter) {
-        Array.prototype.filter = function (fun /*, thisp*/) {
-            var len = this.length;
-            if (typeof fun != "function")
-                throw new TypeError();
-
-            var res = [];
-            var thisp = arguments[1];
-            for (var i = 0; i < len; i++) {
-                if (i in this) {
-                    var val = this[i]; // in case fun mutates this
-                    if (fun.call(thisp, val, i, this))
-                        res.push(val);
-                }
-            }
-
-            return res;
-        };
-    }
-
-    // init
     $(function () {
         $("#s-content").on('click', '.s-alert-close', function () {
             var alerts = $.storage.get('shop/alerts');
@@ -48,7 +25,6 @@
             this.initSearch();
             $.product_sidebar.init();
             $.categories_tree.init();
-            this.initCollapsible();
             this.tagsHandler();
         },
 
@@ -142,7 +118,7 @@
                         }
                         var attr = hash.slice(attrMarker);
                         this.preExecute(actionName, attr);
-                        if (typeof(this[actionName + 'Action']) == 'function') {
+                        if (typeof(this[actionName + 'Action']) === 'function') {
                             $.shop.trace('$.products.dispatch', [actionName + 'Action', attr]);
                             this[actionName + 'Action'].apply(this, attr);
                         } else {
@@ -341,31 +317,56 @@
             this.load(request_uri);
         },
 
-        stocksAction: function (order) {
-            var sort = '';
-            if (!order || order === 'desc' || order === 'asc') {
-                sort = 'count';
-            } else {
-                order = '' + (order || '');
-                var m = order.match(/stock_count_(\d*)_*(desc|asc)*/);
-                if (m) {
-                    sort = 'stock_count_' + m[1];
-                    order = m[2] === 'desc' ? 'desc' : 'asc';
-                }
+        stocksAction: function (path, params) {
+            switch (path) {
+                case 'log':
+                    if (params && isInt(params)) {
+                        params = 'stock_id=' + params;
+                    }
+                    this.load('?module=stocks&action=log' + (params ? '&' + params : ''));
+                    break;
+
+                case 'transfers':
+                    this.load('?module=stocks' + (params ? '&' + params : ''));
+                    break;
+
+                default:
+                    var stock_id = path && isInt(path) ? path : null;
+                    if (stock_id) {
+                        order = params;
+                    } else {
+                        order = path;
+                    }
+
+                    var sort = '';
+                    if (!order || order === 'desc' || order === 'asc') {
+                        sort = 'count';
+                    } else {
+                        order = String(order || '');
+                        var m = order.match(/stock_count_(\d*)_*(desc|asc)*/);
+                        if (m) {
+                            sort = 'stock_count_' + m[1];
+                            order = m[2] === 'desc' ? 'desc' : 'asc';
+                        }
+                    }
+
+                    var params_str = [
+                        ...(stock_id ? ['&stock_id='+stock_id] : []),
+                        ...(order ? ['&order='+order]  : []),
+                        ...(sort ? ['&sort='+sort]  : [])
+                    ].join('');
+                    this.load('?module=stocks&action=balance' + params_str);
+                    break;
             }
-            if (!$('#s-stocks-container').length) {
-                this.load('?module=stocks' + (order ? '&order=' + order : '') + (sort ? '&sort=' + sort : '') + '&tab=balance');
-            } else {
-                $('#s-stocks-container').trigger('load', [ 'balance', (order ? 'order=' + order : '')  + (sort ? '&sort=' + sort : '') ]);
+
+            function isInt (value) {
+                var x = parseFloat(value);
+                return !isNaN(value) && (x | 0) === x;
             }
         },
 
-        stockslogAction: function (params) {
-            if (!$('#s-stocks-container').length) {
-                this.load('?module=stocks' + (params ? '&' + params : '') + '&tab=log');
-            } else {
-                $('#s-stocks-container').trigger('load', ['log', (params ? params : '')]);
-            }
+        transferInfo: function (transfer_id) {
+            return $.get('?module=transferInfo&id=' + transfer_id);
         },
 
         /*transfersAction: function (params) {
@@ -392,80 +393,6 @@
                         return false;
                     }
                 });
-        },
-
-        initCollapsible: function () {
-            var key_prefix = 'shop/products/';
-            var collapse = function (el, not_save) {
-                $(el).removeClass('darr').addClass('rarr');
-                target(el).hide();
-                if (!not_save) {
-                    $.storage.set(key_prefix + el.id + '/collapse', 1);
-                    if (not_save !== false) {
-                        var id = el.id.replace(/\-handler$/, '');
-                        var $container = $(el).parents('div.block:first').find('#' + id + ':first');
-                        if ($container.length) {
-                            var url = $container.data('on-collapse-url');
-                            if (url) {
-                                $.get(url);
-                            }
-                        }
-                    }
-                }
-            };
-            var expand = function (el) {
-                target(el).show();
-                var $el = $(el);
-                $el.removeClass('rarr').addClass('darr');
-                $.storage.del(key_prefix + el.id + '/collapse');
-                var id = el.id.replace(/\-handler$/, '');
-                var $placeholder = $el.parents('div.block:first').find('#' + id + '-placeholder:first');
-                if ($placeholder.length) {
-                    var $counter = $(el).parents('div.block:first').find('.count:first');
-                    $counter.find('i.icon16.loading').remove()
-                    $counter.find('i.icon16').hide();
-                    $counter.prepend('<i class="icon16 loading"></i>');
-
-                    $.get($placeholder.data('url'), function (result) {
-                        $placeholder.replaceWith($(result));
-                        $counter.find('i.icon16.loading').remove();
-                        $counter.find('i.icon16').show();
-                        $placeholder.remove();
-                    });
-                } else {
-                    var $container = $(el).parents('div.block:first').find('#' + id + ':first');
-                    if ($container.length) {
-                        var url = $container.data('on-expand-url');
-                        if (url) {
-                            $.get(url);
-                        }
-                    }
-                }
-            };
-            var target = function (el) {
-                var parent = $(el).parent();
-                return parent.is('li') ? parent.find('ul:first') : parent.next();
-            };
-            $(".collapse-handler").off('click').on('click',function () {
-                var self = $(this);
-                if (self.hasClass('darr')) {
-                    collapse(this);
-                } else {
-                    expand(this);
-                }
-            }).each(function () {
-                var key = key_prefix + this.id + '/collapse';
-                var force = $(this).hasClass('rarr');
-                if ($.storage.get(key) || force) {
-                    collapse(this, !force);
-                }
-            });
-            $(".collapse-handler").closest('.heading').off('click').on('click', function(e) {
-                $collapse_handler = $(this).find('.collapse-handler');
-                if (!$collapse_handler.is(e.target)) {
-                    $collapse_handler.click();
-                }
-            });
         },
 
         initSearch: function () {

@@ -2,7 +2,7 @@
 <div class="s-followups-page" id="js-followups-page">
     {* BODY *}
     <div class="content flexbox">
-        <div class="sidebar bordered-right blank width-23rem">
+        <div class="sidebar blank width-23rem">
             <ul class="menu large">
                 <li class="{if !empty($followups)}bottom-padded{/if}">
                     <a href="{$marketing_url}followups/create/">
@@ -60,10 +60,10 @@
 
                     <div class="flexbox middle custom-mb-0">
                         {if !empty($followup.id)}
-                            <h2>{$followup.name|escape}</h2>
+                            <h3 class="gray">{$followup.name|escape}</h3>
                             <input type="hidden" name="followup[id]" value="{$followup.id|escape}">
                         {else}
-                            <h2>[`New follow-up`]</h2>
+                            <h3 class="gray">[`New follow-up`]</h3>
                         {/if}
                     </div>
 

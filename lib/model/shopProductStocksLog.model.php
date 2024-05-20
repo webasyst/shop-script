@@ -287,6 +287,14 @@ class shopProductStocksLogModel extends waModel
                 }
             }
         }
+
+        /**
+         * @since 10.2.0
+         */
+        wa('shop')->event('product_stocks_log', ref([
+            'data' => $data,
+        ]));
+
         return parent::insert($data, $type);
     }
 }

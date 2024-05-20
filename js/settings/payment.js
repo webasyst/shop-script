@@ -48,27 +48,29 @@ if (typeof ($) != 'undefined') {
             this.$payment_menu.waDropdown();
             this.updateDropdownSecondaryActions();
 
-            Sortable.create(this.$payment_container.find('tbody')[0], {
-              group: 'payments-rows',
-              handle: '.js-sort',
-              animation: 100,
-              removeCloneOnHide: true,
-              onEnd: function (evt) {
-                const $item = $(evt.item);
-                const id = parseInt($item.data('id'));
-                let after_id = $item.prev().data('id');
+            if (typeof Sortable !== 'undefined') {
+                Sortable.create(this.$payment_container.find('tbody')[0], {
+                    group: 'payments-rows',
+                    handle: '.js-sort',
+                    animation: 100,
+                    removeCloneOnHide: true,
+                    onEnd: function (evt) {
+                      const $item = $(evt.item);
+                      const id = parseInt($item.data('id'));
+                      let after_id = $item.prev().data('id');
 
-                if (after_id === undefined) {
-                  after_id = 0;
-                } else {
-                  after_id = parseInt(after_id);
-                }
+                      if (after_id === undefined) {
+                        after_id = 0;
+                      } else {
+                        after_id = parseInt(after_id);
+                      }
 
-                self.paymentSort(id, after_id, () => {
-                    $item.swap(evt.oldIndex);
+                      self.paymentSort(id, after_id, () => {
+                          $item.swap(evt.oldIndex);
+                      });
+                    },
                 });
-              },
-            });
+            }
 
             this.$payment_plugin_container.on('submit', 'form', function () {
                 const $this = $(this);
@@ -77,7 +79,7 @@ if (typeof ($) != 'undefined') {
                     let confirmValue = false;
 
                     $.waDialog.confirm({
-                        title: $el.attr('title'),
+                         title: $el.attr('title'),
                         text: $el.data('confirm-text'),
                         success_button_title: $_('Are you sure?'),
                         success_button_class: 'danger',
@@ -409,8 +411,38 @@ if (typeof ($) != 'undefined') {
         },
 
         loadInstallerPlugins: function () {
+            if (!$.settings.options.installer_access) {
+                return;
+            }
             const url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment&return_hash=/payment/plugin/add/%plugin_id%/';
-            this.$payment_plugins_container.show().html(this.payment_options.loading).load(url);
+            $.get(url, (html) => {
+                this.$payment_plugins_container.show().html(html);
+                const $iframe = $('iframe.js-store-frame');
+                const changeIframeTheme = () => {
+                    const message = JSON.stringify({ theme: (document.documentElement.dataset.theme || 'light') });
+                    $iframe[0].contentWindow.postMessage(message, '*');
+                }
+
+                const observer = new MutationObserver((mutationList) => {
+                    for (const mutation of mutationList) {
+                        if (mutation.type === "attributes" && mutation.attributeName === 'data-theme') {
+                            changeIframeTheme();
+                            break;
+                        }
+                    }
+                });
+
+                const prev_title = document.title;
+                $iframe.on('load', () => {
+                    document.title = prev_title;
+                    changeIframeTheme();
+                    observer.observe(document.documentElement, { attributes: true });
+                })
+
+                $.settings.$container.find('> :first').one('remove', function () {
+                    observer.disconnect();
+                })
+            });
         }
     });
 } else {

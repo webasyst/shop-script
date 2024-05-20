@@ -9,16 +9,17 @@
 
         products_ids: [],
 
+        stock_id: null,
+
         init: function(options) {
             this.options = options;
             this.stocks = options.stocks;
+            this.stock_id = options.stock_id;
             this.container = $('#s-product-stocks');
             this.products_ids = [];
 
             this.initView();
-            if (options.stocks && options.stocks.length > 1) {
-                this.initDragndrop();
-            }
+
             if (this.options.lazy_loading && this.options.product_stocks.length > 0) {
                 this.initLazyLoad(this.options.lazy_loading);
             }
@@ -34,7 +35,7 @@
             if (offset < total_count) {
                 var self = this;
                 $(window).lazyLoad({
-                    container: self.container,
+                    container: self.container.find('tbody'),
                     state: (typeof options.auto === 'undefined' ? true: options.auto) ? 'wake' : 'stop',
                     hash: 'stocks',
                     load: function() {
@@ -59,12 +60,13 @@
                             "module=stocksBalance",
                             "offset=" + offset,
                             "total_count=" + total_count
-                        ]
-
+                        ];
+                        if (self.stock_id) {
+                            params.push("stock_id=" + self.stock_id);
+                        }
                         if (self.options.order) {
                             params.push('order=' + self.options.order);
                         }
-
                         if (sort) {
                             params.push("sort=" + sort);
                         }
@@ -73,7 +75,11 @@
                             if (r && r.status === 'ok') {
                                 offset += r.data.count;
 
-                                if (!self.append({ product_stocks: r.data.product_stocks, stocks: self.stocks })) {
+                                if (!self.append({
+                                    product_stocks: r.data.product_stocks,
+                                    stocks: self.stocks,
+                                    is_single_stock: !!self.stock_id
+                                })) {
                                     $(window).lazyLoad('stop');
                                     return;
                                 }
@@ -105,90 +111,9 @@
         },
 
         initView: function() {
-            if (!this.append({ product_stocks: this.options.product_stocks, stocks: this.stocks })) {
+            if (!this.append({ product_stocks: this.options.product_stocks, stocks: this.stocks, is_single_stock: !!this.stock_id })) {
                 return this;
             }
-        },
-
-        initDragndrop: function() {
-            this.container.find('td.s-stock-cell .js-item').liveDraggable({
-                containment: this.container,
-                distance: 5,
-                helper: function() {
-                    return $(this).clone().append('<i class="fas fa-times text-gray no-bw" style="margin-left: 0; margin-right: 0; display: none;"></i>');
-                },
-                refreshPositions: true,
-                start: function() {
-                    $(this).parents('tr:first').find('td.s-stock-cell').addClass('drag-active').filter(':first').addClass('first');
-                },
-                stop: function() {
-                    $(this).parents('tr:first').find('td.s-stock-cell').removeClass('drag-active').filter(':first').removeClass('first');
-                }
-            });
-            this.container.find('td').liveDroppable({
-                disabled: false,
-                greedy: true,
-                tolerance: 'pointer',
-                over: function(event, ui) {
-                    var self = $(this);
-                    if (self.hasClass('drag-active')) {
-                        ui.helper.find('.no-bw').hide();
-                    } else {
-                        ui.helper.find('.no-bw').show();
-                    }
-                },
-                drop: function(event, ui) {
-                    var self = $(this);
-                    if (!self.hasClass('drag-active')) {
-                        return false;
-                    }
-                    var dr = ui.draggable;
-                    var td = dr.parents('td:first');
-                    if (self.get(0) == td.get(0)) {
-                        return false;
-                    }
-                    var src_item_id = dr.attr('id').replace('s-item-', '').split('-');
-                    var src_stock_id = src_item_id[1];
-                    var dst_stock_id = self.attr('data-stock-id');
-                    var dst_item_id = [src_item_id[0], dst_stock_id];
-                    var dst_item = $('#s-item-' + dst_item_id.join('-'));
-
-                    // filter out item that marked as infinity
-                    if (dst_item.length && dst_item.hasClass('infinity')) {
-                        return false;
-                    }
-
-                    var d = $('#s-transfer-product-dialog');
-                    if (d.length) {
-                        d.parent().remove();
-                    }
-                    var p = $('<div></div>').appendTo('body');
-                    p.load(
-                        '?module=transfer',
-                        {
-                            sku_id: src_item_id[0],
-                            from: src_stock_id,
-                            to: dst_stock_id
-                        }, function() {
-                            var d = $(this).find('.dialog');
-
-                            d.on('afterSubmit', function(e, r) {
-                                var $list = $('.s-stocks-transfers');
-
-                                if ($list.data('empty')) {
-                                    $list.data('empty', 0);
-                                    $list.html(r.data.html);
-                                    $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', $list);
-                                } else {
-                                    var tmp = $('<div>').html(r.data.html);
-                                    var item = $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', tmp);
-                                    $list.find('tbody').prepend(item);
-                                }
-                            });
-                        }
-                    );
-                }
-            });
         },
 
         append: function(data) {
@@ -197,7 +122,7 @@
             data = formatData(data);
 
             try {
-                this.container.append(tmpl('template-product-stocks', data));
+                this.container.find('tbody').append(tmpl('template-product-stocks', data));
 
             } catch (e) {
                 console.error('Error: ' + e.message);

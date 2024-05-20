@@ -380,7 +380,7 @@
                 <div class="s-products-thumbs-section" v-if="presentation.view === 'thumbs'" v-on:scroll="onScrollProductsSection">
                     <div class="s-section-body">
                         <div class="s-thumbs-list">
-                            <component-product-thumb v-if="products.length" v-for="product in products" v-bind:key="product.id" v-bind:product="product"></component-product-thumb>
+                            <component-product-thumb v-if="products.length" v-for="(product, i) in products" v-bind:key="product.id" v-bind:index="i" v-bind:product="product"></component-product-thumb>
                             <component-empty-content v-else type="products"></component-empty-content>
                         </div>
                     </div>

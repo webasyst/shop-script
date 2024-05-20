@@ -6,7 +6,7 @@
 
 {/strip}
 
-<div class="s-plugins-list-page blank box contentbox" id="js-plugins-list-page" style="height:calc(100vh - 7rem);visibility: hidden;">
+<div class="s-plugins-list-page blank box contentbox" id="js-plugins-list-page" style="min-height:calc(100vh - 8rem);visibility:hidden;">
     {* @event backend_plugins_list.top *}
     {if !empty($backend_plugins_list)}{foreach $backend_plugins_list as $_}{ifset($_.top)}{/foreach}{/if}
 

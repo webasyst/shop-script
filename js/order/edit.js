@@ -1343,11 +1343,14 @@ $.order_edit = {
                                 plugin_id = ship_id.replace(/\W.+$/, ''),
                                 o = $('<option></option>');
 
-                            o.html(ship.name).attr('value', ship_id).data('rate', ship.rate);
+                            o.html(ship.truncated_name).attr('value', ship_id).data('rate', ship.rate);
                             o.data('error', ship.error || undefined);
                             o.data('est_delivery', ship.est_delivery || undefined);
                             o.data('comment', ship.comment || undefined);
                             o.data('external', ship.external || false);
+                            if (ship.is_truncated) {
+                                o.attr('title', ship.name);
+                            }
 
                             el.append(o);
 
@@ -1451,7 +1454,7 @@ $.order_edit = {
                     if (methods.length) {
                         $.each(methods, function(i, method) {
                             // option
-                            var method_html = '<option value="'+method.id+'">'+method.name+'</option>';
+                            var method_html = `<option value="${method.id}" ${(method.is_truncated ? `title="${method.name}"` : '')}>${method.truncated_name}</option>`;
                             $payment_methods.append(method_html);
                             // custom html
                             if (method.id === selected_payment_method) {

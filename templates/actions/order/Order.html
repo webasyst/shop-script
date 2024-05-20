@@ -127,164 +127,162 @@
                     </div>
                     </div>
 
-                    <!-- order comment -->
                     {if $order.comment}
-                        <blockquote class="highlighted s-order-comment break-words">{$order.comment|escape}</blockquote>
+                        <blockquote class="alert info s-order-comment break-words"><i class="fas fa-comment custom-mr-8 opacity-30"></i>{$order.comment|escape}</blockquote>
                     {/if}
 
                     <!-- plugin hook: 'backend_order.info_section' -->
                     {* @event backend_order.%plugin_id%.info_section *}
                     {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.info_section))}{$_.info_section}{/if}{/foreach}{/if}
 
-                    <div class="flexbox full-width wrap-mobile space-16 s-order-shipping-and-payment">
+                    <div class="s-order-shipping-and-payment flexbox full-width wrap-mobile space-16 break-word">
                         {if ($shipping_address) || !empty($params.shipping_name)}
-                            <div class="width-50 width-100-mobile custom-mr-0-mobile s-order-shipping">
-                                <div class="s-block">
+                            <div class="s-block width-50 width-100-mobile custom-mr-0-mobile s-order-shipping">
 
-                                    <h6 class="custom-mb-8">
-                                        <span class="gray">[`Shipping`]{if !empty($params.shipping_name)} —{/if}</span> <span>{ifset($params.shipping_name)}</span>
-                                    </h6>
-                                    {if $shipping_address}
-                                        <p class="s-order-address small custom-mt-4">
-                                            {$shipping_address_html}
+                                <h6 class="custom-mb-8">
+                                    <span class="gray">[`Shipping`]{if !empty($params.shipping_name)} —{/if}</span> <span>{ifset($params.shipping_name)}</span>
+                                </h6>
+                                {if $shipping_address}
+                                    <p class="s-order-address small custom-mt-4">
+                                        {$shipping_address_html}
+                                    </p>
+                                    {if !empty($shipping_custom_fields)}
+                                        <p class="s-order-shipping-custom-fields">
+                                            {foreach $shipping_custom_fields as $f}
+                                                {$f.title}: {$f.value|escape}<br>
+                                            {/foreach}
                                         </p>
-                                        {if !empty($shipping_custom_fields)}
-                                            <p class="s-order-shipping-custom-fields">
-                                                {foreach $shipping_custom_fields as $f}
-                                                    {$f.title}: {$f.value|escape}<br>
-                                                {/foreach}
-                                            </p>
-                                        {/if}
-                                        {if $customer_delivery_date || $customer_delivery_time || $customer_delivery_date_str}
-                                            <p class="s-order-customer-delivery-date{if !empty($shipping_date)} grey{/if}">
-                                                [`Preferred shipping time:`]
+                                    {/if}
+                                    {if $customer_delivery_date || $customer_delivery_time || $customer_delivery_date_str}
+                                        <p class="s-order-customer-delivery-date{if !empty($shipping_date)} grey{/if}">
+                                            [`Preferred shipping time:`]
+                                            {if $customer_delivery_date}
+                                                <span class="customer-delivery-date">{wa_date('date', $customer_delivery_date, waDateTime::getDefaultTimezone())|escape}</span>
+                                            {elseif $customer_delivery_date_str}
+                                                <span>{$customer_delivery_date_str|escape}</span>
+                                            {/if}
+                                            {if $customer_delivery_time}
                                                 {if $customer_delivery_date}
-                                                    <span class="customer-delivery-date">{wa_date('date', $customer_delivery_date, waDateTime::getDefaultTimezone())|escape}</span>
-                                                {elseif $customer_delivery_date_str}
-                                                    <span>{$customer_delivery_date_str|escape}</span>
+                                                    &nbsp;
                                                 {/if}
-                                                {if $customer_delivery_time}
-                                                    {if $customer_delivery_date}
-                                                        &nbsp;
-                                                    {/if}
-                                                    {strip}
-                                                    <span class="customer-delivery-time-from">{$customer_delivery_time.from_hours|escape}:{$customer_delivery_time.from_minutes|escape}</span>
-                                                    –
-                                                    <span class="customer-delivery-time-to">{$customer_delivery_time.to_hours|escape}:{$customer_delivery_time.to_minutes|escape}</span>
-                                                    {/strip}
-                                                {/if}
-                                            </p>
-                                        {/if}
-
-                                    {/if}
-
-                                    {$_package = shopShipping::extractItemsTotal($order.params, true)}
-                                    {if $_package}
-                                        {if !empty($_package.package_total_weight)}
-                                            <p>[`Total order weight`]: {$_package.package_total_weight}</p>
-                                        {/if}
-                                        {if !empty($_package)}
-                                            <p title="[`Width × length × height`]">[`Total order dimensions`]: {$_package.package_total_width}&times;{$_package.package_total_length}×{$_package.package_total_height}</p>
-                                        {/if}
-                                    {/if}
-
-                                    {if $shipping_address}
-                                        {if !empty($courier)}
-                                            <!-- Courier -->
-                                            <h6>
-                                                <span class="gray">[`Courier`] —</span>
-                                                <a href="#/orders/{if isset($courier.enabled)}hash={'search/&params.courier_id='|urlencode|cat:$courier.id}{else}courier_contact_id={$courier.id}{/if}">{$courier.name|escape}</a>
-                                            </h6>
-                                        {/if}
-
-                                        {strip}
-                                            {$edit_shipping_details_available = false}
-                                            {if !empty($order.state)}
-                                                {$available_actions = $order.state->getActions()}
-                                                {$edit_shipping_details_available = !empty($available_actions.editshippingdetails)}
+                                                {strip}
+                                                <span class="customer-delivery-time-from">{$customer_delivery_time.from_hours|escape}:{$customer_delivery_time.from_minutes|escape}</span>
+                                                –
+                                                <span class="customer-delivery-time-to">{$customer_delivery_time.to_hours|escape}:{$customer_delivery_time.to_minutes|escape}</span>
+                                                {/strip}
                                             {/if}
-                                            {if $edit_shipping_details_available || !empty($shipping_date)}
-                                                <p class="small">
-                                                    {if !empty($shipping_date)}
-                                                        [`Shipping time`]: {wa_date('date', $shipping_date, waDateTime::getDefaultTimezone())|escape} {$shipping_time_start|escape}–{$shipping_time_end|escape}
-                                                        {if !empty($order.state)}<br>{/if}
-                                                    {/if}
-                                                </p>
-                                            {/if}
-                                        {/strip}
+                                        </p>
                                     {/if}
 
-                                    <!-- shipping plugin output -->
-                                    {if !empty($params.tracking_number)}
-                                        <h6>
-                                            <span class="gray">[`Shipment tracking number`] —</span>
-                                            <span>{$params.tracking_number|escape}</span>
-                                            <a href="javascript:void(0)" class="wf-action" data-action-id="editshippingdetails" data-container="#workflow-content"><i class="fas fa-edit fa-xs"></i></a>
+                                {/if}
+
+                                {$_package = shopShipping::extractItemsTotal($order.params, true)}
+                                {if $_package}
+                                    {if !empty($_package.package_total_weight)}
+                                        <p>[`Total order weight`]: {$_package.package_total_weight}</p>
+                                    {/if}
+                                    {if !empty($_package)}
+                                        <p title="[`Width × length × height`]">[`Total order dimensions`]: {$_package.package_total_width}&times;{$_package.package_total_length}×{$_package.package_total_height}</p>
+                                    {/if}
+                                {/if}
+
+                                {if $shipping_address}
+                                    {if !empty($courier)}
+                                        <!-- Courier -->
+                                        <h6 class="custom-mt-16">
+                                            <span class="gray">[`Courier`] —</span>
+                                            <a href="#/orders/{if isset($courier.enabled)}hash={'search/&params.courier_id='|urlencode|cat:$courier.id}{else}courier_contact_id={$courier.id}{/if}">{$courier.name|escape}</a>
                                         </h6>
                                     {/if}
-                                    {if !empty($tracking) && $order.state_id != 'completed'}
-                                        <blockquote class="plugin s-tracking">
-                                            {$tracking}
-                                        </blockquote>
-                                    {/if}
 
-                                    {if !empty($edit_shipping_details_available)}
-                                        <a href="javascript:void(0)" class="wf-action button light-gray smaller" data-action-id="editshippingdetails" data-container="#workflow-content"><i class="fas fa-truck opacity-30 custom-mr-4"></i> [`Shipping details`]</a>
-                                    {/if}
-                                </div>
+                                    {strip}
+                                        {$edit_shipping_details_available = false}
+                                        {if !empty($order.state)}
+                                            {$available_actions = $order.state->getActions()}
+                                            {$edit_shipping_details_available = !empty($available_actions.editshippingdetails)}
+                                        {/if}
+                                        {if $edit_shipping_details_available || !empty($shipping_date)}
+                                            <p class="small">
+                                                {if !empty($shipping_date)}
+                                                    [`Shipping time`]: {wa_date('date', $shipping_date, waDateTime::getDefaultTimezone())|escape} {$shipping_time_start|escape}–{$shipping_time_end|escape}
+                                                    {if !empty($order.state)}<br>{/if}
+                                                {/if}
+                                            </p>
+                                        {/if}
+                                    {/strip}
+                                {/if}
+
+                                <!-- shipping plugin output -->
+                                {if !empty($params.tracking_number)}
+                                    <h6 class="custom-mt-16">
+                                        <span class="gray">[`Shipment tracking number`] —</span>
+                                        <span>{$params.tracking_number|escape}</span>
+                                        <a href="javascript:void(0)" class="wf-action" data-action-id="editshippingdetails" data-container="#workflow-content"><i class="fas fa-edit fa-xs"></i></a>
+                                    </h6>
+                                {/if}
+                                {if !empty($tracking) && $order.state_id != 'completed'}
+                                    <blockquote class="plugin s-tracking">
+                                        {$tracking}
+                                    </blockquote>
+                                {/if}
+
+                                {if !empty($edit_shipping_details_available)}
+                                    <a href="javascript:void(0)" class="wf-action button light-gray smaller" data-action-id="editshippingdetails" data-container="#workflow-content"><i class="fas fa-truck opacity-30 custom-mr-4"></i> [`Shipping details`]</a>
+                                {/if}
+
                             </div>
                         {/if}
 
-                            <div class="width-50 width-100-mobile s-order-payment">
-                                <div class="s-block{if !empty($order.paid_date)} highlighted green{elseif !empty($order.auth_date)} highlighted yellow{/if}">
+                            <div class="s-block width-50 width-100-mobile s-order-payment{if !empty($order.paid_date)} highlighted green{elseif !empty($order.auth_date)} highlighted yellow{elseif $order.state_id == 'refunded'} highlighted orange{/if}">
 
-                                    <h6>
-                                        {if !empty($order.paid_date)}
-                                            <i class="fas fa-check-circle s-order-paid-checkmark"></i>
-                                        {/if}
-                                        <span class="gray">[`Payment`]</span>
-                                        {if !empty($params.payment_name)}
-                                            <span class="gray">—</span>
-                                            <span>{$params.payment_name|escape}</span>
-                                        {/if}
-                                    </h6>
-                                    {if $billing_address !== null}
-                                        <p class="s-order-address">{$billing_address}</p>
-                                    {/if}
-
+                                <h6>
                                     {if !empty($order.paid_date)}
-
-                                        <p class="small">{sprintf('[`Order was paid on %s`]', $order.paid_date|wa_date:'humandate')}</p>
-
-                                    {elseif !empty($order.auth_date)}
-
-                                        <p class="small"><em>{sprintf('[`Order payment was captured on %s`]', $order.auth_date|wa_date:'humandate')}</em></p>
-
-                                    {else}
-                                        {if $order.state_id === 'deleted'}
-                                            <hr class="custom-mb-8">
-                                            <div><p class="gray small"><i class="fas fa-info-circle"></i> [`Payment links are not eligible for deleted orders.`]</p></div>
-                                        {else}
-                                            <p class="small">[`Order was not paid yet`]</p>
-
-                                            <hr class="custom-mb-16">
-
-                                            <a href="[`https://www.shop-script.com/help/44627/payment-by-link/`]" target="_blank" class="h6 gray">[`Payment link`] <i class="fas fa-info-circle"></i></a>
-
-                                            <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre>
-                                            <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs opacity-30"></i></a>
-                                            <button class="button smaller nowrap js-copy-btn" data-copy-target="#js-payment-url" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]">[`Copy link`]</button>
-                                        {/if}
+                                        <i class="fas fa-check-circle s-order-paid-checkmark"></i>
                                     {/if}
+                                    <span class="gray">[`Payment`]</span>
+                                    {if !empty($params.payment_name)}
+                                        <span class="gray">—</span>
+                                        <span>{$params.payment_name|escape}</span>
+                                    {/if}
+                                </h6>
+                                {if $billing_address !== null}
+                                    <p class="s-order-address">{$billing_address}</p>
+                                {/if}
 
-                                </div>
+                                {if !empty($order.paid_date)}
+
+                                    <p class="small">{sprintf('[`Order was paid on %s`]', $order.paid_date|wa_date:'humandate')}</p>
+
+                                {elseif !empty($order.auth_date)}
+
+                                    <p class="small"><em>{sprintf('[`Order payment was captured on %s`]', $order.auth_date|wa_date:'humandate')}</em></p>
+
+                                {else}
+                                    {if $order.state_id === 'deleted'}
+                                        <div><p class="gray small">[`Payment links are not eligible for deleted orders.`]</p></div>
+                                    {else}
+                                        {if $order.state_id == 'refunded'}
+                                            <p class="small text-orange"><i class="fas fa-times"></i> <strong>[`Order payment was refunded`]</strong></p>
+                                        {else}
+                                            <p class="small"><em>[`Order was not paid yet`]</em></p>
+                                        {/if}
+
+                                        <h6 class="gray custom-mt-16">[`Payment link`]</h6>
+
+                                        {* <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre> *}
+                                        <button class="button smaller green nowrap js-copy-btn" data-copy-target="#js-payment-url" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]">[`Copy link`]</button>
+                                        <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs opacity-30"></i></a>
+                                    {/if}
+                                {/if}
+
                             </div>
 
                     </div>
 
                     <!-- order content -->
-
-                    <table id="s-order-items" class="s-order-items-table s-order-readable">
+                    {$visible_fulfilment_mode = !in_array($order.state_id, ['sent', 'completed', 'refunded', 'deleted'])}
+                    <table id="s-order-items"
+                        class="s-order-items-table s-order-readable{if $visible_fulfilment_mode} s-order-items-table--fulfilmented-mode{/if}">
                         {$_has_granted_calc_profit = $wa->user()->getRights('shop', 'reports')}
                         {$_sum_purchase_price = 0}
                         {$_total_items_profit = 0}
@@ -292,9 +290,28 @@
                         {if $order.items}
                             <thead>
                                 <tr>
-                                    <th colspan="2"></th>
-                                    <th class="align-right">[`Qty`]</th>
-                                    <th class="align-right">[`Total`]</th>
+                                    {if $visible_fulfilment_mode}
+                                        <th colspan="3" class="custom-pl-0">
+                                            {$_description = _w('Fulfilment mode is for your personal control of assembling an order. Checked items are not synced with the server and other users.')}
+                                            <div class="flexbox middle">
+                                                <button type="button" class="js-show-fulfilment-mode button nobutton rounded custom-m-0 custom-p-2 small"><i class="fas fa-tasks"></i> [`Fulfilment mode`] <span class="js-fulfilment-mode-counter badge small hidden custom-ml-4"></span></button>
+
+                                                <span id="tooltip-fulfilment-mode" data-wa-tooltip-content="{$_description}">
+                                                    <i class="fas fa-info-circle text-light-gray"></i>
+                                                </span>
+                                                <script>
+                                                    (function($) {
+                                                        $("#tooltip-fulfilment-mode").waTooltip();
+                                                    })(jQuery);
+                                                </script>
+                                            </div>
+                                            <p class="hint-fulfilment-mode hint custom-my-8 custom-ml-4 semibold text-gray">{$_description}</p>
+                                        </th>
+                                    {else}
+                                        <th colspan="2"></th>
+                                    {/if}
+                                    <th class="align-right valign-bottom nowrap">[`Qty`]</th>
+                                    <th class="align-right valign-bottom nowrap">[`Total`]</th>
                                 </tr>
                             </thead>
 
@@ -312,8 +329,23 @@
                                         {$link_edit = "?action=products#/services/{$item.service_id}/"}
                                     {/if}
 
-                                    <tr class="s-product-wrapper {if $item.type == 'service'}is-product small{/if}" data-id="{$item.id}" aria-label="">
-                                        <td class="min-width custom-mx-auto-mobile valign-top">
+                                    <tr class="s-product-wrapper{if $item.type == 'service'} is-product small{/if}"
+                                        data-id="{$item.id}" data-type="{$item.type}"{if $item.parent_id} data-parent="{$item.parent_id}"{/if}>
+                                        {if $visible_fulfilment_mode}
+                                            <td class="js-product-fulfilment-td s-product-fulfilment min-width valign-top">
+                                                <label class="large">
+                                                    <span class="wa-checkbox">
+                                                        <input type="checkbox" name="order_item" value="{$item.id}">
+                                                        <span>
+                                                            <span class="icon">
+                                                                <i class="fas fa-check"></i>
+                                                            </span>
+                                                        </span>
+                                                    </span>
+                                                </label>
+                                            </td>
+                                        {/if}
+                                        <td class="s-product-image min-width custom-mx-auto-mobile valign-top">
                                             {if $item.type != 'service'}
                                                 {if !empty($item.image_id)}
                                                     {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '96x96', ["class" => "s-ordered-product-image"])}
@@ -356,10 +388,10 @@
                                                 {/if}
 
                                                 {if !empty($item.stock)}
-                                                    <br><span class="small">@{$item.stock.name|escape}</span>
+                                                    <br><span class="smaller">@{$item.stock.name|escape}</span>
                                                 {/if}
                                                 {if !empty($item.stock_icon)}
-                                                    <br>{$item.stock_icon}
+                                                    <br><span class="smaller">{$item.stock_icon}</span>
                                                 {/if}
 
                                                 {if $item.product_codes}
@@ -478,8 +510,8 @@
                                 </tr>
                             {/if}
                             <tr class="bold larger">
-                                <td colspan="2" class="width-100-mobile"></td>
-                                <td class="align-right">[`Total`]</td>
+                                <td colspan="2" class="width-100-mobile custom-p-0-mobile"></td>
+                                <td class="align-right custom-pl-0-mobile">[`Total`]</td>
                                 <td class="align-right nowrap">
                                     <div>{wa_currency_html($order.total, $order.currency)}</div>
                                     {if $_has_granted_calc_profit && $_sum_purchase_price}
@@ -533,7 +565,7 @@
                                             {/if}
                                         {else}
                                             {if $row.text}
-                                                <p>{$row.text|regex_replace:'@\<br\s*/?\>\r?(\n)@':'$1'|nl2br}</p>
+                                                {$row.text|regex_replace:'@\<br\s*/?\>\r?(\n)@':'$1'|nl2br}
                                             {/if}
                                         {/if}
                                     </div>

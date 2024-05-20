@@ -29,7 +29,7 @@
                 {continue}
             {/if}
         {/if}
-        <li>
+        <li class="rounded">
             {if !empty($_item["submenu"])}
                 <div class="item js-group-toggle js-{$_item["id"]}-toggle">
                     <span class="s-icon-main icon">{$_item["icon"]}</span>
@@ -51,7 +51,7 @@
                                 {continue}
                             {/if}
                         {/if}
-                        <li>
+                        <li class="rounded">
                             <a class="item" href="{$_sub_item["url"]|escape}">
                                 <span class="s-name">{$_sub_item["name"]|escape}</span>
                             </a>
@@ -79,7 +79,10 @@
 {else}
     <div class="s-products-page-menu" id="js-products-page-menu" style="visibility: hidden">
 {/if}
-        <div class="sidebar flexbox width-adaptive hide-scrollbar mobile-friendly">
+        <div class="sidebar flexbox width-adaptive hide-scrollbar mobile-friendly overflow-visible">
+            {if $wa->isSingleAppMode()}
+                {$wa->headerSingleAppUser()}
+            {/if}
             <nav class="sidebar-mobile-toggle">
                 <div class="box align-center">
                     <a href="javascript:void(0);">
@@ -89,41 +92,49 @@
                 </div>
             </nav>
             <div class="sidebar-body">
-                <ul class="menu s-main-menu custom-mb-0-mobile">
-                    {_sidebar_menu}
-                </ul>
+                <div class="box custom-py-0">
+                    <ul class="menu s-main-menu custom-mb-0-mobile">
+                        {_sidebar_menu}
+                    </ul>
 
-                <!-- plugin hook: 'backend_products.sidebar_section' -->
-                {* @event backend_products.%plugin_id%.sidebar_section *}
-                {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
+                    <!-- plugin hook: 'backend_products.sidebar_section' -->
+                    {* @event backend_products.%plugin_id%.sidebar_section *}
+                    {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
 
-                <div class="desktop-and-tablet-only js-overlapped-element" style="margin-top: -1.5rem;"></div>
+                    <div class="desktop-and-tablet-only js-overlapped-element" style="margin-top: -1.5rem;"></div>
+                </div>
             </div>
 
             <div class="sidebar-footer js-overflowing-gradient">
-                <ul class="menu s-main-menu custom-mb-0 custom-mt-4 custom-mt-0-mobile">
-                    {_sidebar_menu placement="footer"}
-                    <li>
-                        <a class="item" href="[`https://support.webasyst.com/`]" target="_blank">
-                            <span class="s-icon-main icon"><i class="fas fa-question-circle"></i></span>
-                            <span class="s-name">[`Help`] <span class="small custom-ml-4"><i class="fas fa-external-link-alt s-menu-link-new-window"></i></span></span>
-                        </a>
-                    </li>
-                    <li class="s-toggle-wrapper">
-                        <div class="item js-toggle-products-page-sidebar">
-                            <span class="s-icon-main icon">
-                                <i class="fas fa-caret-left"></i>
-                                <i class="fas fa-caret-right"></i>
-                            </span>
-                            <span class="s-name">{$_locales["unpin_menu"]}</span>
+                <div class="box custom-py-0">
+                    <ul class="menu s-main-menu custom-mb-0 custom-mt-4 custom-mt-0-mobile">
+                        {_sidebar_menu placement="footer"}
+                        <li class="rounded s-toggle-wrapper">
+                            <div class="item js-toggle-products-page-sidebar">
+                                <span class="s-icon-main icon">
+                                    <i class="fas fa-caret-left"></i>
+                                    <i class="fas fa-caret-right"></i>
+                                </span>
+                                <span class="s-name">{$_locales["unpin_menu"]}</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="box custom-mb-4">
+                    <div class="blank box rounded">
+                        <div class="flexbox space-4 s-menu-link-storefront-status semibold">
+                            {$has_design_access = $wa->userRights('design')}
+                            {if $has_design_access}<span style="line-height: 1.125;"><i class="fas fa-circle text-green smallest custom-mr-2"></i></span>{/if}
+                            <span class="heading wide custom-m-0">[`Storefront`]</span>
+                            {if $has_design_access}<a href="{$wa_app_url}?action=storefronts" title="[`Settings`]"><i class="fas fa-cog text-light-gray"></i></a>{/if}
                         </div>
-                    </li>
-                </ul>
-                <div class="s-main-menu box align-center custom-pb-24 custom-pt-16">
-                    <a href="{$frontend_url}" target="_blank" class="s-menu-link button white small rounded">
-                        <span class="s-name">[`Open storefront`]</span>
-                        <i class="s-icon fas fa-external-link-alt fa-xs s-menu-link-new-window"></i>
-                    </a>
+                        <a href="{$frontend_url}" rel="noopener" target="_blank">
+                            <div class="flexbox middle space-4">
+                                <div class="s-menu-link-storefront-status semibold text-ellipsis">{$frontend_url_label|escape}</div>
+                                <i class="s-icon fas fa-external-link-alt fa-xs s-menu-link-new-window"></i>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

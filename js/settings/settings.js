@@ -7,7 +7,8 @@ $.extend($.settings = $.settings || {}, {
         backend_url: '/webasyst/',
         shop_marketing_url: '/webasyst/shop/marketing/',
         loading: '<i class="fas fa-spinner fa-spin"></i>',
-        path: '#/'
+        path: '#/',
+        installer_access: false
     },
 
     path: {

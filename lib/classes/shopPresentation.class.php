@@ -249,9 +249,12 @@ class shopPresentation
     {
         $enabled_columns = $this->presentation['columns'];
         $all_columns = $this->getColumnsList();
-        $columns = array_filter($enabled_columns, function ($column) use ($all_columns) {
-            return isset($all_columns[$column['column_type']]);
-        });
+        $columns = [];
+        foreach ($enabled_columns as $column) {
+            if (isset($all_columns[$column['column_type']])) {
+                $columns[] = $column;
+            }
+        }
         $sort = max(array_column($columns, 'sort'), 0);
         $column_names = array_column($columns, 'column_type');
         $required_columns = self::getRequiredColumns($this->getField('view'));

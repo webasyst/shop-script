@@ -1,5 +1,10 @@
 {$stocks_count = count($stocks)}
 
+{* After filtred by stock_id *}
+{if $stocks_count > 1 && !empty($stock_id) && isset($stocks[$stock_id])}
+    {$stocks = [$stock_id => $stocks[$stock_id]]}
+{/if}
+
 {function name="product_row" row=[]}
     <td>
         <div class="s-stock-productname-column">
@@ -43,31 +48,60 @@
             <tr>
                 <td  class="min-width"><span class="icon text-gray">{$row['icon']}</span></td>
                 {product_row row=$row}
+                <td title="{strip_tags($row['description'])}" class="s-stock-productname-column nowrap">
+                    {$row['description']}
+                </td>
                 {foreach $stocks as $stock}
-                    <td class="s-stock-column" title="{$stock.name|escape}">
+                    <td class="s-stock-column nowrap" title="[`In stock change and the remaining balance after`] ({$stock.name|escape})">
                         {if $stock['id'] == $row['stock_id']}
                             {shopHelper::getStockCountIcon($row['after_count'], $row['stock_id'])}
-                            {if $row['after_count'] !== null}{$row['after_count']}{else}∞{/if}
-                            <span class="hint">
-                                {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
-                            </span>
+                            {if $row['after_count'] !== null}
+                                {if $row['type'] == 'transfer'}
+
+                                    {* outline diff *}
+
+                                    {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
+                                    <span class="hint">
+                                        {$row['after_count']}
+                                    </span>
+                                {else}
+
+                                    {* outline new value *}
+                                    {$row['after_count']}
+
+                                {/if}
+                            {else}
+                                ∞
+                            {/if}
                         {/if}
                     </td>
                 {/foreach}
-                <td class="s-stock-column" title="[`All stocks`]">
+                <td class="s-stock-column nowrap" title="[`All stocks`]">
                     {if $row.sku_count_show}
                         {shopHelper::getStockCountIcon($row['after_count'])}
-                        {if $row['after_count'] === null}∞{else}{$row['after_count']}{/if}
-                        {if $row['stock_name']}{$row['stock_name']|escape}{/if}
-                        <span class="hint">
-                            {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
-                        </span>
+
+                        {if $row['after_count'] !== null}
+                            {if $row['type'] == 'transfer'}
+
+                                {* outline diff *}
+
+                                {if $row['diff_count'] > 0}+{$row['diff_count']}{else}{$row['diff_count']}{/if}
+                                <span class="hint">
+                                    {$row['after_count']}
+                                </span>
+                            {else}
+
+                                {* outline new value *}
+                                {$row['after_count']}
+
+                            {/if}
+                        {else}
+                            ∞
+                        {/if}
+
                     {/if}
                 </td>
-                <td title="{strip_tags($row['description'])}">
-                    <div>{$row['description']}<i class="shortener"></i></div>
-                </td>
-                <td class="gray align-right"><div>{$row['datetime']|wa_datetime:humandatetime}</div></td>
+                <td class="gray align-right nowrap">{$row['datetime']|wa_datetime:humandatetime}</td>
             </tr>
         {/foreach}
     {/capture}
@@ -98,28 +132,28 @@
     {/strip}{/function}
 
     {if $log}
-        <div class="s-table-scrollable-x">
+        <div class="table-scrollable-x">
         {if $stocks_count < 1}
-            <table class="s-stocks-log bigdata">
+            <table class="s-stocks-log bigdata single-lined">
                 <tr class="header white">
                     <th class="min-width"></th>
                     <th></th>
-                    <th class="s-stock-column">[`Quantity`]</th>
                     <th>[`Description`]</th>
+                    <th class="s-stock-column">[`Quantity`]</th>
                     <th></th>
                 </tr>
                 {$log_list}
             </table>
         {else}
-            <table class="s-stocks-log bigdata">
+            <table class="s-stocks-log bigdata single-lined">
                 <tr class="header white">
                     <th class="min-width"></th>
+                    <th></th>
                     <th></th>
                     {foreach $stocks as $stock}
                         <th class="s-stock-column" title="{$stock.name|escape}"><div>{$stock.name|escape}<i class="shortener"></i></div></th>
                     {/foreach}
                     <th class="s-stock-column"></th>
-                    <th></th>
                     <th></th>
                 </tr>
                 {$log_list}
@@ -130,11 +164,13 @@
         {$lazy_loading_footer}
 
     {else}
-        {if isset($stocks[$stock_id])}
-            {sprintf('[`There are no stock update records on @%s yet.`]', $stocks[$stock_id]['name'])}
-        {else}
-            [`There are no stock update records yet.`]
-        {/if}
+        <p class="small">
+            {if isset($stocks[$stock_id])}
+                {sprintf('[`There are no stock update records on @%s yet.`]', $stocks[$stock_id]['name'])}
+            {else}
+                [`There are no stock update records yet.`]
+            {/if}
+        </p>
     {/if}
 
 {else}

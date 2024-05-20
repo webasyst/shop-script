@@ -18,9 +18,13 @@ class shopProdListSidebarAction extends waViewAction
         $contact_settings_model = new waContactSettingsModel();
         $sidebar_menu_state = $contact_settings_model->getOne(wa()->getUser()->getId(), 'shop', 'sidebar_menu_state');
 
+        $absolute_frontend_url = waIdna::dec(wa()->getRouteUrl('shop/frontend', true));
+        $frontend_url_label = ifset(ref(explode('//', $absolute_frontend_url)), 1, $absolute_frontend_url);
+
         $this->view->assign([
             'sidebar_menu_state' => $sidebar_menu_state === null ? 1 : (int)$sidebar_menu_state,
-            'frontend_url'       => wa()->getRouteUrl('shop/frontend')
+            'frontend_url'       => wa()->getRouteUrl('shop/frontend'),
+            'frontend_url_label' => $frontend_url_label,
         ]);
         $this->setTemplate('templates/actions/prod/main/ListSidebar.html');
     }

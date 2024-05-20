@@ -1,6 +1,6 @@
 {capture assign="_component_checkbox"}
     <component v-bind:is="tag" class="wa-checkbox">
-        <input type="checkbox" v-bind:checked="modelValue" v-bind:id="field_id" v-on:change="onChange" v-bind:disabled="prop_disabled" tabindex="-1">
+        <input type="checkbox" tabindex="-1" v-bind:disabled="prop_disabled" v-bind:checked="modelValue" v-bind:id="field_id" v-on:change="onChange" v-on:click="onClickInput">
         <span>
             <span class="icon"><i class="fas fa-check"></i></span>
         </span>

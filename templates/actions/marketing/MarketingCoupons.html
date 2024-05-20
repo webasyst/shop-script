@@ -1,15 +1,11 @@
 {* PAGE *}
 <div class="s-coupons-page content flexbox" id="js-coupons-page">
 
-    <div class="sidebar bordered-right width-adaptive-wider blank">
+    <div class="sidebar width-adaptive-wider blank">
 
-      <div class="box">
-
-        <ul class="menu">
-            <li class="rounded bottom-padded">
-                <a href="{$marketing_url}coupons/create/"><i class="fas fa-plus-circle text-green"></i> <span>[`New coupon`]</span></a>
-            </li>
-        </ul>
+        <div class="box custom-mt-8">
+            <a href="{$marketing_url}coupons/create/" class="button light-gray full-width"><i class="fas fa-tag text-green"></i> <span>[`New coupon`]</span></a>
+        </div>
 
         {if $pages_count > 1 || strlen($coupon_name)}
             <form class="s-coupon-search state-with-inner-icon left width-100">
@@ -19,7 +15,7 @@
         {/if}
 
 
-        <ul class="menu">
+        <ul class="menu large">
             {foreach $coupons as $_coupon}
                 {$_is_active = false}
                 {if !empty($coupon) && $coupon.id === $_coupon.id}
@@ -31,10 +27,10 @@
                     {$_classes[] = "opacity-50"}
                 {/if}
                 {if !empty($_is_active)}
-                    {$_classes[] = "selected"}
+                    {$_classes[] = "accented"}
                 {/if}
 
-                <li class="rounded {$_classes|join:" "}">
+                <li class="{$_classes|join:" "}">
                     {$params = []}
                     {if $page_number > 1}
                         {$params['page'] = $page_number}
@@ -60,22 +56,16 @@
             </div>
         {/if}
 
-      </div>
     </div>
 
     <div class="content">
 
         <div class="article">
-        <div class="article-body">
+            <div class="article-body">
 
-        {* HEADER *}
-        <header class="s-page-header custom-mb-32">
-            <h1 class="s-title">[`Discount coupons`]</h1>
-        </header>
+                {include file="./MarketingCouponsEditor.html" inline}
 
-        {include file="./MarketingCouponsEditor.html" inline}
-
-        </div>
+            </div>
         </div>
 
     </div>

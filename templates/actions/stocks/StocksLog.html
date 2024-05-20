@@ -1,8 +1,30 @@
+<div class="box contentbox wide" id="s-stockslog-container">
+
+<h1>[`Stock log`]</h1>
+
+{if $stocks && count($stocks) > 1}
+<div class="s-stocks-chips-wrapper">
+    <ul class="js-stocks-log chips small">
+        <li class="rounded{if !$stock_id} accented{/if}">
+            <a href="#/stocks/log/">[`All stocks`]</a>
+        </li>
+        {foreach $stocks as $stock}
+        <li class="rounded{if $stock.id == $stock_id} accented{/if}">
+            <a href="#/stocks/log/{$stock.id}/">{$stock.name|escape}</a>
+        </li>
+        {/foreach}
+        <li class="transparent rounded">
+            <a href="?action=settings#/stock"><i class="fas fa-cog"></i> [`Stock settings`]</a>
+        </li>
+    </ul>
+</div>
+{/if}
+
 {$container_id = uniqid('s-stocks-log-')}
-<div id="{$container_id}">
+<div id="{$container_id}" class="s-grid">
     {include './../product/include.stocks_log.html' inline}
 </div>
-
+</div>
 {if !$lazy}
     <script>
 
@@ -18,16 +40,39 @@
             }
         });
 
-        {if $wa->get('transfer_id') > 0}
-            $('.s-transfer-list-container').first().trigger('info', [{$wa->get('transfer_id')}]);
-        {/if}
-
         container.off('click.{$container_id}').on('click.{$container_id}', '.s-transfer-log-link', function (e) {
             e.preventDefault();
-            var id = $(this).data('transferId');
-            $('.s-transfer-list-container').first().trigger('info', [id]);
+            const id = $(this).data('transferId');
+            const $tr = $(this).closest('tr');
+
+            const $transfer_edit = $('.s-transfer-edit-item');
+            if ($transfer_edit.length) {
+                return;
+            }
+
+            $.products.transferInfo(id).then(function (html) {
+                const $form = $(html).find('.s-transfer-info').addClass('dialog-body width-100-mobile').css({ width: '800px' });
+                $form.find('.s-transfer-info__content').addClass('dialog-content');
+                $form.find('.s-transfer-info__footer').addClass('dialog-footer');
+                $form.find('.js-form-close').toggleClass('js-form-close js-close-dialog');
+
+                const $dialog = $(`<div><div class="dialog">
+                                <div class="dialog-background"></div>
+                                ${ $form.parent().html() }
+                            </div></div>`);
+
+               $.waDialog({
+                    html: $dialog.html(),
+                    onOpen: function (_, d) {
+                        d.$block.off('afterSubmit').on('afterSubmit', function (_, r) {
+                            if (r && r.status === 'ok') {
+                                d.close();
+                            }
+                        });
+                    }
+                });
+            });
         });
 
-
-   </script>
+    </script>
 {/if}

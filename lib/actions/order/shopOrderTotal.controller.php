@@ -29,7 +29,7 @@ class shopOrderTotalController extends waJsonController
         // To calculate all shipping rates, need extract clean ID
         $params = waRequest::request('params', array());
         $shipping_id = ifset($params, 'shipping_id', 0);
-        $this->response['shipping_methods'] = $order->getShippingMethods(false, $shipping_id);
+        $this->response['shipping_methods'] = shopHelper::truncateFieldNameInArray($order->getShippingMethods(false, $shipping_id), 64);
         $this->response['shipping_method_ids'] = array_keys($this->response['shipping_methods']);
 
         $order_has_frac = false;
@@ -39,7 +39,7 @@ class shopOrderTotalController extends waJsonController
             $order_has_units = shopUnits::itemsHaveCustomStockUnits($order['items']);
         }
         $payment_methods = shopHelper::getPaymentMethods($order, $order_has_frac, $order_has_units);
-        $this->response['payment_methods'] = array_values($payment_methods);
+        $this->response['payment_methods'] = shopHelper::truncateFieldNameInArray(array_values($payment_methods), 64);
         $this->response['discount'] = $order->discount;
         $this->response['discount_description'] = $order->discount_description;
         $this->response['errors'] = $order->errors();

@@ -71,34 +71,170 @@
 ]}
 
 {/strip}
+<style>
+    .s-settings > .content.not-blank { background: var(--background-color-blank) !important; }
+    .s-settings > .content .article-body { padding-top: 2rem; }
+    .s-settings > .shop-second-sidebar { border-right: 1px solid var(--border-color-soft); }
 
+    /* Animation css */
+    .stars-animation-container {
+        position: relative;
+    }
+    .stars-animation {
+        position: absolute;
+        display: flex;
+        gap: 5rem;
+        top: 50%;
+        left: 50%;
+        transform: translate(-58%, -100%);
+        min-width: 300px;
+    }
+
+    .stars-animation--left, .stars-animation--right {
+        flex: auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        max-height: 100px;
+    }
+    .stars-animation span {
+        position: relative;
+        height: 24px;
+        width: 24px;
+        background: url('{$wa_url}wa-apps/shop/img/backend/settings/premium/star-bg.svg?v={$wa->version()}') no-repeat center;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+        animation-duration: calc(40s / var(--star-i));
+        animation-fill-mode: forwards;
+    }
+
+    .stars-animation--left span:nth-child(n + 5) { /*n + 5 or odd */
+        animation-direction: normal;
+        animation-name: animationStarsLeft
+    }
+    .stars-animation--left span:nth-child(-n + 5) { /*-n + 5 or even*/
+        animation-direction: normal;
+        animation-name: animationStarsLeft2N;
+    }
+    .stars-animation--right span:nth-child(n + 5) { /*n + 5 or odd */
+        animation-direction: normal;
+        animation-name: animationStarsRight
+    }
+    .stars-animation--right span:nth-child(-n + 5) { /*-n + 5 or even*/
+        animation-direction: normal;
+        animation-name: animationStarsRight2N;
+    }
+
+    @keyframes animationStarsLeft {
+        0% {
+            transform: translate(3rem, 1rem) scale(0.4);
+        }
+        90% {
+            transform: translate(-2rem, 0) scale(1) rotate(90deg);
+            opacity: .5;
+        }
+        100% {
+            opacity: 0;
+            transform: scale(0);
+        }
+    }
+    @keyframes animationStarsLeft2N {
+        0% {
+            transform: translate(3rem, 2rem) scale(0);
+        }
+        90% {
+            transform: translate(-2rem, 0) scale(1) rotate(90deg);
+            opacity: .5;
+        }
+        100% {
+            opacity: 0;
+            transform: scale(0);
+        }
+    }
+
+    @keyframes animationStarsRight {
+        0% {
+            transform: translate(-3rem, 2rem) scale(0.4);
+        }
+        90% {
+            transform: translate(2rem, 0) scale(1) rotate(90deg);
+            opacity: .5;
+        }
+        100% {
+            opacity: 0;
+            transform: scale(0);
+        }
+    }
+    @keyframes animationStarsRight2N {
+        0% {
+            transform: translate(-2rem, 1rem) scale(0);
+        }
+        90% {
+            transform: translate(-2rem, 0) scale(1) rotate(90deg);
+            opacity: .5;
+        }
+        100% {
+            opacity: 0;
+            transform: scale(0);
+        }
+    }
+
+    .s-premium-star { animation: animationStar 5s infinite; }
+    @keyframes animationStar {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.3);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+    /* Animation css */
+</style>
 <div class="s-settings-premium-page" id="js-settings-premium-page" style="visibility: hidden;">
     {* @event backend_settings_premium.top *}
     {if !empty($backend_settings_premium)}{foreach $backend_settings_premium as $_}{ifset($_.top)}{/foreach}{/if}
 
-    <div class="s-page-header">
-        <h1 class="align-center h2-mobile">[`Shop-Script at its max!`]</h1>
-        <p class="align-center large width-70 width-100-mobile custom-mx-auto">[`Awesome advanced features and free unlimited updates with no extra subscriptions.`]</p>
-    </div>
-    <div class="s-page-body" id="js-information-block-place">
+    <div class="s-page-header s-premium-block custom-py-20">
+        <div class="stars-animation-container">
+            <div class="s-premium-star"></div>
+            <div class="stars-animation">
+                <div class="stars-animation--left">
+                    {for $i=0 to 25}
+                        <span style="--star-i:{10|rand:30};top:{10|rand:50}px;left:{10|rand:50}px;"></span>
+                    {/for}
+                </div>
+                <div class="stars-animation--right">
+                    {for $i=0 to 25}
+                        <span style="--star-i:{10|rand:30};top:{10|rand:50}px;left:{10|rand:50}px;"></span>
+                    {/for}
+                </div>
+            </div>
+        </div>
+        <h1 class="align-center h2-mobile custom-m-0">[`Shop-Script at its max!`]</h1>
+        <p class="align-center width-70 width-100-mobile custom-mx-auto" style="font-size: 18px;max-width: 550px;">[`Больше возможностей и бесплатные безлимитные обновления без дополнительных подписок навсегда.`]</p>
+
         {if empty($_is_premium)}
             <div class="s-information-block align-center">
-                <div class="btn-block">
-                    <i class="fas fa-star text-yellow" style="font-size: 5rem;"></i>
+                <div class="s-btn-block">
                     {if 1||!empty($_has_license)}
-                        <div class="s-plan semibold custom-my-16 italic">{sprintf(_w("Your current license is %s."), _w("PRO"))}</div>
-                        <a href="{$_buy_premium_link_url|escape}" class="button yellow rounded larger">[`Switch to PREMIUM`]</a>
+                        <div class="s-plan semibold italic custom-my-16">{sprintf(_w("Your current license is %s."), _w("PRO"))}</div>
+                        <a href="{$_buy_premium_link_url|escape}" class="s-premium-btn button rounded large">[`Подключить «Премиум»`]</a>
                     {else}
-                        <div class="s-plan state-caution custom-my-16 italic">
-                            [`No valid license detected.`]
-                        </div>
-                        <a href="{$_buy_premium_link_url|escape}" class="button green rounded larger">[`Acquire license`]</a>
+                        <div class="s-plan state-caution italic custom-my-16">[`No valid license detected.`]</div>
+                        <a href="{$_buy_premium_link_url|escape}" class="button green rounded large">[`Acquire license`]</a>
                     {/if}
-                    <h6 class="align-center text-yellow custom-mt-16">[`Free updates forever!`]</h6>
+                    {*<h6 class="align-center text-yellow custom-mt-16">[`Free updates forever!`]</h6>*}
+
                 </div>
             </div>
         {/if}
+    </div>
 
+    <div class="s-page-body" id="js-information-block-place">
         <div class="s-features-list custom-mt-24-mobile custom-mb-24-mobile">
             {foreach $_features as $_feature}
                 <div class="flexbox s-feature-wrapper vertical-mobile custom-mt-24-mobile">

@@ -368,5 +368,36 @@
         </div>
     </div>
 </div>
+
+<div class="dialog width400px height200px" id="dialog-switch-ui" style="display:none;">
+    <div class="dialog-background"></div>
+    <div class="dialog-window">
+        <div class="dialog-content">
+            <div class="dialog-content-indent">
+                <h2>[`Supported in the new Webasyst 2 UI mode only`]</h2>
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <div class="dialog-buttons-gradient">
+                <button type="button" class="js-switch-to-new-ui button green">[`Switch to the new UI`]</button>
+                [`or`] <a class="cancel" href="javascript:void(0);">[`cancel`]</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(function () {
+            $.wa.dialogSwitchToNewUI = function () {
+                $('#dialog-switch-ui').waDialog({
+                    onLoad: function () {
+                        $(this).find('.js-switch-to-new-ui').one('click', function () {
+                            _setCookie('force_set_wa_backend_ui_version', '2.0', 180);
+                            window.location.reload();
+                        });
+                    }
+                });
+            };
+        });
+    </script>
+</div>
 </body>
 </html>

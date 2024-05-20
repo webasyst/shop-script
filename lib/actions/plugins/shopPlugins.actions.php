@@ -10,19 +10,12 @@ class shopPluginsActions extends waPluginsActions {
         if (!$current_user->getRights('shop', 'settings')) {
             throw new waException(_w('Access denied'));
         }
-
-        if (wa()->whichUI() !== '1.3') {
-            if (!waRequest::get('is_settings')) {
-                if (!$current_user->isAdmin('shop') || !$current_user->isAdmin('installer')) {
-                    throw new waRightsException(_w('Access denied'));
-                }
-            }
-        }
     }
 
     public function defaultAction() {
+        $this->setLayout(new shopBackendLayout());
+
         if (wa()->whichUI() === '1.3') {
-            $this->setLayout(new shopBackendLayout());
             $this->layout->assign('no_level2', true);
             $this->getView()->assign([
                 'container_class'       => 'content left15px right15px s-nolevel2-box',
@@ -34,8 +27,6 @@ class shopPluginsActions extends waPluginsActions {
 </div>',
             ]);
         } else {
-
-            $this->setLayout(new shopBackendLayout());
 
             $this->getView()->assign([
                 "plugins_list_url"     => $this->getListUrl(waRequest::request('page')),
@@ -49,18 +40,22 @@ class shopPluginsActions extends waPluginsActions {
 
     protected function getListUrl($type)
     {
+        if (!wa()->getUser()->isAdmin('installer')) {
+            return null;
+        }
         $installer_url = wa()->getConfig()->getBackendUrl(true).'installer/';
         switch ($type) {
-            case 'home':
-                return $installer_url.'?module=store&action=inApp';
             case 'apps':
                 return $installer_url.'?module=store&action=inApp&filter[type]=app';
             case 'onlinecash':
                 return $installer_url.'?module=store&action=inApp&filter[tag]=fz54';
             case 'marketplaces':
                 return $installer_url.'?module=plugins&action=view&slug=shop&filter[tag]=marketplaces';
-            default:
+            case 'topplugins':
                 return $installer_url . '?module=plugins&action=view&slug=shop';
+            case 'home':
+            default:
+                return $installer_url.'?module=store&action=inApp';
         }
     }
 
@@ -89,11 +84,11 @@ class shopPluginsActions extends waPluginsActions {
         }
 
         if (wa()->whichUI() !== '1.3') {
-            if ($action == 'installed') {
+            //if ($action == 'installed') {
                 return $this->getConfig()->getRootPath() . '/wa-system/plugin/templates/Plugins.html';
-            }else{
-                return $this->getConfig()->getAppPath('templates/actions/plugins/') . 'PluginsList.html';
-            }
+            //}else{
+            //    return $this->getConfig()->getAppPath('templates/actions/plugins/') . 'PluginsList.html';
+            //}
         }
 
         return parent::getTemplatePath($action);

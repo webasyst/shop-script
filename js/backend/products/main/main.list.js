@@ -274,12 +274,11 @@
 
                 "component-checkbox": {
                     props: ["modelValue", "label", "disabled", "field_id"],
-                    emits: ["update:modelValue", "change"],
+                    emits: ["update:modelValue", "change", "click-input"],
                     data: function() {
-                        var self = this;
                         return {
-                            tag: (self.label !== false ? "label" : "span"),
-                            id: (typeof self.field_id === "string" ? self.field_id : "")
+                            tag: (this.label !== false ? "label" : "span"),
+                            id: (typeof this.field_id === "string" ? this.field_id : "")
                         }
                     },
                     computed: {
@@ -289,10 +288,12 @@
                     delimiters: ['{ { ', ' } }'],
                     methods: {
                         onChange: function(event) {
-                            var self = this;
                             var val = event.target.checked;
-                            self.$emit("update:modelValue", val);
-                            self.$emit("change", val);
+                            this.$emit("update:modelValue", val);
+                            this.$emit("change", val);
+                        },
+                        onClickInput: function(event) {
+                            this.$emit("click-input", event);
                         }
                     }
                 },
@@ -1083,6 +1084,35 @@
                     });
                 }
             };
+            const SelectWithShiftMixin = {
+                data() {
+                    return {
+                        last_checked_index: null
+                    };
+                },
+                methods: {
+                    onClickItem: function (e, index) {
+                        const is_selected = e.target.checked;
+                        if (!e.shiftKey || this.last_checked_index === index) {
+                            this.last_checked_index = is_selected ? index : null;
+                            return;
+                        }
+
+                        if (this.last_checked_index === null) {
+                            for (let i = 0; i !== index; i++) {
+                                this.products[i].states.selected = is_selected;
+                            }
+
+                        } else {
+                            const dir = index > this.last_checked_index ? 1 : -1;
+                            for (let i = this.last_checked_index; i !== index; i += dir) {
+                                this.products[i].states.selected = is_selected;
+                            }
+                        }
+                        this.last_checked_index = is_selected ? index : null;
+                    }
+                }
+            };
 
             $.vue_app = Vue.createApp({
                 data() {
@@ -1094,6 +1124,7 @@
                         keys         : that.keys
                     }
                 },
+                mixins: [SelectWithShiftMixin],
                 components: {
                     "component-dropdown-presentations": {
                         emits: ["change", "success"],
@@ -2755,7 +2786,7 @@
                         template: that.components["component-empty-content"],
                     },
                     "component-product-thumb": {
-                        props: ["product"],
+                        props: ["product", "index"],
                         template: that.components["component-product-thumb"],
                         delimiters: ['{ { ', ' } }'],
                         components: {
@@ -3002,6 +3033,9 @@
                             },
                         },
                         methods: {
+                            onClickItem: function () {
+                                this.$parent.onClickItem.call(null, ...arguments);
+                            }
                         }
                     },
                     "component-products-table": {
@@ -5875,6 +5909,9 @@
                                     });
                                     return columns;
                                 }
+                            },
+                            onClickItem: function () {
+                                this.$parent.onClickItem.call(null, ...arguments);
                             }
                         }
                     },

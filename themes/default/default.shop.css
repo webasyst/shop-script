@@ -601,6 +601,14 @@ input.error, textarea.error { border: 2px solid var(--red); }
 #checkout-contact-form input[type="checkbox"] { margin: 0; transform: translate(0, 5px); }
 
 .wa-order-form-wrapper .wa-login-link { color: var(--link-color); }
+
+.wa-signup-form-wrapper .wa-field .wa-value p input[type="radio"], .wa-signup-form-wrapper .wa-field .wa-value p input[type="checkbox"] { display: inline-block !important; }
+.wa-signup-form-wrapper .wa-field .wa-value label:not(:first-child) { margin-top: 4px; }
+
+.wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button { vertical-align: baseline; }
+.wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button input[type="submit"] { background: var(--link-color); }
+.wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button input[type="submit"]:hover { opacity: 0.75; }
+
 /* Dialogs
 ---------- */
 
@@ -918,6 +926,8 @@ h1 .order-status { font-size: 0.75em; margin-left: 10px; }
     table.compare caption .compare-navs .next { top: -33px; right: 10px; }
 
     #wa-order-cart-wrapper.wa-order-cart-wrapper.with-adaptive .wa-products .wa-product .wa-product-body > *.wa-column-details { flex-basis: calc(100% - 80px) ; }
+
+    .wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button { margin-top: 10px; }
 }
 
 /* WIDE

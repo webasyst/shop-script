@@ -264,7 +264,7 @@ class shopProductModel extends waModel
 
         // get products sql array structure
         $sql_ar = array(
-            'SELECT' => array('p.id', 'p.name', 'p.count', 'p.image_id'),
+            'SELECT' => array('p.id', 'p.name', 'p.count', 'p.image_id', 'p.currency'),
             'FROM' => $this->table . ' p',
             'LEFT JOIN' => array(),
             'WHERE' => array("p.id IN ( {$product_ids_str} )"),
@@ -281,12 +281,12 @@ class shopProductModel extends waModel
             $sql_ar['SELECT'][] = "{$stock_id} AS selected_stock_id, SUM(sps.count) AS selected_stock_count";
             $sql_ar['LEFT JOIN'] = "shop_product_stocks sps ON sps.product_id = p.id AND sps.stock_id = {$stock_id}";
             $sql_ar['GROUP BY'][] = "p.id";
-            $sql_ar['ORDER BY'][] = "IF(SUM(sps.count) IS NULL, 1, 0) ASC, SUM(sps.count) {$order}";
+            $sql_ar['ORDER BY'][] = "IF(SUM(sps.count) IS NULL, 1, 0) ASC, SUM(sps.count) {$order}, p.id {$order}";
         } else {
             if (!empty($options['count_is_not_null'])) {
                 $sql_ar['WHERE'][] = "p.`count` IS NOT NULL";
             }
-            $sql_ar['ORDER BY'][] = "p.`count` {$order}";
+            $sql_ar['ORDER BY'][] = "p.`count` {$order}, p.id {$order}";
         }
 
         // get products
@@ -333,6 +333,8 @@ class shopProductModel extends waModel
                     sk.id AS sku_id,
                     sk.name AS sku_name,
                     sk.count,
+                    sk.price,
+                    sk.purchase_price,
 
                     pst.stock_id,
                     pst.count AS stock_count
@@ -359,6 +361,7 @@ class shopProductModel extends waModel
                 $p_product =& $data[$product_id];
                 if (isset($images[$product_id])) {
                     $p_product['url_crop_small'] = shopImage::getUrl($images[$product_id], $size);
+                    $p_product['url_crop'] = shopImage::getUrl($images[$product_id], $config->getImageSize('crop'));
                 }
             }
             // another sku
@@ -368,6 +371,8 @@ class shopProductModel extends waModel
                     'id'            => $sku_id,
                     'name'          => $item['sku_name'],
                     'count'         => $item['count'],
+                    'price'         => $item['price'],
+                    'purchase_price'=> $item['purchase_price'],
                     'num_of_stocks' => isset($num_of_stocks[$sku_id]) ? $num_of_stocks[$sku_id] : 0
                 );
             }
@@ -387,6 +392,8 @@ class shopProductModel extends waModel
                             'id'            => $sku_id,
                             'name'          => $sku['name'],
                             'count'         => isset($sku_stocks[$stock_id][$sku_id]) ? $sku_stocks[$stock_id][$sku_id] : null,
+                            'price'         => $sku['price'],
+                            'purchase_price'=> $sku['purchase_price'],
                             'num_of_stocks' => $sku['num_of_stocks']
                         );
                     }

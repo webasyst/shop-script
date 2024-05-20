@@ -56,11 +56,29 @@ class shopMainMenu
                         "name" => _w("Services"),
                         "url" => "{$wa_app_url}?action=products#/services/",
                         "userRights" => ['services'],
+                    ]
+                ]
+            ],
+            "stock" => [
+                "id" => "stock",
+                "name" => _w("Stock"),
+                "icon" => '<i class="fas fa-home"></i>',
+                "userRights" => ['products'],
+                "placement" => "body",
+                "url" => "",
+                "submenu" => [
+                    [
+                        "name" => _w("In stock now"),
+                        "url" => "{$wa_app_url}?action=products#/stocks/"
                     ],
                     [
-                        "name" => _w("Stock"),
-                        "url" => "{$wa_app_url}?action=products#/stocks/"
-                    ]
+                        "name" => _w("Transfers"),
+                        "url" => "{$wa_app_url}?action=products#/stocks/transfers/"
+                    ],
+                    [
+                        "name" => _w("Stock log"),
+                        "url" => "{$wa_app_url}?action=products#/stocks/log/",
+                    ],
                 ]
             ],
             "marketing" => [
@@ -144,16 +162,12 @@ class shopMainMenu
                 "placement" => "body",
                 "submenu" => [
                     [
-                        "name" => _w("Appearance"),
+                        "name" => _w("Settings"),
                         "url" => "{$wa_app_url}?action=storefronts"
                     ],
                     [
                         "name" => _w("Pages"),
                         "url" => "{$wa_app_url}?action=storefronts#/design/pages/"
-                    ],
-                    [
-                        "name" => _w("Design themes"),
-                        "url" => "{$wa_app_url}?action=themes"
                     ]
                 ]
             ],
@@ -161,10 +175,9 @@ class shopMainMenu
                 "id" => "plugins",
                 "name" => _w("Plugins"),
                 "icon" => '<svg><use xlink:href="'.$wa_url.'wa-apps/shop/img/backend/products/product/icons.svg?v='.wa()->getVersion('shop').'#plugins"></use></svg>',
-                "url" => "{$wa_app_url}?action=plugins",
+                "url" => "{$wa_app_url}?action=plugins#/",
                 "userRights" => ['settings'],
                 "placement" => "body",
-                "submenu" => [], // see below
             ],
             "import" => [
                 "id" => "import",
@@ -185,9 +198,10 @@ class shopMainMenu
         ];
 
         if (wa()->getUser()->isAdmin('installer')) {
-            $result['plugins']['submenu'] = self::getPluginsSubmenu();
-        } else {
-            unset($result['plugins']);
+            $result['storefront']['submenu'][] = [
+                "name" => _w("Design themes"),
+                "url" => "{$wa_app_url}?action=themes"
+            ];
         }
 
         // This set of icons is used when Font Awesome is not available on the page (i.e. WA 1.3 design mode)
@@ -238,7 +252,7 @@ class shopMainMenu
             'id' => $section_id,
             'name' => $title,
         ] + $options + [
-            'icon' => '<i class="fas fa-solid fa-gears"></i>',
+            'icon' => '<i class="fas fa-solid fa-cogs"></i>',
         ];
         unset($section['insert_before'], $section['insert_after']);
 
@@ -314,12 +328,18 @@ class shopMainMenu
         return $subsection;
     }
 
+    // not used since 10.2
     protected static function getPluginsSubmenu()
     {
         $result = [];
 
         $wa_app_url = wa('shop')->getAppUrl(null, true);
         $installer_url = wa()->getConfig()->getBackendUrl(true).'installer/';
+
+        $result[] = [
+            "name" => _w("Browse plugins"),
+            "url" => "{$wa_app_url}?module=plugins&page=home",
+        ];
 
         // Online marketplaces
         if (wa()->getLocale() == 'ru_RU') {
@@ -332,25 +352,6 @@ class shopMainMenu
                 "url" => "{$wa_app_url}?module=plugins&page=onlinecash",
             ];
         }
-
-        // Editor picks, Webasyst apps
-        wa('installer');
-        if (class_exists('installerStoreInAppAction')) {
-            $result[] = [
-                "name" => _w("Editor picks"),
-                "url" => "{$wa_app_url}?module=plugins&page=home",
-            ];
-
-            $result[] = [
-                "name" => _w("Webasyst apps"),
-                "url" => "{$wa_app_url}?module=plugins&page=apps",
-            ];
-        }
-
-        $result[] = [
-            "name" => _w("Browse plugins"),
-            "url" => "{$wa_app_url}?module=plugins"
-        ];
 
         $result[] = [
             "name" => _w("Installed"),

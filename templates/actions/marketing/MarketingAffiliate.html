@@ -4,7 +4,7 @@
     {* BODY *}
     <div class="content flexbox">
             {if $plugins || !empty($installer)}
-                <div class="sidebar s-settings-order-states bordered-right blank width-23rem" id="js-affiliate-plugins">
+                <div class="sidebar s-settings-order-states blank width-23rem" id="js-affiliate-plugins">
                     <ul class="menu large">
                         <li class="selected">
                             <a class="js-disable-router" href="{$marketing_url}affiliate/"><i class="fas fa-award"></i><span>[`Loyalty program`]</span></a>
@@ -39,7 +39,7 @@
 
             <div class="{if $plugins || !empty($installer)}content{/if} s-settings-form">
 
-                <div class="article custom-ml-8">
+                <div class="article">
                 <div class="article-body">
 
                 {if $plugins || $installer}

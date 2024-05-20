@@ -1092,8 +1092,9 @@ class shopProdListAction extends waViewAction
         $wa_app_url = wa()->getAppUrl(null, true);
         $_sprite_url = wa()->getRootUrl() . "wa-apps/shop/img/backend/products/product/icons.svg?v=" . wa('shop')->getVersion();
 
-        $result = [
-            "export" => [
+        $result = array();
+        if ($this->getUser()->getRights('shop', 'importexport')) {
+            $result['export'] = [
                 "id" => "export",
                 "name" => _w("Export"),
                 "actions" => [
@@ -1104,37 +1105,14 @@ class shopProdListAction extends waViewAction
                         "redirect_url" => $wa_app_url."?action=importexport#/csv:product:export/hash/id/"
                     ]
                 ]
-            ],
+            ];
+        }
+
+        $result = $result + [
             "organize" => [
                 "id" => "organize",
                 "name" => _w("Organize"),
                 "actions" => [
-                    [
-                        "id" => "add_to_categories",
-                        "name" => _w("Add to category"),
-                        "icon" => '<i class="fas fa-folder-plus text-blue"></i>',
-                        "action_url" => $wa_app_url."?module=prod&action=addToCategoriesDialog",
-                        "pinned" => true
-                    ],
-                    [
-                        "id" => "exclude_from_categories",
-                        "name" => _w("Remove from category"),
-                        "icon" => '<i class="fas fa-folder-minus text-gray"></i>',
-                        "action_url" => $wa_app_url."?module=prod&action=excludeFromCategoriesDialog"
-                    ],
-                    [
-                        "id" => "add_to_sets",
-                        "name" => _w("Add to set"),
-                        "icon" => '<svg class="text-red"><use xlink:href="'.$_sprite_url.'#list-plus"></use></svg>',
-                        "action_url" => $wa_app_url."?module=prod&action=addToSetsDialog",
-                        "pinned" => true
-                    ],
-                    [
-                        "id" => "exclude_from_sets",
-                        "name" => _w("Remove from set"),
-                        "icon" => '<svg class="text-gray"><use xlink:href="'.$_sprite_url.'#list-minus"></use></svg>',
-                        "action_url" => $wa_app_url."?module=prod&action=excludeFromSetsDialog"
-                    ],
                     [
                         "id" => "assign_tags",
                         "name" => _w("Assign tags"),
@@ -1189,7 +1167,41 @@ class shopProdListAction extends waViewAction
                     ]
                 ]
             ],
-            "marketing" => [
+        ];
+
+        if ($this->getUser()->getRights('shop', 'setscategories')) {
+            $result['organize']['actions'] = array_merge([
+                [
+                    "id" => "add_to_categories",
+                    "name" => _w("Add to category"),
+                    "icon" => '<i class="fas fa-folder-plus text-blue"></i>',
+                    "action_url" => $wa_app_url."?module=prod&action=addToCategoriesDialog",
+                    "pinned" => true
+                ],
+                [
+                    "id" => "exclude_from_categories",
+                    "name" => _w("Remove from category"),
+                    "icon" => '<i class="fas fa-folder-minus text-gray"></i>',
+                    "action_url" => $wa_app_url."?module=prod&action=excludeFromCategoriesDialog"
+                ],
+                [
+                    "id" => "add_to_sets",
+                    "name" => _w("Add to set"),
+                    "icon" => '<svg class="text-red"><use xlink:href="'.$_sprite_url.'#list-plus"></use></svg>',
+                    "action_url" => $wa_app_url."?module=prod&action=addToSetsDialog",
+                    "pinned" => true
+                ],
+                [
+                    "id" => "exclude_from_sets",
+                    "name" => _w("Remove from set"),
+                    "icon" => '<svg class="text-gray"><use xlink:href="'.$_sprite_url.'#list-minus"></use></svg>',
+                    "action_url" => $wa_app_url."?module=prod&action=excludeFromSetsDialog"
+                ],
+            ], $result['organize']['actions']);
+        }
+
+        if ($this->getUser()->getRights('shop', 'marketing')) {
+            $result['marketing'] = [
                 "id" => "marketing",
                 "name" => _w("Marketing"),
                 "actions" => [
@@ -1206,8 +1218,8 @@ class shopProdListAction extends waViewAction
                         "action_url" => $wa_app_url."?module=prod&action=associatePromoDialog"
                     ]
                 ]
-            ]
-        ];
+            ];
+        }
 
         /**
          * @event backend_prod_mass_actions

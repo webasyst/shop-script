@@ -20,6 +20,8 @@
         {* @event backend_settings_marketplaces.middle *}
         {if !empty($backend_settings_marketplaces)}{foreach $backend_settings_marketplaces as $_}{ifset($_.middle)}{/foreach}{/if}
 
+        <p class="small">[`Shop-Script brings all orders from various channels into a single stream. Use plugins to set up external order sources.`]</p>
+
         <div class="s-marketplace-wrapper">
             <div class="s-frame-wrapper custom-mt-12" id="js-marketplace-plugins"></div>
             <script>( function($) {

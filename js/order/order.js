@@ -381,6 +381,8 @@
 
             this.initNameControl();
 
+            this.initItemsChecklist(options);
+
             // workflow
             // action buttons click handler
             $('.wf-action').on('click', function () {
@@ -680,7 +682,274 @@
                 $that.siblings('.js-edit-item-name').add($js_item_name_label).show();
                 $that.add($js_item_name_field).add($that.siblings('.js-save-item-name')).add($js_save_name_error).hide();
             });
-        }
+        },
+
+        initItemsChecklist: function (options) {
+            const storage_key = `shop/order/${options.order.id}/fulfilmented_items`;
+            const animation_timeout = 300;
+            const $table = $('#s-order-items');
+            const $counter = $table.find('.js-fulfilment-mode-counter');
+
+            if (!$.order.hasOwnProperty('is_opened_items_checklist')) {
+                $.order.is_opened_items_checklist = false;
+            }
+
+            init();
+
+            const toggleFulfilmentMode = () => {
+                $counter.toggleClass('hidden');
+                $table.toggleClass('is-visible');
+            };
+            $('.js-show-fulfilment-mode').on('click', function () {
+                const $self = $(this);
+                let $overlay = $('.overlay-on-full-page');
+                if ($overlay.length) {
+                    $overlay.remove();
+                    $.order.is_opened_items_checklist = false;
+                } else {
+                    $overlay = $('<div class="overlay-on-full-page" />');
+                    $('body').prepend($overlay);
+                    setTimeout(() => {
+                        $overlay.addClass('is-visible');
+                    }, 25);
+                    $.order.is_opened_items_checklist = true;
+                    $overlay.one('click', function () {
+                        $self.trigger('click');
+                    });
+                }
+                toggleFulfilmentMode();
+            });
+            if ($.order.is_opened_items_checklist) {
+                toggleFulfilmentMode();
+            }
+
+            getItems().find('[name="order_item"]:checkbox').on('change', function () {
+                const $checkbox = $(this);
+                const $cur_item = $checkbox.closest('tr[data-id]');
+                const item_type = $cur_item.data('type');
+                const current_id = $cur_item.data('id');
+                const $cur_items = $cur_item.add(getItems().filter(`tr[data-parent="${current_id}"]`));
+                let $items = getItems();
+                if (item_type === 'service') {
+                    $items = $items.filter(`[data-parent="${$cur_item.data('parent')}"]`);
+                }
+
+                const list_height = $('#s-order-items > tbody').innerHeight();
+                const elem_top = $cur_items.first().position().top;
+                let elem_height = getSumHeight($cur_items);
+
+                const is_checked = $checkbox.is(':checked');
+                if (!is_checked && $items.filter('.is-fulfilmented').length === 1) {
+                    $cur_item.removeClass('is-fulfilmented');
+                    removeItemAssembly(current_id);
+                    return false;
+                }
+
+                moveItems($items, $.map($cur_items, item => item.dataset.id), elem_height, is_checked);
+
+                const resetStyles = () => getItems().attr("style", "");
+                const last_id = $cur_items.last().data('id');
+                if (is_checked) {
+                    $cur_item.addClass('is-fulfilmented');
+                    saveItemAssembly(current_id);
+                    const move_down = item_type === 'service' ? getServicesHeight($items, current_id, true) : (list_height - elem_top - elem_height);
+                    $cur_items.animate({ top: '+=' + move_down }, animation_timeout, function() {
+                        const $_item = $(this);
+                        if (last_id === $_item.data('id')) {
+                            resetStyles();
+                        }
+                        if ($_item.data('id') !== current_id) {
+                            return;
+                        }
+
+                        const $last_item = $items.filter(':last');
+                        if ($last_item.data('id') !== current_id && $last_item.data('parent') !== current_id) {
+                            $last_item.after($cur_items.detach());
+                        }
+                    });
+
+                } else {
+                    removeItemAssembly(current_id);
+                    const move_up = item_type === 'service' ? getServicesHeight($items, current_id) : list_height - (list_height - elem_top);
+                    $cur_items.animate({ top: '-=' + move_up }, animation_timeout, function() {
+                        const $_item = $(this);
+                        if (last_id === $_item.data('id')) {
+                            resetStyles();
+                        }
+                        if ($_item.data('id') !== current_id) {
+                            return;
+                        }
+
+                        $_item.removeClass('is-fulfilmented');
+
+                        const $first_item = $items.filter(':first');
+                        if ($first_item.data('id') !== current_id) {
+                            $first_item.before($cur_items.detach());
+                        }
+                    });
+                }
+            });
+
+            /**
+             *
+             * @returns {jQuery}
+             */
+            function getItems () {
+                return $table.find('tr[data-id]');
+            }
+
+            /**
+             *
+             * @returns {Array|null}
+             */
+            function getFulfilmentedItemsStorage () {
+                return $.storage.get(storage_key);
+            }
+
+            function init () {
+                let has_fulfilmented = false;
+                let count_selected = 0;
+                const fulfilmented_items = getFulfilmentedItemsStorage();
+                if (Array.isArray(fulfilmented_items) && fulfilmented_items.length) {
+                    const checked_items_map = fulfilmented_items.reduce((acc, id) => {
+                        acc[id] = id;
+                        return acc;
+                    }, {});
+
+                    const $order_items = getItems();
+                    $order_items.each(function () {
+                        const $item = $(this);
+                        const id = $item.data('id');
+                        if (checked_items_map[id]) {
+                            $item.toggleClass('is-fulfilmented', true);
+                            $item.find('[name="order_item"]:checkbox').prop('checked', true);
+
+                            const $last_item = $order_items.filter(':last');
+                            if ($item.data('id') !== $last_item.data('id')) {
+                                $item.detach();
+                                $last_item.after($item);
+                            }
+                            delete checked_items_map[id];
+                            has_fulfilmented = true;
+                            count_selected += 1;
+                        }
+                    });
+
+                    sortServices();
+
+                    const not_founded_ids = Object.values(checked_items_map);
+                    if (not_founded_ids.length) {
+                        if (not_founded_ids.length === fulfilmented_items.length) {
+                            $.storage.del(storage_key);
+                        } else {
+                            $.storage.set(storage_key, fulfilmented_items.filter(id => !not_founded_ids.includes(id)));
+                        }
+                    }
+                }
+                updateCounter(count_selected);
+
+                return has_fulfilmented;
+            }
+
+            function saveItemAssembly (id, remove = false) {
+                let items = getFulfilmentedItemsStorage();
+                if (!Array.isArray(items)) {
+                    items = [];
+                }
+
+                if (remove) {
+                    items = items.filter(_id => _id !== id);
+                } else {
+                    items.push(id);
+                }
+
+                if (!items.length) {
+                    $.storage.del(storage_key);
+                    updateCounter(0);
+                    return null;
+                }
+
+                const unique_ids = Array.from(new Set(items));
+                $.storage.set(storage_key, unique_ids);
+                updateCounter(unique_ids.length);
+            }
+            function removeItemAssembly (id) {
+                saveItemAssembly(id, true);
+            }
+
+            function moveItems ($items, current_ids, elem_height, direction_up = false) {
+                if (direction_up) {
+                    $($items.get().reverse()).each(function() {
+                        if (current_ids.includes(this.dataset.id)) {
+                            return false;
+                        }
+                        $(this).animate({ top: '-=' + elem_height }, animation_timeout);
+                    });
+                } else {
+                    $items.each(function() {
+                        if (current_ids.includes(this.dataset.id)) {
+                            return false;
+                        }
+                        $(this).animate({ top: '+=' + elem_height }, animation_timeout);
+                    });
+                }
+            }
+
+            function sortServices () {
+                getItems().filter('[data-type="service"]').each(function (index) {
+                    const $service = $(this);
+                    const parent_id = $service.data('parent');
+                    const getParent = () => getItems().filter(`[data-id="${parent_id}"]`);
+
+                    $service.detach();
+
+                    let $need_item;
+                    if (index > 0) {
+                        $need_item = getItems().filter(`[data-parent="${parent_id}"]:not(.is-fulfilmented):last`);
+                        if (!$need_item.length) {
+                            $need_item = getParent();
+                        }
+                    } else {
+                        $need_item = getParent();
+                    }
+
+                    $need_item.after($service);
+                });
+            }
+
+            function getSumHeight ($items) {
+                return $items.get().reduce((sum, item) => {
+                    sum += item.getBoundingClientRect().height;
+                    return sum;
+                }, 0);
+            }
+
+            function getServicesHeight ($items, current_id, after_item = false) {
+                let sum = 0;
+                $items = after_item ? $($items.get().reverse()) : $items;
+                $items.each(function () {
+                    if ($(this).data('id') === current_id) {
+                        return false;
+                    }
+                    sum += $(this).height();
+                });
+
+                return sum;
+            }
+
+            function updateCounter (count = 0) {
+                const total = $table.find('> tbody > tr').length;
+                let class_badge = 'gray';
+                if (total === count) {
+                    class_badge = 'green';
+                } else if (count > 0) {
+                    class_badge = 'blue';
+                }
+                $counter.text(`${count || 0}/${total}`);
+                $counter.removeClass(['gray', 'blue', 'green']);
+                $counter.addClass(class_badge);
+            }
+        },
     };
 
 })(jQuery);

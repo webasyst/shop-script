@@ -1479,9 +1479,9 @@
                 $storefronts_section.on("change", ".js-storefront-toggle", function(event) {
                     var count = $storefronts_section.find(".js-storefront-toggle:checked").length;
                     if (count < storefronts_count) {
-                        $storefronts_mass_toggle.attr("checked", false);
+                        $storefronts_mass_toggle.prop("checked", false);
                     } else {
-                        $storefronts_mass_toggle.attr("checked", true);
+                        $storefronts_mass_toggle.prop("checked", true);
                     }
                     $js_storefront_mass_field.data('storefront-count', count);
                     $counter.text(count);
@@ -1515,7 +1515,7 @@
                     var $toggle = $(this),
                         is_checked = $toggle.is(":checked");
 
-                    $storefronts.attr("checked", is_checked);
+                    $storefronts.prop("checked", is_checked);
                     $storefronts.first().trigger("change");
                 });
             }
@@ -1539,10 +1539,10 @@
 
                     if (enabled) {
                         $section.removeClass(disabled_class);
-                        $checkbox.attr("checked", true).trigger("change");
+                        $checkbox.prop("checked", true).trigger("change");
                     } else {
                         $section.addClass(disabled_class);
-                        $checkbox.attr("checked", false).trigger("change");
+                        $checkbox.prop("checked", false).trigger("change");
                     }
                 }
             }
@@ -2236,7 +2236,7 @@
                 var is_last = !$products_wrapper.find(".s-product-wrapper[data-id='" + product_id + "'] .js-sku-toggle-checkbox:checked").length;
                 if (is_last) {
 
-                    $checkbox.attr("checked", true).trigger("change");
+                    $checkbox.prop("checked", true).trigger("change");
 
                     skuRemoveConfirm().then( function() {
                         var product_id = $product.data("id");

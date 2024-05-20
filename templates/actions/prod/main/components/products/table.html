@@ -38,12 +38,12 @@
         <div class="s-table-body">
              <!-- PRODUCT -->
             <div class="s-product-section"
-                v-for="product in products"
+                v-for="(product, i) in products"
                 v-bind:key="product.id"
                 v-bind:class="{ 'is-selected' : product.states.selected, 'with-image' : states.has_image_column }">
                 <div class="s-table-row s-product-wrapper" v-bind:key="product.states.product_key" v-bind:data-product-id="product.id">
                     <div class="s-column s-column-checkbox">
-                        <component-checkbox v-model="product.states.selected"></component-checkbox>
+                        <component-checkbox v-model="product.states.selected" v-on:click-input="onClickItem($event, i)"></component-checkbox>
                     </div>
 
                     <div class="s-column"

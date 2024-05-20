@@ -2,7 +2,7 @@
 <div class="s-abtesting-page content flexbox" id="js-abtesting-page">
     {* BODY *}
 {* SIDEBAR *}
-<div class="sidebar bordered-right blank width-23rem">
+<div class="sidebar blank width-23rem">
     {strip}
     <ul id="abtests-list" class="menu large">
         <li class="bottom-padded{if !$test.id} selected{/if}">
@@ -11,7 +11,7 @@
         {foreach $tests as $t}
             <li{if $t.id == $test.id} class="selected"{/if}>
                 <a href="{$marketing_url}abtesting/{$t.id}/">
-                    <i class="fas fa-spell-check"></i><span>{$t.name|escape}</span>
+                    <i class="fas fa-balance-scale-left"></i><span>{$t.name|escape}</span>
                 </a>
             </li>
         {/foreach}
@@ -65,32 +65,31 @@
                 {/if}
 
                 <div class="fields">
-                    <div class="fields-group">
+
+                    <div class="field">
+                        <div class="name custom-pt-8">[`Name`]</div>
+                        <div class="value">
+                            <input type="text" class="large long bold" name="test[name]" value="{$test.name|escape}" required>
+                        </div>
+                    </div>
+                    {if $test.id}
                         <div class="field">
-                            <div class="name custom-pt-4">[`Name`]</div>
+                            <div class="name">[`Test ID`]</div>
                             <div class="value">
-                                <input type="text" class="large long" name="test[name]" value="{$test.name|escape}" required>
+                                <strong class="large">{$test.id}</strong>
                             </div>
                         </div>
-                        {if $test.id}
-                            <div class="field">
-                                <div class="name">[`Test ID`]</div>
-                                <div class="value">
-                                    <strong class="large">{$test.id}</strong>
-                                </div>
+                        <div class="field">
+                            <div class="name">[`Created`]</div>
+                            <div class="value">
+                                <div class="gray">{$test.create_datetime|wa_date:humandatetime}</div>
                             </div>
-                            <div class="field">
-                                <div class="name">[`Created`]</div>
-                                <div class="value">
-                                    <div class="gray">{$test.create_datetime|wa_date:humandatetime}</div>
-                                </div>
-                            </div>
-                        {/if}
-                    </div>
-                    <div class="fields-group" id="editable-variants">
+                        </div>
+                    {/if}
+                    <div class="fields-group custom-p-0 custom-mt-24" id="editable-variants">
                         {foreach $variants + $variants_create as $v}
                             <div class="field variant-option">
-                                <div class="name">{sprintf("[`Version %s`]", $v.code|escape)}</div>
+                                <div class="name for-input">{sprintf("[`Version %s`]", $v.code|escape)}</div>
                                 <div class="value">
                                     {if empty($v.id)}
                                         <input type="text" name="new_variants[]" value="{$v.name|escape}" required>
@@ -98,7 +97,7 @@
                                         <input type="text" name="variants[{$v.id|escape}][name]" value="{$v.name|escape}">
                                         <input type="hidden" name="variants[{$v.id|escape}][code]" value="{$v.code|escape}">
                                     {/if}
-                                    <a href="javascript:void(0)" class="remove-variant-link"><i class="fas fa-times text-gray close"></i></a>
+                                    <a href="javascript:void(0)" class="remove-variant-link"><i class="fas fa-trash-alt text-red small close"></i></a>
                                 </div>
                             </div>
                         {/foreach}
@@ -112,10 +111,10 @@
                     </div>
 
                     <div class="field variant-option hidden template">
-                        <div class="name">[`New version`]</div>
+                        <div class="name for-input">[`New version`]</div>
                         <div class="value">
                             <input type="text" name="new_variants[]" value="">
-                            <a href="javascript:void(0)" class="remove-variant-link"><i class="fas fa-times small text-gray"></i></a>
+                            <a href="javascript:void(0)" class="remove-variant-link"><i class="fas fa-trash-alt small text-red"></i></a>
                         </div>
                     </div>
 

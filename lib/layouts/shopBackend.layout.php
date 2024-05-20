@@ -26,10 +26,14 @@ class shopBackendLayout extends waLayout
 
         $sidebar_menu_state = (int) wa()->getUser()->getSettings('shop', 'sidebar_menu_state', 1);
 
+        $absolute_frontend_url = waIdna::dec(wa()->getRouteUrl('shop/frontend', true));
+        $frontend_url_label = ifset(ref(explode('//', $absolute_frontend_url)), 1, $absolute_frontend_url);
+
         $order_model = new shopOrderModel();
         $this->view->assign(array(
             'page'               => $this->getPage(),
             'frontend_url'       => wa()->getRouteUrl('shop/frontend'),
+            'frontend_url_label' => $frontend_url_label,
             'backend_menu'       => $this->backendMenuEvent(),
             'new_orders_count'   => $order_model->getStateCounters('new'),
             'tutorial_progress'  => $tutorial_progress,

@@ -479,7 +479,7 @@
                 <tr>
                     <td class="min-width"></td>
                     <td class="align-right" colspan="2">
-                        <div class="s-order-aux-box nowrap">
+                        <div class="s-order-aux-box nowrap custom-mb-4">
                             <span class="small">[`Shipping`]</span>
                             {if !empty($order.shipping_id)}
                                 {$_shipping_id=$order.shipping_id}
@@ -506,7 +506,7 @@
                                                 data-rate="{$m.rate}" value="{$m_id}"{if !empty($m.external)} data-external="1"{/if}
                                                 {if !empty($m.comment)} data-comment="{$m.comment|escape}"{/if}
                                                 {if !empty($m.error)} data-error="{$m.error|escape}"{/if}
-                                                {if !empty($m.est_delivery)} data-est_delivery="{$m.est_delivery|escape}"{/if}>{$m.name|truncate:80|escape}</option>
+                                                {if !empty($m.est_delivery)} data-est_delivery="{$m.est_delivery|escape}"{/if} {if $m.is_truncated}title="{$m.name|escape}"{/if}>{$m.truncated_name|escape}</option>
                                     {/foreach}
                                 </select>
                             </div>
@@ -542,7 +542,7 @@
                             <select id="payment_methods" name="payment_id">
                                 <option value=""></option>
                                 {foreach $payment_methods as $m}
-                                    <option {if !empty($order.params.payment_id) && $order.params.payment_id == $m.id}selected="true"{/if} value="{$m.id}">{$m.name|truncate:80|escape}</option>
+                                <option {if !empty($order.params.payment_id) && $order.params.payment_id == $m.id}selected="true"{/if} value="{$m.id}" {if $m.is_truncated}title="{$m.name|escape}"{/if}>{$m.truncated_name|escape}</option>
                                 {/foreach}
                             </select>
                         </div>

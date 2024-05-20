@@ -573,10 +573,26 @@ SQL;
 
             $items_stocks = $items_model->correctItemsStocks($items, $order_id, true);
 
-            $items_model->updateStockCount($items_stocks);
+            /**
+             * @since 10.2.0
+             */
+            wa('shop')->event('order_return_stock_counts_before', ref([
+                'order_id' => $order_id,
+                'counts' => &$items_stocks, // sku_id => stock_id => count (positive numbers)
+            ]));
 
+            $items_model->updateStockCount($items_stocks);
             $order_params_model->unsetReduced($order_id);
             $order_params_model->incReturnTimes($order_id);
+
+            /**
+             * @since 10.2.0
+             */
+            wa('shop')->event('order_return_stock_counts_after', ref([
+                'order_id' => $order_id,
+                'counts' => $items_stocks, // sku_id => stock_id => count (positive numbers)
+            ]));
+
             return $stock_id;
         }
     }
@@ -594,9 +610,19 @@ SQL;
 
         $items_stocks = $items_model->correctItemsStocks($items, $order_id);
 
+        wa('shop')->event('order_reduce_stock_counts_before', ref([
+            'order_id' => $order_id,
+            'counts' => &$items_stocks, // sku_id => stock_id => count (negative numbers)
+        ]));
+
         $items_model->updateStockCount($items_stocks);
         $order_params_model->setReduced($order_id);
         $order_params_model->incReduceTimes($order_id);
+
+        wa('shop')->event('order_reduce_stock_counts_after', ref([
+            'order_id' => $order_id,
+            'counts' => $items_stocks, // sku_id => stock_id => count (negative numbers)
+        ]));
     }
 
     /**

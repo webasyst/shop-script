@@ -3,7 +3,7 @@
          v-bind:class="{ 'is-selected' : product.states.selected, 'is-published' : product.status === '1', 'is-unpublished' : product.status === '0', 'is-hidden' : product.status === '-1' }">
         <div class="s-section-header flexbox full-width space-8" v-bind:data-product-id="product.id">
             <div class="s-checkbox-wrapper">
-                <component-checkbox v-model="product.states.selected"></component-checkbox>
+                <component-checkbox v-model="product.states.selected" v-on:click-input="onClickItem($event, index)"></component-checkbox>
             </div>
             <div class="s-code-wrapper wide">
                 <span v-html="product_code"></span>

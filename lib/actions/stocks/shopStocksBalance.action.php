@@ -11,51 +11,135 @@ class shopStocksBalanceAction extends waViewAction
         parent::__construct($params);
         $this->product_model = new shopProductModel();
     }
+
     public function execute()
     {
         $offset = waRequest::get('offset', 0, waRequest::TYPE_INT);
         $total_count = waRequest::get('total_count', 0, waRequest::TYPE_INT);
-        $order = waRequest::get('order') == 'desc' ? 'desc' : 'asc';
+        $order = waRequest::get('order') == 'asc' ? 'asc' : 'desc';
+        $requested_stock_id = $stock_id = waRequest::get('stock_id', null, waRequest::TYPE_INT);
         $sort = (string) waRequest::get('sort');
-        if (!$sort) {
+        if ($stock_id) {
+            $sort = 'stock_count_'.$stock_id;
+        } else if (!$sort) {
             $sort = 'count';
+        } else {
+            $prefix = 'stock_count';
+            $prefix_len = strlen($prefix);
+            if (strpos($sort, $prefix) === 0) {
+                $stock_id = (int) substr($sort, $prefix_len + 1);
+            }
         }
 
         if (!$total_count) {
             $total_count = $this->product_model->countProductStocks($this->options);
         }
-        
+
         $data = $this->getProductStocks(array(
             'offset' => $offset,
             'limit' => $this->getConfig()->getOption('products_per_page'),
+            'stock_id' => $requested_stock_id,
             'order' => $order,
             'sort' => $sort
         ));
         $count = count($data);
+
+        $vars = [
+            'product_stocks' => $data,
+            'stock_id' => $requested_stock_id,
+            'total_count' => $total_count,
+            'count' => $count,
+            'order' => $order,
+            'sort' => $sort,
+            'progress' => [
+                'loaded' => _w('%d product','%d products', $offset + $count),
+                'of' => sprintf(_w('of %d'), $total_count),
+                'chunk' => _w('%d product','%d products', max(0, min($total_count - ($offset + $count), $count))),
+            ],
+        ];
+
         if ($offset === 0) {
-            $stock_model = new shopStockModel();
-            $this->response(array(
-                'product_stocks' => $data,
-                'total_count' => $total_count,
-                'count' => $count,
-                'stocks' => $stock_model->getAll(),
-                'order' => $order,
-                'sort' => $sort
-            ));
+            $vars['stocks'] = (new shopStockModel())->getAll('id');
+            $stock_worth = $this->calculateOverallValue($requested_stock_id);
+            if (isset($stock_worth[''])) {
+                $vars += $stock_worth[''];
+                unset($stock_worth['']);
+            }
+
+            foreach ($vars['stocks'] as $stock_id => &$stock) {
+                if ($requested_stock_id === $stock_id) {
+                    $stock += ifset($stock_worth, $stock_id, [
+                        'total_market_value' => 0,
+                        'total_purchase_value' => 0,
+                        'total_count' => 0,
+                    ]);
+
+                    $stock['total_market_html'] = shop_currency($stock['total_market_value']);
+                    $stock['total_purchase_html'] = shop_currency($stock['total_purchase_value']);
+                    $stock['total_count'] = intval($stock['total_count']);
+                    unset($stock['total_market_value'], $stock['total_purchase_value']);
+                    break;
+                }
+            }
+            unset($stock);
+
+            $vars['stocks'] = array_values($vars['stocks']);
         } else {
-            $this->product_model = new shopProductModel();
-            $this->response(array(
-                'product_stocks' => $data,
-                'total_count' => $total_count,
-                'count' => $count,
-                'order' => $order,
-                'progress' => array(
-                    'loaded' => _w('%d product','%d products', $offset + $count),
-                    'of' => sprintf(_w('of %d'), $total_count),
-                    'chunk' => _w('%d product','%d products', max(0, min($total_count - ($offset + $count), $count))),
-                )
-            ), true);
+            $is_json = true;
         }
+
+        $this->response($vars, ifset($is_json));
+    }
+
+    function calculateOverallValue($stock_id=null)
+    {
+        $stock_where = '';
+        if ($stock_id) {
+            $stock_where = "AND ps.stock_id=".((int)$stock_id);
+        }
+        $model = new waModel();
+
+        //
+        // Total worth of all products on each stock
+        //
+        $sql = "
+            SELECT ps.stock_id,
+                SUM(s.price*c.rate*IF(s.count > 0, ps.count, 0)) AS total_market_value,
+                SUM(s.purchase_price*c.rate*IF(ps.count > 0, ps.count, 0)) AS total_purchase_value,
+                SUM(IF(ps.count > 0, ps.count, 0)) AS total_count
+            FROM shop_product AS p
+                JOIN shop_product_skus AS s
+                    ON s.product_id=p.id
+                JOIN shop_currency AS c
+                    ON c.code=p.currency
+                JOIN shop_product_stocks AS ps
+                    ON ps.sku_id=s.id
+            WHERE s.count > 0
+                $stock_where
+            GROUP BY ps.stock_id
+        ";
+        $result = $model->query($sql)->fetchAll('stock_id');
+        if ($stock_id) {
+            return $result;
+        }
+
+        //
+        // Total worth of all products (including those not belonging to any stock)
+        //
+        $sql = "
+            SELECT
+                SUM(s.price*c.rate*IF(s.count > 0, s.count, 0)) AS overall_market_value,
+                SUM(s.purchase_price*c.rate*IF(s.count > 0, s.count, 0)) AS overall_purchase_value,
+                SUM(IF(s.count > 0, s.count, 0)) AS overall_count
+            FROM shop_product AS p
+                JOIN shop_product_skus AS s
+                    ON s.product_id=p.id
+                JOIN shop_currency AS c
+                    ON c.code=p.currency
+            WHERE s.count > 0
+        ";
+        $result[''] = $model->query($sql)->fetchAssoc();
+        return $result;
     }
 
     /**
@@ -69,11 +153,13 @@ class shopStocksBalanceAction extends waViewAction
             $limit = ifset($options['limit']);
             $order = ifset($options['order']);
             $sort = ifset($options['sort']);
+            $requested_stock_id = ifset($options, 'stock_id', null);
         } else {
             $args = func_get_args();
             $offset = ifset($args[0]);
             $limit = ifset($args[1]);
             $order = ifset($args[2]);
+            $requested_stock_id = null;
             $sort = '';
         }
 
@@ -89,22 +175,81 @@ class shopStocksBalanceAction extends waViewAction
         $options['sort'] = $sort;
         $data = $this->product_model->getProductStocks($options);
 
+        $processSku = function(&$sku, &$product) use ($requested_stock_id) {
+            if ($requested_stock_id) {
+                $sku_counts = ifset($product, 'stocks', $requested_stock_id, []);
+                $sku['count'] = ifset($sku_counts, $sku['id'], 'count', null);
+            }
+            $sku['primary_price'] = shop_currency($sku['price'], $product['currency'], null, false);
+            $sku['primary_purchase_price'] = shop_currency($sku['purchase_price'], $product['currency'], null, false);
+            $sku['count'] = (string)shopFrac::discardZeros($sku['count']);
+            $sku['total_market_value_html'] = '';
+            $sku['total_purchase_value_html'] = '';
+            if ($sku['count'] !== '' && $sku['count'] >= 0) {
+                $sku['total_market_value_html'] = shop_currency($sku['primary_price'] * $sku['count']);
+                $sku['total_purchase_value_html'] = shop_currency($sku['purchase_price'] * $sku['count']);
+                if ($sku['count'] > 0 && $product['total_market_value'] !== '') {
+                    $product['total_market_value'] += $sku['primary_price'] * $sku['count'];
+                    $product['total_purchase_value'] += $sku['purchase_price'] * $sku['count'];
+                }
+            } else if ($sku['count'] === '') {
+                // infinity
+                $product['total_market_value'] = '';
+                $product['total_purchase_value'] = '';
+            }
+            $sku['icon'] = shopHelper::getStockCountIcon($sku['count']);
+        };
+
         foreach ($data as &$product) {
+            $product['total_market_value'] = 0;
+            $product['total_purchase_value'] = 0;
+            $product['total_market_value_html'] = '';
+            $product['total_purchase_value_html'] = '';
             $product['count'] = (string)shopFrac::discardZeros($product['count']);
             $product['icon'] = shopHelper::getStockCountIcon($product['count']);
             foreach ($product['skus'] as &$sku) {
-                $sku['count'] = (string)shopFrac::discardZeros($sku['count']);
-                $sku['icon'] = shopHelper::getStockCountIcon($sku['count']);
+                $processSku($sku, $product);
             }
             unset($sku);
 
+            if ($product['total_market_value'] !== '') {
+                $product['total_market_value_html'] = shop_currency($product['total_market_value']);
+                $product['total_purchase_value_html'] = shop_currency($product['total_purchase_value']);
+            }
+
+            if ($requested_stock_id) {
+                $product['stocks'] = [$requested_stock_id => ifset($product, 'stocks', $requested_stock_id, [])];
+            }
+
+            $product_copy = $product;
             foreach ($product['stocks'] as $stock_id => &$stock) {
+                $stk_id = (string)$stock_id;
+                $product['stocks_summary'][$stk_id] = [
+                    'count' => 0,
+                    'total_market_value' => 0,
+                    'total_market_value_html' => ''
+                ];
                 foreach ($stock as &$sku) {
                     $sku['count'] = (string)shopFrac::discardZeros($sku['count']);
-                    $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], $stock_id);
+                    $sku['icon'] = shopHelper::getStockCountIcon($sku['count'], $stk_id);
+                    $processSku($sku, $product_copy);
+                    $sku['stock_id'] = $stk_id;
+
+                    if ($product['stocks_summary'][$stk_id]['count'] !== '' && $sku['count'] !== '' && $sku['count'] >= 0) {
+                        $product['stocks_summary'][$stk_id]['count'] += intval($sku['count']);
+                        $product['stocks_summary'][$stk_id]['total_market_value'] += $sku['primary_price'] * $sku['count'];
+                    } else {
+                        $product['stocks_summary'][$stk_id]['count'] = '';
+                        $product['stocks_summary'][$stk_id]['total_market_value'] = '';
+                    }
                 }
+                if ($product['stocks_summary'][$stk_id]['total_market_value'] !== '') {
+                    $product['stocks_summary'][$stk_id]['total_market_value_html'] = shop_currency($product['stocks_summary'][$stk_id]['total_market_value'], $product['currency']);
+                }
+                unset($product['stocks_summary'][$stk_id]['total_market_value']);
             }
-            unset($product, $stock, $sku);
+
+            unset($product, $stock, $sku, $product_copy);
         }
 
         // because javascript doesn't guarantee any particular order for the keys in object

@@ -175,7 +175,7 @@ class shopOrderEditAction extends waViewAction
             'has_contacts_rights'          => true,
             'money_on_hold_warning'        => $money_on_hold_warning,
             'customer_validation_disabled' => wa()->getSetting('disable_backend_customer_form_validation'),
-            'shipping_methods'             => $shipping_methods,
+            'shipping_methods'             => shopHelper::truncateFieldNameInArray($shipping_methods, 64),
             'ignore_stock_count'           => wa()->getSetting('ignore_stock_count'),
             'storefronts'                  => $this->getStorefronts(),
             'new_order_for_client'         => $this->new_order_customer_contact_id,
@@ -186,7 +186,7 @@ class shopOrderEditAction extends waViewAction
             'contact'                      => $this->order->contact,
             "formatted_units"              => $formatted_units,
             "fractional_config"            => $fractional_config,
-            'payment_methods'              => array_values($payment_methods),
+            'payment_methods'              => shopHelper::truncateFieldNameInArray(array_values($payment_methods), 64),
             'noproduct_item_name'          => wa('shop')->getConfig()->getOrderNoproductItemName(),
         ));
     }

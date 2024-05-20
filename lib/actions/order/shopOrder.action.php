@@ -420,23 +420,22 @@ class shopOrderAction extends waViewAction
     {
         try {
             $photo = $order->contact->get('photo');
-        } catch (Exception $e) {
-            $photo = '';
-        }
-        if (!empty($photo) || !empty($order->contact['is_company'])) {
-            $host_url = wa()->getConfig()->getHostUrl();
-            $type = !empty($order->contact['is_company']) ? 'company' : 'person';
-            return $host_url.waContact::getPhotoUrl($order->contact->getId(), $photo, null, null, $type);
-        } else {
-            $order_params = $order->params;
-            $channel_id = ifset($order_params, 'sales_channel', null);
-            if (!empty($channel_id)) {
-                $channel_id = shopSalesChannels::canonicId($channel_id);
-                $sales_channels = shopSalesChannels::describeChannels();
-                $sales_channel = ifset($sales_channels, $channel_id, shopSalesChannels::getDefaultChannel());
-
-                return $sales_channel['icon_url'];
+            if (!empty($photo) || $photo === '0' || !empty($order->contact['is_company'])) {
+                $userpics = shopCustomer::getUserpics(array($order->contact));
+                return reset($userpics);
             }
+        } catch (Exception $e) {
+            // contact does not exist
+        }
+
+        $order_params = $order->params;
+        $channel_id = ifset($order_params, 'sales_channel', null);
+        if (!empty($channel_id)) {
+            $channel_id = shopSalesChannels::canonicId($channel_id);
+            $sales_channels = shopSalesChannels::describeChannels();
+            $sales_channel = ifset($sales_channels, $channel_id, shopSalesChannels::getDefaultChannel());
+
+            return $sales_channel['icon_url'];
         }
     }
 

@@ -14,7 +14,7 @@ class shopTransferListAction extends waViewAction
 
         $transfers = $this->getTransferModel()->getList(
             array(
-                'fields' => '*',
+                'fields' => '*,total_amount,total_count',
                 'offset' => $offset,
                 'limit'  => $limit,
                 'order'  => $sort.' '.$order,

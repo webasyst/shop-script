@@ -20,6 +20,8 @@ class shopTransferActions extends waJsonActions
     {
         $ids = array_map('intval', (array) $this->getRequest()->request('id'));
         $counts = (array)$this->getRequest()->request('count');
+        $prices = (array)$this->getRequest()->request('price');
+        $currency = waRequest::request('currency', null, 'string');
         $from = (int) $this->getRequest()->request('from');
         $to = (int) $this->getRequest()->request('to');
 
@@ -34,6 +36,33 @@ class shopTransferActions extends waJsonActions
         }
         unset($value);
 
+        if ($currency) {
+            $currency = strtoupper($currency);
+            $currency_model = new shopCurrencyModel();
+            if (!$currency_model->getById($currency)) {
+                $this->errors[] = array(
+                    'name' => "currency",
+                    'msg' => _w('Unknown currency'),
+                );
+            }
+
+            foreach ($prices as $key => &$value) {
+                if ($value !== '') {
+                    $value = floatval(str_replace(',', '.', $value));
+                    if ($value <= 0) {
+                        $this->errors[] = array(
+                            'name' => "price[$key]",
+                            'msg' => _w('Product price must be a number greater than 0')
+                        );
+                    }
+                }
+            }
+            unset($value);
+        } else {
+            $currency = null;
+            $prices = [];
+        }
+
         if (empty($ids)) {
             $this->errors[] = array(
                 'name' => 'id',
@@ -41,7 +70,7 @@ class shopTransferActions extends waJsonActions
             );
         }
 
-        if (!$to) {
+        if (!$to && !$from) {
             $this->errors[] = array(
                 'name' => 'to',
                 'msg' => _w('Destination stock is required')
@@ -79,6 +108,7 @@ class shopTransferActions extends waJsonActions
             if (!isset($items[$id])) {
                 $items[$id] = array(
                     'sku_id' => $id,
+                    'price' => ifempty($prices, $index, null),
                     'count' => (double) ifset($counts[$index], 1)
                 );
             } else {
@@ -104,6 +134,7 @@ class shopTransferActions extends waJsonActions
         $transfer_id = $this->getTransferModel()->send(
             array(
                 'string_id' => $string_id,
+                'currency' => $currency,
                 'from' => $from,
                 'to' => $to
             ),

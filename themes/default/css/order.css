@@ -245,6 +245,7 @@ html.is-order-page .container {
   -ms-transition: border-color 200ms linear;
   transition: border-color 200ms linear;
 }
+
 @media screen and (max-width: 760px) {
   .s-styled-select {
     display: block;

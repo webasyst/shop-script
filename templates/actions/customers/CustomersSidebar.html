@@ -1,13 +1,14 @@
-<div class="state-with-inner-icon left width-100 custom-mb-8 custom-mt-4">
-    <div class="icon">
-        <i class="fas fa-search text-gray"></i>
+<div class="box">
+    <div class="state-with-inner-icon left width-100 custom-mb-8 custom-mt-4">
+        <div class="icon">
+            <i class="fas fa-search text-gray"></i>
+        </div>
+        <input type="search" id="s-customers-search" class="width-100 small" placeholder="[`Search customers`]">
     </div>
-
-    <input type="search" id="s-customers-search" class="width-100 small" placeholder="[`Search customers`]">
 </div>
 
-<ul class="menu custom-pl-0">
-    <li class="rounded">
+<ul class="menu large custom-mt-0">
+    <li>
         <a href="#/all/">
             <i class="fas fa-shopping-cart"></i>
             <span>[`All customers`]</span>
@@ -17,7 +18,7 @@
 
     {foreach $filters as $filter}
     {if empty($filter.contact_id) || $filter.contact_id == $wa->user('id')}
-    <li class="rounded">
+    <li>
         <a href="#/filter/{$filter.id}/">
             {$wa->shop->getIcon({$filter.icon|default:'funnel'})}
             <span class="s-name">{$filter.name|escape}</span>
@@ -30,37 +31,36 @@
     {* @event backend_customers.%plugin_id%.sidebar_top_li *}
     {if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
 
-    <li class="rounded">
+    <li>
         <a href="#/searchform/" class="small"><i class="fas fa-plus-circle fa-xs text-green"></i><span>[`New search`]</span></a>
     </li>
 
 </ul>
 
+<div class="box">
 
-<!-- plugin hook: 'backend_customers.sidebar_section' -->
-{* @event backend_customers.%plugin_id%.sidebar_section *}
-{if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
+    <!-- plugin hook: 'backend_customers.sidebar_section' -->
+    {* @event backend_customers.%plugin_id%.sidebar_section *}
+    {if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
 
-{if 1||!empty($categories)}
-<div class="block drop-target">
-    <h5 class="heading custom-mx-8" style="cursor:default">
-        <span class="count"><a href="#/editcategory/" title="[`New category`]"><i class="fas fa-plus-circle text-green"></i></a></span>
-        [`Categories`]
-    </h5>
+    <div class="drop-target">
+        <h5 class="heading custom-mx-8" style="cursor:default">
+            <span class="count"><a href="#/editcategory/" title="[`New category`]"><i class="fas fa-plus-circle text-green"></i></a></span>
+            [`Categories`]
+        </h5>
+        <ul class="menu" id="customer-categories">
+            {foreach $categories as $c}
+                <li class="rounded" data-category-id="{$c.id}">
+                    <a href="#/category/{$c.id}">
+                        <span class="custom-mr-4">{$wa->shop->getIcon($c.icon)}<span>{$c.name|escape}</span></span>
+                        <span class="count">{$c.cnt}</span>
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+    </div>
 
-    <ul class="menu" id="customer-categories">
-        {foreach $categories as $c}
-            <li class="rounded" data-category-id="{$c.id}">
-                <a href="#/category/{$c.id}">
-                    <span class="custom-mr-4">{$wa->shop->getIcon($c.icon)}<span>{$c.name|escape}</span></span>
-                    <span class="count">{$c.cnt}</span>
-                </a>
-            </li>
-        {/foreach}
-    </ul>
 </div>
-{/if}
-
 
 <script>$(function() {
     $('.link-to-contacts a').attr('href', "{$contacts_url}");

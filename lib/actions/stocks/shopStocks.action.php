@@ -4,9 +4,12 @@ class shopStocksAction extends waViewAction
 {
     public function execute()
     {
-        $tab = $this->getRequest()->request('tab');
-        $content = $this->getTabContent($tab);
-
+        $tab = null;
+        $content = null;
+        if (wa()->whichUI('shop') === '1.3') {
+            $tab = $this->getRequest()->request('tab');
+            $content = $this->getTabContent($tab);
+        }
         $transfers = $this->getTransfers();
 
 

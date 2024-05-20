@@ -208,11 +208,13 @@
                     {/if}
 
                     <!-- order content -->
-
+                    {$visible_fulfilment_mode = !in_array($order.state_id, ['sent', 'completed', 'refunded', 'deleted'])}
                     <table id="s-order-items" class="light s-order-items-table s-order-readable">
                         {if $order.items}
                             <tr>
-                                <th colspan="2"></th>
+                                <th colspan="2" class="align-left">{if $visible_fulfilment_mode}
+                                    <a href="javascript:void(0);" onclick="$.wa.dialogSwitchToNewUI();" class="hint" style="font-weight: normal;"><i class="icon16 checkboxes"></i>[`Fulfilment mode`]</a>
+                                {/if}</th>
                                 <th class="align-right">[`Qty`]</th>
                                 <th class="align-right">[`Total`]</th>
                             </tr>

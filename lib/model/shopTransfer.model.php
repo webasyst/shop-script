@@ -30,10 +30,8 @@ class shopTransferModel extends waModel
             $transfer['stock_id_to'] = (int) ifset($transfer['to']);
         } else if (!empty($transfer['stock_id_to'])) {
             $transfer['stock_id_to'] = (int) ifset($transfer['stock_id_to']);
-        }
-
-        if (empty($transfer['stock_id_to'])) {
-            return false;
+        } else {
+            $transfer['stock_id_to'] = 0; // write-off
         }
 
         if ($transfer['stock_id_to'] === $transfer['stock_id_from']) {
@@ -117,7 +115,7 @@ class shopTransferModel extends waModel
         $this->applyStockDiffs($diff_map, $transfer_id);
 
     }
-    
+
     public function getList($options = array())
     {
         $options = $this->prepareListOptions($options);
@@ -129,16 +127,19 @@ class shopTransferModel extends waModel
         if (strpos($options['order'], 'stock_from_') || strpos($options['fields'], 'stock_from_')) {
             $joins[] = "LEFT JOIN shop_stock stock_from ON stock_from.id = t.stock_id_from";
         }
+        if (strpos($options['order'], 'total_amount') || strpos($options['fields'], 'total_amount')) {
+            $joins[] = "LEFT JOIN shop_transfer_products AS tp ON tp.transfer_id = t.id";
+        }
         $joins = join(' ', $joins);
         $group_by = $joins ? 'GROUP BY t.id' : '';
 
         $where = $options['filter'] ? 'WHERE ' . $options['filter'] : '';
 
         return $this->query("
-            SELECT {$options['fields']} 
+            SELECT {$options['fields']}
             FROM {$this->table} t
-            {$where}
             {$joins}
+            {$where}
             {$group_by}
             ORDER BY {$options['order']}
             LIMIT {$options['offset']}, {$options['limit']}
@@ -195,7 +196,7 @@ class shopTransferModel extends waModel
     public function isStringIdUnique($string_id, $id = 0)
     {
         return !$this->query("
-            SELECT id FROM `{$this->table}` 
+            SELECT id FROM `{$this->table}`
             WHERE string_id = :string_id AND id != :id LIMIT 1",
             array(
                 'id' => $id,
@@ -278,6 +279,10 @@ class shopTransferModel extends waModel
                 foreach ($tbl_fields as $tbl_field) {
                     $fields[] = $tbl . '.' . $tbl_field . ($tbl !== 't' ? ' AS ' . $tbl . '_' . $tbl_field : '');
                 }
+            } else if ($field === 'total_amount') {
+                $fields[] = 'SUM(tp.count * tp.price) AS total_amount';
+            } else if ($field === 'total_count') {
+                $fields[] = 'SUM(tp.count) AS total_count';
             } else if ($m->fieldExists($field)) {
                 $fields[] = $tbl . '.' . $field . ($tbl !== 't' ? ' AS ' . $tbl . '_' . $field : '');
             }
@@ -330,7 +335,7 @@ class shopTransferModel extends waModel
         $today = date('Ymd');
 
         $last_string_id_today = $this->query("
-              SELECT string_id FROM {$this->table} 
+              SELECT string_id FROM {$this->table}
               WHERE string_id LIKE '{$today}/%'
               ORDER BY LENGTH(string_id) DESC, string_id DESC, id DESC
               LIMIT 1
@@ -378,7 +383,7 @@ class shopTransferModel extends waModel
                     if ($diff == 0) {
                         continue;
                     }
-                    
+
                     if (isset($sku['stock'][$stock_id])) {
                         $sku['stock'][$stock_id] += $diff;
                     } else {

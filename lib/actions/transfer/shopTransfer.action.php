@@ -27,6 +27,7 @@ class shopTransferAction extends waViewAction
 
         $backend_stocks_hook = wa('shop')->event('backend_stocks.transfer', $params);
         $this->view->assign('backend_stocks_hook', $backend_stocks_hook);
+        $this->view->assign('currencies', (new shopCurrencyModel())->getCurrencies());
 
         $this->view->assign($smarty_variables);
     }
