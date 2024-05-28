@@ -15,7 +15,7 @@
                     <i class="icon16 ss schedule-bw"></i>[`Working schedule`]
                 </a>
             </li>
-            {if !empty($show_marketplaces)}
+            {if shopHelper::isSettingsMarketplacesSectionVisible()}
                 <li>
                     <a href="?action=settings#/marketplaces/">
                         <i class="icon16 ss marketplaces"></i>[`Online marketplaces`]
@@ -27,24 +27,35 @@
             {* @event backend_settings.%plugin_id%.sidebar_top_li *}
             {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
 
+            {if empty($is_premium)}
+            <li class="top-padded">
+                <a href="?action=settings#/premium/">
+                    <i class="icon16 ss star-bw"></i>[`Premium`]
+                    <strong class="count indicator" style="background: white; color: orangered;">%</strong>
+                </a>
+            </li>
+            {/if}
 
             <li class="top-padded">
                 <a href="?action=settings#/typefeat/">
                     <i class="icon16 ss features-bw"></i>[`Product types & features`]
                 </a>
             </li>
-            {if !empty($is_premium)}
-                <li>
-                    <a href="?action=settings#/unit/">
-                        <i class="icon16 ss units"></i>[`Product quantity units & add-to-cart parameters`]
-                    </a>
-                </li>
-                <li>
-                    <a href="?action=settings#/compatibility/">
-                        <i class="icon16 ss compatibility"></i>[`Plugins compatibility`]
-                    </a>
-                </li>
-            {/if}
+
+            <li>
+                <a href="?action=settings#/unit/">
+                    <i class="icon16 ss units"></i><span{if empty($is_premium)} style="opacity: 0.4;"{/if}>[`Product quantity units & add-to-cart parameters`]</span>
+                    {if empty($is_premium)}
+                        <span class="count"><i class="icon10 star" style="opacity: 0.8;"></i></span>
+                    {/if}
+                </a>
+            </li>
+            <li>
+                <a href="?action=settings#/compatibility/">
+                    <i class="icon16 ss compatibility"></i><span{if empty($is_premium)} style="opacity: 0.4;"{/if}>[`Plugins compatibility`]</span>
+                </a>
+            </li>
+
             <li>
                 <a href="?action=settings#/images/">
                     <i class="icon16 ss camera-bw"></i>[`Images`]
@@ -119,11 +130,13 @@
                 </a>
             </li>
 
-            <li>
+            {if !empty($is_premium)}
+            <li class="top-padded">
                 <a href="?action=settings#/premium/">
-                    <i class="icon16 ss compatibility"></i>[`PREMIUM license functionality`]
+                    <i class="icon16 ss star-bw"></i>[`Premium`]
                 </a>
             </li>
+            {/if}
 
             {if $wa->user()->isAdmin() && waSystemConfig::isDebug()}
                 <li class="top-padded">

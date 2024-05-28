@@ -1,17 +1,22 @@
 {function name="dummy_no_orders" target=body}
 <i class="fas fa-shopping-cart text-light-gray opacity-80" style="font-size: {if $target === 'body'}10{else}6{/if}rem; margin-right: 1.5rem;"></i>
     {if $is_orders_empty}
-        <p class="gray {if $target === 'body'}large{/if}">[`New orders will start to land here shortly.`]</p>
-        <a class="button rounded light-gray{if $target === 'body'} large{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`]</a>
+        <p class="gray {if $target !== 'body'}small{/if}">[`New orders will start to land here shortly.`]</p>
+        {if shopHelper::isSettingsMarketplacesSectionVisible()}
+            <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="{$wa_app_url}?action=settings#/marketplaces/">[`Set up sales channels`]</a>
+            <a class="button rounded custom-mt-16 nobutton{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
+        {else}
+            <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
+        {/if}
     {else}
-        <p class="gray {if $target === 'body'}large{/if}">[`There are no orders in this view.`]</p>
+        <p class="gray {if $target !== 'body'}small{/if}">[`There are no orders in this view.`]</p>
     {/if}
 {/function}
 {capture assign="_dummy_no_orders_body"}
-<div class="content contentbox box blank width-100 s-no-orders-{$view} js-no-orders" style="height: calc(100vh - 7.5rem - 56px); display: grid; place-items:center">
+<div class="content contentbox box not-blank width-100 s-no-orders-{$view} js-no-orders" style="min-height: calc(100vh - 3.5rem - 50px); display: grid; place-items:center">
     <div class="align-center">
         {if $view == 'split'}
-            <i class="fas fa-shopping-cart text-light-gray opacity-20" style="font-size: 10rem; margin-right: 1.5rem;"></i>
+            <i class="fas fa-store text-light-gray opacity-20" style="font-size: 10rem; margin-right: 1.5rem;"></i>
         {else}
             {dummy_no_orders}
         {/if}
@@ -31,7 +36,7 @@
             {/for}
         </div>
         <div class="s-kanban-premium">
-            {include file="templates/includes/availableWithPremiumAlert.html" inline}
+            {include file="templates/includes/availableWithPremiumAlert.html" title="[`Kanban`]" inline}
         </div>
     </div>
 {/capture}
@@ -237,38 +242,51 @@
         {/if}
     </div>
 
-    {if !empty($show_mobile_ad) && $view == 'split'}
+    {if $view == 'split'}
         <div class="s-tiny-ad">
-            <div class="s-tiny-ad-box">
 
-                <a href="javascript:void(0)" class="s-tiny-ad-close" title="[`Close`]">&times;</a>
-                <h5 class="heading"><span><span class="icon custom-mr-8"><img src="{$wa_app_static_url}img/shop.svg" style="width: 20px; height: 20px; position: relative; top: -2px;" alt="Shop-Script" /></span> [`Mobile app`]</span></h5>
+            {if !empty($show_mobile_ad)}
+                <div class="s-tiny-ad-box">
 
-                <div class="flexbox space-12">
-                    <div>
-                        <a href="https://apps.apple.com/{if $wa->locale() == 'ru_RU'}ru{else}us{/if}/app/webasyst-shop-script/id6443853956" target="_blank">
-                            <img src="{$wa_app_static_url}img/badge-appstore{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="App Store">
-                        </a>
-                        <a href="https://play.google.com/store/apps/details?id=com.webasyst.shopscript" target="_blank">
-                            <img src="{$wa_app_static_url}img/badge-google-play{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="Google Play">
-                        </a>
-                        {if $wa->locale() == 'ru_RU'}
-                            <a href="https://apps.rustore.ru/app/com.webasyst.shopscript" target="_blank">
-                                <img src="{$wa_app_static_url}img/badge-rustore.svg" class="s-mobile-badge" alt="RuStore">
+                    <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="mobile" title="[`Close`]">&times;</a>
+                    <h5 class="heading"><span><span class="icon custom-mr-8"><img src="{$wa_app_static_url}img/shop.svg" style="width: 20px; height: 20px; position: relative; top: -2px;" alt="Shop-Script" /></span> [`Mobile app`]</span></h5>
+
+                    <div class="flexbox space-12">
+                        <div>
+                            <a href="https://apps.apple.com/{if $wa->locale() == 'ru_RU'}ru{else}us{/if}/app/webasyst-shop-script/id6443853956" target="_blank">
+                                <img src="{$wa_app_static_url}img/badge-appstore{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="App Store">
                             </a>
-                        {/if}
-                    </div>
+                            <a href="https://play.google.com/store/apps/details?id=com.webasyst.shopscript" target="_blank">
+                                <img src="{$wa_app_static_url}img/badge-google-play{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="Google Play">
+                            </a>
+                            {if $wa->locale() == 'ru_RU'}
+                                <a href="https://apps.rustore.ru/app/com.webasyst.shopscript" target="_blank">
+                                    <img src="{$wa_app_static_url}img/badge-rustore.svg" class="s-mobile-badge" alt="RuStore">
+                                </a>
+                            {/if}
+                        </div>
 
-                    <div class="align-center middle">
-                        <a href="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/mobile/" target="_blank">
-                            <img src="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/wa-apps/site/themes/webasystcom/img/mobile-qr-{if $wa->locale() == 'ru_RU'}ru{else}en{/if}.webp" class="s-mobile-qr {if $wa->locale() != 'ru_RU'}s-tiny{/if}" />
-                        </a>
-                        <p class="custom-mt-4{if $wa->locale() != 'ru_RU'} s-tiny{/if}">
-                            [`Install Shop-Script mobile app on your phone today:`]
-                        </p>
+                        <div class="align-center middle">
+                            <a href="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/mobile/" target="_blank">
+                                <img src="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/wa-apps/site/themes/webasystcom/img/mobile-qr-{if $wa->locale() == 'ru_RU'}ru{else}en{/if}.webp" class="s-mobile-qr {if $wa->locale() != 'ru_RU'}s-tiny{/if}" />
+                            </a>
+                            <p class="custom-mt-4 small{if $wa->locale() != 'ru_RU'} s-tiny{/if}">
+                                [`Install Shop-Script mobile app on your phone today:`]
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            {elseif !empty($show_premium_ad)}
+                <div class="s-tiny-ad-box">
+                    <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="premium" title="[`Close`]">&times;</a>
+                    {include file="templates/includes/availableWithPremiumAlert.html"
+                        size_tiny=true
+                        title="[`Go premium`]"
+                        body="[`Unlock advanced features to boost your business growth.`]"
+                        button="[`What’s there in premium?`]"
+                    inline}
+                </div>
+            {/if}
         </div>
     {/if}
 </div>
@@ -391,10 +409,9 @@
             e.preventDefault();
             $(this).closest('.s-tiny-ad').hide();
             $.post("{$wa_app_url}?module=backend&action=sidebarMenuSaveState", {
-                hide_mobile_ad: 1
+                {if !empty($show_mobile_ad)}hide_mobile_ad{else}hide_premium_ad{/if}: 1
             });
         });
-
     }
 })(jQuery);
 

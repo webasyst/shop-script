@@ -24,11 +24,16 @@ class shopCustomersListAction extends waViewAction
         $customers = $collection->getCustomers('*,email.*,im,phone,order.create_datetime AS last_order_datetime', $offset, $limit);
         $this->workupList($customers);
 
+        $hash_start = $this->getHashStart();
+
         $total_count = $this->getTotalCount($collection);
         $count = count($customers);
 
-        $title = _w('All customers');
-        if ($hash && $hash !== 'all') {
+        if ($hash_start == '#/all/') {
+            $title = _wp('All contacts');
+        } else if ($hash_start == '#/shop/') {
+            $title = _w('All customers');
+        } else {
             $title = $this->workupTitle($hash, $collection->getTitle());
         }
 
@@ -50,7 +55,7 @@ class shopCustomersListAction extends waViewAction
             'order'            => $this->getOrder(false),
             'total_count'      => $total_count,
             'customers'        => $customers,
-            'hash_start'       => $this->getHashStart(),
+            'hash_start'       => $hash_start,
             'category_id'      => $this->getCategoryId(),
             'query'            => $this->getQuery(true),
             'icons'            => wa()->getConfig()->getOption('customers_filter_icons'),
@@ -92,6 +97,9 @@ class shopCustomersListAction extends waViewAction
         $category_id = $this->getCategoryId();
         $search = $this->getQuery();
         $type = $this->getType();
+        if (waRequest::request('only_customers')) {
+            $search = 'app.show_contacts=customers';
+        }
 
         $hash = 'all';
         if ($category_id) {
@@ -134,7 +142,9 @@ class shopCustomersListAction extends waViewAction
 
     public function getHashStart()
     {
-        if ($this->getQuery()) {
+        if (waRequest::request('only_customers')) {
+            return '#/shop/';
+        } elseif ($this->getQuery()) {
             return '#/search/'.urlencode($this->getQuery()).'/';
         } elseif ($this->getCategoryId()) {
             return '#/category/'.$this->getCategoryId().'/';

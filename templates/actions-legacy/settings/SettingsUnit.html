@@ -418,6 +418,9 @@
         {* HEADER *}
         <div class="s-section-header">
             <h1 class="s-title">{$_page_title}</h1>
+            {if $is_teaser}
+                {include file="templates/includes/availableWithPremiumAlert.html" inline}
+            {/if}
             <div class="s-help-section">
                 <div class="flexbox">
                     <span class="s-icon"><i class="icon16 info"></i></span>
@@ -431,7 +434,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="s-sections-list" v-if="states.help_display">
                     {* 1 *}
                     <div class="s-section-wrapper">

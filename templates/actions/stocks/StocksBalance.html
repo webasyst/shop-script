@@ -34,8 +34,8 @@
             {/foreach}
         {/if}
 
-        <div class="s-table-scrollable-x" style="transform: rotateX(180deg);">
-            <table id="s-product-stocks" class="s-product-stocks bigdata nowrap" style="transform: rotateX(180deg);">
+        <div class="s-table-scrollable-x s-rotate-x-180">
+            <table id="s-product-stocks" class="s-product-stocks bigdata nowrap s-rotate-x-180">
                 <thead>
                     <tr class="header">
                         <th>&nbsp;</th>
@@ -73,6 +73,14 @@
                             <td><strong>{$current_stock.total_count}</strong></td>
                             <td><strong>{$current_stock.total_market_html}</strong></td>
                             <td><strong>{$current_stock.total_purchase_html}</strong></td>
+                        </tr>
+                    {else if !empty($stocks)}
+                        <tr>
+                            <td></td>
+                            <td class="nowrap" title="[`Total market value`]"><strong>{$total_all_stocks.count}</strong> <span class="hint">{$total_all_stocks.total_market_html}</span></td>
+                            {foreach $stocks as $stock}
+                                <td class="nowrap"><strong>{$stock.total_count}</strong> <span class="hint">{$stock.total_market_html}</span></td>
+                            {/foreach}
                         </tr>
                     {/if}
                 {/strip}</tbody>
@@ -126,8 +134,8 @@
                         {% var has_many_skus = skus.length > 1; %}
                         {% if(has_many_skus) { %}
                         <div class="flexbox middle">
-                            <i class="fas fa-circle{% if (product.count > 0) { %} text-green{% } else { %} text-red{% } %} custom-mr-8"></i>
-                            <strong>{% if (product.count !== null && product.count !== '') { %}{%#product.count%}{% } else { %}∞{% } %}</strong>
+                            <i class="fas fa-circle{% if (product.has_stock_counts && product.count > 0) { %} text-green{% } else { %} text-red{% } %} custom-mr-8"></i>
+                            <strong>{% if (product.count !== null && product.count !== '') { %}{%#product.count%}{% } else if (product.has_stock_counts) { %}∞{% } else { %}—{% } %}</strong>
                             <span class="hint custom-ml-4" title="[`Total market value`]">{%#product.total_market_value_html%}</span>
                             <button type="button" class="js-toggle-detailed-all-stocks button nobutton circle smaller">
                                 <i class="fas fa-caret-down text-gray large"></i>
@@ -135,7 +143,7 @@
                         </div>
                         {% } %}
 
-                        <ul class="list {% if (has_many_skus) { %} small {% } %}detailed-all-stocks"{% if (has_many_skus) { %} style="display:none;"{% } %}>
+                        <ul class="list {% if (has_many_skus) { %}small {% } %}detailed-all-stocks"{% if (has_many_skus) { %} style="display:none;"{% } %}>
                             {% for (var k = 0, l = skus.length; k < l; k += 1) { %}
                                 {% var sku = skus[k]; %}
                                 <li>{%#sku.icon%}
@@ -160,8 +168,8 @@
                             <div class="flexbox middle">
                                 {% var stock_skus_count = product.stocks_summary[stock_id].count; %}
 
-                                <i class="fas fa-circle{% if (stock_skus_count > 0) { %} text-green{% } else { %} text-red{% } %} custom-mr-8"></i>
-                                <span>{% if (stock_skus_count !== null && stock_skus_count !== '') { %}{%#String(stock_skus_count)%}{% } else { %}∞{% } %}</span>
+                                <i class="fas fa-circle{% if (product.has_stock_counts && product.count > 0) { %} text-green{% } else { %} text-red{% } %} custom-mr-8"></i>
+                                <span>{% if (stock_skus_count !== null && stock_skus_count !== '') { %}{%#String(stock_skus_count)%}{% } else if (product.has_stock_counts) { %}∞{% } else { %}—{% } %}</span>
                                 <span class="hint custom-ml-4" title="[`Total market value`]">{%#product.stocks_summary[stock_id].total_market_value_html%}</span>
                                 <button type="button" class="js-toggle-detailed-all-stocks button nobutton circle smaller">
                                     <i class="fas fa-caret-down text-gray large"></i>
@@ -169,7 +177,7 @@
                             </div>
                             {% } %}
 
-                            <ul class="list {% if (has_many_stock_skus) { %} small {% } %}detailed-by-stocks"{% if (has_many_stock_skus) { %} style="display:none;"{% } %}>
+                            <ul class="list {% if (has_many_stock_skus) { %}small {% } %}detailed-by-stocks"{% if (has_many_stock_skus) { %} style="display:none;"{% } %}>
                                 {% for (var j = 0, n = stock_skus.length; j < n; j += 1) { %}
                                     {% var sku = stock_skus[j]; %}
                                     {% var sku_id = sku.id; %}
@@ -184,7 +192,7 @@
                                             <span class="hint" title="[`Total market value`]">{% if (sku.total_market_value_html !== null) { %}{%#sku.total_market_value_html%}{% } %}</span>
                                         </li>
                                     {% } else if (!is_single_stock) { %}
-                                        <li class="gray">&mdash;</li>
+                                        <li class="gray">{% if (product.has_stock_counts) { %}∞{% } else { %}&mdash;{% } %}</li>
                                     {% } %}
                                 {% } %}
                             </ul>

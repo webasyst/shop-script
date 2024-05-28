@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 2.3\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -1446,6 +1446,9 @@ msgstr "Выберите основной склад, с которым буде
 
 msgid "All customers"
 msgstr "Все покупатели"
+
+msgid "Аll contacts"
+msgstr "Все контакты"
 
 msgid "added"
 msgstr "добавлен"
@@ -3063,6 +3066,9 @@ msgstr "Удалить все товары, находящиеся в этом �
 
 msgid "Remove product from this category"
 msgstr "Удалить товар из этой категории"
+
+msgid "The first of additional categories will become the main one."
+msgstr "Основной станет первая в списке дополнительных категорий."
 
 msgid "Added %s"
 msgstr "Добавлен %s"
@@ -7109,10 +7115,10 @@ msgid "To edit countries and regions, you need to have access to the Settings ap
 msgstr "Чтобы редактировать страны и регионы, вам необходимо получить доступ к приложению «Настройки»."
 
 msgid "Working schedule"
-msgstr "Режим работы"
+msgstr "Часы работы"
 
 msgid "Working hours"
-msgstr "Рабочее время"
+msgstr "Часы работы"
 
 msgid "Timezone"
 msgstr "Часовой пояс"
@@ -13048,14 +13054,14 @@ msgstr "Канбан для заказов"
 msgid "See all orders at a glance by status on a kanban board. User filter to focus on specific order segments. Drag an order to quickly change its status."
 msgstr "Наглядное представление заказов по статусам на канбан-доске. Фильтрация по различным параметрам. Быстрая смена статуса заказа простым перетаскиванием."
 
-msgid "Free updates forever!"
-msgstr "Бесплатные обновления навсегда!"
+msgid "Free updates forever"
+msgstr "Бесплатные обновления навсегда"
 
 msgid "Shop-Script at its max!"
 msgstr "Переходите на премиум!"
 
-msgid "Awesome advanced features and free unlimited updates with no extra subscriptions."
-msgstr "Больше возможностей и бесплатные безлимитные обновления без дополнительных подписок."
+msgid "Premium enables unlimited access to all future Shop-Script updates with no additional subscriptions."
+msgstr "Премиум делает доступ ко всем будущим обновлениям Shop-Script безлимитным и не требующим дополнительных подписок."
 
 msgid "Marketplaces"
 msgstr "Маркетплейсы"
@@ -13150,10 +13156,10 @@ msgstr "Ошибка: неизвестное значение «render_type» (�
 msgid "Order payment was refunded"
 msgstr "Оплата по заказу возвращена"
 
-msgid "Fulfilment mode"
+msgid "Fulfillment mode"
 msgstr "Режим сборки"
 
-msgid "Fulfilment mode is for your personal control of assembling an order. Checked items are not synced with the server and other users."
+msgid "Fulfillment mode is for your personal control of assembling an order. Checked items are not synced with the server and other users."
 msgstr "Режим сборки предназначен для самоконтроля сборки заказа. Отмеченные товары с сервером и другими пользователями не синхронизируются."
 
 msgid "Supported in the new Webasyst 2 UI mode only"
@@ -13175,7 +13181,7 @@ msgid "Total market value"
 msgstr "Рыночная стоимость активов"
 
 msgid "Total purchase costs"
-msgstr "Закупочная стоимость активов"
+msgstr "Себестоимость"
 
 msgid "Stock settings"
 msgstr "Настроить склады"
@@ -13209,3 +13215,99 @@ msgstr "Shop-Script собирает заказы из разных источн
 
 msgid "Don’t autofill pricing"
 msgstr "Не заполнять цены"
+
+msgid "<a href=\"%s\">Switch to the new UI</a> to use the latest features!"
+msgstr "<a href=\"%s\">Переключитесь на новый интерфейс</a> для новых возможностей!"
+
+msgid "The new Webasyst 2 UI mode is mobile-ready, supports more new features, and is getting further with every Shop-Script update."
+msgstr "Новый интерфейс Webasyst 2 адаптирован для мобильных устройств, поддерживает больше новых возможностей и развивается с каждым обновлением Shop-Script."
+
+msgid "What’s more in premium?"
+msgstr "Что еще включено в премиум?"
+
+msgid "What’s there in premium?"
+msgstr "Что включено в премиум?"
+
+msgid "Upgrade to premium will immediately unlock this feature."
+msgstr "Эта возможность станет доступна сразу после перехода на премиум."
+
+msgid "Go premium"
+msgstr "Премиум"
+
+msgid "Premium"
+msgstr "Премиум"
+
+msgid "Unlock advanced features to boost your business growth."
+msgstr "Используйте все возможности платформы для успешного развития своего бизнеса."
+
+msgid "Everyone who’ve ever placed an order or signed up on your storefront."
+msgstr "Все, кто оформил заказ или зарегистрировался в вашем магазине."
+
+msgid "All contacts and backend users gathered across all Webasyst apps."
+msgstr "Все контакты и пользователи приложений вашего Webasyst."
+
+msgid "Add a category to group customers and set personalized discounts."
+msgstr "Создайте категорию для группировки покупателей и назначения индивидуальных скидок."
+
+msgid "Set up sales channels"
+msgstr "Настроить каналы продаж"
+
+msgid "Upgrade to premium to get all advanced features with and unlimited access to updates."
+msgstr "Переходите на премиум, чтобы использовать все возможности платформы и обновляться без ограничений."
+
+msgid "Unlock all features and unlimited updates"
+msgstr "Больше возможностей и безлимитные обновления"
+
+msgid "You are all set!"
+msgstr "Все включено!"
+
+msgid "You have all premium features and unlimited updates."
+msgstr "Подключены все возможности и безлимитный доступ к обновлениям."
+
+msgid "Upgrade to premium"
+msgstr "Подключить премиум"
+
+msgid "https://www.webasyst.com/store/app/shop/"
+msgstr "https://www.webasyst.ru/store/app/shop/"
+
+msgid "Latest updates"
+msgstr "Последние обновления"
+
+msgid "Roadmap"
+msgstr "Ближайшие планы"
+
+msgid "Promo code"
+msgstr "Промокод"
+
+msgid "Get license"
+msgstr "Купить лицензию"
+
+msgid "Soon"
+msgstr "Скоро"
+
+msgid "Later"
+msgstr "Позже"
+
+msgid "Mobile POS"
+msgstr "Мобильная касса"
+
+msgid "Shop-Script <a href=\"https://www.webasyst.com/mobile/\">mobile app</a> is a next-gen Point Of Sale terminal: quickly create orders, accept payments offline via QR codes and credit cards — all in one app.<br><br> Premium enables advanced POS features such as barcode scanner, multiple store locations, cashier shifts, and more."
+msgstr "<a href=\"https://www.shop-script.ru/mobile/\">Мобильное приложение</a> заменяет традиционную кассу в точке продаж и превращает Shop-Script в облачную платформу для управления продажами онлайн + офлайн. Быстро создавайте заказы в мобильной кассе и принимайте оплату по картам и QR-кодам в офлайне — все в мобильном приложении.<br><br> Премиум добавит дополнительные возможности: сканер штрих-кодов, кассовые смены, работу с несколькими точками продаж и др."
+
+msgid "Multiple managers"
+msgstr "Много менеджеров"
+
+msgid "Improve order processing by automatically scheduling & assigning orders to managers. Control the processing efficiency by each user."
+msgstr "Эффективная командная обработка заказов. Назначение менеджеров, контроль видимости заказов по сотрудникам."
+
+msgid "Complex products"
+msgstr "Сложные товары"
+
+msgid "Sell custom complex products such as auto-renewable subscriptions, tickets, QR-codes, etc."
+msgstr "Продажа «нестандартных» товаров: автовозобновляемых подписок, билетов, уникальных QR-кодов и т. п."
+
+msgid "Available in the new Webasyst 2 UI only."
+msgstr "Доступно только в новом интерфейсе Webasyst 2."
+
+msgid "Product prices cannot be negative."
+msgstr "Цены товаров не могут быть отрицательными."

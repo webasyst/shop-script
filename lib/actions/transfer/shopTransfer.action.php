@@ -45,7 +45,7 @@ class shopTransferAction extends waViewAction
             return array();
         }
         $sql = "
-            SELECT s.id, s.name, s.count, p.id AS product_id, p.name AS product_name, p.image_id FROM `shop_product` p 
+            SELECT s.id, s.name, s.count, s.sku AS sku_code, s.image_id AS sku_image_id, p.id AS product_id, p.name AS product_name, p.image_id FROM `shop_product` p
             JOIN `shop_product_skus` s ON p.id = s.product_id
             WHERE s.id IN (i:0)
         ";
@@ -64,4 +64,4 @@ class shopTransferAction extends waViewAction
     {
         return new waModel();
     }
-} 
+}

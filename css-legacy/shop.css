@@ -2070,9 +2070,9 @@ and (orientation : portrait) {
     }
 }
 
-.s-tiny-ad-box { position: sticky; bottom: 16px; z-index: 1; max-width: 290px; border-radius: 0.375rem; background: #fff; box-shadow: 0 0.5rem 1.5rem -0.25rem rgba(0, 0, 0, 0.2); padding: 0.75rem 0.75rem; margin: 16px; font-size: 0.875rem;}
+.s-tiny-ad-box { overflow: hidden; position: sticky; bottom: 16px; z-index: 1; max-width: 290px; border-radius: 0.375rem; background: #fff; box-shadow: 0 0.5rem 1.5rem -0.25rem rgba(0, 0, 0, 0.2); padding: 0.75rem 0.75rem; margin: 16px; font-size: 0.875rem;}
 .s-tiny-ad-box .flexbox { display: flex; gap: 12px;}
-.s-tiny-ad-box .s-tiny-ad-close { float: right; color: #888; font-size: 1.5rem; position: relative; top: -0.6125rem;}
+.s-tiny-ad-box .s-tiny-ad-close { float: right; color: #888; font-size: 1.5rem; position: relative; top: -0.6125rem; z-index: 100; }
 .s-tiny-ad-box .heading { padding: 0; margin: 0 0 0.75rem; display: flex; align-items: center; gap: 6px;}
 .s-tiny-ad-box img.s-mobile-qr { max-width: 85px;}
 .s-tiny-ad-box img.s-mobile-qr.s-tiny { max-width: 65px;}
@@ -2093,3 +2093,157 @@ and (orientation : portrait) {
     .s-tiny-ad-box p.hint { font-size: 0.875rem; }
 }
 .s-tiny-ad-box p.hint a { white-space: nowrap; text-overflow: ellipsis; height: 1rem; max-width: 80%;}
+
+
+/* Some magic (promos & specials)
+--------------------------------- */
+.s-premium-block .s-premium-star { position: relative; z-index: 10; background: url('../img/backend/settings/premium/star-yellow.svg?v1') no-repeat center; height: 12rem; }
+.s-premium-block .s-premium-btn { border-color: orange; font-size: 16px; }
+.s-premium-block h3 { font-size: 18px; padding-bottom: 0.5rem; }
+.s-premium-block h3 + p { font-size: 12px; }
+.s-tiny-ad-box .s-premium-btn { margin-left: -16px; }
+
+.stars-animation-container {
+  position: relative;
+}
+
+.stars-animation {
+  position: absolute;
+  display: flex;
+  top: 50%;
+  left: 50%;
+  transform: translate(-58%, -100%);
+  min-width: 300px;
+}
+.stars-animation--higher {
+  transform: translate(-58%, -155%);
+}
+
+.stars-animation--left,
+.stars-animation--right {
+  flex: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  max-height: 130px;
+}
+
+.stars-animation span {
+  position: relative;
+  height: 24px;
+  width: 24px;
+  background: url('../img/backend/settings/premium/star-bg.svg') no-repeat center;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: calc(40s / var(--star-i));
+  animation-fill-mode: forwards;
+}
+
+.stars-animation--left span:nth-child(n + 5) {
+  /*n + 5 or odd */
+  animation-direction: normal;
+  animation-name: animationStarsLeft
+}
+
+.stars-animation--left span:nth-child(-n + 5) {
+  /*-n + 5 or even*/
+  animation-direction: normal;
+  animation-name: animationStarsLeft2N;
+}
+
+.stars-animation--right span:nth-child(n + 5) {
+  /*n + 5 or odd */
+  animation-direction: normal;
+  animation-name: animationStarsRight
+}
+
+.stars-animation--right span:nth-child(-n + 5) {
+  /*-n + 5 or even*/
+  animation-direction: normal;
+  animation-name: animationStarsRight2N;
+}
+
+@keyframes animationStarsLeft {
+  0% {
+    transform: translate(3rem, 1rem) scale(0.4);
+  }
+
+  90% {
+    transform: translate(-2rem, 0) scale(1) rotate(90deg);
+    opacity: .5;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes animationStarsLeft2N {
+  0% {
+    transform: translate(3rem, 2rem) scale(0);
+  }
+
+  90% {
+    transform: translate(-2rem, 0) scale(1) rotate(90deg);
+    opacity: .5;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes animationStarsRight {
+  0% {
+    transform: translate(-3rem, 2rem) scale(0.4);
+  }
+
+  90% {
+    transform: translate(2rem, 0) scale(1) rotate(90deg);
+    opacity: .5;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes animationStarsRight2N {
+  0% {
+    transform: translate(-2rem, 1rem) scale(0);
+  }
+
+  90% {
+    transform: translate(-2rem, 0) scale(1) rotate(90deg);
+    opacity: .5;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+.s-premium-star {
+  animation: animationStar 5s infinite;
+}
+
+@keyframes animationStar {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.custom-mx-auto { margin-left: auto !important; margin-right: auto !important; }

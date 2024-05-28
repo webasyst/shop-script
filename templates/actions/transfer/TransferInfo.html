@@ -32,7 +32,7 @@
             </div>
             {/if}
 
-            <div class="fields width-70 width-100-mobile">
+            <div class="fields width-100-mobile">
                 <div class="field">
                     <div class="name">
                         [`Status`]
@@ -90,22 +90,32 @@
                             <tbody class="s-transfer-products-list">
                             {foreach $transfer.skus as $sku}
                                 <tr class="s-transfer-product-item" data-id="{$sku.id}">
-                                    <td class="valign-top">
-                                        <img class="s-product-img" src="{$sku.image_url}">
+                                    <td class="min-width valign-top">
+                                        {$_image_url = ""}
+                                        {$_class_img = ""}
+                                        {if !empty($sku.sku_image_url)}
+                                            {$_image_url = $sku.sku_image_url}
+                                        {elseif !empty($sku.image_url)}
+                                            {$_image_url = $sku.image_url}
+                                        {else}
+                                            {$_image_url = "{$wa_app_static_url}img/image-dummy.svg"}
+                                            {$_class_img = " blank"}
+                                        {/if}
+                                        <img class="s-product-img{$_class_img}" src="{$_image_url}">
                                     </td>
                                     <td>
                                         <a href="products/{$sku.product_id}/" class="s-product-name" target="_blank">{$sku.product_name|escape}</a>
-                                        <span class="s-sku-name hint">{$sku.name|escape}</span>
+                                        <span class="s-sku-name hint">{if $sku.name}{$sku.name|escape}{else}{$sku.sku_code|escape}{/if}</span>
                                     </td>
                                     <td class="nowrap align-right">
                                         <span class="gray">&times;</span>
-                                        <span class="f-transfer-count semibold">
+                                        <span class="s-transfer-count semibold">
                                             {$sku.transfer.count}
                                         </span>
                                     </td>
                                     <td class="nowrap align-right">
                                         {if $sku.price}
-                                            {shop_currency_html($sku.price, null, $transfer.currency)}
+                                            {shop_currency_html($sku.price, $transfer.currency, $transfer.currency)}
                                         {else}
                                             <span class="gray">—</span>
                                         {/if}

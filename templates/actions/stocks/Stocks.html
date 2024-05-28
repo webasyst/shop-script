@@ -21,7 +21,7 @@
         {foreach $backend_stocks_hook as $_}{$_.stocks|default:''}{/foreach}
 
         <div>
-            <a href="javascript:void(0);" id="s-new-transfer-product" class="bold button light-gray rounded"><i class="fas fa-exchange-alt text-blue"></i> [`New transfer`]</a>
+            <button type="button" id="s-new-transfer-product" class="button light-gray rounded"><i class="fas fa-exchange-alt text-blue"></i> [`New transfer`]</button>
 
             <div id="s-new-transfer-container"></div>
 
@@ -58,6 +58,7 @@
             const $self = $(this);
             $self.find('svg').hide();
             $self.prepend($loading);
+            $self.prop('disabled', true);
             $new_transfer_container.load('?module=transfer', function() {
                 $new_transfer_container.children().slideDown(400);
                 $new_transfer_container.off('afterSubmit').on('afterSubmit', function(e, r) {
@@ -69,9 +70,10 @@
                     } else {
                         var tmp = $('<div>').html(r.data.html);
                         var item = $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', tmp).addClass('highlighted');
-                        $list.find('tbody').prepend(item);
+                        $list.find('.s-transfer-list-tbody').prepend(item);
                     }
                 });
+                $self.prop('disabled', false);
                 $loading.remove();
                 $self.find('svg').show();
             });

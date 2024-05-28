@@ -121,6 +121,7 @@ class shopOrdersAction extends shopOrderListAction {
             $state_transitions = $this->getStateTransitions($workflow, array_keys($state_counters));
         }
 
+        list($show_mobile_ad, $show_premium_ad) = $this->shouldShowAds();
 
         $currency =  $config->getCurrency();
         $total_processing = wa_currency_html($this->model->getTotalSalesByInProcessingStates(), $currency, '%k{h}');
@@ -145,24 +146,55 @@ class shopOrdersAction extends shopOrderListAction {
             'state_transitions'    => $state_transitions,
             'last_update_datetime' => $this->getLastUpdateDatetime($orders),
             'total_processing'     => $total_processing,
-            'show_mobile_ad'       => $this->shouldShowMobileAd(),
+            'show_mobile_ad'       => $show_mobile_ad,
+            'show_premium_ad'      => $show_premium_ad,
             'is_orders_empty'      => !($this->model->countAll()),
         ]);
+    }
+
+    protected function shouldShowAds()
+    {
+        // Mobile ad has priority; show if required
+        list($show_mobile_ad, $when_mobile_add_hidden) = $this->shouldShowMobileAd();
+        if ($show_mobile_ad) {
+            return [$show_mobile_ad, false];
+        }
+        // three days after mobile ad is hidden, show no ads
+        if (time() - $when_mobile_add_hidden <= 3*24*3600) {
+            return [false, false];
+        }
+        // show premium ad unless closed by user
+        return [false, $this->shouldShowPremiumAd()];
     }
 
     protected function shouldShowMobileAd()
     {
         $hide_mobile_ad_till = wa()->getUser()->getSettings('shop', 'hide_mobile_ad_till', null);
         if ($hide_mobile_ad_till && strtotime($hide_mobile_ad_till) > time()) {
-            return false;
+            return [false, strtotime($hide_mobile_ad_till) - 30*24*3600];
         }
 
         $api_tokens_model = new waApiTokensModel();
-        $count = $api_tokens_model->countByField([
+        $row = $api_tokens_model->getByField([
             'client_id' => ['com.webasyst.shopscript', 'com.webasyst.shopscript.android'],
-        ]);
+        ], false);
+        if ($row) {
+            return [false, strtotime($row['create_datetime'])];
+        }
 
-        return $count <= 0;
+        return [true, null];
+    }
+
+    protected function shouldShowPremiumAd()
+    {
+        if (shopLicensing::isPremium()) {
+            return false;
+        }
+        $hide_premium_ad_till = wa()->getUser()->getSettings('shop', 'hide_premium_ad_till', null);
+        if ($hide_premium_ad_till && strtotime($hide_premium_ad_till) > time()) {
+            return false;
+        }
+        return true;
     }
 
     protected function getLastUpdateDatetime($orders)

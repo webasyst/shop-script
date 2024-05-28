@@ -123,7 +123,7 @@ class shopOrdersLoadListController extends shopOrderListAction
             $filter_state_id = $this->getStateId();
             $conditions = explode('&', $this->getHash());
             foreach ($conditions as $key => $condition) {
-                if (mb_strpos($condition, 'state_id') === 0 || mb_strpos($condition, 'update_datetime') === 0) {
+                if (mb_strpos($condition, 'search/update_datetime') === 0 || mb_strpos($condition, 'state_id') === 0 || mb_strpos($condition, 'update_datetime') === 0) {
                     unset($conditions[$key]);
                 }
             }
@@ -140,6 +140,25 @@ class shopOrdersLoadListController extends shopOrderListAction
             }
         } else {
             $counters['state_counters'] = $this->model->getStateCounters();
+        }
+
+        $pending_counters = intval(
+            ifset($counters['state_counters']['new'], 0) +
+            ifset($counters['state_counters']['auth'], 0) +
+            ifset($counters['state_counters']['processing'], 0) +
+            ifset($counters['state_counters']['paid'], 0)
+        );
+        $counters['common_counters'] = ['pending_counters' => $pending_counters];
+
+        $prev_count_pending = waRequest::get('prev_pending', 0, waRequest::TYPE_INT);
+        if ($pending_counters && $prev_count_pending !== $pending_counters) {
+            /** @var shopConfig $config */
+            $config = $this->getConfig();
+            $counters['total_processing'] = wa_currency_html($this->model->getTotalSalesByInProcessingStates(), $config->getCurrency(), '%k{h}');
+        }
+
+        if ($view == 'split') {
+            $counters['all_count'] = intval($this->model->countAll());
         }
 
         return $counters;

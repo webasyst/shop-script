@@ -14,7 +14,7 @@
                         <span class="shop-sidebar-hidden">[`General settings`]</span>
                     </a>
                 </li>
-                {if !empty($show_marketplaces)}
+                {if shopHelper::isSettingsMarketplacesSectionVisible()}
                     <li>
                         <a href="?action=settings#/marketplaces/">
                             <span class="icon"><i class="fas fa-shopping-cart"></i></span>
@@ -158,6 +158,14 @@
                         <span class="s-name">[`Help`]</span>
                     </a>
                 </li>
+                {if !empty($is_premium)}
+                <li>
+                    <a href="?action=settings#/premium/" class="custom-mb-12">
+                        <span class="icon"><i class="fas fa-star"></i></span>
+                        <span class="shop-sidebar-hidden">[`Premium`]</span>
+                    </a>
+                </li>
+                {/if}
 
 
                 {if $wa->user()->isAdmin() && waSystemConfig::isDebug()}

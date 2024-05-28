@@ -15,5 +15,10 @@ class shopBackendSidebarMenuSaveStateController extends waJsonController
         if ($hide_mobile_ad !== null) {
             $contact_settings_model->set(wa()->getUser()->getId(), 'shop', 'hide_mobile_ad_till', date('Y-m-d', strtotime('+30 days')));
         }
+
+        $hide_premium_ad = waRequest::post('hide_premium_ad', null);
+        if ($hide_premium_ad !== null) {
+            $contact_settings_model->set(wa()->getUser()->getId(), 'shop', 'hide_premium_ad_till', date('Y-m-d', strtotime('+90 days')));
+        }
     }
 }

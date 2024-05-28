@@ -66,23 +66,38 @@ class shopStocksBalanceAction extends waViewAction
                 unset($stock_worth['']);
             }
 
+            $vars['total_all_stocks'] = [
+                'count' => 0,
+                'total_market_value' => 0
+            ];
             foreach ($vars['stocks'] as $stock_id => &$stock) {
-                if ($requested_stock_id === $stock_id) {
+                if (!$requested_stock_id || $requested_stock_id === $stock_id) {
                     $stock += ifset($stock_worth, $stock_id, [
                         'total_market_value' => 0,
                         'total_purchase_value' => 0,
                         'total_count' => 0,
                     ]);
 
-                    $stock['total_market_html'] = shop_currency($stock['total_market_value']);
-                    $stock['total_purchase_html'] = shop_currency($stock['total_purchase_value']);
+                    $stock['total_market_html'] = shop_currency_html($stock['total_market_value']);
                     $stock['total_count'] = intval($stock['total_count']);
-                    unset($stock['total_market_value'], $stock['total_purchase_value']);
-                    break;
+
+                    if ($requested_stock_id) {
+                        $stock['total_purchase_html'] = shop_currency_html($stock['total_purchase_value']);
+                        unset($stock['total_market_value'], $stock['total_purchase_value']);
+                        break;
+                    } else {
+                        $vars['total_all_stocks']['count'] += $stock['total_count'];
+                        $vars['total_all_stocks']['total_market_value'] += $stock['total_market_value'];
+                        unset($stock['total_market_value']);
+                    }
                 }
             }
             unset($stock);
 
+            if ($vars['total_all_stocks']['count'] > 0) {
+                $vars['total_all_stocks']['total_market_html'] = shop_currency_html($vars['total_all_stocks']['total_market_value']);
+                unset($vars['total_all_stocks']['total_market_value']);
+            }
             $vars['stocks'] = array_values($vars['stocks']);
         } else {
             $is_json = true;
@@ -186,8 +201,8 @@ class shopStocksBalanceAction extends waViewAction
             $sku['total_market_value_html'] = '';
             $sku['total_purchase_value_html'] = '';
             if ($sku['count'] !== '' && $sku['count'] >= 0) {
-                $sku['total_market_value_html'] = shop_currency($sku['primary_price'] * $sku['count']);
-                $sku['total_purchase_value_html'] = shop_currency($sku['purchase_price'] * $sku['count']);
+                $sku['total_market_value_html'] = shop_currency_html($sku['primary_price'] * $sku['count']);
+                $sku['total_purchase_value_html'] = shop_currency_html($sku['purchase_price'] * $sku['count']);
                 if ($sku['count'] > 0 && $product['total_market_value'] !== '') {
                     $product['total_market_value'] += $sku['primary_price'] * $sku['count'];
                     $product['total_purchase_value'] += $sku['purchase_price'] * $sku['count'];
@@ -201,6 +216,7 @@ class shopStocksBalanceAction extends waViewAction
         };
 
         foreach ($data as &$product) {
+            $product['has_stock_counts'] = false;
             $product['total_market_value'] = 0;
             $product['total_purchase_value'] = 0;
             $product['total_market_value_html'] = '';
@@ -213,8 +229,8 @@ class shopStocksBalanceAction extends waViewAction
             unset($sku);
 
             if ($product['total_market_value'] !== '') {
-                $product['total_market_value_html'] = shop_currency($product['total_market_value']);
-                $product['total_purchase_value_html'] = shop_currency($product['total_purchase_value']);
+                $product['total_market_value_html'] = shop_currency_html($product['total_market_value']);
+                $product['total_purchase_value_html'] = shop_currency_html($product['total_purchase_value']);
             }
 
             if ($requested_stock_id) {
@@ -235,6 +251,9 @@ class shopStocksBalanceAction extends waViewAction
                     $processSku($sku, $product_copy);
                     $sku['stock_id'] = $stk_id;
 
+                    if ($sku['count'] !== '') {
+                        $product['has_stock_counts'] = true;
+                    }
                     if ($product['stocks_summary'][$stk_id]['count'] !== '' && $sku['count'] !== '' && $sku['count'] >= 0) {
                         $product['stocks_summary'][$stk_id]['count'] += intval($sku['count']);
                         $product['stocks_summary'][$stk_id]['total_market_value'] += $sku['primary_price'] * $sku['count'];
@@ -244,7 +263,7 @@ class shopStocksBalanceAction extends waViewAction
                     }
                 }
                 if ($product['stocks_summary'][$stk_id]['total_market_value'] !== '') {
-                    $product['stocks_summary'][$stk_id]['total_market_value_html'] = shop_currency($product['stocks_summary'][$stk_id]['total_market_value'], $product['currency']);
+                    $product['stocks_summary'][$stk_id]['total_market_value_html'] = shop_currency_html($product['stocks_summary'][$stk_id]['total_market_value'], $product['currency']);
                 }
                 unset($product['stocks_summary'][$stk_id]['total_market_value']);
             }

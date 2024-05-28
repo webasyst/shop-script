@@ -239,13 +239,14 @@
             </div>
 
             <div>
-                <a href="{$wa_app_url}marketing/promo/create/" class="button circle small custom-mt-4" title="[`New promo`]">
-                    <i class="fas fa-plus"></i>
+                <a href="{$wa_app_url}marketing/promo/create/" class="button rounded small custom-mt-4" title="[`New promo`]">
+                    <i class="fas fa-plus custom-mr-4"></i>
+                    [`New promo`]
                 </a>
             </div>
 
             <div>
-                <a href="[`https://www.shop-script.com/help/33511/marketing/`]" class="button nobutton smaller gray nowrap custom-mt-4" target="_blank">[`Help`] <i class="fas fa-external-link-alt fa-xs text-gray"></i></a>
+                <a href="[`https://www.shop-script.com/help/33511/marketing/`]" class="button nobutton small rounded gray nowrap custom-mt-4" target="_blank">[`Help`] <i class="fas fa-external-link-alt fa-xs text-gray"></i></a>
             </div>
 
         </div>
@@ -268,13 +269,15 @@
 
                 </div>
 
-                {if !empty($active_storefront)}
-                    <p class="gray small">[`Change the sort order of active promos by using drag&amp;drop.`]</p>
-                {else}
-                    <p class="gray small">[`Select a storefront to change active promos’ sort order.`]</p>
+                {if !empty($active_promos)}
+                    {if !empty($active_storefront)}
+                        <p class="gray small">[`Change the sort order of active promos by using drag&amp;drop.`]</p>
+                    {else}
+                        <p class="gray small">[`Select a storefront to change active promos’ sort order.`]</p>
+                    {/if}
                 {/if}
 
-                <div id="skeleton_promos_list">
+                <div id="skeleton_promos_list" class="custom-pt-16">
                     {_render_promo_skeleton count=3}
                 </div>
                 {if !empty($active_promos)}

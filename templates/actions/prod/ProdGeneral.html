@@ -185,7 +185,9 @@
     "post_size" => "{_w("Total size of selected files cannot be greater than")} {$_max_post_size_mb}{_w("KB")}.",
     "stock_title" => _w("The quantity on this virtual stock is the sum of quantities on physical stocks — %s. You can change the list of stocks in “Settings” section."),
     "max_length_error" => "{_w("Invalid value")} <span class=\"s-icon\" data-tooltip-id=\"product-name-error\"><i class=\"fas fa-question-circle\"></i></span>",
-    "product_name_required" => _w("Enter a product name.")
+    "product_name_required" => _w("Enter a product name."),
+    "remove_main_category" => _w("Remove product from this category"),
+    "take_main_category_from_additional" => _w("The first of additional categories will become the main one.")
 ]}
 
 {$_globals_locales = $wa->globals("locales")}
@@ -966,8 +968,7 @@
 
                         </div>
                         <div class="value">
-
-                            <div class="s-product-main-category-section">
+                            <div class="s-product-main-category-section flexbox space-8 wrap">
                                 <div class="s-visible-place">
                                     <div class="dropdown" id="js-product-main-category-select">
                                         <button class="dropdown-toggle button light-gray small" type="button">{$_active_main_category.name|default:$_locales["select_category"]|escape}</button>
@@ -1014,8 +1015,17 @@
                                         <input type="hidden" name="parent_id" value="" disabled>
                                     </div>
                                 </div>
-                            </div>
 
+                                <button
+                                    class="js-main-category-remove hidden button nobutton circle light-gray smallest wa-tooltip"
+                                    type="button"
+                                    data-title="{(isset($product.categories) && count($product.categories) > 1)
+                                        ? $_locales['take_main_category_from_additional']
+                                        : $_locales['remove_main_category']}"
+                                >
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 

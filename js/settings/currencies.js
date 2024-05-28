@@ -17,7 +17,7 @@ $.extend($.settings = $.settings || {}, {
         const table = content.find('table.s-settings-currencies');
         const sortable_context = table.find('tbody:first');
 
-        Sortable.create(sortable_context[0], {
+        sortable_context.sortable({
             group: 'currencies-rows',
             handle: '.js-sort',
             animation: 100,

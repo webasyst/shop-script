@@ -806,7 +806,7 @@
                 }
             });
 
-            Sortable.create(container.find('ul')[0], {
+            container.find('ul').sortable({
                 group: 'shared',
                 handle: '.js-sort',
                 draggable: 'li',

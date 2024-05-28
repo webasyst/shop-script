@@ -99,16 +99,16 @@
                                         <tbody class="s-transfer-products-list"></tbody>
                                         <tfoot>
                                             <tr class="s-transfer-product-item s-tmpl" style="display: none;" data-id="">
-                                                <td>
-                                                    <img class="s-product-img" src="">
+                                                <td class="min-width custom-pr-4">
+                                                    <img class="s-product-img blank" src="{$wa_app_static_url}img/image-dummy.svg">
                                                 </td>
-                                                <td class="valign-middle">
+                                                <td class="valign-middle" style="min-width:60px;">
                                                     <a href="" class="s-product-name" target="_blank"></a>
                                                     <span class="s-sku-name hint"></span>
                                                 </td>
                                                 <td class="min-width nowrap">
                                                     &times;
-                                                    <span class="f-transfer-count">
+                                                    <span class="s-transfer-count">
                                                         <input type="number" name="count[]" value="1" class="s-transfer-input-count small number bold shortest" disabled="disabled">
                                                     </span>
                                                     <input type="hidden" name="id[]" value="" disabled="disabled">
@@ -157,8 +157,10 @@
         var showValidateErrors = function (errors) {
             $.each(errors, function(i, er) {
                 var el = er.name === 'id' ? list : form.find('[name="' + er.name + '"]');
-                var parent = el.parent();
                 el.addClass('state-error');
+
+                el = er.name === 'price[0]' ? form.find('[name="count[0]"]') : el;
+                var parent = el.parent();
                 parent.append('<div class="state-error-hint">' + er.msg + '</div>');
             });
         };
@@ -191,9 +193,12 @@
             item.removeClass('s-tmpl');
             item.attr('data-id', data.id);
             item.find('a').attr('href', 'products/' + data.product_id + '/');
-            item.find('img').attr('src', data.image_url);
+            const image_url = data.sku_image_url || data.image_url;
+            if (image_url) {
+                item.find('img').removeClass('blank').attr('src', image_url);
+            }
             item.find('.s-product-name').text(data.product_name);
-            item.find('.s-sku-name').text(data.name);
+            item.find('.s-sku-name').text(data.name || data.sku_code);
             item.find('[name="id[]"]').attr({
                 'disabled': false,
                 'name': 'id[' + count.toString() + ']'
@@ -227,7 +232,7 @@
 
         function submit(url, callback) {
             clearValidateErrors();
-            disableHeaderSelects(false);
+
             const $submit = $('[name=send]');
             $submit.prop('disabled', true);
             let $loading = form.find('.js-loading');
@@ -241,15 +246,21 @@
                 $loading.remove();
                 $submit.prop('disabled', false);
             };
+
+            disableHeaderSelects(false);
+            const form_data = form.serialize();
+            disableHeaderSelects(true);
+
             $.shop.jsonPost(
                 url,
-                form.serialize(),
+                form_data,
                 function (r) {
                     // table
                     $wrapper.trigger('afterSubmit', [r]);
 
                     $('.js-close-new-transfer').trigger('click');
                     resetSubmit()
+                    disableHeaderSelects(false);
                 },
                 function (r) {
                     showValidateErrors(r.errors || []);
@@ -259,6 +270,21 @@
         };
 
         var search_input = $('.s-transfer-products-add-autocomplete', $wrapper);
+        const getUnselectedItems = function (r) {
+            if (!Array.isArray(r) || !r.length) {
+                return r;
+            }
+
+            const selected_items = list.find('.s-transfer-product-item:not(.s-tmpl)');
+            if (!selected_items.length) {
+                return r;
+            }
+
+            const selected_ids = selected_items.toArray().map(el => String(el.dataset.id));
+            const result = r.filter(p => !selected_ids.includes(p.id));
+
+            return result;
+        };
         search_input.autocomplete({
             source: function (request, response) {
                 const selected_currency_val = $('select[name=currency]').val();
@@ -267,7 +293,7 @@
                     '?module=transfer&action=skus&stock_id=' + $('[name=from]').val() + currency_param,
                     request,
                     function (r) {
-                        response(r);
+                        response(getUnselectedItems(r));
                     }
                 );
             },

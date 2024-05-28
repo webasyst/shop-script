@@ -26,10 +26,12 @@ class shopFrontendPaymentLinkAction extends waViewAction
         $this_is_a_bot = preg_match('~WhatsApp|TelegramBot|TwitterBot|facebookexternalhit|Facebot|vkShare|snapchat|Discordbot~i', $user_agent);
 
         $payment_form_html = null;
-        if (waRequest::post()) {
+        if (waRequest::post() || wa()->getStorage()->get('shop_paymentlink_challenge_passed')) {
             $challenge = waRequest::post('challenge', null, waRequest::TYPE_STRING_TRIM);
-            if ($challenge === wa()->getStorage()->get('shop_paymentlink_challenge')) {
+            if (wa()->getStorage()->get('shop_paymentlink_challenge_passed') || $challenge === wa()->getStorage()->get('shop_paymentlink_challenge')) {
                 $payment_form_html = $this->getPaymentFormHtml($order);
+                wa()->getStorage()->set('shop_paymentlink_challenge_passed', true);
+                wa()->getStorage()->set('shop/order_id', $order_id); // auth for printforms
             }
         }
 

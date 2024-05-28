@@ -48,8 +48,8 @@ if (typeof ($) != 'undefined') {
             this.$payment_menu.waDropdown();
             this.updateDropdownSecondaryActions();
 
-            if (typeof Sortable !== 'undefined') {
-                Sortable.create(this.$payment_container.find('tbody')[0], {
+            if ($.fn.sortable) {
+                this.$payment_container.find('tbody').sortable({
                     group: 'payments-rows',
                     handle: '.js-sort',
                     animation: 100,

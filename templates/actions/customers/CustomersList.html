@@ -84,7 +84,7 @@
                     <span class="s-title">{$title|escape}</span>
                 </h1>
 
-                {if $hash_start === "#/all/"}
+                {if $hash_start === "#/all/" || $hash_start === "#/shop/"}
                 <a href="#/add/" class="button circle small custom-mr-auto custom-mt-8" title="[`New customer`]">
                     <i class="fas fa-plus"></i>
                 </a>
@@ -119,6 +119,12 @@
                     {include file="./include.filterSettings.html"}
                 {/if}
 
+                {if $hash_start === "#/shop/"}
+                    <p class="small gray">[`Everyone who’ve ever placed an order or signed up on your storefront.`]</p>
+                {elseif $hash_start === "#/all/"}
+                    <p class="small gray">[`All contacts and backend users gathered across all Webasyst apps.`]</p>
+                {/if}
+
                 {if !empty($customers)}
                     <div class="table-scrollable-x s-customers-table-scrollable-x">
                         <table class="s-customers small">
@@ -137,6 +143,7 @@
                     </div>
                 {else}
                     {* Fake table. A need to take a certain width so that the interface does not swell when there is no table *}
+
                     <div class="table-scrollable-x s-customers-table-scrollable-x" style="overflow: hidden;">
                         <table class="s-customers custom-mb-32-mobile" style="visibility: hidden;">
                             <thead>

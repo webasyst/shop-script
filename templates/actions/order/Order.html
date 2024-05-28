@@ -270,7 +270,7 @@
                                         <h6 class="gray custom-mt-16">[`Payment link`]</h6>
 
                                         {* <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre> *}
-                                        <button class="button smaller green nowrap js-copy-btn" data-copy-target="#js-payment-url" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]">[`Copy link`]</button>
+                                        <button class="button smaller green nowrap js-copy-btn" data-url="{$order.payment_url}" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]">[`Copy link`]</button>
                                         <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs opacity-30"></i></a>
                                     {/if}
                                 {/if}
@@ -292,9 +292,9 @@
                                 <tr>
                                     {if $visible_fulfilment_mode}
                                         <th colspan="3" class="custom-pl-0">
-                                            {$_description = _w('Fulfilment mode is for your personal control of assembling an order. Checked items are not synced with the server and other users.')}
+                                            {$_description = _w('Fulfillment mode is for your personal control of assembling an order. Checked items are not synced with the server and other users.')}
                                             <div class="flexbox middle">
-                                                <button type="button" class="js-show-fulfilment-mode button nobutton rounded custom-m-0 custom-p-2 small"><i class="fas fa-tasks"></i> [`Fulfilment mode`] <span class="js-fulfilment-mode-counter badge small hidden custom-ml-4"></span></button>
+                                                <button type="button" class="js-show-fulfilment-mode button nobutton rounded custom-m-0 custom-p-2 small"><i class="fas fa-tasks"></i> [`Fulfillment mode`] <span class="js-fulfilment-mode-counter badge small hidden custom-ml-4"></span></button>
 
                                                 <span id="tooltip-fulfilment-mode" data-wa-tooltip-content="{$_description}">
                                                     <i class="fas fa-info-circle text-light-gray"></i>

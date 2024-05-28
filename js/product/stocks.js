@@ -11,6 +11,8 @@
 
         stock_id: null,
 
+        waLoading: $.waLoading(),
+
         init: function(options) {
             this.options = options;
             this.stocks = options.stocks;
@@ -23,17 +25,19 @@
             if (this.options.lazy_loading && this.options.product_stocks.length > 0) {
                 this.initLazyLoad(this.options.lazy_loading);
             }
+
+            this.initFixRetrespectiveTable(this.container.closest('.s-table-scrollable-x'));
         },
 
         initLazyLoad: function(options) {
-            var count = options.count,
+            let count = options.count,
                 offset = count,
                 total_count = options.total_count,
                 sort = options.sort;
 
             $(window).lazyLoad('stop');  // stop previous lazy-load implementation
             if (offset < total_count) {
-                var self = this;
+                const self = this;
                 $(window).lazyLoad({
                     container: self.container.find('tbody'),
                     state: (typeof options.auto === 'undefined' ? true: options.auto) ? 'wake' : 'stop',
@@ -43,7 +47,7 @@
                         $('.lazyloading-link').hide();
                         $('.lazyloading-progress').show();
 
-                        var onError = function(r) {
+                        const onError = function(r) {
                             if (console) {
                                 if (r && r.errors) {
                                     console.error('Error when loading products: ' + r.errors);
@@ -56,7 +60,7 @@
                             $(window).lazyLoad('stop');
                         };
 
-                        var params = [
+                        const params = [
                             "module=stocksBalance",
                             "offset=" + offset,
                             "total_count=" + total_count
@@ -117,13 +121,12 @@
         },
 
         append: function(data) {
-            var that = this;
+            const that = this;
 
             data = formatData(data);
 
             try {
                 this.container.find('tbody').append(tmpl('template-product-stocks', data));
-
             } catch (e) {
                 console.error('Error: ' + e.message);
                 return false;
@@ -132,7 +135,7 @@
             return true;
 
             function formatData(result) {
-                var products = [];
+                const products = [];
 
                 $.each(result.product_stocks, function(i, product) {
                     if (that.products_ids.indexOf(product.id) < 0) {
@@ -145,6 +148,40 @@
 
                 return result;
             }
+        },
+
+        showLoading: function () {
+            this.waLoading.show();
+            this.waLoading.animate(10000, 95, false);
+        },
+        doneLoading: function () {
+            this.waLoading.done();
+        },
+
+        /**
+         * fix WebKit browsers
+         */
+        initFixRetrespectiveTable: function ($table_wrapper) {
+            if(navigator.userAgent.indexOf('AppleWebKit') === -1) {
+                return;
+            }
+
+            $table_wrapper.css('perspective', '0');
+            let timeout_id = null;
+            const stopScrolling = () => {
+                if (timeout_id) {
+                    clearTimeout(timeout_id);
+                }
+
+                timeout_id = setTimeout(() => {
+                    $table_wrapper.css('perspective', '0');
+                }, 50);
+            };
+
+            $table_wrapper.on('scroll', function () {
+                $table_wrapper.css('perspective', 'none');
+                stopScrolling();
+            });
         }
     };
 })(jQuery);

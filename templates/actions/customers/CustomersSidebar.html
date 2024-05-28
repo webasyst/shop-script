@@ -10,8 +10,16 @@
 <ul class="menu large custom-mt-0">
     <li>
         <a href="#/all/">
+            <i class="fas fa-users"></i>
+            <span>[`All contacts`]</span>
+            <span class="count">{$all_contacts_count}</span>
+        </a>
+    </li>
+
+    <li>
+        <a href="#/shop/">
             <i class="fas fa-shopping-cart"></i>
-            <span>[`All customers`]</span>
+            <span>[`Customers`]</span>
             <span class="count">{$all_customers_count}</span>
         </a>
     </li>
@@ -48,6 +56,7 @@
             <span class="count"><a href="#/editcategory/" title="[`New category`]"><i class="fas fa-plus-circle text-green"></i></a></span>
             [`Categories`]
         </h5>
+        {if !empty($categories)}
         <ul class="menu" id="customer-categories">
             {foreach $categories as $c}
                 <li class="rounded" data-category-id="{$c.id}">
@@ -58,6 +67,13 @@
                 </li>
             {/foreach}
         </ul>
+        {else}
+            <div class="box align-center custom-mt-24">
+                <p class="hint">
+                    [`Add a category to group customers and set personalized discounts.`]
+                </p>
+            </div>
+        {/if}
     </div>
 
 </div>

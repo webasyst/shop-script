@@ -375,6 +375,7 @@
         <div class="dialog-content">
             <div class="dialog-content-indent">
                 <h2>[`Supported in the new Webasyst 2 UI mode only`]</h2>
+                <p style="margin-top: 12px;"><i class="icon16 new"></i> [`The new Webasyst 2 UI mode is mobile-ready, supports more new features, and is getting further with every Shop-Script update.`]</p>
             </div>
         </div>
         <div class="dialog-buttons">
@@ -386,12 +387,15 @@
     </div>
     <script>
         $(function () {
+            $.wa.switchToNewUI = function () {
+                _setCookie('force_set_wa_backend_ui_version', '2.0', 180);
+                window.location.reload();
+            };
             $.wa.dialogSwitchToNewUI = function () {
                 $('#dialog-switch-ui').waDialog({
                     onLoad: function () {
                         $(this).find('.js-switch-to-new-ui').one('click', function () {
-                            _setCookie('force_set_wa_backend_ui_version', '2.0', 180);
-                            window.location.reload();
+                            $.wa.switchToNewUI();
                         });
                     }
                 });

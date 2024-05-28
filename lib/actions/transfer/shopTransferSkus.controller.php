@@ -19,7 +19,7 @@ class shopTransferSkusController extends waController
         $q = $model->escape($term, 'like');
 
         $sql_map = array(
-            "SELECT" => "s.id, s.name, s.count, p.id AS product_id, p.name AS product_name, p.image_id, p.currency, s.price, s.purchase_price ",
+            "SELECT" => "s.id, s.name, s.count, p.id AS product_id, p.name AS product_name, p.image_id, p.currency, s.price, s.purchase_price, s.sku AS sku_code, s.image_id AS sku_image_id ",
             "FROM"   => "`shop_product` p ",
             "JOIN"   => array("`shop_product_skus` s ON p.id = s.product_id "),
             'LEFT JOIN' => array(),
@@ -107,11 +107,22 @@ class shopTransferSkusController extends waController
         $image_ids = array();
         foreach($skus as $sku) {
             $image_ids[] = $sku['image_id'];
+            $image_ids[] = $sku['sku_image_id'];
         }
         $image_ids = array_unique($image_ids);
 
         $pim = new shopProductImagesModel();
-        $images = $pim->getByField('id', $image_ids, 'product_id');
+        $images = $pim->getByField('id', $image_ids, 'id');
+        $main_image = [];
+        if ($images) {
+            $main_image = array_filter($images, function ($img) {
+                if ($img['sort'] == 0) {
+                    return $img;
+                }
+            });
+        }
+
+
         $size = wa('shop')->getConfig()->getImageSize('crop_small');
 
         foreach ($skus as &$sku) {
@@ -143,14 +154,18 @@ class shopTransferSkusController extends waController
             }
 
             $wrapp_class = $sku['disabled'] ? 's-sku-disabled' : '';
-            $sku['label'] = "<span class='{$wrapp_class}'>{$sku['product_name_e']} <span class='hint'>{$sku['name_e']}</span> {$stock_message}</span>";
+            $sku['label'] = "<span class='{$wrapp_class}'>{$sku['product_name_e']} <span class='hint'>".($sku['name_e'] ? $sku['name_e'] : $sku['sku_code'])."</span> {$stock_message}</span>";
 
             $name = $sku['product_name'] . ($sku['name'] ? ' (' . $sku['name'] . ')' : '');
             $sku['value'] = $name;
 
             $sku['image_url'] = null;
-            if (isset($images[$sku['product_id']])) {
-                $sku['image_url'] = shopImage::getUrl($images[$sku['product_id']], $size);
+            $sku['sku_image_url'] = null;
+            if ($main_image && isset($main_image[$sku['image_id']])) {
+                $sku['image_url'] = shopImage::getUrl($main_image[$sku['image_id']], $size);
+            }
+            if ($images && isset($images[$sku['sku_image_id']])) {
+                $sku['sku_image_url'] = shopImage::getUrl($images[$sku['sku_image_id']], $size);
             }
         }
         unset($sku);
@@ -179,7 +194,7 @@ class shopTransferSkusController extends waController
                     $sku['price'] = '';
                     $sku['purchase_price'] = '';
                 }
-                unset($sku['currency']);
+                unset($sku['currency'], $sku['image_id'], $sku['sku_image_id']);
             }
             unset($sku);
         }

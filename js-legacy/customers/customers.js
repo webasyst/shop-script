@@ -322,6 +322,12 @@
             $('#s-sidebar a[href="#/all/"]').parent().addClass('selected');
         },
 
+        shopAction: function(order) {
+            order = this.getSortOrder(order);
+            this.load(this.getUrl() + '&only_customers=1' + order);
+            $('#s-sidebar a[href="#/shop/"]').parent().addClass('selected');
+        },
+
         categoryAction: function(id, order) {
             order = this.getSortOrder(order);
             this.load(this.getUrl() + '&category='+id+order);

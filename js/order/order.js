@@ -381,7 +381,7 @@
 
             this.initNameControl();
 
-            this.initItemsChecklist(options);
+            this.initChecklistItems(options);
 
             // workflow
             // action buttons click handler
@@ -519,23 +519,22 @@
             });
 
             $('.js-copy-btn').on('click', function() {
-                const $this = $(this)
-                    initial_title = $this.data('initial-title')
-                    title_copied = $this.data('title-copied')
-                    copied_text = $($this.data('copy-target')).text();
+                const $self = $(this),
+                    initial_title = $self.data('initial-title'),
+                    title_copied = $self.data('title-copied'),
+                    url = $self.data('url');
 
-                $this.html(`<i class="fas fa-check"></i> ${title_copied}`)
+                $self.html(`<i class="fas fa-check"></i> ${title_copied}`)
                     .attr('disabled', true)
                     .addClass('green');
 
-                $.wa.copyToClipboard(copied_text);
+                $.wa.copyToClipboard(url);
 
                 setTimeout(() => {
-                    $this.text(initial_title)
+                    $self.text(initial_title)
                         .removeClass('green')
                         .attr('disabled', false);
                 }, 1000);
-
             });
         },
 
@@ -684,7 +683,7 @@
             });
         },
 
-        initItemsChecklist: function (options) {
+        initChecklistItems: function (options) {
             const storage_key = `shop/order/${options.order.id}/fulfilmented_items`;
             const animation_timeout = 300;
             const $table = $('#s-order-items');
@@ -711,10 +710,15 @@
                     $('body').prepend($overlay);
                     setTimeout(() => {
                         $overlay.addClass('is-visible');
-                    }, 25);
+                    }, 10);
                     $.order.is_opened_items_checklist = true;
                     $overlay.one('click', function () {
                         $self.trigger('click');
+                    });
+
+                    setTimeout(() => {
+                        const scrollY = this.getBoundingClientRect().top + window.scrollY;
+                        window.scrollTo({ top: scrollY - 80 });
                     });
                 }
                 toggleFulfilmentMode();
@@ -817,18 +821,21 @@
                     }, {});
 
                     const $order_items = getItems();
+                    let $last_item = $order_items.filter(':last');
                     $order_items.each(function () {
                         const $item = $(this);
                         const id = $item.data('id');
-                        if (checked_items_map[id]) {
-                            $item.toggleClass('is-fulfilmented', true);
-                            $item.find('[name="order_item"]:checkbox').prop('checked', true);
 
-                            const $last_item = $order_items.filter(':last');
-                            if ($item.data('id') !== $last_item.data('id')) {
+                        if (checked_items_map[id]) {
+                            $item.addClass('is-fulfilmented');
+                            $item.find(':checkbox[name="order_item"]').prop('checked', true);
+
+                            if ($item.data('type') === 'product' && $last_item.data('id') !== $item.data('id')) {
                                 $item.detach();
-                                $last_item.after($item);
+                                $item.insertAfter($last_item);
+                                $last_item = $item;
                             }
+
                             delete checked_items_map[id];
                             has_fulfilmented = true;
                             count_selected += 1;
@@ -896,24 +903,50 @@
             }
 
             function sortServices () {
-                getItems().filter('[data-type="service"]').each(function (index) {
+                const getParent = (parent_id) => {
+                    return getItems().filter(`[data-id="${parent_id}"]`);
+                };
+                const getLastService = (parent_id, fulfilmented = false) => {
+                    const $need_item = getItems()
+                        .filter(`.is-sorted[data-parent="${parent_id}"]${fulfilmented ? '.is-fulfilmented' : ':not(.is-fulfilmented)'}:last`);
+                    return $need_item;
+                };
+
+                let prev_parent_id = null;
+                getItems().filter('[data-type="service"]:not(.is-fulfilmented)').each(function () {
                     const $service = $(this);
+                    $service.addClass('is-sorted').detach();
+
                     const parent_id = $service.data('parent');
-                    const getParent = () => getItems().filter(`[data-id="${parent_id}"]`);
-
-                    $service.detach();
-
                     let $need_item;
-                    if (index > 0) {
-                        $need_item = getItems().filter(`[data-parent="${parent_id}"]:not(.is-fulfilmented):last`);
-                        if (!$need_item.length) {
-                            $need_item = getParent();
-                        }
+                    if (parent_id === prev_parent_id) {
+                        $need_item = getLastService(parent_id);
                     } else {
-                        $need_item = getParent();
+                        $need_item = getParent(parent_id);
                     }
 
-                    $need_item.after($service);
+                    prev_parent_id = parent_id;
+                    $service.insertAfter($need_item);
+                });
+
+                prev_parent_id = null;
+                getItems().filter('[data-type="service"].is-fulfilmented').each(function () {
+                    const $service = $(this);
+                    $service.addClass('is-sorted').detach();
+
+                    const parent_id = $service.data('parent');
+                    let $need_item;
+                    if (parent_id === prev_parent_id) {
+                        $need_item = getLastService(parent_id, true);
+                    } else {
+                        $need_item = getLastService(parent_id);
+                        if (!$need_item.length) {
+                            $need_item = getParent(parent_id);
+                        }
+                    }
+
+                    prev_parent_id = parent_id;
+                    $service.insertAfter($need_item);
                 });
             }
 

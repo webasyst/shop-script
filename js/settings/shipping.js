@@ -37,7 +37,7 @@ if (typeof ($) != 'undefined') {
 
             this.updateDropdownSecondaryActions();
 
-            Sortable.create($('#s-settings-shipping tbody')[0], {
+            $('#s-settings-shipping tbody').sortable({
               group: 'shipping-rows',
               handle: '.js-sort',
               animation: 100,

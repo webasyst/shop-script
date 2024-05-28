@@ -534,7 +534,7 @@
                     $.order_list.updateCounters({
                         state_counters: r.data.state_counters,
                         common_counters: {
-                            pending: r.data.pending_counters
+                            pending: r.data.pending_count
                         }
                     });
                 };
@@ -1230,72 +1230,85 @@
          * @param {Object} counters
          *
          * Format: {
+         *     all_count: 1000,
+         *     total_processing: '1M <span class="ruble">₽</span>',
          *     state_counters: {
          *         new: '10' // string. Support incrementing, i.e.: '+5', '-7',
          *         processing: '10' // ....
          *     },
          *     common_counters: {
-         *         pending: '5' // pending counter
+         *         ['pending' or old logic 'pending_counters']: '5' // pending counter
          *     }
          * }
          *
          */
         updateCounters: function (counters) {
-            if (this.options.view === 'kanban') {
-                const $counter_wrapper = $('.s-kanban__list__count');
-                for (const counter in counters.state_counters) {
-                    if (counters.state_counters.hasOwnProperty(counter)) {
-                        $counter_wrapper.filter(`[data-status-id="${counter}"]`).text(counters.state_counters[counter])
+            switch (this.options.view) {
+                case 'split':
+                    if (counters.all_count) {
+                        $('.js-all-counter').text(counters.all_count);
                     }
-                }
-            } else {
-                var sidebar = this.sidebar;
-                if (!sidebar) {
-                    sidebar = $('#s-sidebar');
-                }
+                    break;
+                case 'kanban':
+                    const $counter_wrapper = $('.s-kanban__list__count');
+                    for (const counter in counters.state_counters) {
+                        if (counters.state_counters.hasOwnProperty(counter)) {
+                            $counter_wrapper.filter(`[data-status-id="${counter}"]`).text(counters.state_counters[counter])
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
 
-                if (counters.total_processing) {
-                    this.updateTotalProcessing(counters.total_processing);
-                }
+            if (counters.total_processing) {
+                this.updateTotalProcessing(counters.total_processing);
+            }
 
-                for (var name in counters) {
-                    if (counters.hasOwnProperty(name)) {
-                        var cntrs = counters[name];
-                        for (var id in cntrs) {
-                            if (cntrs.hasOwnProperty(id)) {
-                                var item;
-                                if (name == 'common_counters') {
-                                    item = $('.js-' + id + '-orders');
+            var sidebar = this.sidebar;
+            if (!sidebar) {
+                sidebar = $('#s-sidebar');
+            }
+
+            for (var name in counters) {
+                if (counters.hasOwnProperty(name)) {
+                    var cntrs = counters[name];
+                    for (var id in cntrs) {
+                        if (cntrs.hasOwnProperty(id)) {
+                            var item;
+                            if (name == 'common_counters') {
+                                item = $('.js-' + id + '-counter');
+                            } else {
+                                if (name === 'storefront_counters') {
+                                    item = sidebar.find('li[data-' + name.replace('_counters', '') + '="' + id + '"] .count');
                                 } else {
-                                    if (name === 'storefront_counters') {
-                                        item = sidebar.find('li[data-' + name.replace('_counters', '') + '="' + id + '"] .count');
-                                    } else {
-                                        item = sidebar.find('li[data-' + name.replace('_counters', '') + '-id=' + id + '] .count');
-                                    }
+                                    item = sidebar.find('li[data-' + name.replace('_counters', '') + '-id=' + id + '] .count');
                                 }
-                                var prev_cnt = parseInt(item.text(), 10) || 0;
-                                var cnt = 0;
-                                cntrs[id] = '' + cntrs[id];
-                                if (cntrs[id].substr(0, 1) == '+') {
-                                    cnt = prev_cnt + (parseInt(cntrs[id].substr(1), 10) || 0);
-                                    item.text(cnt);
-                                } else if (cntrs[id].substr(0, 1) == '-') {
-                                    cnt = prev_cnt - (parseInt(cntrs[id].substr(1), 10) || 0);
-                                    cnt = cnt < 0 ? 0 : cnt;
-                                    item.text(cnt);
-                                } else {
-                                    cnt = parseInt(cntrs[id], 10) || 0;
-                                    if (cntrs[id] == 'undefined') {
-                                        item.find('.js-new-order-counter').text(`+${counters?.state_counters?.new ?? 0}`)
-                                    }else{
-                                        item.text(cnt);
-                                    }
-                                }
-                                if (id == 'new') {
-                                    $.shop.updateAppCounter(cnt);
-                                    this.updateTitle(this.options.title_suffix, parseInt(cnt, 10));
-                                    $(document).find('.js-new-order-counter').text(`+${cnt}`);
-                                }
+                            }
+
+                            if (id !== 'new' && (!item || !item.length)) {
+                                continue;
+                            }
+
+                            var prev_cnt = parseInt(item.text(), 10) || 0;
+                            var cnt = 0;
+                            cntrs[id] = '' + cntrs[id];
+                            if (cntrs[id].substr(0, 1) == '+') {
+                                cnt = prev_cnt + (parseInt(cntrs[id].substr(1), 10) || 0);
+                                item.text(cnt);
+                            } else if (cntrs[id].substr(0, 1) == '-') {
+                                cnt = prev_cnt - (parseInt(cntrs[id].substr(1), 10) || 0);
+                                cnt = cnt < 0 ? 0 : cnt;
+                                item.text(cnt);
+                            } else {
+                                cnt = parseInt(cntrs[id], 10) || 0;
+                                item.text(cnt);
+                            }
+
+                            if (id === 'new') {
+                                $.shop.updateAppCounter(cnt);
+                                this.updateTitle(this.options.title_suffix, parseInt(cnt, 10));
+                                $(document).find('.js-new-order-counter').text(`+${cnt}`);
                             }
                         }
                     }
@@ -1334,7 +1347,7 @@
         getAndUpdateCounters: function() {
             const id = parseInt(this.container.find('.order:first').attr('data-order-id'), 10) || 0;
             $.getJSON(this.buildLoadListUrl(id, true, true), response => {
-                if (response.status == 'ok' && response?.data?.counters) {
+                if (response.status === 'ok' && response?.data?.counters) {
                     this.updateCounters(response.data.counters)
                 }
             })
@@ -1343,7 +1356,7 @@
         updateTotalProcessing: function(total) {
             if (!total) return;
 
-            $('.js-total_processing-orders').html(total.replace(',', '.'));
+            $('.js-total_processing-counter').html(total.replace(',', '.'));
         },
 
         hideListItems: function (id) {
@@ -1453,6 +1466,7 @@
                 (this.filter_params_str ? '&' + this.filter_params_str : '') +
                 (lt ? '&lt=1' : '') +
                 (counters ? '&counters=1' : '') +
+                (counters ? ('&prev_pending=' + $('.js-pending-counter:first').text() || '0') : '') +
                 (this.options.view ? '&view=' + this.options.view : '') +
                 ((order_update_datetime) ? '&search=update_datetime>=' + order_update_datetime : '') +
                 ('&sort[0]=' + sort[0] + '&sort[1]=' + sort[1]);

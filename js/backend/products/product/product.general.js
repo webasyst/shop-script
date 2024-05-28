@@ -1998,7 +1998,8 @@
             var $section = that.$wrapper.find(".s-product-main-category-section"),
                 $form = $section.find(".js-add-main-category-form"),
                 $select = $section.find("#js-product-main-category-select"),
-                $input = $select.find('input[name="product[category_id]"]');
+                $input = $select.find('input[name="product[category_id]"]'),
+                $button_remove = $section.find(".js-main-category-remove");
 
             $select.waDropdown({
                 hover: false,
@@ -2020,6 +2021,9 @@
                         }
 
                         dropdown.setTitle(that.locales["select_category"]);
+                        $button_remove.addClass('hidden');
+                    } else {
+                        $button_remove.removeClass('hidden');
                     }
                 }
             });
@@ -2028,6 +2032,10 @@
             that.$wrapper.on("category.added", function(event, category) {
                 renderCategory(category);
             });
+
+            if ($input.val()) {
+                $button_remove.removeClass('hidden');
+            }
 
             initForm($form);
 
@@ -2140,6 +2148,24 @@
                     dropdown.$menu.prepend($item);
                 }
             }
+
+            $button_remove.on("click", function(e) {
+                e.preventDefault();
+
+                var $additional_categories_list = $(".s-additional-categories-section .js-categories-list");
+                $additional_categories_list.find(".is-main").remove();
+
+                var $additional_categories = $additional_categories_list.find('> [data-id]');
+                if ($additional_categories.length > 0) {
+                    var $category =$additional_categories.first();
+                    $category.addClass('is-main');
+                    dropdown.setValue('id', String($category.data('id')));
+                } else {
+                    dropdown.setTitle(that.locales["select_category"]);
+                    $input.val(null).trigger("change");
+                    $(this).addClass('hidden');
+                }
+            });
         };
 
         Section.prototype.initAdditionalCategories = function() {
@@ -2183,6 +2209,7 @@
 
             that.$wrapper.on("change.main_category", function(event, before_id, new_id) {
                 hideMainCategory(before_id, new_id);
+                updateTitleButtonRemoveMainCategory();
             });
 
             function getCategoriesIds() {
@@ -2290,6 +2317,17 @@
                         $category.remove();
                     }
                 });
+            }
+
+            function updateTitleButtonRemoveMainCategory() {
+                var $button_remove = that.$wrapper.find(".js-main-category-remove");
+                var locale_remove = that.locales["remove_main_category"];
+
+                if ($list.find(".s-category-wrapper:not(.is-main)").length > 0) {
+                    locale_remove = that.locales["take_main_category_from_additional"];
+                }
+
+                $button_remove.attr('data-title', locale_remove);
             }
         };
 

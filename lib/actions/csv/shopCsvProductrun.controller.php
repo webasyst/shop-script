@@ -1062,7 +1062,12 @@ SQL;
                 if ($count === '') {
                     $count = null;
                 } else {
-                    $count = shopFrac::isEnabled() ? floatval($count) : intval($count);
+                    if (shopFrac::isEnabled()) {
+                        $count = str_replace(',', '.', $count);
+                        $count = floatval($count);
+                    } else {
+                        $count = intval($count);
+                    }
                     if ($id) {
                         $per_stock = true;
                     }
@@ -2107,6 +2112,9 @@ SQL;
             } else {
                 $key .= 'a:';
                 if (!$this->emulate()) {
+                    if (!isset($data['url'])) {
+                        $data['url'] = shopHelper::transliterate($data['name']);
+                    }
                     $id = $model->add($data, $parent_id);
                     $model->move($id, null, $parent_id);
                     $stack[] = $id;
@@ -2117,7 +2125,6 @@ SQL;
                     $key .= implode($stack);
                     $this->emulate($key);
                 }
-
             }
             if (!empty($data['params']) && !$this->emulate() && !empty($id)) {
                 $params = array();

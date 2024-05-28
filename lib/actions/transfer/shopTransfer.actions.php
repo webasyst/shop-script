@@ -49,10 +49,10 @@ class shopTransferActions extends waJsonActions
             foreach ($prices as $key => &$value) {
                 if ($value !== '') {
                     $value = floatval(str_replace(',', '.', $value));
-                    if ($value <= 0) {
+                    if ($value < 0) {
                         $this->errors[] = array(
                             'name' => "price[$key]",
-                            'msg' => _w('Product price must be a number greater than 0')
+                            'msg' => _w('Product prices cannot be negative.')
                         );
                     }
                 }

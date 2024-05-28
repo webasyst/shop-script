@@ -63,8 +63,7 @@ var Kanban = (($) => {
             if (filterParamsStr) {
                 $.order_list.filter_params_str = filterParamsStr;
             }
-            const sort = ['0', 'desc'];
-            return $.order_list.buildLoadListUrl(id, lt, counters, null, sort, this.statusId);
+            return $.order_list.buildLoadListUrl(id, lt, counters, null, null, this.statusId);
         }
     }
 
@@ -101,7 +100,7 @@ var Kanban = (($) => {
         let item_pos = -1;
 
         cols.each((i, list) => {
-            Sortable.create(list, {
+            $(list).sortable({
                 group: {
                     name: "statuses",
                     put: true

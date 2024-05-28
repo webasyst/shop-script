@@ -10,9 +10,9 @@ class shopCustomersSidebarAction extends waViewAction
         $categories = shopCustomer::getAllCategories();
 
         $cfm = new shopCustomersFilterModel();
-        $col = new shopCustomersCollection();
 
-        $this->view->assign('all_customers_count', $col->count());
+        $this->view->assign('all_customers_count', (new shopCustomersCollection('search/app.show_contacts=customers'))->count());
+        $this->view->assign('all_contacts_count', (new shopCustomersCollection())->count());
         $this->view->assign('contacts_url', wa()->getAppUrl('contacts'));
         $this->view->assign('categories', $categories);
         $this->view->assign('filters', $cfm->getFilters());

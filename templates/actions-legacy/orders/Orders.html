@@ -100,10 +100,11 @@
         </div>
         <div class="clear-left"></div>
     </div>
-    {if !empty($show_mobile_ad) && $view == 'split'}
+    {if $view == 'split'}
+        {if !empty($show_mobile_ad)}
             <div class="s-tiny-ad-box">
 
-                <a href="javascript:void(0)" class="s-tiny-ad-close" title="[`Close`]">&times;</a>
+                <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="mobile" title="[`Close`]">&times;</a>
                 <h5 class="heading"><img src="{$wa_app_static_url}img/shop.svg" style="width: 20px; height: 20px; position: relative; margin-top: -3px;" alt="Shop-Script" /> [`Mobile app`]</h5>
 
                 <div class="flexbox space-12">
@@ -131,6 +132,19 @@
                     </div>
                 </div>
             </div>
+        {elseif !empty($show_premium_ad)}
+            <div class="s-tiny-ad-box">
+
+                <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="premium" title="[`Close`]">&times;</a>
+                {include file="templates/includes/availableWithPremiumAlert.html"
+                    size_tiny=true
+                    title="[`Go premium`]"
+                    body="[`Unlock advanced features to boost your business growth.`]"
+                    button="[`What’s there in premium?`]"
+                inline}
+
+            </div>
+        {/if}
     {/if}
 </div>
 <div class="content {if $view != 'table'}left300px{/if}" id="s-order" {if $view == 'table'}style="display:none;"{/if}></div>
@@ -204,7 +218,7 @@
             e.preventDefault();
             $(this).closest('.s-tiny-ad-box').hide();
             $.post("{$wa_app_url}?module=backend&action=sidebarMenuSaveState", {
-                hide_mobile_ad: 1
+                {if !empty($show_mobile_ad)}hide_mobile_ad{else}hide_premium_ad{/if}: 1
             });
         });
 

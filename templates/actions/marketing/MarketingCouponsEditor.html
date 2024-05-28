@@ -23,7 +23,7 @@
         <form action="{$wa_app_url}?module=marketingCouponSave" id="coupon-editor-form">
             <div class="fields">
                 <div class="field">
-                    <div class="name">
+                    <div class="name for-input">
                         [`Coupon code`]
                     </div>
                     <div class="value">
@@ -36,7 +36,7 @@
                     </div>
                     <div class="value">
                         <div class="flexbox middle">
-                            <div class="wa-select">
+                            <div class="wa-select small">
                                 <select name="coupon[type]" class="not-styled">
                                     {foreach $types as $type_id => $type_name}
                                         <option value="{$type_id|escape}"{if $type_id == $coupon.type} selected{/if}>{$type_name|escape}</option>
@@ -44,7 +44,9 @@
                                 </select>
                             </div>
                             <div id="value-input-wrapper">
-                                <input type="text" class="number shortest bold" name="coupon[value]" value="{$coupon.value|escape}">
+                                &nbsp;&nbsp;
+                                &minus;
+                                <input type="text" class="small number shortest bold" name="coupon[value]" value="{$coupon.value|escape}">
                                 <span>%</span>
                             </div>
                         </div>
@@ -57,7 +59,7 @@
                         [`Max number of usage`]
                     </div>
                     <div class="value">
-                        <input type="number" placeholder="&#8734;" class="number shorter" name="coupon[limit]" value="{$coupon.limit}">
+                        <input type="number" placeholder="&#8734;" class="number shorter small" name="coupon[limit]" value="{$coupon.limit}">
                         <p class="hint">[`Enter the maximum number of times this coupon can be used. Leave empty for no limits.`]</p>
                     </div>
                 </div>
@@ -67,7 +69,7 @@
                     </div>
                     <div class="value">
                         <label class="s-datepicker-wrapper state-with-inner-icon right">
-                            <input type="text" class="numerical s-datepicker" name="coupon[expire_datetime]" value="{substr((string)$coupon.expire_datetime, 0, 10)}">
+                            <input type="text" class="numerical small s-datepicker" name="coupon[expire_datetime]" value="{substr((string)$coupon.expire_datetime, 0, 10)}">
                             <span class="icon"><i class="fas fa-calendar-alt"></i></span>
                         </label>
                         <p class="hint">[`Leave empty for no expiration date.`]</p>
@@ -78,7 +80,7 @@
                         [`Link to promo description`]
                     </div>
                     <div class="value">
-                        <input type="text" class="long" name="coupon[url]" value="{$coupon.url|escape}" placeholder="https://">
+                        <input type="text" class="long small" name="coupon[url]" value="{$coupon.url|escape}" placeholder="https://">
                     </div>
                 </div>
                 <div class="field">
@@ -86,7 +88,7 @@
                         [`Comment`]
                     </div>
                     <div class="value">
-                        <textarea name="coupon[comment]">{ifset($coupon.comment)|escape}</textarea>
+                        <textarea name="coupon[comment]" class="small">{ifset($coupon.comment)|escape}</textarea>
                         <p class="hint">[`Optional comment for your convenience. Will never be shown to customers.`]</p>
                     </div>
                 </div>

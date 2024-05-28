@@ -347,7 +347,7 @@ $.extend($.settings = $.settings || {}, {
         });
 
         // Make stock rows sortable
-        Sortable.create(content.find('tbody:first')[0], {
+        content.find('tbody:first').sortable({
           group: 'stock-rows',
           handle: '.stock-rows-handle',
           animation: 100,

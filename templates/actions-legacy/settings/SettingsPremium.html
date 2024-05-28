@@ -6,20 +6,31 @@
 {$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/settings/premium/icons.svg?v=`$wa->version()`"}
 {$_version = "2022.02.09.1236"}
 
-{$_demo_urls = null}
-{if $wa->locale() == 'ru_RU'}
-    {$_demo_urls = [
-        'backend' => 'https://demo.shop-script.ru/webasyst/shop/?action=products',
-        'storefront' => 'https://demo.shop-script.ru/'
-    ]}
-{/if}
-
 {$_has_license = shopLicensing::hasLicense()}
 {$_is_premium = shopLicensing::hasPremiumLicense()}
 {$_buy_premium_link_url = "`$wa_backend_url`installer/store/app/shop/"}
 
 {$_features = [
     [
+        "id" => "kanban",
+        "title" => _w("Kanban view for orders"),
+        "description" => _w("See all orders at a glance by status on a kanban board. User filter to focus on specific order segments. Drag an order to quickly change its status.")|cat:'<br><br> '|cat:_w('Available in the new Webasyst 2 UI only.'),
+        "image" => [
+            "name" => "image0.jpg"
+        ]
+    ],
+    [
+        "id" => "pos",
+        "noshadow" => true,
+        "soon" => _w("Soon"),
+        "title" => _w("Mobile POS"),
+        "description" => _w("Shop-Script <a href=\"https://www.webasyst.com/mobile/\">mobile app</a> is a next-gen Point Of Sale terminal: quickly create orders, accept payments offline via QR codes and credit cards — all in one app.<br><br> Premium enables advanced POS features such as barcode scanner, multiple store locations, cashier shifts, and more."),
+        "image" => [
+            "name" => "image7.webp"
+        ]
+    ],
+    [
+        "id" => "units",
         "title" => _w("Arbitrary product quantity units"),
         "description" => _w("Product quantities displayed in the storefront can be expressed in any units of your choice. You may want to sell products in packages, pieces, linear feet, or any other quantity units. Select units from a built-in list or add any custom units which you may need."),
         "image" => [
@@ -27,6 +38,7 @@
         ]
     ],
     [
+        "id" => "compareunits",
         "title" => _w("Two quantity units, with their corresponding prices, for convenient products comparison"),
         "description" => _w("This may be convenient for selling flooring materials, which are usually sold in packages (stock quantity units) and whose prices can be conveniently compared per square foot (base quantity unit). Set two quantity units for such products, with a conversion ratio between them, to have them displayed in the storefront with two prices, each for one of the two units. You only need to specify a price per stock unit, as usual, and a price per base unit will be calculated automatically, according to the specified conversion ratio."),
         "image" => [
@@ -34,6 +46,7 @@
         ]
     ],
     [
+        "id" => "filterunits",
         "title" => _w("Sorting & filtering of products by the prices of different quantity units"),
         "description" => _w("If a category contains products with different quantity units then a customer can select any of those units which is most convenient for filtering or sorting products in a particular case."),
         "image" => [
@@ -41,6 +54,7 @@
         ]
     ],
     [
+        "id" => "fractional",
         "title" => _w("Selling fractional product quantities"),
         "description" => _w("Sell fractional product quantities with precision up to 0.001. You can set individual quantity precision degree for every product. For example, clothes buttons can be sold by dozens or pieces, and fabric can be sold with the precision of 0.01 feet."),
         "image" => [
@@ -48,6 +62,7 @@
         ]
     ],
     [
+        "id" => "steps",
         "title" => _w("Custom product add-to-cart step"),
         "description" => _w("Configure an individual add-to-cart step for each product so that customers can add only quantities, divisible by the specified step values, to the shopping cart. For weight products, the add-to-cart step may be set to 0.01 lb., or to 8.5 sq. ft. for ceramic tiles (quantity contained in an individual package)."),
         "image" => [
@@ -55,11 +70,37 @@
         ]
     ],
     [
+        "id" => "minqty",
         "title" => _w("Minimum orderable product quantity"),
         "description" => _w("Set a minimum quantity for each product below which cannot be added to the shopping cart. For example, 0.3 m for fabrics sold by linear feet, or 0.5 kg for fruits and vegetables, which are sold by weight."),
         "image" => [
             "name" => "image6.jpg"
         ]
+    ],
+    [
+        "id" => "teamroles",
+        "noshadow" => true,
+        "soon" => _w("Later"),
+        "title" => _w("Multiple managers"),
+        "description" => _w("Improve order processing by automatically scheduling & assigning orders to managers. Control the processing efficiency by each user."),
+        "image" => [
+            "name" => "image8.webp"
+        ]
+    ],
+    [
+        "id" => "complexproducts",
+        "noshadow" => true,
+        "soon" => _w("Later"),
+        "title" => _w("Complex products"),
+        "description" => _w("Sell custom complex products such as auto-renewable subscriptions, tickets, QR-codes, etc."),
+        "image" => [
+            "name" => "image9.webp"
+        ]
+    ],
+    [
+        "id" => "freeupdates",
+        "title" => _w("Free updates forever"),
+        "description" => _w("Premium enables unlimited access to all future Shop-Script updates with no additional subscriptions.")
     ]
 ]}
 
@@ -70,86 +111,83 @@
     {if !empty($backend_settings_premium)}{foreach $backend_settings_premium as $_}{ifset($_.top)}{/foreach}{/if}
 
     <div class="s-page-header">
-        <h1>[`PREMIUM license functionality`]</h1>
-        <ul>
-            <li>
-                <p>
-                    <span class="icon size-16"><svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
-                    [`Extended product catalog management.`]
-                </p>
-            </li>
-            <li>
-                <p>
-                    <span class="icon size-16"><svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
-                    [`New product showcase options for the storefront.`]
-                </p>
-            </li>
-            <li>
-                <p>
-                    <span class="icon size-16"><svg class="color-green"><use xlink:href='{$_sprite_url}#check'></use></svg></span>
-                    [`Special add-to-cart settings for your products.`]
-                </p>
-            </li>
-        </ul>
-    </div>
-    <div class="s-page-body" id="js-information-block-place">
-        {if empty($_is_premium)}
-            <div class="s-information-block">
-                <div class="s-image-wrapper">
-                    <span class="icon"><svg><use xlink:href='{$_sprite_url}#rocket'></use></svg></span>
-                </div>
-                <div class="s-text-wrapper">
-                    <h2>[`How to start using PREMIUM`]</h2>
-
-                    <p>[`To get all the extended Shop-Script functionality, you need to switch to the PREMIUM license.`] [`Your online store will continue working as usual, and you will be free to enable any of the extended functions at any time when it is most convenient to you.`]</p>
-                    <p>
-                        <span class="icon"><svg class="color-green"><use xlink:href='{$_sprite_url}#hand-point-right'></use></svg></span>
-                        {sprintf(_w("<a href=\"%s\">Check up</a> how the installed plugins, apps, and design themes are compatible with PREMIUM’s extended features."), "{$wa_app_url}?action=settings#/compatibility/")}
-                    </p>
-                    <div class="btn-block">
-                        {if !empty($_has_license)}
-                            <div class="s-plan">{sprintf(_w("Your current license is %s."), _w("PRO"))}</div>
-                            <a href="{$_buy_premium_link_url|escape}" class="button blue">[`Switch to PREMIUM`]</a>
-                        {else}
-                            <div class="s-plan">
-                                [`No valid license detected.`]
-                            </div>
-                            <a href="{$_buy_premium_link_url|escape}" class="button blue">[`Acquire license`]</a>
-                        {/if}
+        <div class="s-premium-block" style="width:460px;margin:2rem auto 0;">
+            <div class="stars-animation-container">
+                <div class="s-premium-star"></div>
+                <div class="stars-animation">
+                    <div class="stars-animation--left">
+                        {for $i=0 to 25}
+                            <span style="--star-i:{10|rand:30};top:{10|rand:50}px;left:{10|rand:50}px;"></span>
+                        {/for}
+                    </div>
+                    <div class="stars-animation--right">
+                        {for $i=0 to 25}
+                            <span style="--star-i:{10|rand:30};top:{10|rand:50}px;left:{10|rand:50}px;"></span>
+                        {/for}
                     </div>
                 </div>
             </div>
+            <h1 class="align-center h2-mobile custom-mt-24 custom-mx-auto">
+                {if empty($_is_premium)}
+                    [`Unlock all features and unlimited updates`]
+                {else}
+                    [`You are all set!`]
+                {/if}
+            </h1>
+            <p class="align-center width-70 width-100-mobile custom-mx-auto">
+                {if empty($_is_premium)}
+                    [`Upgrade to premium to get all advanced features with and unlimited access to updates.`]
+                {else}
+                    [`You have all premium features and unlimited updates.`]
+                {/if}
+            </p>
+        </div>
+    </div>
+    <div class="s-page-body s-premium-block" id="js-information-block-place">
+
+        {if empty($_is_premium)}
+            <div class="s-information-block align-center">
+                <div class="s-btn-block">
+                    {if !empty($_has_license)}
+                        <a href="{$_buy_premium_link_url|escape}" class="s-premium-btn button rounded largest">[`Upgrade to premium`]</a>
+                        <div class="s-promocode-block" style="margin-top: 15px;">
+                            {* to our beloved licensed Shop-Script merchants! *}
+                            <strong>[`Promo code`] {date('d.m.Y')}:</strong>
+                            <span class="highlighted">{if $_is_ru}D9N13LGS12{else}HWQEGWC7LX{/if}</span>
+                            <strong class="indicator red" style="background-color: orangered; top: -1px;">&minus;{if $_is_ru}8 000 ₽{else}$100{/if}</strong>
+                         </div>
+                    {else}
+                        <div class="s-plan state-caution italic" style="margin-bottom: 15px; color: orangered;">[`No valid license detected.`]</div>
+                        <a href="{$_buy_premium_link_url|escape}" class="button green rounded largest">[`Get license`]</a>
+                    {/if}
+               </div>
+            </div>
         {/if}
+        <div class="s-more-btns align-center" style="margin-top: 15px;">
+            <a href="[`https://www.webasyst.com/store/app/shop/`]changelog/" target="_blank">[`Latest updates`] <i class="icon10 new-window"></i></a>
+            &nbsp;&nbsp;&nbsp;
+            <a href="[`https://www.webasyst.com/store/app/shop/`]roadmap/" target="_blank">[`Roadmap`] <i class="icon10 new-window"></i></a>
+        </div>
 
         <div class="s-features-list">
             {foreach $_features as $_feature}
-                <div class="s-feature-wrapper">
-                    <div class="s-description-wrapper">
-                        <h3 class="s-title">{$_feature.title|escape}</h3>
-                        <p class="s-description">{$_feature.description|escape}</p>
+                <div class="s-feature-wrapper"{if !empty($_feature.id)} data-attr-id="{$_feature.id}"{/if}>
+                    <div class="s-description-wrapper"{if empty($_feature.image)} style="margin: 1rem auto; text-align: center;"{/if}>
+                        <h3 class="s-title{if !empty($_feature.soon)} gray{/if}">
+                            {if !empty($_feature.soon)}<span style="color: #fff; background: #bbb; border-radius: 4px; padding: 2px 4px;">{$_feature.soon}</span>{/if}
+                            {$_feature.title|escape}
+                        </h3>
+                        <p class="s-description">{$_feature.description}</p>
                     </div>
+                    {if !empty($_feature.image)}
                     <div class="s-image-wrapper">
                         <img class="s-image" src="{$wa_app_static_url}img/backend/settings/premium/{$_lang}/{$_feature.image.name|escape}?v={$_version}" alt="{$_feature.title|escape}" {if !empty($_feature.image.width)}style="max-width: {$_feature.image.width}"{/if}>
                     </div>
+                    {/if}
                 </div>
             {/foreach}
         </div>
 
-        {if !empty($_demo_urls)}
-            <div class="s-information-block">
-                <div class="s-image-wrapper">
-                    <span class="icon"><svg><use xlink:href='{$_sprite_url}#cogs'></use></svg></span>
-                </div>
-                <div class="s-text-wrapper">
-                    <h2><i class="icon16 store"></i> [`Demo store`]</h2>
-                    <p>[`Look how various products can be presented in the storefront and how you can manage the extended functionality available with the PREMIUM license.`]</p>
-                    <p>
-                        <a class="bold no-underline" href="{$_demo_urls.storefront|escape}" target="_blank">[`Demo storefront`] <i class="icon16 new-window"></i></a>
-                        <a class="bold no-underline" href="{$_demo_urls.backend|escape}" target="_blank">[`Demo backend`] <i class="icon16 new-window"></i></a>
-                    </p>
-                </div>
-            </div>
-        {/if}
     </div>
 
     <script>

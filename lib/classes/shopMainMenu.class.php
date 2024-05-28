@@ -22,7 +22,7 @@ class shopMainMenu
                 "id" => "customers",
                 "name" => _w("Customers"),
                 "icon" => '<i class="fas fa-user-friends"></i>',
-                "url" => "{$wa_app_url}?action=customers#/all/",
+                "url" => "{$wa_app_url}?action=customers#/shop/",
                 "userRights" => ['customers'],
                 "placement" => "body",
             ],

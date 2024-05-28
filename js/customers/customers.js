@@ -339,6 +339,11 @@
             this.load(this.getUrl() + order);
         },
 
+        shopAction: function(order) {
+            order = this.getSortOrder(order);
+            this.load(this.getUrl() + '&only_customers=1' + order);
+        },
+
         categoryAction: function(id, order) {
             order = this.getSortOrder(order);
             this.load(this.getUrl() + '&category='+id+order);

@@ -1,5 +1,35 @@
-<div class="align-center box blank s-premium-block with-stars" style="padding: 1rem 2rem 3rem; border-radius: 0.5rem;">
-    <div class="s-premium-star"></div>
-    <p class="custom-mx-auto custom-mt-0" style="font-size: 18px;max-width: 290px;">[`This feature is available only with the premium license.`]</p>
-    <a href="{$wa_app_url}?action=settings#/premium/" class="button rounded s-premium-btn">[`Посмотрите что ещё есть в «Премиум»`]</a>
+<div class="s-premium-block stars-animation-container align-center blank" style="padding:{if empty($size_tiny)}2rem 2rem 3rem{else}1rem 2rem{/if};">
+    {if empty($size_tiny)}
+        <style>
+            @media screen and (min-width: 761px) {
+                .s-premium-block { min-width: 580px; }
+            }
+        </style>
+    {/if}
+    <div class="s-premium-star{if !empty($size_tiny)} s-premium-star--cover{/if}"></div>
+    <div class="stars-animation" style="transform:translate(-58%, -155%);">
+        <div class="stars-animation--left">
+            {for $i=0 to 25}
+                <span style="--star-i:{10|rand:30};top:{10|rand:50}px;left:{10|rand:50}px;"></span>
+            {/for}
+        </div>
+        <div class="stars-animation--right">
+            {for $i=0 to 25}
+                <span style="--star-i:{10|rand:30};top:{10|rand:50}px;left:{10|rand:50}px;"></span>
+            {/for}
+        </div>
+    </div>
+
+    {if !empty($title)}
+        <h3 class="custom-mx-auto" style="max-width:290px;">{$title}</h3>
+    {/if}
+
+    <p class="custom-mx-auto custom-mt-0" style="max-width:310px;">
+        {if !empty($body)}
+            {$body}
+        {else}
+            [`Upgrade to premium will immediately unlock this feature.`]
+        {/if}
+    </p>
+    <a href="{$wa_app_url}?action=settings#/premium/" class="button rounded s-premium-btn nowrap">{if !empty($button)}{$button}{else}[`What’s more in premium?`]{/if}</a>
 </div>

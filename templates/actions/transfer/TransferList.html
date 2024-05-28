@@ -32,7 +32,7 @@
                     <th></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="s-transfer-list-tbody">
                 {foreach $transfers as $transfer}
                     <tr data-id="{$transfer.id}" class="s-transfer-item">
                         <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}"><span class="link">{$transfer.string_id|escape}</span></a></td>
@@ -50,14 +50,14 @@
                         <td><a href="javascript:void(0)" class="s-transfer-info" data-id="{$transfer.id}">{if $transfer.stock_to.name}{$transfer.stock_to.name|escape}{else}<span class="gray" title="[`Write-off`]"><i class="fas fa-times"></i> [`Write-off`]</span>{/if}</a></td>
                         <td class="nowrap align-right">
                             {if $transfer.total_count !== null}
-                                {$transfer.total_count|string_format:"%d"}
+                                {shop_number_format($transfer.total_count)}
                             {else}
                                 <span class="gray">—</span>
                             {/if}
                         </td>
                         <td class="nowrap align-right">
                             {if $transfer.currency && $transfer.total_amount !== null}
-                                {shop_currency_html($transfer.total_amount, null, $transfer.currency)}
+                                {shop_currency_html($transfer.total_amount, $transfer.currency, $transfer.currency)}
                             {else}
                                 <span class="gray">—</span>
                             {/if}
@@ -68,7 +68,7 @@
             </tbody>
         </table>
     {else}
-        <p class="italic">[`There are no pending stock transfers.`]</p>
+        <p class="gray small">[`There are no pending stock transfers.`]</p>
     {/if}
 {/capture}
 
@@ -123,7 +123,7 @@
                                 $.get(url + '&offset=' + offset + '&total_count=' + total_count, function(data) {
 
                                     var html = $('<div></div>').html(data);
-                                    var list = html.find('table tbody tr');
+                                    var list = html.find('.s-transfer-list-tbody > tr');
 
                                     if (list.length) {
                                         offset += list.length;
@@ -160,11 +160,11 @@
             {/if}
 
             container.on('click', '.s-transfer-list-sort', function () {
-                var el = $(this);
+                var $el = $(this);
                 var container_id = container.attr('id');
                 container.wrap('<div id="'+container_id+'-wrapper"></div>');
                 var wrapper = $("#" + container_id + '-wrapper');
-                wrapper.load('?module=transfer&action=list&sort=' + el.data('sort') + '&order=' + el.data('order'), function () {
+                wrapper.load('?module=transfer&action=list&sort=' + $el.data('sort') + '&order=' + $el.data('order'), function () {
                     container.remove();
                     wrapper.children().first().unwrap();
                     wrapper.remove();
@@ -172,16 +172,19 @@
             });
 
             // transfer info
+            let is_fetching_transfer_info = false;
             container.on('click', '.s-transfer-info', function () {
-                const el = $(this);
-                const transfer_id = el.data('id');
+                const $el = $(this);
+                const transfer_id = $el.data('id');
                 const $tr = $('.s-transfer-item[data-id="'+transfer_id+'"]');
 
                 const $transfer_edit = $('.s-transfer-edit-item');
-                if ($transfer_edit.length) {
+                if ($transfer_edit.length || is_fetching_transfer_info) {
                     return;
                 }
+                is_fetching_transfer_info = true;
 
+                $.product_stocks.showLoading();
                 $.products.transferInfo(transfer_id).then(function (html) {
                     const $form_td = $('<td colspan="8"></td>').html(html);
                     const $form_tr = $('<tr class="s-transfer-edit-item"></tr>').append($form_td).insertAfter($tr);
@@ -194,6 +197,8 @@
                         }
                     });
                     $form_td.children().slideDown(300);
+                    $.product_stocks.doneLoading();
+                    is_fetching_transfer_info = false;
                 });
             });
         })

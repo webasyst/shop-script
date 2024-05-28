@@ -12,7 +12,7 @@
         {/if}
     </td>
 
-    <td class="bold">{$c.name|escape}</td>
+    <td class="break-words bold">{$c.name|escape}</td>
 
     <td>
         <div class="global-country-rate custom-my-4">
@@ -51,7 +51,7 @@
     <tr class="small s-region {$r.css_class}" rel="{$c.iso3}-region"> {* class="hidden|regions_simple|regions_advanced" *}
         <td class="min-width"></td>
 
-        <td>{$r.name|escape} <span class="gray">{$r.code}</span></td>
+        <td class="break-words">{$r.name|escape} <span class="gray">{$r.code}</span></td>
 
         <td>
             <input type="text" class="small short s-tax-name" name="country_regions[{$c.iso3}][{$r.code}][name]" value="{$r.tax_name|escape}" placeholder="[`Tax name`]">

@@ -2458,4 +2458,10 @@ SQL;
 
         return $items;
     }
+
+    public static function isSettingsMarketplacesSectionVisible()
+    {
+        $locale = wa()->getSetting('locale', '', 'webasyst');
+        return ifempty($locale, wa()->getLocale()) === "ru_RU" && !!wa()->getUser()->getRights('installer', 'backend');
+    }
 }

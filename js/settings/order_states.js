@@ -514,9 +514,9 @@ $.extend($.settings || {}, {
         }
 
         function orderStatesSortableInit() {
-          const $ul = $('#s-settings-order-states-list')[0];
+          const $ul = $('#s-settings-order-states-list');
 
-          Sortable.create($ul, {
+          $ul.sortable({
             group: 'order-states-list',
             handle: '.js-sort-handle',
             animation: 100,
@@ -545,7 +545,7 @@ $.extend($.settings || {}, {
         function orderActionsSortableInit() {
             const $block = $('.s-order-allowed-actions');
 
-            Sortable.create($block[0], {
+            $block.sortable($block, {
                 handle: '.js-sort',
                 draggable: '.s-order-action:not(.unsortable)',
                 // ghostClass: '.sortable-ghost',
