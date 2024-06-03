@@ -25,8 +25,6 @@
             if (this.options.lazy_loading && this.options.product_stocks.length > 0) {
                 this.initLazyLoad(this.options.lazy_loading);
             }
-
-            this.initFixRetrespectiveTable(this.container.closest('.s-table-scrollable-x'));
         },
 
         initLazyLoad: function(options) {
@@ -156,32 +154,6 @@
         },
         doneLoading: function () {
             this.waLoading.done();
-        },
-
-        /**
-         * fix WebKit browsers
-         */
-        initFixRetrespectiveTable: function ($table_wrapper) {
-            if(navigator.userAgent.indexOf('AppleWebKit') === -1) {
-                return;
-            }
-
-            $table_wrapper.css('perspective', '0');
-            let timeout_id = null;
-            const stopScrolling = () => {
-                if (timeout_id) {
-                    clearTimeout(timeout_id);
-                }
-
-                timeout_id = setTimeout(() => {
-                    $table_wrapper.css('perspective', '0');
-                }, 50);
-            };
-
-            $table_wrapper.on('scroll', function () {
-                $table_wrapper.css('perspective', 'none');
-                stopScrolling();
-            });
         }
     };
 })(jQuery);

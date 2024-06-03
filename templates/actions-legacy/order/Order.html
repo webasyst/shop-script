@@ -208,7 +208,7 @@
                     {/if}
 
                     <!-- order content -->
-                    {$visible_fulfilment_mode = !in_array($order.state_id, ['sent', 'completed', 'refunded', 'deleted'])}
+                    {$visible_fulfilment_mode = !in_array($order.state_id, ['shipped', 'completed', 'refunded', 'deleted'])}
                     <table id="s-order-items" class="light s-order-items-table s-order-readable">
                         {if $order.items}
                             <tr>

@@ -43,7 +43,7 @@
 {if empty($orders)}
     {if $view !== 'kanban'}
         {if $view == 'split'}
-        <div class="sidebar blank width-adaptive-widest wide-mobile ahead-little overflow-visible" id="s-orders">
+        <div class="sidebar blank width-adaptive-widest wide-mobile overflow-visible" id="s-orders">
             <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
             <div class="sidebar-body">
                 <div class="width-100 align-center custom-mt-32">
@@ -85,7 +85,7 @@
         {/if}
     {/if}
 {else}
-<div class="{if $view != 'table' && $view != 'kanban'}sidebar flexbox vertical blank width-adaptive-widest wide-mobile ahead-little{else}width-100{/if} overflow-visible" id="s-orders">
+<div class="{if $view != 'table' && $view != 'kanban'}sidebar flexbox vertical blank width-adaptive-widest wide-mobile {else}width-100{/if} overflow-visible" id="s-orders">
     {if $view == 'split'}
         <div class="sidebar-header"></div>
     {/if}

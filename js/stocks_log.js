@@ -19,7 +19,6 @@
                 this.initLazyLoad(this.options.lazy_loading);
             }
 
-            $.product_stocks.initFixRetrespectiveTable(this.container.find('.table-scrollable-x'));
         },
 
         initLazyLoad: function(options) {

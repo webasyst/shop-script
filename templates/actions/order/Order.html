@@ -280,7 +280,7 @@
                     </div>
 
                     <!-- order content -->
-                    {$visible_fulfilment_mode = !in_array($order.state_id, ['sent', 'completed', 'refunded', 'deleted'])}
+                    {$visible_fulfilment_mode = !in_array($order.state_id, ['shipped', 'completed', 'refunded', 'deleted'])}
                     <table id="s-order-items"
                         class="s-order-items-table s-order-readable{if $visible_fulfilment_mode} s-order-items-table--fulfilmented-mode{/if}">
                         {$_has_granted_calc_profit = $wa->user()->getRights('shop', 'reports')}
