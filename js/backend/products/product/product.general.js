@@ -129,8 +129,8 @@
                     var virtual_stocks = [];
 
                     $.each(sku_mod.stock, function(stock_id, stock_value) {
-                        var stock = that.stocks[stock_id];
-                        if (stock.is_virtual) {
+                        let stock = that.stocks[stock_id];
+                        if (stock && stock.is_virtual) {
                             virtual_stocks.push(stock);
                         }
                     });
@@ -1257,8 +1257,8 @@
                             }
                             sku_mod.stock[stock_id] = value;
 
-                            var stock = that.stocks[stock_id];
-                            if (stock.is_virtual) {
+                            let stock = that.stocks[stock_id];
+                            if (stock && stock.is_virtual) {
                                 virtual_stocks.push(stock);
                             }
                         });
