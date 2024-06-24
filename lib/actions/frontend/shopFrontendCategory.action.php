@@ -58,6 +58,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
             $sc['params'] = array();
         }
         unset($sc);
+        $category['url'] = str_replace('%CATEGORY_URL%', isset($route['url_type']) && $route['url_type'] == 1 ? $category['url'] : $category['full_url'], $category_url);
 
         // params for category and subcategories
         $category['params'] = array();

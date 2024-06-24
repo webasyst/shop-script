@@ -957,6 +957,7 @@ SQL;
                     $sc['url'] = str_replace('%CATEGORY_URL%', isset($route['url_type']) && $route['url_type'] == 1 ? $sc['url'] : $sc['full_url'], $category_url);
                 }
                 unset($sc);
+                $category['url'] = str_replace('%CATEGORY_URL%', isset($route['url_type']) && $route['url_type'] == 1 ? $category['url'] : $category['full_url'], $category_url);
             }
 
             $category_params_model = new shopCategoryParamsModel();
