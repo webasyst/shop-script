@@ -26,6 +26,17 @@ class shopOrderSearchMethod extends shopApiMethod
             $collection = $this->getCollection();
             $collection->orderBy($this->getSort());
 
+            // For id/<int> collection hash, perform payment plugin state polling before fetching data from collection
+            if ($collection->getType() == 'id') {
+                $order_id = ifset(ref($collection->getHash()), 1, null);
+                if ($order_id && wa_is_int($order_id)) {
+                    try {
+                        shopPayment::statePolling(new shopOrder($order_id));
+                    } catch (waException $e) {
+                    }
+                }
+            }
+
             $this->response['count'] = $collection->count();
             $orders = array_values($collection->getOrders(self::getCollectionFields(), $offset, $limit, $escape));
 

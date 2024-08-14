@@ -52,7 +52,7 @@
 
             $.product_stocks.showLoading();
             $.products.transferInfo(id).then(function (html) {
-                const $form = $(html).find('.s-transfer-info').addClass('dialog-body width-100-mobile').css({ width: '800px' });
+                const $form = $(html).find('.s-transfer-info-form').addClass('dialog-body width-100-mobile').css({ width: '800px' });
                 $form.find('.s-transfer-info__content').addClass('dialog-content');
                 $form.find('.s-transfer-info__footer').addClass('dialog-footer');
                 $form.find('.js-form-close').toggleClass('js-form-close js-close-dialog');

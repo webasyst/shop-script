@@ -16,7 +16,7 @@ class shopSetEditAction extends waViewAction
         $settings = $set_model->getById($set_id);
 
         if (!$settings) {
-            throw new waException('Set not found', 404);
+            throw new waException(_w('Set not found.'), 404);
         }
 
         $settings['json_params'] = json_decode((string)$settings['json_params'], true);

@@ -219,7 +219,7 @@
 
             {if isset($plugin.status) && !empty($plugin.id)}
             <div>
-                <a href="#/payment/plugin/delete/{$plugin.id}/" class="button outlined small red js-action js-confirm" data-confirm-text="[`This will permanently delete this payment option. Are you sure?`]" data-cancel="[`Cancel`]">
+                <a href="#/payment/plugin/delete/{$plugin.id}/" class="button outlined small red js-action js-confirm" data-confirm-text="[`This will permanently delete this payment option. Are you sure?`]" data-cancel="[`Cancel`]" data-title="[`Delete`]">
                     <i class="fas fa-trash-alt"></i>
                     [`Delete this payment option`]
                 </a>

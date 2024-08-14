@@ -34,10 +34,10 @@
         <ul v-if="items.length" class="menu">
             <component-tree-menu
                 v-for="item of items"
+                :menu-id="'categories'"
                 :item="item"
                 :children-prop="'categories'"
                 :search-string="search_string"
-                @use-item="changeItem"
             >
                 <template #icon="{ item }">
                     <template v-if="item.type === '1'">
@@ -73,10 +73,10 @@
         <ul v-if="items.length" class="menu">
             <component-tree-menu
                 v-for="item of items"
+                :menu-id="'sets'"
                 :item="item"
                 :children-prop="'sets'"
-                :search-string="search_string"
-                @use-item="changeItem">
+                :search-string="search_string">
             >
                 <template #icon="{ item, toggleChildren }">
                     <template v-if="item.is_group">
@@ -111,9 +111,9 @@
         <ul v-if="items.length" class="menu">
             <component-tree-menu
                 v-for="item of items"
+                :menu-id="'type'"
                 :item="item"
                 :search-string="search_string"
-                @use-item="setType">
             >
                 <template #icon>
                     <span v-if="item.icon" class="s-icon icon" v-html="item.icon"></span>
@@ -130,30 +130,25 @@
 {capture assign="_component_table_filters_categories_sets_types"}
 <div class="s-filter-categories-section s-section-body">
     <component-sidebar-section
-        :model-value="contentType"
-        :value="'categories'"
+        :expanded="filters_expanded.categories?.is_expanded"
         label="[`Categories`]"
-        @toggle-collapse="setType($event)"
+        @expand="setFilterType('categories', $event)"
     >
-        <component-table-filters-categories
-            @success="success"
-        ></component-table-filters-categories>
+        <component-table-filters-categories @success="success"></component-table-filters-categories>
     </component-sidebar-section>
 
     <component-sidebar-section
-        :model-value="contentType"
-        :value="'sets'"
+        :expanded="filters_expanded.sets?.is_expanded"
         label="[`Sets`]"
-        @toggle-collapse="setType($event)"
+        @expand="setFilterType('sets', $event)"
     >
         <component-table-filters-sets @success="success"></component-table-filters-sets>
     </component-sidebar-section>
 
     <component-sidebar-section
-        :model-value="contentType"
-        :value="'types'"
+        :expanded="filters_expanded.types?.is_expanded"
         label="[`Product types`]"
-        @toggle-collapse="setType($event)"
+        @expand="setFilterType('types', $event)"
     >
         <component-table-filters-types @success="success"></component-table-filters-types>
     </component-sidebar-section>

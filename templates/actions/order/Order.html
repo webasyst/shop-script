@@ -20,7 +20,7 @@
                     <!-- order title -->
                     <div class="s-order-title-wrapper flexbox middle">
                         <div class="wide">
-                            <h1 class="custom-mb-16 flexbox wrap middle space-12" id="s-order-title">
+                            <h1 class="custom-mb-16 flexbox wrap space-12" id="s-order-title">
 
                                 <a href="#/orders/{if $filter_params_str}{$filter_params_str}&view=table/{/if}" class="back order-list" style="display:none;"><i class="fas fa-arrow-circle-left"></i></a>
                                 <a href="#/order/{$order.id}/{if $filter_params_str}{$filter_params_str}/{/if}" class="back read-mode" style="display:none;"><i class="fas fa-arrow-circle-left"></i></a>
@@ -34,20 +34,22 @@
                                 {* @event backend_order.%plugin_id%.title_suffix *}
                                 {if !empty($backend_order)}{foreach $backend_order as $_}{ifset($_.title_suffix)}{/foreach}{/if}
 
-                                {if $order.state}
-                                    <span class="nowrap smallest" style="{$order.state->getStyle()}">
-                                        <i class="{$wa->shop->convertIcon($order.state->getOption('icon'))}"></i>
-                                        <span class="custom-mr-8">{$order.state->getName()|escape}</span>
+                                <span class="s-state-with-time smallest">
+                                    {if $order.state}
+                                        <span class="text-ellipsis custom-mr-8" style="{$order.state->getStyle()}">
+                                            <i class="{$wa->shop->convertIcon($order.state->getOption('icon'))}"></i>
+                                            <span title="{$order.state->getName()|escape}">{$order.state->getName()|escape}</span>
+                                        </span>
                                         {if $last_action_datetime}
                                             <em class="hint nowrap">{$last_action_datetime|wa_datetime:'humandatetime'}</em>
                                             <em class="hint nowrap s-print-only">{$last_action_datetime|wa_datetime:'datetime'}</em>
                                         {/if}
-                                    </span>
-                                {else}
-                                    <span class="nowrap smallest">
-                                        [`Unknown state`]: {$order.state_id}
-                                    </span>
-                                {/if}
+                                    {else}
+                                        <span class="gray nowrap text-ellipsis">
+                                            [`Unknown state`]: {$order.state_id}
+                                        </span>
+                                    {/if}
+                                </span>
                             </h1>
                         </div>
                         <div class="s-order-more-details-wrapper custom-mb-auto custom-mt-4">
@@ -447,13 +449,16 @@
                                                     {$_item_profit = ($item.price - $item.purchase_price) * $item.quantity}
                                                 {/if}
 
-                                                {$_item_percent_profit = (($_item_profit / $item.purchase_price) * 100 / $item.quantity)|round}
+                                                {$_item_percent_profit = 0}
+                                                {if $item.quantity > 0}
+                                                    {$_item_percent_profit = (($_item_profit / $item.purchase_price) * 100 / $item.quantity)|round}
+                                                {/if}
 
                                                 {$_total_items_profit = $_total_items_profit + $_item_profit}
 
                                                 {$_sum_purchase_price = $_sum_purchase_price + $item.purchase_price * $item.quantity}
 
-                                                <div class="bold smaller text-{if $item.price - $item.purchase_price > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Price`] &minus; [`Purchase price`]{if $item.tax_included == '1'} &minus; [`Tax`]{/if}">{if $item.price - $item.purchase_price > 0}&plus;{/if}{wa_currency_html($_item_profit, $order.currency)} ({if $item.quantity > 0}{$_item_percent_profit}{else}0{/if}%)</div>
+                                                <div class="bold smaller text-{if $item.price - $item.purchase_price > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Price`] &minus; [`Purchase price`]{if $item.tax_included == '1'} &minus; [`Tax`]{/if}">{if $item.price - $item.purchase_price > 0}&plus;{/if}{wa_currency_html($_item_profit, $order.currency)} ({$_item_percent_profit}%)</div>
                                             {/if}
 
                                             {if $_has_granted_calc_profit && $item.type == 'service'}

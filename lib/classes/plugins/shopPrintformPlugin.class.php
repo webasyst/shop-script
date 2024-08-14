@@ -94,7 +94,7 @@ abstract class shopPrintformPlugin extends shopPlugin implements shopPrintformIn
         }
 
         if (!$order) {
-            throw new waException('Order not found', 404);
+            throw new waException(_w('Order not found.'), 404);
         }
 
         if (!empty($options['items'])) {

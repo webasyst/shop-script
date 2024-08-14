@@ -16,10 +16,10 @@ class shopFrontendMyOrderPrintformAction extends waViewAction
 
         $order = $om->getOrder($order_id);
         if (!$order) {
-            throw new waException(_w('Order not found'), 404);
+            throw new waException(_w('Order not found.'), 404);
         } elseif (!$this->isAuth($order, $code)) {
             if ($code && ($order_id != substr($code, 16, -16))) {
-                throw new waException(_w('Order not found'), 404);
+                throw new waException(_w('Order not found.'), 404);
             } else {
                 $redirect = array(
                     'id' => $order_id,

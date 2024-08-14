@@ -125,10 +125,12 @@ class shopWorkflowMessageAction extends shopWorkflowAction implements shopWorkfl
 
         if ($contact->get('phone', 'default')) {
             $transport = 'sms';
-            $sms_config = wa()->getConfig()->getConfigFile('sms');
             $sms_from = array();
-            foreach ($sms_config as $from => $options) {
-                $sms_from[$from] = $from.' ('.$options['adapter'].')';
+            if (waSMS::adapterExists()) {
+                $sms_config = wa()->getConfig()->getConfigFile('sms');
+                foreach ($sms_config as $from => $options) {
+                    $sms_from[$from] = $from.' ('.$options['adapter'].')';
+                }
             }
 
             $sms_selected = '';
@@ -290,7 +292,7 @@ class shopWorkflowMessageAction extends shopWorkflowAction implements shopWorkfl
         $contact_phone = $contact->get('phone', 'default');
 
         $sms_config = [];
-        if ($contact_phone) {
+        if ($contact_phone && waSMS::adapterExists()) {
             $sms_config = wa()->getConfig()->getConfigFile('sms');
         }
 

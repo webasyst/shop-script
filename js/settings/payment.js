@@ -154,6 +154,7 @@ if (typeof ($) != 'undefined') {
                 }
                 $('#s-settings-content h1.js-bread-crumbs:not(:first)').remove();
                 $('#s-settings-content h1:first').show();
+                $('#s-settings-content .s-settings-payment-header-hint').show();
             }
         },
 
@@ -228,6 +229,7 @@ if (typeof ($) != 'undefined') {
         paymentPluginSetup: function (plugin_id, $el) {
             const self = this;
 
+            $('#s-settings-content .s-settings-payment-header-hint').hide();
             this.paymentPluginShow(plugin_id, function () {
                 const $plugin_name = self.$payment_plugin_container.find('.fields-group:first h1.js-bread-crumbs:first');
                 const $title = $('#s-settings-content h1.js-bread-crumbs:first');
@@ -241,6 +243,7 @@ if (typeof ($) != 'undefined') {
             this.$payment_plugins_container.hide();
             this.$payment_menu.hide();
             this.$payment_container.hide();
+            $('#s-settings-content .s-settings-payment-header-hint').hide();
 
             const self = this;
             const url = '?module=settings&action=paymentSetup&plugin_id=' + plugin_id;

@@ -21,7 +21,7 @@ class shopMarketingFollowupsTestController extends shopMarketingSettingsJsonCont
         $om = new shopOrderModel();
         $o = $om->getById($order_id);
         if (!$o) {
-            $this->errors = _w('Order not found');
+            $this->errors = _w('Order not found.');
             return;
         }
         $orders = array(

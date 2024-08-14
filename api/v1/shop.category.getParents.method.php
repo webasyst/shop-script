@@ -22,7 +22,7 @@ class shopCategoryGetParentsMethod extends shopApiMethod
                 $this->response = array();
             }
         } else {
-            throw new waAPIException('invalid_request', 'Category not found', 404);
+            throw new waAPIException('invalid_request', _w('Category not found.'), 404);
         }
     }
 }

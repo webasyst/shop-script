@@ -123,8 +123,10 @@
             {/capture}
             {capture name="template-order-list-split-details"}
                 {literal}
-                    <div class="tablebox small">
-                        <div><strong class="badge uppercase small nowrap" style="background-color: {%#o.state_color%}">{%#o.state_name%}</strong></div>
+                    <div class="flexbox middle nowrap space-8 full-width small">
+                        <strong class="badge uppercase small nowrap s-order-status-badge" style="background-color: {%#o.state_color%};" title="{%#o.state_name%}">
+                            <span class="text-ellipsis">{%#o.state_name%}</span>
+                        </strong>
                         <span class="count align-right">
                             {% if (o.order.paid_date) { %}
                             <span class="text-green custom-ml-4 cursor-pointer" data-wa-tooltip-content="[`Paid`] {% if (o.order.paid_datetime_str) { %}{%#o.order.paid_datetime_str%}{% } else { %}{%#o.order.paid_date_str%}{% } %}" data-wa-tooltip-placement="left">

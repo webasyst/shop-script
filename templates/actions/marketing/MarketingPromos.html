@@ -233,13 +233,13 @@
 
     {* HEADER *}
     <header class="s-page-header">
-        <div class="flexbox middle space-12">
+        <div class="flexbox middle space-12 wrap">
             <div>
                 <h1 class="s-title">[`Promos on website`]</h1>
             </div>
 
             <div>
-                <a href="{$wa_app_url}marketing/promo/create/" class="button rounded small custom-mt-4" title="[`New promo`]">
+                <a href="{$wa_app_url}marketing/promo/create/" class="button rounded small custom-mt-4 nowrap" title="[`New promo`]">
                     <i class="fas fa-plus custom-mr-4"></i>
                     [`New promo`]
                 </a>
@@ -249,6 +249,13 @@
                 <a href="[`https://www.shop-script.com/help/33511/marketing/`]" class="button nobutton small rounded gray nowrap custom-mt-4" target="_blank">[`Help`] <i class="fas fa-external-link-alt fa-xs text-gray"></i></a>
             </div>
 
+            {if !empty($additional_html)}
+                <ul class="s-promos-additional-actions menu">
+                {foreach $additional_html.action_link as $_html}
+                    {$_html}
+                {/foreach}
+                </ul>
+            {/if}
         </div>
     </header>
 

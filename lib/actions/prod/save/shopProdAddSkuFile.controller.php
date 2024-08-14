@@ -13,7 +13,7 @@ class shopProdAddSkuFileController extends shopUploadController
 
         $product = new shopProduct($fields['product_id']);
         if (!$product->getId()) {
-            throw new waException(_w("Product not found"), 404);
+            throw new waException(_w('Product not found.'), 404);
         }
 
         $path = "sku_file/{$fields['id']}." . pathinfo($file->name, PATHINFO_EXTENSION);

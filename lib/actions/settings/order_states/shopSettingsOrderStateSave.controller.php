@@ -31,6 +31,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
     public function save($data, $add = false)
     {
         $available_states = $this->getWorkflow()->getAvailableStates();
+        $available_actions = $this->getWorkflow()->getAvailableActions();
 
         $id = $data['state']['id'];
         unset($data['state']['id']);
@@ -56,7 +57,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
         $this->config['states'][$id] = $data['state'];
 
         // Custom actions
-        $this->config['actions'] = !empty($this->config['actions']) ? $this->config['actions'] + $data['new_actions'] : $data['actions'];
+        $this->config['actions'] = ifempty($this->config, 'actions', []) + $available_actions + $data['new_actions'];
         foreach ($data['edited_actions'] as $action_id => $action) {
             if (isset($this->config['actions'][$action_id])) {
                 $this->config['actions'][$action_id] = $action;
@@ -90,7 +91,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
                 $this->errors['state']['new_id'] = _w('Only Latin characters, numbers, underscore and hyphen symbols are allowed');
             }
             if (strlen($data['state']['new_id']) > 16) {
-                $this->errors['state']['new_id'] = _w('Length of state ID more then 16 symbols');
+                $this->errors['state']['new_id'] = _w('A state ID cannot contain more than 16 characters.');
             }
             if ($data['state']['new_id'] == 'new_state') {
                 $this->errors['state']['new_id'] = _w('ID is reserved');
@@ -114,7 +115,7 @@ class shopSettingsOrderStateSaveController extends waJsonController
                     $this->errors['edited_actions'][$action_id] = _w('Empty action name');
                 }
                 if (strlen($action_id) > 32) {
-                    $this->errors['edited_actions'][$action_id] = _w('Length of action ID is more then 32 symbols');
+                    $this->errors['edited_actions'][$action_id] = _w('An action ID cannot contain more than 32 characters.');
                 }
             }
         }

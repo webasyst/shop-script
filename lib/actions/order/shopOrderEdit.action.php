@@ -200,7 +200,7 @@ class shopOrderEditAction extends waViewAction
     {
         $order_id = $order['id'];
         if (!$order_id) {
-            throw new waException("Order not found", 404);
+            throw new waException(_w('Order not found.'), 404);
         }
 
         $order_data = $order->dataArray();
@@ -472,7 +472,7 @@ class shopOrderEditAction extends waViewAction
     {
         $order_mode = shopOrderMode::getMode($order);
         if ($order_mode['mode'] == shopOrderMode::MODE_DISABLED) {
-            throw new waException("Order not found", 404);
+            throw new waException(_w('Order not found.'), 404);
         } else if ($order_mode['mode'] != shopOrderMode::MODE_ENABLED) {
             return $order_mode['mode'];
         }

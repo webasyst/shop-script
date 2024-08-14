@@ -15,7 +15,7 @@
                 <td><label class="custom-ml-12"><span class="wa-checkbox"><input type="checkbox" {% if (check_all) { %}checked="checked"{% } %}><span><span class="icon"><i class="fas fa-check"></i></span></span></span></label></td>
             {% } %}
             <td>
-                <div class="s-order-status"><strong class="badge nowrap uppercase" style="background-color: {%#state_color%}">{%#state_name%}</strong></div>
+                <div class="s-order-status" title="{%#state_name%}"><strong class="badge nowrap uppercase text-ellipsis" style="background-color: {%#state_color%}">{%#state_name%}</strong></div>
             </td>
             <td class="nowrap">
                 <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}"><span class="semibold">{%#order.id_str%}</span></a>

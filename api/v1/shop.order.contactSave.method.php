@@ -28,7 +28,7 @@ class shopOrderContactSaveMethod extends shopApiMethod
         $order_model = new shopOrderModel();
         $order = $order_model->getById($order_id);
         if (!$order) {
-            throw new waAPIException('invalid_param', 'Order not found', 404);
+            throw new waAPIException('invalid_param', _w('Order not found.'), 404);
         }
 
         $contact = new waContact($order['contact_id']);

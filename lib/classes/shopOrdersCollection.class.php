@@ -135,7 +135,7 @@ class shopOrdersCollection
                      */
                     $processed = wa('shop')->event('orders_collection', $params);
                     if (!$processed) {
-                        throw new waException('Unknown collection hash type: '.htmlspecialchars($type, ENT_COMPAT, 'utf-8'));
+                        throw new waException(sprintf_wp('Unknown collection hash type: “%s”.', htmlspecialchars($type, ENT_COMPAT, 'utf-8')));
                     } else {
                         $this->completed_events['orders_collection'] = $processed;
                     }

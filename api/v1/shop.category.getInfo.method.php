@@ -13,7 +13,7 @@ class shopCategoryGetInfoMethod extends shopApiMethod
         if ($category) {
             $this->response = $category;
         } else {
-            throw new waAPIException('invalid_request', 'Category not found', 404);
+            throw new waAPIException('invalid_request', _w('Category not found.'), 404);
         }
     }
 }

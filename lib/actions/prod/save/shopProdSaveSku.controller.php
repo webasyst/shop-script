@@ -11,7 +11,7 @@ class shopProdSaveSkuController extends waJsonController
         if (!$product->getId()) {
             $this->errors[] = [
                 'id' => 'not_found',
-                'text' => _w('Product not found'),
+                'text' => _w('Product not found.'),
             ];
             return;
         }

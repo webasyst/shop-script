@@ -10,7 +10,7 @@ class shopProdSaveStatusController extends waJsonController
         if (!$product->getId()) {
             $this->errors[] = [
                 'id' => 'not_found',
-                'text' => _w('Product not found'),
+                'text' => _w('Product not found.'),
             ];
         }
         $product_data = $this->prepareProductData($product, $product_data);

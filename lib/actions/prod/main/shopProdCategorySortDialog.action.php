@@ -10,7 +10,7 @@ class shopProdCategorySortDialogAction extends waViewAction
         if (!$category_id) {
             $this->errors = [
                 "id" => "category_not_found",
-                "text" => _w("Category not found.")
+                "text" => _w('Category not found.')
             ];
             return false;
         }

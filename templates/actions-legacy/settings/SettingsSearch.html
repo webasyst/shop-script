@@ -67,7 +67,7 @@
                             <div class="value small" id="search_by_part_div"{if !$by_part} style="display:none"{/if}>
                                 {$_by_part_char_count=''}
                                 {if $by_part}{$_by_part_char_count=$by_part}{/if}
-                                {sprintf('[`Only if search query length is no less then %s characters`]', '<input class="short" type="text" name="by_part" value="'|cat:$_by_part_char_count|cat:'">')}
+                                {sprintf('[`Only if the search query length is no less than %s characters.`]', '<input class="short" type="text" name="by_part" value="'|cat:$_by_part_char_count|cat:'" data-invalid-text="[`The search query length cannot be less than 1 character.`]">')}
                             </div>
                         </div>
                         <div class="field">

@@ -53,7 +53,7 @@ $(document).ready(function () {
         var compare = $.cookie('shop_compare');
         $.cookie('shop_compare', compare, { expires: 30, path: '/'});
 
-        if (!$(this).find('svg').hasClass('active')) {
+        if (!$(this).find('svg').get(0).classList.contains('active')) {
             if (compare) {
                 compare += ',' + $(this).data('product');
             } else {
@@ -95,7 +95,8 @@ $(document).ready(function () {
                 $.cookie('shop_compare', null, {path: '/'});
             }
         }
-        $(this).find('svg').toggleClass('active');
+        $(this).find('svg').get(0).classList.toggle('active');
+
         return false;
     });
 

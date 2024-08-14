@@ -12,11 +12,11 @@ class shopProductRemoveFromSetMethod extends shopProductUpdateMethod
         $set = $set_model->getById($set_id);
 
         if (!$set) {
-            throw new waAPIException('invalid_param', 'Set not found', 404);
+            throw new waAPIException('invalid_param', _w('Set not found.'), 404);
         }
 
         if ($set['type'] == shopSetModel::TYPE_DYNAMIC) {
-            throw new waAPIException('invalid_param', 'Set type must be static');
+            throw new waAPIException('invalid_param', _w('Set type must be static.'));
         }
 
         $set_products_model = new shopSetProductsModel();

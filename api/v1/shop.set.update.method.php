@@ -10,7 +10,7 @@ class shopSetUpdateMethod extends shopApiMethod
         $set_model = new shopSetModel();
         $set = $set_model->getById($id);
         if (!$set) {
-            throw new waAPIException('invalid_param', 'Set not found', 404);
+            throw new waAPIException('invalid_param', _w('Set not found.'), 404);
         }
 
         $data = array();
@@ -20,7 +20,10 @@ class shopSetUpdateMethod extends shopApiMethod
             }
         }
         if (!$data) {
-            throw new waAPIException('invalid_param', 'Required parameter is missing: id or name', 400);
+            throw new waAPIException('invalid_param', sprintf_wp(
+                'Missing required parameter: %s.',
+                sprintf_wp('“%s” or “%s”', 'id', 'name')
+            ), 400);
         }
 
         $set_model->update($id, $data);

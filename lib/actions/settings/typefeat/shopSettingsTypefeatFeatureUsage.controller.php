@@ -12,7 +12,7 @@ class shopSettingsTypefeatFeatureUsageController extends waJsonController
         $feature_model = new shopFeatureModel();
         $feature = $feature_model->getById($id);
         if (!$feature) {
-            throw new waException('Feature not found', 404);
+            throw new waException(_w('Feature not found.'), 404);
         }
 
         $product_features_model = new shopProductFeaturesModel();

@@ -23,7 +23,7 @@ class shopProdPresentationUpdateProductController extends waJsonController
         if (!$product->getId()) {
             $this->errors[] = [
                 'id' => 'not_found',
-                'text' => _w('Product not found'),
+                'text' => _w('Product not found.'),
             ];
             return;
         }
@@ -67,7 +67,7 @@ class shopProdPresentationUpdateProductController extends waJsonController
         if (!$product) {
             $this->errors = [
                 'id' => 'product',
-                'text' => _w('Product not found'),
+                'text' => _w('Product not found.'),
             ];
         }
         $skus = $product->skus;

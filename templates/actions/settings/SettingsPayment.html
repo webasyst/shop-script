@@ -42,9 +42,15 @@
         </div>
     </div>
 </div>
-<p class="small">
-    [`Enabled payment options will be offered to your customers during the online checkout on your site.`]
-</p>
+<div class="s-settings-payment-header-hint custom-mt-4">
+    <p class="small">
+        {if $wa->shop->hasDeactivatedPayments()}
+            <i class="fas fa-exclamation-circle text-red"></i> [`Activate one or several payment options below to start accepting payments online.`]
+        {else}
+            [`Enabled payment options will be offered to your customers during the online checkout on your site.`]
+        {/if}
+    </p>
+</div>
 <div id="s-settings-payment" class="fields">
     <div class="fields-group custom-pl-8-mobile">
         <table>

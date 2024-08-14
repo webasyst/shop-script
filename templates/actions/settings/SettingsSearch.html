@@ -25,7 +25,7 @@
 
     <form action="?module=settings&action=searchSave" method="post" id="s-settings-form">
         <div class="custom-mt-16 js-smart-enabled"{if empty($smart)} style="display: none;"{/if}>
-            <input type="hidden" id="s-toggle-status" name="smart" value="{if empty($smart)}0{else}1{/if}">
+            <input type="hidden" id="s-toggle-status" value="{if empty($smart)}0{else}1{/if}">
             <div id="s-settings-block">
                 <div class="fields form">
                     <div class="fields-group">
@@ -88,7 +88,7 @@
                                 <div class="small custom-mt-4 js-search-by-part"{if !$by_part} style="display: none;"{/if}>
                                     {$_by_part_char_count=''}
                                     {if $by_part}{$_by_part_char_count=$by_part}{/if}
-                                    {sprintf('[`Only if search query length is no less then %s characters`]', '<input type="number" class="small shortest" name="by_part" value="'|cat:$_by_part_char_count|cat:'">')}
+                                    {sprintf('[`Only if the search query length is no less than %s characters.`]', '<input type="number" class="small shortest" name="by_part" value="'|cat:$_by_part_char_count|cat:'" data-invalid-text="[`The search query length cannot be less than 1 character.`]">')}
                                 </div>
                             </div>
                         </div>

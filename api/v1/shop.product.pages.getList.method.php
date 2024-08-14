@@ -9,7 +9,7 @@ class shopProductPagesGetListMethod extends shopApiMethod
         $product = $product_model->getById($product_id);
 
         if (!$product) {
-            throw new waAPIException('invalid_param', 'Product not found', 404);
+            throw new waAPIException('invalid_param', _w('Product not found.'), 404);
         }
 
         $product_pages_model = new shopProductPagesModel();

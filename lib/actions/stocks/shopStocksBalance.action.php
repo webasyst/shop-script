@@ -254,9 +254,11 @@ class shopStocksBalanceAction extends waViewAction
                     if ($sku['count'] !== '') {
                         $product['has_stock_counts'] = true;
                     }
-                    if ($product['stocks_summary'][$stk_id]['count'] !== '' && $sku['count'] !== '' && $sku['count'] >= 0) {
+                    if ($product['stocks_summary'][$stk_id]['count'] !== '' && $sku['count'] !== '') {
                         $product['stocks_summary'][$stk_id]['count'] += intval($sku['count']);
-                        $product['stocks_summary'][$stk_id]['total_market_value'] += $sku['primary_price'] * $sku['count'];
+                        if ($sku['count'] > 0) {
+                            $product['stocks_summary'][$stk_id]['total_market_value'] += $sku['primary_price'] * $sku['count'];
+                        }
                     } else {
                         $product['stocks_summary'][$stk_id]['count'] = '';
                         $product['stocks_summary'][$stk_id]['total_market_value'] = '';

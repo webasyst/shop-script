@@ -42,6 +42,36 @@
             };
             that.broadcast = reactive(that.initBroadcast());
 
+            /* @see component-tree-menu, component-table-filters-categories-sets-types */
+            that.sidebarFiltersToggleManager = that.sidebarFiltersToggleManagerInit(that.filter_options);
+            that.bus_sidebar_tree_menu = (new class {
+                constructor () {
+                    this.cbOnExpand = null;
+                    this.cbOnSelectItem = null;
+                }
+
+                expand (menu_id, item, is_expanded) {
+                    if (this.cbOnExpand) {
+                        this.cbOnExpand(menu_id, item, is_expanded);
+                    }
+                }
+                selectItem (menu_id, item) {
+                    if (this.cbOnSelectItem) {
+                        this.cbOnSelectItem(menu_id, item);
+                    }
+                }
+                onExpand (callback) {
+                    if (typeof callback === 'function') {
+                        this.cbOnExpand = callback;
+                    }
+                }
+                onSelectItem (callback) {
+                    if (typeof callback === 'function') {
+                        this.cbOnSelectItem = callback;
+                    }
+                }
+            });
+
             // INIT
             that.vue_model = that.initVue();
 
@@ -74,7 +104,7 @@
                 options.categories_object = getCategoriesObject(options.categories);
                 options.sets_object = getSetsObject(options.sets);
 
-                const selectedAndShowParentsRecursively = (child, groupType) => {
+                const selectAndExpandParentsRecursively = (child, groupType) => {
                     child.is_selected = true;
 
                     const groupMap = {
@@ -99,18 +129,19 @@
                         parentId = parent[group.parentProp];
                     }
                 };
+
                 $.each(active_rules, function(i, group) {
                     $.each(group.rules, function(i, rule) {
                         switch (group.type) {
                             case "categories":
                                 var category = options.categories_object[rule.rule_params];
                                 category.is_locked = true;
-                                selectedAndShowParentsRecursively(category, group.type);
+                                selectAndExpandParentsRecursively(category, group.type);
                                 break;
                             case "sets":
                                 var set = options.sets_object[rule.rule_params];
                                 set.is_locked = true;
-                                selectedAndShowParentsRecursively(set, group.type);
+                                selectAndExpandParentsRecursively(set, group.type);
                                 break;
                             case "types":
                                 var type_search = options.types.filter( type => (type.id === rule.rule_params));
@@ -233,6 +264,113 @@
             }
         }
 
+        Page.prototype.sidebarFiltersToggleManagerInit = function(options) {
+            const STORAGE_KEY = "shop/products/sidebar-filters-expanded";
+
+            const get = () => {
+                let storage = localStorage.getItem(STORAGE_KEY);
+                if (storage) {
+                    storage = JSON.parse(storage);
+                }
+                return storage;
+            };
+            const set = (data) => {
+                if (!data) {
+                    return;
+                }
+                data = JSON.stringify(data);
+                localStorage.setItem(STORAGE_KEY, data);
+            };
+            const commit = (callback, type) => {
+                const filters = get();
+                if (type && filters && filters[type] && typeof callback === 'function') {
+                    filters[type] = callback(filters[type]);
+                    set(filters);
+                }
+            };
+            // init
+            (() => {
+                const filters = get();
+                if (filters) {
+                    for (const key in filters) {
+                        const $filters = (['categories'].includes(key) ? options[`${key}_object`] : options[key]);
+                        if (!$filters) {
+                            continue;
+                        }
+
+                        const filter_obj = Array.isArray($filters) ? $filters.reduce((acc, opt) => ({ ...acc, [opt.id]: opt }), {}) : $filters;
+                        if (!Array.isArray(filters[key].expanded_items)) {
+                            filters[key].expanded_items = [];
+                        }
+                        const expanded_items = filters[key].expanded_items;
+                        if (expanded_items.length) {
+                            const items_for_deleting = [];
+                            for (const filter_id of expanded_items) {
+                                if (filter_obj[filter_id]) {
+                                    filter_obj[filter_id].is_open = true;
+                                } else {
+                                    items_for_deleting.push(filter_id);
+                                }
+                            }
+                            // clear, if not found ids
+                            if (items_for_deleting.length) {
+                                filters[key].expanded_items = expanded_items.filter(id => !items_for_deleting.includes(id));
+                            }
+                        }
+                    }
+                    set(filters);
+
+                } else {
+                    set({
+                        categories: {
+                            is_expanded: true,
+                            expanded_items: []
+                        },
+                        sets: {
+                            is_expanded: false,
+                            expanded_items: []
+                        },
+                        types: {
+                            is_expanded: false,
+                            expanded_items: []
+                        }
+                    });
+                }
+            })();
+
+            return {
+                get,
+                setFilterType (type, is_expanded) {
+                    commit((filter) => {
+                        return { ...filter, is_expanded }
+                    }, type);
+                },
+                addFilterItem (type, id) {
+                    commit((filter) => {
+                        filter.expanded_items.push(id);
+                        return {
+                            ...filter,
+                            expanded_items: Array.from(new Set(filter.expanded_items))
+                        }
+                    }, type);
+                },
+                removeFilterItem (type, ids) {
+                    if (!ids) {
+                        return;
+                    }
+                    if (!Array.isArray(ids)) {
+                        ids = [ids];
+                    }
+                    commit((filter) => {
+                        return {
+                            ...filter,
+                            expanded_items: filter.expanded_items.filter(id => !ids.includes(id))
+                        }
+                    }, type);
+                }
+            }
+        };
+
         Page.prototype.init = function() {
             $.each(this.tooltips, (i, tooltip) => {
                 $.wa.new.Tooltip(tooltip);
@@ -324,7 +462,7 @@
                 },
 
                 "component-dropdown": {
-                    props: ["modelValue", "options", "disabled", "button_class", "body_width", "body_class", "empty_option", "container_selector"],
+                    props: ["modelValue", "options", "disabled", "button_class", "body_width", "body_class", "empty_option", "box_limiter_selector"],
                     emits: ["update:modelValue", "change", "focus", "blur"],
                     data: function() {
                         return {
@@ -390,11 +528,9 @@
 
                         if (self.prop_disabled) { return false; }
 
-                        const container = self.container_selector ? $(self.container_selector) : null;
                         self.dropdown = $(self.$el).waDropdown({
                             hover : false,
-                            container: container,
-                            protect: { bottom: container ? 40 : null },
+                            protect: { box_limiter: self.box_limiter_selector, bottom: 40 },
                             open: function() {
                                 self.$emit("focus");
                             },
@@ -861,19 +997,20 @@
                     }
                 },
                 "component-sidebar-section": {
-                    props: ["value", "modelValue", "label", "useButtonNew", "titleForNew"],
-                    emits: ["toggle-collapse"],
+                    props: ["expanded", "label", "useButtonNew", "titleForNew"],
+                    emits: ["expand"],
                     template: that.components["component-sidebar-section"],
                     delimiters: ['%', '%'],
-                    computed: {
-                        isCollapsed() {
-                            return this.value !== this.modelValue
+                    data () {
+                        return {
+                            isExpanded: !!this.expanded
                         }
                     }
                 },
 
                 "component-tree-menu": {
                     props: {
+                        menuId: String,
                         item: Object,
                         childrenProp: String,
                         searchString: String,
@@ -882,7 +1019,6 @@
                             default: 0
                         }
                     },
-                    emits: ['use-item'],
                     delimiters: ['%', '%'],
                     template: that.components["component-tree-menu"],
                     data() {
@@ -890,17 +1026,9 @@
                     },
                     created() {
                         this.$.components = this.$parent.$.components;
-
-                        if ('is_group' in this.item) {
-                            this.item.states.is_open = !!this.item.is_open;
-                        } else {
-                            this.showChildren = !!this.item.is_open;
-                        }
+                        this.showChildren = !!this.item.is_open;
                     },
                     computed: {
-                        isShowChildren() {
-                            return this.item.is_group ? this.item.states.is_open : this.showChildren
-                        },
                         indent() {
                             return { paddingLeft: `${(this.depth + 1) * 22}px !important` }
                         },
@@ -908,7 +1036,7 @@
                             return (this.searchString === "" || this.item.states.is_wanted || this.item.states.is_wanted_inside);
                         },
                         displayChildren() {
-                            return !!this.childrenProp && (this.isShowChildren || !!this.searchString?.trim())
+                            return !!this.childrenProp && (this.showChildren || !!this.searchString?.trim())
                         },
                         itemClass() {
                             const result = [];
@@ -930,20 +1058,14 @@
                     },
                     methods: {
                         toggleChildren() {
-                            if (this.item.is_group) {
-                                this.item.states.is_open = !this.item.states.is_open;
-                            } else {
-                                this.showChildren = !this.showChildren;
-                            }
-                        },
-                        useItem(item) {
-                            this.$emit("use-item", item);
+                            this.showChildren = !this.showChildren;
+                            that.bus_sidebar_tree_menu.expand(this.menuId, this.item, this.showChildren);
                         },
                         onClick() {
                             if (this.item.is_group) {
                                 this.toggleChildren();
                             } else {
-                                this.useItem(this.item);
+                                that.bus_sidebar_tree_menu.selectItem(this.menuId, this.item);
                             }
                         },
                     }
@@ -2424,7 +2546,7 @@
                                 delimiters: ['{ { ', ' } }'],
                                 components: {
                                     "component-table-filters-rules-item": {
-                                        props: ["group", "show_tooltip"],
+                                        props: ["group"],
                                         emits: ["remove_group"],
                                         data: function() {
                                             return {
@@ -2449,7 +2571,6 @@
                                         template: that.components["component-table-filters-rules-item"],
                                         delimiters: ['{ { ', ' } }'],
                                         computed: {
-                                            prop_show_tooltip() { return (typeof self.show_tooltip === "boolean" ? self.show_tooltip : false); },
                                             label: function() {
                                                 const self = this;
                                                 var result = null;
@@ -2521,11 +2642,10 @@
                                                 } else {
                                                     var rule_name = getRuleName();
                                                     if (rule_name && self.group.label) {
-                                                        var name = rule_name,
-                                                            value = self.group.label;
-                                                        result = name + ": " + value;
+                                                        var value = $.wa.unescape(self.group.label);
+                                                        result = rule_name + ": " + value;
                                                     } else {
-                                                        result = self.names.join(" | ");
+                                                        result = self.names.map($.wa.unescape).join(" | ");
                                                     }
                                                 }
 
@@ -3034,7 +3154,30 @@
                         },
                         methods: {
                             onClickItem: function () {
-                                this.$parent.onClickItem.call(null, ...arguments);
+                                const [ event, index ] = arguments;
+                                this.$parent.onClickItem.call(null, event, index);
+
+                                setTimeout(() => {
+                                    const container = document.querySelector('.s-products-thumbs-section'),
+                                        el = event.target.closest('.s-checkbox-wrapper');
+                                    if (!this.elemInVisibleArea(container, el)) {
+                                        event.target.closest('.s-product-section').scrollIntoView();
+                                    }
+                                });
+                            },
+                            elemInVisibleArea(container, element) {
+                                const containerBounds = container.getBoundingClientRect(),
+                                    containerTop = containerBounds.top,
+                                    containerBottom = containerBounds.bottom;
+
+                                const elementBounds = element.getBoundingClientRect(),
+                                    elementTop = elementBounds.top,
+                                    elementBottom = elementBounds.bottom;
+
+                                const isVisible = elementTop >= containerTop && elementTop <= containerBottom &&
+                                    elementBottom >= containerTop && elementBottom <= containerBottom;
+
+                                return isVisible;
                             }
                         }
                     },
@@ -5918,19 +6061,36 @@
 
                     "component-table-filters-categories-sets-types": {
                         data() {
-                            const TYPE_FILTERS = ['categories', 'sets', 'types'];
-                            let contentType = TYPE_FILTERS[0];
-
-                            // define contentType from filter request
-                            if (that.filter.rules?.length) {
-                                const parentRule = that.filter.rules.find(r => TYPE_FILTERS.includes(r.type))
-                                if (parentRule) {
-                                    contentType = parentRule.type;
+                            // define contentType from request by filter
+                            if (that.filter.rules && that.filter.rules.length) {
+                                const FILTER_TYPES = ['categories', 'sets', 'types'];
+                                const rule = that.filter.rules.find(r => FILTER_TYPES.includes(r.type))
+                                if (rule) {
+                                    that.sidebarFiltersToggleManager.setFilterType(rule.type, true);
                                 }
                             }
 
+                            that.bus_sidebar_tree_menu.onExpand((menu_id, obj, is_expanded) => {
+                                that.sidebarFiltersToggleManager[is_expanded ? 'addFilterItem' : 'removeFilterItem'](menu_id, obj.id);
+                            });
+
+                            const MENU_ID_TO_TYPE = {
+                                categories: "category",
+                                sets: "set",
+                                type: "type"
+                            };
+                            that.bus_sidebar_tree_menu.onSelectItem((menu_id, item) => {
+                                if (item.is_locked) { return false; }
+                                item.states.enabled = !item.states.enabled;
+
+                                this.success({
+                                    type: MENU_ID_TO_TYPE[menu_id],
+                                    item: item
+                                });
+                            })
+
                             return {
-                                contentType
+                                filters_expanded: that.sidebarFiltersToggleManager.get()
                             }
                         },
                         template: that.components["component-table-filters-categories-sets-types"],
@@ -6018,19 +6178,6 @@
                                         }
                                         return this.categories;
                                     },
-                                },
-                                methods: {
-                                    changeItem: function(item) {
-                                        if (item.is_locked) { return false; }
-                                        item.states.enabled = !item.states.enabled;
-                                        this.save(item);
-                                    },
-                                    save: function(item) {
-                                        this.$emit("success", {
-                                            type: "category",
-                                            item: item
-                                        });
-                                    }
                                 }
                             },
                             "component-table-filters-sets": {
@@ -6111,21 +6258,6 @@
                                         }
                                         return this.sets;
                                     }
-                                },
-                                methods: {
-                                    changeItem: function(item) {
-                                        if (item.is_locked) { return false; }
-                                        const self = this;
-                                        item.states.enabled = !item.states.enabled;
-                                        self.save(item);
-                                    },
-                                    save: function(item) {
-                                        const self = this;
-                                        self.$emit("success", {
-                                            type: "set",
-                                            item: item
-                                        });
-                                    }
                                 }
                             },
                             "component-table-filters-types": {
@@ -6164,26 +6296,11 @@
                                         });
                                     }
                                 },
-                                methods: {
-                                    setType: function(type) {
-                                        if (type.is_locked) { return false; }
-                                        type.states.enabled = true;
-                                        this.save(type);
-                                    },
-                                    save: function(type) {
-                                        this.$emit("success", {
-                                            type: "type",
-                                            item: type
-                                        });
-                                    }
-                                }
                             }
                         },
                         methods: {
-                            setType: function(type) {
-                                this.contentType = type;
-                                // TODO: remove
-                                // this.autofocus();
+                            setFilterType: function(type, is_expanded) {
+                                that.sidebarFiltersToggleManager.setFilterType(type, is_expanded);
                             },
                             success: function(data) {
                                 this.applyCategories(data);

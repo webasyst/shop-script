@@ -85,19 +85,12 @@
             $("#" + id).addClass('selected');
         },
 
-        pagesAction: function () {
-            $("#s-storefronts-content").load("?module=pages", function (responseText) {
-                try {
-                    let response = $.parseJSON(responseText);
-                    if (response) {
-                        if (response.data && response.data.redirect) {
-                            let href = location.href.replace(/#.*$/, '') + response.data.redirect;
-                            location.replace(href);
-                        }
-                    }
-                } catch (e) {
-                }
-            })
+        pagesAction: function (id) {
+            if ($('#wa-page-container').length) {
+                waLoadPage(id);
+            } else {
+                $("#s-storefronts-content").load('?module=pages');
+            }
         },
 
         designAction: function(params) {

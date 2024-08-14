@@ -121,20 +121,22 @@
                     </ul>
                 </div>
                 <div class="box custom-mb-4">
-                    <div class="blank box rounded">
-                        <div class="flexbox space-4 s-menu-link-storefront-status semibold">
-                            {$has_design_access = $wa->userRights('design')}
-                            {if $has_design_access}<span style="line-height: 1.125;"><i class="fas fa-circle text-green smallest custom-mr-2"></i></span>{/if}
-                            <span class="heading wide custom-m-0">[`Storefront`]</span>
-                            {if $has_design_access}<a href="{$wa_app_url}?action=storefronts" title="[`Settings`]"><i class="fas fa-cog text-light-gray"></i></a>{/if}
-                        </div>
-                        <a href="{$frontend_url}" rel="noopener" target="_blank">
-                            <div class="flexbox middle space-4">
-                                <div class="s-menu-link-storefront-status semibold text-ellipsis">{$frontend_url_label|escape}</div>
-                                <i class="s-icon fas fa-external-link-alt fa-xs s-menu-link-new-window"></i>
+                    {if $frontend_url}
+                        <div class="blank box rounded">
+                            <div class="flexbox space-4 s-menu-link-storefront-status semibold">
+                                {$has_design_access = $wa->userRights('design')}
+                                {if $has_design_access}<span style="line-height: 1.125;"><i class="fas fa-circle text-green smallest custom-mr-2"></i></span>{/if}
+                                <span class="heading wide custom-m-0">[`Storefront`]</span>
+                                {if $has_design_access}<a href="{$wa_app_url}?action=storefronts" title="[`Settings`]"><i class="fas fa-cog text-light-gray"></i></a>{/if}
                             </div>
-                        </a>
-                    </div>
+                            <a href="{$frontend_url}" rel="noopener" target="_blank">
+                                <div class="flexbox middle space-4">
+                                    <div class="s-menu-link-storefront-status semibold text-ellipsis">{$frontend_url_label|escape}</div>
+                                    <i class="s-icon fas fa-external-link-alt fa-xs s-menu-link-new-window"></i>
+                                </div>
+                            </a>
+                        </div>
+                    {/if}
                 </div>
             </div>
         </div>

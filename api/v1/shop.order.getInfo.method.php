@@ -10,7 +10,7 @@ class shopOrderGetInfoMethod extends shopApiMethod
         $data = $order_model->getOrder($id);
 
         if (!$data) {
-            throw new waAPIException('invalid_param', 'Order not found', 404);
+            throw new waAPIException('invalid_param', _w('Order not found.'), 404);
         }
 
         foreach (array('auth_code', 'auth_pin') as $k) {

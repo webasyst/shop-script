@@ -10,7 +10,7 @@ class shopProductSkusGetListMethod extends shopApiMethod
         $product_model = new shopProductModel();
         $product = $product_model->getById($product_id);
         if (!$product) {
-            throw new waAPIException('invalid_param', 'Product not found', 404);
+            throw new waAPIException('invalid_param', _w('Product not found.'), 404);
         }
         $skus_model = new shopProductSkusModel();
         $skus = $skus_model->getData(new shopProduct($product));

@@ -13,7 +13,7 @@ class shopProductRemoveFromCategoryMethod extends shopProductUpdateMethod
         $category = $category_model->getById($category_id);
 
         if (!$category) {
-            throw new waAPIException('invalid_param', 'Category not found', 404);
+            throw new waAPIException('invalid_param', _w('Category not found.'), 404);
         }
 
         if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {

@@ -14,11 +14,11 @@ class shopProductImagesAddManyMethod extends shopProductUpdateMethod
             if (isset($_FILES['files'])) {
                 throw new waAPIException('server_error', $files->error);
             } else {
-                throw new waAPIException('invalid_param', 'Required parameter is missing: files', 400);
+                throw new waAPIException('invalid_param', sprintf_wp('Missing required parameter: “%s”.', 'files'), 400);
             }
         }
 
-        $descriptions = waRequest::post('descriptions', null, 'array_trim');
+        $descriptions = waRequest::post('descriptions', [], 'array_trim');
         $this->response = [];
 
         /** @var shopConfig $config */

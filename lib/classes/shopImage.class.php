@@ -461,8 +461,8 @@ class shopImage
                 $w = $h = null;
                 break;
         }
-        $w = round($w);
-        $h = round($h);
+        $w = round((float)$w);
+        $h = round((float)$h);
         if ($image['width'] < $w && $image['height'] < $h) {
             return array(
                 'width'  => $image['width'],

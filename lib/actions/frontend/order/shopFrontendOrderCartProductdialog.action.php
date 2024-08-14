@@ -12,7 +12,7 @@ class shopFrontendOrderCartProductdialogAction extends shopFrontendProductAction
             $product_id = $product['id'];
         }
         if (!$product_id) {
-            throw new waException('Product not found', 404);
+            throw new waException(_w('Product not found.'), 404);
         }
 
         $selected_sku_id = waRequest::request('sku_id', null, 'int');

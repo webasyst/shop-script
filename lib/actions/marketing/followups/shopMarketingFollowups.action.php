@@ -158,6 +158,9 @@ class shopMarketingFollowupsAction extends shopMarketingSettingsViewAction
 
     public function getSmsFrom()
     {
+        if (!waSMS::adapterExists()) {
+            return [];
+        }
         $sms_config = wa()->getConfig()->getConfigFile('sms');
         $sms_from = array();
         foreach ($sms_config as $from => $options) {

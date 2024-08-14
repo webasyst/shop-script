@@ -14,12 +14,12 @@ class shopFrontendPaymentLinkAction extends waViewAction
     {
         $hash = waRequest::param('hash');
         if (!preg_match('~^(.{16})(.+)(.{16})$~', $hash, $matches)) {
-            throw new waException('Order not found', 404);
+            throw new waException(_w('Order not found.'), 404);
         }
         $order_id = substr($hash, 16, -16);
         $order = new shopOrder($order_id);
         if ($hash != $order->getPaymentLinkHash()) {
-            throw new waException('Order not found', 404);
+            throw new waException(_w('Order not found.'), 404);
         }
 
         $user_agent = waRequest::getUserAgent();

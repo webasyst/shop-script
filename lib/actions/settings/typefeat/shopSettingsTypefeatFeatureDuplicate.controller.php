@@ -10,7 +10,7 @@ class shopSettingsTypefeatFeatureDuplicateController extends waJsonController
         $feature_model = new shopFeatureModel();
         $old_feature = $feature_model->getById($old_feature_id);
         if (!$old_feature) {
-            throw new waException('Feature not found', 404);
+            throw new waException(_w('Feature not found.'), 404);
         }
 
         // Load existing feature product types

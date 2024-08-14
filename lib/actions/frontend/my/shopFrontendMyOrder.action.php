@@ -9,7 +9,7 @@ class shopFrontendMyOrderAction extends shopFrontendAction
     {
         $order = $this->getOrder();
         if (!$order) {
-            throw new waException(_w('Order not found'), 404);
+            throw new waException(_w('Order not found.'), 404);
         }
 
         $encoded_order_id = shopHelper::encodeOrderId($order['id']);

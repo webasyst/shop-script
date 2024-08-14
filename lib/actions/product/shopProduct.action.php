@@ -14,7 +14,7 @@ class shopProductAction extends waViewAction
                 $product->id = 'new';
                 $product->status = 1;
             } else {
-                throw new waException("Product not found", 404);
+                throw new waException(_w('Product not found.'), 404);
             }
         }
 

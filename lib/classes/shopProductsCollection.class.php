@@ -414,7 +414,7 @@ class shopProductsCollection
                     )));
                 }
                 if (empty($processed)) {
-                    throw new waException('Unknown collection hash type: '.htmlspecialchars($type));
+                    throw new waException(sprintf_wp('Unknown collection hash type: “%s”.', htmlspecialchars($type)));
                 } else {
                     $this->completed_events['products_collection'] = $processed;
                 }
@@ -2265,6 +2265,10 @@ SQL;
                 unset($fields[$i]);
                 if (in_array($f, $virtual_fields)) {
                     $this->post_fields['_internal'][] = $f;
+                    $required_fields['sku_id'] = 'p';
+                    $required_fields['image_id'] = 'p';
+                    $required_fields['image_filename'] = 'p';
+                    $required_fields['ext'] = 'p';
                 } elseif (substr($f, 0, 8) == 'feature_') {
                     $this->post_fields['_features'][substr($f, 8)] = $f;
                 }

@@ -9,7 +9,7 @@ class shopProductReviewsGetTreeMethod extends shopApiMethod
         $product = $product_model->getById($product_id);
 
         if (!$product) {
-            throw new waAPIException('invalid_param', 'Product not found', 404);
+            throw new waAPIException('invalid_param', _w('Product not found.'), 404);
         }
 
         $parent_id = waRequest::get('parent_id');

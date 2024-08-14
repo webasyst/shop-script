@@ -20,7 +20,34 @@ if (typeof($) != 'undefined') {
                 }
             };
 
-            form.submit(function() {
+            var isValid = function () {
+                var removeErrors = function () {
+                    form.find('.error').removeClass('error');
+                    form.find('.errormsg').remove();
+                };
+                removeErrors();
+
+                if ($('#search_by_part').is(':checked')) {
+                    var $by_part = $('input[name="by_part"]');
+                    var by_part_value = $by_part.val();
+                    if (!String(by_part_value).trim() || isNaN(by_part_value) || parseInt(by_part_value) <= 0) {
+                        var invalid_text = $by_part.data('invalid-text');
+                        $('<em class="value errormsg"></em>').text(invalid_text).insertAfter($by_part.parent());
+                        $by_part.addClass('error');
+
+                        form.one('change', function () { removeErrors(); });
+                        return false;
+                    }
+                }
+
+                return true;
+            };
+            form.submit(function(event) {
+                event.preventDefault();
+                if (!isValid()) {
+                    return;
+                };
+
                 var self = $(this);
                 $.post(self.attr('action'), self.serialize(), function() {
                     if (form_changed) {
@@ -59,7 +86,7 @@ if (typeof($) != 'undefined') {
                    $('#search_by_part_div').hide().find('input').attr('disabled', 'disabled');
                }
             });
-            
+
             $('input[name^=weights]:text', form).each(function() {
                 var item = $(this).hide();
 
@@ -86,9 +113,9 @@ if (typeof($) != 'undefined') {
                     value: item.val()
                 });
             });
-            
+
             $(':input', form).change(formChanged);
-            
+
             $('#s-reindex').click(function() {
                 var dialog = $('#s-reindex-dialog');
                 var pull = [];
@@ -100,23 +127,23 @@ if (typeof($) != 'undefined') {
                         $("#s-reindex-report").hide();
                         d.find('.dialog-buttons').show();
                         d.removeClass('height400px').addClass('height300px');
-                        dialog.find('input[name=create_thumbnails]').attr('disabled', false);                        
+                        dialog.find('input[name=create_thumbnails]').attr('disabled', false);
                     },
                     onSubmit: function(d) {
-                
+
                         d.find('.dialog-buttons').hide();
                         d.removeClass('height300px').addClass('height400px');
                         var form = $(this);
-                        
+
                         $('#s-reindex-progressbar').show();
                         form.find('.progressbar .progressbar-inner').css('width', '0%');
                         form.find('.progressbar-description').text('0.000%');
                         form.find('.progressbar').show();
                         $("#s-reindex-report").hide();
-                        
+
                         var url = form.attr('action');
                         var processId;
-                        
+
                         var cleanup = function() {
                             $.post(url, { processId: processId, cleanup: 1 }, function(r) {
                                 // show statistic
@@ -131,11 +158,11 @@ if (typeof($) != 'undefined') {
                                 dialog.removeClass('height400px').addClass('height350px');
                             }, 'json');
                         };
-                        
+
                         var step = function(delay) {
                             delay = delay || 2000;
                             var timer_id = setTimeout(function() {
-                                $.post(url, { processId:processId }, 
+                                $.post(url, { processId:processId },
                                     function(r) {
                                         if (!r) {
                                             step(3000);
@@ -159,17 +186,17 @@ if (typeof($) != 'undefined') {
                                             }
 
                                             step();
-                                            
+
                                         }
-                                    }, 
+                                    },
                                 'json').error(function() {
                                     step(3000);
                                 });
                             }, delay);
                             pull.push(timer_id);
                         };
-                        
-                        $.post(url, { processId: processId }, 
+
+                        $.post(url, { processId: processId },
                             function(r) {
                                 if (r && r.processId) {
                                     processId = r.processId;
@@ -180,11 +207,11 @@ if (typeof($) != 'undefined') {
                                 } else {
                                     form.find('errormsg').text('Server error');
                                 }
-                            }, 
+                            },
                         'json').error(function() {
                             form.find('errormsg').text('Server error');
                         });
-                        
+
                         return false;
                     },
                     onClose: function() {
@@ -200,7 +227,7 @@ if (typeof($) != 'undefined') {
                 });
                 return false;
             });
-            
+
         }
     });
 }

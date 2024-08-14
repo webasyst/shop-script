@@ -31,7 +31,7 @@ class shopMarketingPromoWorkflow
     {
         $order_id = $order->getId();
         if (empty($order_id)) {
-            throw new waException(_w('Order not found'), 404);
+            throw new waException(_w('Order not found.'), 404);
         }
 
         $this->order = $order;

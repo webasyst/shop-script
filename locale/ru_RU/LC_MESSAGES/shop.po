@@ -1669,8 +1669,8 @@ msgstr "Пустой код"
 msgid "Please add at least one product to save this order"
 msgstr "Для сохранения заказа необходимо добавить хотя бы один товар"
 
-msgid "Order not found"
-msgstr "Заказ не найден"
+msgid "Order not found."
+msgstr "Заказ не найден."
 
 msgid "Writing a review to product is available just on frontend"
 msgstr "Добавление отзыва к товару доступно только на витрине"
@@ -2401,8 +2401,8 @@ msgstr "Тема сообщения"
 msgid "Email body"
 msgstr "Текст сообщения"
 
-msgid "Product not found"
-msgstr "Товар не найден"
+msgid "Product not found."
+msgstr "Товар не найден."
 
 msgid "New order %s"
 msgstr "Новый заказ %s"
@@ -3973,8 +3973,8 @@ msgstr "Искать по началу слова"
 msgid "Enabling this option will make words such as “transmitter” and “transformer” found by a search query such as “trans”. Recommended if most products in your online store come with long or complex names."
 msgstr "Включение этой настройки позволит находить такие слова как «трансформер» и «трансформатор» с помощью поискового запроса «транс». Рекомендуется включить эту настройку, если большинство товаров вашего интернет-магазина содержат длинные или сложные в написании слова."
 
-msgid "Only if search query length is no less then %s characters"
-msgstr "Только если длина поискового запроса не менее %s символов"
+msgid "Only if the search query length is no less than %s characters."
+msgstr "Только если длина поискового запроса не менее %s символов."
 
 msgid "Updated search settings will be applied only to products added or updated after new settings had been saved. To apply updated search settings to all existing products, re-index entire product search database."
 msgstr "Обновленные настройки поиска будут применены только для новых и редактируемых товаров, информация о которых обновлена после сохранения настроек поиска. Чтобы применить обновленные настройки к уже существующим товарам, запустите процесс обновления индексной базы для всех товаров."
@@ -4054,8 +4054,8 @@ msgstr "закрыть"
 msgid "Notification"
 msgstr "Уведомление"
 
-msgid "Length of state ID more then 16 symbols"
-msgstr "Длина идентификатора статуса не может превышать 16 символов"
+msgid "A state ID cannot contain more than 16 characters."
+msgstr "Идентификатор статуса не может быть длиннее 16 символов."
 
 msgid "Empty action ID"
 msgstr "Введите идентификатор действия"
@@ -4063,8 +4063,8 @@ msgstr "Введите идентификатор действия"
 msgid "Empty action name"
 msgstr "Введите название действия"
 
-msgid "Length of action ID is more then 32 symbols"
-msgstr "Длина идентификатора действия не может превышать 32 символов."
+msgid "An action ID cannot contain more than 32 characters."
+msgstr "Идентификатор действия не может быть длиннее 32 символов."
 
 msgid "Empty template"
 msgstr "Пустой шаблон"
@@ -9652,6 +9652,9 @@ msgstr "Редактирование заказа отключено, потом
 msgid "Category “%current” being moved cannot be placed inside category “%parent” because category “%parent” already contains subcategory “%same” whose editable URL part matches that of category “%current”. To complete the category moving, change the editable URL part either for category “%current”, or for category “%same”."
 msgstr "Перемещаемая категория «%current» не может быть добавлена в категорию «%parent», потому что в категории «%parent» уже есть подкатегория «%same», редактируемая часть URL которой совпадает с редактируемой частью URL категории «%current». Для того чтобы совершить такое перемещение, измените редактируемую часть URL категории «%current» или категории «%same»."
 
+msgid "Category “%current” being moved cannot be placed at the root level because there is already category “%same” there, whose editable URL part matches that of category “%current” at the same level. To complete the category moving, change the editable URL part either for category “%current”, or for category “%same”."
+msgstr "Перемещаемая категория «%current» не может быть добавлена в корневой список, потому что там уже есть подкатегория «%same», редактируемая часть URL которой совпадает с редактируемой частью URL категории «%current». Для того чтобы совершить такое перемещение, измените редактируемую часть URL категории «%current» или категории «%same»."
+
 msgid "Too long URL including the URLs of parent categories."
 msgstr "Слишком длинный URL с учетом URL родительских категорий."
 
@@ -12169,8 +12172,8 @@ msgstr "Описание категории"
 msgid "Publication"
 msgstr "Публикация"
 
-msgid "Use meta tags for search systems."
-msgstr "Использовать метатеги для поисковых систем."
+msgid "Use meta tags for search systems"
+msgstr "Использовать метатеги для поисковых систем"
 
 msgid "Values specified for search systems will be used. An image and a video will be automatically selected by a social media from those available on the page."
 msgstr "Будут использованы настройки вида в поисковых системах. Изображение и видео будут выбраны соцсетью автоматически из доступных на странице."
@@ -13311,3 +13314,58 @@ msgstr "Доступно только в новом интерфейсе Webasys
 
 msgid "Product prices cannot be negative."
 msgstr "Цены товаров не могут быть отрицательными."
+
+msgid "The search query length cannot be less than 1 character."
+msgstr "Длина поискового запроса должна быть не менее 1 символа."
+
+msgid "Activate one or several payment options below to start accepting payments online."
+msgstr "Чтобы покупатели могли оплачивать заказы в вашем магазине, подключите любой из нижеперечисленных способов приема платежей."
+
+msgid "All contacts"
+msgstr "Все контакты"
+
+msgid "Enable"
+msgstr "Включить"
+
+msgid "Returns the HTML code of a product list rendered by a design theme’s <em class=\"nowrap\">list-thumbs.html</em> template file.<br><br><strong>$products</strong>: Array of products to be displayed; e.g., obtained using the <code class=\"nowrap\">{$wa->shop->products()}</code> method.<br><br><strong>$theme_id</strong>: ID of the design theme whose template file must be used. Be default, the product list is rendered by the current theme."
+msgstr "Возвращает HTML-код списка товаров, сформированный шаблоном темы дизайна из файла <em class=\"nowrap\">list-thumbs.html</em>.<br><br><strong>$products</strong>: Массив отображаемых товаров, например, полученный вызовом метода <code class=\"nowrap\">{$wa->shop->products()}</code>.<br><br><strong>$theme_id</strong>: ID темы дизайна, чей файл шаблона нужно использовать для получения HTML-кода списка товаров. По умолчанию используется шаблон текущей темы."
+
+msgid "Feature not found."
+msgstr "Характеристика не найдена."
+
+msgid "Missing required parameter: %s."
+msgstr "Отсутствует обязательный параметр: %s."
+
+msgid "“%s” or “%s”"
+msgstr "«%s» или «%s»"
+
+msgid "Missing required parameter: “%s”."
+msgstr "Отсутствует обязательный параметр: «%s»."
+
+msgid "Available action not found for the specified order."
+msgstr "Доступное действие не найдено для указанного заказа."
+
+msgid "Payment is not available for this order."
+msgstr "Оплата недоступна для указанного заказа."
+
+msgid "Selected payment method does not support payment initialization."
+msgstr "Выбранный способ оплаты не поддерживает инициализацию платежа."
+
+msgid "Unknown collection hash type: “%s”."
+msgstr "Неизвестный тип хеша коллекции: «%s»."
+
+msgid "Set type must be static."
+msgstr "Список должен быть статическим."
+
+msgid "Selected payment method does not support payment by image. Payment initialization is disabled for the current order status."
+msgstr "Выбранный способ оплаты не поддерживает оплату по изображению. Инициализация платежа отключена для текущего статуса заказа."
+
+msgid "Init POS payment"
+msgstr "Оплата на кассе"
+
+msgid "Sends order to payment terminal in manual mode."
+msgstr "Действие для отправки заказа на ККТ в ручном режиме."
+
+msgid "Order sent to payment terminal in manual mode"
+msgstr "Заказ отправлен на ККТ в ручном режиме"
+

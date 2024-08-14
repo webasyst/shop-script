@@ -252,7 +252,7 @@
 
                 "component-checkbox": {
                     props: ["modelValue", "label", "disabled", "field_id"],
-                    emits: ["update:modelValue", "change"],
+                    emits: ["update:modelValue", "change", "click-input"],
                     data: function() {
                         var self = this;
                         return {
@@ -271,6 +271,9 @@
                             var val = event.target.checked;
                             self.$emit("update:modelValue", val);
                             self.$emit("change", val);
+                        },
+                        onClickInput: function(event) {
+                            this.$emit("click-input", event);
                         }
                     }
                 },
@@ -760,7 +763,10 @@
                                             var self = this;
                                             var $dropdown = $(self.$el).find(".js-dropdown");
 
-                                            self.dropdown = $dropdown.waDropdown({ hover: false }).waDropdown("dropdown");
+                                            self.dropdown = $dropdown.waDropdown({
+                                                hover: false,
+                                                protect: { box_limiter: '.s-categories-table-section', bottom: 5 }
+                                            }).waDropdown("dropdown");
                                         }
                                     },
                                     "component-category-filters": {
@@ -901,10 +907,11 @@
                                             }
                                         },
                                         mounted: function() {
-                                            var self = this,
-                                                $dropdown = $(self.$el).find(".dropdown");
-
-                                            self.dropdown = $dropdown.waDropdown({ hover: false, protect: { right: 150 } }).waDropdown("dropdown");
+                                            const $dropdown = $(this.$el).find(".dropdown");
+                                            this.dropdown = $dropdown.waDropdown({
+                                                hover: false,
+                                                protect: { box_limiter: '.s-categories-table-section', bottom: 5 }
+                                            }).waDropdown("dropdown");
                                         }
                                     }
                                 },
@@ -1764,7 +1771,7 @@
                     if (category.parent_id !== "0") {
                         const parent_category = that.categories_object[category.parent_id];
                         categories = parent_category.categories;
-                        parent_id = parent_category.parent_id;
+                        parent_id = parent_category.id;
                     }
 
                     let index = categories.indexOf(category);
@@ -2382,6 +2389,9 @@
                                                 plugins: ['fontcolor', 'fontfamily', 'alignment', 'fontsize', /*'inlinestyle',*/ 'table', 'video'],
                                                 imageUpload: '?module=pages&action=uploadimage&r=2',
                                                 imageUploadFields: {
+                                                    '_csrf': getCsrf()
+                                                },
+                                                fileUploadFields: {
                                                     '_csrf': getCsrf()
                                                 },
                                                 callbacks: {}

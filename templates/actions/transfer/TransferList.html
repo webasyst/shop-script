@@ -172,33 +172,47 @@
             });
 
             // transfer info
-            let is_fetching_transfer_info = false;
+            let is_fetching_transfer = false;
             container.on('click', '.s-transfer-info', function () {
-                const $el = $(this);
-                const transfer_id = $el.data('id');
-                const $tr = $('.s-transfer-item[data-id="'+transfer_id+'"]');
-
-                const $transfer_edit = $('.s-transfer-edit-item');
-                if ($transfer_edit.length || is_fetching_transfer_info) {
+                if (is_fetching_transfer) {
                     return;
                 }
-                is_fetching_transfer_info = true;
 
+                const $el = $(this);
+                const transfer_id = $el.data('id');
+                let opened_transfer_id = $('.s-transfer-edit-item [data-form-id]').data('form-id');
+                if (opened_transfer_id === transfer_id) {
+                    return;
+                } else if (opened_transfer_id) {
+                    $('.s-transfer-info-form .js-form-close').trigger('click');
+                }
+
+                is_fetching_transfer = true;
                 $.product_stocks.showLoading();
                 $.products.transferInfo(transfer_id).then(function (html) {
+                    const $tr = $('.s-transfer-item[data-id="'+transfer_id+'"]');
                     const $form_td = $('<td colspan="8"></td>').html(html);
                     const $form_tr = $('<tr class="s-transfer-edit-item"></tr>').append($form_td).insertAfter($tr);
                     $form_tr.find('form').on('afterSubmit', function(e, r) {
                         if (r.status === 'ok') {
                             var $list = $('.s-stocks-transfers');
                             var tmp = $('<div>').html(r.data.html);
-                            var item = $('.s-transfer-item[data-id="' + r.data.transfer.id  + '"]', tmp).addClass('highlighted');
-                            $('.s-transfer-item[data-id="' + r.data.transfer.id  + '"]', $list).replaceWith(item);
+                            var item = $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', tmp).addClass('highlighted');
+                            $('.s-transfer-item[data-id="' + r.data.transfer.id + '"]', $list).replaceWith(item);
                         }
                     });
-                    $form_td.children().slideDown(300);
+                    is_fetching_transfer = false;
                     $.product_stocks.doneLoading();
-                    is_fetching_transfer_info = false;
+
+                    const scrollIntoViewIfNotVisible = () => {
+                        const need_visible_el = $('.s-transfer-info-form h3')[0];
+                        if (need_visible_el.getBoundingClientRect().top < 0) {
+                            const container_rect = $form_td[0].getBoundingClientRect();
+                            const y = container_rect.top + window.scrollY - ($('#wa-nav').height() || 0);
+                            window.scrollTo(0, y);
+                        }
+                    }
+                    $form_td.children().slideDown(300, scrollIntoViewIfNotVisible);
                 });
             });
         })

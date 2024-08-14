@@ -32,7 +32,7 @@ class shopProductSkusUpdateMethod extends shopApiMethod
         $product = $product_model->getById($product_id);
 
         if (!$product) {
-            throw new waAPIException('invalid_param', 'Product not found', 404);
+            throw new waAPIException('invalid_param', _w('Product not found.'), 404);
         }
 
         if (!$this->getRights('type.all') && !$this->getRights('type.'.$product['type_id'])) {

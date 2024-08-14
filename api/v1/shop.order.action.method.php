@@ -16,7 +16,7 @@ class shopOrderActionMethod extends shopApiMethod
             if ($this->courier) {
                 throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
             } else {
-                throw new waAPIException('invalid_param', 'Order not found', 404);
+                throw new waAPIException('invalid_param', _w('Order not found.'), 404);
             }
         }
 
@@ -41,7 +41,7 @@ class shopOrderActionMethod extends shopApiMethod
             // Check that action is available for the order
             $action = ifset($actions, $action_id, null);
             if (!$action) {
-                throw new waAPIException('invalid_param', 'Action not found', 404);
+                throw new waAPIException('invalid_param', _w('Available action not found for the specified order.'), 404);
             }
 
             $this->response = $action->run($order_id);

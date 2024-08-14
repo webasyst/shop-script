@@ -179,7 +179,7 @@ class shopFrontendCartAddController extends waJsonController
                 $this->redirect(waRequest::server('HTTP_REFERER'));
             }
         } else {
-            $this->errors = _w('Product not found');
+            $this->errors = _w('Product not found.');
         }
     }
 

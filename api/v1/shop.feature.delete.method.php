@@ -16,11 +16,14 @@ class shopFeatureDeleteMethod extends shopApiMethod
         } elseif ($code = $this->post('code')) {
             $feature = $feature_model->getByCode($code);
         } else {
-            throw new waAPIException('invalid_param', 'Required parameter is missing: id or code', 400);
+            throw new waAPIException('invalid_param', sprintf_wp(
+                'Missing required parameter: %s.',
+                sprintf_wp('“%s” or “%s”', 'id', 'code')
+            ), 400);
         }
 
         if (!$feature) {
-            throw new waAPIException('invalid_param', 'Feature not found', 404);
+            throw new waAPIException('invalid_param', _w('Feature not found.'), 404);
         }
 
         $this->response = (bool)$feature_model->delete($feature['id']);

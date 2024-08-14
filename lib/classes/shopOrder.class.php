@@ -304,7 +304,7 @@ class shopOrder implements ArrayAccess
             if (!empty($data['id'])) {
                 $this->original_data = $this->model->getById($data['id']);
                 if (empty($this->original_data)) {
-                    throw new waException('Order not found', 404);
+                    throw new waException(_w('Order not found.'), 404);
                 }
                 $this->data = $this->original_data;
                 $this->data['id'] = (int)$data['id'];
@@ -354,7 +354,7 @@ class shopOrder implements ArrayAccess
         } elseif ($data) {
             $order = $this->model->getById($data);
             if (empty($order)) {
-                throw new waException('Order not found', 404);
+                throw new waException(_w('Order not found.'), 404);
             }
             $this->original_data = $order;
 

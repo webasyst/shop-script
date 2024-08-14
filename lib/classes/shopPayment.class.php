@@ -804,7 +804,7 @@ class shopPayment extends waAppPayment
         if (isset($transaction_data['amount'])) {
             $total = floatval(str_replace(',', '.', $transaction_data['amount']));
 
-            if ($transaction_data['currency_id'] != $order['currency']) {
+            if (isset($transaction_data['currency_id']) && $transaction_data['currency_id'] != $order['currency']) {
                 $order_total = shop_currency($order['total'], $order['currency'], $transaction_data['currency_id'], false);
             } else {
                 $order_total = $order['total'];
@@ -882,5 +882,17 @@ class shopPayment extends waAppPayment
 
         # if refund is supported by payment plugin
         return $plugin ? $plugin->isRefundAvailable($order_id) : null;
+    }
+
+    /**
+     * @since 10.3.0
+     */
+    public static function statePolling(shopOrder $order)
+    {
+        $plugin = $order['payment_plugin'];
+        if (!$plugin || !$order['payment_plugin'] instanceof waIPaymentStatePolling) {
+            return;
+        }
+        $plugin->statePolling(shopPayment::getOrderData($order['id'], $plugin));
     }
 }

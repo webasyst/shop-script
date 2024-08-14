@@ -23,7 +23,7 @@ class shopWorkflowPayAction extends shopWorkflowAction
                 if (!empty($params['view_data'])) {
                     $result['text'] .= $params['view_data'].' - ';
                 }
-                $result['text'] .= $params['amount'].' '.$params['currency_id'].')';
+                $result['text'] .= $params['amount'].' '.ifset($params, 'currency_id', '').')';
                 $result['update']['params'] = array(
                     'payment_transaction_id' => $params['id'],
                 );

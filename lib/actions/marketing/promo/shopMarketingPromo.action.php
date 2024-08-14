@@ -168,6 +168,14 @@ class shopMarketingPromoAction extends shopMarketingViewAction
     {
         $promo_rules_model = new shopPromoRulesModel();
         $promo_available_types = $promo_rules_model->getAvailableTypes();
+        if (wa()->whichUI() !== '1.3') {
+            foreach ($promo_available_types as &$type) {
+                if (isset($type['css_class'])) {
+                    $type['css_class'] = wa()->getView()->getHelper()->shop->convertIcon($type['css_class']);
+                }
+            }
+        }
+
         return $promo_available_types;
     }
 

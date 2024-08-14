@@ -44,14 +44,40 @@ if (typeof($) != 'undefined') {
                         $disabledSection.fadeIn(200);
                         $enabledSection.hide();
                     }
-                    formChanged(true);
+
+                    $.post('?module=settings&action=searchSave', { smart: enabled ? '1' : '0' });
                 }
             });
 
             $(':input').on('input', formChanged);
 
+            const isValid = () => {
+                const removeErrors = () => {
+                    form.find('.state-error').removeClass('state-error');
+                    form.find('.state-error-hint').remove();
+                };
+                removeErrors();
+
+                if ($('.js-search-by-part-checkbox').is(':checked')) {
+                    const $by_part = $('input[name="by_part"]');
+                    const by_part_value = $by_part.val();
+                    if (!String(by_part_value).trim() || isNaN(by_part_value) || parseInt(by_part_value) <= 0) {
+                        const invalid_text = $by_part.data('invalid-text');
+                        $('<span class="state-error-hint"></span>').text(invalid_text).insertAfter($by_part.parent());
+                        $by_part.addClass('state-error');
+
+                        form.one('change', function () { removeErrors(); });
+                        return false;
+                    }
+                }
+
+                return true;
+            };
             $submitButton.on('click', function(event) {
                 event.preventDefault();
+                if (!isValid()) {
+                    return;
+                };
 
                 $.post(form.attr('action'), form.serialize(), function() {
                     formChanged(false);

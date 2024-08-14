@@ -1666,7 +1666,7 @@
                     type_data = that.rule_types[rule_type];
 
                 // set title
-                var title = ( type_data.css_class ? '<i class="icon16 ' + type_data.css_class + '"></i>' : "") + type_data.name;
+                var title = ( type_data.css_class ? '<i class="' + type_data.css_class + '"></i>' : "") + type_data.name;
                 $clone_rule.find(".s-section-header .js-title").html(title);
 
                 // set data and render
@@ -1712,12 +1712,25 @@
                 $rule.addClass(edit_class);
 
                 if (!is_locked) {
-                    if ( (options && options.force) || confirm(that.locales["rule_delete_confirm"])) {
+                    const removeTool = () => {
                         $rule.data("is-locked", true).trigger(that.event_names["rule_delete"], [$rule]).remove();
                         var $input = $('<input type="hidden" name="delete_rules[]">').val(id);
                         $section.append($input);
                         that.is_changed = true;
                         ruleCountWatch();
+                        that.changeSubmit();
+                    };
+                    if (options && options.force) {
+                        removeTool();
+                    } else {
+                        $.waDialog.confirm({
+                            title: that.locales["rule_delete_confirm"],
+                            success_button_title: $_('Delete'),
+                            success_button_class: 'danger',
+                            cancel_button_title: $_('Cancel'),
+                            cancel_button_class: 'light-gray',
+                            onSuccess: removeTool
+                        });
                     }
                 }
             });
@@ -2283,7 +2296,6 @@
 
                 $field.autocomplete({
                     source: urls["autocomplete"],
-                    appendTo: $wrapper,
                     minLength: 0,
                     focus: function() {
                         return false;

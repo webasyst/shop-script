@@ -315,9 +315,9 @@ $.extend($.settings = $.settings || {}, {
 
             if ($el.hasClass('js-confirm')) {
                 $.waDialog.confirm({
-                    title: $el.attr('title'),
+                    title: $el.data('confirm-title') || $_('Are you sure?'),
                     text: $el.data('confirm-text'),
-                    success_button_title: $_('Are you sure?'),
+                    success_button_title: $el.data('title') || $el.attr('title') || 'OK',
                     success_button_class: 'danger',
                     cancel_button_title: $el.data('cancel') || $.wa.locale['cancel'] || 'Cancel',
                     cancel_button_class: 'light-gray',

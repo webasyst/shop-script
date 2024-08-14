@@ -148,16 +148,29 @@ class shopBackendWelcomeAction extends waViewAction
         $app_settings_model = new waAppSettingsModel();
         $tutorial_visible = $app_settings_model->get('shop', 'show_tutorial') || waRequest::request('module') == 'tutorial';
 
+        $currencies = $this->getCurrencies();
+        $locale_currency = ifset($locale, 'currency', null);
+        if (wa()->whichUI() == '2.0') {
+            // backend_welcome event existed before 8.17.1, removed in 8.18.0; added back with different parameters in 11.0.0
+            $backend_welcome_event_result = wa('shop')->event('backend_welcome', ref([
+                'countries'         => &$countries,
+                'country_iso'       => &$country_iso3,
+                'locale_currency'   => &$locale_currency,
+                'currencies'        => &$currencies,
+            ]));
+        }
+
         $this->view->assign(array(
             'countries'         => $countries,
             'country_iso'       => $country_iso3,
-            'locale_currency'   => ifset($locale['currency']),
+            'locale_currency'   => $locale_currency,
             'translate'         => $this->translate,
             'actions'           => shopTutorialActions::getActions(true),
             'currencies'        => $this->getCurrencies(),
             //'types'             => $this->getShortedProductTypes(),
             'tutorial_progress' => shopTutorialActions::getTutorialProgress(),
             'tutorial_visible'  => $tutorial_visible,
+            'backend_welcome_event_result' => $backend_welcome_event_result,
             'shop_demo_data_source_list' => shopDemoDataImporter::getSourceList(),
             'shop_demo_importer_can_work' => shopDemoDataImporter::canWork()
         ));

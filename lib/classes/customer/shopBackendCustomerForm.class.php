@@ -898,7 +898,7 @@ class shopBackendCustomerForm {
             $contact_address = $contact['address'];
             if (!empty($contact_address)) {
                 foreach ($contact_address as $address) {
-                    $contact_country = $address['data']['country'];
+                    $contact_country = ifset($address, 'data', 'country', null);
                     if (!empty($contact_country) && $contact_country != $country_fixed_delivery_area) {
                         foreach ($contact_address as $address_data) {
                             $address_type = 'address.' . $address_data['ext'];

@@ -359,7 +359,7 @@ HTML;
                 }
             }
         } elseif (!empty($order['params']['coupon_id'])) {
-            // Work for test cases
+            // Work for test cases and API
             $result = $cm->getById((int)$order['params']['coupon_id']);
         }
 

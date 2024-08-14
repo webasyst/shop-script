@@ -750,11 +750,11 @@
                 active_class: (options["active_class"] ? options["active_class"] : "selected"),
                 update_title: (typeof options["update_title"] === "boolean" ? options["update_title"] : true),
                 protect: {
+                    box_limiter: (typeof options["protect"] === "object" && typeof options["protect"]["box_limiter"] ? options["protect"]["box_limiter"] : null),
                     use_protect: (typeof options["protect"] === "boolean" ? options["protect"] : true),
                     right: (typeof options["protect"] === "object" && typeof options["protect"]["right"] === "number" ? options["protect"]["right"] : 20),
                     bottom: (typeof options["protect"] === "object" && typeof options["protect"]["bottom"] === "number" ? options["protect"]["bottom"] : 70)
                 },
-                container: (typeof options["container"] === "object" ? options["container"] : null)
             };
 
             // DYNAMIC VARS
@@ -843,7 +843,7 @@
             if (that.is_locked) { return false; }
 
             that.is_opened = open;
-
+            $(window).off('resize.wa_dropdown');
             if (open) {
                 that.$wrapper.addClass(active_class);
 
@@ -853,6 +853,17 @@
 
                 if (that.$filter.length) { that.$filter.find(".js-field").trigger("focus"); }
 
+                let timer = null;
+                const debouncedResize = () => {
+                    if (timer) {
+                        clearTimeout(timer);
+                    }
+                    timer = setTimeout(() => {
+                        that.resize();
+                        timer = null;
+                    }, 500);
+                };
+                $(window).on('resize.wa_dropdown', debouncedResize);
             } else {
                 that.$wrapper.removeClass(active_class);
                 that.on.close(that);
@@ -976,28 +987,33 @@
 
             // Защита от всплывания окна за правой/нижней границей экрана
             if (that.options.protect.use_protect) {
-                that.options.container ? protectUseContainer(that.options.container) : protect()
+                that.options.protect.box_limiter ? protectUseBoxLimit(that.options.protect.box_limiter) : protect()
             }
 
-            function protectUseContainer(container) {
+            function protectUseBoxLimit($container) {
+                if (typeof $container === 'string') {
+                    $container = $($container);
+                }
+                if (!$container.length) {
+                    return;
+                }
                 var top_class = "top",
-                    right_class = "right",
-                    max_height = 500;
+                right_class = "right",
+                max_height = 500;
 
                 // clear
                 that.$menu
                     .removeClass(top_class)
                     .removeClass(right_class)
                     .css('max-height', '');
-
                 var $window = $(window),
-                    container_rect = $(container)[0].getBoundingClientRect(),
-                    rect = that.$wrapper[0].getBoundingClientRect(),
+                    container_rect = $container[0].getBoundingClientRect(),
+                    toggler_rect = that.$wrapper[0].getBoundingClientRect(),
                     menu_rect = that.$menu[0].getBoundingClientRect();
 
                 // BOTTOM PROTECTION
-                var top_space = rect.top - container_rect.top,
-                    bottom_space = container_rect.bottom - rect.top - rect.height;
+                var top_space = toggler_rect.top - container_rect.top,
+                    bottom_space = container_rect.bottom - toggler_rect.bottom;
 
                 var is_menu_top = false;
                 // Если места снизу под меню не хватает
@@ -1009,12 +1025,11 @@
                     }
                 }
 
-                rect = that.$wrapper[0].getBoundingClientRect();
-
+                toggler_rect = that.$wrapper[0].getBoundingClientRect();
                 if (is_menu_top) {
-                    var _max_height = rect.top - container_rect.top - that.options.protect.bottom
+                    var _max_height = toggler_rect.top - container_rect.top - that.options.protect.bottom
                 } else {
-                    var _max_height = container_rect.bottom - rect.bottom - that.options.protect.bottom;
+                    var _max_height = container_rect.bottom - toggler_rect.bottom - that.options.protect.bottom;
                 }
 
                 if (_max_height < max_height) {
@@ -1022,9 +1037,7 @@
                 }
 
                 // RIGHT PROTECTION
-                var right_space = $window.width() - rect.x - that.$menu.outerWidth(),
-                    use_right = ($window.width() - menu_rect.right < that.options.protect.right);
-
+                var use_right = ($window.width() - menu_rect.right < that.options.protect.right);
                 if (use_right) {
                     that.$menu.addClass(right_class);
                 }

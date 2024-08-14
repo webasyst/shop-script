@@ -21,7 +21,7 @@ class shopProdSaveImageDetailsController extends waJsonController
         if (!$product) {
             $this->errors[] = [
                 'id' => 'not_found',
-                'text' => _w('Product not found'),
+                'text' => _w('Product not found.'),
             ];
             return;
         }

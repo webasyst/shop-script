@@ -148,7 +148,7 @@
                 class="s-caret-wrapper custom-ml-0 custom-mr-4"
                 @click.stop="toggleChildren"
             >
-                <span v-if="isShowChildren" class="icon custom-m-0">
+                <span v-if="showChildren" class="icon custom-m-0">
                     <i class="fas fa-caret-down"></i>
                 </span>
                 <span v-else class="icon custom-m-0">
@@ -170,7 +170,7 @@
 
             <div class="s-name-wrapper wide">
                 <span class="s-name"
-                    :class="[item.is_locked ? 'is-locked' : 'cursor-pointer', { 'link' : !item.is_group && !item.is_locked, 'is-group' : item.is_group }]"
+                    :class="[item.is_locked ? 'is-locked' : 'cursor-pointer', { 'link' : !item.is_locked }]"
                 >%item.name%</span>
             </div>
             <!-- <div class="count gray smaller">
@@ -181,11 +181,11 @@
             <ul class="menu">
                 <component-tree-menu
                     v-for="child of item[childrenProp]"
+                    :menu-id="menuId"
                     :item="child"
                     :children-prop="childrenProp"
                     :search-string="searchString"
                     :depth="depth + 1"
-                    @use-item="useItem"
                 >
                     <template v-for="(_, name) in $slots" v-slot:[name]="slotData">
                         <slot :name="name" v-bind="slotData" />
@@ -202,20 +202,19 @@
     {literal}
     <section
         class="vue-component-sidebar-section"
-        :class="{ 'is-collapsed': isCollapsed }"
-        :data-id="value"
+        :class="{ 'is-expanded': isExpanded }"
     >
         <header
             class="heading cursor-pointer"
-            @click="$emit('toggle-collapse', (isCollapsed ? value : ''))"
+            @click="isExpanded = !isExpanded;$emit('expand', isExpanded)"
         >
             <span class="flexbox middle space-4">
                 <span class="icon">
-                    <span v-if="isCollapsed" class="caret">
-                        <i class="fas fa-caret-right"></i>
+                    <span v-if="isExpanded" class="caret">
+                        <i class="fas fa-caret-down"></i>
                     </span>
                     <span v-else class="caret">
-                        <i class="fas fa-caret-down"></i>
+                        <i class="fas fa-caret-right"></i>
                     </span>
                 </span>
 
@@ -236,7 +235,7 @@
         </header>
 
         <div
-            v-if="!isCollapsed"
+            v-if="isExpanded"
             class="s-sidebar-list-wrapper"
         >
             <slot></slot>

@@ -209,7 +209,7 @@ class shopCategoryModel extends waNestedSetModel
         $element = $this->getById($id);
         $old_parent_id = $element[$this->parent];
         $parent = $this->getById($parent_id);
-        $error_message = 'Error when move';
+        $error_message = _w('Error when move');
 
         if ($parent && $parent['type'] == self::TYPE_DYNAMIC && $element['type'] == self::TYPE_STATIC) {
             return $error_message;
@@ -219,6 +219,15 @@ class shopCategoryModel extends waNestedSetModel
         $same = $this->getByField('full_url', $possible_url);
         if ($element['full_url'] != $possible_url && !empty($same)) {
             $category_url =  wa()->getUrl() . '?action=products#/products/category_id=';
+            if (!$parent) {
+                return strtr(
+                    _w('Category “%current” being moved cannot be placed at the root level because there is already category “%same” there, whose editable URL part matches that of category “%current” at the same level. To complete the category moving, change the editable URL part either for category “%current”, or for category “%same”.'),
+                    array(
+                        '%current' => '<a href="' . $category_url . $element['id'] . '">' . $element['name'] . '</a>',
+                        '%same' => '<a href="' . $category_url . $same['id'] . '">' . $same['name'] . '</a>'
+                    )
+                );
+            }
             return strtr(
                 _w('Category “%current” being moved cannot be placed inside category “%parent” because category “%parent” already contains subcategory “%same” whose editable URL part matches that of category “%current”. To complete the category moving, change the editable URL part either for category “%current”, or for category “%same”.'),
                 array(
@@ -351,9 +360,9 @@ class shopCategoryModel extends waNestedSetModel
             return false;
         }
         $before_id = $this->query("
-            SELECT `id` FROM `{$this->table}` 
-            WHERE `{$this->left}` > i:left_key AND `parent_id` = i:parent_id 
-            ORDER BY `{$this->left}` 
+            SELECT `id` FROM `{$this->table}`
+            WHERE `{$this->left}` > i:left_key AND `parent_id` = i:parent_id
+            ORDER BY `{$this->left}`
             LIMIT 1", ['left_key' => $left_key, 'parent_id' => $parent['id']])->fetchField('id');
         if ($before_id === false) {
             $before_id = null;
@@ -374,25 +383,25 @@ class shopCategoryModel extends waNestedSetModel
         }
 
         $category_og_model = new shopCategoryOgModel();
-        $category_og_model->query("INSERT INTO {$category_og_model->getTableName()} (`category_id`, `property`, `content`) 
-            SELECT {$new_id} AS `category_id`, `property`, `content` 
+        $category_og_model->query("INSERT INTO {$category_og_model->getTableName()} (`category_id`, `property`, `content`)
+            SELECT {$new_id} AS `category_id`, `property`, `content`
                 FROM {$category_og_model->getTableName()} WHERE `category_id` = {$id}");
 
         $category_params_model = new shopCategoryParamsModel();
-        $category_params_model->query("INSERT INTO {$category_params_model->getTableName()} (`category_id`, `name`, `value`) 
-            SELECT {$new_id} AS `category_id`, `name`, `value` 
+        $category_params_model->query("INSERT INTO {$category_params_model->getTableName()} (`category_id`, `name`, `value`)
+            SELECT {$new_id} AS `category_id`, `name`, `value`
                 FROM {$category_params_model->getTableName()} WHERE `category_id` = {$id}");
 
         if ($include_products) {
             $category_products_model = new shopCategoryProductsModel();
-            $category_products_model->query("INSERT INTO {$category_products_model->getTableName()} (`product_id`, `category_id`, `sort`) 
-            SELECT `product_id`, {$new_id} AS `category_id`, `sort` 
+            $category_products_model->query("INSERT INTO {$category_products_model->getTableName()} (`product_id`, `category_id`, `sort`)
+            SELECT `product_id`, {$new_id} AS `category_id`, `sort`
                 FROM {$category_products_model->getTableName()} WHERE `category_id` = {$id}");
         }
 
         $category_routes_model = new shopCategoryRoutesModel();
-        $category_routes_model->query("INSERT INTO {$category_routes_model->getTableName()} (`category_id`, `route`) 
-            SELECT {$new_id} AS `category_id`, `route` 
+        $category_routes_model->query("INSERT INTO {$category_routes_model->getTableName()} (`category_id`, `route`)
+            SELECT {$new_id} AS `category_id`, `route`
                 FROM {$category_routes_model->getTableName()} WHERE `category_id` = {$id}");
 
         $this->clearCache();

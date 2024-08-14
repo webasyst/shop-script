@@ -11,7 +11,7 @@ class shopSettingsTypefeatCodeDeleteDialogAction extends waViewAction
         $product_code_model = new shopProductCodeModel();
         $code = $product_code_model->getById($code_id);
         if (!$code) {
-            throw new waException('Feature not found', 404);
+            throw new waException(_w('Feature not found.'), 404);
         }
 
         $order_item_codes_model = new shopOrderItemCodesModel();

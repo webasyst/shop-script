@@ -49,7 +49,7 @@ class shopFrontendCategoryAction extends shopFrontendAction
             $routes = $category_routes_model->getRoutes($category['id']);
         }
         if (!$category || (!empty($routes) && !in_array($route, $routes))) {
-            throw new waException('Category not found', 404);
+            throw new waException(_w('Category not found.'), 404);
         }
         $category['subcategories'] = $category_model->getSubcategories($category, $route);
         $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));

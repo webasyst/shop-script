@@ -36,8 +36,9 @@ class shopOrderItemCodesModel extends waModel
         // Product codes that have been assigned to order items but do not belong to product type
         // (This may happen if product code has been changed or forcefully assigned to order via plugin)
         $additional_code_ids = array_flip(array_map(function($row) {
-            return $row['code_id'];
+            return ifset($row, 'code_id', 0);
         }, $product_code_values));
+        unset($additional_code_ids[0]); // ignore code_id=null
         $additional_code_ids = array_diff_key($additional_code_ids, $product_codes);
         $product_codes += $product_code_model->getById(array_keys($additional_code_ids));
 

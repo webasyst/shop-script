@@ -123,7 +123,7 @@ class shopOrderSettleController extends waJsonController
                 $this->redirect(sprintf('./#/orders/id=%d/', $id));
             }
         } else {
-            throw new waException(_w('Order not found'), 404);
+            throw new waException(_w('Order not found.'), 404);
         }
     }
 }

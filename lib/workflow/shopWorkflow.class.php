@@ -88,6 +88,7 @@ class shopWorkflow extends waWorkflow
         $original_config = self::getOriginalConfig();
         if ($original_config) {
             $original_actions = ifset($original_config['actions'], array());
+            $config['actions'] += $original_actions;
             foreach ($config['actions'] as $action_id => &$action) {
                 $action['original'] = isset($original_actions[$action_id]);
                 $action['plugin'] = isset($action['classname']) && !preg_match('@^shopWorkflow\w+Action$@', $action['classname']);

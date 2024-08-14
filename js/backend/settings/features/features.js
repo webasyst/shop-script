@@ -2154,13 +2154,13 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
                     },
                     onSubmit: function() {
                         deferred.resolve();
-                        that.dialog.close();
+                        that.dialog.hide();
                     },
                     onCancel: function () {
                         deferred.reject("cancel");
                     },
                     onClose: function () {
-                        that.dialog.close();
+                        that.dialog.hide();
                     }
                 },
                 onOpen: function() {

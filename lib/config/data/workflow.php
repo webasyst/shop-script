@@ -13,6 +13,7 @@ return array(
             ),
             'available_actions' => array(
                 'process',
+                'initpay',
                 'pay',
                 'ship',
                 'complete',
@@ -34,6 +35,7 @@ return array(
                 ),
             ),
             'available_actions' => array(
+                'initpay',
                 'pay',
                 'ship',
                 'complete',
@@ -171,6 +173,17 @@ return array(
                     .' '._w('A payment date will be saved.'),
             ),
             'state'     => 'paid',
+        ),
+        'initpay'       => array(
+            'classname' => 'shopWorkflowInitpayAction',
+            'name'      => _w('Init POS payment'),
+            'options'   => array(
+                'log_record'   => _w('Order sent to payment terminal in manual mode'),
+                'button_class' => 'green',
+                'description'  => _w('Sends order to payment terminal in manual mode.'),
+                'position' => 'top',
+                'icon' => 'fas fa-fax',
+            ),
         ),
         'ship'                => array(
             'classname' => 'shopWorkflowShipAction',

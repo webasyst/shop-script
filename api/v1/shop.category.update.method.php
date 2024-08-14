@@ -32,7 +32,7 @@ class shopCategoryUpdateMethod extends shopApiMethod
                 throw new waAPIException('server_error', 500);
             }
         } else {
-            throw new waAPIException('invalid_param', 'Category not found', 404);
+            throw new waAPIException('invalid_param', _w('Category not found.'), 404);
         }
     }
 }

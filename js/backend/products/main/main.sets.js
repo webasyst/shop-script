@@ -143,7 +143,10 @@
                     mounted: function () {
                         let self = this;
 
-                        self.dropdown = $(self.$el).waDropdown({ hover : false }).waDropdown("dropdown");
+                        self.dropdown = $(self.$el).waDropdown({
+                            hover : false,
+                            protect: { box_limiter: '.s-sets-table-section', bottom: 20 }
+                        }).waDropdown("dropdown");
                     }
                 }
             }

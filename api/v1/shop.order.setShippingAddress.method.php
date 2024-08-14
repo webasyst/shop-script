@@ -16,7 +16,7 @@ class shopOrderSetShippingAddressMethod extends shopApiMethod
             if ($this->courier) {
                 throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
             } else {
-                throw new waAPIException('invalid_param', 'Order not found', 404);
+                throw new waAPIException('invalid_param', _w('Order not found.'), 404);
             }
         }
 

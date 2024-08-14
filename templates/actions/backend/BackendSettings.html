@@ -32,6 +32,7 @@
                     <a href="?action=settings#/payment/">
                         <span class="icon"><i class="fas fa-credit-card"></i></span>
                         <span class="shop-sidebar-hidden">[`Payment`]</span>
+                        {if $wa->shop->hasDeactivatedPayments()}<i class="fas fa-exclamation-circle text-red"></i>{/if}
                     </a>
                 </li>
 

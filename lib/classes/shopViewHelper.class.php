@@ -240,7 +240,7 @@ class shopViewHelper extends waAppViewHelper
 
     /**
      * Includes `list-thumbs.html` sub-template of given theme, rendering given list of products
-     * as returned by $wa->shop->products() or $wa->shop->productSet() mehtods.
+     * as returned by $wa->shop->products() or $wa->shop->productSet() methods.
      *
      * @param array $products
      * @param string $theme_id
@@ -1706,5 +1706,22 @@ SQL;
         }
 
         return $icon;
+    }
+
+    public function hasDeactivatedPayments()
+    {
+        $model = new shopPluginModel();
+        $payments = $model->listPlugins(shopPluginModel::TYPE_PAYMENT, ['all' => true]);
+        if (!$payments) {
+            return false;
+        }
+
+        foreach ($payments as $payment) {
+            if ($payment['status'] == 1) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

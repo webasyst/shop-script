@@ -24,7 +24,6 @@ class shopOrderAction extends waViewAction
                 try {
                     $_order = new shopOrder($id);
                 } catch (waException $ex) {
-                    //TODO try to use decided order id
                     $this->view->assign('order', false);
                     return;
                 }
@@ -33,8 +32,9 @@ class shopOrderAction extends waViewAction
             }
         }
 
-        $elements = $_order->workflow_action_elements;
+        shopPayment::statePolling($_order);
 
+        $elements = $_order->workflow_action_elements;
 
         /**
          * @var shopConfig $config

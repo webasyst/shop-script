@@ -13,8 +13,8 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '10.2.1',
-    'critical'         => '10.2.0',
+    'version'          => '11.0.0', // developer preview
+    'critical'         => '11.0.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,
     'payment_plugins'  => array(

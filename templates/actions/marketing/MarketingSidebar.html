@@ -4,16 +4,10 @@
 
         {strip}
         <div class="dropdown js-marketing-storefronts-dropdown custom-mr-24">
-            <button class="dropdown-toggle small light-gray">[`All storefronts`]</button>
+            <button class="dropdown-toggle small light-gray nowrap">[`All storefronts`]</button>
 
             <div class="dropdown-body">
                 <ul class="menu">
-                    {if !empty($additional_html)}
-                        {foreach $additional_html.action_link as $_html}
-                            {$_html}
-                        {/foreach}
-                    {/if}
-
                     {if !empty($marketing_url)}
                         <li class="{if empty($active_storefront) && empty($unattached_active)}selected{/if}">
                             <a href="{$marketing_url}{if $status}?status={$status}{/if}" title="[`All storefronts`]">[`All storefronts`]</a>

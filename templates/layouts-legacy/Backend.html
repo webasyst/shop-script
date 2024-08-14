@@ -35,7 +35,9 @@
     {/if}
     <script src="{$wa_app_static_url}js-legacy/shop.js?{$wa->version()}"></script>
     <script src="{$wa_app_url}?action=loc&amp;v{$wa->version()}"></script>
-    <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js"></script>
+    {if $page != 'storefronts'}
+        <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.fileupload.js"></script>
+    {/if}
     {$wa->js()}
     {block name="head"} {/block}
 

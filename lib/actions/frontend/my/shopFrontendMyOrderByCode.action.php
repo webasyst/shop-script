@@ -15,7 +15,7 @@ class shopFrontendMyOrderByCodeAction extends shopFrontendMyOrderAction
 
         $order = $this->getOrder();
         if (!$order) {
-            throw new waException(_w('Order not found'), 404);
+            throw new waException(_w('Order not found.'), 404);
         }
 
         $order_id = $order['id'];
@@ -34,7 +34,7 @@ class shopFrontendMyOrderByCodeAction extends shopFrontendMyOrderAction
         $opm = new shopOrderParamsModel();
         $params = $opm->get($order_id);
         if (ifset($params['auth_code']) !== $code || empty($params['auth_pin'])) {
-            throw new waException(_w('Order not found'), 404);
+            throw new waException(_w('Order not found.'), 404);
         }
 
         // Check auth pin and show order page if pin is correct
@@ -59,7 +59,7 @@ class shopFrontendMyOrderByCodeAction extends shopFrontendMyOrderAction
         //
         // No pin or pin is incorrect: show form to enter pin
         //
-        
+
         $this->view->assign('wrong_pin', !!$pin);
         $this->view->assign('pin_required', true);
         $this->view->assign('encoded_order_id', $encoded_order_id);

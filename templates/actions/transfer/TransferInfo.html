@@ -1,7 +1,7 @@
 {$wrapper_id = 's-transfer-info-'|cat:$transfer.id}
 <div class="s-transfer-info-wrapper height-100" data-form-id="{$transfer.id}" style="display: none;">
 
-<form id="{$wrapper_id}" class="s-transfer-info">
+<form id="{$wrapper_id}" class="s-transfer-info-form">
     <div class="s-transfer-info__content">
         <div class="s-transfer-info__content-inner">
             <h3>
@@ -189,7 +189,6 @@
         };
 
         $.shop.changeListener(form, ':input', clearValidateErrors);
-        form.on('change', ':input', clearValidateErrors);
 
         $('#js-receive').click(function () {
             submit('?module=transfer&action=receive');

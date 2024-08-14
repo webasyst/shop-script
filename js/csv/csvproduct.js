@@ -563,6 +563,9 @@ if (typeof ($) != 'undefined') {
                 data: data,
                 type: 'post',
                 dataType: 'json',
+                complete: function () {
+                    setTimeout(() => document.documentElement.scrollIntoView({behavior: 'smooth', block:'end'}))
+                },
                 success: function (response) {
                     // response = $.parseJSON(response);
                     if (response.error) {
@@ -888,7 +891,6 @@ if (typeof ($) != 'undefined') {
             var $container = this.form.find('#s-csvproduct-submit');
             switch (stage) {
                 case 'run':
-
                     this.form.find('.errormsg').text('');
                     this.form.find(':input:not(:disabled)').attr('disabled', true);
                     $submit.hide().attr('disabled', true);
@@ -901,7 +903,6 @@ if (typeof ($) != 'undefined') {
                     if (mode_name == 'import') {
                         $navigator.find('>li[data-mode="finish"]').addClass('s-current');
                     }
-                    setTimeout(() => document.documentElement.scrollIntoView({behavior: 'smooth', block:'end'}),500)
                     break;
 
                 case 'complete':

@@ -266,7 +266,7 @@ class shopFrontendProductAction extends shopFrontendAction
         }
 
         if (!$products) {
-            throw new waException(_w('Product not found'), 404);
+            throw new waException(_w('Product not found.'), 404);
         }
 
         $type_ids = waRequest::param('type_id');
@@ -280,7 +280,7 @@ class shopFrontendProductAction extends shopFrontendAction
                 }
             }
             if (empty($product)) {
-                throw new waException(_w('Product not found'), 404);
+                throw new waException(_w('Product not found.'), 404);
             }
         }
 
@@ -962,7 +962,7 @@ class shopFrontendProductAction extends shopFrontendAction
     {
         $redirect_code = ifset($product, 'params', 'redirect_code', null);
         if (!$redirect_code) {
-            throw new waException(_w('Product not found'), 404);
+            throw new waException(_w('Product not found.'), 404);
         }
 
         $redirect_category_id = ifset($product, 'params', 'redirect_category_id', null);
@@ -970,7 +970,7 @@ class shopFrontendProductAction extends shopFrontendAction
             $category_model = new shopCategoryModel();
             $category = $category_model->getById($redirect_category_id);
             if (!$category) {
-                throw new waException(_w('Product not found'), 404);
+                throw new waException(_w('Product not found.'), 404);
             }
             if (waRequest::param('url_type', 1) == 1) {
                 $category_url_part = $category['url'];

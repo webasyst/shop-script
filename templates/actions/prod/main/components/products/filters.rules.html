@@ -1,9 +1,3 @@
-{$_tooltips["table-result-filter-name"] = [
-    "id" => "table-result-filter-name",
-    "position" => "top",
-    "hide_time" => 0
-]}
-
 {capture assign="_component_table_filters_result"}
 <div class="s-result-section" v-if="result_filters.length">
     <div class="flexbox space-16">
@@ -20,8 +14,7 @@
                 <template v-for="group in visible_filters">
                     <component-table-filters-rules-item
                         v-bind:group="group"
-                        v-on:remove_group="removeGroup"
-                        v-bind:show_tooltip="true"></component-table-filters-rules-item>
+                        v-on:remove_group="removeGroup"></component-table-filters-rules-item>
                 </template>
             </div>
             <div class="s-dropdown-filters" v-bind:style="{ 'visibility' : (!invisible_filters.length ? 'hidden' : '') }">
@@ -45,9 +38,7 @@
 {$_components["component-table-filters-rules"] = $_component_table_filters_result|strip}
 
 {capture assign="_component_table_filters_result_item"}
-<div class="s-filter-item-wrapper"
-     v-bind:data-title="(prop_show_tooltip ? name_tooltip : null)"
-     v-bind:data-tooltip-id="(prop_show_tooltip ? 'table-result-filter-name' : null)">
+<div class="s-filter-item-wrapper">
     <div class="flexbox space-4">
         <div class="s-icon-wrapper">
             <template v-if="group.type === 'categories'">
@@ -66,7 +57,7 @@
                 <span class="s-icon icon shift-0 text-light-gray" v-else><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
             </template>
         </div>
-        <div class="s-name-wrapper" v-bind:title="(label ? label : names.join(', '))">
+        <div class="s-name-wrapper" v-bind:title="name_tooltip">
             <template v-if="label">
                 <span class="s-label">{ { label } }<span v-if="names.length > 0">:</span></span>
             </template>

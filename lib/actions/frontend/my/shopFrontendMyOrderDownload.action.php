@@ -15,7 +15,7 @@ class shopFrontendMyOrderDownloadAction extends shopFrontendAction
         $om = new shopOrderModel();
         $order = $om->getOrder($order_id);
         if (!$order) {
-            throw new waException(_w('Order not found'), 404);
+            throw new waException(_w('Order not found.'), 404);
         }
         if (!$this->isAuth($order)) {
             throw new waException(_w('The file will be available for download after the order is paid and processed.'), 404);
@@ -26,7 +26,7 @@ class shopFrontendMyOrderDownloadAction extends shopFrontendAction
         $params = $opm->get($order_id);
         $code = waRequest::param('code');
         if (ifset($params['auth_code']) !== $code) {
-            throw new waException(_w('Order not found'), 404);
+            throw new waException(_w('Order not found.'), 404);
         }
 
         if ($item = ifempty($order['items'][waRequest::param('item')])) {

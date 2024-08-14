@@ -74,8 +74,8 @@
             // });
 
             const $scroller = $('.compare-wrapper');
-            $('.compare-navs .prev').on('click', () => $scroller.animate({'scrollLeft': '+=230'}, 300));
-            $('.compare-navs .next').on('click', () => $scroller.animate({'scrollLeft': '-=230'}, 300));
+            $('.compare-navs .prev').on('click', () => $scroller.animate({'scrollLeft': '-=230'}, 300));
+            $('.compare-navs .next').on('click', () => $scroller.animate({'scrollLeft': '+=230'}, 300));
             if ($scroller[0].scrollWidth > $scroller[0].clientWidth) {
                 $scroller.find('caption').show();
             }

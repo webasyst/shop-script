@@ -342,6 +342,19 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         } catch (waException $e) {
         }
 
+        // fetch product codes info from DB
+        $product_codes = [];
+        foreach ($data['items'] as $item) {
+            if (isset($item['codes']) && is_array($item['codes'])) {
+                foreach($item['codes'] as $c) {
+                    $product_codes[$c['code']] = null;
+                }
+            }
+        }
+        if ($product_codes) {
+            $product_codes = (new shopProductCodeModel())->getByField('code', array_keys($product_codes), 'code');
+        }
+
         // Save order
         $order_id = $this->order_model->insert($order);
 
@@ -351,6 +364,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
 
         // save items
         $parent_id = null;
+        $order_item_codes = [];
         foreach ($data['items'] as $item) {
             $item['order_id'] = $order_id;
             if (isset($item['product']['stock_unit_id'])) {
@@ -363,7 +377,23 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                 $item['name'] = str_replace('{$order.id_str}', shopHelper::encodeOrderId($order_id), $item['name']);
             }
             if ($item['type'] == 'product') {
+                $codes = ifset($item, 'codes', null);
+                unset($item['codes']);
                 $parent_id = $this->order_items_model->insert($item);
+                if ($codes && is_array($codes)) {
+                    foreach(array_values($codes) as $sort => $c) {
+                        if (!empty($c['value']) && !empty($c['code'])) {
+                            $order_item_codes[] = [
+                                'order_id' => $order_id,
+                                'order_item_id' => $parent_id,
+                                'code_id' => ifset($product_codes, $c['code'], 'id', null),
+                                'code' => $c['code'],
+                                'value' => $c['value'],
+                                'sort' => $sort,
+                            ];
+                        }
+                    }
+                }
             } elseif ($item['type'] == 'service') {
                 $item['parent_id'] = $parent_id;
                 if (!empty($item['parent_item']['quantity_denominator'])) {
@@ -371,6 +401,10 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                 }
                 $this->order_items_model->insert($item);
             }
+        }
+        if ($order_item_codes) {
+            $order_item_codes_model = new shopOrderItemCodesModel();
+            $order_item_codes_model->multipleInsert($order_item_codes);
         }
 
         // Order params

@@ -12,14 +12,27 @@ class shopOrderGetPaymentlinksMethod extends shopApiMethod
             $order = new shopOrder($order_id);
             $hash = $order->getPaymentLinkHash();
         } catch (waException $e) {
-            throw new waAPIException('not_fount', 'Order not found', 404);
+            throw new waAPIException('not_fount', _w('Order not found.'), 404);
         }
 
         if (!$order['state']->paymentAllowed()) {
-            throw new waAPIException('order_cant_be_paid', 'Payment is not allowed for this order', 400);
+            throw new waAPIException('order_cant_be_paid', _w('Payment is not available for this order.'), 400);
         }
 
         $this->response = [];
+
+        $payment_image = [];
+        if ($this->get('payment_image')) {
+            $payment_plugin = $order['payment_plugin'];
+            if ($payment_plugin && $payment_plugin instanceof waIPaymentImage) {
+                $wa_order = shopPayment::getOrderData($order['id'], $payment_plugin);
+                $payment_image_data = $payment_plugin->image($wa_order);
+                $payment_image = [
+                    'payment_image_url' => ifset($payment_image_data, 'image_url', null),
+                    'payment_image_data_url' => ifset($payment_image_data, 'image_data_url', null),
+                ];
+            }
+        }
 
         $routing = wa()->getRouting();
         $storefronts = (new shopStorefrontList())->getAll(true);
@@ -39,7 +52,7 @@ class shopOrderGetPaymentlinksMethod extends shopApiMethod
 
                 //'domain' => $storefront['domain'],
                 //'route_url' => $route_url,
-            ];
+            ] + $payment_image;
         }
     }
 }

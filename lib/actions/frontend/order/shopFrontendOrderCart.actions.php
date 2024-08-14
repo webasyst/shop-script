@@ -99,7 +99,7 @@ class shopFrontendOrderCartActions extends waJsonActions
         if (!$sku || $sku['product_id'] != $new_item['product_id']) {
             return [[
                 'id' => 'not_found',
-                'text' => _w('Product not found'),
+                'text' => _w('Product not found.'),
             ]];
         }
 
@@ -108,7 +108,7 @@ class shopFrontendOrderCartActions extends waJsonActions
         if (!$product) {
             return [[
                 'id' => 'not_found',
-                'text' => _w('Product not found'),
+                'text' => _w('Product not found.'),
             ]];
         }
 
@@ -117,7 +117,7 @@ class shopFrontendOrderCartActions extends waJsonActions
             if (!in_array($product['type_id'], (array)$types)) {
                 return [[
                     'id' => 'not_found',
-                    'text' => _w('Product not found'),
+                    'text' => _w('Product not found.'),
                 ]];
             }
         }

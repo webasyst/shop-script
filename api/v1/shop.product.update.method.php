@@ -31,7 +31,7 @@ class shopProductUpdateMethod extends shopApiMethod
         $product_model = new shopProductModel();
         $product = $product_model->getById($id);
         if (!$product) {
-            throw new waAPIException('invalid_param', 'Product not found', 404);
+            throw new waAPIException('invalid_param', _w('Product not found.'), 404);
         }
         $this->checkRights($product['type_id']);
         return $product;
