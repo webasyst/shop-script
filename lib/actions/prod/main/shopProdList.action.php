@@ -501,7 +501,8 @@ class shopProdListAction extends waViewAction
             if ($this->fractional_config["stock_units_enabled"] && isset($this->formatted_units[$product["stock_unit_id"]])) {
                 $unit = $this->formatted_units[$product["stock_unit_id"]]["name_short"];
             }
-            $modification["price_string"] = shopViewHelper::formatPrice(shop_currency($modification["price"], null, $product["currency"], false), ["currency" => $product["currency"], "unit" => $unit]);
+
+            $modification["price_string"] = shopViewHelper::formatPrice($modification["price"], ["currency" => $product["currency"], "unit" => $unit]);
 
             $names = shopProdSkuAction::explodeSkuName($modification, $skus_features_values, $selectable_features);
             $modification_name = $names['modification_name'];

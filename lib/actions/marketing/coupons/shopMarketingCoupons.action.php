@@ -67,7 +67,7 @@ class shopMarketingCouponsAction extends shopMarketingViewAction
             $coupon['value'] = (float)$coupon['value'];
         } else {
             if ($id) {
-                throw new waException('Coupon not found.', 404);
+                throw new waException(_w('Coupon not found.'), 404);
             } else {
                 // show form to create new coupon
                 $coupon = $coupm->getEmptyRow();

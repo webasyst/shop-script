@@ -15,7 +15,12 @@
                 <td><label class="custom-ml-12"><span class="wa-checkbox"><input type="checkbox" {% if (check_all) { %}checked="checked"{% } %}><span><span class="icon"><i class="fas fa-check"></i></span></span></span></label></td>
             {% } %}
             <td>
-                <div class="s-order-status" title="{%#state_name%}"><strong class="badge nowrap uppercase text-ellipsis" style="background-color: {%#state_color%}">{%#state_name%}</strong></div>
+                <div class="s-order-status" title="{%#state_name%}">
+                    <strong class="badge uppercase text-ellipsis" style="background-color: {%#state_color%}">{%#state_name%}</strong>
+                    {% if(order.is_point_of_sale) { %}
+                    <i class="fas fa-cash-register text-light-gray"></i>
+                    {% } %}
+                </div>
             </td>
             <td class="nowrap">
                 <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}"><span class="semibold">{%#order.id_str%}</span></a>

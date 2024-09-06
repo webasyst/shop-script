@@ -422,4 +422,8 @@
         $('[data-tab="'+current_tab+'"]', $container).children().lazyLoad('reload');
     });
 
-})();</script>
+})();
+</script>
+{if method_exists($wa->installer, 'reviewWidget')}
+    {$wa->installer->reviewWidget('app/shop')}
+{/if}

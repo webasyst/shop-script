@@ -22,6 +22,9 @@ class shopCategoryAddMethod extends shopApiMethod
         if ($parent_id && !$category_model->getById($parent_id)) {
             throw new waAPIException('invalid_request', 'Parent category not found', 404);
         }
+        if (!isset($data['url']) || $data['url'] === '') {
+            $data['url'] = shopHelper::transliterate($data['name']);
+        }
         if ($id = $category_model->add($data, $parent_id)) {
             // return info of the new category
             $_GET['id'] = $id;

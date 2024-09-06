@@ -3331,6 +3331,9 @@ class shopOrder implements ArrayAccess
         if (isset($i['cart_item_id'])) {
             $item['cart_item_id'] = $this->formatValue($i['cart_item_id'], 'int');
         }
+        if (isset($i['codes']) && is_array($i['codes'])) {
+            $item['codes'] = $i['codes'];
+        }
 
         $item += $this->formatValues($i, self::$product_fields);
 

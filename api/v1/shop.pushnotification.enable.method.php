@@ -10,7 +10,7 @@ class shopPushnotificationEnableMethod extends shopApiMethod
 
         $client_id = waRequest::post('client_id', '', 'string');
         if (!strlen($client_id)) {
-            throw new waAPIException('invalid_param', 'invalid client_id', 400);
+            throw new waAPIException('invalid_param', sprintf_wp('Invalid value of parameter “%s”.', 'client_id'), 400);
         }
         $shop_url = waRequest::post('shop_url', wa()->getRootUrl(true), 'string');
 

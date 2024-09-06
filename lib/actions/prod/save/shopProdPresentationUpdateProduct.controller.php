@@ -74,7 +74,7 @@ class shopProdPresentationUpdateProductController extends waJsonController
         if ($sku_id && !isset($skus[$sku_id])) {
             $this->errors = [
                 'id' => 'sku',
-                'text' => _w('SKU not found.'),
+                'text' => _w('Product variant not found.'),
             ];
         }
         $presentation_model = new shopPresentationModel();

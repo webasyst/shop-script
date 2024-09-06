@@ -104,6 +104,13 @@ class shopOrdersAction extends shopOrderListAction {
                     'all' => $this->model->countAll(),
                 ];
             }
+
+            if ($view === 'split' && !empty($filter_params['viewpos'])) {
+                $sales_stats_action = new shopOrdersSalesStatsAction([
+                    'date' => $filter_params['viewpos'],
+                ]);
+                $orders_sales_html = $sales_stats_action->display();
+            }
         }
 
         // for define which actions available for whole order list
@@ -149,6 +156,7 @@ class shopOrdersAction extends shopOrderListAction {
             'show_mobile_ad'       => $show_mobile_ad,
             'show_premium_ad'      => $show_premium_ad,
             'is_orders_empty'      => !($this->model->countAll()),
+            'orders_sales_html'    => ifset($orders_sales_html),
         ]);
     }
 

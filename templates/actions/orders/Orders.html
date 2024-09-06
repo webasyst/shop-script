@@ -1,3 +1,4 @@
+{$is_view_split_pos = $view === 'split' && !empty($params.viewpos)}
 {function name="dummy_no_orders" target=body}
 <i class="fas fa-shopping-cart text-light-gray opacity-80" style="font-size: {if $target === 'body'}10{else}6{/if}rem; margin-right: 1.5rem;"></i>
     {if $is_orders_empty}
@@ -10,6 +11,9 @@
         {/if}
     {else}
         <p class="gray {if $target !== 'body'}small{/if}">[`There are no orders in this view.`]</p>
+        {if $is_view_split_pos}
+            <a class="button rounded light-gray small" href="?action=settings#/pos/"><i class="fas fa-cog fa-sm text-gray"></i> [`Set up POS`]</a>
+        {/if}
     {/if}
 {/function}
 {capture assign="_dummy_no_orders_body"}
@@ -40,6 +44,7 @@
         </div>
     </div>
 {/capture}
+
 {if empty($orders)}
     {if $view !== 'kanban'}
         {if $view == 'split'}
@@ -124,9 +129,14 @@
             {capture name="template-order-list-split-details"}
                 {literal}
                     <div class="flexbox middle nowrap space-8 full-width small">
-                        <strong class="badge uppercase small nowrap s-order-status-badge" style="background-color: {%#o.state_color%};" title="{%#o.state_name%}">
-                            <span class="text-ellipsis">{%#o.state_name%}</span>
-                        </strong>
+                        <span class="flexbox middle space-8">
+                            <strong class="s-order-status-badge badge uppercase small" style="background-color: {%#o.state_color%};" title="{%#o.state_name%}">
+                                <span class="text-ellipsis">{%#o.state_name%}</span>
+                            </strong>
+                            {% if(o.order.is_point_of_sale) { %}
+                            <i class="fas fa-cash-register text-light-gray"></i>
+                            {% } %}
+                        </span>
                         <span class="count align-right">
                             {% if (o.order.paid_date) { %}
                             <span class="text-green custom-ml-4 cursor-pointer" data-wa-tooltip-content="[`Paid`] {% if (o.order.paid_datetime_str) { %}{%#o.order.paid_datetime_str%}{% } else { %}{%#o.order.paid_date_str%}{% } %}" data-wa-tooltip-placement="left">
@@ -344,10 +354,10 @@
 {/foreach}
 
 {/if}
-<style>
-#wa:has(#wa-nav) { --top-nav-height: 4rem; }
-#s-orders.sidebar { overflow: auto; max-height:calc(100dvh - var(--top-nav-height, 0)); }
-</style>
+
+{if $is_view_split_pos}
+<script src="{$wa_app_static_url}js/backend/orders/sales-stats.js?v{$wa->version()}"></script>
+{/if}
 <script>
 ( function($) {
     const state_icons = {};
@@ -415,6 +425,14 @@
             });
         });
     }
+
+    {if $is_view_split_pos}
+    $.orders_sales.init({
+        $wrapper: $('#js-orders-stats'),
+        preloaded_html: {$orders_sales_html|default:null|json_encode},
+        date: {$params.viewpos|json_encode}
+    });
+    {/if}
 })(jQuery);
 
 

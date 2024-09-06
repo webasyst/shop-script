@@ -323,7 +323,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
 
         $order = array(
-            'state_id'  => 'new',
+            'state_id'  => ifset($data, 'state_id', 'new'),
             'total'     => $subtotal - $data['discount'] + $data['shipping'] + $tax,
             'currency'  => $currency,
             'rate'      => $rate,
@@ -347,7 +347,9 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         foreach ($data['items'] as $item) {
             if (isset($item['codes']) && is_array($item['codes'])) {
                 foreach($item['codes'] as $c) {
-                    $product_codes[$c['code']] = null;
+                    if (isset($c['code'])) {
+                        $product_codes[$c['code']] = null;
+                    }
                 }
             }
         }

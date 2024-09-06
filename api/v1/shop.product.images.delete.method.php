@@ -9,7 +9,7 @@ class shopProductImagesDeleteMethod extends shopProductUpdateMethod
         $image = $images_model->getById($id);
 
         if (!$image) {
-            throw new waAPIException('invalid_param', 'Product image not found', 404);
+            throw new waAPIException('invalid_param', _w('Product image not found.'), 404);
         }
 
         // check product rights

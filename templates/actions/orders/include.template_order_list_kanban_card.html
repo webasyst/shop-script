@@ -7,17 +7,22 @@
             </span>
         </div>
         <div class="s-kanban-item-body wide">
-            <p class="s-kanban-item-top-wrapper custom-mb-4">
-                <span class="badge uppercase text-white nowrap small custom-mr-8 js-state cursor-pointer text-ellipsis s-kanban-item-state" data-wa-tooltip-content="{%=o.state_name%}" data-wa-tooltip-placement="left" style="background-color: {%=o.state_color%}">{%=o.state_name%}</span>
-                <span class="nowrap semibold align-right">
+            <div class="s-kanban-item-top-wrapper custom-mb-4">
+                <div class="s-kanban-item-top">
+                    <span class="js-state s-kanban-item-state badge uppercase small cursor-pointer text-ellipsis" data-wa-tooltip-content="{%=o.state_name%}" data-wa-tooltip-placement="left" style="background-color: {%=o.state_color%}">{%=o.state_name%}</span>
+                    {% if(o.order.is_point_of_sale) { %}
+                    <i class="fas fa-cash-register text-light-gray"></i>
+                    {% } %}
+                </div>
+                <div class="nowrap semibold align-right">
                     {%if (o.order.paid_date_str) { %}
                         <span class="text-green custom-ml-4 cursor-pointer" data-wa-tooltip-content="[`Paid`] {%=o.order.paid_datetime_str %}" data-wa-tooltip-placement="left">
                             <i class="fas fa-check-circle"></i>
                         </span>
                     {% } %}
                     {%#o.order.total_str%}
-                </span>
-            </p>
+                </div>
+            </div>
             <div class="flexbox space-4">
                 <div class="wide">
                     <p class="custom-mt-0 custom-mb-4" style="line-height: 1.2;">

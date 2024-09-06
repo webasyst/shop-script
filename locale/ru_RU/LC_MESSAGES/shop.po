@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.3\n"
+"X-Generator: Poedit 3.3.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -6958,8 +6958,8 @@ msgstr "Возвращает массив предложений для пере
 msgid "To get product-related information, first create a product object by passing its numeric ID; e.g., <em>'product_id'</em> property of an item in <em>$order.items</em> array."
 msgstr "Чтобы получить информацию о товаре, сначала создайте объект товара, указав его числовой ID, например, свойство <em>'product_id'</em> элемента массива <em>$order.items</em>."
 
-msgid "Returns product URL for specified storefront address. E.g., use <em>$order.params.storefront</em> containing the storefront on which a product was purchased by a customer."
-msgstr "Возвращает URL товара для витрины с указанным адресом. Например, укажите переменную <em>$order.params.storefront</em> с адресом витрины, на которой покупатель заказал товар."
+msgid "Returns a product URL for a specified storefront address. Use <em>$order.params.storefront|default:true</em> if you have multiple storefronts, or <em>true</em> if you have only one storefront."
+msgstr "Возвращает URL товара для витрины с указанным адресом. Например, укажите переменную <em>$order.params.storefront|default:true</em>, если у вас несколько витрин, или <em>true</em>, если у вас только одна витрина."
 
 msgid "Returns array of product’s upselling items.<br><strong>$limit</strong> (default: <em>5</em>) limits the number of returned items.<br><strong>$available_only</strong> (default: <em>false</em>) excludes out-of-stock products from the result. By default, out-of-stock products are not skipped."
 msgstr "Возвращает массив предложений аналогичных товаров (upselling) для данного товара.<br><strong>$limit</strong> (по умолчанию: <em>5</em>) ограничивает количество возвращаемых товаров.<br><strong>$available_only</strong> (по умолчанию: <em>false</em>) исключает из результатов товары, отсутствующие на складе. По умолчанию отсутствующие товары не пропускаются."
@@ -12619,8 +12619,8 @@ msgstr "Слишком длинное название."
 msgid "Failed to update the name."
 msgstr "Не удалось обновить название."
 
-msgid "SKU not found."
-msgstr "Артикул не найден."
+msgid "Product variant not found."
+msgstr "Модификация товара не найдена."
 
 msgid "Editing is not available in the “Tiles” view mode."
 msgstr "Редактирование недоступно в режиме просмотра «Плитка»."
@@ -13369,3 +13369,47 @@ msgstr "Действие для отправки заказа на ККТ в р�
 msgid "Order sent to payment terminal in manual mode"
 msgstr "Заказ отправлен на ККТ в ручном режиме"
 
+msgid "POS"
+msgstr "Касса"
+
+msgid "Product image not found."
+msgstr "Изображение товара не найдено."
+
+msgid "Product page not found."
+msgstr "Подстраница товара не найдена."
+
+msgid "The “limit” parameter value must not exceed %s."
+msgstr "Значение параметра «limit» не должно превышать %s."
+
+msgid "Invalid value of parameter “%s”."
+msgstr "Недопустимое значение параметра «%s»."
+
+msgid "A set with ID “%s” already exists."
+msgstr "Список с ID «%s» уже существует."
+
+msgid "Unable to initialize payment."
+msgstr "Не удалось инициализировать оплату."
+
+msgid "Payment initialization error: unable to generate an image."
+msgstr "Ошибка инициализиации оплаты: не удалось сгенерировать изображение."
+
+msgid "Coupon not found."
+msgstr "Купон не найден."
+
+msgid "POS sales"
+msgstr "Продажи на кассе"
+
+msgid "Total paid orders amount:"
+msgstr "Общая сумма оплаченных заказов:"
+
+msgid "Set up POS"
+msgstr "Настроить кассу"
+
+msgid "Get Shop-Script <a href=\"https://www.webasyst.com/mobile/\" target=\"_blank\">free mobile app</a> to sell offline and accept orders in person."
+msgstr "Используйте <a href=\"https://www.webasyst.ru/mobile/\" target=\"_blank\">бесплатное мобильное приложение</a> Shop-Script для приема заказов на кассе и торговли в офлайне."
+
+msgid "Point of sale"
+msgstr "Касса"
+
+msgid "POS order"
+msgstr "Заказ на кассе"

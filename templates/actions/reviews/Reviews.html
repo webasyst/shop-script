@@ -243,3 +243,6 @@
         $(document).trigger("update_reviews_counter", {$sidebar_counters|json_encode});
     })(jQuery);
 </script>
+{if method_exists($wa->installer, 'reviewWidget')}
+    {$wa->installer->reviewWidget('app/shop')}
+{/if}

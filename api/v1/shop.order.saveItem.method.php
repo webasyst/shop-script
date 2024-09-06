@@ -18,6 +18,7 @@ class shopOrderSaveItemMethod extends shopApiMethod
             $item = $soim->getById($post['item_id']);
 
             if (isset($item['order_id'])) {
+                $order_id = $item['order_id'];
 
                 // Check courier access rights
                 if ($this->courier) {
@@ -28,19 +29,21 @@ class shopOrderSaveItemMethod extends shopApiMethod
                     }
                 }
 
-                $data['id'] = $item['order_id'];
                 //formatting for shopOrder
                 if ($item['type'] == 'product') {
-                    $data['items'][] = array(
+                    $item_data = array(
                         'item_id'  => $post['item_id'],
                         'quantity' => $post['quantity'],
                     );
+                    if (isset($post['codes']) && is_array($post['codes'])) {
+                        $item_data['codes'] = $post['codes'];
+                    }
                 } else {
                     //if need delete service
-                    $product = $soim->getById($item['parent_id']);
-                    $data['items'][] = array(
-                        'item_id'  => $product['id'],
-                        'quantity' => $product['quantity'],
+                    $product_item = $soim->getById($item['parent_id']);
+                    $item_data = array(
+                        'item_id'  => $product_item['id'],
+                        'quantity' => $product_item['quantity'],
                         'services' => array(
                             array(
                                 'item_id'  => $post['item_id'],
@@ -49,8 +52,12 @@ class shopOrderSaveItemMethod extends shopApiMethod
                         ),
                     );
                 }
-                $data['discount'] = 'calculate';
-                $data += array('shipping' => null);
+                $data = [
+                    'id' => $order_id,
+                    'items' => [$item_data],
+                    'discount' => 'calculate',
+                    'shipping' => null,
+                ];
                 $so = new shopOrder($data, array(
                     'ignore_stock_validate'  => true,
                     'items_format' => 'tree',

@@ -50,11 +50,11 @@ class shopProductUpdateMethod extends shopApiMethod
             return true;
         }
         if (!is_array($data['skus'])) {
-            throw new waAPIException('invalid_param', 'Invalid param skus');
+            throw new waAPIException('invalid_param', sprintf_wp('Invalid value of parameter “%s”.', 'skus'));
         }
         foreach ($data['skus'] as &$sku) {
             if (!$sku || !is_array($sku)) {
-                throw new waAPIException('invalid_param', 'Invalid param skus');
+                throw new waAPIException('invalid_param', sprintf_wp('Invalid value of parameter “%s”.', 'skus'));
             }
             if (isset($sku['virtual'])) {
                 unset($sku['virtual']);

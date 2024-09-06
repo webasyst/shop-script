@@ -895,4 +895,17 @@ class shopPayment extends waAppPayment
         }
         $plugin->statePolling(shopPayment::getOrderData($order['id'], $plugin));
     }
+
+    public function declareFiscalization($order_id, waPayment $plugin, array $custom_data = null)
+    {
+        $fiscalization = new shopFiscalization((int)$order_id);
+        if ($fiscalization->isFiscalized()) {
+            return;
+        }
+        if (!$custom_data) {
+            $custom_data = [];
+        }
+        $custom_data['payment_id'] = $plugin->getPluginKey();
+        $fiscalization->declareFiscalization('payment', $plugin->getId(), $custom_data);
+    }
 }

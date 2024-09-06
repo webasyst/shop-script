@@ -612,8 +612,27 @@ SQL;
         $context = shopProductStocksLogModel::getContext();
         $return_stock_id = ifset($context, 'params', 'return_stock_id', null);
 
-        $parent_id = null;
+        // fetch product codes info from DB
+        $product_codes = [];
         foreach ($items as $item) {
+            if (isset($item['codes']) && is_array($item['codes'])) {
+                foreach($item['codes'] as $c) {
+                    if (isset($c['code'])) {
+                        $product_codes[$c['code']] = null;
+                    }
+                }
+            }
+        }
+        if ($product_codes) {
+            $product_codes = (new shopProductCodeModel())->getByField('code', array_keys($product_codes), 'code');
+        }
+
+        $parent_id = null;
+        $order_item_codes = [];
+        foreach ($items as $item) {
+
+            $codes = ifset($item, 'codes', null);
+            unset($item['codes']);
 
             // new item insert
             if (empty($item['id']) || empty($old_items[$item['id']])) {
@@ -640,6 +659,7 @@ SQL;
                 $item_id = $item['id'];
                 $old_item = $old_items[$item_id];
                 if ($old_item['type'] == 'product') {
+                    $item['type'] = 'product';
                     $parent_id = $item_id;
                 } else {
                     $item['parent_id'] = $parent_id;
@@ -701,6 +721,21 @@ SQL;
                 }
                 unset($old_items[$item_id]);
             }
+
+            if ($codes && is_array($codes) && $item['type'] == 'product') {
+                foreach(array_values($codes) as $sort => $c) {
+                    if (!empty($c['value']) && !empty($c['code'])) {
+                        $order_item_codes[] = [
+                            'order_id' => $order_id,
+                            'order_item_id' => $parent_id,
+                            'code_id' => ifset($product_codes, $c['code'], 'id', null),
+                            'code' => $c['code'],
+                            'value' => $c['value'],
+                            'sort' => $sort,
+                        ];
+                    }
+                }
+            }
         }
 
         foreach ($update as $item_id => $item) {
@@ -708,6 +743,19 @@ SQL;
         }
         if ($add) {
             $this->multipleInsert($add);
+        }
+        if ($order_item_codes) {
+            $order_item_codes_model = new shopOrderItemCodesModel();
+            $order_item_codes_model->deleteByField([
+                'order_id' => $order_id,
+                'order_item_id' => array_map(function($c) {
+                    return $c['order_item_id'];
+                }, $order_item_codes),
+                'code' => array_map(function($c) {
+                    return $c['code'];
+                }, $order_item_codes),
+            ]);
+            $order_item_codes_model->multipleInsert($order_item_codes);
         }
         if ($old_items) {
             foreach ($old_items as $old_item) {

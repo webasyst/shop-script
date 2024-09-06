@@ -10,7 +10,7 @@ class shopProductSkusUpdateMethod extends shopApiMethod
         $skus_model = new shopProductSkusModel();
         $sku = $skus_model->getById($sku_id);
         if (!$sku) {
-            throw new waAPIException('invalid_param', 'SKU not found.', 404);
+            throw new waAPIException('invalid_param', _w('Product variant not found.'), 404);
         }
 
         $this->checkProductRights($sku['product_id']);

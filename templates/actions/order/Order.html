@@ -34,7 +34,7 @@
                                 {* @event backend_order.%plugin_id%.title_suffix *}
                                 {if !empty($backend_order)}{foreach $backend_order as $_}{ifset($_.title_suffix)}{/foreach}{/if}
 
-                                <span class="s-state-with-time smallest">
+                                <span class="s-state-with-time smallest" data-state-id="{$order.state_id}">
                                     {if $order.state}
                                         <span class="text-ellipsis custom-mr-8" style="{$order.state->getStyle()}">
                                             <i class="{$wa->shop->convertIcon($order.state->getOption('icon'))}"></i>
@@ -717,6 +717,11 @@
                             {if !empty($order.params.referer)}[`Referrer`]: <strong><a href="{$order.params.referer}" target="_blank" style="color: #03c;">{$order.params.referer|truncate:42|escape}</a></strong><br>{/if}
                             {if !empty($order.params.utm_campaign)}[`UTM campaign`]: <strong>{$order.params.utm_campaign|escape}</strong><br>{/if}
                             {if !empty($sales_channel)}[`Sales channel`]: <strong title="{$order.params.sales_channel|default:'?'|escape}">{$sales_channel|escape}</strong><br>{/if}
+                            {if !empty($order.params.fiscalization_datetime)}
+                                <span title="{ifset($order.params, 'fiscalization_plugin_id', '')|escape} ({ifset($order.params, 'fiscalization_plugin_type', '')|escape}) {$order.params.fiscalization_datetime|wa_datetime|escape}">
+                                    [`Фискализация`]: <strong>{$order.params.fiscalization_datetime|wa_date|escape}</strong><br>
+                                </span>
+                            {/if}
                             {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront_decoded|default:$order.params.storefront}</strong><br>{/if}
                             {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword|escape}</strong><br>{/if}
                             {if !empty($order.params.ip)}[`IP`]: <strong>{$order.params.ip}</strong><br>{/if}

@@ -15,6 +15,9 @@
                            class="s-order-link"
                         >
                             <span class="badge smaller nowrap uppercase" style="background-color: {$o.state_color|escape};">{$o.state_name}</span>
+                            {if !empty($o.is_point_of_sale)}
+                            <i class="fas fa-cash-register text-light-gray fa-sm custom-ml-4"></i>
+                            {/if}
                         </a>
                     </td>
                     <td class="nowrap">

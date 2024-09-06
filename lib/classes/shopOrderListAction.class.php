@@ -118,6 +118,15 @@ class shopOrderListAction extends waViewAction
             $filter_params = $this->getFilterParams();
             if ($filter_params) {
                 $updated_orders_param = '';
+                if (!empty($filter_params['viewpos'])) {
+                    $filter_conditions[] = "params.sales_channel=pos:";
+                    $ts = strtotime($filter_params['viewpos']);
+                    if ($ts) {
+                        $filter_conditions[] = "create_datetime>=".date('Y-m-d 00:00:00', $ts);
+                        $filter_conditions[] = "create_datetime<=".date('Y-m-d 23:59:59', $ts);
+                    }
+                }
+                unset($filter_params['viewpos']);
                 if (!empty($filter_params['updated_orders'])) {
                     $updated_orders_param = $filter_params['updated_orders'];
                     unset($filter_params['updated_orders']);
@@ -239,7 +248,14 @@ class shopOrderListAction extends waViewAction
             if ($item_code) {
                 $params['item_code'] = $item_code;
             }
-
+            $viewpos = waRequest::get('viewpos', null, waRequest::TYPE_STRING);
+            if ($viewpos) {
+                if (wa_is_int($viewpos)) {
+                    $params['viewpos'] = date('Y-m-d');
+                } else {
+                    $params['viewpos'] = date('Y-m-d', strtotime($viewpos));
+                }
+            }
             $unsettled = waRequest::get('unsettled', null, waRequest::TYPE_INT);
             if ($unsettled) {
                 $params['unsettled'] = $unsettled;

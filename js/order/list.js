@@ -131,7 +131,10 @@
                 }
             }
 
+            this.is_view_pos = false;
             if (options.view == 'split') {
+
+                this.is_view_pos = this.filter_params && this.filter_params.viewpos;
 
                 // for mobile
                 const order_li = 'li[data-order-id]';
@@ -422,11 +425,27 @@
             var order_nav = $('#s-order-nav');
             orders_view_ul.find('li.selected').removeClass('selected');
             orders_view_ul.find('li[data-view="' + this.options.view + '"]').addClass('selected');
+            if (this.options.view == 'split') {
+                if (this.is_view_pos) {
+                    orders_view_ul.find('li.selected:not(.js-view-pos)').removeClass('selected');
+                } else {
+                    orders_view_ul.find('li.selected.js-view-pos').removeClass('selected');
+                }
+            }
             order_nav.attr('data-view-mode', this.options.view);
             orders_view_ul.find('li a').each(function () {
                 var self = $(this);
                 var li = $(this).parents('li:first');
-                self.attr('href', '#/orders/view=' + li.attr('data-view') + ($.order_list.options.filter_params_str ? '&' + $.order_list.options.filter_params_str : '') + '/');
+                var filter_params_str = '';
+                if (li.hasClass('js-view-pos')) {
+                    filter_params_str = '&viewpos=1';
+                } else {
+                    if ($.order_list.options.filter_params_str) {
+                        filter_params_str = '&' + $.order_list.options.filter_params_str;
+                        filter_params_str = filter_params_str.replace(/viewpos=[0-9-]*/, '').replace('&&', '&').replace(/\&$/, '');
+                    }
+                }
+                self.attr('href', '#/orders/view=' + li.attr('data-view') + filter_params_str + '/');
             });
 
 
@@ -639,6 +658,12 @@
             this.container.find('.selected').removeClass('selected');
             this.container.find('[data-order-id=' + order_id + ']').addClass('selected');
 
+            let prev_order_id = null;
+            let prev_state_id = null;
+            if ($.order) {
+                prev_order_id = $.order.id;
+                prev_state_id = $.order.$wrapper.find('[data-state-id]').data('state-id');
+            }
             $.orders.load(
                 '?module=order&id= ' + order_id + '&' + this.filter_params_str,
                 {content: $('#s-order')},
@@ -646,6 +671,13 @@
                     this.id = order_id;
                     $(window).trigger('wa_loaded', [['split']]);
                     $('#order-list').trigger('wa_order_mobile_loaded', [order_id]);
+                    setTimeout(() => {
+                        if ($.order && $.orders_sales) {
+                            if (prev_order_id === $.order.id && prev_state_id !== $.order.$wrapper.find('[data-state-id]').data('state-id')) {
+                                $.orders_sales.reload();
+                            }
+                        }
+                    }, 100);
                 }
             );
         },
@@ -787,6 +819,12 @@
         initSidebar: function () {
             // var sidebar = this.sidebar;
             var sidebar = $('#s-order-nav');
+
+            if (this.is_view_pos) {
+                sidebar.removeClass('is-not-view-pos').addClass('is-view-pos');
+            } else {
+                sidebar.removeClass('is-view-pos').addClass('is-not-view-pos');
+            }
 
             // :TODO remove
             // Replace list view type in all links in sidebar

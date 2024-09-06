@@ -12,7 +12,7 @@ class shopTypeGetInfoMethod extends shopApiMethod
         if ($type) {
             $this->response = $type;
         } else {
-            throw new waAPIException('invalid_param', 'Product type not found.', 404);
+            throw new waAPIException('invalid_param', _w('Product type not found.'), 404);
         }
     }
 }

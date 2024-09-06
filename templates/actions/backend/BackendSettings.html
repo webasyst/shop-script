@@ -35,6 +35,12 @@
                         {if $wa->shop->hasDeactivatedPayments()}<i class="fas fa-exclamation-circle text-red"></i>{/if}
                     </a>
                 </li>
+                <li>
+                    <a href="?action=settings#/pos/">
+                        <span class="icon"><i class="fas fa-cash-register"></i></span>
+                        <span class="shop-sidebar-hidden">[`POS`]</span>
+                    </a>
+                </li>
 
                 <!-- plugin hook: 'backend_settings.sidebar_top_li' -->
                 {* @event backend_settings.%plugin_id%.sidebar_top_li *}

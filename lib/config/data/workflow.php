@@ -116,6 +116,28 @@ return array(
                 'message',
             ),
         ),
+        'pos'        => array(
+            'name'              => _w('POS order'),
+            'options'           => array(
+                'icon'  => 'icon16 ss new',
+                'style' => array(
+                    'color'       => '#bae1ba',
+                ),
+            ),
+            'available_actions' => array(
+                'process',
+                'initpay',
+                'pay',
+                'ship',
+                'complete',
+                'comment',
+                'edit',
+                'editcode',
+                'editshippingdetails',
+                'message',
+                'delete',
+            ),
+        ),
         'refunded'   => array(
             'name'              => _w('Refunded'),
             'options'           => array(

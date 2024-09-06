@@ -82,11 +82,21 @@ HTML;
                 ),
             ));
 
+            $script_add_review_widget = '';
+            if ($action_id === 'complete') {
+                $installer_app = wa()->getView()->getHelper()->installer;
+                if ($installer_app && method_exists($installer_app, 'reviewWidget')) {
+                    $script_add_review_widget = $installer_app->reviewWidget('app/shop');
+                    $script_add_review_widget = '<script>$("#s-content").append('.json_encode($script_add_review_widget).');</script>';
+                }
+            }
+
             echo <<<HTML
 <script>
     $.order_list.updateCounters({$data});
     $.order.reload();
 </script>
+{$script_add_review_widget}
 HTML;
 
         }

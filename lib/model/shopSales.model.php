@@ -908,6 +908,9 @@ class shopSalesModel extends waModel
             case 'sales_channels':
                 $this->rebuildTmpBySalesChannels($order_date_sql, $options);
                 break;
+            case 'currencies':
+                $this->rebuildTmpByCurrencies($order_date_sql, $options);
+                break;
             case 'promos':
                 $this->rebuildTmpByPromos($order_date_sql, $options);
                 break;
@@ -1181,6 +1184,21 @@ class shopSalesModel extends waModel
                     {$abtest_where}
                     AND op.value IN (?)";
         $this->exec($sql, array('referer_host', array_keys($social_domains)));
+    }
+
+    protected function rebuildTmpByCurrencies($date_sql, $options)
+    {
+        list($abtest_join, $abtest_where) = $this->getAbtestSql($options);
+        list($storefront_join, $storefront_where) = $this->getStorefrontSql($options);
+        $sql = "INSERT INTO shop_sales_tmp (order_id, name)
+                SELECT o.id, o.currency
+                FROM shop_order AS o
+                    {$storefront_join}
+                    {$abtest_join}
+                WHERE {$date_sql}
+                    {$storefront_where}
+                    {$abtest_where}";
+        $this->exec($sql);
     }
 
     protected function rebuildTmpCustomerSources($date_sql, $options)

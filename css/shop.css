@@ -951,6 +951,8 @@ table#s-customers-report-table.mode-profit .toggled.profit { display: table-cell
 
 .s-table-transparent > tbody > tr > td { background: transparent !important; border: none; }
 
+img.s-app-download-badge { height: 52px !important; max-width: auto; }
+
 /* STOREFRONTS
 -------------- */
 
@@ -1554,6 +1556,8 @@ and (orientation : portrait) {
 
 [type=checkbox]:disabled, [type=radio]:disabled, select:disabled { pointer-events: none; filter: none; opacity: .5;}
 
+.flexbox.justify-content-end { justify-content: flex-end; }
+
 em.errormsg { font-style: normal; }
 .errormsg { font-size: 81.25%; font-weight: 500; color: var(--red); }
 input.error, textarea.error, select.error { border-color: var(--red) !important; }
@@ -1579,6 +1583,7 @@ a:hover .s-premium-status { color: var(--yellow) !important; }
 
 .s-grid { display: grid; }
 .s-rotate-x-180 { transform: rotateX(180deg); }
+a.s-black-link:not(:hover) { color: var(--text-color) }
 
 /* Some magic (promos & specials)
 --------------------------------- */

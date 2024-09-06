@@ -10,7 +10,7 @@ class shopOrderInitpayMethod extends shopApiMethod
         $payment_id = $this->post('payment_id', false);
         $payment_params = $this->post('payment_params', false);
         if (!$order_id) {
-            throw new waAPIException('not_fount', 'Order not found', 404);
+            throw new waAPIException('not_found', _w('Order not found.'), 404);
         }
 
         try {
@@ -21,17 +21,21 @@ class shopOrderInitpayMethod extends shopApiMethod
                     'params' => [
                         'payment_id' => $payment_id,
                     ],
+                ], [
+                    'ignore_stock_validate'  => true,
                 ]);
                 try {
                     $so->save();
                 } catch (waException $ex) {
-                    $this->errors = $so->errors();
+                    throw new waAPIException('error_saving_order', _w('Unable to update order data:').' '.$ex->getMessage(), 400, [
+                        'error_details' => $so->errors(),
+                    ]);
                     return;
                 }
             }
             $so = new shopOrder($order_id);
         } catch (waException $e) {
-            throw new waAPIException('not_fount', 'Order not found', 404);
+            throw new waAPIException('not_found', _w('Order not found.'), 404);
         }
         if (!$so['state']->paymentAllowed()) {
             throw new waAPIException('order_cant_be_paid', _w('Payment is not available for this order.'), 400);
@@ -44,7 +48,7 @@ class shopOrderInitpayMethod extends shopApiMethod
                 $actions['initpay']->run($order_id);
                 $this->response = [];
             } catch (waException $e) {
-                throw new waAPIException('payment_plugin_initpay_error', 'Unable to initialize payment', 500);
+                throw new waAPIException('payment_plugin_initpay_error', _w('Unable to initialize payment.'), 500);
             }
             return;
         }
@@ -56,7 +60,7 @@ class shopOrderInitpayMethod extends shopApiMethod
             try {
                 $payment_image_data = $payment_plugin->image($wa_order);
             } catch (waException $e) {
-                throw new waAPIException('payment_plugin_image_error', 'Error initializing payment: unable to generate image', 500);
+                throw new waAPIException('payment_plugin_image_error', _w('Payment initialization error: unable to generate an image.'), 500);
             }
             $this->response = [
                 'payment_image_url' => ifset($payment_image_data, 'image_url', null),

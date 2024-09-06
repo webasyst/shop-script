@@ -13,7 +13,7 @@ class shopTagGetListMethod extends shopApiMethod
             throw new waAPIException('invalid_param', 'Param limit must be greater than or equal to zero');
         }
         if ($limit > 1000) {
-            throw new waAPIException('invalid_param', 'Param limit must be less or equal 1000');
+            throw new waAPIException('invalid_param', sprintf_wp('The “limit” parameter value must not exceed %s.', 1000));
         }
 
         $this->response = $tag_model->getCloud(null, $limit);

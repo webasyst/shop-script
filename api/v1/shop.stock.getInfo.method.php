@@ -10,7 +10,7 @@ class shopStockGetInfoMethod extends shopApiMethod
         $stock = $stock_model->getById($id);
 
         if (!$stock) {
-            throw new waAPIException('invalid_param', 'Stock not found.', 404);
+            throw new waAPIException('invalid_param', _w('Stock not found.'), 404);
         }
         $this->response = $stock;
     }

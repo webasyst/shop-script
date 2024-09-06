@@ -16,7 +16,7 @@ class shopMarketingRecommendationsSaveController extends shopMarketingSettingsJs
         $this->type_model = new shopTypeModel();
         $this->type = $this->type_model->getById($this->type_id);
         if (!$this->type) {
-            throw new waException("Product type not found.");
+            throw new waException(_w('Product type not found.'));
         }
         if ($setting == 'cross-selling') {
             $this->saveCrossSelling();

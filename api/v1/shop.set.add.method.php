@@ -11,7 +11,7 @@ class shopSetAddMethod extends shopApiMethod
 
         $set_model = new shopSetModel();
         if ($set_model->idExists($id)) {
-            throw new waAPIException('invalid_param', 'ID '.$id.' already exists');
+            throw new waAPIException('invalid_param', sprintf_wp('A set with ID “%s” already exists.', $id));
         }
 
         if ($set_model->add(array(

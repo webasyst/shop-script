@@ -1,0 +1,79 @@
+{$type_payment_colors = ["#ffcc33", "#009933","#00ccff","#99CC66","#339999",   "#ed2509","#22d13d","#f3c200","#ff6c00","#7256ee","#89a"]}
+{$sales_today = $sales_by_day[$date]}
+
+<section class="s-orders-sales-stats">
+    <header class="s-orders-sales-header">
+        <div class="s-orders-sales__days-graph">
+            <div id="sales-by-days-container" class="flexbox nowrap custom-my-8" style="height: 50px;"></div>
+        </div>
+    </header>
+
+    <div class="s-orders-sales-content">
+        <div class="s-orders-sales__select-date">
+            {assign var='current_date' value=$date|@strtotime}
+            {assign var='prev_date' value=($current_date-86400)|date_format:"%Y-%m-%d"}
+            {assign var='next_date' value=($current_date+86400)|date_format:"%Y-%m-%d"}
+            <div class="flexbox middle full-width">
+                <a href="#/orders/view=split&viewpos={$prev_date}/"
+                   class="back large"><i class="fas fa-chevron-left"></i>
+                </a>
+                <div class="align-center">
+                    <p class="uppercase hint bold custom-m-0">[`POS sales`]</p>
+                    <strong>{$sales_today.date|wa_date:humandate}</strong>
+                </div>
+                {$disable_next_date = $next_date|@strtotime > date('Y-m-d')|@strtotime}
+                <a href="{if $disable_next_date}javascript:void(0){else}#/orders/view=split&viewpos={$next_date}/{/if}"
+                   class="large {if $disable_next_date}gray opacity-20{else}back{/if}"><i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+
+        {$_zero_sales = true}
+        {foreach $sales_by_currency as $s}
+            {if $s.sales > 0}
+                {$_zero_sales = false}
+                <h2 class="align-center custom-mt-8 custom-mb-8">{shop_currency_html($s.sales, $primary_currency, ifempty($s, 'name', $primary_currency))}</h2>
+            {/if}
+        {/foreach}
+        {if $_zero_sales}
+            <h2 class="align-center gray custom-mb-20">{shop_currency_html(0, $primary_currency)}</h2>
+        {/if}
+
+        {if !$_zero_sales}
+        <div class="s-orders-sales__payment-graph align-center">
+            <div id="sales-by-payment-container" class="flexbox nowrap custom-mt-16 custom-mb-8" style="height: 22px; border-radius: 4px; overflow: hidden;"></div>
+            <div class="flexbox wrap space-8 small custom-mt-8">
+                {foreach $sales_by_payment as $p}
+                <div class="flexbox middle space-4">
+                    <i class="icon rounded" style="background: {$type_payment_colors[$p@index]};"></i>
+                    {* TODO: check *}
+                    <span>{$p.name|default:_w('Cash')}</span>
+                    <span class="gray">{wa_currency_html($p.sales, $primary_currency)}</span>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+        {/if}
+
+        {if count($sales_by_currency) >= 2}
+            <div class="custom-mt-8"><span class="small gray">[`Total paid orders amount:`]</span> <span class="small">{wa_currency_html($sales_today.sales, $primary_currency)}</span></div>
+        {/if}
+    </div>
+</section>
+
+<script>
+$(function () { "use-strict";
+    new PaidOrdersSalesGraph({
+        node: document.getElementById('sales-by-days-container'),
+        date: {json_encode($date)},
+        color: 'linear-gradient(180deg, rgba(0,191,96,1) 0%, rgba(0,191,96,0.4) 100%)',
+        data: {json_encode($sales_by_day)}
+    });
+
+    new PaymentTypeSalesGraph({
+        node: document.getElementById('sales-by-payment-container'),
+        colors: {json_encode($type_payment_colors)},
+        data: {json_encode($sales_by_payment)}
+    });
+})
+</script>
