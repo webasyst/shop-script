@@ -118,7 +118,7 @@ class shopIndexSearch extends shopSearch
                     'weight' => $weight
                 );
             }
-            $index_model->multipleInsert($data);
+            $index_model->multipleInsert($data, ['weight = VALUES(weight)']);
         }
     }
 

@@ -107,17 +107,23 @@ class shopVideo
 
     public static function checkVideo($url, &$site = null, &$id = null)
     {
-        if (!preg_match('!^(?:https?://)?(?:www.)?(youtube\.com|youtu\.be|vimeo\.com|rutube\.ru\/video)/(?:watch\?v=|shorts/)?([a-z0-9\-_]+)!i', $url, $m)) {
+        if (preg_match('~^(?:https?://)?(?:www.)?(vk\.com/).*(?:video|clips?)([a-z0-9\-]+_[a-z0-9]+)~i', $url, $m)) {
+            $site = 'vk.com/video';
+            $id = $m[2];
+            $result = 'http://'.$site.$id;
+        } else if (preg_match('!^(?:https?://)?(?:www.)?(youtube\.com|youtu\.be|vimeo\.com|rutube\.ru\/(?:video|shorts))/(?:watch\?v=|shorts/)?([a-z0-9\-_]+)!i', $url, $m)) {
+            $site = strtolower($m[1]);
+            $id = $m[2];
+            if ($site == 'youtube.com') {
+                $site = 'youtu.be';
+            }
+            $id = $m[2];
+            $result = 'http://'.$site.'/'.$id;
+        } else {
             return null;
         }
-        $site = strtolower($m[1]);
-        $id = $m[2];
-        if ($site == 'youtube.com') {
-            $site = 'youtu.be';
-        }
-        $id = $m[2];
-        $result = 'http://'.$site.'/'.$id;
-        if ($site == 'youtu.be' && preg_match('/(\?|&)t=(\d+)/i', $url, $match)) {
+
+        if (($site == 'youtu.be' || $site == 'vk.com/video') && preg_match('/(\?|&)t=([0-9hms]+)/i', $url, $match)) {
             $result .= '?t='.$match[2];
         }
         return $result;
@@ -133,9 +139,12 @@ class shopVideo
         $file_path = self::getPath($product_id);
         if (file_exists($file_path)) {
             return $file_path;
-        } elseif (self::checkVideo($video_url, $site, $id)) {
+        } elseif ( ( $video_url = self::checkVideo($video_url, $site, $id))) {
             $file_url = null;
             try {
+                if (!waFiles::create($file_path)) {
+                    return false;
+                }
                 if ($site == 'youtube.com' || $site == 'youtu.be') {
                     $file_url = 'http://img.youtube.com/vi/'.$id.'/0.jpg';
                 } elseif ($site == 'vimeo.com') {
@@ -143,6 +152,13 @@ class shopVideo
                     $desc = $n->query('http://vimeo.com/api/v2/video/'.$id.'.json');
                     if ($desc && !empty($desc[0]['thumbnail_large'])) {
                         $file_url = $desc[0]['thumbnail_large'];
+                    }
+                } else if ($site == 'vk.com/video') {
+                    if (preg_match('~video([^&\?_]+)_([^&\?_]+)~', $video_url, $match)) {
+                        $html = (new waNet())->query("https://vk.com/video_ext.php?oid={$match[1]}&id={$match[2]}&hd=1");
+                        if (preg_match('~background-image:\s*url\s*\(([^)]+)\)~', $html, $match)) {
+                            $file_url = trim($match[1]);
+                        }
                     }
                 } else {
                     $n = new waNet(array('format' => waNet::FORMAT_JSON));
@@ -153,9 +169,6 @@ class shopVideo
                 }
 
                 if ($file_url) {
-                    if (!waFiles::create($file_path)) {
-                        throw new waException("Insufficient write permissions for the $file_path dir.");
-                    }
                     waFiles::upload($file_url, $file_path);
                     return $file_path;
                 }

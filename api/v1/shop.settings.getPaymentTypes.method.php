@@ -25,7 +25,7 @@ class shopSettingsGetPaymentTypesMethod extends shopApiMethod
                 'description' => 1,
                 'logo' => 1,
             ]);
-            if (isset($data['logo'])) {
+            if (!empty($data['logo'])) {
                 $data['logo'] = wa()->getConfig()->getRootUrl(true).ltrim($data['logo'], '/');
             } else {
                 $data['logo'] = null;

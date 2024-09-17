@@ -3798,7 +3798,9 @@ class shopOrder implements ArrayAccess
         unset($product['skus']);
         $i['product'] = $product;
 
-        return $i + $append;
+        $i += $append;
+        $i['quantity'] = shopFrac::formatQuantity(ifset($i, 'quantity', 1), $i['quantity_denominator']);
+        return $i;
     }
 
     protected function originalSkuChanged($item)

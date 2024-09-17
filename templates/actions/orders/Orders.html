@@ -11,9 +11,10 @@
         {/if}
     {else}
         <p class="gray {if $target !== 'body'}small{/if}">[`There are no orders in this view.`]</p>
-        {if $is_view_split_pos}
-            <a class="button rounded light-gray small" href="?action=settings#/pos/"><i class="fas fa-cog fa-sm text-gray"></i> [`Set up POS`]</a>
-        {/if}
+    {/if}
+
+    {if $is_view_split_pos}
+        <a class="button rounded light-gray small" href="?action=settings#/pos/"><i class="fas fa-cog fa-sm text-gray"></i> [`Set up POS`]</a>
     {/if}
 {/function}
 {capture assign="_dummy_no_orders_body"}
@@ -133,7 +134,7 @@
                             <strong class="s-order-status-badge badge uppercase small" style="background-color: {%#o.state_color%};" title="{%#o.state_name%}">
                                 <span class="text-ellipsis">{%#o.state_name%}</span>
                             </strong>
-                            {% if(o.order.is_point_of_sale) { %}
+                            {% if ((o.order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
                             <i class="fas fa-cash-register text-light-gray"></i>
                             {% } %}
                         </span>

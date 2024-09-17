@@ -18,6 +18,7 @@ class shopOrderInitpayMethod extends shopApiMethod
                 $so = new shopOrder([
                     'id' => $order_id,
                     'payment_params' => ifempty($payment_params, []),
+                    'discount' => null, // hold previously saved discount, do not recalculate
                     'params' => [
                         'payment_id' => $payment_id,
                     ],

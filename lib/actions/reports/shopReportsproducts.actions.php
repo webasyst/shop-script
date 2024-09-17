@@ -58,7 +58,7 @@ class shopReportsproductsActions extends waViewActions
         $max_val = 0;
         $service_total_val = 0;
         foreach($top_services as $s) {
-            $max_val = max($s['total'], $max_val);
+            $max_val = (float) max($s['total'], $max_val);
             $service_total_val += $s['total'];
         }
         foreach($top_services as &$s) {
@@ -301,7 +301,7 @@ class shopReportsproductsActions extends waViewActions
         }
 
         // Get top-100 products by margin
-        $sql = "SELECT p.id, p.name, p.image_id, p.image_filename, p.ext, p.sku_count, p.create_datetime, p.count_denominator, p.stock_unit_id,  
+        $sql = "SELECT p.id, p.name, p.image_id, p.image_filename, p.ext, p.sku_count, p.create_datetime, p.count_denominator, p.stock_unit_id,
                     GROUP_CONCAT(s.id SEPARATOR ',') AS sku_ids,
                     GROUP_CONCAT(s.name SEPARATOR ', ') AS sku_names,
                     (s.price - s.purchase_price)*c.rate AS margin,

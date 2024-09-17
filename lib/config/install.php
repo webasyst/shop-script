@@ -72,10 +72,8 @@ $model->set($app_id, 'welcome', 1);
 //payment plugins
 try {
     $plugins = shopPayment::getList();
+    unset($plugins['dummy']); // do not set up "Manual payment"
     foreach ($plugins as $plugin => $info) {
-        if ($plugin === 'cash' || $plugin === 'yandexkassa') {
-            $info['status'] = 1;
-        }
         $info['plugin'] = $plugin;
         shopPayment::savePlugin($info);
     }

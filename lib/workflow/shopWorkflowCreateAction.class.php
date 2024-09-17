@@ -567,7 +567,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         return array(ifset($stocks['v'.$virtualstock_id]), ifset($stocks[$stock_id]));
     }
 
-    public function postExecute($order_id = null, $result = null)
+    public function postExecute($original_data = null, $result = null)
     {
         $order_id = $result['order_id'];
 
@@ -588,12 +588,14 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         $order = $this->order_model->getOrder($order_id);
         $customer = new waContact($order['contact_id']);
         // send notifications
-        shopNotifications::send('order.'.$this->getId(), array(
-            'order'       => $order,
-            'customer'    => $customer,
-            'status'      => $this->getWorkflow()->getStateById($data['after_state_id'])->getName(),
-            'action_data' => $data
-        ));
+        if (empty($original_data['notifications_silent'])) {
+            shopNotifications::send('order.'.$this->getId(), array(
+                'order'       => $order,
+                'customer'    => $customer,
+                'status'      => $this->getWorkflow()->getStateById($data['after_state_id'])->getName(),
+                'action_data' => $data
+            ));
+        }
 
         // Update stock count, but take into account 'update_stock_count_on_create_order'-setting
         $app_settings_model = new waAppSettingsModel();

@@ -130,6 +130,9 @@ class shopPayment extends waAppPayment
             $shipping_types = shopShipping::getShippingTypes();
             $shipping_types = array_keys($shipping_types);
             $data['options']['shipping_type'] = array_combine($shipping_types, $shipping_types);
+            if (!empty($data['info']['pos_initiates_payment'])) {
+                unset($data['options']['shipping_type']['post']);
+            }
         }
 
         if (empty($data['options']['payment_type'])) {

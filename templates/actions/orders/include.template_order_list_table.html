@@ -17,8 +17,8 @@
             <td>
                 <div class="s-order-status" title="{%#state_name%}">
                     <strong class="badge uppercase text-ellipsis" style="background-color: {%#state_color%}">{%#state_name%}</strong>
-                    {% if(order.is_point_of_sale) { %}
-                    <i class="fas fa-cash-register text-light-gray"></i>
+                    {% if ((order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
+                    <i class="fas fa-cash-register large text-light-gray"></i>
                     {% } %}
                 </div>
             </td>

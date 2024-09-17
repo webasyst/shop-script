@@ -734,10 +734,34 @@ class shopOrdersCollection
                 $data[$row['order_id']]['items'][] = $row;
             }
 
-            foreach ($data as $id => $order) {
+            $stock_units = [];
+            foreach ($data as $id => &$order) {
                 if (isset($order['items'])) {
                     shopOrderItemsModel::sortItemsByGeneralSettings($data[$id]['items']);
+                    if (isset($postprocess_fields['stock_units'])) {
+                        $order['stock_units'] = [];
+                        foreach ($order['items'] as &$item) {
+                            $order['stock_units'][$item['stock_unit_id']] = null;
+                            $stock_units[$item['stock_unit_id']] = null;
+                        }
+                        unset($item);
+                    }
                 }
+            }
+            unset($order);
+
+            if ($stock_units) {
+                $unit_model = new shopUnitModel();
+                $stock_units = $unit_model->getById(array_keys($stock_units)) + [
+                    0 => shopUnitModel::getPc(),
+                ];
+
+                foreach ($data as $id => &$order) {
+                    if (!empty($order['stock_units'])) {
+                        $order['stock_units'] = array_intersect_key($stock_units, $order['stock_units']);
+                    }
+                }
+                unset($order);
             }
         }
 
@@ -890,7 +914,7 @@ class shopOrdersCollection
             $contact_ids = array_values($contact_ids);
             $contact_fields = 'id,name,photo,firstname,middlename,lastname,is_user';
             if (isset($postprocess_fields['contact_full'])) {
-                $contact_fields .= ',phone,email,address,photo_url_40,photo_url_96';
+                $contact_fields .= ',phone,email,address,photo_url_40,photo_url_96,company,is_company';
             }
             $contacts_collection = new waContactsCollection('id/'.join(',', $contact_ids), array(
                 'photo_url_2x' => true,

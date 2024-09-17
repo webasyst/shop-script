@@ -111,8 +111,10 @@ class shopBackendWelcomeAction extends waViewAction
 
         // Customer filters (other, i.e. not country depended)
         $customers_filter_model = new shopCustomersFilterModel();
-        $customers_filter_model->addWelcomeRefererFacebookFilter();
-        $customers_filter_model->addWelcomeRefererTwitterFilter();
+        if (wa()->getLocale() !== 'ru_RU') {
+            $customers_filter_model->addWelcomeRefererFacebookFilter();
+            $customers_filter_model->addWelcomeRefererTwitterFilter();
+        }
         $customers_filter_model->addWelcomeLastOrderedMonthAgoFilter();
 
         // Clear cache. Cloud has problem with cache

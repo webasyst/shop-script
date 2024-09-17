@@ -3,8 +3,8 @@
     {if !empty($backend_settings_pos)}{foreach $backend_settings_pos as $_}{ifset($_.top)}{/foreach}{/if}
 
     {* HEADER *}
-    <div class="s-settings-pos-header custom-mb-20">
-        <h1>[`POS`]</h1>
+    <div class="s-settings-pos-header custom-mb-16">
+        <h1>[`Mobile POS`]</h1>
     </div>
 
     {* BODY *}
@@ -13,6 +13,7 @@
         {if !empty($backend_settings_pos)}{foreach $backend_settings_pos as $_}{ifset($_.middle)}{/foreach}{/if}
         <p class="s-settings-pos-plugins-hint small">
             [`Get Shop-Script <a href="https://www.webasyst.com/mobile/" target="_blank">free mobile app</a> to sell offline and accept orders in person.`]
+            {sprintf('[`All orders placed using the mobile app’s POS UI will automatically fall into the <a href="%s">POS order list</a>.`]', '?action=orders#/orders/view=split&viewpos=1/')}
         </p>
         <div class="flexbox space-16 wrap-mobile custom-mb-16">
 
@@ -32,6 +33,9 @@
             </a>
 
         </div>
+
+        <h3>[`Online fiscalization`]</h3>
+        <p class="small">[`If your jurisdiction requires online sales fiscalization, use these plugins for setup and automation.`]</p>
         <div id="s-settings-pos-plugins"></div>
     </div>
 

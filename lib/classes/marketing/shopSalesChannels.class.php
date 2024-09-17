@@ -85,6 +85,30 @@ class shopSalesChannels
             );
         }
 
+        $result['pos:'] = [
+            'id' => 'pos:',
+            'type' => 'manager',
+            'name' => _w('Mobile point of sale'),
+            'storefront' => null,
+            'icon_url' => wa()->getConfig()->getRootUrl(true).'wa-content/img/userpic.svg', // !!!
+        ];
+
+        $result['backend:ios'] = [
+            'id' => 'backend:ios',
+            'type' => 'manager',
+            'name' => _w('Backend (iOS)'),
+            'storefront' => null,
+            'icon_url' => wa()->getConfig()->getRootUrl(true).'wa-content/img/userpic.svg', // !!!
+        ];
+
+        $result['backend:android'] = [
+            'id' => 'backend:android',
+            'type' => 'manager',
+            'name' => _w('Backend (Android)'),
+            'storefront' => null,
+            'icon_url' => wa()->getConfig()->getRootUrl(true).'wa-content/img/userpic.svg', // !!!
+        ];
+
         $result['buy_button:'] = [
             'id' => 'buy_button:',
             'type' => 'widget',

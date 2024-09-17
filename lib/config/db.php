@@ -135,6 +135,7 @@ return array(
         'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
         ':keys' => array(
             'PRIMARY' => array('category_id', 'product_id'),
+            'product_category' => array('product_id', 'category_id'),
         ),
     ),
     'shop_category_routes' => array(
@@ -707,6 +708,7 @@ return array(
         ':keys' => array(
             'PRIMARY' => 'id',
             'feature' => array('product_id', 'sku_id', 'feature_id', 'feature_value_id', 'unique' => 1),
+            'feature_product' => array('feature_id', 'feature_value_id', 'product_id', 'sku_id'),
             'product_feature' => array('product_id', 'feature_id', 'feature_value_id'),
         ),
     ),
@@ -1146,6 +1148,7 @@ return array(
         'status' => array('enum', "'sent','completed','cancelled'", 'null' => 0, 'default' => 'sent'),
         'stock_id_from' => array('int', 11, 'null' => 0),
         'stock_id_to' => array('int', 11, 'null' => 0),
+        'currency' => array('char', 3),
         ':keys' => array(
             'PRIMARY' => 'id',
             'string_id' => array('string_id', 'unique' => 1)
@@ -1156,6 +1159,7 @@ return array(
         'sku_id' => array('int', 11, 'null' => 0),
         'transfer_id' => array('int', 11, 'null' => 0),
         'count' => array('decimal', "15,3", 'null' => 0, 'default' => '0'),
+        'price' => array('decimal', "15,4"),
         ':keys' => array(
             'PRIMARY' => array('product_id', 'sku_id', 'transfer_id')
         )

@@ -124,8 +124,12 @@
                     <div class="more-images" id="product-gallery">
                         {if $video}
                             <div class="image video selected">
-                                <a id="product-image-video" href="{$video.url}" class="swipebox">
-                                    <img src="{$video.images[0]}" alt="">
+                                <a id="product-image-video" href="{$video.url|escape}" class="swipebox">
+                                    {if !empty($video.images[0])}
+                                        <img src="{$video.images[0]|escape}" alt="">
+                                    {else}
+                                        [`Video`]
+                                    {/if}
                                 </a>
                             </div>
                         {/if}

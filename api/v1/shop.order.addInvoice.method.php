@@ -23,6 +23,7 @@ class shopOrderAddInvoiceMethod extends shopApiMethod
             $currency = wa('shop')->getConfig()->getCurrency();
         }
 
+        $params = waRequest::post('params', [], 'array');
         $comment = $this->post('comment');
         $order = [
             'contact' => $contact_id === null ? 0 : $contact,
@@ -48,7 +49,7 @@ class shopOrderAddInvoiceMethod extends shopApiMethod
                 'api_contact_id' => wa()->getUser()->getId(),
                 'prepayment' => 1,
                 'payment_id' => $this->post('payment_id'),
-            ],
+            ] + $params,
         ];
 
         if (isset($contact)) {

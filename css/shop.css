@@ -1154,7 +1154,7 @@ li#s-web-push-notifications-message a { display: inline !important; text-decorat
 ul.menu-h.s-workhours li { margin-right: 0; }
 ul.menu-h.s-workhours li input[type="checkbox"] { margin-top: -2px; }
 
-.article .s-payment-shipping-logo { max-width: 60px; margin: 8px 0; }
+.article .s-payment-shipping-logo { max-width: 60px; margin: 8px 0; border-radius: 4px; }
 .s-payment-shipping-logo.float-right { margin-left: 30px; }
 
 .s-new-action-hint { font-size: 0.9em; color: #666; line-height: 1.4em; }
@@ -1563,9 +1563,11 @@ em.errormsg { font-style: normal; }
 input.error, textarea.error, select.error { border-color: var(--red) !important; }
 
 .s-premium-tsr { inset: 0; position: absolute; display: grid; place-items: center; }
-.s-premium-block .s-premium-star { position: relative; z-index: 10; background: url('../img/backend/settings/premium/star-yellow.svg?v1') no-repeat center; height: 9rem; }
+.s-premium-block .s-premium-star, .s-premium-block .s-premium-shop { position: relative; z-index: 10; height: 9rem; }
+.s-premium-block .s-premium-star { background: url('../img/backend/settings/premium/star-yellow.svg?v1') no-repeat center; }
+.s-premium-block .s-premium-shop { background: url('../img/shop.svg?v1') no-repeat center / 5rem; }
 .s-premium-block .s-premium-star--cover { background-size: cover; }
-.s-premium-block .s-premium-btn { background: linear-gradient(95.2deg, rgba(255, 255, 255, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%) var(--orange); border-width: 0; padding: .6125em 1em; }
+.s-premium-block .s-premium-btn { background: linear-gradient(95.2deg, rgba(255, 255, 255, 0.25) 0%, rgba(0, 0, 0, 0.1) 100%) var(--green); border-width: 0; padding: .6125em 1em; }
 [data-theme=dark] .s-premium-block { box-shadow: inset 2px 2px 90px 80px rgba(25,23,44,.82); }
 .s-premium-status { position: absolute; bottom: 0; right: 7px; border-radius: 50%; background-color: var(--background-color-blank); padding: 0.15rem; font-size: 9px !important; }
 a:hover .s-premium-status { color: var(--yellow) !important; }
@@ -1712,7 +1714,7 @@ a.s-black-link:not(:hover) { color: var(--text-color) }
   }
 }
 
-.s-premium-star {
+.s-premium-star, .s-premium-shop {
   animation: animationStar 5s infinite;
 }
 

@@ -2098,7 +2098,7 @@ and (orientation : portrait) {
 /* Some magic (promos & specials)
 --------------------------------- */
 .s-premium-block .s-premium-star { position: relative; z-index: 10; background: url('../img/backend/settings/premium/star-yellow.svg?v1') no-repeat center; height: 12rem; }
-.s-premium-block .s-premium-btn { border-color: orange; font-size: 16px; }
+.s-premium-block .s-premium-btn { border-color: green; font-size: 16px; }
 .s-premium-block h3 { font-size: 18px; padding-bottom: 0.5rem; }
 .s-premium-block h3 + p { font-size: 12px; }
 .s-tiny-ad-box .s-premium-btn { margin-left: -16px; }

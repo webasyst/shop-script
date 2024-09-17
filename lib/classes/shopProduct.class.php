@@ -467,7 +467,7 @@ class shopProduct implements ArrayAccess
                 $video['height'] = 315;
                 // https://www.youtube.com/watch?v=...&t=77
                 if (preg_match('/(\?|&)v=([^&]+)/i', $video['url'], $match)) {
-                    $url = '//www.youtube.com/embed/'.$match[2];
+                    $url = 'https://www.youtube.com/embed/'.$match[2];
                 }
                 if ($url && preg_match('/(\?|&)t=(\d+)/i', $video['url'], $match)) {
                     $url .= '?start='.$match[2];
@@ -478,7 +478,7 @@ class shopProduct implements ArrayAccess
                 $video['height'] = 315;
                 // https://youtu.be/...?t=77
                 if (preg_match('/youtu.be\/([^&\?]+)/i', $video['url'], $match)) {
-                    $url = '//www.youtube.com/embed/'.$match[1];
+                    $url = 'https://www.youtube.com/embed/'.$match[1];
                 }
                 if ($url && preg_match('/(\?|&)t=(\d+)/i', $video['url'], $match)) {
                     $url .= '?start='.$match[2];
@@ -488,14 +488,24 @@ class shopProduct implements ArrayAccess
                 $video['width'] = 600;
                 $video['height'] = 338;
                 if (preg_match('/vimeo.com\/([0-9]+)/i', $video['url'], $match)) {
-                    $url = '//player.vimeo.com/video/'.$match[1];
+                    $url = 'https://player.vimeo.com/video/'.$match[1];
                 }
                 break;
             case 'rutube.ru':
                 $video['width'] = 560;
                 $video['height'] = 315;
-                if (preg_match('/rutube\.ru\/video\/([^&\?]+)/i', $video['url'], $match)) {
-                    $url = '//rutube.ru/play/embed/'.$match[1];
+                if (preg_match('/rutube\.ru\/(?:video|shorts)\/([^&\?]+)/i', $video['url'], $match)) {
+                    $url = 'https://rutube.ru/play/embed/'.$match[1];
+                }
+                break;
+            case 'vk.com':
+                $video['width'] = 560;
+                $video['height'] = 315;
+                if (preg_match('~video([^&\?_]+)_([^&\?_]+)~', $video['url'], $match)) {
+                    $url = "https://vk.com/video_ext.php?oid={$match[1]}&id={$match[2]}&hd=1";
+                }
+                if (preg_match('/(\?|&)t=([0-9hms]+)/i', $video['url'], $match)) {
+                    $url .= '&t='.$match[2];
                 }
                 break;
         }

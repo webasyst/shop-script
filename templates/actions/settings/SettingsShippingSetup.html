@@ -109,6 +109,19 @@
             </div>
         </div>
 
+        <!-- CUSTOM SHIPPING MODULE PARAMS -->
+        {if !empty($settings_html)}
+        <div class="fields-group">
+            {$settings_html}
+        </div>
+        {/if}
+
+        {if !empty($guide_html)}
+        <div class="fields-group">
+            {$guide_html}
+        </div>
+        {/if}
+
         <div class="fields-group">
             <div class="field">
                 <div class="name">[`Offer shipping to customer types`]</div>
@@ -145,19 +158,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- CUSTOM SHIPPING MODULE PARAMS -->
-        {if !empty($settings_html)}
-        <div class="fields-group">
-            {$settings_html}
-        </div>
-        {/if}
-
-        {if !empty($guide_html)}
-        <div class="fields-group">
-            {$guide_html}
-        </div>
-        {/if}
+        
     </div>
 
     <div class="bottombar sticky s-settings-fixed-bottombar">

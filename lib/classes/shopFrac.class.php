@@ -25,9 +25,9 @@ class shopFrac
             $quantity = 1;
         }
         if ($denominator == 1) {
-            return (int)$quantity;
+            return (int)round($quantity);
         } else {
-            $quantity = (int)($quantity * $denominator) / $denominator;
+            $quantity = round($quantity * $denominator) / $denominator;
             $format = '%.' . abs((int)log10($denominator)) . 'f';
             return sprintf($format, $quantity);
         }

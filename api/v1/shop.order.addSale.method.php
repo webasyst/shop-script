@@ -34,12 +34,12 @@ class shopOrderAddSaleMethod extends shopApiMethod
             'discount' => waRequest::post('discount', '', 'string'),
             'state_id' => 'pos',
             'params' => [
-                'storefront' => wa()->getConfig()->getDomain(),
                 'ip' => waRequest::getIp(),
                 'user_agent' => ifempty(ref(waRequest::getUserAgent()), 'api'),
                 'api_contact_id' => wa()->getUser()->getId(),
-                'sales_channel' => 'pos:',
+                'sales_channel' => ifset($params, 'sales_channel', 'pos:'),
             ] + $params,
+            'notifications_silent' => true,
         ];
         if (empty($order['items'])) {
             throw new waAPIException('items_required', 'Order items are required', 400);

@@ -86,7 +86,7 @@
                         <div class="details">
                             {$customers_rights = $wa->userRights('customers')}
 
-                            <h5 class="custom-mb-4">
+                            <h5 class="custom-mb-4" style="height: 24px;">
                                 {if $customers_rights && $customer_essentials.id|default:'0'}
                                     <a href="?action=customers#/id/{$customer_essentials.id|default:'0'}" {if !$customer_essentials.name|escape} class="gray"{/if}>
                                         {$customer_essentials.name|default:'[`(no name)`]'|escape}
@@ -272,7 +272,7 @@
                                         <h6 class="gray custom-mt-16">[`Payment link`]</h6>
 
                                         {* <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre> *}
-                                        <button class="button smaller green nowrap js-copy-btn" data-url="{$order.payment_url}" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]">[`Copy link`]</button>
+                                        <button class="button smaller green nowrap js-copy-btn" data-url="{$order.payment_url}" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]" style="height:29px;">[`Copy link`]</button>
                                         <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs opacity-30"></i></a>
                                     {/if}
                                 {/if}
@@ -405,7 +405,7 @@
                                                                     {if !empty($_code.icon) && $_code.code_plugin_enabled}
                                                                         <img src="{$wa_url}{$_code.icon}">
                                                                     {else}
-                                                                        <span class="icon"><i class="fas fa-qrcode text-dark-gray large"></i></span>
+                                                                        <i class="fas fa-qrcode text-dark-gray large"></i>
                                                                     {/if}
                                                                 </td>
                                                                 <td class="min-width nowrap">
@@ -477,15 +477,16 @@
                                 </tbody>
                             {/if}
                         <tfoot>
+                            {$_colspan = (empty($visible_fulfilment_mode)) ? 2 : 3}
                             {if !empty($subtotal)}
                                 <tr>
-                                    <td colspan="2" class="width-100-mobile"></td>
+                                    <td colspan="{$_colspan}" class="width-100-mobile"></td>
                                     <td class="align-right"><br>[`Subtotal`]</td>
                                     <td class="align-right nowrap"><br>{wa_currency_html($subtotal, $order.currency)}</td>
                                 </tr>
                             {/if}
                             <tr class="no-border">
-                                <td colspan="2" class="width-100-mobile"></td>
+                                <td colspan="{$_colspan}" class="width-100-mobile"></td>
                                 <td class="align-right">
                                     [`Discount`]
                                     {if !empty($order.coupon.code)}
@@ -502,20 +503,20 @@
                             </tr>
                             {if isset($params.shipping_name) || $order.shipping > 0}
                                 <tr>
-                                    <td colspan="2" class="width-100-mobile"></td>
+                                    <td colspan="{$_colspan}" class="width-100-mobile"></td>
                                     <td class="align-right">[`Shipping`]</td>
                                     <td class="align-right nowrap">{wa_currency_html($order.shipping, $order.currency)}</td>
                                 </tr>
                             {/if}
                             {if !empty($order.tax|default:'')}
                                 <tr>
-                                    <td colspan="2" class="width-100-mobile"></td>
+                                    <td colspan="{$_colspan}" class="width-100-mobile"></td>
                                     <td class="align-right">[`Tax`]</td>
                                     <td class="align-right nowrap">{wa_currency_html($order.tax, $order.currency)}</td>
                                 </tr>
                             {/if}
                             <tr class="bold larger">
-                                <td colspan="2" class="width-100-mobile custom-p-0-mobile"></td>
+                                <td colspan="{$_colspan}" class="width-100-mobile custom-p-0-mobile"></td>
                                 <td class="align-right custom-pl-0-mobile">[`Total`]</td>
                                 <td class="align-right nowrap">
                                     <div>{wa_currency_html($order.total, $order.currency)}</div>

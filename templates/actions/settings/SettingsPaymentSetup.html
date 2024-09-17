@@ -76,6 +76,19 @@
         </div>
     </div>
 
+    <!-- CUSTOM PAYMENT MODULE PARAMS -->
+    {if !empty($settings_html)}
+    <div class="fields-group">
+        {$settings_html}
+    </div>
+    {/if}
+
+    {if !empty($guide_html)}
+    <div class="fields-group">
+        {$guide_html}
+    </div>
+    {/if}
+
     <!-- CONDITIONS OF APPLICABILITY OF PAYMENT METHODS -->
     <div class="fields-group">
         <div class="field">
@@ -196,20 +209,7 @@
             </div>
         </div>
     </div>
-
-    <!-- CUSTOM PAYMENT MODULE PARAMS -->
-    {if !empty($settings_html)}
-    <div class="fields-group">
-        {$settings_html}
-    </div>
-    {/if}
-
-    {if !empty($guide_html)}
-    <div class="fields-group">
-        {$guide_html}
-    </div>
-    {/if}
-
+    
     <div class="bottombar sticky s-settings-fixed-bottombar">
         <div class="flexbox space-12">
             <div class="wide">

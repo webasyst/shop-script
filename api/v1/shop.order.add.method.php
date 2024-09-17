@@ -41,6 +41,10 @@ class shopOrderAddMethod extends shopApiMethod
                 }
             }
         }
+        $params = waRequest::post('params', [], 'array');
+        if ($params) {
+            $order['params'] += $params;
+        }
 
         $comment = $this->post('comment');
         if (!empty($comment)) {

@@ -193,9 +193,8 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
 
 
         /* NEW ORDER email notification template */
-        $sms = _w('We successfully accepted your order, and will contact you asap.').' ';
-        $sms .= sprintf(
-            _w('Your order number is %s. Order total: %s'),
+        $sms = sprintf(
+            _w('Order %s (%s) has been accepted and is being processed.'),
             '{$order.id}',
             '{wa_currency($order.total, $order.currency)}'
         );
@@ -213,15 +212,15 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
             'description' => _w('Execution of “Process” action in backend.'),
             'subject'     => sprintf(_w('Order %s has been confirmed'), '{$order.id}'),
             'body'        => self::getOrderConfirmedTemplate(),
-            'sms'         => sprintf(_w('Your order %s has been confirmed and accepted for processing.'), '{$order.id}'),
+            'sms'         => sprintf(_w('Order %s has been confirmed.'), '{$order.id}'),
 
         );
 
 
         /* order SHIPMENT (sending out) email notification template */
-        $sms = sprintf(_w('Your order %s has been sent out!'), '{$order.id}');
+        $sms = sprintf(_w('Order %s has been sent out!'), '{$order.id}');
         $sms .= '{if !empty($action_data.params.tracking_number)} ';
-        $sms .= _w('Tracking number');
+        $sms .= _w('Tracking');
         $sms .= ': {$action_data.params.tracking_number}';
         $sms .= '{/if}';
 
@@ -230,7 +229,6 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
             'subject'     => sprintf(_w('Order %s has been sent out!'), '{$order.id}'),
             'body'        => self::getOrderShipmentTemplate(),
             'sms'         => $sms,
-
         );
 
 
@@ -239,7 +237,7 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
             'description' => _w('Execution of “Delete” action in backend.'),
             'subject'     => sprintf(_w('Order %s has been canceled'), '{$order.id}'),
             'body'        => self::getOrderCancelTemplate(),
-            'sms'         => sprintf(_w('Your order %s has been canceled'), '{$order.id}'),
+            'sms'         => sprintf(_w('Order %s has been canceled.'), '{$order.id}'),
         );
 
 
@@ -248,7 +246,7 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
             'description' => _w('Adding of a comment to an order in backend.'),
             'subject'     => sprintf(_w('A comment was added to your order %s'), '{$order.id}'),
             'body'        => self::getOrderCommentTemplate(),
-            'sms'         => sprintf(_w('A comment was added to your order %s'), '{$order.id}'),
+            'sms'         => sprintf(_w('A comment has been added to order %s.'), '{$order.id}'),
         );
 
 
@@ -257,7 +255,7 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
             'description' => _w('Editing of order shipping details in backend.'),
             'subject'     => sprintf(_w('Shipping details of your order %s have been changed'), '{$order.id}'),
             'body'        => self::getOrderEditShippingDetailsTemplate(),
-            'sms'         => sprintf(_w('Shipping details of your order %s have been changed'), '{$order.id}'),
+            'sms'         => sprintf(_w('Shipping details of order %s have changed.'), '{$order.id}'),
         );
 
 
@@ -266,7 +264,7 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
             'description' => _w('Merging of an order without an ID, which was paid via a mobile terminal, with another order in backend.'),
             'subject'     => sprintf(_w('Your order %s has been settled'), '{$order.id}'),
             'body'        => self::getOrderSettleTemplate(),
-            'sms'         => sprintf(_w('Your order %s has been settled'), '{$order.id}'),
+            'sms'         => sprintf(_w('Suspended order %s has been settled.'), '{$order.id}'),
         );
 
 
@@ -284,7 +282,7 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
             'description' => '',
             'subject'     => sprintf(_w('Order %s has been updated'), '{$order.id}'),
             'body'        => self::getOrderStatusChangeTemplate(),
-            'sms'         => sprintf(_w('Your order %s status has been updated to “%s”'), '{$order.id}', '{$status}'),
+            'sms'         => sprintf(_w('The status of order %s has changed to %s.'), '{$order.id}', '{$status}'),
         );
 
         foreach ($result as $id => &$item) {

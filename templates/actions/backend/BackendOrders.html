@@ -28,16 +28,17 @@
                 <li data-view="table" class="rounded transparent custom-mx-0">
                     <a href="#" title="[`Table`]"><i class="fas fa-list"></i></a>
                 </li>
-                <li data-view="kanban" class="rounded transparent custom-mx-0">
-                    <a class="s-position-relative" href="#" title="[`Kanban`]">
-                        <i class="fas fa-table"></i>
-                        {if !shopLicensing::isPremium()}<i class="fas fa-star s-premium-status"></i>{/if}
-                    </a>
-                </li>
 
                 <li data-view="split" class="rounded transparent custom-mx-0 js-view-pos">
                     <a class="s-position-relative" href="#" title="[`Point of sale`]">
                         <i class="fas fa-cash-register"></i>
+                    </a>
+                </li>
+
+                <li data-view="kanban" class="rounded transparent custom-mx-0">
+                    <a class="s-position-relative" href="#" title="[`Kanban`]">
+                        <i class="fas fa-table"></i>
+                        {if !shopLicensing::isPremium()}<i class="fas fa-star s-premium-status"></i>{/if}
                     </a>
                 </li>
 
@@ -156,7 +157,7 @@
 
     <!-- SECONDAY FILTERS -->
     <div class="s-order-nav-block s-order-nav-block-chips js-order-nav-block-secondary s-order-nav-block-filters hide-when-view-pos" style="display: none;">
-    <ul class="chips small custom-m-0">
+    <ul class="sidebar-dropdown-container chips small custom-m-0">
         <li class="s-order-nav-button-wrapper s-order-nav-only-table-kanban">
             <a href="#/orders/state_id=new|processing|auth|paid" class="button light-gray js-orders-link js-orders-hide-filters js-order-nav-brick s-order-nav-button js-pending-orders">
                 <span class="label">[`Processing`]</span>

@@ -12,7 +12,7 @@ $model = new waAppSettingsModel();
 // currency
 $currency_model = new shopCurrencyModel();
 if ($currency_model->countAll() == 0) {
-
+    
     $locale = waLocale::getInfo(wa()->getUser()->getLocale());
     $country_iso3 = isset($locale['iso3']) ? $locale['iso3'] : 'usa';
 
@@ -79,24 +79,65 @@ if ($notifications_model->countAll() == 0) {
             'status' => 1,
         );
         $id = $notifications_model->insert($data);
-        $params = $n;
-        $params['to'] = 'customer';
+        $params = ['to' => 'customer'] + array_diff_key($n, ['sms' => 1]);
         $params_model->save($id, $params);
 
-        if ($event == 'order.create') {
-            $data['name'] = $events[$event]['name'] . ' (' . _w('Store admin') . ')';
+        if ($event == 'order.process' || $event == 'order.ship') {
+
+            $data = [
+                'transport' => 'sms',
+            ] + $data;
             $id = $notifications_model->insert($data);
-            $params['to'] = 'admin';
+            $params = [
+                'to' => 'customer',
+                'text' => $n['sms'],
+            ] + array_diff_key($n, ['subject' => 1, 'sms' => 1, 'body' => 1]);
             $params_model->save($id, $params);
+
+        } else if ($event == 'order.create') {
+
+            $data = [
+                'name' => $events[$event]['name'] . ' (' . _w('Store admin') . ')',
+                'transport' => 'email',
+            ] + $data;
+            $id = $notifications_model->insert($data);
+            $params = [
+                'to' => 'admin',
+            ] + $params;
+            $params_model->save($id, $params);
+
+            $data = [
+                'name' => ifset($events, $event, 'name', $event) . ' (' . _w('Customer') . ')',
+                'transport' => 'sms',
+            ] + $data;
+            $id = $notifications_model->insert($data);
+            $params = [
+                'to' => 'customer',
+                'text' => $n['sms'],
+            ] + array_diff_key($n, ['subject' => 1, 'sms' => 1, 'body' => 1]);
+            $params_model->save($id, $params);
+
+            $data = [
+                'name' => $events[$event]['name'] . ' (' . _w('Store admin') . ')',
+                'transport' => 'sms',
+            ] + $data;
+            $id = $notifications_model->insert($data);
+            $params = [
+                'to' => 'admin',
+                'text' => $n['sms'],
+            ] + array_diff_key($n, ['subject' => 1, 'sms' => 1, 'body' => 1]);
+            $params_model->save($id, $params);
+
         }
     }
 }
 
-/** Наполнение справочника в настройках "Единицы измерения товаров" */
+/** Product quantity units */
 $locale      = wa()->getUser()->getLocale();
 $locale_file = wa()->getAppPath("lib/config/data/units.$locale.php", 'shop');
+$unit_model = new shopUnitModel();
 
-if (file_exists($locale_file)) {
+if (file_exists($locale_file) && $unit_model->countAll() == 0) {
     $insert = [];
     $units  = include $locale_file;
     $sql    = "INSERT IGNORE INTO shop_unit 
@@ -109,7 +150,7 @@ if (file_exists($locale_file)) {
 
     if (!empty($insert)) {
         $sql .= implode(', ', $insert);
-        (new waModel())->query($sql);
+        $unit_model->exec($sql);
     }
 }
 

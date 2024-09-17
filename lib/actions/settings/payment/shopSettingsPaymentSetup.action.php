@@ -34,6 +34,13 @@ class shopSettingsPaymentSetupAction extends waViewAction
             );
 
             $shipping = $model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
+            if (!is_numeric($plugin_id) && !empty($plugin['info']['pos_initiates_payment'])) {
+                foreach($shipping as &$m) {
+                    // by default disable all shipping options when adding a new payment plugin with pos_initiates_payment
+                    $m['available'] = false;
+                }
+                unset($m);
+            }
 
             $this->view->assign(compact('plugin', 'shipping_types', 'payment_types', 'shipping', 'settings_html', 'guide_html'));
         } catch (waException $ex) {

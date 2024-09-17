@@ -9,20 +9,49 @@
     <div class="article">
         <div class="article-body">
             <form method="post" action="?action=welcome" id="js-welcome-form">
+
+                <div class="s-premium-block custom-pb-20">
+                    <div class="stars-animation-container">
+                        <div class="s-premium-shop"></div>
+                        <div class="stars-animation">
+                            <div class="stars-animation--left">
+                                {for $i=0 to 25}
+                                    <span style="--star-i:{10|rand:30};top:{10|rand:50}px;left:{10|rand:50}px;"></span>
+                                {/for}
+                            </div>
+                            <div class="stars-animation--right">
+                                {for $i=0 to 25}
+                                    <span style="--star-i:{10|rand:30};top:{10|rand:50}px;left:{10|rand:50}px;"></span>
+                                {/for}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="_s-welcome-page">
-                    <h1>[`Welcome to Shop-Script!`]</h1>
+
+                    <h2 class="align-center">[`Welcome to Shop-Script!`]</h2>
+                    <p class="align-center gray">[`Few quick questions to get your storefront up and running.`]</p>
 
                     <div class="fields">
 
                         {* REGION *}
                         <div class="fields-group">
+
+                            <h5 class="heading">
+                                <span>
+                                    <span class="badge large light-gray custom-mr-4">1</span>
+                                    [`Region`]
+                                </span>
+                            </h5>
+
                             <div class="field">
                                 <div class="name for-input">
                                     [`Primary currency`]
                                 </div>
                                 <div class="value">
                                     <div class="wa-select">
-                                        <select name="currency" id="" {if $actions['welcome'].complete != 1}required{/if}>
+                                        <select name="currency" id="" {if $actions['welcome'].complete != 1}required{/if} class="width-100 text-ellipsis">
                                             <option value="" disabled selected>[`Select currency`]</option>
                                             {foreach $currencies as $currency}
                                                 <option value="{$currency.code}" title="{$currency.code}" {if $locale_currency && $locale_currency === $currency.code}selected{/if} {if $currency.code === null}disabled{/if}>{$currency.code} — {_w($currency.title)}</option>
@@ -34,11 +63,11 @@
 
                             <div class="field">
                                 <div class="name for-input">
-                                    [`Select a country`]
+                                    [`Country`]
                                 </div>
                                 <div class="value">
                                     <div class="wa-select">
-                                        <select name="country">
+                                        <select name="country" class="width-100 text-ellipsis">
                                             {foreach $countries as $country}
                                                 <option value="{$country.iso3letter|escape}"{if $country.iso3letter == $country_iso} selected{/if}>{$country.name|escape}</option>
                                             {/foreach}
@@ -60,8 +89,12 @@
                         <div class="fields-group">
 
                             <h5 class="heading">
-                                [`Demo products`]
+                                <span>
+                                    <span class="badge large light-gray custom-mr-4">2</span>
+                                    [`Demo products`]
+                                </span>
                             </h5>
+                            <p class="small gray">[`Can be easily removed later on altogether.`]</p>
 
                             <div class="field">
                                 <div class="value">
@@ -124,16 +157,13 @@
             </form>
 
             {capture assign="_loading_html"}
-                <div style="display:grid;place-items:center;position:absolute;inset:0;background-color:var(--dialog-background-color);backdrop-filter:blur(0.5rem);">
-                    <div>
-                        <div class="flexbox large gray italic">
-                            <div class="custom-mr-8" style="padding-top: 2px;">
-                                <div class="spinner"></div>
-                            </div>
-                            <span>[`Finalizing your storefront setup may take up to 1–2 minutes...`]</span>
+                <div style="display:grid;place-items:center;position:fixed;inset:0;background-color:var(--dialog-background-color);backdrop-filter:blur(0.5rem);">
+                    <div class="align-center custom-px-16-mobile">
+                        <div class="flexbox gray italic">
+                            <span>[`Finalizing setup won’t take more than a minute...`]</span>
                         </div>
 
-                        <div class="progressbar custom-mb-8 js-progressbar custom-mt-8">
+                        <div class="progressbar custom-mb-8 js-progressbar custom-mt-32">
                             <div class="progressbar-line-wrapper text-outside">
                                 <div class="progressbar-outer">
                                     <div class="progressbar-inner" style="width: 10%;"></div>
@@ -169,6 +199,7 @@
                         is_loading = false;
                     $form.on("submit", function() {
                         if (!is_loading) {
+                            $('body').css('overflow-y', 'hidden');
                             is_loading = true;
                             var $field = $("input[name=\"demo_db\"]:checked");
                             if ($field.length) {
@@ -191,13 +222,15 @@
             </script>
 
             {if empty($_is_complete)}
-                <div class="flexbox wrap-mobile space-4 middle custom-mt-24">
-                    <button type="submit" form="js-welcome-form" class="button largest green rounded gradient">[`Start selling`]</button>
-                    <a href="{$wa_app_url}?skipwelcome=1" class="button outlined light-gray largest rounded js-finish-tutorial">[`Skip quick setup`]</a>
+                <div class="custom-mt-24 align-center">
+                    <button type="submit" form="js-welcome-form" class="button green rounded gradient" style="font-size: 2rem;">[`Launch my store!`]</button>
+                    <br><br>
+                    <a href="{$wa_app_url}?skipwelcome=1" class="gray rounded js-finish-tutorial">[`Skip quick setup`]</a>
                 </div>
             {else}
-                <p class="large italic">
+                <p class="large italic align-center">
                     <span class="gray">[`Your store is up and running already. No need to repeat the setup.`]</span>
+                    <br>
                     <a href="{$wa_app_url}">[`Get back to orders`] &rarr;</a>
                 </p>
             {/if}

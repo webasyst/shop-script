@@ -863,7 +863,7 @@ paths:
                     + **text**: многострочный текст
                     + **date**: дата
                     + **dimension**: число с единицей измерения
-                    + **range**: диапазон
+                    + **range.\***: диапазон значений
                     + **2d**: габариты «число × число»
                     + **3d**: габариты «число × число × число»
                     + **boolean**: переключатель «да/нет»
@@ -2147,6 +2147,7 @@ paths:
             + **billing_info**: в содержимое ответа добавляются элементы с ключом '*billing_info*' в виде массива с информацией об адресе плательщика.
             + **sales_channel**: в содержимое ответа добавляется элемент с ключом '*sales_channels*' в виде строки, обозначающей канал продаж, через который получен заказ.
             + **order_icon**: в содержимое ответа добавляется элемент с ключом '*order_icon*' в виде строки с URL иконки, которую рекомендуется показать для данного заказа.
+            + **stock_units**: в содержимое ответа добавляется элемент с ключом '*stock_units*' в виде массива с информацией о единицах измерения товаров в составе заказа.
             + **payment_url**: URL ссылки на оплату.
           enum:
             - products
@@ -2177,7 +2178,27 @@ paths:
         - $ref: '#/components/parameters/requestFormat'
       responses:
         200:
-          description: Список заказов.
+          description: Информация о заказах.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offset:
+                    type: integer
+                    description: Смещение относительно начала списка найденных заказов
+                  limit:
+                    type: integer
+                    description: Ограничение количества найденных заказов
+                  count:
+                    type: integer
+                    description: Количество найденных заказов
+                  orders:
+                    type: array
+                    description: Свойства заказов
+                    items:
+                      $ref: '#/components/schemas/OrderInfo'
+
         400:
           description: Некорректное содержимое запроса.
           content:
@@ -2810,7 +2831,7 @@ paths:
             schema:
               type: object
               properties:
-                files:
+                files[]:
                   type: array
                   description: Файлы изображений
                   items:
@@ -5116,6 +5137,60 @@ paths:
                               type: boolean
                               description: Признак поддержки кассового аппарата
 
+  /shop.settings.getShippingTypes:
+    get:
+      summary: Возвращает информацию об активных способах доставки.
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.settings.getShippingTypes
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.settings.getShippingTypes/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: Информация о способах доставки.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  methods:
+                    description: Свойства способов доставки
+                    allOf:
+                      - type: object
+                      - type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: ID способа доставки
+                            plugin:
+                              type: string
+                              description: ID плагина доставки
+                            name:
+                              type: string
+                              description: Название
+                            description:
+                              type: string
+                              description: Описание
+                            logo:
+                              type: string
+                              format: uri
+                              description: URL иконки
+                            plugin_type:
+                              type: string
+                              enum:
+                                - manual
+                                - card
+                                - online
+                              description: |
+                                Тип плагина доставки
+                                + **todoor**: доставка до двери (курьер)
+                                + **pickup**: доставка до одного из пунктов самовывоза
+                                + **post**: почтовая доставка по адресу
+
   /shop.settings.getProductCodes:
     get:
       summary: Возвращает информацию о настроенных товарных кодах (например, маркировка Честный Знак)
@@ -5172,6 +5247,41 @@ paths:
                           description: ID типов товаров, для которых доступен код
                           items:
                             type: integer
+
+
+  /shop.settings.getStockUnits:
+    get:
+      summary: Возвращает информацию о настроенных единицах измерения
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.settings.getStockUnits
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.settings.getStockUnits/
+      parameters:
+        - in: query
+          name: active_only
+          description: |
+            Показывать ли все настроенные единицы измерения, в том числе выключенные (0) или только доступные (1).
+            + **1**: Только доступные
+            + **0**: Все
+          required: false
+          schema:
+            type: string
+            default: 1
+            enum:
+              - 1
+              - 0
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: Информация о единицах измерения.
+          content:
+            application/json:
+              schema:
+                type: array
+                description: Свойства единиц
+                items:
+                  $ref: '#/components/schemas/QuantityUnitInfo'
 
   /shop.settings.onboard:
     post:
@@ -5377,11 +5487,12 @@ paths:
         - $ref: '#/components/parameters/requestFormat'
       responses:
         200:
-          description: Свойства типов товаров.
+          description: Информация о типах товаров.
           content:
             application/json:
               schema:
                 type: array
+                description: Свойства типов товаров
                 items:
                   $ref: '#/components/schemas/ProductTypeInfo'
 
@@ -5965,6 +6076,30 @@ components:
         count:
           type: integer
           description: Количество товаров с этой характеристикой
+        values:
+          type: array
+          description: Доступные для выбора значения
+          items:
+            allOf:
+              - type: string
+              - type: integer
+              - type: object
+                properties:
+                  id:
+                    type: integer
+                    description: ID значения
+                  feature_id:
+                    type: integer
+                    description: ID характеристики
+                  sort:
+                    type: integer
+                    description: Значение сортировки
+                  code:
+                    type: integer
+                    description: Код значения цвета
+                  value:
+                    type: string
+                    description: Текстовое значение
     OrderActionInfo:
       type: object
       properties:
@@ -6120,12 +6255,20 @@ components:
         contact:
           $ref: '#/components/schemas/OrderInfoCustomer'
         items:
-          type: object
+          type: array
+          description: Свойства позиций заказа
+          items:
+            $ref: '#/components/schemas/OrderItemInfo'
         items_total_discount:
           type: integer
           description: Суммарный размер скидки, рассчитанный для заказанных товаров и услуг
         params:
           type: object
+          description: Дополнительные параметры
+        id_encoded:
+          type: string
+          description: Форматированный номер заказа
+
     OrderInfoCustomer:
       type: object
       description: Свойства покупателя
@@ -7089,6 +7232,125 @@ components:
         products_hash:
           type: string
           description: Хеш-строка фильтрации товаров, к которым применяется купон
+    QuantityUnitInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID единицы
+        short_name:
+          type: string
+          description: Сокращенное название
+        name:
+          type: string
+          description: Полное название
+        name2:
+          type: string
+          description: 1-я форма множественного числа названия
+        name5:
+          type: string
+          description: 2-я форма множественного числа названия
+        okei_code:
+          type: integer
+          description: Код по ОКЕИ
+        builtin:
+          type: integer
+          description: Признак встроенной единицы
+        storefront_name:
+          type: string
+          description: Обозначение для витрины
+        sort:
+          type: integer
+          description: Значение сортировки
+        status:
+          type: integer
+          description: |
+            Статус.
+            + **0**: выключена
+            + **1**: включена
+            + **2**: включена без возможности выключения
+    OrderItemInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID позиции
+        order_id:
+          type: integer
+          description: ID заказа
+        name:
+          type: string
+          description: Название
+        product_id:
+          type: integer
+          description: ID товара
+        sku_id:
+          type: integer
+          description: ID модификации товара
+        sku_code:
+          type: string
+          description: Код артикула
+        type:
+          type: string
+          description: |
+            Тип позиции.
+            + **product**: Товар
+            + **service**: Услуга
+        service_id:
+          type: integer
+          nullable: true
+          description: ID услуги
+        service_variant_id:
+          type: integer
+          nullable: true
+          description: ID варианта услуги
+        price:
+          type: number
+          description: Цена
+        quantity:
+          type: number
+          description: Количество
+        quantity_denominator:
+          type: integer
+          description: |
+            Доступная точность указания складских остатков заказанного товара.
+            + **1**: целые штуки
+            + **10**: точность до десятых
+            + **100**: точность до сотых
+            + **1000**: точность до тысячных
+        parent_id:
+          type: integer
+          nullable: true
+          description: ID товара, к которому относится услуга
+        stock_id:
+          type: integer
+          nullable: true
+          description: ID склада, выбранного в свойствах заказа для списания остатков модификации товара
+        virtual_stock_id:
+          type: integer
+          nullable: true
+          description: ID виртуального склада, с которого должно выполняться списание остатков заказанной модификации товара
+        purchase_price:
+          type: number
+          description: Закупочная цена в валюте заказа
+        total_discount:
+          type: number
+          description: Размер скидки в валюте заказа, рассчитанный для всего количества заказанной модификации товара
+        tax_percent:
+          type: number
+          description: Количество процентов примененного налога
+        tax_included:
+          type: integer
+          description: |
+            Признак налога, включенного в цену заказанного товара.
+            + **0**: Не включен
+            + **1**: Включен
+        stock_unit_id:
+          type: integer
+          description: ID складской единицы измерения количества заказанной модификации товара
+        sort:
+          type: integer
+          description: Значение сортировки
 
   parameters:
     requestFormat:

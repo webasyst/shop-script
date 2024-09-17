@@ -38,7 +38,7 @@ class shopCsvProductuploadController extends shopUploadController
                         'multiple' => true,
                     ),
                 ),
-                'video_url'           => _w('Video URL on YouTube, Vimeo or Rutube'),
+                'video_url'           => _w('Video URL on YouTube, Vimeo, VK.com or Rutube'),
                 'params'              => _w('Custom parameters'),
             ),
             'product_custom_fields' => array(),
