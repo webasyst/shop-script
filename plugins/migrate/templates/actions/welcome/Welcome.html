@@ -1,0 +1,54 @@
+<div class="fields-group">
+
+    <h5 class="heading">
+        <span>
+            <span class="badge large light-gray custom-mr-4">3</span>
+            [`Import data`]
+        </span>
+    </h5>
+
+    <div class="field">
+        <div class="name for-input">
+            [`Platform`]
+        </div>
+        <div class="value">
+            <div class="wa-select">
+                <select name="migrate_platform" class="width-100 text-ellipsis">
+
+                    {$group = false}
+                    {foreach $transports as $id => $t}
+                        {if !empty($t.group) && $group != $t.group}
+                            {if !$t@first && $group}
+                            </optgroup>
+                            {/if}
+                            {$group = $t.group}
+                            <optgroup label="{$group|escape}">
+                        {/if}
+
+                        <option value="{$id}" title="{$t.description|strip_tags|escape}">{$t.title|escape}</option>
+                        {if $t@last}
+                        </optgroup>
+                        {/if}
+                    {/foreach}
+
+                </select>
+            </div>
+            <p class="js-migrate-platform-hint hint" style="display: none;"><i class="fas fa-check-circle text-green custom-mr-4"></i>[`<b>Great, we can import from that!</b> You will be taken to the import configuration page to provide some more details on your previous store’s setup...`]</p>
+        </div>
+    </div>
+</div>
+<script>(function() { "use strict";
+    const $form = $('form:first');
+    const plugin_id = 'migrate-plugin';
+
+    $('[name="migrate_platform"]', $form).on('change', function () {
+        const platform = $(this).val();
+
+        $form.find('.js-migrate-platform-hint').toggle(!!platform);
+        $form.find('.migrate-plugin-field').remove();
+        if (platform) {
+            $form.append(`<input class="migrate-plugin-field" type="hidden" name="plugin" value="${ plugin_id }">`);
+            $form.append(`<input class="migrate-plugin-field" type="hidden" name="${ plugin_id }[platform]" value="${ platform }">`);
+        }
+    });
+})();</script>

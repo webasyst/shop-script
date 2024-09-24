@@ -276,7 +276,6 @@ class shopMigrateWebasystremoteTransport extends shopMigrateWebasystTransport
             CURLOPT_RETURNTRANSFER    => 1,
             CURLOPT_TIMEOUT           => self::TIMEOUT_SOCKET * 60,
             CURLOPT_CONNECTTIMEOUT    => self::TIMEOUT_SOCKET,
-            CURLOPT_BINARYTRANSFER    => true,
             CURLOPT_WRITEFUNCTION     => array(
                 &$this,
                 'curlWriteHandler'

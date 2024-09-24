@@ -5,14 +5,14 @@ msgstr ""
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: shop/plugins/migrate\n"
+"Language: ru_RU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.0.6\n"
-"Language: ru_RU\n"
+"X-Generator: Poedit 2.3\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -105,9 +105,6 @@ msgstr "Неверное имя SQL-сервера"
 
 msgid "Unknown default currency %s"
 msgstr "Неизвестная основная валюта %s"
-
-msgid "Undefined default langunage"
-msgstr "Неопределенный основной язык"
 
 msgid "Undefined default currency"
 msgstr "Неопределенная основная валюта"
@@ -507,3 +504,6 @@ msgstr "Неправильный URL: в начале ожидается http://
 
 msgid "Invalid URL: missing host name."
 msgstr "Неправильный URL: отсутствует имя хоста."
+
+msgid "<b>Great, we can import from that!</b> You will be taken to the import configuration page to provide some more details on your previous store’s setup..."
+msgstr "<b>Отлично, сможем импортировать!</b> На следующем шаге нужно будет заполнить настройки подключения к платформе-источнику данных, чтобы начать импорт..."

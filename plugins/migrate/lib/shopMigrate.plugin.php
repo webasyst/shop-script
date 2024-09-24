@@ -101,16 +101,8 @@ class shopMigratePlugin extends shopPlugin
 
     public function backendWelcomeHandler()
     {
-        return array(
-            'name'        => _wp('Migrate to Shop-Script'),
-            'controls'    => array(
-                'platform' => array(
-                    'control_type' => waHtmlControl::SELECT,
-                    'title'        => _wp('Import data'),
-                    'description'  => _wp('Transfer data from third-party ecommerce platforms and sources to Shop-Script.'),
-                    'options'      => $this->getTransports(),
-                ),
-            ),
-        );
+        return [
+            'form_bottom' => (new shopMigratePluginWelcomeAction())->display(),
+        ];
     }
 }

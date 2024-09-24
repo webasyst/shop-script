@@ -2,7 +2,7 @@
 return array(
     'app.shop'      => array(
         'strict'  => true,
-        'version' => '6.0.0.37522',
+        'version' => '8.18.0',
     ),
     'php.curl'      => array(
         'strict' => false,
