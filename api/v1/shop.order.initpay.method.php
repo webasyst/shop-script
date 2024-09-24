@@ -28,7 +28,7 @@ class shopOrderInitpayMethod extends shopApiMethod
                 try {
                     $so->save();
                 } catch (waException $ex) {
-                    throw new waAPIException('error_saving_order', _w('Unable to update order data:').' '.$ex->getMessage(), 400, [
+                    throw new waAPIException('error_saving_order', sprintf_wp('Unable to update order data: “%s”', $ex->getMessage()), 400, [
                         'error_details' => $so->errors(),
                     ]);
                     return;

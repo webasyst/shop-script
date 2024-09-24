@@ -198,7 +198,7 @@ return array(
         ),
         'initpay'       => array(
             'classname' => 'shopWorkflowInitpayAction',
-            'name'      => _w('Init POS payment'),
+            'name'      => _w('Initiate POS payment'),
             'options'   => array(
                 'log_record'   => _w('Order sent to payment terminal in manual mode'),
                 'button_class' => 'green',

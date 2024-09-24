@@ -168,7 +168,7 @@ class shopBackendWelcomeAction extends waViewAction
             'locale_currency'   => $locale_currency,
             'translate'         => $this->translate,
             'actions'           => shopTutorialActions::getActions(true),
-            'currencies'        => $this->getCurrencies(),
+            'currencies'        => $currencies,
             //'types'             => $this->getShortedProductTypes(),
             'tutorial_progress' => shopTutorialActions::getTutorialProgress(),
             'tutorial_visible'  => $tutorial_visible,

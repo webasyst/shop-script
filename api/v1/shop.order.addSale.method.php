@@ -41,6 +41,9 @@ class shopOrderAddSaleMethod extends shopApiMethod
             ] + $params,
             'notifications_silent' => true,
         ];
+        if (!empty($comment)) {
+            $order['comment'] = $comment;
+        }
         if (empty($order['items'])) {
             throw new waAPIException('items_required', 'Order items are required', 400);
         }

@@ -42,7 +42,7 @@ class shopWorkflowInitpayAction extends shopWorkflowAction
         }
         if ($init_error) {
             if (is_string($init_error)) {
-                $error_msg .= $init_error;
+                $error_msg .= ' '.$init_error;
             }
             throw new waException($error_msg);
         }

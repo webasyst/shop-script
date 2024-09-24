@@ -3,11 +3,13 @@
 <i class="fas fa-shopping-cart text-light-gray opacity-80" style="font-size: {if $target === 'body'}10{else}6{/if}rem; margin-right: 1.5rem;"></i>
     {if $is_orders_empty}
         <p class="gray {if $target !== 'body'}small{/if}">[`New orders will start to land here shortly.`]</p>
-        {if shopHelper::isSettingsMarketplacesSectionVisible()}
-            <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="{$wa_app_url}?action=settings#/marketplaces/">[`Set up sales channels`]</a>
-            <a class="button rounded custom-mt-16 nobutton{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
-        {else}
-            <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
+        {if !$is_view_split_pos}
+            {if shopHelper::isSettingsMarketplacesSectionVisible()}
+                <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="{$wa_app_url}?action=settings#/marketplaces/">[`Set up sales channels`]</a>
+                <a class="button rounded custom-mt-16 nobutton{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
+            {else}
+                <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
+            {/if}
         {/if}
     {else}
         <p class="gray {if $target !== 'body'}small{/if}">[`There are no orders in this view.`]</p>

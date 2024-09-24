@@ -81,7 +81,7 @@
                         {if $backend_welcome_event_result}
                             {* @event backend_welcome.%plugin_id%.form_top *}
                             {foreach $backend_welcome_event_result as $p}
-                                {ifset($p, form_top, '')}
+                                {ifset($p, 'form_top', '')}
                             {/foreach}
                         {/if}
 
@@ -144,7 +144,7 @@
                         {if $backend_welcome_event_result}
                             {* @event backend_welcome.%plugin_id%.form_bottom *}
                             {foreach $backend_welcome_event_result as $p}
-                                {ifset($p, form_bottom, '')}
+                                {ifset($p, 'form_bottom', '')}
                             {/foreach}
                         {/if}
 

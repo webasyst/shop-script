@@ -720,7 +720,7 @@
                             {if !empty($sales_channel)}[`Sales channel`]: <strong title="{$order.params.sales_channel|default:'?'|escape}">{$sales_channel|escape}</strong><br>{/if}
                             {if !empty($order.params.fiscalization_datetime)}
                                 <span title="{ifset($order.params, 'fiscalization_plugin_id', '')|escape} ({ifset($order.params, 'fiscalization_plugin_type', '')|escape}) {$order.params.fiscalization_datetime|wa_datetime|escape}">
-                                    [`Фискализация`]: <strong>{$order.params.fiscalization_datetime|wa_date|escape}</strong><br>
+                                    [`Fiscalization`]: <strong>{$order.params.fiscalization_datetime|wa_date|escape}</strong><br>
                                 </span>
                             {/if}
                             {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront_decoded|default:$order.params.storefront}</strong><br>{/if}

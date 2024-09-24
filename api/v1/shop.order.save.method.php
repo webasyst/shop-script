@@ -60,7 +60,7 @@ class shopOrderSaveMethod extends shopApiMethod
         if (ifset($post, 'discount', null) === 'true') {
             $post['discount'] = 'calculate';
         } else if (ifset($post, 'discount', '') === '') {
-            if (empty($post['id'])) {
+            if (!empty($post['id'])) {
                 $post['discount'] = null; // keep previously saved discount
             }
         }

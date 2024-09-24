@@ -74,6 +74,9 @@ try {
     $plugins = shopPayment::getList();
     unset($plugins['dummy']); // do not set up "Manual payment"
     foreach ($plugins as $plugin => $info) {
+        if (!empty($info['pos_initiates_payment'])) {
+            continue;
+        }
         $info['plugin'] = $plugin;
         shopPayment::savePlugin($info);
     }

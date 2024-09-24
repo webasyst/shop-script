@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 2.3\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -6257,7 +6257,7 @@ msgid "Maximum of %d orders is allowed for bulk form printing."
 msgstr "Максимальное количество заказов, которые можно распечатать за раз — %d."
 
 msgid "Copy and paste the URL of a product video from the YouTube or Vimeo website."
-msgstr "Скопируйте в это поле адрес видеоролика товара с сайта Rutube, VK.com, YouTube или Vimeo."
+msgstr "Скопируйте в это поле адрес видеоролика товара с сайта Rutube, VK, YouTube или Vimeo."
 
 msgid "Virtual stock must include at least one real stock."
 msgstr "Выберите хотя бы один реальный склад для этого виртуального склада."
@@ -13310,7 +13310,7 @@ msgid "The search query length cannot be less than 1 character."
 msgstr "Длина поискового запроса должна быть не менее 1 символа."
 
 msgid "Activate one or several payment options below to start accepting payments online."
-msgstr "Чтобы покупатели могли оплачивать заказы в вашем магазине, подключите любой из нижеперечисленных способов приема платежей."
+msgstr "Чтобы покупатели могли оплачивать заказы в вашем магазине, подключите любой из перечисленных ниже способов приема платежей."
 
 msgid "All contacts"
 msgstr "Все контакты"
@@ -13351,7 +13351,7 @@ msgstr "Список должен быть статическим."
 msgid "Selected payment method does not support payment by image. Payment initialization is disabled for the current order status."
 msgstr "Выбранный способ оплаты не поддерживает оплату по изображению. Инициализация платежа отключена для текущего статуса заказа."
 
-msgid "Init POS payment"
+msgid "Initiate POS payment"
 msgstr "Оплата на кассе"
 
 msgid "Sends order to payment terminal in manual mode."
@@ -13382,7 +13382,7 @@ msgid "Unable to initialize payment."
 msgstr "Не удалось инициализировать оплату."
 
 msgid "Payment initialization error: unable to generate an image."
-msgstr "Ошибка инициализиации оплаты: не удалось сгенерировать изображение."
+msgstr "Ошибка инициализации оплаты: не удалось сгенерировать изображение."
 
 msgid "Coupon not found."
 msgstr "Купон не найден."
@@ -13397,7 +13397,7 @@ msgid "Set up POS"
 msgstr "Настроить кассу"
 
 msgid "Get Shop-Script <a href=\"https://www.webasyst.com/mobile/\" target=\"_blank\">free mobile app</a> to sell offline and accept orders in person."
-msgstr "Используйте <a href=\"https://www.webasyst.ru/mobile/\" target=\"_blank\">бесплатное мобильное приложение</a> Shop-Script для приема заказов на кассе и торговли в офлайне."
+msgstr "Используйте <a href=\"https://www.webasyst.ru/mobile/\" target=\"_blank\">бесплатное мобильное приложение</a> Shop-Script для приема заказов на кассе и торговли при личном контакте с покупателями."
 
 msgid "Point of sale"
 msgstr "Касса"
@@ -13454,7 +13454,25 @@ msgid "Few quick questions to get your storefront up and running."
 msgstr "Еще пара вопросов — и магазин будет открыт."
 
 msgid "Can be easily removed later on altogether."
-msgstr "Можно будет удалить позже все вместе в несколько кликов."
+msgstr "Можно будет позже легко все сразу удалить."
 
 msgid "Launch my store!"
 msgstr "Магазин открыт!"
+
+msgid "Multiple POS locations"
+msgstr "Несколько точек продаж"
+
+msgid "Coming soon in premium:"
+msgstr "Скоро в премиум-версии:"
+
+msgid "Fiscalization"
+msgstr "Фискализация"
+
+msgid "Cash"
+msgstr "Наличные"
+
+msgid "Selected plugin is unable to initialize payment."
+msgstr "Выбранный плагин не может инициализировать платеж."
+
+msgid "Unable to update order data: “%s”"
+msgstr "Не удалось обновить свойства заказа: «%s»"

@@ -14,6 +14,9 @@
 
 @import "./css/additional.default.shop.css";
 
+/* UI */
+a.button, button:not([type=submit]), input[type=button] { color: var(--link-color); }
+
 .icon32.loading, .icon24.loading, .icon16.loading { background: url('img/svg/spinner-solid.svg?v2') no-repeat 100% 100%; background-size: contain;width: 24px;height: 24px; -webkit-animation: rotating 1s linear infinite; animation: rotating 1s linear infinite; }
 .s-loading-content .icon16.loading, .icon32.loading { width: 48px; height: 48px; }
 /* spinner */
@@ -450,7 +453,7 @@ table.rating-distribution td .bar .filling { background: var(--orange); height: 
 
 .review-form { padding: 0; margin-bottom: 30px; }
 .review-form h4 { margin: 0 0 20px; font-weight: normal; }
-.review-form-fields p { margin: 0 0 24px; min-height: 40px; display: flex; align-items: center}
+.review-form-fields p { margin: 0 0 24px; min-height: 40px; display: flex; align-items: center; gap: 0.35rem; }
 .review-form-fields .review-text label { align-self: flex-start; }
 .review-form-fields p.review-field a { display: inline; padding: 0; text-decoration: none; }
 .review-form-fields label { width: 160px; display: block; float: left; margin: 0 10px 0 0; color: #aaa;}
