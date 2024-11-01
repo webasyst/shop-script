@@ -263,10 +263,16 @@ class shopIndexSearch extends shopSearch
         $index_model->deleteByField('product_id', $product_id);
     }
 
+    /** @deprecated */
     public function search($query)
     {
         $word_model = new shopSearchWordModel();
-        $word_ids = $word_model->getByString($query);
+        $word_ids = $word_model->getIds((array)$query);
+        if (!$word_ids) {
+            return [
+                'where' => '0=1',
+            ];
+        }
         $result = array();
         $result['joins'] = array(
             array(

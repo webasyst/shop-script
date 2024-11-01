@@ -1,0 +1,14 @@
+#content > .content > .sidebar + #wa-design-container {
+    display: none;
+}
+
+
+#s-storefronts-content .s-settings-form:has(.loader){
+    width: 100%;
+    height: calc(100vh - 20rem);
+}
+#s-storefronts-content .s-settings-form .loader {
+    display: grid;
+    place-content: center;
+    height: 100%;
+}

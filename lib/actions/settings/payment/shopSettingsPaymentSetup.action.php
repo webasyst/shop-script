@@ -12,6 +12,9 @@ class shopSettingsPaymentSetupAction extends waViewAction
         try {
             $plugin = shopPayment::getPluginInfo($plugin_id);
             $instance = shopPayment::getPlugin($plugin['plugin'], $plugin_id);
+            if (empty($plugin['id']) && $instance instanceof shopPaymentDummy && wa()->isSingleAppMode()) {
+                throw new waRightsException(_w('Access denied'));
+            }
 
             $params = array(
                 'namespace' => "payment[settings]",

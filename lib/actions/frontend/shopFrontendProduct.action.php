@@ -920,7 +920,7 @@ class shopFrontendProductAction extends shopFrontendAction
         $res = array();
         foreach (array('meta_title', 'meta_keywords', 'meta_description') as $f) {
             if (isset($product[$f])) {
-                $res[$f] = str_replace($search, $replace, $product[$f]);
+                $res[$f] = str_replace($search, $replace, (string) $product[$f]);
             }
         }
 

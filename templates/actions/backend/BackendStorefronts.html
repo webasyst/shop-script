@@ -1,11 +1,12 @@
-<div class="flexbox" id="s-storefronts-content" {if $wa->userRights('design')}data-design="1"{/if} {if $wa->userRights('pages')}data-pages="1"{/if}>
+<div class="flexbox wrap-mobile" id="s-storefronts-content" {if $wa->userRights('design')}data-design="1"{/if} {if $wa->userRights('pages')}data-pages="1"{/if}>
     <div class="box s-settings-form">
-        [`Loading...`]
-        <i class="fas fa-spinner fa-spin"></i>
+        <div class="loader">
+            <div class="spinner custom-p-32"></div>
+        </div>
     </div>
     <!-- settings placeholder -->
 </div>
-
+<link rel="stylesheet" href="{$wa_app_static_url}css/backend/design.css?{$wa->version()}">
 <script type="text/javascript" src="{$wa_app_static_url}js/storefronts.js?v{$wa->version()}"></script>
 <script type="text/javascript">
     $.storefronts.init();

@@ -457,7 +457,7 @@ class shopCategoryModel extends waNestedSetModel
             if ($before_id === false) {
                 $before_id = null;
             }
-            if (mb_strlen($data['url'])) {
+            if (!empty($data['url']) && mb_strlen((string)$data['url'])) {
                 $data['url'] = $this->suggestUniqueUrl($data['url'], null, 0);
                 $data['full_url'] = $data['url'];
             }
@@ -928,7 +928,7 @@ class shopCategoryModel extends waNestedSetModel
 
     public static function getDefaultMetaTitle($category)
     {
-        return strip_tags(ifempty($category['name']));
+        return strip_tags(ifempty($category, 'name', ''));
     }
 
     public static function getDefaultMetaKeywords($category)

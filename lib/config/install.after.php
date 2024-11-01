@@ -12,7 +12,7 @@ $model = new waAppSettingsModel();
 // currency
 $currency_model = new shopCurrencyModel();
 if ($currency_model->countAll() == 0) {
-    
+
     $locale = waLocale::getInfo(wa()->getUser()->getLocale());
     $country_iso3 = isset($locale['iso3']) ? $locale['iso3'] : 'usa';
 
@@ -68,6 +68,11 @@ if ($notifications_model->countAll() == 0) {
     $notifications = $notifications_action->getTemplates();
     $params_model = new shopNotificationParamsModel();
     $events = $notifications_action->getEvents();
+    $to_admin_sms = 'admin';
+    $admin_phone = wa()->getUser()->get('phone', 'default');
+    if ($admin_phone) {
+        $to_admin_sms = $admin_phone;
+    }
     foreach ($notifications as $event => $n) {
         if ($event == 'order') {
             continue;
@@ -123,7 +128,7 @@ if ($notifications_model->countAll() == 0) {
             ] + $data;
             $id = $notifications_model->insert($data);
             $params = [
-                'to' => 'admin',
+                'to' => $to_admin_sms,
                 'text' => $n['sms'],
             ] + array_diff_key($n, ['subject' => 1, 'sms' => 1, 'body' => 1]);
             $params_model->save($id, $params);
@@ -140,7 +145,7 @@ $unit_model = new shopUnitModel();
 if (file_exists($locale_file) && $unit_model->countAll() == 0) {
     $insert = [];
     $units  = include $locale_file;
-    $sql    = "INSERT IGNORE INTO shop_unit 
+    $sql    = "INSERT IGNORE INTO shop_unit
         (okei_code, name, short_name, storefront_name, status)
     VALUES ";
 

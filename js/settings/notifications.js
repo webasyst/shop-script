@@ -267,6 +267,22 @@
                         });
                     });
                 })();
+
+                // Filtering notifications
+                $('#toggle-notifications-by-transport').waToggle({
+                    change: function (e, target) {
+                        const transport = $(target).data('id');
+                        const $notifications = $('ul#notifications li');
+
+                        $notifications.hide();
+                        if (transport) {
+                            $notifications.filter(`[data-transport="${transport}"]`).show();
+                        } else {
+                            $notifications.show();
+                        }
+                    }
+                });
+
             };
         }
     });

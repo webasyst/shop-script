@@ -8,11 +8,17 @@
     'globe-small' => $wa->shop->getIcon('globe-small')
 ]}
 <div class="flexbox space-16">
-    <div class="sidebar flexbox overflow-visible s-sidebar-section">
+    <div class="sidebar flexbox overflow-visible s-sidebar-section" style="width: 14rem;">
         <div class="sidebar-body">
-            <ul class="menu ellipsis custom-mb-8" id="notifications">
+            <div id="toggle-notifications-by-transport" class="toggle smaller custom-mt-16">
+                <span class="selected">[`All`]</span>
+                <span data-id="email">[`Email`]</span>
+                <span data-id="sms">[`SMS`]</span>
+                <span data-id="http">[`HTTP`]</span>
+            </div>
+            <ul class="menu custom-mb-8" id="notifications">
                 {foreach $notifications as $n}
-                <li  id="notification-{$n.id}" class="rounded">
+                <li  id="notification-{$n.id}" class="rounded" data-transport="{$n.transport}">
                     <a href="#/notifications/{$n.id}/" title="{$n.name}">
                         {if isset($transports[$n.transport].icon)}
                         <span class="icon {if !$n.status}opacity-50{/if}">{$icon_convert[$transports[$n.transport].icon]}</span>

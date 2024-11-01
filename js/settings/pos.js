@@ -33,7 +33,7 @@ if (typeof ($) != 'undefined') {
             if ($.settings.options.hasOwnProperty('installer_access') && !$.settings.options.installer_access) {
                 return;
             }
-            const url = this.options.backend_url + 'installer/?module=store&action=inApp&filter[tag]=fz54';
+            const url = this.options.backend_url + 'installer/?module=store&action=inApp&filter[tag]=fz54&filter[type]=plugin';
             $.get(url, (html) => {
                 this.$pos_plugins_container.show().html(html);
                 const $iframe = $('iframe.js-store-frame');

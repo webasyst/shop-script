@@ -144,6 +144,11 @@
                             var href = '\\#\\/' + (self.path.plugin ? self.path.plugin + '\\/' : '');
                             self.$menu.find('a[href="' + href + '"]').parents('li').addClass('selected');
 
+                            const wa_set_plugin_onload = sessionStorage.getItem('wa_set_plugin_onload');
+                            if (wa_set_plugin_onload) {
+                                sessionStorage.removeItem('wa_set_plugin_onload');
+                            }
+
                             if (!self.options.useIframeTransport) {
                                 $('#plugins-settings-form').submit(function () {
                                     self.saveHandlerAjax(this);

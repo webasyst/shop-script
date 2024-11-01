@@ -2,8 +2,8 @@
 return array(
     'currency' => array(
         'RUB' => 1.0,
-        'USD' => 65,
-        'EUR' => 75,
+        'USD' => 95,
+        'EUR' => 105,
     ),
     'taxes'    => array(
         array(

@@ -235,8 +235,10 @@ if (typeof ($) != 'undefined') {
                 const $title = $('#s-settings-content h1.js-bread-crumbs:first');
                 $title.after($plugin_name);
                 $title.hide();
+                if ($el === 'enable') {
+                    self.$payment_plugin_container.find('[name="payment[status]"]').prop('checked', true);
+                }
             });
-
         },
 
         paymentPluginShow: function (plugin_id, callback) {

@@ -322,7 +322,7 @@ class shopConfig extends waAppConfig
             foreach (array(
                          'name'                          => wa()->accountName(),
                          'email'                         => wa()->getSetting('email', '', 'webasyst'),
-                         'phone'                         => '+1 (234) 555-1234',
+                         'phone'                         => '',
                          'country'                       => '',
                          'order_format'                  => $this->getOrderFormat(),
                          'order_noproduct_item_name'     => wa()->getSetting('order_noproduct_item_name', '', 'shop'),

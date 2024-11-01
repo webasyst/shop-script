@@ -157,13 +157,13 @@ class shopMainMenu
                 "id" => "storefront",
                 "name" => _w("Storefront"),
                 "icon" => '<i class="fas fa-store"></i>',
-                "url" => "{$wa_app_url}?action=storefronts",
+                "url" => "{$wa_app_url}?action=storefronts#/design/themes/",
                 "userRights" => ['design', 'pages'],
                 "placement" => "body",
                 "submenu" => [
                     [
-                        "name" => _w("Settings"),
-                        "url" => "{$wa_app_url}?action=storefronts"
+                        "name" => _w("Design"),
+                        "url" => "{$wa_app_url}?action=storefronts#/design/themes/"
                     ],
                     [
                         "name" => _w("Pages"),
@@ -196,13 +196,6 @@ class shopMainMenu
                 "placement" => "footer",
             ],
         ];
-
-        if (wa()->getUser()->isAdmin('installer')) {
-            $result['storefront']['submenu'][] = [
-                "name" => _w("Design themes"),
-                "url" => "{$wa_app_url}?action=themes"
-            ];
-        }
 
         // This set of icons is used when Font Awesome is not available on the page (i.e. WA 1.3 design mode)
         if (!empty($options['inline_icons'])) {

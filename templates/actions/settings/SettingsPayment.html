@@ -101,7 +101,7 @@
 
                     <td class="custom-p-4-mobile">
                         <div class="flexbox vertical-mobile">
-                            <a href="#/payment/plugin/setup/{$id}/"
+                            <a href="#/payment/plugin/setup/{$id}/{if empty($plugin.status)}enable{/if}"
                                 class="js-payment-plugin-setup button custom-mb-4-mobile nowrap rounded {if empty($plugin.status)}green{else}light-gray{/if} smaller"
                                 style="width: min-content;"
                                 title="[`Configure`]">

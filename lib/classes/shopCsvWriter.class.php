@@ -73,22 +73,30 @@ class shopCsvWriter implements Serializable
 
     public function serialize()
     {
-        return serialize(
-            array(
-                'file'          => $this->file,
-                'delimiter'     => $this->delimiter,
-                'encoding'      => $this->encoding,
-                'method'        => $this->method,
-                'data_mapping'  => $this->data_mapping,
-                'offset'        => $this->offset,
-                'accept_arrays' => $this->accept_arrays,
-            )
-        );
+        return serialize($this->__serialize());
+    }
+
+    public function __serialize()
+    {
+        return [
+            'file'          => $this->file,
+            'delimiter'     => $this->delimiter,
+            'encoding'      => $this->encoding,
+            'method'        => $this->method,
+            'data_mapping'  => $this->data_mapping,
+            'offset'        => $this->offset,
+            'accept_arrays' => $this->accept_arrays,
+        ];
     }
 
     public function unserialize($serialized)
     {
         $data = unserialize($serialized);
+        $this->__unserialize($data);
+    }
+
+    public function __unserialize(array $data)
+    {
         $this->file = ifset($data['file']);
         $this->delimiter = ifempty($data['delimiter'], ';');
         $this->encoding = ifempty($data['encoding'], 'utf-8');
@@ -221,7 +229,7 @@ class shopCsvWriter implements Serializable
                         $value = reset($value);
                     }
                 }
-                $mapped[] = str_replace("\r\n", "\r", $value);
+                $mapped[] = str_replace("\r\n", "\r", ifset($value, ''));
             }
         }
 

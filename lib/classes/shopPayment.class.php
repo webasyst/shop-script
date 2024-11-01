@@ -100,7 +100,9 @@ class shopPayment extends waAppPayment
             throw new waException(_w('Payment plugins not installed yet'));
         }
         $list = waPayment::enumerate();
-        $list['dummy'] = shopPaymentDummy::dummyInfo();
+        if (!wa()->isSingleAppMode()) {
+            $list['dummy'] = shopPaymentDummy::dummyInfo();
+        }
         uasort($list, wa_lambda('$a, $b', 'return strcasecmp($a["name"], $b["name"]);'));
 
         return $list;

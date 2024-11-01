@@ -1255,7 +1255,10 @@ paths:
                   description: Купон для применения к заказу
                 discount:
                   type: number
-                  description: Скидка в валюте заказа. Если указана одновременно с купоном, то будет применена указанная скидка, а не купонная.
+                  description: Размер скидки в валюте заказа; игнорирует ID купона, указанный в параметре 'coupon_id'
+                params:
+                  type: array
+                  description: Дополнительные параметры заказа
                 items[0]:
                   type: array
                   description: Позиция заказа
@@ -1834,6 +1837,9 @@ paths:
                 payment_id:
                   type: integer
                   description: ID способа оплаты, который нужно предварительно сохранить в свойствах заказа
+                payment_params:
+                  type: array
+                  description: Дополнительные параметры оплаты
               required:
                 - id
       responses:

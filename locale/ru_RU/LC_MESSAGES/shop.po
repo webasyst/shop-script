@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.3\n"
+"X-Generator: Poedit 3.5\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -13476,3 +13476,9 @@ msgstr "Выбранный плагин не может инициализиро
 
 msgid "Unable to update order data: “%s”"
 msgstr "Не удалось обновить свойства заказа: «%s»"
+
+msgid "Design"
+msgstr "Дизайн"
+
+msgid "Add few demo products"
+msgstr "Добавить несколько демотоваров"

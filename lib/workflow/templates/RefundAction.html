@@ -233,7 +233,7 @@
                 <div class="s-column align-right">
                     {capture assign="_total_price"}
                         {if !empty($transaction_data)}
-                            {wa_currency_html($transaction_data['amount'],$transaction_data['currency_id'])}
+                            {wa_currency_html($transaction_data['amount'], ifempty($transaction_data, 'currency_id', $order['currency']))}
                         {else}
                             {wa_currency_html($order['total'],$order['currency'])}
                         {/if}

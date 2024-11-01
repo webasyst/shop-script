@@ -28,6 +28,7 @@ if (typeof ($) != 'undefined') {
             const $form = $('#s-settings-shipping-params-form');
 
             this.$shipping_plugins_container = this.$container.find('#s-settings-shipping-plugins');
+            this.$shipping_plugin_container = $('#s-settings-shipping-setup');
 
             this.formChanged($form);
 
@@ -64,7 +65,7 @@ if (typeof ($) != 'undefined') {
               return self.shippingParamsSave($this);
             });
 
-            $('#s-settings-shipping-setup').on('submit', 'form', function () {
+            this.$shipping_plugin_container.on('submit', 'form', function () {
                 const $this = $(this);
 
                 if ($this.hasClass('js-installer')) {
@@ -162,7 +163,7 @@ if (typeof ($) != 'undefined') {
                               '#shipping-methods-title').show();
 
                 $content.find('#s-settings-shipping-params div.js-fields-group').slideUp();
-                $('#s-settings-shipping-setup').html(this.shipping_options.loading).hide();
+                this.$shipping_plugin_container.html(this.shipping_options.loading).hide();
                 $content.find('h1.js-bread-crumbs:not(:first)').remove();
                 $content.find('h1:first').show();
                 if (this.$shipping_plugins_container.is(':empty')) {
@@ -277,14 +278,12 @@ if (typeof ($) != 'undefined') {
         },
 
         shippingPluginAdd: function (plugin_id, $el) {
+            const self = this;
             this.shippingPluginShow(plugin_id, function () {
+                const $plugin_name = self.$shipping_plugin_container.find('.fields-group:first h1.js-bread-crumbs:first');
                 const $title = $('#s-settings-content').find('h1.js-bread-crumbs:first');
-
                 $title.hide();
-
-                const $plugin_name = $('#s-settings-shipping-setup').find('.fields-group:first h1.js-bread-crumbs:first');
                 $title.after($plugin_name);
-                $title.hide();
             });
         },
 
@@ -295,11 +294,15 @@ if (typeof ($) != 'undefined') {
          * @param {jQuery} $el
          */
         shippingPluginSetup: function (plugin_id, $el) {
+            const self = this;
             this.shippingPluginShow(plugin_id, function () {
+                const $plugin_name = self.$shipping_plugin_container.find('.fields-group:first h1.js-bread-crumbs:first');
                 const $title = $('#s-settings-content').find('h1.js-bread-crumbs:first');
-                const $plugin_name = $('#s-settings-shipping-setup').find('.fields-group:first h1.js-bread-crumbs:first');
                 $title.after($plugin_name);
                 $title.hide();
+                if ($el === 'enable') {
+                    self.$shipping_plugin_container.find('[name="shipping[status]"]').prop('checked', true);
+                }
             });
 
         },
@@ -316,7 +319,7 @@ if (typeof ($) != 'undefined') {
 
             const self = this;
             const url = '?module=settings&action=shippingSetup&plugin_id=' + plugin_id;
-            $('#s-settings-shipping-setup').show().html(this.shipping_options.loading).load(url, function () {
+            this.$shipping_plugin_container.show().html(this.shipping_options.loading).load(url, function () {
                 if (typeof (callback) == 'function') {
                     callback();
                 }

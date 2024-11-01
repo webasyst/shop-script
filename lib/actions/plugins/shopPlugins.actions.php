@@ -55,7 +55,7 @@ class shopPluginsActions extends waPluginsActions {
                 return $installer_url . '?module=plugins&action=view&slug=shop';
             case 'home':
             default:
-                return $installer_url.'?module=store&action=inApp';
+                return $installer_url.'?module=store&action=inApp&options[]=storeSearch&options[filter_type]=plugin&options[filter_app]=shop';
         }
     }
 

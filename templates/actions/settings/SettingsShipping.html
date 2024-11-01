@@ -97,11 +97,16 @@
                     </td>
                     <td class="custom-p-4-mobile">
                         <div class="flexbox vertical-mobile">
-                            <a href="#/shipping/plugin/setup/{$id}/"
-                               class="js-shipping-plugin-setup button custom-mb-4-mobile nowrap rounded light-gray smaller"
+                            <a href="#/shipping/plugin/setup/{$id}/{if empty($plugin.status)}enable{/if}"
+                               class="js-shipping-plugin-setup button custom-mb-4-mobile nowrap rounded {if empty($plugin.status)}green{else}light-gray{/if} smaller"
                                style="width: min-content;" title="[`Configure`]">
-                                <i class="fas fa-cog text-blue"></i>
-                                <span class="desktop-only">[`Settings`]</span>
+                                {if !empty($plugin.status)}
+                                    <i class="fas fa-cog text-blue"></i>
+                                    <span class="desktop-only">[`Settings`]</span>
+                                {else}
+                                    <i class="fas fa-cog"></i>
+                                    <span class="desktop-only">[`Enable`]</span>
+                                {/if}
                             </a>
                             <div class="custom-mb-8-mobile dropdown secondary-actions">
                                 <button class="dropdown-toggle button smaller rounded light-gray custom-pl-0" type="button"

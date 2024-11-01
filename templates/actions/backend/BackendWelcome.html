@@ -108,22 +108,38 @@
                                         <p class="state-error-hint"><i class="fas fa-exclamation-triangle"></i> {$_reason}</p>
                                     {/if}
 
-                                    {foreach $shop_demo_data_source_list as $_source_id => $_source}
-                                        <div class="custom-mb-8">
-                                            <label class="flexbox space-8 middle">
-                                                <span class="wa-radio">
-                                                    <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
-                                                    <span></span>
-                                                </span>
-                                                <div style="width: 1.75rem; text-align: center;">
-                                                    <i class="{$_source.icon} custom-ml-4"></i>
-                                                </div>
-                                                <div>
-                                                    {$_source.name|default:''|escape}
-                                                </div>
-                                            </label>
-                                        </div>
-                                    {/foreach}
+                                    {if count($shop_demo_data_source_list) == 1}
+                                        {foreach $shop_demo_data_source_list as $_source_id => $_source}
+                                            <div class="custom-mb-8">
+                                                <label class="flexbox space-8 middle">
+                                                    <span class="wa-radio">
+                                                        <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
+                                                        <span></span>
+                                                    </span>
+                                                    <div class="custom-pl-4">
+                                                        [`Add few demo products`]
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        {/foreach}
+                                    {else}
+                                        {foreach $shop_demo_data_source_list as $_source_id => $_source}
+                                            <div class="custom-mb-8">
+                                                <label class="flexbox space-8 middle">
+                                                    <span class="wa-radio">
+                                                        <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
+                                                        <span></span>
+                                                    </span>
+                                                    <div style="width: 1.75rem; text-align: center;">
+                                                        <i class="{$_source.icon} custom-ml-4"></i>
+                                                    </div>
+                                                    <div>
+                                                        {$_source.name|default:''|escape}
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        {/foreach}
+                                    {/if}
 
                                     <div class="custom-mb-8">
                                         <label class="flexbox space-8 middle">
