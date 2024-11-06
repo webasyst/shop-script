@@ -113,6 +113,12 @@ if (typeof ($) != 'undefined') {
             self.locales = options.locales;
             //init clone plugin
             self.paymentPluginClone();
+
+            $(document).on('installer_after_install_go_to_settings', function(e, data) {
+                if (data.type === 'plugin' && data.is_payment) {
+                    location.replace(`#/payment/plugin/add/${data.id}/`);
+                }
+            });
         },
 
         updateDropdownSecondaryActions: function () {
@@ -419,7 +425,7 @@ if (typeof ($) != 'undefined') {
             if (!$.settings.options.installer_access) {
                 return;
             }
-            const url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/payment&return_hash=/payment/plugin/add/%plugin_id%/';
+            const url = this.options.backend_url + 'installer/?module=plugins&ui=2.0&action=view&slug=wa-plugins/payment&return_hash=/payment/plugin/add/%plugin_id%/';
             $.get(url, (html) => {
                 this.$payment_plugins_container.show().html(html);
                 const $iframe = $('iframe.js-store-frame');

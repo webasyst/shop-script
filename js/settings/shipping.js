@@ -98,6 +98,12 @@ if (typeof ($) != 'undefined') {
             self.locales = options.locales;
             //init clone plugin
             self.shippingPluginClone();
+
+            $(document).on('installer_after_install_go_to_settings', function(e, data) {
+                if (data.type === 'plugin' && data.is_shipping) {
+                    location.replace(`#/shipping/plugin/add/${data.id}/`);
+                }
+            });
         },
 
         updateDropdownSecondaryActions: function () {
@@ -558,7 +564,7 @@ if (typeof ($) != 'undefined') {
             if (!$.settings.options.installer_access) {
                 return;
             }
-            const url = this.options.backend_url + 'installer/?module=plugins&action=view&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
+            const url = this.options.backend_url + 'installer/?module=plugins&ui=2.0&action=view&slug=wa-plugins/shipping&return_hash=/shipping/plugin/add/%plugin_id%/';
             $.get(url, (html) => {
                 this.$shipping_plugins_container.show().html(html);
                 const $iframe = $('iframe.js-store-frame');
