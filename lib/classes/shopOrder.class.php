@@ -4672,6 +4672,12 @@ HTML;
         return $value;
     }
 
+    /**
+     * @param int $id
+     * @param string $type
+     * @return array|null
+     * @throws waException
+     */
     private function pluginInfo($id, $type)
     {
         static $model;
@@ -4679,7 +4685,7 @@ HTML;
             $model = new shopPluginModel();
         }
 
-        return $model->getByField(compact('id', 'type'));
+        return $model->getPlugin($id, $type);
     }
 
     private function readOnlyFields()
