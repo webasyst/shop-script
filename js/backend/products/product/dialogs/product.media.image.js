@@ -530,11 +530,17 @@
                                     request()
                                         .always( function() {
                                             $button.attr("disabled", false);
-                                            $loading.remove();
                                         })
                                         .done( function() {
                                             removePhoto();
-                                            dialog.close();
+                                            $('#wa-app .js-product-save').trigger("click");
+                                            $('#wa-app').one('wa_loaded wa_load_fail', function () {
+                                                $loading.remove();
+                                                dialog.close();
+                                            });
+                                        })
+                                        .fail( function () {
+                                            $loading.remove();
                                         });
                                 });
                             },

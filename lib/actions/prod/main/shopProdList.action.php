@@ -122,6 +122,17 @@ class shopProdListAction extends waViewAction
         $filters = array_values($filter_model->getTemplatesByUser($user_id, ['fields' => ['id', 'name']]));
         $this->getRulesLabels($filter['rules'], $filter_options, $categories);
 
+        foreach($filter_options['features'] as &$f) {
+            if (!empty($f['id']) && empty($f['render_type'])) {
+                $f = [
+                    'id' => $f['id'],
+                    'code' => $f['code'],
+                    'name' => $f['name'],
+                ];
+            }
+        }
+        unset($f);
+
         $products = $presentation->getProducts($collection, [
             'offset' => $offset,
             'limit' => $limit,
@@ -280,9 +291,11 @@ class shopProdListAction extends waViewAction
                                     }
                                 } else {
                                     if ($option['selectable'] || $option['type'] == shopFeatureModel::TYPE_BOOLEAN) {
-                                        foreach ($option['options'] as $param) {
-                                            if ($param['value'] == $item['rule_params']) {
-                                                $label[] = $param['name'];
+                                        if (!empty($option['options'])) {
+                                            foreach ($option['options'] as $param) {
+                                                if ($param['value'] == $item['rule_params']) {
+                                                    $label[] = $param['name'];
+                                                }
                                             }
                                         }
                                     } elseif ($option['type'] == shopFeatureModel::TYPE_VARCHAR || $option['type'] == shopFeatureModel::TYPE_COLOR) {
@@ -699,10 +712,21 @@ class shopProdListAction extends waViewAction
         return $columns;
     }
 
-    public function formatColumns($columns) {
+    public function formatColumns($columns, $skip_selectable = false) {
         $feature_model = new shopFeatureModel();
-        $all_features = $feature_model->getFeatures(true);
-        $all_features = shopPresentation::addSelectableValues($all_features);
+
+        // информацию о характеристиках нужно получить только для колонок-характеристик, т.е. которые содержат поле 'feature_id'
+        $feature_ids = [];
+        foreach ($columns as $col) {
+            if (isset($col['feature_id'])) {
+                $feature_ids[] = $col['feature_id'];
+            }
+        }
+        $all_features = $feature_model->getFeatures(['id' => $feature_ids]);
+        if (!$skip_selectable) {
+            $all_features = shopPresentation::addSelectableValues($all_features);
+        }
+
         $formatted_features = shopProdSkuAction::formatFeatures($all_features);
         $formatted_features_keys = array_flip(array_column($formatted_features, 'id'));
 
@@ -1033,7 +1057,7 @@ class shopProdListAction extends waViewAction
                     } else {
                         foreach ($data['features'] as $field) {
                             if ($field['rule_type'] == $rule['rule_type']) {
-                                $options = $field['options'];
+                                $options = ifset($field, 'options', []);
                                 break;
                             }
                         }

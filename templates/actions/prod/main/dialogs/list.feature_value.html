@@ -19,11 +19,18 @@
                     <span class="s-label" v-if="item_data.display_type === 'product'">[`Product property`]</span>
                     <span class="s-label" v-if="item_data.display_type === 'sku'">[`SKU property`]</span>
                     <span class="s-label" v-if="item_data.display_type === 'dynamic'">[`Dynamic property`]</span>
-                    <span class="s-name bold text-gray-dark">«{ { item_data.name } }»</span>
+                    <span class="s-name bold text-gray-dark">[`“`]{ { item_data.name } }[`”`]</span>
                 </div>
             </div>
+            <div v-if="states.is_fetching" class="skeleton box contentbox">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+            </div>
+            <template v-else>
             <div class="dialog-content">
-
                 <div class="s-item-section">
                     {* BOOLEAN (radio) *}
                     <template v-if="item_data.render_type === 'boolean'">
@@ -142,6 +149,7 @@
                 </button>
                 <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
             </div>
+            </template>
         </div>
     </div>
 </div>

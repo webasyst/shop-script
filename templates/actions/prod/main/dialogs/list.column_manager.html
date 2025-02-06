@@ -8,8 +8,20 @@
                     <p class="s-description">[`Select the columns that you would like to show in the product listing. Drag & drop to change columns’ sort order.`]</p>
                     <div class="s-close-button cursor-pointer js-dialog-close"><span class="s-icon icon size-20"><svg><use xlink:href="{$_sprite_url}#times"></use></svg></span></div>
                 </div>
+                <div v-if="states.is_fetching" class="skeleton box contentbox">
+                    <div class="skeleton-header"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+                <template v-else>
                 <div class="dialog-content">
-
                     <div class="s-columns-table" v-bind:class="{ 'is-locked' : states.column_expand }">
                         <component-list-column-item v-for="column in active_columns" v-bind:key="column.id" v-bind:column="column" v-on:column_expanded="onColumnExpand" v-on:column_enabled="onColumnEnabled"></component-list-column-item>
                     </div>
@@ -21,7 +33,6 @@
                     <div class="s-columns-table" v-bind:class="{ 'is-locked' : states.column_expand }">
                         <component-list-column-item v-for="column in inactive_columns" v-bind:key="column.id" v-bind:column="column" v-on:column_expanded="onColumnExpand"></component-list-column-item>
                     </div>
-
                 </div>
                 <div class="dialog-footer">
                     <button class="button" type="button"
@@ -32,6 +43,7 @@
                     </button>
                     <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
                 </div>
+                </template>
             </div>
         </div>
     </div>

@@ -121,7 +121,7 @@ class shopTaxes
                 $i['tax_included'] = ifset($result[$tax_id]['included']);
             }
 
-            $p = $i['price'] * $i['quantity'];
+            $p = ifset($i, 'effective_value', $i['price'] * $i['quantity']);
 
             // Split global discount proportionally between all items except shipping
             if ($global_discount > 0 && $i['type'] != 'shipping' && $total_effective_value > 0) {

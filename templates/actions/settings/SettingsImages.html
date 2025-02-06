@@ -210,9 +210,9 @@
                             <div class="hint">[`When enabled, thumbnails’ file names are derived from the name of an original image file you upload.`]<br>
                             [`When disabled, thumbnails’ file names are generated only with the use of numbers denoting thumbnail dimensions.`]</div>
 
-                            <p id="s-image-filename-hint" class="small"{if empty($settings.image_filename)} style="display: none"{/if}>
-                                <em class="highlighted">{sprintf('[`If you enable this setting for the first time, it is <strong>strongly recommended</strong> to 1) Re-generate all product image thumbnails (use the link below) right after this setting has been changed, and 2) Update your store theme product.html template with the <a href="%s" target="_blank">new product thumbnail display code</a>.`]', '[`https://www.shop-script.com/help/4750/shopscript610-design-theme-changes/`]')}</em>
-                            </p>
+                            <div id="s-image-filename-hint" class="small"{if empty($settings.image_filename)} style="display: none"{/if}>
+                                <p class="highlighted box rounded">{sprintf('[`If you enable this setting for the first time, it is <strong>strongly recommended</strong> to 1) Re-generate all product image thumbnails (use the link below) right after this setting has been changed, and 2) Update your store theme product.html template with the <a href="%s" target="_blank">new product thumbnail display code</a>.`]', '[`https://www.shop-script.com/help/4750/shopscript610-design-theme-changes/`]')}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -294,14 +294,13 @@
                             <div class="hint custom-mt-4">[`Re-generating all public product image thumbnails allows you to save some disk space on server and to optimize images after thumbnail generation settings such as sharpening and JPEG compression quality were changed. Depending on the number of products, the entire process may take from few seconds to few minutes or even hours for very large product databases.`]</div>
                         </div>
                     </div>
-
-                    <div class="field">
-                        <em class="highlighted">[`Updated settings will be applied only to newly created thumbnails. To apply updated settings to all existing product thumbnails, start thumbnail re-generation process.`]</em>
-                    </div>
                 </div>
             </div>
 
-            <div class="bottombar sticky s-settings-fixed-bottombar">
+            <div class="bottombar sticky s-settings-fixed-bottombar" style="top: auto;height: auto;">
+                <p class="js-updated-settings-alert highlighted box rounded small" style="display: none;">
+                    [`Updated settings will be applied only to newly created thumbnails. To apply updated settings to all existing product thumbnails, start thumbnail re-generation process.`]
+                </p>
                 <button type="submit" name="save" class="button green">
                     [`Save`]
                 </button>
@@ -397,7 +396,7 @@
 
                     <div class="hint">[`Please don’t close your browser window until re-generation is over.`]</div>
 
-                    <em class="state-error"></em>
+                    <div class="state-error"></div>
                 </div>
 
                 <div id="s-regenerate-report" class="custom-mt-12" style="display: none;"></div>

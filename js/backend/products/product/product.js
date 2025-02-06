@@ -297,10 +297,43 @@
 
     })($);
 
+    $.wa_shop_products.containsSmartyCode = function (str) {
+        const smarty_regex = /\{[^\s][^}]+\}/;
+        return smarty_regex.test(str);
+    };
+
+    $.wa_shop_products.stockVerification = function (skus, stocks) {
+        skus = skus || {};
+        stocks = stocks || {};
+
+        for (const sku_id in skus) {
+            if (!stocks[sku_id]) {
+                showRepairProductStocksAlert();
+                return false;
+            }
+        }
+
+        return true;
+    };
+
     $.wa_shop_products.init.initProductPage = function(options) {
         var that = this;
 
         return new Page(options);
     };
+
+    function showRepairProductStocksAlert() {
+        const $wrapper = $('#js-product-page');
+
+        $wrapper.find('.js-page-sidebar, .js-page-content').hide();
+        $wrapper.find('.s-page-alerts, .js-repair-product-stocks-wrapper').show();
+        $wrapper.find('.js-repair-prodoct-stocks')
+            .off('click').on('click', function () {
+                $('#wa-app').trigger('wa_before_load');
+                $.post('?module=repair&action=productStocks', {}, function () {
+                    location.reload();
+                });
+            });
+    }
 
 })(jQuery);

@@ -1920,6 +1920,36 @@ SQL;
                     } else {
                         $this->where[] = "0";
                     }
+                } else if ($parts[0] == 'by_code') {
+                    $code_value = $parts[2];
+
+                    // chestnyznak code contains GTIN
+                    if (preg_match('~^01(\d{14})21~', $code_value, $m)) {
+                        $code_value = $m[1];
+                    }
+
+                    $feature_model = $this->getModel('feature');
+                    $feature = $feature_model->getByCode('gtin');
+                    $values_id = null;
+                    if ($feature) {
+                        $values_model = $feature_model->getValuesModel($feature['type']);
+                        $short_value = ltrim($code_value, '0');
+                        $values = [$code_value, $short_value];
+                        foreach ([14, 13, 12, 8] as $length) {
+                            if (strlen($short_value) < $length) {
+                                $values[] = str_pad($short_value, $length, '0', STR_PAD_LEFT);
+                            }
+                        }
+                        $values_id = $values_model->getId($feature['id'], $values);
+                    }
+                    if (!empty($values_id)) {
+                        $skus_join = $this->addUniqueJoin('shop_product_skus', ':table.product_id = p.id', null);
+                        $join_where = ":table.feature_id = {$feature['id']} AND :table.feature_value_id IN (".join(',', $values_id).")";
+                        $this->addUniqueJoin('shop_product_features', "((:table.sku_id = $skus_join.id OR :table.sku_id IS NULL) AND :table.product_id = p.id)", $join_where);
+                        $this->filtered_by_features[$feature['id']] = $values_id;
+                    } else {
+                        $this->addWhere("0='no gtin'");
+                    }
                 } elseif ($model->fieldExists($parts[0])) {
                     $title[] = $parts[0].$parts[1].$parts[2];
                     if ($parts[0] === 'count' && in_array($parts[1], array('>', '>='))) {
@@ -3217,14 +3247,26 @@ SQL;
 
             // features
             if (!empty($unprocessed['_features'])) {
-                $feature_ids = array_keys($unprocessed['_features']);
+                $feature_ids = [];
+                $feature_codes = array_keys($unprocessed['_features']);
+                foreach($feature_codes as $f) {
+                    if (is_numeric($f)) {
+                        $feature_ids[$f] = $f;
+                    }
+                }
                 unset($unprocessed['_features']);
 
                 // product_id => feature_id => array(value => ..., value_html => ...)
                 $feature_values = array();
 
+                // sku_id => feature_id => array(value => ..., value_html => ...)
+                $feature_values_skus = array();
+
                 $feature_model = new shopFeatureModel();
-                $features = $feature_model->getByField('id', $feature_ids, 'id');
+                $features = $feature_model->getByField('code', $feature_codes, 'id');
+                if ($feature_ids) {
+                    $features += $feature_model->getByField('id', $feature_ids, 'id');
+                }
                 if ($features) {
 
                     // Get feature_value_ids for all products
@@ -3234,11 +3276,11 @@ SQL;
                                 AND pf.feature_id IN (?)";
                     $product_features = $this->getModel()->query($sql, array(
                         array_keys($products),
-                        $feature_ids,
+                        array_keys($features),
                     ));
 
                     // Prepare list of value_ids to fetch later, and places to fetch them from
-                    $storages = array(); // feature type => feature_value_id => list of product_ids
+                    $storages = array(); // feature type => feature_value_id => product_id => list of sku ids
                     foreach ($product_features as $row) {
                         $f = $features[$row['feature_id']];
                         $type = preg_replace('/\..*$/', '', $f['type']);
@@ -3247,10 +3289,18 @@ SQL;
                             $model = shopFeatureModel::getValuesModel($type);
                             $values = $model->getValues('id', $row['feature_value_id']);
                             $feature_values[$row['product_id']][$row['feature_id']]['value'] = reset($values);
+                            if (!empty($row['sku_id'])) {
+                                $feature_values_skus[$row['sku_id']][$row['feature_id']]['value'] = reset($values);
+                            }
                         } elseif ($type == shopFeatureModel::TYPE_DIVIDER) {
                             // ignore dividers
                         } else {
-                            $storages[$type][$row['feature_value_id']][$row['product_id']] = true;
+                            if (!isset($storages[$type][$row['feature_value_id']][$row['product_id']])) {
+                                $storages[$type][$row['feature_value_id']][$row['product_id']] = [];
+                            }
+                            if (!empty($row['sku_id'])) {
+                                $storages[$type][$row['feature_value_id']][$row['product_id']][$row['sku_id']] = $row['sku_id'];
+                            }
                         }
                     }
 
@@ -3261,11 +3311,17 @@ SQL;
                             if (isset($features[$feature_id])) {
                                 $f = $features[$feature_id];
                                 foreach ($values as $value_id => $value) {
-                                    foreach (array_keys($value_products[$value_id]) as $product_id) {
+                                    foreach ($value_products[$value_id] as $product_id => $sku_ids) {
                                         if (!empty($f['multiple'])) {
                                             $feature_values[$product_id][$feature_id]['value'][] = $value;
+                                            foreach ($sku_ids as $sku_id) {
+                                                $feature_values_skus[$sku_id][$feature_id]['value'][] = $value;
+                                            }
                                         } else {
                                             $feature_values[$product_id][$feature_id]['value'] = $value;
+                                            foreach ($sku_ids as $sku_id) {
+                                                $feature_values_skus[$sku_id][$feature_id]['value'] = $value;
+                                            }
                                         }
                                     }
                                 }
@@ -3284,13 +3340,39 @@ SQL;
                         }
                     }
                     unset($fv, $arr);
+                    foreach ($feature_values_skus as &$fv) {
+                        foreach ($fv as $feature_id => &$arr) {
+                            if (is_array($arr['value'])) {
+                                $arr['value_html'] = join(', ', $arr['value']);
+                            } else {
+                                $arr['value_html'] = (string)$arr['value'];
+                            }
+                        }
+                    }
+                    unset($fv, $arr);
                 }
 
-                // Finally, assign feature data to actual products
+                // Finally, assign feature data to actual products and skus
                 foreach ($products as &$p) {
                     foreach ($feature_ids as $fid) {
                         $p['feature_'.$fid] = ifset($feature_values[$p['id']][$fid]['value']);
-                        $p['feature_'.$fid.'_html'] = ifset($feature_values[$p['id']][$fid]['value_html'], ifempty($p['feature_'.$fid], ''));
+                        $p['feature_'.$fid.'_html'] = ifset($feature_values[$p['id']][$fid]['value_html'], ifempty($p, 'feature_'.$fid, ''));
+                        if (!empty($p['skus'])) {
+                            foreach ($p['skus'] as $sku_id => &$sku) {
+                                $sku['feature_'.$fid] = ifset($feature_values_skus[$sku['id']][$fid]['value']);
+                                $sku['feature_'.$fid.'_html'] = ifset($feature_values_skus[$sku['id']][$fid]['value_html'], ifempty($sku, 'feature_'.$fid, ''));
+                            }
+                        }
+                    }
+                    foreach ($features as $fid => $f) {
+                        $p['feature_'.$f['code']] = ifset($feature_values[$p['id']][$fid]['value']);
+                        $p['feature_'.$f['code'].'_html'] = ifset($feature_values[$p['id']][$fid]['value_html'], ifempty($p, 'feature_'.$f['code'], ''));
+                        if (!empty($p['skus'])) {
+                            foreach ($p['skus'] as $sku_id => &$sku) {
+                                $sku['feature_'.$f['code']] = ifset($feature_values_skus[$sku['id']][$fid]['value']);
+                                $sku['feature_'.$f['code'].'_html'] = ifset($feature_values_skus[$sku['id']][$fid]['value_html'], ifempty($sku, 'feature_'.$f['code'], ''));
+                            }
+                        }
                     }
                 }
                 unset($p);

@@ -30,9 +30,11 @@ class shopSettingsGetMethod extends shopApiMethod
             'server_timezone'       => date_default_timezone_get(),
             'server_timezone_shift' => date('Z'), // seconds relative to UTC
             'onboarding_passed'     => !wa('shop')->getSetting('welcome'),
-            'frac_enabled'          => (bool)shopFrac::isEnabled(),
+            'frac_enabled'          => (bool) shopFrac::isEnabled(),
             'stock_units_enabled'   => (bool) shopUnits::baseUnitsEnabled(),
             'base_units_enabled'    => (bool) shopUnits::stockUnitsEnabled(),
+            // since 11.2.0
+            'is_premium'            => (bool) shopLicensing::isPremium(),
         );
     }
 

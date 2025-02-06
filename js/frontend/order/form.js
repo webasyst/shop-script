@@ -3910,7 +3910,7 @@
                 }
             });
 
-            $wrapper.find(".wa-select, wa-textarea").each( function() {
+            $wrapper.find(".wa-select, .wa-textarea").each( function() {
                 var $input = $(this),
                     name = $input.attr("name"),
                     value = $.trim($input.val()),

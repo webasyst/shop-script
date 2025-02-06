@@ -383,8 +383,11 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                 unset($item['codes']);
                 $parent_id = $this->order_items_model->insert($item);
                 if ($codes && is_array($codes)) {
-                    foreach(array_values($codes) as $sort => $c) {
+                    $sort_by_code = [];
+                    foreach($codes as $c) {
                         if (!empty($c['value']) && !empty($c['code'])) {
+                            $sort = ifset($sort_by_code, $c['code'], 0);
+                            $sort_by_code[$c['code']] = $sort + 1;
                             $order_item_codes[] = [
                                 'order_id' => $order_id,
                                 'order_item_id' => $parent_id,

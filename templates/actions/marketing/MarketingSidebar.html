@@ -3,8 +3,14 @@
     <div class="flexbox wrap-mobile space-16">
 
         {strip}
-        <div class="dropdown js-marketing-storefronts-dropdown custom-mr-24">
-            <button class="dropdown-toggle small light-gray nowrap">[`All storefronts`]</button>
+        <div class="dropdown js-marketing-storefronts-dropdown custom-mr-4 custom-mt-2">
+            {$_active_storefront = waIdna::dec($active_storefront|default:''|escape)}
+            {if empty($_active_storefront)}
+                {$_active_storefront = _w('All storefronts')}
+            {elseif $_active_storefront === '_unattached_'}
+                {$_active_storefront = _w('No storefronts')}
+            {/if}
+            <button class="dropdown-toggle small light-gray nowrap">{$_active_storefront}</button>
 
             <div class="dropdown-body">
                 <ul class="menu">

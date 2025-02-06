@@ -319,7 +319,7 @@
                             var self = this;
 
                             $(self.$el).find(".wa-tooltip").each(function () {
-                                $(this).waTooltip({ hover: true, hover_delay: 200 });
+                                $(this).waTooltipLegacy({ hover: true, hover_delay: 200 });
                             });
                         }
                     },
@@ -3152,7 +3152,7 @@
                         tooltip = $tooltip.data("tooltip");
 
                     if (!tooltip) {
-                        $tooltip.waTooltip({ hover: true, hover_delay: 200 });
+                        $tooltip.waTooltipLegacy({ hover: true, hover_delay: 200 });
                     }
                 });
             }
@@ -3201,6 +3201,10 @@
                     sku_mod.stock[stock_id] = "";
                 }
             });
+
+            if (!$.wa_shop_products.stockVerification(sku_mod.stock, that.stocks)) {
+                return;
+            }
 
             updateVirtualStockValue(sku_mod);
 

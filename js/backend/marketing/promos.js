@@ -221,52 +221,53 @@
         };
 
         PromosPage.prototype.initSortable = function() {
-            var that = this;
+            const that = this;
+            const $promos_lists = that.$wrapper.find(".js-active-promos-list");
 
-            var $promos_lists = that.$wrapper.find(".js-active-promos-list");
+            $promos_lists.sortable({
+                distance: 5,
+                opacity: 0.75,
+                items: "> .s-promo-wrapper",
+                handle: ".js-sort",
+                cursor: "move",
+                tolerance: "pointer",
+                onEnd: function(ui) {
 
-            $promos_lists.each(function() {
-                var $promo_list = $(this);
+                    if (that.sort_enabled) {
+                        var promo_ids = $promos_lists.find(".s-promo-wrapper").map(function() {
+                            return $(this).data("id");
+                        }).get();
 
-                $promo_list.sortable({
-                    distance: 5,
-                    opacity: 0.75,
-                    items: "> .s-promo-wrapper",
-                    handle: ".s-image-section",
-                    cursor: "move",
-                    tolerance: "pointer",
-                    update: function(event, ui) {
+                        $.post(that.urls['sort'], {
+                            ids: promo_ids
+                        });
+                    } else {
 
-                        if (that.sort_enabled) {
-                            var promo_ids = $promo_list.find(".s-promo-wrapper").map( function() {
-                                return $(this).data("id");
-                            }).get();
+                        var $sort_notice_dialog = $(that.templates["sort_notice_dialog"]);
+                        $.waDialog({
+                            html: $sort_notice_dialog.html(),
+                            onOpen: function () {
+                                var $dialog_wrapper = $(this);
 
-                            $.post(that.urls['sort'], {
-                                ids: promo_ids
-                            });
+                                // Close
+                                $dialog_wrapper.on('click', '.js-cancel', function () {
+                                    $dialog_wrapper.trigger('close');
+                                });
+                            },
+                            onClose: function () {
+                                $(this).remove();
+                            }
+                        });
+
+                        if (ui.oldIndex > 0) {
+                            const idx = ui.oldIndex > ui.newIndex ? ui.oldIndex : ui.oldIndex - 1;
+                            $promos_lists.children().eq(idx).after(ui.item);
                         } else {
-
-                            var $sort_notice_dialog = $(that.templates["sort_notice_dialog"]).clone();
-                            $sort_notice_dialog.waDialog({
-                                onLoad: function () {
-                                    var $dialog_wrapper = $(this);
-
-                                    // Close
-                                    $dialog_wrapper.on('click', '.js-cancel', function () {
-                                        $dialog_wrapper.trigger('close');
-                                    });
-                                },
-                                onClose: function () {
-                                    $(this).remove();
-                                }
-                            });
-
+                            $promos_lists.prepend(ui.item);
                         }
-
                     }
-                });
 
+                }
             });
         };
 
@@ -387,5 +388,3 @@
     };
 
 })(jQuery);
-
-

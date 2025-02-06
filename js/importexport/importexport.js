@@ -735,12 +735,14 @@ $.extend($.importexport = $.importexport || {}, $.importexport = {
             });
 
             this.$context.find('select[name="export_mode"]').change(function () {
+                const $parent = $(this).closest('.value');
+
                 if ($(this).val() === "0") {
-                    $(this).siblings('p.hint').removeClass('hidden');
-                    $(this).siblings('div.block-hint').addClass('hidden');
+                    $parent.find('p.hint').removeClass('hidden');
+                    $parent.find('div.block-hint').addClass('hidden');
                 } else {
-                    $(this).siblings('p.hint').addClass('hidden');
-                    $(this).siblings('div.block-hint').removeClass('hidden');
+                    $parent.find('p.hint').addClass('hidden');
+                    $parent.find('div.block-hint').removeClass('hidden');
                 }
             });
 

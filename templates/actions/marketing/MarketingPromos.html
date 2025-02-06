@@ -115,7 +115,7 @@
             <div class="s-promo-body">
                 <div class="s-image-section">
                     <div class="s-image-wrapper" style="{if !empty($_promo.image)}background-image: url({$_promo.image|escape});{else}background-color: {shopPromoBannerHelper::getColorById($_promo.id)};{/if}"></div>
-                    <div class="s-rules-wrapper">
+                    <div class="s-rules-wrapper s-cursor-move js-sort">
                         {foreach ifset($promos_markers, $_promo.id, []) as $marker}
                             <div class="s-rule-wrapper" data-type="{$marker.type|escape}">
                                 <div class="s-rule" title="{$marker.name|escape}">
@@ -514,22 +514,24 @@
     {/capture}
 
     {capture assign="_sort_notice_dialog"}
-        <div class="dialog width500px height200px s-sort-notice-dialog">
-            <div class="dialog-background"></div>
-            <div class="dialog-window">
-                <div class="dialog-content">
-                    <div class="dialog-content-indent">
+        <template id="s-sort-notice-dialog">
+            <div class="dialog s-sort-notice-dialog">
+                <div class="dialog-background"></div>
+                <div class="dialog-body">
+                    <header class="dialog-header">
                         <h2 class="s-title">[`Promos cannot be sorted`]</h2>
-                        <p class="s-description">[`Select a storefront to change active promos’ sort order.`]</p>
+                    </header>
+                    <div class="dialog-content">
+                        <p class="custom-mt-0">
+                            [`Select a storefront to change active promos’ sort order.`]
+                        </p>
                     </div>
-                </div>
-                <div class="dialog-buttons">
-                    <div class="dialog-buttons-gradient">
-                        <a class="button gray js-cancel" href="javascript:void(0);">[`Close`]</a>
-                    </div>
+                    <footer class="dialog-footer">
+                        <a class="button light-gray js-dialog-close" href="javascript:void(0);">[`Close`]</a>
+                    </footer>
                 </div>
             </div>
-        </div>
+        </template>
     {/capture}
 
     <script>
@@ -563,9 +565,7 @@
 
             $.shop.marketing.setTitle({$_title|json_encode});
 
-            $('.js-marketing-storefronts-dropdown').waDropdown({
-                update_title: false
-            });
+            $('.js-marketing-storefronts-dropdown').waDropdown();
 
             var sources = [{
                 id: "wa-shop-marketing-promos-js",

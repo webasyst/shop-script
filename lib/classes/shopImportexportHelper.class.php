@@ -435,8 +435,8 @@ class shopImportexportHelper
                     'hash'           => ifempty($coupon, 'products_hash', '*'),
                     'discount_unit'  => $coupon['type'],
                     'discount_value' => $coupon['value'],
-                    'end_datetime'   => strtotime($coupon['expire_datetime']),
-                    'start_datetime' => strtotime($coupon['create_datetime']),
+                    'end_datetime'   => strtotime(ifempty($coupon, 'expire_datetime', '')),
+                    'start_datetime' => strtotime(ifempty($coupon, 'create_datetime', '')),
                 );
                 $promo_id = sprintf('shop.coupons.%s', $id);
                 $list[$promo_id] = $promo + $default_promo;

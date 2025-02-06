@@ -482,11 +482,17 @@
                                     request(data)
                                         .always( function(errors) {
                                             $submit_button.attr("disabled", false);
-                                            $loading.remove();
                                         })
                                         .done( function() {
                                             removePhotos(photos);
-                                            dialog.close();
+                                            that.$wrapper.find('.js-product-save').trigger("click");
+                                            $('#wa-app').one('wa_loaded wa_load_fail', function () {
+                                                $loading.remove();
+                                                dialog.close();
+                                            });
+                                        })
+                                        .fail( function () {
+                                            $loading.remove();
                                         });
                                 });
                             }

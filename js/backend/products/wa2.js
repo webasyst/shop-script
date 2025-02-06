@@ -2360,7 +2360,7 @@
  * */
 ( function($) { "use strict";
 
-    var Tooltip = ( function($) {
+    var TooltipLegacy = ( function($) {
 
         Tooltip = function(options) {
             var that = this;
@@ -2466,7 +2466,7 @@
 
     var plugin_name = "tooltip";
 
-    $.fn.waTooltip = function(plugin_options) {
+    $.fn.waTooltipLegacy = function(plugin_options) {
         var return_instance = ( typeof plugin_options === "string" && plugin_options === plugin_name),
             $items = this,
             result = this;
@@ -2486,7 +2486,7 @@
                         $wrapper: $wrapper
                     });
 
-                    $wrapper.data(plugin_name, new Tooltip(options));
+                    $wrapper.data(plugin_name, new TooltipLegacy(options));
                 }
             });
         }
@@ -2497,6 +2497,156 @@
     };
 
 })($);
+
+
+
+/**
+ * @description tooltip component
+ * @example /webasyst/ui/component/wa-tooltip/
+ * */
+(function ($) {
+    "use strict";
+
+    var Tooltip = (function ($) {
+
+        Tooltip = function (options) {
+            let that = this;
+
+            // DOM
+            that.$wrapper = options["$wrapper"][0];
+
+            // VARS
+            delete options["$wrapper"];
+            that.options = options;
+            that.tooltip_class = that.options.class || that.$wrapper.getAttribute('data-wa-tooltip-class') || false;
+            that.is_click = that.options.trigger === 'click' || that.$wrapper.getAttribute('data-wa-tooltip-trigger') === 'click' || false;
+            that.icon = that.options.icon || that.$wrapper.getAttribute('data-wa-tooltip-icon') || false;
+            that.template = that.options.template || that.$wrapper.getAttribute('data-wa-tooltip-template') || false
+
+            that.wa_url =  window.wa_url || '/';
+
+            //
+            that.options.arrow = that.options.arrow || false;
+            if (that.icon) {
+                that.options.allowHTML = true;
+            }
+
+            // INIT
+            if (window.Popper && window.tippy) {
+                that.init()
+            } else {
+                // DYNAMIC LOAD SOURCE
+                (async () => {
+                    await import(`${that.wa_url}wa-content/js/tippy/popper.min.js`).then((async () => {
+                        await import(`${that.wa_url}wa-content/js/tippy/wa.tooltip.js`).then(() => that.init())
+                    }))
+                })()
+            }
+        }
+
+        Tooltip.prototype.init = function () {
+            let that = this;
+
+            that.options.onCreate = function (tooltip) {
+                that.setIcon(tooltip);
+                that.setClass(tooltip);
+            }
+
+            that.setContent();
+            that.misc();
+
+            const tooltip = tippy(that.$wrapper, that.options);
+
+            /* remove tooltip without text*/
+            if (!tooltip.popper.innerText) {
+                tooltip.destroy()
+            }
+
+            that.$wrapper.dataset.tooltip = tooltip;
+        };
+
+        Tooltip.prototype.setContent = function () {
+            let that = this;
+            if (that.template) {
+                that.options.content = function () {
+                    const $template = document.querySelector(that.template);
+
+                    if ($template) {
+                        return $template.innerHTML;
+                    }
+                };
+
+                that.options.allowHTML = true;
+            }
+        };
+
+        Tooltip.prototype.misc = function () {
+            let that = this;
+            /* Set cursor pointer if event trigger is Click */
+            if (that.is_click) {
+                that.$wrapper.style.cursor = 'pointer'
+            }
+        };
+
+        Tooltip.prototype.setClass = function (tooltip) {
+            let that = this;
+            let $tooltip_content = tooltip.popper.querySelector('.wa-tooltip-content')
+            if (that.tooltip_class) {
+                that.tooltip_class.split(' ').forEach((_class) => {
+                    $tooltip_content.classList.add(_class);
+                })
+                /* Remove tooltips arrow because we`re don`t know correct color it */
+                tooltip.setProps({ arrow: false });
+            }
+        };
+
+        Tooltip.prototype.setIcon = function (tooltip) {
+            let that = this;
+            if (that.icon) {
+                tooltip.popper
+                    .querySelector('.wa-tooltip-content')
+                    .insertAdjacentHTML('afterBegin',`<i class="${that.icon}"></i>`);
+
+                tooltip.setProps({ allowHTML: true });
+            }
+        };
+
+        return Tooltip;
+
+    })($);
+
+    const plugin_name = "tooltip";
+
+    $.fn.waTooltip = function(plugin_options) {
+        let return_instance = ( typeof plugin_options === "string" && plugin_options === plugin_name),
+            $items = this,
+            result = this;
+
+        plugin_options = ( typeof plugin_options === "object" ? plugin_options : {});
+
+        if (return_instance) { result = getInstance(); } else { init(); }
+
+        return result;
+
+        function init() {
+            $items.each( function(index, item) {
+                const $wrapper = $(item);
+
+                if (!$wrapper.data(plugin_name)) {
+                    let options = $.extend(true, plugin_options, { $wrapper });
+
+                    $wrapper.data(plugin_name, new Tooltip(options));
+                }
+            });
+        }
+
+        function getInstance() {
+            return $items.first().data(plugin_name);
+        }
+    };
+
+})(jQuery);
+
 
 /**
  * @description upload component

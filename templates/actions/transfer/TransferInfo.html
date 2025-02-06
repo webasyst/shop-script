@@ -105,7 +105,7 @@
                                     </td>
                                     <td>
                                         <a href="products/{$sku.product_id}/" class="s-product-name" target="_blank">{$sku.product_name|escape}</a>
-                                        <span class="s-sku-name hint">{if $sku.name}{$sku.name|escape}{else}{$sku.sku_code|escape}{/if}</span>
+                                        <span class="s-sku-name hint">{$sku.sku_code|escape}{if $sku.sku_code && $sku.name}, {/if}{if $sku.name}{$sku.name|escape}{/if}</span>
                                     </td>
                                     <td class="nowrap align-right">
                                         <span class="gray">&times;</span>

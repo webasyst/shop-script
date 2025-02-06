@@ -2189,7 +2189,11 @@ SQL;
 
         $order_data['total'] = $order_data['shipping'];
         foreach ($order_data['items'] as $item) {
-            $order_data['total'] += $item['price'] * $item['quantity'];
+            $item_subtotal = $item['price'] * $item['quantity'];
+            if (isset($item['tax_included']) && empty($item['tax_included']) && !empty($item['tax_rate'])) {
+                $item_subtotal *= 1 + $item['tax_rate']/100;
+            }
+            $order_data['total'] += $item_subtotal;
         }
 
         $order_data['total'] -= $order_data['discount'];

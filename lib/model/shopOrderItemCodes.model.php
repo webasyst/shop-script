@@ -102,9 +102,11 @@ class shopOrderItemCodesModel extends waModel
         foreach ($order_items as &$item) {
             $item['expected_product_code_blocks_count'] = $item['quantity'];
             if (!empty($item['product_codes'])) {
-                foreach($item['product_codes'] as $code) {
+                foreach($item['product_codes'] as &$code) {
+                    $code['values'] = array_values($code['values']);
                     $item['expected_product_code_blocks_count'] = max($item['expected_product_code_blocks_count'], count($code['values']));
                 }
+                unset($code);
             }
         }
         unset($item);

@@ -173,7 +173,7 @@ class shopOrderAction extends waViewAction
         if (isset($order_data_array['items'])) {
             foreach ($order_data_array['items'] as $item) {
                 if (empty($item['tax_included'])) {
-                    $not_included_tax += $item['price'] * $item['quantity'] / 100 * $item['tax_percent'];
+                    $not_included_tax += ($item['price'] * $item['quantity'] - ifset($item, 'total_discount', 0)) / 100 * $item['tax_percent'];
                 }
             }
         }

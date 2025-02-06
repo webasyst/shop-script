@@ -18,6 +18,7 @@
             that.locales = options["locales"];
             that.urls = options["urls"];
             that.lang = options["lang"];
+            that.can_use_smarty = options["can_use_smarty"];
 
             //
             that.max_file_size = options["max_file_size"];
@@ -118,6 +119,10 @@
                         sku_mod.stock[stock_id] = "";
                     }
                 });
+
+                if (!$.wa_shop_products.stockVerification(sku_mod.stock, that.stocks)) {
+                    return;
+                }
 
                 updateVirtualStockValue(sku_mod);
 
@@ -2458,11 +2463,21 @@
 
             var html_editor = null,
                 wysiwyg_redactor = null,
-                active_type_id = "wysiwyg",
+                active_type_id = activeType(),
                 confirmed = false;
+
+            if (that.can_use_smarty) {
+                const val = String($textarea.val()).trim();
+                if (val && $.wa_shop_products.containsSmartyCode(val)) {
+                    active_type_id = 'html';
+                }
+            }
 
             $section.find(".js-editor-type-toggle").waToggle({
                 type: "tabs",
+                ready: function(toggle) {
+                    toggle.$wrapper.find("[data-id=\"" + active_type_id + "\"]:first").trigger("click");
+                },
                 change: function(event, target, toggle) {
                     onTypeChange($(target).data("id"));
                 }
@@ -2628,7 +2643,10 @@
                             if (!html_editor) {
                                 html_editor = initAce($html_wrapper, $textarea);
                             }
-                            html_editor.session.setValue($textarea.val());
+                            if (html_editor.session.getValue() !== $textarea.val()) {
+                                html_editor.session.setValue($textarea.val());
+                            }
+                            activeType(type_id);
                             break;
                         case "wysiwyg":
                             $html_wrapper.hide();
@@ -2637,11 +2655,33 @@
                                 wysiwyg_redactor = initRedactor($wysiwyg_wrapper, $textarea);
                             }
                             $textarea.redactor("code.set", $textarea.val());
+                            activeType(type_id);
                             break;
                         default:
                             break;
                     }
                     active_type_id = type_id;
+                }
+            }
+
+            function activeType(value) {
+                var white_list = ["wysiwyg", "html"];
+
+                value = (typeof value === "string" ? value : null);
+
+                if (value) {
+                    if (white_list.indexOf(value) >= 0) {
+                        localStorage.setItem("shop/editor", value);
+                    }
+                } else {
+                    var result = white_list[0];
+
+                    var storage = localStorage.getItem("shop/editor");
+                    if (storage && (white_list.indexOf(storage) >= 0)) {
+                        result = storage;
+                    }
+
+                    return result;
                 }
             }
         };

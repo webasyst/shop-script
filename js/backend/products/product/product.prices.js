@@ -67,6 +67,10 @@
                     }
                 });
 
+                if (!$.wa_shop_products.stockVerification(sku_mod.stock, that.stocks)) {
+                    return;
+                }
+
                 updateVirtualStockValue(sku_mod);
 
                 that.updateModificationStocks(sku_mod);

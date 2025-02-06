@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.4.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -4213,8 +4213,8 @@ msgstr[2] "%d отзывов о"
 msgid "Use HTTPS for checkout and personal accounts"
 msgstr "Использовать защищенное HTTPS-соединение при оформлении заказа и для личного кабинета покупателя"
 
-msgid "Automatically redirect to secure https:// mode for checkout (/checkout/) and personal account (/my/) pages of your online storefront. Make sure you have valid SSL certificate installed for this domain name before enabling this option."
-msgstr "Автоматически включить защищенное соединение https:// для оформления заказа (/checkout/) и личного кабинета покупателя (/my/). Включайте только в том случае, если для вашего домена был приобретен и установлен SSL-сертификат!"
+msgid "Redirect to the secure https:// mode on personal customer account and checkout pages. Make sure you have an SSL certificate installed for your domain name before enabling this option."
+msgstr "Перенаправлять на защищенное соединение https:// на страницах личного кабинета покупателя и оформления заказа. Включайте только в том случае, если для вашего домена установлен SSL-сертификат."
 
 msgid "Stock information was edited"
 msgstr "Остаток на складе был отредактирован"
@@ -7298,7 +7298,7 @@ msgid "Enable default design"
 msgstr "Включить стандартный стиль дизайна"
 
 msgid "Enable default fallback design"
-msgstr "Использовать дефолтный дизайн"
+msgstr "Использовать стандартный дизайн"
 
 msgid "Logo"
 msgstr "Логотип"
@@ -13482,3 +13482,15 @@ msgstr "Дизайн"
 
 msgid "Add few demo products"
 msgstr "Добавить несколько демотоваров"
+
+msgid "Changing the identifier may affect other settings where this feature is used."
+msgstr "Изменение идентификатора может повлиять на другие настройки, где используется эта характеристика."
+
+msgid "Available are only the features for which values selection in product variants’ properties is enabled."
+msgstr "Доступны только те характеристики, для которых включена возможность выбора значений в свойствах модификаций товара."
+
+msgid "“"
+msgstr "«"
+
+msgid "”"
+msgstr "»"

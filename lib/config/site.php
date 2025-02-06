@@ -224,7 +224,7 @@ return array(
         ),
         'ssl'               => array(
             'name'        => _w('Use HTTPS for checkout and personal accounts'),
-            'description' => _w('Automatically redirect to secure https:// mode for checkout (/checkout/) and personal account (/my/) pages of your online storefront. Make sure you have valid SSL certificate installed for this domain name before enabling this option.'),
+            'description' => _w('Redirect to the secure https:// mode on personal customer account and checkout pages. Make sure you have an SSL certificate installed for your domain name before enabling this option.'),
             'type'        => 'checkbox',
         ),
         'checkout_storefront_id' => array(

@@ -126,20 +126,22 @@ class shopFilter
         $tag_model = new shopTagModel();
         $tags = $tag_model->getAll();
 
-        $features_data = self::getAllTypes(true, false, true);
+        $features_data = self::getAllTypes(true, false, 'tiny');
         usort($features_data, function($f1, $f2) {
             return strnatcasecmp(mb_strtolower(trim($f1['name'])), mb_strtolower(trim($f2['name'])));
         });
 
-        $features_data = $this->formatAllTypes($features_data);
+        // Fetch full info about features that are selected in current filter rules
+        $features_data = $this->formatRuleFeatures($features_data);
 
+        $features_data = $this->formatAllTypes($features_data);
         return [
             'categories' => $categories,
             'sets' => $sets,
             'types' => $types,
             'storefronts' => $storefronts,
             'tags' => $tags,
-            'features' => $features_data
+            'features' => $features_data,
         ];
     }
 
@@ -280,7 +282,18 @@ class shopFilter
         unset($field);
 
         $features = self::getFilterFeatures();
-        if ($format_features) {
+        if ($format_features === 'tiny') {
+            $features = array_map(function($f) {
+                return [
+                    'id' => $f['id'],
+                    'code' => $f['code'],
+                    'name' => $f['name'],
+                    'rule_type' => $f['rule_type'],
+                    'selectable' => $f['selectable'],
+                    'type' => $f['type'],
+                ];
+            }, $features);
+        } else if ($format_features) {
             $selectable_values = shopPresentation::addSelectableValues($features);
             $features = shopProdSkuAction::formatFeatures($selectable_values, true, false);
         }
@@ -323,6 +336,17 @@ class shopFilter
         return $options;
     }
 
+    public static function getFeatureTypes($ids=null)
+    {
+        if ($ids) {
+            $ids = (array) $ids;
+        }
+        $features = self::getFilterFeatures($ids);
+        $selectable_values = shopPresentation::addSelectableValues($features);
+        $features = shopProdSkuAction::formatFeatures($selectable_values, true, false);
+        return $features;
+    }
+
     /**
      * @param array $items
      * @return array
@@ -349,7 +373,7 @@ class shopFilter
         }
 
         foreach ($items as &$item) {
-            if ($item['display_type'] !== 'feature') {
+            if (isset($item['display_type']) && $item['display_type'] !== 'feature') {
                 if ($item['render_type'] == 'range') {
                     $item['options'] = [
                         ['name' => '', 'value' => ''],
@@ -436,6 +460,38 @@ class shopFilter
         }
 
         return $items;
+    }
+
+    protected function formatRuleFeatures($features_data)
+    {
+        $feature_ids = [];
+        foreach ($this->filter['rules'] as $rule) {
+            if (mb_strpos($rule['rule_type'], 'feature_') === 0) {
+                $feature_ids[substr($rule['rule_type'], 8)][ifset($rule, 'rule_params', null)] = 1;
+            }
+        }
+        if ($feature_ids) {
+            $replace_features = [];
+            foreach (shopFilter::getFeatureTypes(array_keys($feature_ids)) as $f) {
+                $replace_features[$f['rule_type']] = $f;
+
+                if (!empty($f['options'])) {
+                    $replace_features[$f['rule_type']]['options'] = [];
+                    foreach ($f['options'] as $opt) {
+                        if (isset($feature_ids[$f['id']][ifset($opt, 'value', null)])) {
+                            $replace_features[$f['rule_type']]['options'][] = $opt;
+                        }
+                    }
+                }
+            }
+            foreach ($features_data as &$f) {
+                if (isset($replace_features[$f['rule_type']])) {
+                    $f = $replace_features[$f['rule_type']];
+                }
+            }
+            unset($f);
+        }
+        return $features_data;
     }
 
     /**
@@ -643,10 +699,14 @@ class shopFilter
         return $correct_params;
     }
 
-    protected static function getFilterFeatures()
+    protected static function getFilterFeatures($ids=null)
     {
         $feature_model = new shopFeatureModel();
-        $features = $feature_model->select('*, CONCAT("feature_", id) AS `rule_type`')->where('`type` != "text" AND `type` != "divider" AND `type` NOT LIKE "2d.%" AND `type` NOT LIKE "3d.%" AND `parent_id` IS NULL')->fetchAll('rule_type');
+        $query = $feature_model->select('*, CONCAT("feature_", id) AS `rule_type`')->where('`type` != "text" AND `type` != "divider" AND `type` NOT LIKE "2d.%" AND `type` NOT LIKE "3d.%" AND `parent_id` IS NULL');
+        if ($ids) {
+            $query = $query->where('id IN (?)', [$ids]);
+        }
+        $features = $query->fetchAll('rule_type');
 
         foreach ($features as &$feature) {
             $feature['replaces_previous'] = empty($feature['multiple']);

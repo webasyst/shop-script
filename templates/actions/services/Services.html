@@ -5,10 +5,10 @@
 <div class="article-body">
 {* SKELETON PAGE *}
 <div id="skeleton_services">
-    {include "./ServicesSkeleton.html" nocache}
+    {include "./ServicesSkeleton.html" inline}
 </div>
 {* PAGE *}
-<div class="flexbox">
+<div class="flexbox" data-skeleton="#skeleton_services">
 <div class="sidebar">
     <ul class="menu" id="s-services-list">
         {foreach $services as $item}
@@ -256,6 +256,13 @@
 </div>
 
 <script>
+    $('#skeleton_services').skeletonLoader({
+        content: '[data-skeleton="#skeleton_services"]',
+        show: true,
+        delay: 250,
+        deleteSkeleton: false
+    });
+    $.repeatShowSkeleton = () => {};
     $(function() {
         document.title = '{$service.name|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
         $.product_services.init({
@@ -264,12 +271,15 @@
             count: {$count}
         });
 
-        $('#skeleton_services').skeletonLoader({
-            content: '[data-skeleton="#skeleton_promo"]',
-            delay: 500,
-            show: true
+        $('#s-services-list li a').on('click', function () {
+            if ($(this).attr('href') === location.hash) {
+                return;
+            }
+            $.repeatShowSkeleton = () => $.skeletonLoader.repeatShow();
+            setTimeout(() => {
+                $.repeatShowSkeleton();
+            }, 150);
         });
-
         $.skeletonLoader.hide();
     });
 </script>

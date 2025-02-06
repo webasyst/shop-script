@@ -33,8 +33,11 @@ class shopLoginAction extends waLoginAction
             $url = $referer;
         } else if ($auth_referer) {
             $url = $auth_referer;
-        } elseif ($referer != wa()->getRouteUrl('/login')) {
-            $url = $referer;
+        } else {
+            $login_url = wa()->getRouteUrl('/login');
+            if (!strncasecmp($referer, $login_url, strlen($login_url))) {
+                $url = $referer;
+            }
         }
         if (empty($url)) {
             if (waRequest::param('secure')) {

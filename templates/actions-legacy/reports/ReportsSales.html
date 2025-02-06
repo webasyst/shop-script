@@ -493,6 +493,6 @@
 
 
 })();</script>
-{if method_exists($wa->installer, 'reviewWidget')}
+{if $wa->installer && method_exists($wa->installer, 'reviewWidget')}
     {$wa->installer->reviewWidget('app/shop')}
 {/if}

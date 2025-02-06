@@ -14,6 +14,7 @@
             that.tooltips = options["tooltips"];
             that.locales = options["locales"];
             that.urls = options["urls"];
+            that.can_use_smarty = options["can_use_smarty"];
 
             // VUE JS MODELS
             that.lang = options["lang"];
@@ -774,6 +775,13 @@
                         wysiwyg_redactor = null,
                         active_type_id = activeType(),
                         confirmed = false;
+
+                    if (that.can_use_smarty) {
+                        const val = String($textarea.val()).trim();
+                        if (val && $.wa_shop_products.containsSmartyCode(val)) {
+                            active_type_id = 'html';
+                        }
+                    }
 
                     $section.find(".js-editor-type-toggle").waToggle({
                         type: "tabs",

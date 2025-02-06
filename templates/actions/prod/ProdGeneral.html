@@ -1383,7 +1383,8 @@
 
                     stocks: {$stocks|array_values|json_encode},
                     product: {$formatted_product|json_encode},
-                    currencies: {$currencies|json_encode}
+                    currencies: {$currencies|json_encode},
+                    can_use_smarty: {$wa->shop->config('can_use_smarty')|json_encode}
                 });
 
                 $(document).trigger("wa_product_section_change", "product-general");

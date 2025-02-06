@@ -12,7 +12,11 @@
                     <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin “%s” is installed and working.`]'}</strong>
                     <br>
                     <br>
-                    {sprintf('[`Customize this print form in <a href="%s">Settings &rarr; Print forms</a>`]', '?action=settings#/printform/'|cat:$plugin_id|cat:'/')}
+                    {if !empty($settings_disclaimer_html)}
+                        {$settings_disclaimer_html}
+                    {else}
+                        {sprintf('[`Customize this print form in <a href="%s">Settings &rarr; Print forms</a>`]', '?action=settings#/printform/'|cat:$plugin_id|cat:'/')}
+                    {/if}
                 </p>
             </div>
         {else}
@@ -48,7 +52,9 @@
                 <strong>{$plugin_info.name|default:$plugin_id|string_format:'[`Plugin “%s” is installed and working.`]'}</strong>
                 <br>
                 <br>
-                {if !empty($plugin_info.importexport)}
+                {if !empty($settings_disclaimer_html)}
+                    {$settings_disclaimer_html}
+                {elseif !empty($plugin_info.importexport)}
                     {sprintf('[`To use this plugin, proceed to <a href="%s">Import / Export &rarr; %s</a>.`]', '?action=importexport#/'|cat:$plugin_id|cat:'/', $plugin_info.name|default:$plugin_id)}
                 {else}
                     [`No configuration options are available for this plugin.`]

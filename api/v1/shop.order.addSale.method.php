@@ -68,6 +68,7 @@ class shopOrderAddSaleMethod extends shopApiMethod
     {
         $items_data = $this->post('items', true);
 
+        $duplicate_sku_items = [];
         $items = $product_ids = $sku_ids = $service_ids = $variant_ids = [];
         foreach ($items_data as $item) {
             $sku_ids[$item['sku_id']] = $item['sku_id'];
@@ -76,10 +77,18 @@ class shopOrderAddSaleMethod extends shopApiMethod
                 $variant_ids[$item['service_variant_id']] = $item['service_variant_id'];
             } else {
                 unset($item['service_variant_id']);
-                $items[$item['sku_id']] = ifset($items, $item['sku_id'], []) + $item;
+                if (isset($items[$item['sku_id']]['sku_id'])) {
+                    // this allows for multiple items with the same sku_id
+                    // useful e.g. when same sku_id is added to cart with different services
+                    $duplicate_sku_items[] = $items[$item['sku_id']];
+                    $items[$item['sku_id']] = $item;
+                } else {
+                    $items[$item['sku_id']] = ifset($items, $item['sku_id'], []) + $item;
+                }
             }
         }
-        unset($items_data);
+        $items = array_merge($duplicate_sku_items, array_values($items));
+        unset($items_data, $duplicate_sku_items);
 
         $sku_model = new shopProductSkusModel();
         $skus = $sku_model->getByField('id', $sku_ids, 'id');

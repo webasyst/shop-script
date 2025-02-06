@@ -1155,6 +1155,7 @@
 
                             $.post(that.urls["filter_rule_add"], data, "json")
                                 .done((response) => {
+                                    that.clearTableScrollPosition();
                                     if (response.status === "ok") {
                                         that.reload({
                                             page: 1,
@@ -1919,7 +1920,6 @@
                                     goToProduct: function(product) {
                                         const url = $.wa_shop_products.section_url + product.id + "/";
                                         $.wa_shop_products.router.load(url);
-                                        that.animate(true);
                                     }
                                 },
                                 mounted: function() {
@@ -2260,6 +2260,7 @@
                                     },
                                     filterUse: function(filter) {
                                         that.broadcast.getPresentationsIds().done( function(ids) {
+                                            that.clearTableScrollPosition();
                                             var data = {
                                                 filter: filter.id,
                                                 presentation: that.presentation.id,
@@ -2774,6 +2775,7 @@
 
                                             $.post(that.urls["filter_rule_delete"], data, "json")
                                                 .done( function(response) {
+                                                    that.clearTableScrollPosition();
                                                     that.reload({
                                                         page: 1,
                                                         presentation: (response.data.new_presentation_id || that.presentation.id)
@@ -2793,6 +2795,7 @@
 
                                             $.post(that.urls["filter_rule_delete_all"], data, "json")
                                                 .done( function(response) {
+                                                    that.clearTableScrollPosition();
                                                     that.reload({
                                                         page: 1,
                                                         presentation: (response.data.new_presentation_id || that.presentation.id)
@@ -2859,6 +2862,7 @@
 
                                         $.post(that.urls["filter_rule_delete"], data, "json")
                                             .done( function(response) {
+                                                that.clearTableScrollPosition();
                                                 that.reload({
                                                     page: 1,
                                                     presentation: (response.data.new_presentation_id || that.presentation.id)
@@ -6003,22 +6007,17 @@
                                 return result.join(" ");
                             },
                             showColumnManager: function() {
-                                var columns_ready = getColumns();
-
                                 $.waDialog({
                                     html: that.templates["dialog-list-column-manager"],
                                     options: {
-                                        ready: columns_ready,
+                                        columns_ready: getColumns(),
                                     },
                                     onOpen: function($dialog, dialog) {
-                                        columns_ready.then(function(columns) {
-                                            that.initDialogColumnManager($dialog, dialog, columns);
-                                        });
+                                        that.initDialogColumnManager($dialog, dialog);
                                     }
                                 });
 
                                 function getColumns() {
-
                                     var ready = $.Deferred();
 
                                     (function(resolve) {
@@ -6482,7 +6481,7 @@
                         if (scroll_top > 0) {
                             sessionStorage.setItem("shop_products_table_scroll_top", scroll_top);
                         } else {
-                            sessionStorage.removeItem("shop_products_table_scroll_top");
+                            that.clearTableScrollPosition();
                         }
                     },
                     setScrollProductsSection: function(scroll_top) {
@@ -6817,11 +6816,10 @@
         // DIALOGS
 
         Page.prototype.initDialogFeatureValue = function($dialog, dialog) {
-            var that = this;
+            const that = this;
+            const $section = $dialog.find(".js-vue-section");
 
-            var $section = $dialog.find(".js-vue-section");
-
-            var vue_model = Vue.createApp({
+            Vue.createApp({
                 data() {
                     return {
                         custom_html_error: Vue.ref(false),
@@ -6829,7 +6827,8 @@
                         items_keys: {},
                         states: {
                             locked: false,
-                            is_loading: false
+                            is_loading: false,
+                            is_fetching: false
                         }
                     }
                 },
@@ -7197,6 +7196,28 @@
                 },
                 created: function () {
                     $section.css("visibility", "");
+
+                    const { id } = this.item_data;
+                    if (!id) {
+                        return;
+                    }
+
+                    this.states.is_fetching = true;
+                    $.post(that.urls["features_get"], { id }, "json")
+                        .always(() => {
+                            this.states.is_fetching = false;
+                        })
+                        .done((r) => {
+                            this.$nextTick(() => {
+                                dialog.resize();
+                            });
+
+                            if (r?.status === "ok" && Array.isArray(r?.data) && r.data[0]) {
+                                this.item_data = getItemData(r.data[0]);
+                            } else {
+                                console.error(r);
+                            }
+                        });
                 },
                 mounted: function() {
                     var self = this,
@@ -7211,8 +7232,10 @@
                 }
             }).mount($section[0]);
 
-            function getItemData() {
-                let item_data = $.wa.clone(dialog.options.item_data);
+            function getItemData(item_data) {
+                if (!item_data) {
+                    item_data = $.wa.clone(dialog.options.item_data);
+                }
 
                 // Если НЕ характеристика
                 if (!item_data.type) {
@@ -7278,18 +7301,17 @@
             }
         };
 
-        Page.prototype.initDialogColumnManager = function($dialog, dialog, columns) {
-            var that = this;
-
-            var $section = $dialog.find(".js-vue-section");
-
-            var app = Vue.createApp({
+        Page.prototype.initDialogColumnManager = function($dialog, dialog) {
+            const that = this;
+            const $section = $dialog.find(".js-vue-section");
+            const app = Vue.createApp({
                 data() {
                     return {
-                        columns: columns,
+                        columns: [],
                         states: {
                             locked: false,
-                            column_expand: false
+                            column_expand: false,
+                            is_fetching: false
                         }
                     }
                 },
@@ -7348,42 +7370,40 @@
                         props: ["column"],
                         emits: ["column_enabled", "column_expanded"],
                         data: function() {
-                            var self = this;
-
-                            switch (self.column.id) {
+                            switch (this.column.id) {
                                 case "name":
-                                    if (!self.column.settings.long_name_format) {
-                                        self.column.settings["long_name_format"] = "";
+                                    if (!this.column.settings.long_name_format) {
+                                        this.column.settings["long_name_format"] = "";
                                     }
                                     break;
                                 case "summary":
-                                    if (!self.column.settings.display) {
-                                        self.column.settings["display"] = "text";
+                                    if (!this.column.settings.display) {
+                                        this.column.settings["display"] = "text";
                                     }
                                     break;
                                 case "tags":
                                 case "categories":
                                 case "sets":
-                                    if (!self.column.settings.visible_count) {
-                                        self.column.settings["visible_count"] = "3";
+                                    if (!this.column.settings.visible_count) {
+                                        this.column.settings["visible_count"] = "3";
                                     }
                                 case "price":
                                 case "compare_price":
                                 case "purchase_price":
                                 case "base_price":
-                                    if (!self.column.settings.format) {
-                                        self.column.settings["format"] = "origin";
+                                    if (!this.column.settings.format) {
+                                        this.column.settings["format"] = "origin";
                                     }
                                     break;
                             }
 
                             var settings = null;
-                            if (Object.keys(self.column.settings).length) {
-                                settings = self.column.settings;
+                            if (Object.keys(this.column.settings).length) {
+                                settings = this.column.settings;
                             }
 
                             return {
-                                column_info: that.columns[self.column.id],
+                                column_info: that.columns[this.column.id],
                                 settings: settings,
                                 states: {
                                     timer_enable: 0,
@@ -7398,9 +7418,8 @@
                         delimiters: ['{ { ', ' } }'],
                         watch: {
                             "column.enabled": function(value) {
-                                var self = this;
                                 if (value === true) {
-                                    self.$emit("column_enabled", self.column);
+                                    this.$emit("column_enabled", this.column);
                                 }
                             }
                         },
@@ -7410,30 +7429,26 @@
                         },
                         computed: {
                             is_stock: function() {
-                                let self = this;
-                                return (self.column_info.id.indexOf('stocks_') === 0);
+                                return (this.column_info.id.indexOf('stocks_') === 0);
                             },
                             is_virtual_stock: function() {
-                                let self = this;
-                                return (self.column_info.id.indexOf('stocks_v') === 0);
+                                return (this.column_info.id.indexOf('stocks_v') === 0);
                             },
                             is_feature: function() {
-                                let self = this;
-                                return (self.column_info.id.indexOf('feature_') >= 0);
+                                return (this.column_info.id.indexOf('feature_') >= 0);
                             },
                             item_class: function() {
-                                let self = this,
-                                    column = self.column,
+                                const column = this.column,
                                     result = [];
 
                                 if (column.states.move) { result.push("is-moving"); }
                                 if (column.states.highlighted) { result.push("is-highlighted"); }
-                                if (self.states.show_settings) { result.push("is-expanded"); }
-                                if (self.column.states.ready) { result.push("is-ready"); }
-                                if (self.states.hidden) { result.push("fade-out"); }
-                                if (self.states.jump_animation) { result.push("is-jump-enabled"); }
-                                if (self.column.enabled) { result.push("jump-down"); }
-                                if (!self.column.enabled) { result.push("jump-up"); }
+                                if (this.states.show_settings) { result.push("is-expanded"); }
+                                if (this.column.states.ready) { result.push("is-ready"); }
+                                if (this.states.hidden) { result.push("fade-out"); }
+                                if (this.states.jump_animation) { result.push("is-jump-enabled"); }
+                                if (this.column.enabled) { result.push("jump-down"); }
+                                if (!this.column.enabled) { result.push("jump-up"); }
 
                                 // Включает возможность перемещения
                                 if (column.enabled) { result.push("js-column-wrapper"); }
@@ -7459,36 +7474,28 @@
                             }
                         },
                         mounted: function() {
-                            var self = this;
-
-                            if (self.column.states.ready) {
-                                self.states.hidden = true;
-                                self.column.states.highlighted = true;
-                                setTimeout( function () {
-                                    self.states.hidden = false;
+                            if (this.column.states.ready) {
+                                this.states.hidden = true;
+                                this.column.states.highlighted = true;
+                                setTimeout(() => {
+                                    this.states.hidden = false;
                                 }, 10);
-                                setTimeout( function() {
-                                    self.column.states.highlighted = false;
+                                setTimeout(() => {
+                                    this.column.states.highlighted = false;
                                 }, 1000);
 
                             } else {
-                                self.column.states.ready = true;
+                                this.column.states.ready = true;
                             }
                         }
                     }
                 },
                 computed: {
                     active_columns: function() {
-                        var self = this;
-                        return self.columns.filter( function(column) {
-                            return column.enabled;
-                        });
+                        return this.columns.filter(col => col.enabled);
                     },
                     inactive_columns: function() {
-                        var self = this;
-                        return self.columns.filter( function(column) {
-                            return !column.enabled;
-                        });
+                        return this.columns.filter(col => !col.enabled);
                     }
                 },
                 methods: {
@@ -7498,9 +7505,7 @@
                         var $document = $(document);
 
                         var drag_data = {},
-                            over_locked = false,
-                            is_change = false,
-                            timer = 0;
+                            over_locked = false;
 
                         var columns = self.columns,
                             columns_object = $.wa.construct(columns, "id");
@@ -7566,11 +7571,8 @@
                                 var new_index = over_index + (before ? 0 : 1);
 
                                 columns.splice(new_index, 0, drag_data.move_column);
-                                is_change = true;
                             }
                         }
-
-                        //
 
                         function getColumn(column_id) {
                             return (columns_object[column_id] ? columns_object[column_id] : null);
@@ -7660,21 +7662,20 @@
                                 }
                             }
                         }
-                    },
-
-                    update: function() {
-                        var self = this;
                     }
                 },
                 created: function () {
                     $section.css("visibility", "");
-                },
-                mounted: function () {
-                    var self = this;
 
-                    dialog.resize();
-
-                    self.initDragAndDrop( $(self.$el.parentElement) );
+                    this.states.is_fetching = true;
+                    dialog.options.columns_ready.then((columns) => {
+                        this.columns = columns;
+                        this.states.is_fetching = false;
+                        this.$nextTick(() => {
+                            dialog.resize()
+                            this.initDragAndDrop($(this.$el.parentElement));
+                        });
+                    });
                 }
             });
             app.mount($section[0]);
@@ -9700,6 +9701,10 @@
 
                 return result;
             }
+        };
+
+        Page.prototype.clearTableScrollPosition = function () {
+            sessionStorage.removeItem("shop_products_table_scroll_top");
         };
 
         return Page;

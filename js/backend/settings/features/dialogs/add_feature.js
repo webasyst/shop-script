@@ -56,7 +56,9 @@
                     .addClass(is_enabled ? "text-gray" : "text-light-gray");
 
                 if (that.show_skus_warning && !skus_message_is_displayed) {
-                    $(this).closest('.s-field-section').append(that.templates["skus_warning_message"]);
+                    const $field_section = $(this).closest('.s-field-section');
+                    $field_section.append(that.templates["skus_warning_message"]);
+                    $field_section.find('[data-wa-tooltip-template]').waTooltip();
                     skus_message_is_displayed = true;
                 }
             });
@@ -121,6 +123,8 @@
                     return result;
                 }
             }
+
+            that.$wrapper.find('[data-wa-tooltip-content]').waTooltip();
         };
 
         Dialog.prototype.initTransliterate = function() {
@@ -620,6 +624,7 @@
 
                 if (html) {
                     $kind_message = $(html).appendTo($append_wrapper);
+                    $kind_message.find('[data-wa-tooltip-content]').waTooltip();
                     valueSectionToggle(false);
                 }
             }

@@ -90,9 +90,9 @@
             <header class="dialog-header">
                 <h1 class="s-title">{$_title|escape}</h1>
                 {if !empty($product_id)}
-                    <div class="wa-message wa-small info flexbox space-8">
-                        <div class="message-icon"><i class="fas fa-info-circle"></i></div>
-                        <div class="message-text wide">[`The feature will be available for all products of this type.`]</div>
+                    <div class="alert small">
+                        <i class="fas fa-info-circle custom-mr-4"></i>
+                        [`The feature will be available for all products of this type.`]
                     </div>
                 {/if}
                 {if $_is_divider}
@@ -110,17 +110,31 @@
                     <div class="flexbox wa-table-box fixed space-10">
                         <div class="s-column">
                             <div class="s-field-section">
-                                <label class="s-label">[`Name`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`This feature’s name visible both in the storefront and in the store backend.`]</span></span></label>
+                                <label class="s-label">
+                                    [`Name`]
+                                    <span data-wa-tooltip-content="[`This feature’s name visible both in the storefront and in the store backend.`]">
+                                        <i class="fas fa-question-circle"></i>
+                                    </span>
+                                </label>
                                 <input class="s-field js-name-field" type="text" name="feature[name]" value="{$feature.name|default:""|escape}" required>
                             </div>
 
                             <div class="s-field-section">
-                                <label class="s-label">[`Identifier`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`It is used to uniquely identify a feature within the system. For instance, you may use it to show some feature-related information in a design template.`]</span></span></label>
+                                <label class="s-label">
+                                    [`Identifier`]
+                                    <span data-wa-tooltip-content="[`It is used to uniquely identify a feature within the system. For instance, you may use it to show some feature-related information in a design template.`]">
+                                        <i class="fas fa-question-circle"></i>
+                                    </span>
+                                </label>
                                 {if $feature.builtin}
                                     <input type="hidden" name="feature[code]" value="{$feature.code|default:""|escape}">
                                     <input class="s-field js-code-field" type="text" value="{$feature.code|default:""|escape}" disabled>
                                 {else}
                                     <input class="s-field js-code-field" type="text" name="feature[code]" value="{$feature.code|default:""|escape}" required>
+                                    {if !empty($feature.code)}
+                                        <br>
+                                        <span class="hint">[`Changing the identifier may affect other settings where this feature is used.`]</span>
+                                    {/if}
                                 {/if}
                             </div>
 
@@ -139,7 +153,10 @@
                                         <span class="s-icon-text icon text-gray">
                                             <i class="js-icon fas {if !empty($feature.visible_in_frontend)}fa-eye{else}fa-eye-slash text-light-gray{/if}"></i>
                                         </span>
-                                        <span class="s-text">[`Show on website`]</span>&nbsp;<span class="shop-tooltip"><i class="icon10 info"></i><span>[`Disable to make the feature visible only to the store administrator and not visible to visitors in the storefront.`]</span></span>
+                                        <span class="s-text">[`Show on website`]</span>&nbsp;
+                                        <span data-wa-tooltip-content="[`Disable to make the feature visible only to the store administrator and not visible to visitors in the storefront.`]">
+                                            <i class="fas fa-question-circle"></i>
+                                        </span>
                                     </label>
                                     {if empty($_is_divider)}
                                         <label class="s-checkbox-wrapper">
@@ -159,11 +176,17 @@
                                             <span class="s-text">[`Allow editing of feature values for product SKUs`]</span>&nbsp;
                                             {if !$can_disable_sku}
                                                 {if $feature.code == 'weight'}
-                                                    <span class="shop-tooltip"><i class="icon10 info"></i><span>[`“Weight” is a special feature, which must always be available for editing in product SKUs’ properties.`]</span></span>
+                                                    <span data-wa-tooltip-content="[`“Weight” is a special feature, which must always be available for editing in product SKUs’ properties.`]">
+                                                        <i class="fas fa-question-circle"></i>
+                                                    </span>
                                                 {elseif $feature.code === 'gtin'}
-                                                    <span class="shop-tooltip"><i class="icon10 info"></i><span>[`“GTIN (Global Trade Item Number)” is a special feature, which must always be available for editing in product SKUs’ properties.`]</span></span>
+                                                    <span data-wa-tooltip-content="[`“GTIN (Global Trade Item Number)” is a special feature, which must always be available for editing in product SKUs’ properties.`]">
+                                                        <i class="fas fa-question-circle"></i>
+                                                    </span>
                                                 {else}
-                                                    <span class="shop-tooltip"><i class="icon10 info"></i><span>[`You cannot disable the editing of this feature’s values in product SKUs’ properties, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode.`]</span></span>
+                                                    <span data-wa-tooltip-content="[`You cannot disable the editing of this feature’s values in product SKUs’ properties, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode.`]">
+                                                        <i class="fas fa-question-circle"></i>
+                                                    </span>
                                                 {/if}
                                             {/if}
                                         </label>
@@ -255,7 +278,12 @@
                             <div class="s-column">
                                 {* VIEWS *}
                                 <div class="s-field-section js-field-kind-section">
-                                    <label class="s-label">[`Type`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Select the kind of values which you need to be stored in this feature.`]</span></span></label>
+                                    <label class="s-label">
+                                        [`Type`]
+                                        <span data-wa-tooltip-content="[`Select the kind of values which you need to be stored in this feature.`]">
+                                            <i class="fas fa-question-circle"></i>
+                                        </span>
+                                    </label>
                                     <div class="wa-select">
                                         <select class="s-select js-select" name="feature[kind]" {if $feature.builtin}disabled="disabled"{/if}>
                                             {foreach $kinds as $_kind}
@@ -272,7 +300,10 @@
                                 {* FORMATS *}
                                 <div class="s-field-section js-field-format-section" style="{if empty($_active_kind.formats)}display:none;{/if}">
                                     <label class="s-label">
-                                        [`Format`] <span class="shop-tooltip"><i class="icon10 info"></i><span>[`Choose how you want to edit the values of this feature`]</span></span>
+                                        [`Format`]
+                                        <span data-wa-tooltip-content="[`Choose how you want to edit the values of this feature`]">
+                                            <i class="fas fa-question-circle"></i>
+                                        </span>
                                     </label>
                                     {if !empty($_active_kind)}
                                         <div class="wa-select">
@@ -295,7 +326,10 @@
                                 {* FORMAT DEFAULT VALUE *}
                                 <div class="s-field-section js-field-default-unit-section" style="{if empty($_active_kind.dimensions)}display:none;{/if}">
                                     <label class="s-label">
-                                        [`Default measurement unit`] <span class="shop-tooltip right"><i class="icon10 info"></i><span>[`You will be able to select measurement units for feature values when completing them in products’ properties.`]</span></span>
+                                        [`Default measurement unit`]
+                                        <span data-wa-tooltip-content="[`You will be able to select measurement units for feature values when completing them in products’ properties.`]">
+                                            <i class="fas fa-question-circle"></i>
+                                        </span>
                                     </label>
                                     <div class="wa-select">
                                         <select class="s-select js-select" name="feature[default_unit]">
@@ -357,23 +391,32 @@
 
     {strip}
     {capture assign="_kind_warning_message"}
-        <div class="alert warning">
-            <i class="fas fa-exclamation-triangle"></i>&nbsp;
-            <span class="s-text">[`When the feature type is changed, its values for all products are automatically converted to the new type.`]</span>
-            <span class="shop-tooltip right"><i class="fas fa-info-circle"></i><span style="width: 300px;">[`In cases when a feature value cannot be correctly converted to a new data type, such a value may be lost. For instance, when you change the feature type from text to numbers, then text values containing only numbers, such as “100” or “200”, will be converted to corresponding numbers 100 and 200, and all values which have no numerical representation, such as “yes”, “no”, “red”, etc., will be lost and converted to number 0. There will be no option to restore such lost values.`]</span></span>
+        <div class="alert warning small custom-mt-12">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span class="s-text custom-mr-4">[`When the feature type is changed, its values for all products are automatically converted to the new type.`]</span>
+
+            <span data-wa-tooltip-content="[`In cases when a feature value cannot be correctly converted to a new data type, such a value may be lost. For instance, when you change the feature type from text to numbers, then text values containing only numbers, such as “100” or “200”, will be converted to corresponding numbers 100 and 200, and all values which have no numerical representation, such as “yes”, “no”, “red”, etc., will be lost and converted to number 0. There will be no option to restore such lost values.`]">
+                <i class="fas fa-question-circle"></i>
+            </span>
+
         </div>
     {/capture}
 
     {capture assign="_skus_warning_message"}{if $can_disable_sku && $sku_values_count > 0}
-        <div class="alert warning">
-            <i class="fas fa-exclamation-triangle"></i>&nbsp;
-            <span class="s-text">{_w(
+        <div class="alert warning small custom-mt-12">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span class="s-text custom-mr-4">{_w(
                 'If you disable the availability of this feature in product SKUs’ properties, this will delete all its values from %d SKU.',
                 'If you disable the availability of this feature in product SKUs’ properties, this will delete all its values from %d SKUs.',
                 $sku_values_count
             )}</span>
             &nbsp;
-            <span class="shop-tooltip right"><i class="fas fa-info-circle"></i><span style="width: 300px;">[`Deleted will be only feature values stored in <strong>SKUs’</strong> properties. Values stored in <strong>products’</strong> properties will not be affected.`]</span></span>
+            <span data-wa-tooltip-template="#template-deleted-feature-values">
+                <i class="fas fa-question-circle"></i>
+            </span>
+            <div class="wa-tooltip-template" id="template-deleted-feature-values">
+                [`Deleted will be only feature values stored in <strong>SKUs’</strong> properties. Values stored in <strong>products’</strong> properties will not be affected.`]
+            </div>
         </div>
     {/if}{/capture}
     {/strip}

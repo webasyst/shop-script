@@ -11,6 +11,9 @@ if (typeof($) != 'undefined') {
 
             const formChanged = function (show_message) {
                 $(':submit', form).removeClass('green').addClass('yellow');
+                if (show_message) {
+                    $('.js-updated-settings-alert', form).show();
+                }
             };
 
             form.off('change', '.s-size-set input.js-radio', onImageSizeClick)
@@ -75,7 +78,7 @@ if (typeof($) != 'undefined') {
 
             $(':input', form).change(function () {
                 if ($(this).attr('name') !== 'image_save_original') {
-                    formChanged();
+                    formChanged(true);
                 } else {
                     formChanged(false);
                 }

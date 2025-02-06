@@ -48,9 +48,6 @@ h1 i.icon16 { margin-top: 0.3em; }
 
 .dialog-background { z-index: 1052; }
 .dialog-window { z-index: 1052 /* redactor editor z-index */; }
-.dialog .ace { padding: 15px 12px; }
-
-.ace.bordered { border: 1px solid #ddd; }
 
 .block.drop-target.drag-active { padding: 9px; border: 1px dashed #ddd; background: #ffffe0;  }
 .block.drop-target ul li.active { border-top: 2px solid #BB8; background: none; }
@@ -332,8 +329,6 @@ ul.menu-v.with-icons a.rate-clear { margin: 0; padding: 0; }
 
 .s-tag { color: green; margin-right: 10px; }
 
-.fields .s-editor-core-wrapper { border: 1px solid #ddd; margin-top: 0; }
-
 .fields.s-dialog-form .value textarea { width: 400px; height: 100px; }
 .fields.s-dialog-form .name { width: 135px; }
 .fields.s-dialog-form .value { margin-left: 140px; }
@@ -452,7 +447,6 @@ table#product-list td.editor-on form { overflow: visible; }
 #s-fixed-blocks #s-category-list-block:hover #s-forcesort-by-name { display: none; }
 
 .s-product-form.main { min-width: 600px; width: 100%; }
-.s-product-form.descriptions .s-editor-core-wrapper { border: 1px solid #ddd; margin-top: 0; }
 .s-product-form.descriptions .fields { float: none; }
 .s-product-form.descriptions .field.description { padding: 10px 0; }
 .s-product-form.pages { margin-top: -8px; margin-left: -17px; margin-right: -5px; }
@@ -628,7 +622,6 @@ a.s-page-link:hover .count i.icon10 { display: block; }
 .s-page-save-panel { position: fixed; bottom: 0; left: 0; right: 0; background: #eee; padding-left: 470px; }
 
 .block-pages ul li.drag-newposition.active { border-top: 2px solid #BB8; background: none; }
-.s-editor-core-wrapper { background: white; border-top: 1px solid #ddd; position: relative; }
 
 #s-editor-status i.icon16 { margin-top: 6px; }
 
@@ -980,11 +973,6 @@ img.s-app-download-badge { height: 52px !important; max-width: auto; }
 .s-csv-settings table tr td.gray select { color: #aaa; }
 .s-csv-settings table tr td.ignored { color: #ccc !important; text-decoration: line-through; }
 
-.s-csv-settings .wa-csv-message.error {color: #ED2509FF; background: #FF311515; border-color: #FF311515; }
-.s-csv-settings .wa-csv-message.wa-small { font-size: .875rem; line-height: 1.142857142857143em; }
-.s-csv-settings .wa-csv-message { padding: .5rem .75rem; font-size: inherit; line-height: 1.142857142857143em; box-sizing: border-box; border: 1px solid #ddd; border-radius: .25rem; word-break: break-word; }
-.s-csv-settings .wa-csv-message.flexbox { display: flex; }
-.s-csv-settings .wa-csv-message.flexbox > *.wide { flex: 1; }
 .s-csv-settings .svg-inline--fa { width: 1.125em; display: inline-block; font-size: inherit; height: 1em; overflow: visible; vertical-align: -.125em; margin-right: .2rem; }
 .s-csv-settings .fa-exclamation-triangle { color: var(--yellow); }
 .s-csv-settings .block-hint { color: #aaa; font-size: 0.8em; line-height: 1.5em; margin-bottom: 1.5em; }

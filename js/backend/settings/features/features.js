@@ -380,7 +380,7 @@ var ShopFeatureSettingsPage = ( function($) { "use strict";
             that.initSortable();
 
             $(".dropdown.secondary-actions").waDropdown({
-              hover: true,
+              hover: false,
               items: ".menu > li > a",
               update_title: false
             });

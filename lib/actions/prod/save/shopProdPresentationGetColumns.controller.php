@@ -17,7 +17,7 @@ class shopProdPresentationGetColumnsController extends waJsonController
 
         $action = new shopProdListAction();
         $columns = $action->mergeColumns($presentation->getColumnsList(), $active_presentation['columns'], false);
-        $columns = $action->formatColumns($columns);
+        $columns = $action->formatColumns($columns, true);
 
         $this->response = array_values($columns);
     }

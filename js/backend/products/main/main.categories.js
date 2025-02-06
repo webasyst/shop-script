@@ -2931,9 +2931,6 @@
                                                         options: {
                                                             item: self.item,
                                                             onSuccess: function(item) {
-                                                                // console.log( self.item.data );
-                                                                // console.log( item.data );
-
                                                                 switch (item.data.render_type) {
                                                                     case "select":
                                                                         self.item.data["values"] = [item.data.value];
@@ -3591,6 +3588,7 @@
                         item: item,
                         item_data: data_object.item_data,
                         items_keys: data_object.items_keys,
+                        wrapper: $section,
                         states: {
                             locked: false
                         }
@@ -3930,9 +3928,7 @@
                 mounted: function() {
                     const self = this;
 
-                    var $wrapper = $(self.$el);
-
-                    var $autocomplete = $wrapper.find('.js-autocomplete');
+                    const $autocomplete = self.wrapper.find('.js-autocomplete');
                     if ($autocomplete.length) {
                         self.initAutocomplete($autocomplete);
                     }
@@ -3940,7 +3936,7 @@
                     dialog.resize();
 
                     self.$nextTick( function() {
-                        $wrapper.find(":input").first().trigger("focus");
+                        self.wrapper.find(":input").first().trigger("focus");
                     });
                 }
             });
