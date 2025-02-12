@@ -13,7 +13,7 @@
     <div class="value no-shift{if !empty($info.required)} js-required{/if}">
         {* Field data source selector *}
         {if $info.type neq 'adjustable'}
-            {if strpos($info.source,'field:')===0}
+            {if strpos(ifempty($info, 'source', '') ,'field:')===0}
                 <b>{$fields[substr($info.source, 6)]|default:$info.name|escape}</b>
             {else}
                 <b>{$info.source}</b>
@@ -37,7 +37,7 @@
                             {/foreach}
                         {/if}
                         {if !$param && (empty($info.sources) || in_array('custom',$info.sources))}
-                            <option value="text:%s"{if strpos(ifset($info['source']),'text:')===0}{$selected = true} selected{/if}>Пользовательское значение</option>
+                            <option value="text:%s"{if strpos(ifempty($info, 'source', ''), 'text:')===0}{$selected = true} selected{/if}>Пользовательское значение</option>
                         {/if}
 
                     </optgroup>
@@ -112,11 +112,11 @@
 
         {* Field source feature autocomplete *}
         {if !empty($features_autocomplete)}<input type="hidden" name="map[{$type_id}][{$field}][feature]" value="">
-        <input type="search" class="js-autocomplete-feature{if strpos($field,'param')===0}-param{/if}" title="Поиск характеристики по названию или коду" placeholder="Начните набирать название или код характеристики" style="display:none;">
+        <input type="search" class="js-autocomplete-feature{if strpos(ifempty($field, ''), 'param')===0}-param{/if}" title="Поиск характеристики по названию или коду" placeholder="Начните набирать название или код характеристики" style="display:none;">
         {/if}
 
         {* Field source user value *}
-        <input type="text" name="map[{$type_id}][{$field}][text]" class="js-value-custom long" placeholder="Пользовательское значение"{if strpos(ifset($info['source']),'text:')!==0} value="" style="display: none;"{else} value="{$info['source']|regex_replace:'@^text:@':''|escape}"{/if}>
+        <input type="text" name="map[{$type_id}][{$field}][text]" class="js-value-custom long" placeholder="Пользовательское значение"{if strpos(ifempty($info, 'source', ''), 'text:')!==0} value="" style="display: none;"{else} value="{$info['source']|regex_replace:'@^text:@':''|escape}"{/if}>
         <a href="{$js_base_href|default:'#'}/source/select/{$type_id}/{$field}/" class="js-action" style="display: none;"><span class="icon text-red"><i class="fas fa-times-circle"></i></span></a>
         {/if}
 

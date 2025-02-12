@@ -879,7 +879,7 @@
 </script>
 
 {foreach $smarty.capture as $name => $template}
-    {if strpos($name,'template-js')}
+    {if strpos(ifempty($name, ''), 'template-js')}
         <!-- begin {$name} -->
         <script type="text/x-jquery-tmpl" id="{$name}">{$template|regex_replace:'@(^.*-->)|(<!\-\-.*$)@m':''|replace:'</':'<\/'}</script>
         <!-- end {$name} -->

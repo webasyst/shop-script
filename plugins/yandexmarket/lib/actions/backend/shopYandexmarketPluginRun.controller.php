@@ -3665,7 +3665,8 @@ SQL;
                         sort($value);
                         $value = implode('-', $value);
                     } else {
-                        $value = max(0, max($value));
+                        $value[] = 0;
+                        $value = max($value);
                     }
                 } else {
                     $value = null;
@@ -4003,8 +4004,8 @@ SQL;
         if (defined('ENT_XML1')) {
             $flags |= constant('ENT_XML1');
         }
-        $value = htmlspecialchars(trim($value), $flags, $this->encoding);
-        return $value;
+
+        return $value ? htmlspecialchars(trim($value), $flags, $this->encoding) : '';
     }
 
     private function checkMinPrice($price)
