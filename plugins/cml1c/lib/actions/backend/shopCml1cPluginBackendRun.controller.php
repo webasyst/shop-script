@@ -5856,6 +5856,9 @@ SQL;
     private function formatFeature($features, $code, $value)
     {
         $feature_type = ifset($this->data, 'feature_types', $code, shopFeatureModel::TYPE_VARCHAR);
+        if (is_array($value) && isset($value['value']) && isset($value['unit'])) {
+            $value = str_replace('.', ',', (float) $value['value']).' '._w($value['unit']);
+        }
         switch ($feature_type) {
             case shopFeatureModel::TYPE_COLOR:
                 $feature = ifset($features, $code, []);
