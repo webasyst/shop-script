@@ -149,8 +149,12 @@
             <td class="i-column-5 i-right i-column-value">{$order.subtotal|wa_currency:$order.currency|escape}</td>
         </tr>
         <tr>
+            <td class="i-column-4">[`DISCOUNT`]</td>
+            <td class="i-column-5 i-right">{if !empty($order.discount)}{(-1.0*$order.discount)|wa_currency:$order.currency|escape}{else}—{/if}</td>
+        </tr>
+        <tr>
             <td class="i-column-4">[`TAX RATE`]</td>
-            <td class="i-column-5 i-right">{if !empty($order.tax)}{(100.0*$order.tax/$order.subtotal)|string_format:'%0.3f%%'}{else}—{/if}</td>
+            <td class="i-column-5 i-right">{if !empty($order.tax)}{(100.0*$order.tax/($order.subtotal-$order.discount))|string_format:'%0.3f%%'}{else}—{/if}</td>
         </tr>
         <tr>
             <td class="i-column-4">[`TAX`]</td>
@@ -159,10 +163,6 @@
         <tr>
             <td class="i-column-4">[`SHIPPING`]</td>
             <td class="i-column-5 i-right">{$order.shipping|wa_currency:$order.currency|escape}</td>
-        </tr>
-        <tr>
-            <td class="i-column-4">[`DISCOUNT`]</td>
-            <td class="i-column-5 i-right">{if !empty($order.discount)}{(-1.0*$order.discount)|wa_currency:$order.currency|escape}{else}—{/if}</td>
         </tr>
         <tr class="i-total-column">
             <td class="i-column-4">[`TOTAL`]</td>
