@@ -119,19 +119,20 @@
                                     <label><input type="radio" name="{$filter.code}"{if $wa->get($filter.code, '') === ''} checked{/if} value=""> [`Any`]</label>
 
                                 {elseif $filter.type == "range.date"}
+                                    {$_v = $wa->get($filter.code)}
                                     <div class="s-filter-item s-range-date-item" id="js-filter-{$filter.id|escape}" data-min="{$filter.min}" data-max="{$filter.max}">
                                         <div class="s-datepicker-wrapper">
                                             <span class="s-label">[`from`]</span>
                                             <div class="s-fields">
-                                                <input class="js-datepicker" type="text" value="{if !empty($_v.min)}{$_v.min|wa_date}{/if}" placeholder="{$filter.min|wa_date}">
-                                                <input name="{$filter.code}[min]" type="hidden" value="{if !empty($_v.min)}{$_v.min}{/if}">
+                                                <input class="js-datepicker" type="text" value="" placeholder="{$filter.min|wa_date}">
+                                                <input name="{$filter.code}[min]" type="hidden" value="{if !empty($_v.min)}{$_v.min|escape}{/if}">
                                             </div>
                                         </div>
                                         <div class="s-datepicker-wrapper">
                                             <span class="s-label">[`to`]</span>
                                             <div class="s-fields">
-                                                <input class="js-datepicker" type="text" value="{if !empty($_v.max)}{$_v.max|wa_date}{/if}" placeholder="{$filter.max|wa_date}">
-                                                <input name="{$filter.code}[max]" type="hidden" value="{if !empty($_v.max)}{$_v.max}{/if}">
+                                                <input class="js-datepicker" type="text" value="" placeholder="{$filter.max|wa_date}">
+                                                <input name="{$filter.code}[max]" type="hidden" value="{if !empty($_v.max)}{$_v.max|escape}{/if}">
                                             </div>
                                         </div>
 
@@ -152,7 +153,11 @@
                                                         beforeShow: function (input, instance) {
                                                             $(instance.dpDiv).addClass("s-ui-datepicker");
                                                         }
-                                                    });
+                                                    }).datepicker('widget').hide();
+
+                                                    if ($altField.val()) {
+                                                        $datepicker.datepicker('setDate', formatDate($altField.val()));
+                                                    }
 
                                                     $datepicker.on("change", function() {
                                                         var value = $datepicker.val();
@@ -175,8 +180,8 @@
                                 {elseif isset($filter.min)}
                                     {$_v = $wa->get($filter.code)}
                                     <div class="slider nowrap">
-                                        [`from`] <input type="text" class="min" name="{$filter.code}[min]" placeholder="{$filter.min}" {if !empty($_v.min)}value="{$_v.min}"{/if}>
-                                        [`to`]</span> <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max}"{/if}>
+                                        [`from`] <input type="text" class="min" name="{$filter.code}[min]" placeholder="{$filter.min}" {if !empty($_v.min)}value="{$_v.min|escape}"{/if}>
+                                        [`to`]</span> <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max|escape}"{/if}>
                                         {if $is_unit && $filter.unit.value != $filter.base_unit.value}<input type="hidden" name="{$filter.code}[unit]" value="{$filter.unit.value}">{/if}
                                     </div>
                                 {else}

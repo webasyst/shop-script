@@ -120,7 +120,7 @@
                     }
                 });
 
-                if (!$.wa_shop_products.stockVerification(sku_mod.stock, that.stocks)) {
+                if ($.wa_shop_products && !$.wa_shop_products.stockVerification(sku_mod.stock, that.stocks)) {
                     return;
                 }
 
@@ -2473,6 +2473,7 @@
                 }
             }
 
+            let editor_type_initialized = false;
             $section.find(".js-editor-type-toggle").waToggle({
                 type: "tabs",
                 ready: function(toggle) {
@@ -2484,6 +2485,7 @@
             });
 
             onTypeChange(active_type_id);
+            editor_type_initialized = true;
 
             function initAce($wrapper, $textarea) {
                 var $editor = $('<div />').appendTo($wrapper),
@@ -2643,7 +2645,8 @@
                             if (!html_editor) {
                                 html_editor = initAce($html_wrapper, $textarea);
                             }
-                            if (html_editor.session.getValue() !== $textarea.val()) {
+
+                            if (editor_type_initialized || (html_editor.session.getValue() || '').trim() !== $textarea.val().trim()) {
                                 html_editor.session.setValue($textarea.val());
                             }
                             activeType(type_id);
@@ -2655,6 +2658,9 @@
                                 wysiwyg_redactor = initRedactor($wysiwyg_wrapper, $textarea);
                             }
                             $textarea.redactor("code.set", $textarea.val());
+                            if (editor_type_initialized) {
+                                $textarea.change();
+                            }
                             activeType(type_id);
                             break;
                         default:

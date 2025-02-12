@@ -88,11 +88,9 @@
                 <div class="article-body">
                     <div class="js-repair-product-stocks-wrapper alert warning" style="display:none;">
                         <p>
-                            Возникла ошибка из-за отсутсвуещего склада в товаре, для исправления
-                            нажмите на кнопку «Исправить» ниже, чтобы удалить лишние записи,
-                            которые не используются и могут мешать работе магазина.
+                            {sprintf_wp('An error has occurred because of outdated stock entries in the product properties. Click the <em>%s</em> button to remove useless stock entries.', _wp('Fix'))}
                         </p>
-                        <button class="js-repair-prodoct-stocks button orange" type="button">[`Исправить`]</button>
+                        <button class="js-repair-prodoct-stocks button orange" type="button">[`Fix`]</button>
                     </div>
                 </div>
             </div>

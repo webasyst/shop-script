@@ -13480,7 +13480,7 @@ msgstr "Не удалось обновить свойства заказа: «%s
 msgid "Design"
 msgstr "Дизайн"
 
-msgid "Add few demo products"
+msgid "Add a few demo products"
 msgstr "Добавить несколько демотоваров"
 
 msgid "Changing the identifier may affect other settings where this feature is used."
@@ -13494,3 +13494,12 @@ msgstr "«"
 
 msgid "”"
 msgstr "»"
+
+msgid "An error has occurred because of outdated stock entries in the product properties. Click the <em>%s</em> button to remove useless stock entries."
+msgstr "Возникла ошибка из-за неактуальных записей о складах в свойствах товара. Нажмите на кнопку «%s», чтобы удалить лишние записи, которые мешают работе магазина."
+
+msgid "Fix"
+msgstr "Исправить"
+
+msgid "HTTP"
+msgstr "HTTP"

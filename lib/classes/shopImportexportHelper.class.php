@@ -475,8 +475,8 @@ class shopImportexportHelper
                     'source'         => _w('Products & prices'),
                     'hint'           => '',
                     'hash'           => 'id/'.implode(',', $products),
-                    'end_datetime'   => strtotime($shop_promo['finish_datetime']),
-                    'start_datetime' => strtotime($shop_promo['start_datetime']),
+                    'end_datetime'   => strtotime(ifempty($shop_promo, 'finish_datetime', '')),
+                    'start_datetime' => strtotime(ifempty($shop_promo, 'start_datetime', '')),
                 );
 
                 $promo_id = sprintf('shop.promos.%s', $id);

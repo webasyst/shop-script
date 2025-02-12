@@ -34,11 +34,15 @@ class shopLoginAction extends waLoginAction
         } else if ($auth_referer) {
             $url = $auth_referer;
         } else {
-            $login_url = wa()->getRouteUrl('/login');
-            if (!strncasecmp($referer, $login_url, strlen($login_url))) {
-                $url = $referer;
-            }
+            $url = $referer;
         }
+
+        // Do not allow to redirect to login URL
+        $login_url = wa()->getRouteUrl('/login');
+        if (!strncasecmp($url, $login_url, strlen($login_url))) {
+            $url = null;
+        }
+
         if (empty($url)) {
             if (waRequest::param('secure')) {
                 $url = $this->getConfig()->getCurrentUrl();
@@ -46,6 +50,7 @@ class shopLoginAction extends waLoginAction
                 $url = wa()->getRouteUrl('shop/frontend/my');
             }
         }
+
         $this->getStorage()->del('auth_referer');
         $this->getStorage()->del('shop/cart');
         $this->redirect($url);

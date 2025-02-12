@@ -206,13 +206,13 @@ class shopDimension
         if ($dimension = $this->getDimension($type)) {
             if ($value_unit !== null) {
                 if (isset($dimension['units'][$value_unit])) {
-                    $value = $value * $dimension['units'][$value_unit]['multiplier'];
+                    $value = floatval($value) * $dimension['units'][$value_unit]['multiplier'];
                 }
             }
 
             if (($unit !== null) && ($unit != $dimension['base_unit'])) {
                 if (isset($dimension['units'][$unit])) {
-                    $value = $value / $dimension['units'][$unit]['multiplier'];
+                    $value = floatval($value) / $dimension['units'][$unit]['multiplier'];
                 }
             }
         }
