@@ -2071,19 +2071,6 @@ SQL;
 
         }
 
-        $tax_included = null;
-        foreach ($order['items'] as $item_id => $item) {
-            if (isset($item['tax_included'])) {
-                if ($tax_included !== null) {
-                    if ($tax_included != !!$item['tax_included']) {
-                        $tax_included = 0;
-                    }
-                } else {
-                    $tax_included = !!$item['tax_included'];
-                }
-            }
-        }
-
         $item_options = array(
             'order_currency'   => ifset($order['currency'], $default_currency),
             'shipping_address' => $shipping_address,
@@ -2163,10 +2150,6 @@ SQL;
             $order_data['dimensions_unit'] = $options['dimensions'];
         }
 
-        if (in_array($tax_included, array(true, false), true)) {
-            $order_data['tax_included'] = $tax_included;
-        }
-
         if (isset($order['params']['shipping_tax_percent'])) {
             $order_data['shipping_tax_rate'] = $order['params']['shipping_tax_percent'];
         }
@@ -2187,16 +2170,19 @@ SQL;
             $order_data['discount'] = 0;
         }
 
+        // order.total always includes all taxes
+        $order_data['tax_included'] = true;
         $order_data['total'] = $order_data['shipping'];
+        if (empty($order_data['shipping_tax_included']) && !empty($order_data['shipping_tax_rate'])) {
+            $order_data['total'] *= 1 + $order_data['shipping_tax_rate']/100;
+        }
         foreach ($order_data['items'] as $item) {
-            $item_subtotal = $item['price'] * $item['quantity'];
+            $item_subtotal = $item['price'] * $item['quantity'] - ifset($item, 'total_discount', 0);
             if (isset($item['tax_included']) && empty($item['tax_included']) && !empty($item['tax_rate'])) {
                 $item_subtotal *= 1 + $item['tax_rate']/100;
             }
             $order_data['total'] += $item_subtotal;
         }
-
-        $order_data['total'] -= $order_data['discount'];
 
         $total = self::workupValue($order['total'], 'price', $options['currency'], $order['currency']);
 
