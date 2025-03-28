@@ -2635,12 +2635,10 @@ SQL;
                 if (!empty($this->data['options']['images'])) {
                     if (isset($product['images'])) {
                         $size = $this->getImageSize($this->data['config']['images']);
-                        $domain = ifempty($this->data['base_url'], 'localhost');
-                        $scheme = ifempty($this->data['scheme'], 'http://');
                         $images = array();
                         $images_descriptions = array();
                         foreach ($product['images'] as $image_id => $image) {
-                            $images[$image_id] = $scheme.$domain.shopImage::getUrl($image, $size);
+                            $images[$image_id] = shopImage::getUrl($image, $size, true);
                             $images_descriptions[$image_id] = $image['description'];
                         }
                         $product['images'] = $images;
