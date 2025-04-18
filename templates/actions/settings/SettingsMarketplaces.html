@@ -56,7 +56,7 @@
                 });
             }
 
-            setTitle({$_page_title|json_encode} + ' — ' + {$wa->accountName()|json_encode});
+            setTitle({$_page_title|json_encode} + ' — ' + {$wa->accountName(false)|json_encode});
 
             {*
              * @description iFrame через внутреннюю магию подменяет title при загрузке плагинов.

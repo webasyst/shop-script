@@ -61,7 +61,7 @@ class shopProdListAction extends waViewAction
         $this->static_categories_tree = $category_model->buildNestedTree($static_categories);
 
         $filter = $active_filter->getFilter();
-        $filter_options = $active_filter->getFilterOptions();
+        $filter_options = $active_filter->getFilterOptions(['tags_limit' => 100]);
         $this->clearMissingRules($filter['rules'], $filter_options, $categories);
 
         $sort_column_type = $presentation->getSortColumnType();

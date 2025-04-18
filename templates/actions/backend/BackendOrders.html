@@ -480,7 +480,7 @@
                                value="">
 
                         {% if (stock_unit) { %}
-                            <span class="s-unit">{%#stock_unit["name_short"]%}</span>
+                            <span class="s-unit">{%=stock_unit["name_short"]%}</span>
                         {% } %}
                     </div>
                 </div>
@@ -490,7 +490,7 @@
                             <span class="s-label">[`Step`]=</span>
                             <span class="s-value">{%#parseFloat(product["order_multiplicity_factor"])%}</span>
                             {% if (stock_unit) { %}
-                                <span class="s-unit">{%#stock_unit["name_short"]%}</span>
+                                <span class="s-unit">{%=stock_unit["name_short"]%}</span>
                             {% } %}
                         </div>
                         <div class="s-min js-order_count_min">
@@ -503,7 +503,7 @@
                                 {% } %}
                             </span>
                             {% if (stock_unit) { %}
-                                <span class="s-unit">{%#stock_unit["name_short"]%}</span>
+                                <span class="s-unit">{%=stock_unit["name_short"]%}</span>
                             {% } %}
                         </div>
                     </div>

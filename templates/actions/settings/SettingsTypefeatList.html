@@ -345,7 +345,7 @@
 
     <script>
         ( function($) {
-            document.title = {_w('Product types & features')|json_encode} + ' — ' + {$wa->accountName()|json_encode};
+            document.title = {_w('Product types & features')|json_encode} + ' — ' + {$wa->accountName(false)|json_encode};
 
             var sources = [{
                 id: "wa-features-settings-css",

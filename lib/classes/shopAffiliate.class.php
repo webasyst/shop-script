@@ -334,7 +334,7 @@ class shopAffiliate
                     $message = sprintf_wp('Discount of %s', waCurrency::format('%{s}', $discount, $order_currency));
                 }
                 $atm = new shopAffiliateTransactionModel();
-                $atm->applyBonus($contact->getId(), $balance_change, ifset($order['id']), $message);
+                $atm->applyBonus($contact->getId(), $balance_change, ifset($order['id']), $message, shopAffiliateTransactionModel::TYPE_ORDER_DISCOUNT);
             }
         }
 

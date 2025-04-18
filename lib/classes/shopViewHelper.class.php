@@ -188,7 +188,11 @@ class shopViewHelper extends waAppViewHelper
             $limit = 500;
         }
 
-        $products = $collection->getProducts(ifset($options, 'fields', '*'), $offset, $limit, true);
+        try {
+            $products = $collection->getProducts(ifset($options, 'fields', '*'), $offset, $limit, true);
+        } catch (waException $e) {
+            $products = [];
+        }
 
         /**
          * Output products in the smarty template. Result from the product collection

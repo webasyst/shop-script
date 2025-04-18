@@ -35,7 +35,13 @@
 {capture assign="_component_table_filters_features_item"}
 <div class="s-feature-wrapper cursor-pointer" v-on:click="toggle">
     <div class="s-name-wrapper flexbox space-8">
-        <div v-if="item.id || item.display_type === 'feature'">
+        <div v-if="item.icon_img">
+            <span class="s-icon icon size-12 shift-inherit"><img v-bind:src="item.icon_img"/></span>
+        </div>
+        <div v-else-if="item.icon_class">
+            <span class="s-icon icon size-12 shift-inherit"><i v-bind:class="item.icon_class"></i></span>
+        </div>
+        <div v-else-if="item.id || item.display_type === 'feature'">
             <span class="s-icon icon size-12 shift-inherit"><i class="fas fa-sitemap"></i></span>
         </div>
         <div>

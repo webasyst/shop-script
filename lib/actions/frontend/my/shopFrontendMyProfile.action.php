@@ -14,7 +14,7 @@ class shopFrontendMyProfileAction extends waMyProfileAction
         $this->setThemeTemplate('my.profile.html');
         if (!waRequest::isXMLHttpRequest()) {
             $this->setLayout(new shopFrontendLayout());
-            $this->getResponse()->setTitle(_w('Account'));
+            $this->getResponse()->setTitle(_w('My account'));
             $this->view->assign('breadcrumbs', self::getBreadcrumbs());
             $this->layout->assign('nofollow', true);
         }

@@ -137,7 +137,7 @@ class shopBackendAutocompleteController extends waController
 
         $product_model = new shopProductModel();
         $q = $product_model->escape($q, 'like');
-        $fields = 'id, name AS value, price, count, sku_id';
+        $fields = 'id, name AS value, price, count, sku_id, currency';
         if ($with_image) {
             $fields .= ', image_id';
         }
@@ -202,7 +202,48 @@ class shopBackendAutocompleteController extends waController
         }
         unset($p);
 
-        if (waRequest::get('with_sku_name')) {
+        $getSkuName = function($sku) {
+            if ($sku['name']) {
+                $name = $sku['name'];
+                if ($sku['sku']) {
+                    $name .= ' ('.$sku['sku'].')';
+                }
+            } else {
+                $name = $sku['sku'];
+            }
+            return $name;
+        };
+
+        $with_sku_name = waRequest::request('with_sku_name');
+        if (waRequest::request('with_all_skus')) {
+            foreach ($products as &$p) {
+                $p['skus'] = [];
+                $p['sku_name'] = '';
+            }
+            unset($p);
+            $product_skus_model = new shopProductSkusModel();
+            $skus = $product_skus_model->getByField('product_id', array_keys($products), 'id');
+            foreach ($skus as $sku_id => $sku) {
+                $p =& $products[$sku['product_id']];
+                if ($with_sku_name && $p['sku_id'] == $sku_id) {
+                    $p['sku_name'] = $getSkuName($sku);
+                }
+                $sku['price_str'] = wa_currency($sku['price'], $p['currency']);
+                $sku['price_html'] = wa_currency_html($sku['price'], $p['currency']);
+                $p['skus'][$sku_id] = array_intersect_key($sku, [
+                    'id' => 1,
+                    'name' => 1,
+                    'sku' => 1,
+                    'status' => 1,
+                    'available' => 1,
+                    'count' => 1,
+                    'price' => 1,
+                    'price_str' => 1,
+                    'price_html' => 1,
+                ]);
+            }
+            unset($p);
+        } else if ($with_sku_name) {
             $sku_ids = array();
             foreach ($products as $p) {
                 $sku_ids[] = $p['sku_id'];
@@ -211,15 +252,7 @@ class shopBackendAutocompleteController extends waController
             $skus = $product_skus_model->getByField('id', $sku_ids, 'id');
             $sku_names = array();
             foreach ($skus as $sku_id => $sku) {
-                if ($sku['name']) {
-                    $name = $sku['name'];
-                    if ($sku['sku']) {
-                        $name .= ' ('.$sku['sku'].')';
-                    }
-                } else {
-                    $name = $sku['sku'];
-                }
-                $sku_names[$sku_id] = $name;
+                $sku_names[$sku_id] = $getSkuName($sku);
             }
             foreach ($products as &$p) {
                 $p['sku_name'] = $sku_names[$p['sku_id']];

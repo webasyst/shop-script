@@ -1127,13 +1127,15 @@ ul.s-feature-values.menu-v li a { margin-left: 0; padding-left: 0; }
 
 li#s-web-push-notifications-message a { display: inline !important; text-decoration: underline !important; color: #888; }
 
-.s-cheatsheet { background: #f3f3e3; margin-top: 20px; padding: 3px 5px 3px 3px; }
-.s-cheatsheet .fields { border: 1px dashed #cc8; margin-bottom: 0; width: 100%; }
-.s-cheatsheet .fields .name { padding-left: 8px; width: 195px; }
-.s-cheatsheet .fields .value { margin-left: 220px; }
-.s-cheatsheet .s-sub-field { font-size: 0.8em; }
-.s-cheatsheet .s-sub-field .name { padding-left: 15px; width: 195px !important; }
-.s-cheatsheet .s-sub-field .value { padding-right: 1rem; }
+.s-cheatsheet { margin: 1rem 2rem; }
+.s-cheatsheet > .fields { background: var(--background-color); width: 100%; margin-bottom: 0; padding: 0.5rem; border: 2px dashed var(--border-color-soft); border-radius: 0.5rem; }
+.s-cheatsheet .fields .name { padding-left: 8px; width: 230px; cursor: pointer; color: var(--text-color-link); }
+.s-cheatsheet .fields .name.bold { font-size: 0.9375rem; }
+.s-cheatsheet .fields .name:hover { color: var(--text-color-link-hover); }
+.s-cheatsheet .fields .value { margin-left: 230px; color: var(--alert-text-color); }
+.s-cheatsheet .s-sub-field { font-size: 0.9375em; }
+.s-cheatsheet .s-sub-field .name { padding-left: 15px; width: 230px !important; }
+.s-cheatsheet .s-sub-field .value { padding-right: 1rem; font-size: 0.875em; }
 
 .s-add-shipping-method ul { width: 300px !important; margin-left: -80px !important; max-height: 700px; overflow: auto; }
 

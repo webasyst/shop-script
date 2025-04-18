@@ -107,7 +107,7 @@ class shopVideo
 
     public static function checkVideo($url, &$site = null, &$id = null)
     {
-        if (preg_match('~^(?:https?://)?(?:www.)?(vk\.com/).*(?:video|clips?)([a-z0-9\-]+_[a-z0-9]+)~i', $url, $m)) {
+        if (preg_match('~^(?:https?://)?(?:www.)?(vk\.com/|vkvideo\.ru/).*(?:video|clips?)([a-z0-9\-]+_[a-z0-9]+)~i', $url, $m)) {
             $site = 'vk.com/video';
             $id = $m[2];
             $result = 'http://'.$site.$id;

@@ -18,7 +18,7 @@ class shopFrontendPaymentLinkAction extends waViewAction
         }
         $order_id = substr($hash, 16, -16);
         $order = new shopOrder($order_id);
-        if ($hash != $order->getPaymentLinkHash()) {
+        if (!empty($order['paid_date']) || $hash != $order->getPaymentLinkHash()) {
             throw new waException(_w('Order not found.'), 404);
         }
 
@@ -47,9 +47,17 @@ class shopFrontendPaymentLinkAction extends waViewAction
         if ($show_methods) {
             $methods = $this->getMethods($order);
         }
-        if ($payment_id && $payment_form_html && empty($order['params']['payment_id'])) {
+        if ($payment_id && $payment_form_html) {
             $order_params_model = new shopOrderParamsModel();
-            $order_params_model->set($order['id'], array_merge($order['params'], ['payment_id' => $payment_id]));
+            $plugin_info = (new shopPluginModel())->getByField([
+                'id' => $payment_id,
+                'type' => 'payment',
+            ]);
+            $order_params_model->set($order['id'], array_merge($order['params'], [
+                'payment_id' => $payment_id,
+                'payment_plugin' => ifset($plugin_info, 'plugin', null),
+                'payment_name' => ifset($plugin_info, 'name', null),
+            ]));
         }
 
         $this->view->assign([
@@ -95,7 +103,7 @@ class shopFrontendPaymentLinkAction extends waViewAction
 
         foreach ($methods as $method_index => &$m) {
             // Some plugins are disabled
-            if (empty($m['available']) || (!empty($m['info']['type']) && $m['info']['type'] == 'manual')) {
+            if (empty($m['available']) || (!empty($m['info']['type']) && $m['info']['type'] == 'manual') || !empty($m['info']['pos_initiates_payment'])) {
                 unset($methods[$method_index]);
                 continue;
             }

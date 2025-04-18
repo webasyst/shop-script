@@ -213,7 +213,7 @@
                                     <i class="fas fa-grip-vertical text-gray js-sort" {if !in_array($id, $info.actions)}
                                         style="display: none;" {/if}></i>
 
-                                    <span class="wa-checkbox">
+                                    <span class="wa-checkbox custom-mx-2">
                                         <input type="checkbox" name="action[]" value="{$id|escape}" {if in_array($id,
                                             $info.actions)}checked="checked" {/if} {if $id=='create' }disabled="disabled" {/if}>
                                         <span>

@@ -554,13 +554,13 @@ class shopCart
                 }
 
                 // update quantity of sku
-                $quantity = $src_cart_item['quantity'];
-                $dst_cart_item['quantity'] += $quantity;
+                $quantity = max($src_cart_item['quantity'], $dst_cart_item['quantity']);
+                $dst_cart_item['quantity'] = $quantity;
 
                 // update quantity of services
                 if (isset($dst_cart_item['services'])) {
                     foreach ($dst_cart_item['services'] as &$service) {
-                        $service['quantity'] += $quantity;
+                        $service['quantity'] = $quantity;
                     }
                     unset($service);
                 }

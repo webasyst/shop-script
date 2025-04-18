@@ -20,7 +20,7 @@ class shopSettingsGetContactFieldsMethod extends shopApiMethod
     protected static function getCheckoutFieldSettings()
     {
         $result = array();
-        foreach(shopHelper::getCustomerForm()->fields as $f) {
+        foreach(shopHelper::getCustomerForm(null, true)->fields as $f) {
             $result[] = $f->getInfo();
         }
         return $result;

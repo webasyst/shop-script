@@ -174,10 +174,10 @@
 
                             {foreach $tax_zip_codes as $t}
                                 <tr class="zip-row">
-                                    <td class="min-width"><i class="fas fa-grip-vertical sort cursor-pointer"></i></td>
+                                    <td class="min-width"><i class="fas fa-grip-vertical sort cursor-pointer text-gray"></i></td>
                                     <td><input type="text" class="small code-input" name="tax_zip_codes[]" value="{$t.zip_expr|escape}"></td>
                                     <td>
-                                        <span class="rate-input"><input type="number" class="small shortest numerical" min="0" name="tax_zip_rates[]" value="{$t.tax_value|escape}">%</span>
+                                        <span class="rate-input"><input type="number" class="small shortest numerical" step="any" min="0" name="tax_zip_rates[]" value="{$t.tax_value|escape}">%</span>
                                         <em class="small commit-delete-message">[`Click “Save” button below to commit the delete.`]</em>
                                     </td>
                                     <td class="min-width"><a href="#" class="delete"><i class="fas fa-trash-alt text-red"></i></a></td>
@@ -186,10 +186,10 @@
 
                             {* Template row to add new regions. 'template' class will be replaced with 'zip-row' *}
                             <tr class="just-added hidden highlighted template">
-                                <td class="min-width"><i class="fas fa-grip-vertical sort"></i></td>
+                                <td class="min-width"><i class="fas fa-grip-vertical sort cursor-pointer text-gray"></i></td>
                                 <td><input type="text" class="small" name="tax_zip_codes[]" value="" placeholder="[`ZIP code mask`]"></td>
                                 <td>
-                                    <input type="number" name="tax_zip_rates[]" min="0" class="small shortest numerical" value="" placeholder="0">%
+                                    <input type="number" name="tax_zip_rates[]" class="small shortest numerical" step="any" min="0" value="" placeholder="0">%
                                 </td>
                                 <td class="min-width"><a href="#" class="delete"><i class="fas fa-trash-alt text-red"></i></a></td>
                             </tr>
@@ -217,7 +217,7 @@
 
             <div>
                 {if $tax.id}
-                <button type="button" class="button small red outlined js-delete-tax-link" title="[`Delete rule`]"><i class="fas fa-trash-alt"></i> [`Delete rule`]</a>
+                <button type="button" class="button small red outlined js-delete-tax-link" title="[`Delete rule`]"><i class="fas fa-trash-alt"></i> [`Delete rule`]</button>
                 <input type="hidden" name="id" value="{$tax.id|escape}">
                 {else}
                 <input type="hidden" name="id" value="new">
@@ -229,7 +229,7 @@
 
 <script type="text/javascript" src="{$wa_app_static_url}js/settings/taxes.js?{$wa->version()}"></script>
 <script>(function() { "use strict";
-    document.title = "[`Taxes`] — {$wa->accountName()|escape:javascript}";
+    document.title = "[`Taxes`] — {$wa->accountName(false)|escape:javascript}";
     $.settings.taxesInitForm({ifempty($tax.id, 'null')});
 
     {if $tax.id}
@@ -255,7 +255,6 @@
                         alert.hide();
                     }, 2000)
 
-                    $.settings.stopDispatch(1);
                     window.location.hash = '#/taxes/';
                     $.post(form.attr('action'), { 'delete': 1, id: {$tax.id} });
                 }
@@ -263,7 +262,7 @@
         });
     {/if}
 
-    {if !$billing_address_required}
+    {if !$billing_address_required && $tax.id}
         form.find('[name="tax[address_type]"]').on('change', function() {
             if ($(this).val() == 'billing') {
                 form.find('.billing-address-warning').show();

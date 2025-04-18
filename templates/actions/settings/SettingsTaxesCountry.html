@@ -17,7 +17,7 @@
     <td>
         <div class="global-country-rate custom-my-4">
             <span class="small">[`Global rate`]:</span>
-            <input type="number" step="any" class="small shortest numerical" min="0" name="countries[{$c.iso3}]" value="{$c.global_rate}" placeholder="0">%
+            <input type="number" class="small shortest numerical" step="any" min="0" name="countries[{$c.iso3}]" value="{$c.global_rate}" placeholder="0">%
 
             <div class="custom-mt-4">
                 <button type="button" class="button small light-gray nowrap back-to-simple-mode-link rounded">
@@ -56,7 +56,7 @@
         <td>
             <input type="text" class="small short s-tax-name" name="country_regions[{$c.iso3}][{$r.code}][name]" value="{$r.tax_name|escape}" placeholder="[`Tax name`]">
 
-            <input type="number" class="small shortest numerical" min="0" name="country_regions[{$c.iso3}][{$r.code}][tax_value]" value="{ifset($r.params.tax_value, $r.tax_value)|escape}" placeholder="0">%
+            <input type="number" class="small shortest numerical" step="any" min="0" name="country_regions[{$c.iso3}][{$r.code}][tax_value]" value="{ifset($r.params.tax_value, $r.tax_value)|escape}" placeholder="0">%
 
             <div class="custom-mt-4">
                 <div class="wa-select small">

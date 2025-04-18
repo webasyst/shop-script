@@ -709,6 +709,16 @@ class shopPayment extends waAppPayment
             }
 
             $workflow->getActionById('pay')->run($transaction_data);
+
+            if (!empty($transaction_data['order_id'])) {
+                // Orders made at points of sale should be marked as completed immediately upon payment
+                $order_params_model = new shopOrderParamsModel();
+                $sales_channel = $order_params_model->getOne($transaction_data['order_id'], 'sales_channel');
+                if (substr($sales_channel, 0, 4) === 'pos:') {
+                    $workflow->getActionById('complete')->run($transaction_data['order_id']);
+                }
+            }
+
             $result['result'] = true;
         }
         return $result;

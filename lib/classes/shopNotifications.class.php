@@ -812,6 +812,11 @@ SQL;
             $n['post'] = self::prepareHttpParam($data, $n['post']);
         }
 
+        // HTTP headers
+        if (!empty($n['headers'])) {
+            $n['headers'] = self::prepareHttpParam($data, $n['headers']);
+        }
+
         $options = [
             'request_format' => waNet::FORMAT_JSON,
             'format' => waNet::FORMAT_JSON
@@ -824,7 +829,7 @@ SQL;
             ];
         }
 
-        $net = new waNet($options);
+        $net = new waNet($options, ifempty($n, 'headers', []));
         try {
             $net->query($webhook_url, $n['post'], empty($n['post'])?waNet::METHOD_GET:waNet::METHOD_POST);
         } catch (waException $e) {

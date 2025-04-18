@@ -2011,18 +2011,93 @@
                                     "component-checkbox": that.vue_components["component-checkbox"],
                                     "component-table-filters-search": that.vue_components["component-table-filters-search"],
                                 },
-                                mixins: [FilterSearchMixin],
                                 data: function() {
-                                    let options = $.wa.clone(that.filter_options);
+                                    const tags = $.wa.clone(that.filter_options.tags);
+
+                                    this.fetch_params = {};
+                                    this.prev_fetch_params = null;
+                                    this.search_timer = null;
 
                                     return {
-                                        items: formatOptions(options.tags),
+                                        static_items: this.formatOptions(tags),
+                                        search_items: [],
+                                        search_string: "",
                                         states: {
-                                            is_changed: false
+                                            is_changed: false,
+                                            is_fetching: false,
                                         }
                                     };
+                                },
+                                template: that.components["component-table-filters-tags"],
+                                delimiters: ['{ { ', ' } }'],
+                                watch: {
+                                    search_string(q) {
+                                        orig_q = q;
+                                        q = q.trim();
+                                        // has a lot of spaces
+                                        if (!q && orig_q !== q) {
+                                            return;
+                                        }
 
-                                    function formatOptions(items) {
+                                        if (q !== '') {
+                                            if (this.prev_fetch_params === null) {
+                                                this.prev_fetch_params = $.wa.clone(this.fetch_params);
+                                                this.items.map(t => (t.is_hide=true,t.states.enabled=false,t));
+                                            }
+
+                                            if ('q' in this.fetch_params) {
+                                                if (q === this.fetch_params.q) {
+                                                    return;
+                                                } else {
+                                                    this.search_items = [];
+                                                }
+                                            }
+                                            this.debounceSearch(q);
+                                        } else {
+                                            this.states.is_fetching = false;
+                                            if (this.search_timer) {
+                                                clearTimeout(this.search_timer);
+                                                this.search_timer = null;
+                                            }
+
+                                            if (this.prev_fetch_params !== null) {
+                                                this.fetch_params = $.wa.clone(this.prev_fetch_params);
+                                                this.prev_fetch_params = null;
+                                            }
+
+                                            this.items.map(t => (t.is_hide=false,t));
+                                            this.search_items = [];
+                                        }
+                                    }
+                                },
+                                computed: {
+                                    items: function() {
+                                        return this.static_items.concat(this.search_items);
+                                    },
+                                    has_value: function() {
+                                        return !!this.items.filter(item => item.states.enabled).length;
+                                    },
+                                    empty_search_result: function() {
+                                        return !this.states.is_fetching && !!this.search_string.trim() && !this.search_items.length;
+                                    }
+                                },
+                                mounted: function () {
+                                    const $wrapper = $(this.$el);
+
+                                    this.dropbox = $.wa.new.Dropbox({
+                                        $wrapper: $wrapper,
+                                        protect: false,
+                                        open: function() {
+                                            $wrapper.find("input.js-autofocus").trigger("focus");
+                                        }
+                                    });
+
+                                    setTimeout(() => {
+                                        this.initLazyLoad();
+                                    }, 500);
+                                },
+                                methods: {
+                                    formatOptions: function (items) {
                                         $.each(items, function(i, item) {
                                             item.states = {
                                                 enabled: false,
@@ -2030,12 +2105,7 @@
                                             }
                                         });
                                         return items;
-                                    }
-                                },
-                                template: that.components["component-table-filters-tags"],
-                                delimiters: ['{ { ', ' } }'],
-                                computed: { },
-                                methods: {
+                                    },
                                     onChange: function() {
                                         if (!this.states.is_changed) {
                                             this.states.is_changed = true;
@@ -2056,6 +2126,65 @@
                                     save: function() {
                                         this.dropbox.hide();
                                         this.$emit("success", this.items);
+                                    },
+                                    initLazyLoad: function() {
+                                        const el = this.$el.querySelector('.js-lazyloading');
+                                        if (!el) {
+                                            return;
+                                        }
+
+                                        const last_tag = this.items[this.items.length - 1];
+                                        if (last_tag) {
+                                            this.fetch_params.last_id = last_tag.id;
+                                        }
+
+                                        const intersectionObserver = new IntersectionObserver((entries) => {
+                                            if (this.fetch_params.is_last || this.states.is_fetching || entries[0].intersectionRatio <= 0) {
+                                                return;
+                                            }
+
+                                            this.fetchTags().then(data => {
+                                                if (data.params.q) {
+                                                    this.search_items.push(...this.formatOptions(data.tags));
+                                                } else {
+                                                    this.static_items.push(...this.formatOptions(data.tags));
+                                                }
+                                            });
+                                        });
+                                        intersectionObserver.observe(el);
+                                    },
+                                    fetchTags: function() {
+                                        const dfd = $.Deferred();
+
+                                        if (!Object.keys(this.fetch_params).length) {
+                                            return dfd;
+                                        }
+
+                                        this.states.is_fetching = true;
+                                        const params = new URLSearchParams(this.fetch_params);
+                                        $.get(`${that.urls["tags_get"]}&${params}`, (r) => {
+                                            if (r.status === 'ok' && Array.isArray(r.data.tags)) {
+                                                dfd.resolve(r.data);
+                                                this.fetch_params = r.data.params;
+                                                this.states.is_fetching = false;
+                                            }
+                                        }, "json");
+
+                                        return dfd.promise();
+                                    },
+                                    debounceSearch: function(q) {
+                                        this.fetch_params = { q };
+                                        this.states.is_fetching = true;
+                                        if (this.search_timer) {
+                                            clearTimeout(this.search_timer);
+                                        }
+
+                                        this.search_timer = setTimeout(() => {
+                                            this.fetchTags().then(({ tags }) => {
+                                                this.search_items = this.formatOptions(tags);
+                                            });
+                                            this.search_timer = null;
+                                        }, 1000);
                                     }
                                 }
                             },

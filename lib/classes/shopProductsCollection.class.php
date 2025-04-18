@@ -1366,6 +1366,7 @@ SQL;
             }
         } else {
             $init_data = [];
+            $promo_prices_tmp_alias = $this->getPromoPricesTmpAlias();
             foreach (['fields', 'order_by', 'where', 'join_index', 'joins', 'group_by', 'prepared'] as $field) {
                 $init_data[$field] = $this->{$field};
             }
@@ -1446,11 +1447,26 @@ SQL;
                 }
                 $this->order_by .= ', p.id';
 
-                $this->addJoin([
-                    'table' => '(' . $inner_sql . ')',
-                    'alias' => 'iq',
-                    'on'    => 'p.id = :table.id',
-                ]);
+                if ($promo_prices_tmp_alias) {
+                    // MySQL does not allow to JOIN a temporary table twice, so we have to make this inner query separately
+                    $ids = [];
+                    $rows = $this->getModel()->query($inner_sql.' LIMIT 500');
+                    foreach ($rows as $row) {
+                        $ids[] = $row['id'];
+                    }
+                    unset($rows);
+                    if ($ids) {
+                        $this->addWhere('p.id IN ('.join(',', $ids).')');
+                    } else {
+                        $this->addWhere('0=1');
+                    }
+                } else {
+                    $this->addJoin([
+                        'table' => '(' . $inner_sql . ')',
+                        'alias' => 'iq',
+                        'on'    => 'p.id = :table.id',
+                    ]);
+                }
             }
         }
     }
@@ -1837,11 +1853,10 @@ SQL;
                     } else {
                         //smart search
 
-                        // Following block of code might change the ordering
+                        // Following block of code might change the ordering and other fields
                         // as part of searching logic.
-                        // Remember order-by in case we want to restore it later.
-                        $auto_order_by = $this->order_by;
-                        $auto_fields = $this->fields; // save fields
+                        // Remember them in case we want to restore it later.
+                        $auto_fields = clone $this;
 
                         $search = new shopIndexSearch();
                         $word_ids = $search->getWordIds($parts[2], true);
@@ -1869,26 +1884,16 @@ SQL;
                             $this->where[] = '0';
                         }
                         $this->prepared = true;
+
                         // if not found try find by name
                         if (!$this->count()) {
                             $this->count = null;
-                            $auto_joins = $this->joins;
-                            $this->joins = $this->where = $this->having = array();
-                            $this->fields = $auto_fields; //restore fields;
-                            if ($this->is_frontend) {
-                                if ($this->filtered) {
-                                    $this->filtered = false;
-                                }
-                                $this->frontendConditions();
-                            }
-                            $join_aliases = is_array($auto_joins) ? array_column($auto_joins, 'alias') : [];
-                            if (waRequest::request('sort', 'weight', 'string') == 'weight'
-                                || ($join_aliases && preg_match('/(' . join('|', $join_aliases) . ')\./m', $auto_order_by, $matches) && $matches)
-                            ) {
-                                $this->order_by = 'p.create_datetime DESC, p.id';
-                            } else {
-                                $this->order_by = $auto_order_by;
-                            }
+                            $this->joins = $auto_fields->joins;
+                            $this->where = $auto_fields->where;
+                            $this->having = $auto_fields->having;
+                            $this->fields = $auto_fields->fields;
+                            $this->order_by = $auto_fields->order_by;
+
                             $q = $model->escape($parts[2], 'like');
                             $this->addJoin('shop_product_skus', null, "(p.name LIKE '%".$q."%' OR :table.name LIKE '%".$q."%' OR :table.sku LIKE '%".$q."%')");
                             $this->group_by = 'p.id';
@@ -1897,7 +1902,7 @@ SQL;
 
                         // Restore original order-by if were specified.
                         if (waRequest::request('sort', 'weight', 'string') != 'weight' || isset($this->options['sort'])) {
-                            $this->order_by = $auto_order_by;
+                            $this->order_by = $auto_fields->order_by;
                         }
                     }
                     $title[] = $parts[0].$parts[1].$parts[2];

@@ -777,7 +777,7 @@
     <script>
         ( function($) {
 
-            document.title = {$_page_title|json_encode} + ' — ' + {$wa->accountName()|json_encode};
+            document.title = {$_page_title|json_encode} + ' — ' + {$wa->accountName(false)|json_encode};
 
             var sources = [{
                 id: "vue-js",

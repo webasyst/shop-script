@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="4.0.4">
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="4.0.5">
   <name locale="en_US">Default 4.0</name>
   <name locale="ru_RU">Дефолт 4.0</name>
   <files>
@@ -225,8 +225,8 @@
       <description locale="en_US">Featured products will be displayed on the storefront homepage under the slider and the best-selling product list.</description>
     </setting>
     <setting var="homepage_welcome_note" control_type="text">
-      <value locale="ru_RU">&lt;b&gt;Добро пожаловать!&lt;/b&gt; Наш интернет-магазин предоставляет широкий ассортимент современной продукции и обеспечивает быструю недорогую доставку по всей территории России. Клиентская база постоянно растет и насчитывает уже более 5000 счастливых клиентов. Присоединяйтесь!</value>
-      <value locale="en_US">&lt;b&gt;Welcome!&lt;/b&gt; We are proud to offer a wide variety of items for sale and to provide best-in-class online shopping experience. Our customer base has been continuously growing and currently counts over 5000 happy customers. Come join us!</value>
+      <value locale="ru_RU">&lt;b&gt;Добро пожаловать!&lt;/b&gt; Интернет-магазин создан с помощью Shop-Script — приложения, которое позволяет легко &lt;a href="https://www.shop-script.ru"&gt;создать интернет-магазин&lt;/a&gt;.</value>
+      <value locale="en_US">&lt;b&gt;Welcome!&lt;/b&gt; This store is created with Shop-Script &lt;a href="https://www.shop-script.com"&gt;online store builder app&lt;/a&gt;.</value>
       <name locale="en_US">Welcome note (HTML)</name>
       <name locale="ru_RU">Приветствие (HTML)</name>
     </setting>

@@ -43,7 +43,7 @@ class shopAffiliateTransactionModel extends waModel
             }
         }
 
-        $this->insert(array(
+        $transaction_id = $this->insert(array(
             'contact_id' => $contact_id,
             'amount' => (float) $amount,
             'order_id' => $order_id,
@@ -79,7 +79,7 @@ class shopAffiliateTransactionModel extends waModel
                 }
 
                 $order_log_model = new shopOrderLogModel();
-                $order_log_model->add(array(
+                $log_id = $order_log_model->add(array(
                     'order_id' => $order_id,
                     'contact_id' => $contact_id,
                     'before_state_id' => $order['state_id'],
@@ -89,6 +89,21 @@ class shopAffiliateTransactionModel extends waModel
                 ));
             }
         }
+
+        /**
+         * @event affiliate_transaction
+         */
+        wa('shop')->event('affiliate_transaction', ref([
+            'type' => $type,
+            'id' => $transaction_id,
+            'contact_id' => $contact_id,
+            'amount' => (float) $amount,
+            'order_id' => $order_id,
+            'comment' => $comment,
+            'balance' => $old_balance + $amount,
+            'order' => ifset($order),
+            'log_id' => ifset($log_id),
+        ]));
     }
 
     public function getLast($contact_id, $order_id)

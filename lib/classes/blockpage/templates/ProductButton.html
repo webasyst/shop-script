@@ -1,0 +1,83 @@
+{$block_props = []}
+{$href = ''}
+{$target = ''}
+{$tag = 'a'}
+{if !empty($data->data['tag'])}
+    {$tag = $data->data['tag']}
+{/if}
+
+{if !empty($data->data['link_props'])}
+    {$link_props = $data->data['link_props']}
+    {if !empty($link_props.href)}
+        {$href = $link_props.href}
+    {/if}
+    {if !empty($link_props.target)}
+        {$target = $link_props.target}
+    {/if}
+{/if}
+{$static_classes_props = 'style-wrapper btn'}
+{$anchor_id = $data->data['id']|default:0}
+<{$tag} {if $anchor_id}id="{$anchor_id|escape}"{/if} href="javascript:void(0)" class="{$static_classes_props}" {if $is_backend}style="visibility: hidden;"{/if} data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}" {if $is_backend} contenteditable="true"{/if} {if !empty($target)}target="{$target}"{/if} data-sku-id="{$data->data['sku_id']}" data-goto="{$data->data['goto']|default:'cart'}">
+    {$data->data['html']}
+</{$tag}>
+
+{if $is_backend}
+<script>$(function() { "use strict";
+    const block_id = {$data->getId()|json_encode};
+    const $wrapper = $('.btn[data-block-id="'+block_id+'"]');
+    $wrapper.on('input', function() {
+        $.wa.editor.saveBlockData(block_id, {
+            html: $wrapper.html(),
+            block_props: {$data->data['block_props']|default:[]|json_encode}
+        });
+    });
+
+    $wrapper.on('block_data_updated', function(event, updated_block_id, data) {
+        event.stopPropagation();
+        if (updated_block_id == block_id) {
+            updateBlockStyles($wrapper, data, block_id);
+            $wrapper.html(data.html);
+        }
+    });
+
+});</script>
+{else}
+<script>$(function() { "use strict";
+    const block_id = {$data->getId()|json_encode};
+    const $wrapper = $('.btn[data-block-id="'+block_id+'"]');
+    const data = {$data->data|json_encode};
+    updateBlockStyles($wrapper, data, block_id);
+    $wrapper.on('update_sku', function(event, new_sku) {
+        data.sku_id = new_sku;
+        $wrapper.data('sku-id', new_sku)
+    });
+    const submit_url = "{$wa->getUrl('site/frontendCart/add')}"; //"shop/frontend/" + $wrapper.data('goto');
+    $wrapper.on('click', function() {
+        //console.log( $wrapper.data('goto'), $wrapper.data('sku-id'), submit_url)
+        $.post('{$wa_url}cart/add/', {
+            product_id: data['additional']['product']['id'],
+            sku_id: $wrapper.data('sku-id')
+        }, function (response) {
+           //console.log('submit', response)
+           if (response.status == 'ok') {
+            const cart_total = $(".cart-total");
+            cart_total.closest('#cart').removeClass('empty');
+            cart_total.html(response.data.total);
+            if (response.data.error) {
+                alert(response.data.error);
+            }
+        } else if (response.status == 'fail') {
+            alert(response.errors);
+        }
+        }, 'json')
+    });
+
+});</script>
+{/if}
+<script>
+    $(function() { "use strict";
+        const block_id = {$data->getId()|json_encode};
+        const $wrapper = $('.btn[data-block-id="'+block_id+'"]');
+
+    });
+</script>

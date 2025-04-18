@@ -17,7 +17,7 @@
         <a href="{$wa->shop->productUrl($product, 'reviews')}">[`Reviews`]</a> <span class="wa-ml-4 wa-mr-8 hint">{$reviews_count}</span>
         {if !empty($product.rating) && $product.rating > 0}
             <!-- rating -->
-            <span class="rating nowrap wa-mb-4" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}" {if !empty($reviews_count)}itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating"{/if}>
+            <span class="rating nowrap wa-mt-4" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}" {if !empty($reviews_count)}itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating"{/if}>
                         {$wa->shop->ratingHtml($product.rating, 16)}
                 {if !empty($reviews_count)}
                     <meta itemprop="ratingValue" content = "{$product.rating}">

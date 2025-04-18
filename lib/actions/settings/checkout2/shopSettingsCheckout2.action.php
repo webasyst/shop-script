@@ -56,7 +56,7 @@ class shopSettingsCheckout2Action extends shopSettingsCheckoutAbstractAction
 
     protected function getRouteId()
     {
-        return waRequest::get('route', null, waRequest::TYPE_INT);
+        return waRequest::get('route', null, waRequest::TYPE_STRING_TRIM);
     }
 
     protected function getRoute()
@@ -65,15 +65,12 @@ class shopSettingsCheckout2Action extends shopSettingsCheckoutAbstractAction
 
         $route_id = $this->getRouteId();
         $shop_routes = wa()->getRouting()->getByApp('shop');
-        $domain_routes = ifset($shop_routes, $route_domain, []);
-        foreach ($domain_routes as $r_id => $route) {
-            if ($route_id == $r_id) {
-                $route['route_id'] = $r_id;
-                $route['domain'] = waIdna::dec($route_domain);
-                return $route;
-            }
+        $route = ifset($shop_routes, $route_domain, $route_id, null);
+        if ($route) {
+            $route['route_id'] = $route_id;
+            $route['domain'] = waIdna::dec($route_domain);
         }
-        return null;
+        return $route;
     }
 
     protected function getDemoTerms()

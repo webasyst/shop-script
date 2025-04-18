@@ -61,8 +61,6 @@
   width: 200px;
   height: 200px;
   background: var(--gray7) 50% no-repeat;
-  -webkit-background-size: contain;
-  -moz-background-size: contain;
   background-size: contain;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -219,6 +217,7 @@
   border: 0;
   border-radius: 1.072rem;
   overflow: hidden;
+  -webkit-box-shadow: var(--shadow);
   box-shadow: var(--shadow);
 }
 .s-slider-section .bx-wrapper .bx-controls {
@@ -276,6 +275,10 @@
 }
 .s-slider-section .bx-wrapper .bx-controls .bx-controls-direction a:hover {
   background-position: 8px;
+  -webkit-transition: background-position 300ms;
+  -moz-transition: background-position 300ms;
+  -o-transition: background-position 300ms;
+  -ms-transition: background-position 300ms;
   transition: background-position 300ms;
 }
 .s-slider-section .bx-wrapper .bx-controls .bx-controls-direction a.bx-prev {
@@ -369,8 +372,6 @@
 }
 .s-slider-section.is-promocards .s-slider-block .s-slide-wrapper {
   background: transparent 50% 0 no-repeat;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
   background-size: cover;
 }
 .s-slider-section.is-promocards .s-slider-block .s-slide-wrapper .s-slide-block {
@@ -406,8 +407,6 @@
 }
 .s-slider-section.is-products-wide .s-slider-block .s-slide-wrapper {
   background: transparent center no-repeat;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
   background-size: cover;
   position: relative;
 }
@@ -446,7 +445,7 @@
     display: none;
   }
   .s-slider-section .s-slider-block {
-    height: 200px;
+    height: 200px !important;
   }
   .s-slider-section .s-slider-block .s-slide-wrapper .s-slide-block {
     padding: 1em;
@@ -457,6 +456,9 @@
   .s-slider-section .s-slider-block .s-slide-wrapper .s-price-wrapper .s-price,
   .s-slider-section .s-slider-block .s-slide-wrapper .s-price-wrapper .s-compare-price {
     font-size: 15px;
+  }
+  .s-slider-section.is-promocards .s-slider-block .s-slide-wrapper {
+    background-size: cover;
   }
   .s-slider-section.is-products .s-slider-block {
     height: 285px;
@@ -526,8 +528,6 @@
   width: 9px;
   height: 9px;
   background: transparent url("../img/svg/arrow.down.svg") 50% no-repeat;
-  -webkit-background-size: contain;
-  -moz-background-size: contain;
   background-size: contain;
 }
 .store-info .s-schedule-wrapper .s-days-wrapper {

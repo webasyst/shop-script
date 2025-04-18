@@ -84,7 +84,7 @@
                     <button class="button light-gray rounded small" type="button"
                             v-on:click.prevent="createPage">
                         <span class="s-icon text-green"><i class="fas fa-plus-circle"></i></span>
-                        <span class="s-name bold"> [`New page`]</span>
+                        <span class="s-name bold"> [`New subpage`]</span>
                     </button>
                 </div>
                 <template v-if="pages.length">
@@ -135,7 +135,7 @@
                         </div>
                     </div>
                 </template>
-                <p class="hint" v-else>[`Add new pages, and they will appear in the list.`]</p>
+                <p class="hint" v-else>[`Add new subpages, and they will appear in the list.`]</p>
             </div>
         </div>
         <!-- plugin hook: 'backend_prod_content.bottom' -->

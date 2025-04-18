@@ -139,6 +139,22 @@ class shopSetProductsModel extends waModel implements shopProductStorageInterfac
             $where .= ' AND ' . $this->getWhereByField('product_id', $product_ids);
         }
         $update_product_ids = array_keys($this->select('product_id')->where($where)->fetchAll('product_id'));
+
+        if (!$update_product_ids) {
+            return false;
+        }
+
+        /**
+         * @param array[string] $set_ids
+         * @param array[int] $products_id
+         *
+         * @event products_remove_sets.before
+         */
+        wa('shop')->event('products_remove_sets.before', ref([
+            'set_ids' => (array) $set_id,
+            'products_id' => $update_product_ids,
+        ]));
+
         if ($product_ids === true) {
             if (!$this->deleteByField('set_id', $set_id)) {
                 return false;
@@ -153,6 +169,18 @@ class shopSetProductsModel extends waModel implements shopProductStorageInterfac
         if ($cache = wa('shop')->getCache()) {
             $cache->deleteGroup('sets');
         }
+
+        /**
+         * @param array[string] $set_ids
+         * @param array[int] $products_id
+         *
+         * @event products_remove_sets.after
+         */
+        wa('shop')->event('products_remove_sets.after', ref([
+            'set_ids' => (array) $set_id,
+            'products_id' => $update_product_ids,
+        ]));
+
         if ($product_ids === true) {
             return $set_model->updateById($set_id, array('count' => 0));
         } else {
@@ -216,38 +244,79 @@ class shopSetProductsModel extends waModel implements shopProductStorageInterfac
             }
         }
 
+        $before_set_ids = array_keys($this->getByField([
+            'product_id' => $product->id,
+        ], 'set_id'));
+        $remove_set_ids = array_values(array_diff($before_set_ids, $set_ids));
+        $add_set_ids = array_values(array_diff($set_ids, $before_set_ids));
+        if (!$remove_set_ids && !$add_set_ids) {
+            return;
+        }
+
+        if ($remove_set_ids) {
+            /**
+             * @param array[string] $set_ids
+             * @param array[int] $products_id
+             *
+             * @event products_remove_sets.before
+             */
+            wa('shop')->event('products_remove_sets.before', ref([
+                'set_ids' => $remove_set_ids,
+                'products_id' => (array)$product->id,
+            ]));
+        }
+
         // Delete product from all sets except $set_ids
         $sql = "DELETE FROM {$this->table} WHERE product_id=? AND set_id NOT IN (?)";
         $this->exec($sql, array($product->id, ifempty($set_ids, 0)));
 
-        /**
-         * Attaches a product to the sets. Get data before changes
-         *
-         * @param array $set_ids with $new_set_id
-         * @param array|string products_id
-         *
-         * @event products_add_sets.before
-         */
-        $params = array(
-            'set_ids' => $set_ids,
-            'products_id' => (array)$product->id,
-        );
-        wa('shop')->event('products_add_sets.before', $params);
-        // Make sure product is belongs to $set_ids
+        if ($add_set_ids) {
+            /**
+             * Attaches a product to the sets. Get data before changes
+             *
+             * @param array $set_ids with $new_set_id
+             * @param array|string products_id
+             *
+             * @event products_add_sets.before
+             */
+            $params = array(
+                'set_ids' => $add_set_ids,
+                'products_id' => (array)$product->id,
+            );
+            wa('shop')->event('products_add_sets.before', $params);
+        }
+
+        // Make sure product belongs to $set_ids
         $set_ids && $this->add(array($product->id), $set_ids);
-        /**
-         * Attaches a product to the sets
-         *
-         * @param array $set_ids with $new_set_id
-         * @param array|string products_id
-         *
-         * @event products_add_sets.after
-         */
-        $params = array(
-            'set_ids' => $set_ids,
-            'products_id' => (array)$product->id,
-        );
-        wa('shop')->event('products_add_sets.after', $params);
+
+        if ($remove_set_ids) {
+            /**
+             * @param array[string] $set_ids
+             * @param array[int] $products_id
+             *
+             * @event products_remove_sets.after
+             */
+            wa('shop')->event('products_remove_sets.after', ref([
+                'set_ids' => $remove_set_ids,
+                'products_id' => (array)$product->id,
+            ]));
+        }
+
+        if ($add_set_ids) {
+            /**
+             * Attaches a product to the sets
+             *
+             * @param array $set_ids with $new_set_id
+             * @param array|string products_id
+             *
+             * @event products_add_sets.after
+             */
+            $params = array(
+                'set_ids' => $add_set_ids,
+                'products_id' => (array)$product->id,
+            );
+            wa('shop')->event('products_add_sets.after', $params);
+        }
 
         return $this->getData($product);
     }

@@ -264,11 +264,11 @@
             <div class="services">
                 {foreach $services as $s}
                     <div class="service-{$s.id}">
-                        <label>
-                            <input data-price="{shop_currency($s.price, $s.currency, null, 0)}" {if !$product_available}disabled="disabled"{/if} type="checkbox" name="services[]" value="{$s.id}" class="wa-mr-8"> {$s.name|escape} {if $s.price && !isset($s.variants)}(+<span class="service-price">{shop_currency_html($s.price, $s.currency)}</span>){/if}
+                        <label class="wa-flex">
+                            <input data-price="{shop_currency($s.price, $s.currency, null, 0)}" {if !$product_available}disabled="disabled"{/if} type="checkbox" name="services[]" value="{$s.id}" class="wa-mr-8 wa-flex-none"> <span class="wa-mt-4">{$s.name|escape} {if $s.price && !isset($s.variants)}(+<span class="service-price">{shop_currency_html($s.price, $s.currency)}</span>)</span>{/if}
                         </label>
                         {if isset($s.variants)}
-                            <select data-variant-id="{$s.variant_id}" class="service-variants" name="service_variant[{$s.id}]" disabled>
+                            <select data-variant-id="{$s.variant_id}" class="service-variants wa-mt-8" name="service_variant[{$s.id}]" disabled>
                                 {foreach $s.variants as $v}
                                     <option {if $s.variant_id == $v.id}selected{/if} data-price="{shop_currency($v.price, $s.currency, null, 0)}" value="{$v.id}">{$v.name|escape} (+{shop_currency($v.price, $s.currency)})</option>
                                 {/foreach}
@@ -297,7 +297,7 @@
                 {/if}
             {/function}
             {foreach $product.skus as $sku}
-                <div {if $sku.id != $product.sku_id}style="display:none"{/if} class="sku-{$sku.id}-stock">
+                <div {if $sku.id != $product.sku_id}style="display:none"{/if} class="sku-{$sku.id}-stock row wa-flex-column gap8">
                     {if $sku.stock}
                         {foreach $stocks as $stock_id => $stock}
                             {if isset($sku.stock[$stock_id])}
@@ -305,10 +305,12 @@
                             {else}
                                 {$stock_count = null}
                             {/if}
-                            <span class="text-gray">{$stock.name}:</span> {in_stock n=$stock_count low=$stock.low_count critical=$stock.critical_count}<br>
+                            <div>
+                                <span class="text-gray">{$stock.name}:</span> {in_stock n=$stock_count low=$stock.low_count critical=$stock.critical_count}
+                            </div>
                         {/foreach}
                     {else}
-                        {in_stock n=$sku.count}
+                        <div>{in_stock n=$sku.count}</div>
                     {/if}
                 </div>
             {/foreach}

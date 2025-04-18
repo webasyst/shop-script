@@ -1967,6 +1967,7 @@ SQL;
         if ($file = reset($this->data['map'][self::STAGE_IMAGE])) {
             $description = null;
             if (!empty($this->data['map'][self::STAGE_IMAGE_DESCRIPTION])) {
+                $this->data['map'][self::STAGE_IMAGE_DESCRIPTION] = (array) $this->data['map'][self::STAGE_IMAGE_DESCRIPTION];
                 $description = reset($this->data['map'][self::STAGE_IMAGE_DESCRIPTION]);
             }
             /** @var shopProductImagesModel $model */
@@ -2035,7 +2036,9 @@ SQL;
             $this->data['processed_count'][self::STAGE_IMAGE][$target]++;
 
             array_shift($this->data['map'][self::STAGE_IMAGE]);
-            array_shift($this->data['map'][self::STAGE_IMAGE_DESCRIPTION]);
+            if (!empty($this->data['map'][self::STAGE_IMAGE_DESCRIPTION])) {
+                array_shift($this->data['map'][self::STAGE_IMAGE_DESCRIPTION]);
+            }
             ++$this->data['current'][self::STAGE_IMAGE];
         }
 

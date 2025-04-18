@@ -499,6 +499,7 @@ class shopProduct implements ArrayAccess
                 }
                 break;
             case 'vk.com':
+            case 'vkvideo.ru':
                 $video['width'] = 560;
                 $video['height'] = 315;
                 if (preg_match('~video([^&\?_]+)_([^&\?_]+)~', $video['url'], $match)) {

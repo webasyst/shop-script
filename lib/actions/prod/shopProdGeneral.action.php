@@ -181,7 +181,8 @@ class shopProdGeneralAction extends waViewAction
                         'product_url' => $product->url,
                     );
 
-                    $good_url = true;
+                    // place private storefronts at the end of the list of URLs
+                    $good_url = empty($r['private']);
                     if (ifempty($r, 'url_type', 0) == 2) {
 
                         // Attempting to build some URLs require to load url of this product's main category
@@ -226,7 +227,7 @@ class shopProdGeneralAction extends waViewAction
                             $url_template = wa()->getRouteUrl('/frontend/product', array('product_url' => '%product_url%'), true);
                         }
                     } else {
-                        // Cheater URLs: category is required, but disabled on the storefront.
+                        // Cheater URLs: category is required, but disabled on the storefront. Or storefront is private.
                         // We will place them at the end of the list.
                         $worse_frontend_urls[] = array(
                             'url' => $frontend_url,

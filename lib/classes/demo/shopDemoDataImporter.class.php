@@ -11,7 +11,7 @@ class shopDemoDataImporter
     public function __construct($source)
     {
         if (wa_is_int($source) && $source > 0) {
-            $sources = self::getSourceList();
+            $sources = self::getSourceList(false);
             if (isset($sources[$source])) {
                 $this->config = $sources[$source];
             }
@@ -1017,19 +1017,22 @@ class shopDemoDataImporter
     }
 
     /**
-     * @param string|null $locale
+     * @param string|bool|null $locale
      * @return array|mixed
      * @throws waException
      */
     public static function getSourceList($locale = null)
     {
         if (self::$source_list === null) {
-            if (empty($locale) || !is_string($locale)) {
-                $locale = wa()->getLocale();
+            self::$source_list = self::obtainSourceList();
+            if ($locale !== false) {
+                if (empty($locale) || !is_string($locale)) {
+                    $locale = wa()->getLocale();
+                }
+                self::$source_list = array_filter(self::$source_list, function($value) use ($locale) {
+                    return $value['locale'] == $locale;
+                });
             }
-            self::$source_list = array_filter(self::obtainSourceList(), function($value) use ($locale) {
-                return $value['locale'] == $locale;
-            });
         }
         return self::$source_list;
     }

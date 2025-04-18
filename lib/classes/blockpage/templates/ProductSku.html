@@ -1,0 +1,130 @@
+{$block_props = []}
+{$static_classes_props = 'site-block-product-sku style-wrapper f-w'}
+{$anchor_id = $data->data['id']|default:0}
+<div class="{$static_classes_props}" style="{if !$articles}display:none;{/if} {if $is_backend}visibility: hidden;{/if}" data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}" data-page-id="{$data->getPageId()|escape}" {if $anchor_id}id="{$anchor_id}"{/if}>
+    {if $product.sku_type}
+
+    <!-- SELECTABLE FEATURES selling mode -->
+
+    {$product_available = $product.status}
+    <div class="options">
+        <select class="js-sku-feature sku-feature t-7">
+            {foreach $product.skus as $n => $article}
+                <option value="{$article['id']}" {if $modification == $n}selected{/if} >
+                    <span>{$article['name']}</span>
+                </option>
+            {/foreach}
+        </select>
+        <!--
+            {*$default_sku_features = $product.sku_features}
+            {foreach $features_selectable as $f}
+        {$f.name}:
+        <select data-feature-id="{$f.id}" class="sku-feature" name="features[{$f.id}]">
+            {foreach $f.values as $v_id => $v}
+            <option value="{$v_id}" {if $v_id == ifset($default_sku_features[$f.id])}selected{/if}>{$v}</option>
+            {/foreach}
+        </select>
+        <br>
+        {/foreach*}-->
+    </div>
+    {else}
+
+    <!-- FLAT SKU LIST selling mode -->
+    {$product_available = false}
+    {if count($product.skus) > 1}
+
+    {* SKU selector *}
+
+    <ul class="skus" id="sku-selector-{$product.id}">
+        {foreach $product.skus as $sku}
+        {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+        <li itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+            <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+            <meta itemprop="price" content="{shop_currency($sku.price, $product.currency, null, 0)}">
+
+            <label{if !$sku.available} class="disabled"{/if}>
+            <input name="sku_id_{$product.id}" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-compare-price="{shop_currency($sku.compare_price, $product.currency, null, 0)}" data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
+            {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
+            <span class="price tiny nowrap">{shop_currency_html($sku.price, $product.currency)}</span>
+            {if (!($sku.count === null) && $sku.count <= 0)}
+            <link itemprop="availability" href="http://schema.org/OutOfStock" />
+            {else}
+            <link itemprop="availability" href="http://schema.org/InStock" />
+            {/if}
+            </label>
+        </li>
+        {$product_available = $product_available or $sku_available}
+        {/foreach}
+    </ul>
+    {else}
+
+    {* in case there is only one SKU, don't display the selector *}
+
+    <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+        {$sku = $product.skus[$product.sku_id]}
+        {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
+        <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+        <meta itemprop="price" content="{shop_currency($sku.price, $product.currency, null, 0)}">
+        {if !$sku.available}
+        <link itemprop="availability" href="http://schema.org/Discontinued" />
+        <p><em class="bold error">[`This product is not available for purchase`]</em></p>
+        {elseif !$wa->shop->settings('ignore_stock_count') && !($sku.count === null || $sku.count > 0)}
+        <link itemprop="availability" href="http://schema.org/OutOfStock" />
+        <div class="stocks"><strong class="stock-none"><i class="icon16 stock-transparent"></i>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}</strong></div>
+        {else}
+        <link itemprop="availability" href="http://schema.org/InStock" />
+        {/if}
+        <input name="sku_id" type="hidden" value="{$product.sku_id}">
+        {$product_available = $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+    </div>
+
+    {/if}
+
+    {/if}
+
+</div>
+
+{if $is_backend}
+<script>
+    $(function() { "use strict";
+        const block_id = {$data->getId()|json_encode};
+        const product = {$product|json_encode};
+        const wrapper_class = '.site-block-product-sku[data-block-id="'+block_id+'"]';
+        const $wrapper_parent = $(wrapper_class).parent();
+
+        $wrapper_parent.on('block_data_updated', wrapper_class, function(event, updated_block_id, data) {
+            event.stopPropagation();
+            if (+updated_block_id === +block_id) {
+                {if $articles}updateBlockStyles($(this), data, block_id);{/if}
+            }
+        });
+    });
+</script>
+{elseif $articles}
+<script>
+    $(function() { "use strict";
+        const block_id = {$data->getId()|json_encode};
+        const $wrapper = $('.site-block-product-sku[data-block-id="'+block_id+'"]');
+        const data = {$data->data|json_encode};
+        updateBlockStyles($wrapper, data, block_id);
+    });
+</script>
+{/if}
+<script>
+    $(function() { "use strict";
+        const block_id = {$data->getId()|json_encode};
+        const $wrapper = $('.site-block-product-sku[data-block-id="'+block_id+'"]');
+        const $select = $wrapper.find('select');
+        const $radio_sku = $wrapper.find('ul.skus');
+        $select.on('change', function(event) {
+            $wrapper.closest('.js-seq-wrapper').find('> .seq-child .style-wrapper').trigger('update_sku', [this.value])
+            {if $is_backend}$wrapper.closest('.site-block-product-sale').trigger('update_sku', [this.value]){/if}
+        });
+
+        $radio_sku.on('change', 'input', function(event) {
+            $wrapper.closest('.js-seq-wrapper').find('> .seq-child .style-wrapper').trigger('update_sku', [this.value])
+            {if $is_backend}$wrapper.closest('.site-block-product-sale').trigger('update_sku', [this.value]){/if}
+            //console.log(this.value)
+        });
+    });
+</script>

@@ -1,4 +1,4 @@
-<div class="block s-cheatsheet">
+<div class="js-cheatsheet s-cheatsheet">
     <div class="fields">
 
         <!-- ORDER -->
@@ -6,7 +6,7 @@
             <div class="name bold">
                 &#123;$order&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`An array containing information about the order`]
             </div>
         </div>
@@ -14,7 +14,7 @@
             <div class="name">
                 &#123;$order.id&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order ID`]
             </div>
         </div>
@@ -22,7 +22,7 @@
             <div class="name">
                 &#123;$order.currency&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order currency (ISO 3 code)`]
             </div>
         </div>
@@ -30,7 +30,7 @@
             <div class="name">
                 &#123;$order.items&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`An array containing information about ordered items`]
             </div>
         </div>
@@ -38,7 +38,7 @@
             <div class="name" style="padding-left: 32px;">
                 &#123;$order.items[].price&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Item price`]
             </div>
         </div>
@@ -46,7 +46,7 @@
             <div class="name" style="padding-left: 32px;">
                 &#123;$order.items[].quantity&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Ordered item quantity`]
             </div>
         </div>
@@ -54,7 +54,7 @@
             <div class="name" style="padding-left: 32px;">
                 &#123;$order.items[].download_link&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Item download link (SKU attachment)`]
             </div>
         </div>
@@ -62,7 +62,7 @@
             <div class="name">
                 &#123;$order.discount&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order discount amount (in order currency)`]
             </div>
         </div>
@@ -70,7 +70,7 @@
             <div class="name">
                 &#123;$order.tax&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order tax amount (in order currency)`]
             </div>
         </div>
@@ -78,7 +78,7 @@
             <div class="name">
                 &#123;$order.shipping&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order shipping cost (amount in order currency)`]
             </div>
         </div>
@@ -86,7 +86,7 @@
             <div class="name">
                 &#123;$order.total&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order total (amount in order currency)`]
             </div>
         </div>
@@ -94,7 +94,7 @@
             <div class="name">
                 &#123;$order.comment&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Customer’s comment to the order`]
             </div>
         </div>
@@ -104,7 +104,7 @@
             <div class="name bold">
                 &#123;$order.params&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`An array of other (custom) order parameter values`]
             </div>
         </div>
@@ -112,7 +112,7 @@
             <div class="name">
                 &#123;$order.params.shipping_name&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order selected shipping option name`]
             </div>
         </div>
@@ -120,7 +120,7 @@
             <div class="name">
                 &#123;$order.params.shipping_description&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order selected shipping option description`]
             </div>
         </div>
@@ -128,7 +128,7 @@
             <div class="name">
                 &#123;$order.params.payment_name&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order selected payment option name`]
             </div>
         </div>
@@ -136,7 +136,7 @@
             <div class="name">
                 &#123;$order.params.payment_description&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order selected payment option description`]
             </div>
         </div>
@@ -144,7 +144,7 @@
             <div class="name">
                 &#123;$order.params.auth_pin&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`A 4-digit PIN to access order info page (for customers without permanent account only)`]
             </div>
         </div>
@@ -152,7 +152,7 @@
             <div class="name">
                 &#123;$order.params.storefront&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Domain and path to Shop-Script storefront where the order was placed`]
             </div>
         </div>
@@ -160,7 +160,7 @@
             <div class="name">
                 &#123;$order.params.ip&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Customer’s IP address for the moment of order creation`]
             </div>
         </div>
@@ -168,7 +168,7 @@
             <div class="name">
                 &#123;$order.params.user_agent&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Customer’s “User-Agent” value at the time of order creation`]
             </div>
         </div>
@@ -176,7 +176,7 @@
             <div class="name">
                 &#123;$order.params.<br>shipping_est_delivery&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`A string indicating an approximate time frame of the order delivery (if defined)`]
             </div>
         </div>
@@ -184,7 +184,7 @@
             <div class="name">
                 &#123;$order.params.tracking_number&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Order shipment tracking number (if defined)`]
             </div>
         </div>
@@ -192,7 +192,7 @@
             <div class="name">
                 &#123;$order.params. … &#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`The list of order params may vary depending on your workflow and plugin setup`]
             </div>
         </div>
@@ -202,7 +202,7 @@
             <div class="name bold">
                 &#123;$customer&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Customer-related data array`]
             </div>
         </div>
@@ -210,7 +210,7 @@
             <div class="name">
                 &#123;$customer.name&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Customer full name`]
             </div>
         </div>
@@ -218,7 +218,7 @@
             <div class="name">
                 &#123;$customer.firstname&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Customer first name`]
             </div>
         </div>
@@ -226,7 +226,7 @@
             <div class="name">
                 &#123;$customer.lastname&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Customer last name`]
             </div>
         </div>
@@ -234,7 +234,7 @@
             <div class="name">
                 &#123;$customer->get('email', 'default')&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Customer email`]
             </div>
         </div>
@@ -242,7 +242,7 @@
             <div class="name">
                 &#123;$customer->get('phone', 'default')&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Customer phone`]
             </div>
         </div>
@@ -250,7 +250,7 @@
             <div class="name">
                 &#123;$customer. … &#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Any contact value from customer properties. You can view the list of available contact fields in section <em>Store → Settings → Checkout</em>. Replace the ellipsis (...) with the desired field’s ID.`]
             </div>
         </div>
@@ -260,7 +260,7 @@
             <div class="name bold">
                 &#123;$user&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`An array containing information about current backend user (agent) sending a message`]
             </div>
         </div>
@@ -268,7 +268,7 @@
             <div class="name">
                 &#123;$user.name&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`User full name`]
             </div>
         </div>
@@ -276,7 +276,7 @@
             <div class="name">
                 &#123;$user.firstname&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`User first name`]
             </div>
         </div>
@@ -284,7 +284,7 @@
             <div class="name">
                 &#123;$user.lastname&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`User last name`]
             </div>
         </div>
@@ -292,7 +292,7 @@
             <div class="name">
                 &#123;$user->get('email', 'default')&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`User email`]
             </div>
         </div>
@@ -300,7 +300,7 @@
             <div class="name">
                 &#123;$user->get('phone', 'default')&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`User phone number`]
             </div>
         </div>
@@ -308,7 +308,7 @@
             <div class="name">
                 &#123;$user. … &#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Any contact value from customer properties. You can view the list of available contact fields in section <em>Store → Settings → Checkout</em>. Replace the ellipsis (...) with the desired field’s ID.`]
             </div>
         </div>
@@ -318,7 +318,7 @@
             <div class="name bold">
                 &#123;$wa->shop->settings('name')&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Store name (as defined in General settings)`]
             </div>
         </div>
@@ -326,7 +326,7 @@
             <div class="name">
                 &#123;$wa->shop->settings('phone')&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Store phone number`]
             </div>
         </div>
@@ -334,7 +334,7 @@
             <div class="name">
                 &#123;$wa->shop->settings('email')&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Store primary email`]
             </div>
         </div>
@@ -342,7 +342,7 @@
             <div class="name">
                 &#123;$workhour_days&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Store working days, e.g. Sun, Mon, Wed—Fri`]
             </div>
         </div>
@@ -350,7 +350,7 @@
             <div class="name">
                 &#123;$workhour_from&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`Start of store’s business hours; e.g., 9:00 am`]
             </div>
         </div>
@@ -358,11 +358,33 @@
             <div class="name">
                 &#123;$workhour_to&#125;
             </div>
-            <div class="value no-shift">
+            <div class="value">
                 [`End of store’s business hours; e.g., 5:00 pm`]
             </div>
         </div>
 
     </div>
-    <div class="clear-both"></div>
 </div>
+<script>
+    $(function () {
+        $('.js-cheatsheet .field .name').on('click', async function() {
+            try {
+                await $.wa.copyToClipboard($(this).text().trim());
+                $.wa.notify({
+                    isCloseable: false,
+                    timeout: 2000,
+                    class: 'success',
+                    content: '<i class="fas fa-check-circle custom-mr-4"></i>[`Copied`]',
+                });
+            } catch(e) {
+                console.error(e);
+                $.wa.notify({
+                    isCloseable: false,
+                    timeout: 2000,
+                    class: 'danger',
+                    content: '[`Copying error`]',
+                });
+            }
+        })
+    })
+</script>

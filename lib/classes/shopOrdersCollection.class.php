@@ -691,7 +691,7 @@ class shopOrdersCollection
                 $fields[$f] = 'o.'.$f;
             } else {
                 $postprocess_fields[$f] = $f;
-                if ($f == 'subtotal' || $f == 'products') {
+                if ($f == 'subtotal' || $f == 'products' || $f == 'product_code_values') {
                     $postprocess_fields['items'] = 'items';
                 } elseif ($f == 'order_icon') {
                     $postprocess_fields['params'] = 'params';
@@ -721,19 +721,42 @@ class shopOrdersCollection
     {
         $ids = array_keys($data);
         $default_values = array_fill_keys($postprocess_fields, null);
+        unset($default_values['product_code_values']);
 
         if (isset($postprocess_fields['items'])) {
             $default_values['items'] = array();
 
             $rows = self::getModel('items')->getByField('order_id', $ids, true);
 
+            $item_ids = [];
             foreach ($rows as $row) {
                 if ($escape) {
                     $row['name'] = htmlspecialchars($row['name'], ENT_COMPAT, 'utf-8');
                 }
                 $data[$row['order_id']]['items'][] = $row;
+                $item_ids[] = $row['id'];
             }
 
+            if ($item_ids && isset($postprocess_fields['product_code_values'])) {
+                $order_item_codes_model = new shopOrderItemCodesModel();
+                $product_code_rows = $order_item_codes_model->getByItemId($item_ids);
+                if ($product_code_rows) {
+                    $item_product_codes = [];
+                    foreach ($product_code_rows as $row) {
+                        $item_product_codes[$row['order_item_id']][$row['code']][] = $row['value'];
+                    }
+                    foreach ($data as $id => &$order) {
+                        if (isset($order['items'])) {
+                            foreach ($order['items'] as &$item) {
+                                $item['product_code_values'] = ifset($item_product_codes, $item['id'], []);
+                            }
+                        }
+                    }
+                    unset($order, $item, $product_code_rows);
+                }
+            }
+            unset($item_ids);
+    
             $stock_units = [];
             foreach ($data as $id => &$order) {
                 if (isset($order['items'])) {

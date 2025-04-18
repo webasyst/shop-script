@@ -5,7 +5,7 @@
 {$_border_color = "rgba(0, 20, 80, 0.1)"}
 
 <table cellspacing="0" border="0" cellpadding="0" width="100%" bgcolor="{$_background_color}" style="
-font-family:'Segoe UI',Helvetica,Arial,sans-serif;
+font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
 letter-spacing:normal;
 text-indent:0;
 text-transform:none;
@@ -14,6 +14,18 @@ border-collapse:collapse
 ">
     <tr>
         <td style="padding: 20px;">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; width: 600px !important;margin:auto;">
+                <tr>
+                    <td width="20" style="width:20px !important;"></td>
+                    <td valign="middle" align="left" height="55" style="height: 55px;">
+                        <a href="[`https://www.webasyst.com`]" style="text-decoration: none;"><img src="{$wa->url(true)}wa-apps/shop/img/webasyst.png" alt="Webasyst" width="103" height="23" style="border: 0;"></a>
+                    </td>
+                    <td valign="middle" align="right" height="55" style="color: #89a; height: 55px;">
+                        {$wa->shop->settings("name")}
+                    </td>
+                    <td width="20" style="width:20px !important;"></td>
+                </tr>
+            </table>
             <table width="600" border="0" align="center" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="
                 width: 600px !important;
                 background-color:#fff;
@@ -55,7 +67,6 @@ border-collapse:collapse
                             font-weight:normal;
                             font-size:14px;
                             line-height:16px;
-                            font-family:Helvetica,Arial,sans-serif;
                             margin: 20px 0;
                             text-align:center;
                             ">%17%</p>
@@ -100,19 +111,17 @@ border-collapse:collapse
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
                 <tr>
                     <td valign="middle" align="center" height="45">
-                        <p style="
-                font-style:normal;
-                font-variant:normal;
-                font-weight:normal;
-                font-size:13px;
-                line-height:16px;
-                font-family:Arial,sans-serif,Helvetica;
-                color:#89a;
-                margin: 20px 0 0;
-                ">
-                            &copy;&nbsp;{date("Y")}&nbsp;{$wa->shop->settings("name")}<br>
-                            <a href="http://{$order.params.storefront_decoded}" target="_blank">{$order.params.storefront_decoded}</a>
-                        </p>
+                      <p style="
+                          font-style:normal;
+                          font-variant:normal;
+                          font-weight:normal;
+                          font-size:13px;
+                          line-height:16px;
+                          color: #89a;
+                          margin: 20px 0 0;
+                          ">
+                          <a href="[`https://www.shop-script.com`]" style="color: #89a; text-decoration: none;" target="_blank">[`Sent via Shop-Script app`]</a>
+                      </p>
                     </td>
                 </tr>
             </table>

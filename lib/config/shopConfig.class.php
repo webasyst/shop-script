@@ -27,8 +27,20 @@ class shopConfig extends waAppConfig
             if ($old_active != 'shop') {
                 waSystem::setActive('shop');
             }
-            include($this->getAppPath('lib/config/install.after.php'));
-            $model->del('shop', 'create_locale_configs');
+            $model->exec("SELECT GET_LOCK(?, -1)", ['wa_init_app_'.$this->application]);
+            try {
+                include($this->getAppPath('lib/config/install.after.php'));
+                $model->del('shop', 'create_locale_configs');
+            } finally {
+                $model->exec("SELECT RELEASE_LOCK(?)", ['wa_init_app_'.$this->application]);
+            }
+
+            /**
+             * App is installed and ready (or admin performed a full app reset)
+             * @event installed
+             */
+            wa()->event(['shop', 'installed']);
+
             waSystem::setActive($old_active);
         }
     }

@@ -60,7 +60,7 @@ class shopBackendWelcomeAction extends waViewAction
         $setup_options = [];
 
         $country = waRequest::post('country');
-        if ($country && !empty($this->countries[$country])) {
+        if ($country) {
             $setup_options['country'] = $country;
         }
 
@@ -92,13 +92,15 @@ class shopBackendWelcomeAction extends waViewAction
 
     public static function setupEverything($options)
     {
-        $country = ifset($options, 'country', 'rus');
-        $currency = ifset($options, 'currency', 'rus');
-        $demo_db = ifset($options, 'demo_db', 'rus');
+        $country = ifset($options, 'country', null);
+        $currency = ifset($options, 'currency', 'RUB');
+        $demo_db = ifset($options, 'demo_db', null);
 
-        self::setupCountry($country);
-        self::setupTaxes($country);
-        self::setupCustomerFilters($country);
+        if ($country) {
+            self::setupCountry($country);
+            self::setupTaxes($country);
+            self::setupCustomerFilters($country);
+        }
 
         self::setupCurrency($currency);
 
@@ -134,6 +136,9 @@ class shopBackendWelcomeAction extends waViewAction
             foreach ($this->countries as $iso3) {
                 $countries[$iso3] = $cm->get($iso3);
             }
+            uasort($countries, function($a, $b) {
+                return $a['name'] <=> $b['name'];
+            });
         }
         $locale = waLocale::getInfo(wa()->getUser()->getLocale());
         if (!isset($locale['iso3']) || !isset($countries[$locale['iso3']])) {

@@ -881,7 +881,7 @@
                     }, {
                         id: "google-maps-clusterer-js",
                         type: "js",
-                        uri: "//developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"
+                        uri: "//unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"
                     }]).then( function() {
                         initGoogleMap();
                     });
@@ -1110,25 +1110,24 @@
                     function initCluster(placemarks) {
                         if (cluster) { cluster.clearMarkers(); }
 
-                        cluster = new MarkerClusterer(map, placemarks, {
-                            maxZoom: 18,
-                            imagePath: '//developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-                        });
+                        cluster = new markerClusterer.MarkerClusterer({
+                            map,
+                            markers: placemarks,
+                            onClusterClick: function(clust) {
+                                var zoom = map.getZoom();
+                                if (zoom >= 17) {
 
-                        cluster.addListener("clusterclick", function(clust) {
-                            var zoom = map.getZoom();
-                            if (zoom >= 17) {
+                                    var markets_array = clust.getMarkers(),
+                                        variants_array = [];
 
-                                var markets_array = clust.getMarkers(),
-                                    variants_array = [];
+                                    $.each(markets_array, function(i, marker) {
+                                        variants_array.push(marker.variant_id);
+                                    });
 
-                                $.each(markets_array, function(i, marker) {
-                                    variants_array.push(marker.variant_id);
-                                });
-
-                                if (variants_array.length) {
-                                    exitFullscreen();
-                                    that.$wrapper.trigger("show_variant_details", [variants_array, null]);
+                                    if (variants_array.length) {
+                                        exitFullscreen();
+                                        that.$wrapper.trigger("show_variant_details", [variants_array, null]);
+                                    }
                                 }
                             }
                         });
@@ -1186,6 +1185,9 @@
                     }
 
                     function exitFullscreen() {
+                        if (!document.fullscreenElement) {
+                            return;
+                        }
                         try {
                             if (document.exitFullscreen) {
                                 document.exitFullscreen();

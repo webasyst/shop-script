@@ -91,7 +91,7 @@ class shopSettingsResetAction extends waViewAction
         // Delete settings from wa_app_settings and wa_contact_settings.
         // It's OK to do direct queries because we'll clear the cache afterwards.
         // Note that since we delete the `update_time` from wa_app_settings of shop and plugins,
-        // next app start will call install.php
+        // next app start will call install.php and install.after.php
         $model->exec("DELETE FROM wa_app_settings WHERE app_id='shop' OR app_id LIKE 'shop.%'");
         $model->exec("DELETE FROM wa_contact_settings WHERE app_id='shop' OR app_id LIKE 'shop.%'");
 

@@ -7,13 +7,19 @@
 <div class="field">
     <div class="name">[`GET parameters`]</div>
     <div class="value no-shift">
-        <textarea id="n-http-get" class="body" name="params[get]" placeholder="parameter=value">{if !empty($params.get)}{$params.get}{/if}</textarea>
+        <textarea id="n-http-headers" class="body" name="params[headers]" placeholder="Authorization=Bearer xxXXyyYYzzZZ">{if !empty($params.headers)}{$params.headers|escape}{/if}</textarea>
+    </div>
+</div>
+<div class="field">
+    <div class="name">[`GET parameters`]</div>
+    <div class="value no-shift">
+        <textarea id="n-http-get" class="body" name="params[get]" placeholder="parameter=value">{if !empty($params.get)}{$params.get|escape}{/if}</textarea>
     </div>
 </div>
 <div class="field">
     <div class="name">[`POST parameters`]</div>
     <div class="value no-shift">
-        <textarea id="n-http-post" class="body" name="params[post]" placeholder="parameter=value">{if !empty($params.post)}{$params.post}{/if}</textarea>
+        <textarea id="n-http-post" class="body" name="params[post]" placeholder="parameter=value">{if !empty($params.post)}{$params.post|escape}{/if}</textarea>
     </div>
 </div>
 <div class="field">

@@ -91,7 +91,7 @@ class shopFilter
      * @return Array
      * @description Возвращает данные разделов с элементами для фильтрации
      */
-    public function getFilterOptions()
+    public function getFilterOptions($params = [])
     {
         $categories = shopProdCategoriesAction::getCategories();
 
@@ -124,7 +124,12 @@ class shopFilter
         }
 
         $tag_model = new shopTagModel();
-        $tags = $tag_model->getAll();
+        if (!empty($params['tags_limit'])) {
+            $tags = $tag_model->select('id,name')->limit($params['tags_limit'])->fetchAll();
+        } else {
+            $tags = $tag_model->getAll();
+        }
+
 
         $features_data = self::getAllTypes(true, false, 'tiny');
         usort($features_data, function($f1, $f2) {

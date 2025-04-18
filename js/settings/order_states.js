@@ -93,7 +93,7 @@ $.extend($.settings || {}, {
                                 title: $.wa.locale['An error occurred'],
                                 text: r.errors,
                                 button_title: $.wa.locale['Close'],
-                                button_class: 'warning',
+                                button_class: 'light-gray',
                             });
 
                             return;
@@ -433,9 +433,9 @@ $.extend($.settings || {}, {
                 e.preventDefault();
 
                 $.waDialog.alert({
-                  title: $_('This is a preview of actions available for orders in this state'),
+                  text: `<h3>${$_('This is a preview of actions available for orders in this state')}</h3>`,
                   button_title: $.wa.locale['ok'],
-                  button_class: 'warning',
+                  button_class: 'light-gray',
                 });
             });
 
@@ -545,10 +545,9 @@ $.extend($.settings || {}, {
         function orderActionsSortableInit() {
             const $block = $('.s-order-allowed-actions');
 
-            $block.sortable($block, {
+            $block.sortable({
                 handle: '.js-sort',
                 draggable: '.s-order-action:not(.unsortable)',
-                // ghostClass: '.sortable-ghost',
                 animation: 100,
                 removeCloneOnHide: true
             });

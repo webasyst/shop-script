@@ -67,7 +67,7 @@
                 <a href="{$wa->shop->productUrl($product, 'reviews')}">[`Reviews`]</a> <span class="wa-ml-4 wa-mr-8 hint">{$reviews_total_count}</span>
                 {if !empty($product.rating) && $product.rating > 0}
                     <!-- rating -->
-                    <span class="rating nowrap wa-mb-4" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}" {if !empty($reviews_total_count)}itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating"{/if}>
+                    <span class="rating nowrap wa-mt-4" title="{sprintf('[`Average user rating: %s / 5`]', $product.rating)}" {if !empty($reviews_total_count)}itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating"{/if}>
                         {$wa->shop->ratingHtml($product.rating, 16)}
                         {if !empty($reviews_total_count)}
                             <meta itemprop="ratingValue" content = "{$product.rating}">
@@ -255,14 +255,14 @@
         {/if}
 
         <!-- product features -->
-        <div class="s-features-section">
-            <h3>[`Features`]</h3>
-            <div class="product-info--wrapper js-features-section">
-                {if !empty($_skus_features_html[$product.sku_id])}
+        {if !empty($_skus_features_html[$product.sku_id])}
+            <div class="s-features-section">
+                <h3>[`Features`]</h3>
+                <div class="product-info--wrapper js-features-section">
                     {$_skus_features_html[$product.sku_id]}
-                {/if}
+                </div>
             </div>
-        </div>
+         {/if}
 
         <!-- categories -->
         {if $product.categories}
@@ -288,7 +288,7 @@
 
         <!-- product reviews -->
         <section class="reviews">
-            <div class="row align-items-center justify-content-between wa-mb-16">
+            <div class="row align-items-center justify-content-between wa-mb-16 gap8">
                 <h3 class="wa-mb-0">{sprintf('[`%s reviews`]', $product.name|escape)} <span class="hint">({$reviews_total_count})</span></h3>
                 <a class="button bg-gray font-weight-normal" href="reviews/?writeReview">[`Write a review`]</a>
             </div>
@@ -383,7 +383,7 @@
 
         {if $upselling}
             <section class="related">
-                <h3>
+                <h3 class="row gap8 align-items-baseline">
                     [`See also`]
                     {$compare_ids = array_merge(array($product.id), array_keys($upselling))}
                     {if $theme_settings.compare_products}

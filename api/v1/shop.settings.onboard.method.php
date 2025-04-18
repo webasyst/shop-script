@@ -17,12 +17,8 @@ class shopSettingsOnboardMethod extends shopApiMethod
             throw new waAPIException('invalid_param', sprintf_wp('Invalid value of parameter “%s”.', 'currency'), 400);
         }
 
-        $country = $this->post('country', true);
+        $country = $this->post('country');
         $country = mb_strtolower($country);
-        $all_countries = $this->getAllCountries();
-        if (!isset($all_countries[$country])) {
-            throw new waAPIException('invalid_param', sprintf_wp('Invalid value of parameter “%s”.', 'country'), 400);
-        }
 
         $setup_options = [
             'currency' => $currency,

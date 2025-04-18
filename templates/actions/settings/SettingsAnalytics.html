@@ -41,7 +41,7 @@
 
 <script>(function() { "use strict";
 
-    document.title = {_w('Analytics')|json_encode} + ' — ' + {$wa->accountName()|json_encode};
+    document.title = {_w('Analytics')|json_encode} + ' — ' + {$wa->accountName(false)|json_encode};
 
     const $form = $('#s-analytics-settings-form');
     const $submitButton = $form.find('.js-form-submit');

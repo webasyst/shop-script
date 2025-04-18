@@ -3,14 +3,14 @@
     <div class="dialog-body">
         <div class="js-vue-node-wrapper" style="visibility: hidden;">
             <div class="dialog-header">
-                <h2>{ { page.name ? page.name : {_w("New page")|json_encode} } }</h2>
+                <h2>{ { page.name ? page.name : {_w("New subpage")|json_encode} } }</h2>
             </div>
             <div class="dialog-content">
                 <div class="fields">
                     {* NAME *}
                     <div class="field">
                         <div class="name size-small">
-                            <span>[`Page title`]</span>
+                            <span>[`Title`]</span>
                         </div>
                         <div class="value">
                             <component-flex-textarea
@@ -34,7 +34,7 @@
                     {* URL *}
                     <div class="field">
                         <div class="name size-small">
-                            <span>[`Page URL`]</span>
+                            <span>[`URL`]</span>
                         </div>
                         <div class="value">
                             <div class="s-field-wrapper">
@@ -57,7 +57,7 @@
                     <div class="s-additional-options-toggle">
                         <button class="button small short outlined"
                                 v-on:click.prevent="toggleOptions">
-                            <span class="s-text">{_w("Custom parameters")}</span>
+                            <span class="s-text">{_w("Settings")}</span>
                             <span class="s-icon icon baseline shift-1 size-12" v-show="page.expanded"><i class="fas fa-caret-down"></i></span>
                             <span class="s-icon icon baseline shift-1 size-12" v-show="!page.expanded"><i class="fas fa-caret-right"></i></span>
                         </button>
@@ -67,7 +67,7 @@
                         {* TITLE *}
                         <div class="field">
                             <div class="name size-small">
-                                <div>[`Page title`]</div>
+                                <div>[`Title`]</div>
                                 <div class="hint">&lt;title&gt;</div>
                             </div>
                             <div class="value">
@@ -82,7 +82,7 @@
                         {* DESCRIPTION *}
                         <div class="field">
                             <div class="name size-small">
-                                <div>[`Page description`]</div>
+                                <div>[`Description`]</div>
                                 <div class="hint">&lt;meta description&gt;</div>
                             </div>
                             <div class="value">

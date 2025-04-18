@@ -89,7 +89,7 @@ if ($notifications_model->countAll() == 0) {
 
         if ($event == 'order.process' || $event == 'order.ship') {
 
-            $data = [
+            /*$data = [
                 'transport' => 'sms',
             ] + $data;
             $id = $notifications_model->insert($data);
@@ -97,7 +97,7 @@ if ($notifications_model->countAll() == 0) {
                 'to' => 'customer',
                 'text' => $n['sms'],
             ] + array_diff_key($n, ['subject' => 1, 'sms' => 1, 'body' => 1]);
-            $params_model->save($id, $params);
+            $params_model->save($id, $params);*/
 
         } else if ($event == 'order.create') {
 
@@ -111,7 +111,7 @@ if ($notifications_model->countAll() == 0) {
             ] + $params;
             $params_model->save($id, $params);
 
-            $data = [
+            /*$data = [
                 'name' => ifset($events, $event, 'name', $event) . ' (' . _w('Customer') . ')',
                 'transport' => 'sms',
             ] + $data;
@@ -120,9 +120,9 @@ if ($notifications_model->countAll() == 0) {
                 'to' => 'customer',
                 'text' => $n['sms'],
             ] + array_diff_key($n, ['subject' => 1, 'sms' => 1, 'body' => 1]);
-            $params_model->save($id, $params);
+            $params_model->save($id, $params);*/
 
-            $data = [
+            /*$data = [
                 'name' => $events[$event]['name'] . ' (' . _w('Store admin') . ')',
                 'transport' => 'sms',
             ] + $data;
@@ -131,7 +131,7 @@ if ($notifications_model->countAll() == 0) {
                 'to' => $to_admin_sms,
                 'text' => $n['sms'],
             ] + array_diff_key($n, ['subject' => 1, 'sms' => 1, 'body' => 1]);
-            $params_model->save($id, $params);
+            $params_model->save($id, $params);*/
 
         }
     }

@@ -953,7 +953,7 @@ class shopFrontendProductAction extends shopFrontendAction
             'product:price:currency' => $config->getCurrency(false),
         );
         foreach ($product['og'] as $k => $v) {
-            $res['og']['og:'.$k] = $v;
+            $res['og']['og:'.$k] = str_replace($search, $replace, (string) $v);
         }
         return $res;
     }

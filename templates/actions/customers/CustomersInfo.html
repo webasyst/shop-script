@@ -7,17 +7,19 @@
         {* @event backend_customer.%plugin_id%.name_suffix *}
         {if !empty($backend_customer)}{foreach $backend_customer as $_}{ifset($_.name_suffix)}{/foreach}{/if}
     </h1>
-    <div class="custom-pt-4">
-        <a href="{$wa->shop->backendContactUrl($contact.id, 'edit')}" class="button small light-gray rounded">
-            <i class="fas fa-edit text-blue"></i>
-            [`Edit contact`]
-        </a>
-    </div>
-    <div class="custom-pt-4">
-        <a href="{$wa->shop->backendContactUrl($contact.id, 'delete')}" class="button small light-gray circle" title="[`Delete contact`]">
-            <i class="fas fa-trash-alt text-red"></i>
-        </a>
-    </div>
+    {if !$wa->isSingleAppMode()}
+        <div class="custom-pt-4">
+            <a href="{$wa->shop->backendContactUrl($contact.id, 'edit')}" class="button small light-gray rounded">
+                <i class="fas fa-edit text-blue"></i>
+                [`Edit contact`]
+            </a>
+        </div>
+        <div class="custom-pt-4">
+            <a href="{$wa->shop->backendContactUrl($contact.id, 'delete')}" class="button small light-gray circle" title="[`Delete contact`]">
+                <i class="fas fa-trash-alt text-red"></i>
+            </a>
+        </div>
+    {/if}
 </div>
 
 <div>

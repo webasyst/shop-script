@@ -162,24 +162,26 @@ class shopOrdersAction extends shopOrderListAction {
 
     protected function shouldShowAds()
     {
-        // Mobile ad has priority; show if required
-        list($show_mobile_ad, $when_mobile_add_hidden) = $this->shouldShowMobileAd();
-        if ($show_mobile_ad) {
-            return [$show_mobile_ad, false];
+        // Premium ad has priority; show if required
+        list($show_premium_ad, $when_premium_add_hidden) = $this->shouldShowPremiumAd();
+        if ($show_premium_ad) {
+            return [false, $show_premium_ad];
         }
-        // three days after mobile ad is hidden, show no ads
-        if (time() - $when_mobile_add_hidden <= 3*24*3600) {
+
+        // three days after premium ad is hidden, show no ads
+        if ($when_premium_add_hidden && time() - $when_premium_add_hidden <= 3*24*3600) {
             return [false, false];
         }
-        // show premium ad unless closed by user
-        return [false, $this->shouldShowPremiumAd()];
+
+        list($show_mobile_ad, $when_mobile_add_hidden) = $this->shouldShowMobileAd();
+        return [$show_mobile_ad, false];
     }
 
     protected function shouldShowMobileAd()
     {
         $hide_mobile_ad_till = wa()->getUser()->getSettings('shop', 'hide_mobile_ad_till', null);
-        if ($hide_mobile_ad_till && strtotime($hide_mobile_ad_till) > time()) {
-            return [false, strtotime($hide_mobile_ad_till) - 30*24*3600];
+        if ($hide_mobile_ad_till && ( ( $ts = strtotime($hide_mobile_ad_till)) > time())) {
+            return [false, $ts - shopBackendSidebarMenuSaveStateController::HIDE_MOBILE_AD_DAYS*24*3600];
         }
 
         $api_tokens_model = new waApiTokensModel();
@@ -196,13 +198,13 @@ class shopOrdersAction extends shopOrderListAction {
     protected function shouldShowPremiumAd()
     {
         if (shopLicensing::isPremium()) {
-            return false;
+            return [false, null];
         }
         $hide_premium_ad_till = wa()->getUser()->getSettings('shop', 'hide_premium_ad_till', null);
-        if ($hide_premium_ad_till && strtotime($hide_premium_ad_till) > time()) {
-            return false;
+        if ($hide_premium_ad_till && ( ( $ts = strtotime($hide_premium_ad_till)) > time())) {
+            return [false, $ts - shopBackendSidebarMenuSaveStateController::HIDE_PREMIUM_AD_DAYS*24*3600];
         }
-        return true;
+        return [true, null];
     }
 
     protected function getLastUpdateDatetime($orders)

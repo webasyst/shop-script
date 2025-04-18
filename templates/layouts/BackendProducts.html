@@ -2,7 +2,7 @@
 <html lang="{if $wa->locale()}{$wa->locale()}{else}en{/if}">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>{$wa->title()|default:$wa->appName()|escape} — {$wa->accountName()}</title>
+    <title>{$wa->title()|default:$wa->appName()|escape} — {$wa->accountName(false)}</title>
 
     {* META *}
     <meta charset="UTF-8">
@@ -45,7 +45,7 @@
             $.wa_shop_products.date_format = {waDateTime::getFormatJS('date')|json_encode};
             $.wa_shop_products.app_url = "{$wa_app_url|escape}";
             $.wa_shop_products.section_url = "{$wa_app_url|escape}products/";
-            $.wa.title.pattern = "%s — {$wa->accountName()|escape}";
+            $.wa.title.pattern = "%s — {$wa->accountName(false)|escape:javascript}";
         })(jQuery);
     </script>
 

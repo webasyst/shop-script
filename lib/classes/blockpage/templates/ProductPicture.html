@@ -1,0 +1,48 @@
+{$default_empty_image_url = "`$wa_app_static_url`img/image.svg"}
+
+{$anchor_id = $data->data['id']|default:0}
+{$picture_type = $data->data['picture_type']}
+{if !empty($product['image_id'])}
+    {$img_src = $product['images'][$product['image_id']][$picture_type]}
+{else}
+    {$img_src = $default_empty_image_url}
+{/if}
+{$static_classes_props = 'style-wrapper img'}
+<picture {if $anchor_id}id="{$anchor_id|escape}"{/if} class="{$static_classes_props}" {if $is_backend}style="visibility: hidden;"{/if} data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}">
+    {*$product|wa_dumpc*}
+    {if !empty($data->data['html'])}
+        {$data->data['html']}
+    {else}
+        <img src="{$img_src|default:''|escape}" >
+    {/if}
+</picture>
+
+{if $is_backend}
+<script>
+    $(function() { "use strict";
+        const block_id = {$data->getId()|json_encode};
+        const product = {$product|json_encode};
+        const $wrapper = $('picture.img[data-block-id="'+block_id+'"]');
+        const $image = $wrapper.find('img');
+
+        $wrapper.on('block_data_updated', function(event, updated_block_id, data) {
+            event.stopPropagation();
+            if (+updated_block_id === +block_id) {
+                updateBlockStyles($(this), data, block_id);
+                let picture_type = data['picture_type'];
+                //$(this).html(product['images'][product['image_id']][picture_type]);
+                if (data.additional?.product?.image_id)  $image.prop('src', data.additional.product.images[data.additional.product.image_id][picture_type]);
+            }
+        });
+    });
+</script>
+{else}
+<script>
+    $(function() { "use strict";
+        const block_id = {$data->getId()|json_encode};
+        const $wrapper = $('picture.img[data-block-id="'+block_id+'"]');
+        const data = {$data->data|json_encode};
+        updateBlockStyles($wrapper, data, block_id);
+    });
+</script>
+{/if}

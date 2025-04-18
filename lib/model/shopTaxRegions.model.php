@@ -33,7 +33,7 @@ class shopTaxRegionsModel extends waModel
                     WHERE tax_id=:id
                         AND country_iso3=:country
                         {$region_sql}
-                    ORDER BY region_code IS NOT NULL
+                    ORDER BY region_code IS NOT NULL DESC
                     LIMIT 1";
             $result = $this->query($sql, $data)->fetchField();
         }
