@@ -10,7 +10,7 @@ class shopProductSaleWidgetBlockType extends siteBlockType
     {
         $tmpl_vars['product'] = $data->data['additional']['product'];
         if ($tmpl_vars['product']['status'] < 0) {
-            $data->data['html'] = _w('Not available for sale');
+            $data->data['html'] = _w('Unavailable for purchase');
         }
         if (!$tmpl_vars['product']['id']) {
             $data->data['html'] = _w('Choose product');
@@ -104,13 +104,13 @@ class shopProductSaleWidgetBlockType extends siteBlockType
                     'name' => _w('Product'),
                 ],
                 [   'type' => 'ProductSkuGroup',
-                    'name' => _w('Modification'),
+                    'name' => _w('Variant'),
                 ],
                 [   'type' => 'RowsAlignGroup',
                     'name' => _w('Alignment'),
                 ],
                 [   'type' => 'RowsWrapGroup',
-                    'name' => _w('Wrap Line'),
+                    'name' => _w('Wrap line'),
                 ],
                 [   'type' => 'TabsWrapperGroup',
                     'name' => _w('Tabs'),

@@ -13,7 +13,7 @@ class shopProductSkuBlockType extends siteBlockType
         $tmpl_vars['modification'] = $tmpl_vars['sku_id'];
         $tmpl_vars['articles'] = ifset($tmpl_vars['product']['skus'], false);
         //$result = $this->additionalData($data);
-        //$tmpl_vars['html'] = $tmpl_vars['product']['price'];//$result['html']; 
+        //$tmpl_vars['html'] = $tmpl_vars['product']['price'];//$result['html'];
         return parent::render($data, $is_backend, $tmpl_vars);
     }
 
@@ -27,7 +27,7 @@ class shopProductSkuBlockType extends siteBlockType
     protected function getRawBlockSettingsFormConfig()
     {
         return [
-            'type_name' => _w('Modification'),
+            'type_name' => _w('Variant'),
             'sections' => [
                 /*[   'type' => 'FontHeaderGroup',
                     'name' => _w('Font header'),

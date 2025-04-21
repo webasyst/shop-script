@@ -12,7 +12,7 @@ class shopProductInfoBlockType extends siteBlockType
         $tmpl_vars['html'] = $data->data['additional']['html'];
 
         if ($tmpl_vars['product']['status'] < 0) {
-            $data->data['additional']['html'] = _w('Not available for sale');
+            $data->data['additional']['html'] = _w('Unavailable for purchase');
         }
         return parent::render($data, $is_backend, $tmpl_vars);
     }
@@ -57,7 +57,7 @@ class shopProductInfoBlockType extends siteBlockType
 
     public function getExampleBlockData()
     {
-        
+
         $result = $this->getEmptyBlockData();
         $result->data = ['info_type' => 'name', 'tag' => 'p', 'block_props' => ['font-header' => "t-rgl", 'font-size' => ["name" => "Size #3", "value" => "t-3", "unit" => "px", "type" => "library"], 'margin-top' => "m-t-0", 'margin-bottom' => "m-b-12", 'align' => "t-l"]];
         return $result;

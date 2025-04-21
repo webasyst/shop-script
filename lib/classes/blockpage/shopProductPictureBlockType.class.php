@@ -9,7 +9,7 @@ class shopProductPictureBlockType extends siteBlockType
         $tmpl_vars['product'] = $data->data['additional']['product'];
         //$tmpl_vars['html'] = $data->data['additional']['html'];
         if ($tmpl_vars['product']['status'] < 0) {
-            $data->data['html'] = _w('Not available for sale');
+            $data->data['html'] = _w('Unavailable for purchase');
         }
         return parent::render($data, $is_backend, $tmpl_vars);
     }

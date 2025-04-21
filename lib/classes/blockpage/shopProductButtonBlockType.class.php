@@ -12,11 +12,11 @@ class shopProductButtonBlockType extends siteBlockType
         $data->data['product_id'] = $tmpl_vars['product']['id'];
         $data->data['sku_id'] = $tmpl_vars['sku_id'];
         if ($tmpl_vars['product']['status'] < 0) {
-            $data->data['html'] = _w('Not available for sale');
+            $data->data['html'] = _w('Unavailable for purchase');
         }
         $tmpl_vars['modification'] = $tmpl_vars['sku_id'];
         //$result = $this->additionalData($data);
-       // $tmpl_vars['html'] = $tmpl_vars['product']['price'];//$result['html']; 
+       // $tmpl_vars['html'] = $tmpl_vars['product']['price'];//$result['html'];
         return parent::render($data, $is_backend, $tmpl_vars);
     }
 

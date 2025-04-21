@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.4.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -13524,3 +13524,84 @@ msgstr "Сделано на Shop-Script"
 
 msgid "Made on <a href=\"https://www.shop-script.com\" target=\"_blank\">Shop-Script</a>"
 msgstr "Сделано на <a href=\"https://www.shop-script.ru\" target=\"_blank\">Shop-Script</a>"
+
+msgid "HTTP headers"
+msgstr "HTTP-заголовки"
+
+msgid "Copying error"
+msgstr "Ошибка копирования"
+
+msgid "Unavailable for purchase"
+msgstr "Недоступен для покупки"
+
+msgid "Product price"
+msgstr "Цена товара"
+
+msgid "Product picture"
+msgstr "Изображение товара"
+
+msgid "Type of product picture"
+msgstr "Тип изображения товара"
+
+msgid "Tabs"
+msgstr "Вкладки"
+
+msgid "Margin"
+msgstr "Отступ"
+
+msgid "Shadows"
+msgstr "Тени"
+
+msgid "Border"
+msgstr "Граница"
+
+msgid "Angle"
+msgstr "Угол"
+
+msgid "Visibility on devices"
+msgstr "Видимость на устройствах"
+
+msgid "Identifier (ID)"
+msgstr "Идентификатор (ID)"
+
+msgid "Variant"
+msgstr "Модификация"
+
+msgid "Font header"
+msgstr ""
+
+msgid "Choose product"
+msgstr "Выберите товар"
+
+msgid "Widget with a shopping button"
+msgstr "Виджет с кнопкой покупки"
+
+msgid "Alignment"
+msgstr "Выравнивание"
+
+msgid "Wrap line"
+msgstr "Перенос строки"
+
+msgid "Price info"
+msgstr "Информация о цене"
+
+msgid "Font"
+msgstr "Шрифт"
+
+msgid "Font style"
+msgstr "Стиль шрифта"
+
+msgid "Line height"
+msgstr "Высота строки"
+
+msgid "Product info"
+msgstr "Информация о товаре"
+
+msgid "Type of product information"
+msgstr "Вид информации о товаре"
+
+msgid "Action"
+msgstr "Действие"
+
+msgid "Style"
+msgstr "Стиль"
