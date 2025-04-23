@@ -42,6 +42,10 @@ class shopCsvWriter implements Serializable
         $this->accept_arrays = $accept_arrays;
         if ($this->file()) {
             waFiles::create($this->file);
+            \\UTF-8 BOM for EXCEL
+            if ($this->encoding == 'utf-8') {
+                waFiles::write($this->file, "\xEF\xBB\xBF");
+            }
         }
 
         $this->restore();
