@@ -453,6 +453,10 @@ SQL;
             }
             $items = $result;
         }
+        
+        wa('shop')->event('cart_items_after', ref([
+            'items' => &$items
+        ]));
 
         return $items;
     }
