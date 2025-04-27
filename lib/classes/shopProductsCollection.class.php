@@ -2492,7 +2492,7 @@ SQL;
             }
         }
 
-        $where = $this->where;
+        $where = array_filter(array_map('trim', $this->where), 'strlen');
 
         if ($where) {
             $sql .= "\nWHERE ".implode("\n\tAND ", $where);
@@ -3840,7 +3840,10 @@ SQL;
      */
     public function addWhere($condition)
     {
-        $this->where[] = $condition;
+        $condition = trim($condition);
+        if (strlen($condition)) {
+            $this->where[] = $condition;
+        }
         return $this;
     }
 
