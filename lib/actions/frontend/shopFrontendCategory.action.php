@@ -340,6 +340,12 @@ class shopFrontendCategoryAction extends shopFrontendAction
         if (!wa()->getResponse()->getMeta('keywords')) {
             wa()->getResponse()->setMeta('keywords', shopCategoryModel::getDefaultMetaKeywords($category));
         }
+        
+        /**
+         * @event frontend_category
+         * @return array[string]string $return[%plugin_id%] html output for category
+         */
+        $this->view->assign('frontend_category', wa()->event('frontend_category', $category));
 
         $url_field = waRequest::param('url_type') == 1 ? 'url' : 'full_url';
         $canonical_url = wa()->getRouteUrl('shop/frontend/category', [
