@@ -343,13 +343,16 @@
         ContentRouter.prototype.initAnimation = function() {
             var that = this;
 
-            var waLoading = $.waLoading();
+            var waLoading = $.waLoading({top: ($('#wa-nav').height() || 0) + 'px'});
 
             var $wrapper = $("#wa"),
                 locked_class = "is-locked";
 
             that.$wrapper
                 .on("wa_before_load", function() {
+                    if (waLoading.is_animated) {
+                        return;
+                    }
                     waLoading.show();
                     waLoading.animate(10000, 95, false);
                     $wrapper.addClass(locked_class);

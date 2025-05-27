@@ -45,6 +45,7 @@
                                         <span class="icon" v-if="action.states.is_locked" v-bind:key="'fa-spinner'"><i class="fas fa-spinner fa-spin"></i></span>
                                         <span :class="['icon', `icon-${action.id}`]" v-else-if="action.icon" v-html="action.icon"></span>
                                         <span v-text="action.name"></span>
+                                        <span v-if="action.premium_is_required" class="count"><i class="fas fa-star text-yellow"></i></span>
                                     </a>
                                 </li>
                             </template>

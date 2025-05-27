@@ -2077,8 +2077,8 @@ msgstr "Добавить способ оплаты"
 msgid "No payment options are defined."
 msgstr "Не определено ни одного способа оплаты."
 
-msgid "Your online store base country."
-msgstr "Страна, в которой располагается ваш интернет-магазин."
+msgid "Your online store’s base country. Selected by default in the shipping address form on the checkout page."
+msgstr "Страна, в которой располагается ваш интернет-магазин. Выбрана по умолчанию в форме ввода адреса доставки на странице оформления заказа."
 
 msgid "Type name, email or phone number"
 msgstr "Введите имя, email или номер телефона"
@@ -7345,8 +7345,8 @@ msgstr "Разрешить покупателям выбирать другой 
 msgid "For example, to change product properties such as color or size"
 msgstr "Например, для изменения свойств товара: цвета, размера и т. п."
 
-msgid "Discount information per product"
-msgstr "Отображение скидки на каждый товар"
+msgid "Display of discount information per product"
+msgstr "Отображение информации о скидке на каждый товар"
 
 msgid "Total discount information"
 msgstr "Отображение итоговой скидки"
@@ -7486,14 +7486,14 @@ msgstr "Узкая"
 msgid "Medium"
 msgstr "Средняя"
 
-msgid "Compare at price without discount and discount amount"
-msgstr "Зачеркнутая цена без учета скидки и сумма скидки"
+msgid "Original cost displayed like strike-through price and discount amount"
+msgstr "Базовая стоимость в виде зачеркнутой цены и сумма скидки"
 
 msgid "Large"
 msgstr "Большая"
 
-msgid "Only compare at price without discount"
-msgstr "Только зачеркнутая цена без учета скидки"
+msgid "Original cost displayed like strike-through price"
+msgstr "Базовая стоимость в виде зачеркнутой цены"
 
 msgid "Only common discount amount"
 msgstr "Только общая сумма скидки"
@@ -13525,6 +13525,9 @@ msgstr "Сделано на Shop-Script"
 msgid "Made on <a href=\"https://www.shop-script.com\" target=\"_blank\">Shop-Script</a>"
 msgstr "Сделано на <a href=\"https://www.shop-script.ru\" target=\"_blank\">Shop-Script</a>"
 
+msgid "Skip"
+msgstr "Пропустить"
+
 msgid "HTTP headers"
 msgstr "HTTP-заголовки"
 
@@ -13605,3 +13608,108 @@ msgstr "Действие"
 
 msgid "Style"
 msgstr "Стиль"
+
+msgid "Add many"
+msgstr "Добавить много"
+
+msgid "Add multiple products"
+msgstr "Добавить много товаров"
+
+msgid "Express bulk image upload feature is now available in the main <a %s>Products</a> section via <b>Add many</b> button."
+msgstr "Быстрая массовая загрузка изображений теперь доступна в основном разделе «<a %s>Товары</a>» с помощью кнопки «<b>Добавить много</b>»."
+
+msgid "Add new products to category:"
+msgstr "Добавить новые товары в категорию:"
+
+msgid "Add new products to set:"
+msgstr "Добавить новые товары в список:"
+
+msgid "Save products"
+msgstr "Сохранить товары"
+
+msgid "Generate with AI"
+msgstr "Написать с ИИ"
+
+msgid "Generate now"
+msgstr "Написать текст"
+
+msgid "Save to default AI settings"
+msgstr "Сохранить в стандартные настройки ИИ"
+
+msgid "Save as default AI settings"
+msgstr "Запомнить как настройки ИИ по умолчанию"
+
+msgid "Don’t ask again"
+msgstr "Больше не спрашивать"
+
+msgid "E.g., “%s”."
+msgstr "Например, «%s»."
+
+msgid "write a SEO-friendly product review"
+msgstr "напиши обзор товара для SEO"
+
+msgid "Input"
+msgstr "Запрос"
+
+msgid "prompt to AI"
+msgstr "параметры для передачи ИИ"
+
+msgid "More options"
+msgstr "Еще параметры"
+
+msgid "Output"
+msgstr "Результат"
+
+msgid "fields to generate with AI"
+msgstr "поля товара для написания ИИ"
+
+msgid "If a field is not empty"
+msgstr "Если уже заполнено"
+
+msgid "just skip"
+msgstr "пропустить"
+
+msgid "AI-generate anyway"
+msgstr "все равно написать с помощью ИИ"
+
+msgid "AI requests"
+msgstr "Запросов к ИИ"
+
+msgid "Generate & force-save all now"
+msgstr "Написать и сохранить для всех товаров"
+
+msgid "Proceed one by one"
+msgstr "Продолжить по одному"
+
+msgid "AI descriptions and SEO for multiple products"
+msgstr "ИИ-описания и SEO для выбранных товаров"
+
+msgid "AI product descriptions & SEO"
+msgstr "ИИ-описания и SEO"
+
+msgid "With the <strong>basic</strong> Shop-Script version, you can use the <a %s>Webasyst AI</a> service to generate product <em>descriptions</em> one by one only. With <strong>premium</strong>, you get the advanced AI configuration shown below and the ability to generate full promo content (<em>descriptions, SEO, subpages</em>) both for single and for multiple selected products at a time."
+msgstr "В <strong>базовой</strong> версии Shop-Script можно генерировать <em>описания</em> товаров с помощью службы искусственного интеллекта <a %s>Webasyst AI</a> — только по одному. В <strong>премиум</strong>-версии доступны расширенные настройки, показанные ниже, и генерация всех текстовых полей (<em>описания, SEO, подстраницы</em>) как по одному, так и сразу для групп выбранных товаров."
+
+msgid "https://www.webasyst.com/pricing/#services"
+msgstr "https://www.webasyst.ru/pricing/#services"
+
+msgid "Webasyst AI"
+msgstr "Webasyst AI"
+
+msgid "Use the built-in <a %s>Webasyst AI</a> service to generate custom descriptions and promo SEO content for your product listings. Customize the default AI setup to better fit your audience."
+msgstr "Используйте службу искусственного интеллекта <a %s>Webasyst AI</a> для генерации описаний и текстовых полей товаров (SEO, ключевые слова, подстраницы). Настраивайте кастомные параметры ИИ-генерации для лучшего соответствия аудитории вашего магазина."
+
+msgid "AI"
+msgstr "ИИ"
+
+msgid "AI descriptions & SEO"
+msgstr "ИИ-описания и SEO"
+
+msgid "Duration"
+msgstr "Длительность"
+
+msgid "Remaining Webasyst AI prompts: %s"
+msgstr "Остаток запросов Webasyst AI: %s"
+
+msgid "Only available with the premium license."
+msgstr "Доступно только с премиум-лицензией."

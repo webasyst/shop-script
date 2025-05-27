@@ -486,6 +486,11 @@ $.extend($.settings = $.settings || {}, {
         return true;
     },
 
+    aiPreLoad: function (id) {
+        this.load('?module=settingsAi');
+        return true;
+    },
+
     typefeatPreLoad: function (id) {
         this.load('?module=settings&action=typefeatList&type=' + (id || ''));
         // this.$container.load('?module=settings&action=typefeatList&type=' + (id || ''))

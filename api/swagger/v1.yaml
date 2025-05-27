@@ -17,6 +17,70 @@ servers:
 
 paths:
 #CATEGORY
+  /shop.ai.gpt:
+    post:
+      summary: Генерация текстов с помощью ИИ
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.ai.gpt
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.ai.gpt/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                entity:
+                  type: string
+                  description: Тип сущности, для которой генерить текст (например, товар ШС - product)
+                  enum:
+                    - product
+                field:
+                  type: string
+                  description: Для какого поля сущности генерить текст (например, для описания товара - description)
+                  enum:
+                    - description
+                    - summary
+                    - meta_title
+                    - meta_keywords
+                    - meta_description
+                    - page
+                entity_id:
+                  type: integer
+                  description: ID сущности, для которой генерить текст (например, id товара). Сохранённые в ней данные будут использованы при генерации.
+                  minimum: 0
+                objective:
+                  type: string
+                  description: Текстовый запрос для генерации, используется (и обязателен) для entity=product field=page
+              required:
+                - entity
+                - field
+      responses:
+        200:
+          description: Результат генерации содержит поле field, указанное в запросе.
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Некорректное содержимое запроса.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        402:
+          description: Payment required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        500:
+          description: Внутренняя ошибка сервера.
+
   /shop.category.add:
     post:
       summary: Добавляет новую категорию товаров.

@@ -34,6 +34,11 @@
 {/capture}
 {$_components["component-image-toggle"] = $_component_image_toggle}
 
+{capture assign="_component_ai_toolbar"}
+    {include file="./includes/ai_toolbar.html" inline}
+{/capture}
+{$_components["component-ai-toolbar"] = $_component_ai_toolbar}
+
 {$_globals_components = $wa->globals("components")}
 {if !empty($_globals_components)}
     {$_components = array_merge($_components, $_globals_components)}
@@ -161,7 +166,14 @@
 
                                 <div class="s-textarea-details tablebox fixed middle space-16">
                                     <div class="s-column">
-                                        <component-dropdown-variables v-on:change="addVariable(product, 'meta_title', $event)"></component-dropdown-variables>
+                                        <div class="flexbox middle space-8 nowrap">
+                                            <component-dropdown-variables v-on:change="addVariable(product, 'meta_title', $event)"></component-dropdown-variables>
+                                            <component-ai-toolbar
+                                                class="small custom-mt-4"
+                                                :update-prop="'meta_title'"
+                                                @update="product.meta_title = $event"
+                                            ></component-ai-toolbar>
+                                        </div>
                                     </div>
                                     <div class="s-column">
                                         <div class="s-letters-wrapper">
@@ -189,7 +201,14 @@
                                 </div>
                                 <div class="s-textarea-details tablebox fixed middle space-16">
                                     <div class="s-column">
-                                        <component-dropdown-variables v-on:change="addVariable(product, 'meta_description', $event)"></component-dropdown-variables>
+                                        <div class="flexbox middle space-8 nowrap">
+                                            <component-dropdown-variables v-on:change="addVariable(product, 'meta_description', $event)"></component-dropdown-variables>
+                                            <component-ai-toolbar
+                                                class="small custom-mt-4"
+                                                :update-prop="'meta_description'"
+                                                @update="product.meta_description = $event"
+                                            ></component-ai-toolbar>
+                                        </div>
                                     </div>
                                     <div class="s-column">
                                         <div class="s-letters-wrapper">
@@ -209,11 +228,15 @@
 
                             </div>
                             <div class="value">
-
                                 <component-flex-textarea
                                     v-model="product.meta_keywords"
                                     v-bind:class="'small wide'"></component-flex-textarea>
 
+                                <component-ai-toolbar
+                                    class="small custom-mt-4"
+                                    :update-prop="'meta_keywords'"
+                                    @update="product.meta_keywords = $event"
+                                ></component-ai-toolbar>
                             </div>
                         </div>
                     </div>

@@ -32,13 +32,36 @@ class shopProdListAction extends waViewAction
     public function execute()
     {
         $user_id = wa()->getUser()->getId();
+        $presentation_model = new shopPresentationModel();
+        $presentation_id = waRequest::request('presentation', null, waRequest::TYPE_INT);
+
+        if (waRequest::get('is_bulk_add') == 1 && $presentation_id) {
+            $presentation_columns_model = new shopPresentationColumnsModel();
+
+            $sort_column_id = ifset($presentation_columns_model->getByField([
+                'presentation_id' => $presentation_id,
+                'column_type' => 'create_datetime'
+            ])['id']);
+
+            if (!$sort_column_id) {
+                $sort_column_id = $presentation_columns_model->insert([
+                    'presentation_id' => $presentation_id,
+                    'column_type' => 'create_datetime',
+                    'sort' => 100
+                ]);
+            }
+
+            $presentation_model->updateById($presentation_id, [
+                'sort_column_id' => $sort_column_id,
+                'sort_order' => 'desc'
+            ]);
+        }
 
         $presentation = shopPresentation::getCurrentTransient();
         $active_filter = $presentation->getFilter();
         $active_presentation = $presentation->getData();
 
         // получить с сервера список сохранённых презентаций
-        $presentation_model = new shopPresentationModel();
         $presentations = array_values($presentation_model->getTemplatesByUser($user_id, ['fields' => ['id', 'name']]));
 
         $limit  = waRequest::request( "limit", $active_presentation["rows_on_page"], waRequest::TYPE_INT );
@@ -72,6 +95,7 @@ class shopProdListAction extends waViewAction
                 break;
             }
         }
+
         if ($sort_column_type !== null) {
             $sort_column_type = $sort_column_type == 'price' || $sort_column_type == 'base_price' ? 'min_' . $sort_column_type : $sort_column_type;
             $sorting_options = [
@@ -1117,7 +1141,21 @@ class shopProdListAction extends waViewAction
         $wa_app_url = wa()->getAppUrl(null, true);
         $_sprite_url = wa()->getRootUrl() . "wa-apps/shop/img/backend/products/product/icons.svg?v=" . wa('shop')->getVersion();
 
-        $result = array();
+        $result = [
+            "first" => [
+                "id" => "",
+                "name" => "",
+                "actions" => [
+                    [
+                        "id" => "ai_generate",
+                        "name" => _w("AI descriptions & SEO"),
+                        "icon" => '<i class="icon webasyst-ai"></i>',
+                        "action_url" => $wa_app_url."?module=prod&action=massAIGenerateDescriptionDialog",
+                        "premium_is_required" => !shopLicensing::isPremium()
+                    ]
+                ]
+            ]
+        ];
         if ($this->getUser()->getRights('shop', 'importexport')) {
             $result['export'] = [
                 "id" => "export",

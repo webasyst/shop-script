@@ -1,0 +1,96 @@
+<div class="box s-images-import" id="s-imagesproduct-form">
+    <h3>[`Add multiple products`]</h3>
+
+    <form id="fileupload" action="?module=product&amp;action=imageUpload" method="POST" enctype="multipart/form-data">
+        <div id="s-image-upload-dropbox" class="custom-mt-24 custom-py-48">
+            <div class="upload">
+                <label class="link">
+                    <i class="fas fa-file-upload"></i>
+                    <span>[`Select images`] <span class="gray">[`or drag them here to start upload`]</span></span>
+                    <input type="file" name="files[]" multiple="" autocomplete="off">
+                </label>
+            </div>
+        </div>
+        <p class="gray" id="s-image-upload-explanation">
+            [`Drag images between automatically detected groups, and assign them to either new or existing products. Click “Upload images” when setup is complete.`]
+        </p>
+
+        <table class="s-bulk-image-uploader-map">
+            <tbody class="preload-files">
+            </tbody>
+        </table>
+
+        {* send with separate image to say for what product this image is *}
+        <input type="hidden" name="product_id" value="">
+        {$wa->csrf()}
+
+        {include './include.imageUpload.html' inline}
+
+        <div class="box">
+
+            <p id="add-new-group-container" style="display:none;">
+                <a href="#" class="semibold" id="add-new-group"><i class="fas fa-plus-circle text-green add"></i> [`Add product`]</a>
+            </p>
+
+            {$filter_type = ifset($filter_type)}
+            {$filter_id = ifset($filter_id)}
+            {$filter_label = ifset($filter_label, '')|escape}
+            {if !$filter_type || $filter_type === 'types'}
+                <div id="s-product-type-container" class="flexbox middle space-8">
+                    [`Assign all new products following product type:`]
+                    {$type = reset($types)}
+                    {if $filter_id}
+                        {foreach $types as $_id => $_type}
+                            {if $filter_id == $_id}
+                                {$type = $_type}
+                                {break}
+                            {/if}
+                        {/foreach}
+                    {/if}
+                    <span id="s-product-type-icon" class="text-gray">{$wa->shop->getIcon($type.icon)}</span>
+                    <div class="wa-select">
+                        <select name="type_id" id="s-product-type">
+                            {foreach $types as $id => $type}
+                                <option data-icon="{$wa->shop->getIcon($type.icon)|escape}" value="{$id}"{if $filter_id == $id} selected{/if}>
+                                    {$type.name|escape}
+                                </option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </div>
+            {elseif $filter_type === 'categories'}
+                <span>[`Add new products to category:`]</span>
+                <span class="custom-ml-4 button light-gray rounded custom-py-4 custom-px-8" style="pointer-events:none;">
+                    <i class="fas fa-folder text-blue"></i> {$filter_label}
+                </span>
+                <input type="hidden" name="category_id" value="{$filter_id}">
+            {elseif $filter_type === 'sets'}
+                <span>[`Add new products to set:`]</span>
+                <span class="custom-ml-4 button light-gray rounded custom-py-4 custom-px-8" style="pointer-events:none;">
+                    <svg class="icon size-14 text-red"><use xlink:href="/wa-apps/shop/img/backend/products/product/icons.svg?v=11.3.0.1745591243#list"></use></svg> {$filter_label}
+                </span>
+                <input type="hidden" name="set_id" value="{$filter_id}">
+            {/if}
+
+            <div class="fileupload-buttonbar custom-mt-24">
+                <button type="button" class="button start" style="display:none" id="submit">[`Save products`]</button>
+                <span id="s-imagesproduct-report" style="display: none;"></span>
+            </div>
+
+        </div>
+
+    </form>
+</div>
+
+<script>
+    ( function($) {
+        $("#s-image-upload-dropbox").waUpload({ is_uploadbox: true, show_file_name: false });
+
+        $('#s-product-type').bind('change', function() {
+            var self = $(this);
+            $('#s-product-type-icon').html(
+                self.find('option:selected').attr('data-icon')
+            );
+        });
+    })(jQuery);
+</script>

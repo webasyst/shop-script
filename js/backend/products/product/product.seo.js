@@ -162,7 +162,24 @@
                                 }
                             });
                         }
-                    }
+                    },
+                    "component-ai-toolbar": {
+                        props: ["updateProp"],
+                        emits: ["update"],
+                        template: that.components["component-ai-toolbar"],
+                        mounted: function() {
+                            this.$el.dataset.updateProp = this.updateProp;
+
+                            $.wa_shop_products.useComponentExperimentalAIToolbar({
+                                $toolbar: $(this.$el),
+                                productId: that.product.id,
+                                onUpdate: (prop, product) => {
+                                    this.$emit('update', product[prop]);
+                                    that.$wrapper.trigger("change");
+                                }
+                            });
+                        }
+                    },
                 },
                 computed: {
                     social_image_url: function() {

@@ -90,6 +90,8 @@
             // option of the $.ajax upload requests:
             dataType: 'json',
 
+            showAddProductButton: false,
+
             // The add callback is invoked as soon as files are added to the fileupload
             // widget (via file input selection, drag & drop or add API call).
             // See the basic file upload widget for more information:
@@ -198,7 +200,7 @@
                                         that._trigger('completed', e, data);
                                         that._trigger('finished', e, data);
                                         if (!file.error) {
-                                            setTimeout(function() {
+                                            var timer_id = setTimeout(function() {
                                                 data.context[0].hide(200, function() {
                                                     var tr = $(this).parents('tr:first');
                                                     if (!tr.find('li:visible:first').length) {
@@ -213,6 +215,7 @@
                                                     }
                                                 });
                                             }, 3000);
+                                            that.transitionTimerIds.push(timer_id);
                                         } else {
                                             data.context[0].find('.error').show().text(file.error);
                                             data.context[0].addClass('error');
@@ -251,7 +254,7 @@
                             that._trigger('completed', e, data);
                             that._trigger('finished', e, data);
                             if (!file.error) {
-                                setTimeout(function() {
+                                var timer_id = setTimeout(function() {
                                     data.context[0].hide(200, function() {
                                         var tr = $(this).parents('tr:first');
                                         if (!tr.find('li:visible:first').length) {
@@ -266,6 +269,7 @@
                                         }
                                     });
                                 }, 5000);
+                                that.transitionTimerIds.push(timer_id);
                             } else {
                                 data.context[0].find('.error').show().text(file.error);
                                 data.context[0].addClass('error');
@@ -437,6 +441,10 @@
                 }
             }
         },
+        events: {
+            onUploaded: []
+        },
+        transitionTimerIds: [],
 
         _clear: function() {
             var options = this.options;
@@ -507,6 +515,7 @@
         },
 
         _getFinishedDeferreds: function () {
+            this.emitOnUploaded();
             return this._finishedUploads;
         },
 
@@ -940,8 +949,12 @@
                     });
 
                     if (postData.length) {
-                        postData.push({
-                            name: 'type_id', value: that.element.find('select[name=type_id]').val()
+                        [
+                            { name: 'type_id', value: that.element.find('[name=type_id]').val() },
+                            { name: 'category_id', value: that.element.find('[name=category_id]').val() },
+                            { name: 'set_id', value: that.element.find('[name=set_id]').val() },
+                        ].forEach(field => {
+                            if (field.value) postData.push(field)
                         });
                         $.post('?module=images&action=productcreates', postData, function(r) {
                             if (r.status == 'ok' && r.data) {
@@ -955,7 +968,13 @@
                                     }
                                 }
                                 that.options.report.product_count = count;
-                                filesList.find('.start').click();
+                                that.options.product_ids = r.data;
+
+                                if ($('#s-upload-imagelist .template-upload').length) {
+                                    filesList.find('.start').click();
+                                } else {
+                                    that.emitOnUploaded();
+                                }
                             }
                         }, 'json');
                     } else {
@@ -1015,7 +1034,8 @@
         _initPreloadContainerEventHandlers: function() {
             var that = this,
                 options = this.options,
-                preloadContainer = this.options.preloadContainer;
+                preloadContainer = options.preloadContainer;
+
             this._on(preloadContainer, {
                 'click .s-group-delete': function(e) {
                     e.preventDefault();
@@ -1055,25 +1075,39 @@
                 }
             });
 
-            $('#add-new-group').bind('click', function() {
-                var group_id = that._groupCount++,
-                    insertMethod = options.prependFiles ? 'prepend' : 'append',
-                    container = options.preloadContainer.find(
-                        '[data-group-id=' + group_id + '] ul'
-                    );
-                if (!container.length) {
-                    options.preloadContainer[insertMethod]
-                        (that._renderGroupContainer(group_id));
-                    options.preloadContainer = $(options.preloadContainer[0]);
-                    container = options.preloadContainer.find(
-                        '[data-group-id=' + group_id + '] ul'
-                    );
-                    that._initGroupContainer(options.preloadContainer.find(
-                        '[data-group-id=' + group_id + ']'
-                    ));
-                }
+            $('#add-new-group').unbind('click').bind('click', function() {
+                that._addEmptyGroup();
                 return false;
             });
+
+            if (options.showAddProductButton) {
+                $('#s-image-upload-explanation').show();
+                $('#add-new-group-container').show();
+                that._emptyReport();
+            }
+        },
+
+        _addEmptyGroup: function () {
+            var that = this,
+                options = this.options;
+
+            var group_id = that._groupCount++,
+                insertMethod = options.prependFiles ? 'prepend' : 'append',
+                container = options.preloadContainer.find(
+                    '[data-group-id=' + group_id + '] ul'
+                );
+
+            if (!container.length) {
+                options.preloadContainer[insertMethod]
+                    (that._renderGroupContainer(group_id));
+                options.preloadContainer = $(options.preloadContainer[0]);
+                container = options.preloadContainer.find(
+                    '[data-group-id=' + group_id + '] ul'
+                );
+                that._initGroupContainer(options.preloadContainer.find(
+                    '[data-group-id=' + group_id + ']'
+                ));
+            }
         },
 
         _destroyButtonBarEventHandlers: function () {
@@ -1097,6 +1131,7 @@
 
         _initEventHandlers: function () {
             this._super();
+            this._destroyButtonBarEventHandlers();
             this._on(this.options.filesContainer, {
                 'click .start': this._startHandler,
                 'click .cancel': this._cancelHandler,
@@ -1200,12 +1235,20 @@
         _showDialog: function() {
             $('body').addClass('is-locked');
             this.$dialog.removeClass('hidden');
-            this.$dialog.resize();
-            this.resizeDialogInterval = setInterval(() => this.$dialog.resize(), 250);
+
+            this.dialogObserver = new MutationObserver(() => {
+                this.$dialog.resize();
+            });
+            this.dialogObserver.observe(this.options.filesContainer.get(0), {
+                childList: true
+            });
+
+            setTimeout(() => {
+                this.$dialog.resize();
+            }, 25);
         },
 
         _hideDialog: function() {
-            clearInterval(this.resizeDialogInterval);
             $('body').removeClass('is-locked');
             this.$dialog.addClass('hidden');
             $('#s-product-type-container').hide();
@@ -1214,6 +1257,10 @@
             this._showReport();
             $('#submit').hide();
             $('#add-new-group-container').hide();
+            if (this.dialogObserver instanceof MutationObserver) {
+                this.dialogObserver.disconnect();
+                this.dialogObserver = null;
+            }
         },
 
         _initDialog: function() {
@@ -1280,8 +1327,25 @@
                 this._disableFileInputButton();
             }
             this._super();
-        }
+        },
 
+        onUploaded: function (callback) {
+            if (typeof callback === 'function') {
+                this.events.onUploaded.push(callback);
+            }
+        },
+
+        emitOnUploaded: function () {
+            this.events.onUploaded.forEach(callback => {
+                callback.call(null, this.options.product_ids);
+            });
+        },
+
+        stopEndingTransition: function () {
+            this.transitionTimerIds.forEach(timer_id => {
+                clearTimeout(timer_id);
+            });
+        }
     });
 
 }));

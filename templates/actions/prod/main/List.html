@@ -334,6 +334,10 @@
                                 <span class="s-icon icon baseline size-12" style="transform: translateY(1px);"><i class="fas fa-plus"></i></span>
                                 <span class="s-name">[`New product`]</span>
                             </a>
+                            <a class="button light-gray rounded" @click.prevent="presentation.view = 'bulk_add'">
+                                <span class="s-icon icon baseline size-12" style="transform: translateY(1px);"><i class="fas fa-list"></i></span>
+                                <span class="s-name">[`Add many`]</span>
+                            </a>
                         </div>
 
                         <div class="s-plugins-section-header-left">
@@ -368,21 +372,24 @@
                 <div v-if="!states.sidebar_filters_hide" class="s-body-aside sidebar">
                     <component-table-filters-categories-sets-types></component-table-filters-categories-sets-types>
                 </div>
-                {* PRODUCTS TABLE *}
-                <div class="s-products-table-section" v-if="presentation.view !== 'thumbs'" v-on:scroll="onScrollProductsSection">
-                    {* BODY *}
-                    <component-products-table
-                        v-bind:key="keys.table"
-                        v-bind:products="products"></component-products-table>
-                </div>
                 {* PRODUCTS THUMBS *}
-                <div class="s-products-thumbs-section" v-if="presentation.view === 'thumbs'" v-on:scroll="onScrollProductsSection">
+                <div v-if="presentation.view === 'thumbs'" class="s-products-thumbs-section" v-on:scroll="onScrollProductsSection">
                     <div class="s-section-body">
                         <div class="s-thumbs-list">
                             <component-product-thumb v-if="products.length" v-for="(product, i) in products" v-bind:key="product.id" v-bind:index="i" v-bind:product="product"></component-product-thumb>
                             <component-empty-content v-else type="products"></component-empty-content>
                         </div>
                     </div>
+                </div>
+                <div v-else-if="presentation.view === 'bulk_add'" class="s-products-bulk-add-section">
+                    <component-products-bulk-add :filter="product_class_filter" />
+                </div>
+                {* PRODUCTS TABLE *}
+                <div v-else class="s-products-table-section" v-on:scroll="onScrollProductsSection">
+                    {* BODY *}
+                    <component-products-table
+                        v-bind:key="keys.table"
+                        v-bind:products="products"></component-products-table>
                 </div>
                 {* MASS ACTIONS *}
                 <template v-if="show_mass_actions">
@@ -498,7 +505,8 @@
                         "color_transliterate"       : "{$wa_app_url}?module=settingsTypefeat&action=featuresHelper",
 
                         "features_get"              : "{$wa_app_url}?module=prod&action=features",
-                        "tags_get"                  : "{$wa_app_url}?module=prod&action=getTags"
+                        "tags_get"                  : "{$wa_app_url}?module=prod&action=getTags",
+                        "product_bulk_add"          : "{$wa_app_url}?module=prod&action=imagesProducts"
                     },
 
                     paging: {

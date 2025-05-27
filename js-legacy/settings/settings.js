@@ -378,6 +378,11 @@ $.extend($.settings = $.settings || {}, {
         return true;
     },
 
+    aiPreLoad: function () {
+        this.$container.load('?module=settingsAi');
+        return true;
+    },
+
     //
     // Helpers
     //

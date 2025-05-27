@@ -1,0 +1,153 @@
+{if shopLicensing::hasPremiumLicense()}
+{include file="templates/includes/AiForm.functions.html" inline}
+{function top_badge title=''}
+    <span class="badge custom-py-6 custom-px-8 blue"><i class="fas fa-check"></i> {$title}</span>
+{/function}
+{$fields_for_fill = [
+    'description' => ['title' => _w('Description'), 'request_id' => 1],
+    'summary' => ['title' => _w('Summary'), 'request_id' => 2],
+    'meta_title' => ['title' => 'Title', 'request_id' => 3],
+    'meta_keywords' => ['title' => 'META Keywords', 'request_id' => 3],
+    'meta_description' => ['title' => 'META Description', 'request_id' => 3]
+]}
+{$waid_is_connected = $wa->shop->waidIsConnected()}
+<div id="js-ai-generate-dialog" class="wa-dialog dialog">
+    <script type="text/javascript" src="{$wa_app_static_url}js/backend/products/product.description-ai-generate.js?v={$wa->version()}"></script>
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="dialog-header">
+            <div class="flexbox middle space-16">
+                <h2 class="wide custom-mt-8">
+                    [`Generate with AI`]
+                    <span class="gray">&times; {_wp('%d product', '%d products', count($product_ids))}</span>
+                </h2>
+            </div>
+            <a href="javascript:void(0)" class="dialog-close js-close-dialog"><i class="fas fa-times"></i></a>
+        </div>
+        <div class="dialog-content">
+            {if !$waid_is_connected}
+                {include file="templates/includes/webasystAINotAvailableAlert.html" inline}
+            {/if}
+            <div class="custom-mb-24">
+                <h5 class="custom-mb-12">[`Input`] <span class="gray">[`prompt to AI`]</span></h5>
+                <div class="flexbox space-8">
+                    {top_badge title=_w('Product name')}
+                    {top_badge title=_w('Price')}
+                    {top_badge title=_w('Category')}
+                    {if $has_ai_config && $sections}
+                    <a href="javascript:void(0)" class="js-toggle-collapsible-config custom-pt-4 custom-mt-2 custom-ml-4">
+                        [`More options`] <i class="fas fa-caret-down"></i>
+                    </a>
+                    {/if}
+                </div>
+            </div>
+
+            <form>
+
+                {if $sections}
+                <div class="js-collapsible-config fields"{if $has_ai_config} style="display: none;"{/if}>
+                    {foreach $sections as $s}
+                        {if !$s@first}
+                            <div class="field custom-mt-32">
+                                <h5>{$s.title|escape}</h5>
+                            </div>
+                        {/if}
+                        {foreach $s.fields as $f}
+                            {render_field f=$f}
+                        {/foreach}
+                    {/foreach}
+                </div>
+                {/if}
+
+                <div class="custom-mt-32">
+                    <h5>[`Output`] <span class="gray">[`fields to generate with AI`]</span></h5>
+                    <ul class="js-fields-to-fill chips">
+                        {foreach $fields_for_fill as $_id => $_data}
+                            <li>
+                                <label for="field-checkbox-{$_id}" class="chip">
+                                    <span class="wa-checkbox">
+                                        <input type="checkbox" id="field-checkbox-{$_id}" name="fields_to_fill[{$_id}]" value="1" data-request-id="{$_data.request_id}" checked="checked">
+                                        <span>
+                                            <span class="icon">
+                                                <i class="fas fa-check"></i>
+                                            </span>
+                                        </span>
+                                    </span>
+                                    {$_data.title}
+                                </label>
+                            </li>
+                        {/foreach}
+                    </ul>
+                </div>
+
+                <div class="flexbox middle space-8 wrap custom-mt-32">
+                    <h6 class="custom-m-0 gray">[`If a field is not empty`]</h6>
+                    <div class="wa-select">
+                        <select name="skip_if_exists">
+                            <option value="1" selected>[`just skip`]</option>
+                            <option value="">[`AI-generate anyway`]</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="custom-mt-32">
+
+                <div class="custom-my-32">
+                    <div class="js-generation-time-estimation">
+                        <div class="align-center semibold large">
+                            <span class="gray">[`AI requests`]</span>
+                            {count($product_ids)} &times; <span class="js-count">0</span>
+                            = <span class="js-sum highlighted bold custom-p-2">0</span>
+                            <div class="custom-mt-16"><span class="gray">[`Duration`]</span>&nbsp;<span class="js-duration"></span></div>
+                        </div>
+                    </div>
+                    <div class="js-progressbar progressbar custom-mt-16"></div>
+                </div>
+            </form>
+        </div>
+        <div class="dialog-footer">
+            <div class="flexbox middle space-8 wrap">
+                <button {if $waid_is_connected}class="js-submit-mass button green nowrap"{else}class="button green" disabled{/if} type="button">[`Generate & force-save all now`]</button>
+                <button {if $waid_is_connected}class="js-submit-by-one button light-gray nowrap"{else}class="button light-gray" disabled{/if} type="button">[`Proceed one by one`] <i class="fas fa-arrow-right"></i></button>
+                <button class="js-dialog-close button light-gray nowrap" type="button" style="display: none;">[`Close`]</button>
+                <span class="js-loading" style="display: none;"><i class="spinner large" style="top:3px;"></i></span>
+                <div class="place-for-errors"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+    $(() => {
+        new ProductDescriptionAIGenerate({
+            product_ids: {$product_ids|json_encode},
+            $wrapper: $('#js-ai-generate-dialog'),
+            per_transaction_seconds: 10,
+            wa_backend_url: {$wa_backend_url|json_encode},
+            locales: {
+                sec: '[`sec`]',
+                min: '[`min`]',
+                hr: '[`hr`]'
+            },
+            templates: {
+                one_by_one_dialog: {json_encode({include file="./ProdOneByOneAIGenerateDescriptionDialog.inc.html"})}
+            }
+        });
+    });
+    </script>
+</div>
+{else}
+<div class="dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="dialog-header">
+            <a class="js-dialog-close dialog-close custom-pt-8" href="javascript:void(0)"><i class="fas fa-times"></i></a>
+        </div>
+        <div class="dialog-content overflow-hidden">
+            {include file="templates/includes/availableWithPremiumAlert.html"
+                title="[`AI descriptions and SEO for multiple products`]"
+                no_cover=true
+                size_tiny=true
+            inline}
+        </div>
+    </div>
+</div>
+{/if}

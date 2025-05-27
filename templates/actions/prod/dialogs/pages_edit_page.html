@@ -1,3 +1,30 @@
+<template id="js-component-ai-content-dropdown">
+    <div class="dropdown">
+        <button class="dropdown-toggle button blank custom-pr-24" type="button">
+            <span class="icon webasyst-ai"></span> [`Generate with AI`]
+        </button>
+        <div class="dropdown-body" style="min-width:20rem;">
+            <div class="box">
+                <h5 class="break-word">{ { product_name } }</h5>
+                <div class="s-field-wrapper custom-mb-16">
+                    <textarea
+                        v-model="prompt"
+                        class="width-100"
+                        :placeholder="placeholder"
+                    ></textarea>
+                </div>
+                <button
+                    class="button"
+                    :disabled="is_loading"
+                    @click.prevent="submit"
+                >
+                    <span v-show="is_loading"><i class="fas fa-spinner fa-spin"></i></span>
+                    [`Generate now`]
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
 <div class="wa-dialog s-product-pages-edit-page-dialog" id="js-product-pages-edit-page-dialog">
     <div class="dialog-background"></div>
     <div class="dialog-body">
@@ -114,13 +141,18 @@
                     { { errors['pages'].text } }
                 </div>
                 <section class="s-editor-section js-editor-section">
-                    <div class="s-section-header">
+                    <div class="s-section-header flexbox middle space-12">
                         {strip}
                         <div class="toggle tabs-mode js-editor-type-toggle">
                             <span data-id="wysiwyg">[`WYSIWYG`]</span>
                             <span data-id="html">[`HTML`]</span>
                         </div>
                         {/strip}
+                        <component-ai-content-dropdown
+                            placeholder="{sprintf_wp('E.g., “%s”.', _w('write a SEO-friendly product review'))}"
+                            default-prompt="[`write a SEO-friendly product review`]"
+                            @set-content="setContent"
+                        ></component-ai-content-dropdown>
                     </div>
 
                     <div class="s-section-body">

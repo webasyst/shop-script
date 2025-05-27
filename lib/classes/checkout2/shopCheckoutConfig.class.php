@@ -235,10 +235,10 @@ class shopCheckoutConfig implements ArrayAccess
     {
         return [
             self::DISCOUNT_ITEM_TYPE_STRIKEOUT => [
-                'name' => _w('Only compare at price without discount'),
+                'name' => _w('Original cost displayed like strike-through price'),
             ],
             self::DISCOUNT_ITEM_TYPE_AMOUNT    => [
-                'name' => _w('Compare at price without discount and discount amount'),
+                'name' => _w('Original cost displayed like strike-through price and discount amount'),
             ],
         ];
     }

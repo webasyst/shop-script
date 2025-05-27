@@ -1,0 +1,154 @@
+{include file="templates/includes/AiForm.functions.html" inline}
+{$waid_is_connected = $wa->shop->waidIsConnected()}
+{$is_premium = shopLicensing::hasPremiumLicense()}
+{$fields_for_any_license = ['text_length']}
+<div class="wa-dialog dialog">
+    <div class="dialog-background"></div>
+    <form class="dialog-body">
+        <div class="dialog-header">
+            <h2 class="custom-mt-8">[`Generate with AI`]</h2>
+            <a href="javascript:void(0)" class="dialog-close js-close-dialog"><i class="fas fa-times"></i></a>
+        </div>
+        <div class="dialog-content">
+            {if !$waid_is_connected}
+                {include file="templates/includes/webasystAINotAvailableAlert.html" inline}
+            {/if}
+            <input type="hidden" name="product_id" value="{$product_id|escape}" id="js-ai-product-id">
+            {if !empty($field_to_fill)}
+                <input type="hidden" name="fields_to_fill[{$field_to_fill}]" value="1">
+            {/if}
+
+            {if $sections}
+                {$product_details = array_shift($sections)}
+                <div class="fields">
+                    {foreach $product_details.fields as $f}
+                        {render_field f=$f}
+                    {/foreach}
+                </div>
+                <div class="custom-mt-8 custom-ml-4">
+                    <a href="javascript:void(0)" class="js-toggle-collapsible-config">
+                        [`More options`] <i class="fas fa-caret-down"></i>
+                    </a>
+                </div>
+                <div class="js-collapsible-config fields" style="display: none;">
+                    {foreach $sections as $s}
+                        <div class="field custom-mt-32">
+                            <h5>{$s.title|escape}</h5>
+                        </div>
+                        {foreach $s.fields as $f}
+                            {render_field f=$f for_premium=(!$is_premium && !in_array($f.id, $fields_for_any_license))}
+                        {/foreach}
+                    {/foreach}
+                </div>
+            {/if}
+        </div>
+        <div class="dialog-footer">
+            <div class="flexbox middle space-8 wrap-mobile">
+                <button class="js-success-action button green nowrap" type="button"{if !$waid_is_connected} disabled{/if}>[`Generate now`]</button>
+                {if $do_not_save}
+                    {if $is_premium}
+                    <label style="display:none;">
+                        <span class="wa-checkbox">
+                            <input type="checkbox" name="force_save_settings" value="1">
+                            <span>
+                                <span class="icon">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </span>
+                        </span>
+                        [`Save to default AI settings`]
+                    </label>
+                    {/if}
+                {else}
+                    <label>
+                        <span class="wa-checkbox">
+                            <input type="hidden" name="do_not_ask" value="0">
+                            <input type="checkbox" name="do_not_ask" value="1">
+                            <span>
+                                <span class="icon">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </span>
+                        </span>
+                        {if $is_premium}
+                            [`Save as default AI settings`]
+                        {else}
+                            [`Don’t ask again`]
+                        {/if}
+                    </label>
+                {/if}
+                <div class="place-for-errors"></div>
+            </div>
+        </div>
+    </form>
+
+    <script type="text/javascript" src="{$wa_app_static_url}js/backend/products/product.description-ai-generate.js?v={$wa->version()}"></script>
+    <script>(function() { "use strict";
+        const $hidden_product_id_field = $('#js-ai-product-id');
+        const $form = $hidden_product_id_field.closest('form');
+        const $submit_button = $form.closest('.dialog-body').find('.js-success-action');
+        const $dialog = $form.closest('.wa-dialog');
+        const $place_for_errors = $dialog.find('.place-for-errors');
+
+        $form.find('.js-toggle-collapsible-config').click(function() {
+            $(this).remove();
+            $form.find('[name="force_save_settings"]').closest('label').show();
+            $form.find('.js-collapsible-config').toggle();
+            $dialog.trigger('resize');
+        });
+
+        const observeDialogResize = (() => {
+            const $content = $dialog.find('.dialog-content');
+            let timer_id = null;
+            const debounced = () => {
+                if (timer_id) {
+                    clearTimeout(timer_id);
+                }
+                timer_id = setTimeout(() => {
+                    if ($content[0].clientHeight === $content[0].scrollHeight) {
+                        $dialog.resize();
+                    }
+                    timer_id = null;
+                }, 100);
+            };
+            return new ResizeObserver(debounced);
+        })();
+        observeDialogResize.observe($form[0]);
+
+        {if $waid_is_connected}
+        $submit_button.click(submit);
+
+        function submit(e) {
+            e.preventDefault();
+            if ($submit_button.prop('disabled')) {
+                return;
+            }
+
+            $submit_button.prop('disabled', true);
+            $place_for_errors.empty();
+            const $loading = $('<span class="custom-mr-4"><i class="fas fa-spinner fa-spin"></i></span>').prependTo($submit_button);
+
+            const handleResponse = (r) => {
+                if (r?.status === 'ok') {
+                    $dialog.trigger('ai_generate_success', r);
+                    if ($('[type="checkbox"][name="do_not_ask"]').is(':checked')) {
+                        $dialog.trigger('ai_generate_do_not_ask');
+                    }
+                } else if (Array.isArray(r?.errors)) {
+                    r.errors.forEach(({ error, error_description }) => {
+                        let $error = $('<span class="state-caution" />').html(error_description);
+                        if (error === 'payment_required') {
+                            $error = $('<span class="alert warning custom-m-0" />').html(error_description.replace('%s', 'href="javascript:void(0)"'));
+                            $error.on('click', 'a:not(.disabled)', ProductDescriptionAIGenerate.topUpBalanceHandler({$wa_backend_url|json_encode}));
+                        }
+                        $place_for_errors.append($error);
+                    });
+                }
+                $loading.remove();
+                $submit_button.prop('disabled', false);
+            };
+            $.post('?module=prod&action=aiGenerateDescription', $form.serialize(), handleResponse);
+        }
+        {/if}
+    })();</script>
+</div>

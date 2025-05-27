@@ -1239,6 +1239,17 @@
 
             $.vue_app = Vue.createApp({
                 data() {
+                    this.product_class_filter = {};
+                    (that.filter.rules || []).forEach(rule => {
+                        if (['sets', 'categories', 'types'].includes(rule.type)) {
+                            this.product_class_filter = {
+                                filter_type: rule.type,
+                                filter_id: rule.rules[0].rule_params,
+                                filter_label: rule.label
+                            }
+                        }
+                    });
+
                     return {
                         paging       : that.paging,
                         products     : that.products,
@@ -6187,6 +6198,72 @@
                         }
                     },
 
+                    "component-products-bulk-add": {
+                        props: { filter: Object },
+                        template: '<div class="products-bulk-add-wrapper" />',
+                        created: function() {
+                            // if products were selected, then we remove the entire selection
+                            that.products_selection.value = 'visible_products';
+                            that.vue_model.products.forEach(p => {
+                                p.states.selected = false;
+                            });
+                        },
+                        mounted: function() {
+                            let params = new URLSearchParams(this.filter);
+                            if (params) {
+                                params = '&' + params;
+                            }
+                            that.animate(true);
+                            $(this.$el).load(that.urls["product_bulk_add"] + params, () => {
+                                that.animate(false);
+                                this.completedAddingProductsAndNavigate();
+                            });
+                        },
+                        methods: {
+                            completedAddingProductsAndNavigate: function() {
+                                $.blueimpFileupload.loaded((blueimpFileupload) => {
+                                    if (!blueimpFileupload) {
+                                        return;
+                                    }
+
+                                    blueimpFileupload.onUploaded((product_ids) => {
+                                        $('body').removeClass('is-locked');
+
+                                        if (!product_ids) {
+                                            return;
+                                        }
+                                        product_ids = Object.values(product_ids);
+                                        if (!product_ids.length) {
+                                            return;
+                                        }
+
+                                        blueimpFileupload.stopEndingTransition();
+
+                                        const selectAddedProductsTask = (product_ids) => {
+                                            return function() {
+                                                this.products.map(p => {
+                                                    if (product_ids.includes(p.id)) {
+                                                        p.states.selected = true;
+                                                    }
+                                                    return p;
+                                                })
+                                            }
+                                        };
+                                        setTimeout(() => {
+                                            $.wa_shop_products.tasks_before_mounted.push(selectAddedProductsTask(product_ids));
+
+                                            that.reload({
+                                                page: 1,
+                                                presentation: that.presentation.id,
+                                                is_bulk_add: 1
+                                            });
+                                        }, 500)
+                                    });
+                                })
+                            }
+                        }
+                    },
+
                     "component-table-filters-categories-sets-types": {
                         data() {
                             // define contentType from request by filter
@@ -6545,9 +6622,6 @@
                             };
 
                             $.post(that.urls["presentation_edit_settings"], data, "json")
-                                .always( function() {
-                                    that.animate(false);
-                                })
                                 .done( function(response) {
                                     if (response.status === "ok" && response.data.new_presentation_id) {
                                         that.reload({
@@ -6643,6 +6717,17 @@
                 delimiters: ['{ { ', ' } }'],
                 created: function () {
                     $vue_section.css("visibility", "");
+
+                    if (Array.isArray($.wa_shop_products.tasks_before_mounted)) {
+                        while($.wa_shop_products.tasks_before_mounted.length) {
+                            const task = $.wa_shop_products.tasks_before_mounted.pop();
+                            if (typeof task === 'function') {
+                                task.call(that);
+                            }
+                        }
+                    } else {
+                        $.wa_shop_products.tasks_before_mounted = [];
+                    }
                 },
                 mounted: function() {
                     var self = this;
@@ -6677,7 +6762,8 @@
                     active_presentation: null,
                     open_presentations: null,
 
-                    active_filter: null
+                    active_filter: null,
+                    is_bulk_add: null
                 },
                 result = [];
 
@@ -6752,27 +6838,17 @@
             var $link = $("<a />", { href: that.getPageURL(options)});
             that.$wrapper.prepend($link);
             $link.trigger("click").remove();
-
-            that.animate(true);
-            $(document).on("wa_loaded", ()=> that.animate(false));
         };
 
         Page.prototype.animate = function(show) {
-            var that = this;
-
+            const that = this;
             const locked_class = "is-locked";
             if (show) {
-                if (!that.states.$animation) {
-                    that.states.$animation = $.waLoading({top: "4rem"});
-                    that.$wrapper.addClass(locked_class)
-                    that.states.$animation.animate(500, 98, false);
-                }
+                $('#wa-app').trigger('wa_before_load');
+                that.$wrapper.addClass(locked_class)
             } else {
-                if (that.states.$animation) {
-                    that.states.$animation.hide();
-                    that.states.$animation = null;
-                    that.$wrapper.removeClass(locked_class);
-                }
+                $('#wa-app').trigger('wa_loaded');
+                that.$wrapper.removeClass(locked_class);
             }
         };
 
@@ -7994,6 +8070,17 @@
                         })
                         .done( function(html) {
                             associatePromoDialog(html, action);
+                        });
+                    break;
+
+                case "ai_generate":
+                    action.states.is_locked = true;
+                    $.post(action.action_url, dialog_data, "json")
+                        .always(() => {
+                            action.states.is_locked = false;
+                        })
+                        .done((html) => {
+                            aiGenerateDescriptionDialog(html);
                         });
                     break;
 
@@ -9829,6 +9916,10 @@
                 }
 
                 return result;
+            }
+
+            function aiGenerateDescriptionDialog(html) {
+                $.waDialog({ html });
             }
         };
 

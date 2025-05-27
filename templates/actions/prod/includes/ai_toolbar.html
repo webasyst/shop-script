@@ -1,0 +1,17 @@
+<div class="js-ai-generate-wrapper" data-update-prop="{$update_prop|default:''}">
+    {if !empty($for_any_license) || shopLicensing::isPremium()}
+        <a href="javascript:void(0);" class="js-ai-generate-description{if !$wa->shop->waidIsConnected()} js-dialog-always{elseif !empty($ai_generate_quick_mode)} js-quick-mode{/if} button blank smaller custom-ml-6">
+            <span class="icon webasyst-ai"></span>
+            [`Generate with AI`]
+        </a>
+        <a href="javascript:void(0)" class="js-ai-generate-description js-dialog-always{if empty($ai_generate_quick_mode)} hidden{/if} button custom-p-6 gray nobutton">
+            <span class="icon"><i class="fas fa-ellipsis-h"></i></span>
+        </a>
+    {else}
+        <a href="{$wa_app_url}?action=settings#/ai/" class="button nobutton gray smaller custom-ml-6">
+            <span class="icon webasyst-ai"></span>
+            [`Generate with AI`]
+            <i class="fas fa-star text-yellow small"></i>
+        </a>
+    {/if}
+</div>

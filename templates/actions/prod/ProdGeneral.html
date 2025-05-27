@@ -1214,7 +1214,14 @@
                         </div>
                         <div class="value">
                             <textarea class="full-width js-auto-height" name="product[summary]">{$product.summary|default:""}</textarea>
-                            <p class="hint">[`Displayed in product lists.`]</p>
+                            <div class="flexbox middle space-8 custom-mt-4">
+                                <p class="hint custom-mb-4">[`Displayed in product lists.`]</p>
+                                <div class="small">
+                                    {include file="./includes/ai_toolbar.html"
+                                        update_prop='summary'
+                                    inline}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1247,12 +1254,18 @@
             <section class="s-editor-section js-editor-section">
                 <div class="s-section-header">
                     <h5 class="s-section-title">[`Description`]</h5>
-                    {strip}
-                    <div class="toggle tabs-mode js-editor-type-toggle">
-                        <span class="selected" data-id="wysiwyg">[`WYSIWYG`]</span>
-                        <span data-id="html">[`HTML`]</span>
+                    <div class="flexbox middle custom-mb-8 space-4">
+                        {strip}
+                            <div class="toggle tabs-mode js-editor-type-toggle">
+                                <span class="selected" data-id="wysiwyg">[`WYSIWYG`]</span>
+                                <span data-id="html">[`HTML`]</span>
+                            </div>
+                        {/strip}
+                        {include file="./includes/ai_toolbar.html"
+                            update_prop='description'
+                            for_any_license=true
+                        inline}
                     </div>
-                    {/strip}
                 </div>
 
                 <div>

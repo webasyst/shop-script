@@ -1728,4 +1728,9 @@ SQL;
 
         return true;
     }
+
+    public function waidIsConnected()
+    {
+        return (new waServicesApi())->isConnected();
+    }
 }

@@ -322,6 +322,83 @@
         return new Page(options);
     };
 
+    $.wa_shop_products._experimentalAIAction = function ({ productId, onUpdate }) {
+        const $btn = $(this);
+        if ($btn.prop('disabled')) {
+            return false;
+        }
+
+        $btn.prop('disabled', true);
+        $btn.find('.icon').hide();
+        const $loading = $('<span class="js-loading"><i class="fas fa-spinner fa-spin"></i></span>').prependTo($btn);
+        const hideLoading = () => {
+            $loading.remove();
+            $btn.find('.icon').show();
+            $btn.prop('disabled', false);
+        };
+        const handleError = (r) => {
+            if (r?.errors?.length) {
+                $.wa.notice({
+                    title: $_('An error occurred'),
+                    text: r.errors[0].error_description || r.errors[0].error,
+                    button_name: $_('Close')
+                });
+            }
+        };
+
+        const updateProp = $btn.closest('[data-update-prop]').data('update-prop');
+        if ($btn.hasClass('js-quick-mode')) {
+            $.post('?module=prod&action=aiGenerateDescription', {
+                product_id: productId,
+                fields_to_fill: { [updateProp]: 1 }
+            }, (r) => {
+                if (r.data && r.data.product) {
+                    if (typeof onUpdate === 'function') {
+                        onUpdate(updateProp, r.data.product);
+                    }
+                } else {
+                    handleError(r);
+                }
+                hideLoading();
+            });
+        } else {
+            $.post('?module=prod&action=aiGenerateDescriptionDialog', {
+                product_id: productId,
+                field_to_fill: updateProp,
+                do_not_save: $btn.hasClass('js-dialog-always') ? 1 : 0
+            }, "json").done((dialog_html) => {
+                $.waDialog({
+                    html: dialog_html,
+                    onOpen: ($dialog, dialog) => {
+                        $dialog.one('ai_generate_do_not_ask', () => {
+                            $('.js-ai-generate-description:not(.js-dialog-always)').addClass('js-quick-mode');
+                            $('.js-ai-generate-description.js-dialog-always').removeClass('hidden');
+                        });
+                        $dialog.one('ai_generate_success', (e, r) => {
+                            if (r.data && r.data.product) {
+                                if (typeof onUpdate === 'function') {
+                                    onUpdate(updateProp, r.data.product);
+                                }
+                            } else {
+                                handleError(r);
+                            }
+                            dialog.close();
+                        });
+                        hideLoading();
+                    }
+                });
+            }).fail(() => {
+                console.log('Unable to load AI generation dialog');
+                hideLoading();
+            });
+        }
+    };
+    $.wa_shop_products.useComponentExperimentalAIToolbar = ({ $toolbar, productId, onUpdate }) => {
+        $toolbar.find('.js-ai-generate-description').click(function() {
+            $.wa_shop_products._experimentalAIAction.call(this, { productId, onUpdate });
+        });
+    };
+
     function showRepairProductStocksAlert() {
         const $wrapper = $('#js-product-page');
 

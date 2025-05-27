@@ -1,5 +1,4 @@
 <?php
-
 return array(
     'name'             => /*_w*/('Shop-Script'),
     'description'      => /*_w*/('Shop-Script is a robust shopping cart software that allows you to quickly establish your own online store and sell online.'),
@@ -13,8 +12,8 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '11.3.0',
-    'critical'         => '11.3.0',
+    'version'          => '11.4.0',
+    'critical'         => '11.4.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,
     'payment_plugins'  => array(

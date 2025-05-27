@@ -1,0 +1,55 @@
+{function render_input f=[]}
+    <input name="data[{$f.id|escape}]" type="text" class="long" value="{$f.value|escape}" placeholder="{$f.example|default:''|escape}">
+{/function}
+{function render_textarea f=[]}
+    <textarea name="data[{$f.id|escape}]" placeholder="{$f.example|default:''|escape}">{$f.value|escape}</textarea>
+{/function}
+{function render_radio f=[]}
+    {foreach $f.items as $item_value => $item_label}{strip}
+        <label class="flexbox middle space-4 custom-mb-4">
+            <span class="wa-radio">
+                <input type="radio" name="data[{$f.id|escape}]" value="{$item_value|escape}"{if $f.value == $item_value} checked{/if}>
+                <span></span>
+            </span>
+            <span>{$item_label|escape}</span>
+        </label>
+    {/strip}{/foreach}
+{/function}
+{function render_checklist f=[]}
+    {foreach $f.items as $item_value => $item_label}{strip}
+        <label class="flexbox middle space-4 custom-mb-4">
+            <span class="wa-checkbox">
+                <input type="checkbox" name="data[{$f.id|escape}][{$item_value|escape}]" value="1"{if $f.value && !empty($f.value[$item_value])} checked{/if}>
+                <span>
+                    <span class="icon">
+                        <i class="fas fa-check"></i>
+                    </span>
+                </span>
+            </span>
+            <span>{$item_label|escape}</span>
+        </label>
+    {/strip}{/foreach}
+{/function}
+{function render_field f=[] for_premium=false}
+    <div class="field" data-field-id={$f.id|escape}>
+        <div class="name for-checkbox">
+            {$f.title|escape}
+            {if $for_premium}
+                <i class="fas fa-star text-yellow small opacity-70"></i>
+            {/if}
+        </div>
+        <div class="value"{if $for_premium} style="opacity: 0.4;pointer-events: none;"{/if}>
+            {if $f.id == ''}
+                {* ... custom field implementation by id ... *}
+            {elseif $f.type == 'input'}
+                {render_input f=$f}
+            {elseif $f.type == 'textarea'}
+                {render_textarea f=$f}
+            {elseif $f.type == 'radio'}
+                {render_radio f=$f}
+            {elseif $f.type == 'checklist'}
+                {render_checklist f=$f}
+            {/if}
+        </div>
+    </div>
+{/function}

@@ -12,6 +12,21 @@
 
 {$_features = [
     [
+        "id" => "ai",
+        "noshadow" => true,
+        "title" => _w("AI descriptions & SEO"),
+        "description" => sprintf(
+            _w("Use the built-in <a %s>Webasyst AI</a> service to generate custom descriptions and promo SEO content for your product listings. Customize the default AI setup to better fit your audience."),
+            sprintf(
+                'href="%s" target="_blank"',
+                _w('https://www.webasyst.com/pricing/#services')
+            )
+        ),
+        "image" => [
+            "name" => "image-ai.webp"
+        ]
+    ],
+    [
         "id" => "kanban",
         "title" => _w("Kanban view for orders"),
         "description" => _w("See all orders at a glance by status on a kanban board. User filter to focus on specific order segments. Drag an order to quickly change its status."),

@@ -518,6 +518,44 @@
                                 prop_checked() { return (typeof this.modelValue === "boolean" ? this.modelValue : false); },
                                 prop_disabled() { return (typeof this.disabled === "boolean" ? this.disabled : false); }
                             }
+                        },
+                        "component-ai-content-dropdown": {
+                            props: ['placeholder', 'defaultPrompt'],
+                            emits: ['setContent'],
+                            delimiters: ['{ { ', ' } }'],
+                            template: '#js-component-ai-content-dropdown',
+                            data: function() {
+                                this.product_name = that.product.name;
+                                this.product_id = that.product.id;
+                                return {
+                                    prompt: '',
+                                    is_loading: false
+                                }
+                            },
+                            mounted: function() {
+                                $(this.$el).waDropdown({ hover: false });
+                            },
+                            methods: {
+                                submit: function() {
+                                    this.is_loading = true;
+                                    $.post('?module=prod&action=aiGeneratePage', {
+                                        product_id: this.product_id,
+                                        data: { objective: this.prompt.trim() ? this.prompt : this.defaultPrompt }
+                                    }, (r) => {
+                                        if (r.status === 'ok' && typeof r.data.content !== 'undefined') {
+                                            this.$emit('setContent', r.data.content);
+                                            $(this.$el).data('dropdown').hide();
+                                            this.prompt = '';
+                                        } else if (r?.errors?.length) {
+                                            $.wa.notice({
+                                                title: $_('An error occurred'),
+                                                text: r.errors[0].error_description || r.errors[0].error,
+                                                button_name: $_('Close')
+                                            });
+                                        }
+                                    }).always(() => { this.is_loading = false; })
+                                }
+                            }
                         }
                     },
                     methods: {
@@ -721,6 +759,19 @@
                                 };
 
                                 return $.post(that.urls["delete"], data, "json");
+                            }
+                        },
+                        setContent: function(val) {
+                            this.page.content = val;
+
+                            const $textarea = $dialog.find(".js-product-description-textarea");
+                            const ace = $textarea.data('ace');
+                            if (ace) {
+                                ace.setValue(val);
+                            }
+                            const redactor = $textarea.data('redactor');
+                            if (redactor) {
+                                redactor.code.set(val);
                             }
                         }
                     },

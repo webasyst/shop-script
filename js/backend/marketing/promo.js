@@ -1928,8 +1928,9 @@
                 }
 
                 function onSubmit() {
-                    var form_data = getData();
+                    clearError();
 
+                    var form_data = getData();
                     if (form_data.errors.length) {
                         renderErrors(form_data.errors);
 
@@ -1954,6 +1955,7 @@
                         $promise
                             .always( function() {
                                 is_locked = false;
+                                that.$submit_button.attr("disabled", false);
                             })
                             .done( function(response) {
                                 if (response.status === "ok") {
@@ -1971,7 +1973,6 @@
 
                                 } else if (response.errors) {
                                     renderErrors(response.errors);
-                                    that.$submit_button.attr("disabled", false);
                                     $message.remove();
                                 }
                             })
@@ -1989,8 +1990,6 @@
 
                                     $(window).scrollTop( that.$wrapper.find(".js-page-errors-wrapper").offset().top );
                                 }
-
-                                that.$submit_button.attr("disabled", false);
                                 $message.remove();
                             });
                     }
@@ -2072,8 +2071,12 @@
                             $field = $_rule;
                             $error_wrapper = $_rule.find("> .js-section-footer");
                             focus_top_array.push($error_wrapper.offset().top);
-                        } else {
+                        } else if ($field.length) {
                             focus_top_array.push($field.offset().top);
+                        } else if (error.text) {
+                            renderError(error.text, that.$submit_button.after(
+                                $("<span class=\"s-error-message state-error-hint custom-ml-4\" />").text(error.text)
+                            ));
                         }
                     }
 
@@ -2121,6 +2124,11 @@
                     }
                 }
 
+            }
+
+            function clearError() {
+                that.$wrapper.find('.s-error-message').remove();
+                that.$wrapper.find('.state-error').removeClass('state-error');
             }
         };
 

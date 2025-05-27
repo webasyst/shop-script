@@ -1,0 +1,81 @@
+
+<h1 class="s-title">[`AI product descriptions & SEO`]</h1>
+{if $wa->shop->waidIsConnected()}
+{include file="templates/includes/AiForm.functions.html" inline}
+<form action="?module=settingsAi&action=save" id="js-settings-ai-form" method="post">
+    <div class="s-page-content-section">
+        <div class="s-section-header">
+                {if $wa_total !== null}
+                    <div class="flexbox middle space-16 custom-mt-24 wrap-mobile">
+                        <span>{sprintf_wp('Remaining Webasyst AI prompts: %s', '<strong>'|cat:$wa_total|cat:'</strong>')}</span>
+                        <a href="javascript:void(0)" class="button small custom-mb-4 green" id="js-balance-button">[s`Add credit`]</a>
+                    </div>
+                {/if}
+                {if $is_teaser}
+                <p class="small">
+                    {sprintf_wp(
+                        'With the <strong>basic</strong> Shop-Script version, you can use the <a %s>Webasyst AI</a> service to generate product <em>descriptions</em> one by one only. With <strong>premium</strong>, you get the advanced AI configuration shown below and the ability to generate full promo content (<em>descriptions, SEO, subpages</em>) both for single and for multiple selected products at a time.',
+                        sprintf(
+                            'href="%s" target="_blank"',
+                            _w('https://www.webasyst.com/pricing/#services')
+                        )
+                    )}
+                </p>
+                {include file="templates/includes/availableWithPremiumAlert.html" title="[`Webasyst AI`]" inline}
+            {else}
+                <p class="small">
+                    {sprintf_wp(
+                        'Use the built-in <a %s>Webasyst AI</a> service to generate custom descriptions and promo SEO content for your product listings. Customize the default AI setup to better fit your audience.',
+                        sprintf(
+                            'href="%s" target="_blank"',
+                            _w('https://www.webasyst.com/pricing/#services')
+                        )
+                    )}
+                </p>
+            {/if}
+
+            <div class="fields small{if $is_teaser} opacity-50{/if}">
+                {foreach $sections as $s}
+                    <div class="fields-group">
+                        <div class="field">
+                            <h5>{$s.title|escape}</h5>
+                        </div>
+                        {foreach $s.fields as $f}
+                            {render_field f=$f}
+                        {/foreach}
+                    </div>
+                {/foreach}
+            </div>
+        </div>
+        {$wa->csrf()}
+    </div>
+    <div class="bottombar sticky s-settings-fixed-bottombar">
+        <input type="submit" class="button green js-form-submit" value="[`Save`]">
+    </div>
+</form>
+<script type="text/javascript" src="{$wa_app_static_url}js/backend/products/product.description-ai-generate.js?v={$wa->version()}"></script>
+<script>(function() { "use strict";
+
+    const $form = $('#js-settings-ai-form'),
+        $submit_button = $form.find('.js-form-submit');
+
+    $form.on('submit', function (e) {
+        e.preventDefault();
+        $submit_button.attr('disabled', true);
+        $submit_button.after('<div class="spinner">');
+
+        $.post($form.attr('action'), $form.serialize(), (r) => {
+            $submit_button.attr('disabled', false);
+            $submit_button.siblings('.spinner').remove();
+            //console.log(r);
+        }, 'json');
+
+        return false;
+    });
+
+    $('#js-balance-button:not(.disabled)').on('click', ProductDescriptionAIGenerate.topUpBalanceHandler({$wa_backend_url|json_encode}));
+
+})();</script>
+{else}
+    {include file="templates/includes/webasystAINotAvailableAlert.html" mode_is_info=true inline}
+{/if}

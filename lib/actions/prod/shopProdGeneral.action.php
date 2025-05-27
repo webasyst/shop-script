@@ -101,6 +101,7 @@ class shopProdGeneralAction extends waViewAction
             'currencies'        => shopProdSkuAction::getCurrencies(),
             'backend_prod_content_event' => $backend_prod_content_event,
             'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),
+            'ai_generate_quick_mode' => wa()->getSetting('ai_dna_descr', null, 'shop'),
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([

@@ -1170,10 +1170,10 @@
 
             if (that.type === "line") {
                 that.$wrapper.html("");
-                that.$bar_wrapper = $("<div class=\"wa-progressbar-line-wrapper\" />");
-                that.$bar_outer = $("<div class=\"wa-progressbar-outer\" />");
-                that.$bar_inner = $("<div class=\"wa-progressbar-inner\" />");
-                that.$text = $("<div class=\"wa-progressbar-text\" />");
+                that.$bar_wrapper = $("<div class=\"progressbar-line-wrapper\" />");
+                that.$bar_outer = $("<div class=\"progressbar-outer\" />");
+                that.$bar_inner = $("<div class=\"progressbar-inner\" />");
+                that.$text = $("<div class=\"progressbar-text\" />");
 
                 if (that.color) {
                     that.$bar_inner.css("background-color", that.color);
@@ -1187,11 +1187,11 @@
 
             } else if (that.type === "circle") {
 
-                that.$bar_wrapper = $("<div class=\"wa-progressbar-circle-wrapper\" />");
+                that.$bar_wrapper = $("<div class=\"progressbar-circle-wrapper\" />");
                 that.$svg = $(document.createElementNS("http://www.w3.org/2000/svg", "svg"));
                 that.$bar_outer = $(document.createElementNS('http://www.w3.org/2000/svg',"circle"));
                 that.$bar_inner = $(document.createElementNS('http://www.w3.org/2000/svg',"path"));
-                that.$text = $("<div class=\"wa-progressbar-text\" />");
+                that.$text = $("<div class=\"progressbar-text\" />");
 
                 that.$svg.append(that.$bar_outer).append(that.$bar_inner);
                 that.$bar_wrapper
@@ -2649,36 +2649,145 @@
 
 
 /**
+ * @see wa-content\js\jquery-wa\wa.js
  * @description upload component
  * @example /webasyst/ui/component/upload/
  * */
-( function($) { "use strict";
+(function ($) {
+    "use strict";
 
-    var Upload = ( function($) {
+    var Upload = (function ($) {
 
-        Upload = function(options) {
+        Upload = function(elem, options) {
             var that = this;
 
             // DOM
-            that.$wrapper = options["$wrapper"];
-
-            // VARS
-
-            // DYNAMIC VARS
+            that.component_id = Object.generateId(that);
+            that.$body = $('body');
+            that.$wrapper = $(elem);
+            that.$file_input = that.$wrapper.find('[type="file"]');
+            that.$upload_wrapper = that.$wrapper.find('.upload');
 
             // INIT
-            that.initClass();
+            that.initClass(options);
         };
 
-        Upload.prototype.initClass = function() {
-            var that = this;
+        Upload.prototype.initClass = function (options) {
+            let that = this;
+
+            that.options = $.extend({}, $.fn['waUpload'].defaults, options);
+
+            if (that.options.is_uploadbox) {
+                that.$wrapper.addClass('box uploadbox');
+            }
 
             that.bindEvents();
         };
 
-        Upload.prototype.bindEvents = function() {
+        Upload.prototype.bindEvents = function () {
+            let that = this;
+
+            that.$file_input.on('change', $.proxy(that.handleFiles, that));
+
+            if(!that.options.is_uploadbox) {
+                return;
+            }
+
+            that.$body.on(`dragover.waUpload.${that.component_id}`, $.proxy(that.preventDefaults, that));
+            that.$body.on(`drop.waUpload.${that.component_id}`, $.proxy(that.preventDefaults, that));
+
+            that.$wrapper.on('dragover.waUpload, drop.waUpload', $.proxy(that.preventDefaults, that));
+            that.$wrapper.on('dragenter.waUpload', $.proxy(that.highlight, that));
+            that.$wrapper.on('dragleave.waUpload, drop.waUpload', $.proxy(that.unhighlight, that));
+            that.$wrapper.on('drop.waUpload', $.proxy(that.handleDrop, that));
+        }
+
+        Upload.prototype.preventDefaults = function(e) {
+            e.preventDefault();
+        }
+
+        Upload.prototype.highlight = function() {
+            const that = this;
+
+            that.$wrapper.addClass('highlighted');
+        }
+
+        Upload.prototype.unhighlight = function(e) {
+            if ( e.currentTarget.contains(e.relatedTarget) ) {
+                return;
+            }
+
+            const that = this;
+            that.$wrapper.removeClass('highlighted');
+        }
+
+        Upload.prototype.handleDrop = function(e) {
+            const that = this;
+
+            that.files = e.originalEvent.dataTransfer.files;
+            that.$file_input[0].files = that.files;
+
+            that.handleFiles(that.files);
+        }
+
+        Upload.prototype.handleFiles = function(files) {
+            const that = this;
+
+            if (!that.options.show_file_name) {
+                return;
+            }
+
+            if (files.target) {
+                that.files = files.target.files;
+            }
+
+            that.$upload_wrapper.find('.filename').remove();
+
+            for (let file of that.files) {
+                that.getName(file)
+            }
+        }
+
+        Upload.prototype.getName = function(file) {
+            const that = this;
+
+            const filename = file.name;
+            const $span = $('<span></span>');
+
+            $span.addClass('filename hint');
+            $span.text(filename);
+            $span.appendTo(that.$upload_wrapper);
+        }
+
+        Upload.prototype.unbindEvents = function() {
+            const that = this;
+
+            that.$body.off('.waUpload');
+            that.$wrapper.off('.waUpload');
+        }
+
+        Upload.prototype.destroy = function() {
             var that = this;
+
+            that.unbindEvents();
+            that.$wrapper.removeData('waUpload');
         };
+
+        if ( typeof Object.generateId == "undefined" ) {
+            let id = 0;
+
+            Object.generateId = function(o) {
+                if ( typeof o.__uniqueid == "undefined" ) {
+                    Object.defineProperty(o, "__uniqueid", {
+                        value: ++id,
+                        enumerable: false,
+                        writable: false
+                    });
+                }
+
+                return o.__uniqueid;
+            };
+        }
 
         return Upload;
 
@@ -2686,7 +2795,7 @@
 
     var plugin_name = "upload";
 
-    $.fn.waUpload = function(plugin_options) {
+    $.fn['waUpload'] = function(plugin_options) {
         var return_instance = ( typeof plugin_options === "string" && plugin_options === plugin_name),
             $items = this,
             result = this;
@@ -2702,11 +2811,7 @@
                 var $wrapper = $(item);
 
                 if (!$wrapper.data(plugin_name)) {
-                    var options = $.extend(true, plugin_options, {
-                        $wrapper: $wrapper
-                    });
-
-                    $wrapper.data(plugin_name, new Upload(options));
+                    $wrapper.data(plugin_name, new Upload($wrapper, plugin_options));
                 }
             });
         }
@@ -2716,7 +2821,12 @@
         }
     };
 
-})($);
+    $.fn['waUpload'].defaults = {
+        'is_uploadbox': false,
+        'show_file_name': true,
+    }
+
+})(jQuery);
 
 /**
  * @description loading component
@@ -4681,7 +4791,13 @@ $.wa = $.extend($.wa || {}, {
         }
 
         return object;
-    }
+    },
+
+    locale: {}
 });
+
+$_ = (msgid) => {
+    return $.wa.locale[msgid] || '';
+};
 
 })(jQuery);

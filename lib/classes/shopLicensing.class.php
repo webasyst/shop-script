@@ -59,7 +59,13 @@ class shopLicensing
     public static function hasPremiumLicense()
     {
         $license = self::getLicense();
-        return !empty($license['options']['edition']) && $license['options']['edition'] === 'PREMIUM';
+        $result = !empty($license['status']) && !empty($license['options']['edition']) && $license['options']['edition'] === 'PREMIUM';
+        if ($license && !$result) {
+            if (wa()->getSetting('license_premium', '', 'shop')) {
+                (new waAppSettingsModel())->del('shop', 'license_premium');
+            }
+        }
+        return $result;
     }
 
     /**

@@ -6,7 +6,7 @@
             }
         </style>
     {/if}
-    <div class="s-premium-star{if !empty($size_tiny)} s-premium-star--cover{/if}"></div>
+    <div class="s-premium-star{if !empty($size_tiny) && empty($no_cover)} s-premium-star--cover{/if}"></div>
     <div class="stars-animation" style="transform:translate(-58%, -155%);">
         <div class="stars-animation--left">
             {for $i=0 to 25}

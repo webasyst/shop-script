@@ -58,11 +58,15 @@
             product_id: data['additional']['product']['id'],
             sku_id: $wrapper.data('sku-id')
         }, function (response) {
-           //console.log('submit', response)
+           console.log('submit', response)
            if (response.status == 'ok') {
             const cart_total = $(".cart-total");
             cart_total.closest('#cart').removeClass('empty');
             cart_total.html(response.data.total);
+            $(document).trigger("cartIsChanged", { 
+                'count': response.data.count, 
+                'text': response.data.total 
+            })
             if (response.data.error) {
                 alert(response.data.error);
             }

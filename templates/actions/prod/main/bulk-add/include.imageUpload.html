@@ -14,7 +14,7 @@
 <div class="dialog s-drop-files-here-zone hidden" id="s-image-uploader">
     <div class="dialog-background"></div>
     <div class="dialog-body">
-        <div class="dialog-content" style="min-height: 150px;">
+        <div class="dialog-content" style="min-height: 150px;max-height: calc(100vh - 15rem)">
             <div id="s-upload-step1">
                 <div id="s-upload-imagelist">
                     <ul class="list files"></ul>
@@ -39,7 +39,7 @@
 {literal}
 <tr data-group-id="{%=''+o.id%}" data-product-id="0">
 <td class="images width-30"><ul class="thumbs s-product-image-crops"></ul></td>
-<td class="min-width">&rarr;</td>
+<td class="min-width"><i class="fas fa-long-arrow-alt-right"></i></td>
 <td class="product">
     <input type="hidden" name="product[{%=''+o.id%}][id]"  class="s-product-id">
     <input type="text" name="product[{%=''+o.id%}][name]"  class="s-product-name width-60" placeholder="[`Product name`]">
@@ -128,18 +128,48 @@
 {/literal}
 </script>
 
-<script type="text/javascript" src="{$wa_app_static_url}js/images/jquery.ui.widget.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/tmpl.min.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/images/load-image.js"></script>
 <script type="text/javascript" src="{$wa_app_static_url}js/images/canvas-to-blob.js"></script>
 
 <script type="text/javascript" src="{$wa_url}wa-content/js/jquery-plugins/fileupload/jquery.iframe-transport.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/images/jquery.fileupload-fp.js"></script>
-<script type="text/javascript" src="{$wa_app_static_url}js/images/jquery.fileupload-ui.js?v=2.1"></script>
-
 
 <script type="text/javascript">
-$(function() {
+(function() {
+    $.blueimpFileupload = {
+        loaded: (callback) => { $.blueimpFileuploadResolveCallback = callback; }
+    };
+
+    var fileupload = $('#fileupload');
+    var sources = [{
+        id: "fileupload-fp-js",
+        type: "js",
+        uri: "{$wa_app_static_url}js/images/jquery.fileupload-fp.js?v=2.0"
+    }, {
+        id: "fileupload-ui-js",
+        type: "js",
+        uri: "{$wa_app_static_url}js/images/jquery.fileupload-ui.js?v=2.0"
+    }];
+
+    $.wa.loadSources(sources).then(() => {
+        fileupload.fileupload({
+            maxFileSize: {waRequest::getUploadMaxFilesize()},
+            acceptFileTypes: /(\.|\/)(gif|jpe?g|png|webp)$/i,
+            previewSourceFileTypes: /^image\/(gif|jpeg|png|webp)$/,
+            process: [
+                {
+                    action: 'load',
+                    fileTypes: /^image\/(gif|jpeg|png|webp)$/,
+                    maxFileSize: {waRequest::getUploadMaxFilesize()}
+                }
+            ],
+            showAddProductButton: true
+        });
+
+        if (typeof $.blueimpFileuploadResolveCallback === 'function') {
+            $.blueimpFileuploadResolveCallback(fileupload.data('blueimpFileupload'));
+        }
+    });
 
     // Support css-transition. Used by fileupload-ui
     $.support.transition = (function () {
@@ -179,19 +209,5 @@ $(function() {
             }
         });
     }
-
-    var fileupload = $('#fileupload');
-    fileupload.fileupload({
-        maxFileSize: {waRequest::getUploadMaxFilesize()},
-        acceptFileTypes: /(\.|\/)(gif|jpe?g|png|webp)$/i,
-        previewSourceFileTypes: /^image\/(gif|jpeg|png|webp)$/,
-        process: [
-            {
-                action: 'load',
-                fileTypes: /^image\/(gif|jpeg|png|webp)$/,
-                maxFileSize: {waRequest::getUploadMaxFilesize()}
-            }
-        ]
-    });
-});
+})();
 </script>

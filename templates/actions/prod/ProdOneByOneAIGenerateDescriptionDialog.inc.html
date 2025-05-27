@@ -1,0 +1,56 @@
+<div class="wa-dialog dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <div class="dialog-header">
+            <ul class="js-status-progress-chips chips" style="pointer-events: none;">
+                {foreach $product_ids as $_id}
+                    <li data-id="{$_id}"><span class="chip icon size-18"></span></li>
+                {/foreach}
+            </ul>
+        </div>
+        <div class="dialog-content">
+            <form>
+                <input type="hidden" name="product[id]" value="">
+                <div class="custom-mb-24">
+                    <h5 class="js-product-name break-word"></h5>
+                </div>
+                <div class="fields blank custom-mb-16">
+                    <div class="field vertical hidden">
+                        <div class="name">[`Description`]</div>
+                        <div class="value custom-pt-8">
+                            <textarea name="product[description]" class="width-100" disabled></textarea>
+                        </div>
+                    </div>
+                    <div class="field vertical hidden">
+                        <div class="name">[`Summary`]</div>
+                        <div class="value custom-pt-8">
+                            <textarea name="product[summary]" class="width-100" disabled></textarea>
+                        </div>
+                    </div>
+                    <div class="field hidden">
+                        <div class="name for-input">Title</div>
+                        <div class="value">
+                            <input type="text" name="product[meta_title]" class="long" value="" disabled>
+                        </div>
+                    </div>
+                    <div class="field hidden">
+                        <div class="name for-input">META Keywords</div>
+                        <div class="value">
+                            <input type="text" name="product[meta_keywords]" class="long" value="" disabled>
+                        </div>
+                    </div>
+                    <div class="field hidden">
+                        <div class="name for-input">META Description</div>
+                        <div class="value">
+                            <input type="text" name="product[meta_description]" class="long" value="" disabled>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="dialog-footer">
+            <button class="js-save button green" type="button">[`Save`] <i class="fas fa-arrow-right"></i></button>
+            <button class="js-close-dialog button gray outlined" type="button">[`Skip`] <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+</div>

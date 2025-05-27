@@ -2487,6 +2487,27 @@
             onTypeChange(active_type_id);
             editor_type_initialized = true;
 
+            const setValueEditor = (description) => {
+                $textarea.val(description).change();
+                if (active_type_id === 'html') {
+                    html_editor.session.setValue($textarea.val());
+                } else {
+                    $textarea.redactor("code.set", $textarea.val());
+                }
+            };
+            $.wa_shop_products.useComponentExperimentalAIToolbar({
+                $toolbar: that.$wrapper.find('.js-ai-generate-wrapper'),
+                productId: that.product.id,
+                onUpdate: (prop, product) => {
+                    if (prop === 'description') {
+                        setValueEditor(product[prop])
+                    }
+                    if (prop === 'summary') {
+                        that.$wrapper.find('textarea[name="product[summary]"]').val(product[prop]).change();
+                    }
+                }
+            });
+
             function initAce($wrapper, $textarea) {
                 var $editor = $('<div />').appendTo($wrapper),
                     editor = ace.edit($editor[0]),
@@ -2540,6 +2561,7 @@
                         paragraphy: false,
                         replaceDivs: false,
                         toolbarFixed: true,
+                        toolbarFixedTopOffset: $('#wa-nav').height() || $('.s-page-header').prop('offsetHeight') || 0,
                         replaceTags: {
                             'b': 'strong',
                             'i': 'em',
