@@ -14,6 +14,13 @@ class shopSiteBlockpage_blocksHandler extends waEventHandler
             ],
             [
                 'image' => '',
+                'icon' => 'link',
+                'title' => _w('Product link'),
+                'data' => (new shopProductLinkBlockType())->getExampleBlockData(),
+                'tags' => ['element', 'shop'],
+            ],
+            [
+                'image' => '',
                 'icon' => 'image',
                 'title' => _w('Product picture'),
                 'data' => (new shopProductPictureBlockType())->getExampleBlockData(),

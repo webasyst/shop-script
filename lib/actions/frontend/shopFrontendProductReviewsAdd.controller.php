@@ -67,6 +67,17 @@ class shopFrontendProductReviewsAddController extends waJsonController
                 'review_id'  => $id,
                 'product_id' => $data['product_id']
             ];
+
+            if ($data['service_agreement']) {
+                webasystHelper::logAgreementAcceptance(
+                    'service_agreement',
+                    wa('shop')->getSetting('review_service_agreement_hint'),
+                    ifset($data, 'service_agreement', 'notice'),
+                    ifset($data, 'contact_id', null),
+                    'review'
+                );
+            }
+
             $this->addImage($options);
             $this->logAction('product_review_add', $product['id']);
         }
@@ -157,6 +168,14 @@ class shopFrontendProductReviewsAddController extends waJsonController
         $text = waRequest::post('text', null, waRequest::TYPE_STRING_TRIM);
         $title = waRequest::post('title', null, waRequest::TYPE_STRING_TRIM);
 
+        $service_agreement = wa('shop')->getSetting('review_service_agreement');
+        if (
+            empty($service_agreement)
+            || ($service_agreement === 'checkbox' && !waRequest::post('service_agreement', 0, waRequest::TYPE_INT))
+        ) {
+            $service_agreement = '';
+        }
+
         return array(
                 'product_id'   => $product_id,
                 'parent_id'    => $parent_id,
@@ -165,6 +184,7 @@ class shopFrontendProductReviewsAddController extends waJsonController
                 'rate'         => $rate && !$parent_id ? $rate : null,
                 'datetime'     => date('Y-m-d H:i:s'),
                 'status'       => $this->getStatus(),
+                'service_agreement' => $service_agreement,
                 'images_count' => count(waRequest::file('images')),
             ) + $this->getContactData();
     }

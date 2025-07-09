@@ -2495,7 +2495,7 @@
                     $textarea.redactor("code.set", $textarea.val());
                 }
             };
-            $.wa_shop_products.useComponentExperimentalAIToolbar({
+            $.wa_shop_products.useComponentAIToolbar({
                 $toolbar: that.$wrapper.find('.js-ai-generate-wrapper'),
                 productId: that.product.id,
                 onUpdate: (prop, product) => {

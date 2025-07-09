@@ -130,6 +130,21 @@ class shopFilter
             $tags = $tag_model->getAll();
         }
 
+        if (!empty($params['tags_include_ids'])) {
+            $tags_include_ids = array_flip($params['tags_include_ids']);
+            $tags_filter = [];
+            foreach ($tags as $i => $tag) {
+                if (isset($tags_include_ids[$tag['id']])) {
+                    $tags_filter[] = $tag;
+                    unset($tags[$i], $tags_include_ids[$tag['id']]);
+                }
+            }
+            $tags = array_merge(
+                $tags_filter,
+                $tags_include_ids ? $tag_model->select('id,name')->where('id IN (?)', [array_keys($tags_include_ids)])->fetchAll(): [],
+                array_values($tags)
+            );
+        }
 
         $features_data = self::getAllTypes(true, false, 'tiny');
         usort($features_data, function($f1, $f2) {

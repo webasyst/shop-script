@@ -23,7 +23,7 @@ class shopProductButtonBlockType extends siteBlockType
     public function getExampleBlockData()
     {
         $result = $this->getEmptyBlockData();
-        $result->data = ['html' => _w('Add to cart'), 'goto' => 'cart', 'tag' => 'a', 'block_props' => ['margin-bottom' => "m-b-0", 'button-style' => "bg-brn-1 t-wht b-r-s", 'button-size' => 'inp-m p-l-13 p-r-13']];
+        $result->data = ['html' => _w('Add to cart'), 'goto' => 'cart', 'tag' => 'a', 'block_props' => ['margin-bottom' => "m-b-0", 'button-style' => ['name' => "complementary", 'scheme' => 'complementary', 'value' => "btn-a", 'type' => 'palette'], 'button-size' => 'inp-m p-l-13 p-r-13']];
         return $result;
     }
 

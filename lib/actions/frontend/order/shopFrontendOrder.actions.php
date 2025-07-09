@@ -178,6 +178,31 @@ class shopFrontendOrderActions extends waJsonActions
             }
             $confirmation->postConfirm($saved_order['contact_id'], $contact_id);
 
+            if (
+                ifset($data, 'result', 'auth', 'service_agreement', false)
+                && ifempty($config, 'customer', 'service_agreement', false)
+            ) {
+                webasystHelper::logAgreementAcceptance(
+                    'service_agreement',
+                    ifset($config, 'customer', 'service_agreement_hint', ''),
+                    ifset($config, 'customer', 'service_agreement', 'notice'),
+                    ifset($order, 'contact_id', null),
+                    'shop'
+                );
+            }
+            if (
+                ifset($data, 'result', 'confirm', 'terms', false)
+                &&  ifempty($config, 'confirmation', 'terms', false)
+            ) {
+                webasystHelper::logAgreementAcceptance(
+                    'terms',
+                    ifset($config, 'confirmation', 'terms_text', ''),
+                    'checkbox',
+                    ifset($order, 'contact_id', null),
+                    'checkout'
+                );
+            }
+
             // Clear cart and checkout data
             // Remove everything from cart
             (new shopCart())->clear();

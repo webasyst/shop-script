@@ -13,7 +13,8 @@ class shopProductPriceBlockType extends siteBlockType
         $tmpl_vars['modification'] = $tmpl_vars['sku_id'];
         //$result = $this->additionalData($data);
         if (ifset($tmpl_vars['product']['skus'], $tmpl_vars['sku_id'], false)) {
-            $tmpl_vars['html'] = $tmpl_vars['product']['skus'][$tmpl_vars['sku_id']]['primary_price_float'].' '.$tmpl_vars['product']['currency'];//$result['html']; 
+            $tmpl_vars['html'] = wa_currency_html($tmpl_vars['product']['skus'][$tmpl_vars['sku_id']]['primary_price_float'], $tmpl_vars['product']['currency']);//$result['html']; 
+            //shop_currency
         }
         else {
             $tmpl_vars['html'] = 0;
@@ -24,7 +25,7 @@ class shopProductPriceBlockType extends siteBlockType
     public function getExampleBlockData()
     {
         $result = $this->getEmptyBlockData();
-        $result->data = ['info_type' => 'price', 'tag' => 'p', 'block_props' => ['font-header' => "t-rgl", 'font-size' => ["name" => "Size #5", "value" => "t-5", "unit" => "px", "type" => "library"], 'margin-top' => "m-t-0", 'margin-bottom' => "m-b-0", 'margin-left' => "m-l-16", 'margin-right' => "m-r-16",'align' => "t-l"]];
+        $result->data = ['info_type' => 'price', 'tag' => 'p', 'block_props' => ['font-header' => "t-rgl", 'font-size' => ["name" => "Size #5", "value" => "t-5", "unit" => "px", "type" => "library"], 'margin-top' => "m-t-0", 'margin-bottom' => "m-b-0", 'margin-right' => "m-r-16",'align' => "t-l"]];
         return $result;
     }
 

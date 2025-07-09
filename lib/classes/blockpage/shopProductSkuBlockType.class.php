@@ -20,7 +20,7 @@ class shopProductSkuBlockType extends siteBlockType
     public function getExampleBlockData()
     {
         $result = $this->getEmptyBlockData();
-        $result->data = ['info_type' => 'color', 'block_props' => ['font-header' => "t-rgl", 'font-size' => ["name" => "Size #5", "value" => "t-5", "unit" => "px", "type" => "library"], 'margin-top' => "m-t-0", 'margin-bottom' => "m-b-0", 'align' => "t-l"]];
+        $result->data = ['info_type' => 'color', 'block_props' => ['font-header' => "t-rgl", 'font-size' => ["name" => "Size #5", "value" => "t-5", "unit" => "px", "type" => "library"], 'margin-top' => "m-t-0", 'margin-bottom' => "m-b-0", 'margin-right' => "m-r-16", 'align' => "t-l"]];
         return $result;
     }
 

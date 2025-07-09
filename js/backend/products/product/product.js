@@ -322,18 +322,16 @@
         return new Page(options);
     };
 
-    $.wa_shop_products._experimentalAIAction = function ({ productId, onUpdate }) {
+    $.wa_shop_products._waAIAction = function ({ productId, onUpdate }) {
         const $btn = $(this);
         if ($btn.prop('disabled')) {
             return false;
         }
 
         $btn.prop('disabled', true);
-        $btn.find('.icon').hide();
-        const $loading = $('<span class="js-loading"><i class="fas fa-spinner fa-spin"></i></span>').prependTo($btn);
+        $btn.find('.webasyst-magic-wand-ai').addClass('shimmer');
         const hideLoading = () => {
-            $loading.remove();
-            $btn.find('.icon').show();
+            $btn.find('.webasyst-magic-wand-ai').removeClass('shimmer');
             $btn.prop('disabled', false);
         };
         const handleError = (r) => {
@@ -393,9 +391,9 @@
             });
         }
     };
-    $.wa_shop_products.useComponentExperimentalAIToolbar = ({ $toolbar, productId, onUpdate }) => {
+    $.wa_shop_products.useComponentAIToolbar = ({ $toolbar, productId, onUpdate }) => {
         $toolbar.find('.js-ai-generate-description').click(function() {
-            $.wa_shop_products._experimentalAIAction.call(this, { productId, onUpdate });
+            $.wa_shop_products._waAIAction.call(this, { productId, onUpdate });
         });
     };
 

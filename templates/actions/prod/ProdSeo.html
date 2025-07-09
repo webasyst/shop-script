@@ -460,13 +460,13 @@
                 </div>
                 <div class="s-section-body text-dark-gray">
                     <p>[`You can set up multiple storefronts for your online store — for sales in various regions, for several business areas, for sales via social media and other platforms. Each storefront can display its own set of products. Here are shown the storefronts where this particular product is displayed.`]</p>
-                    <p>[`The available storefronts and the products displayed in them can be managed by means of product types (in section “Settings → Product types & features”) and the storefront settings (in section “Storefront → Settings”). Add new storefronts in section “Structure” of the Site app.`]</p>
+                    <p>[`Available storefronts and products displayed in them are managed by means of product types (in section “<em>Settings → Product types & features</em>”) and storefront settings (in section “<em>Storefront</em>”). New storefronts can be added in the <em>Site</em> app.`]</p>
 
                     {if !empty($formatted_product.storefronts)}
                         <div class="s-fields-wrapper fields">
                             <div class="field">
                                 <div class="name">
-                                    <span>{_w('The product is displayed in %d storefront.', 'The product is displayed in %d storefronts.', count($formatted_product.storefronts))}</span>
+                                    <span>{_w('The product is displayed in %d storefront', 'The product is displayed in %d storefronts', count($formatted_product.storefronts))}</span>
                                 </div>
                                 <div class="value middle tablebox">
                                     <ul class="wa-list s-storefronts-list js-storefronts-list">

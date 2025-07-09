@@ -170,7 +170,7 @@
                         mounted: function() {
                             this.$el.dataset.updateProp = this.updateProp;
 
-                            $.wa_shop_products.useComponentExperimentalAIToolbar({
+                            $.wa_shop_products.useComponentAIToolbar({
                                 $toolbar: $(this.$el),
                                 productId: that.product.id,
                                 onUpdate: (prop, product) => {

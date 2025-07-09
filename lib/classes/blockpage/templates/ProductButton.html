@@ -51,10 +51,10 @@
         data.sku_id = new_sku;
         $wrapper.data('sku-id', new_sku)
     });
-    const submit_url = "{$wa->getUrl('site/frontendCart/add')}"; //"shop/frontend/" + $wrapper.data('goto');
+    const submit_url = "{$wa->getUrl('shop/frontendCart/add')}"; //"shop/frontend/" + $wrapper.data('goto'); '{$wa_url}cart/add/'
     $wrapper.on('click', function() {
         //console.log( $wrapper.data('goto'), $wrapper.data('sku-id'), submit_url)
-        $.post('{$wa_url}cart/add/', {
+        $.post(submit_url, {
             product_id: data['additional']['product']['id'],
             sku_id: $wrapper.data('sku-id')
         }, function (response) {

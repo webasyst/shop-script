@@ -117,7 +117,7 @@ class shopProductReviewsModel extends waNestedSetModel
                 ORDER BY rate DESC";
         $result = array();
         foreach ($this->query($sql, $product_id) as $row) {
-            $result[round($row['rate'])] = $row['c'];
+            $result[round((float) $row['rate'])] = $row['c'];
         }
         return $result;
     }
@@ -713,7 +713,7 @@ class shopProductReviewsModel extends waNestedSetModel
             if ($escape) {
                 $item['author']['name'] = htmlspecialchars($item['author']['name']);
                 $item['text'] = nl2br(htmlspecialchars($item['text']));
-                $item['title'] = htmlspecialchars($item['title']);
+                $item['title'] = htmlspecialchars((string) $item['title']);
             }
 
             // recursive workuping

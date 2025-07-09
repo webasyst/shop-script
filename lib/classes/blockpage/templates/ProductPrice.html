@@ -43,7 +43,9 @@
         $wrapper.on('update_sku', function(event, new_sku) {
             const data = {$data->data|json_encode};
             data.sku_id = new_sku;
-            let new_html = data?.additional?.product?.skus?.[data.sku_id]['primary_price_float'] + ' ' + data?.additional?.product?.currency;
+            let new_price = data?.additional?.product?.skus?.[data.sku_id]['primary_price_float'] || 0;
+            let new_currency = data?.additional?.product?.currency || 'RUB';
+            let new_html = {wa_currency_html(new_price, new_currency)|default:0};
             $(this).html(new_html);
         });
     });

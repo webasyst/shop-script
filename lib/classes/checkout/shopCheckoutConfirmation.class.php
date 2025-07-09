@@ -132,10 +132,23 @@ class shopCheckoutConfirmation extends shopCheckout
         if ($comment = waRequest::post('comment')) {
             $this->setSessionData('comment', $comment);
         }
+
         $settings = self::getCheckoutSettings();
-        if (!empty($settings['confirmation']['terms']) && !waRequest::post('terms')) {
-            return false;
+        if (!empty($settings['confirmation']['terms'])) {
+            if (waRequest::post('terms')) {
+                $contact = $this->getContact();
+                webasystHelper::logAgreementAcceptance(
+                    'terms',
+                    ifset($settings, 'confirmation', 'terms', ''),
+                    'checkbox',
+                    $contact->getId(),
+                    'checkout'
+                );
+            } else {
+                return false;
+            }
         }
+
         return true;
     }
 

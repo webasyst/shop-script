@@ -2063,8 +2063,9 @@
                                                     this.search_items = [];
                                                 }
                                             }
-                                            this.debounceSearch(q);
+                                            this.debouncedSearch(q);
                                         } else {
+                                            // clear search
                                             this.states.is_fetching = false;
                                             if (this.search_timer) {
                                                 clearTimeout(this.search_timer);
@@ -2090,6 +2091,9 @@
                                     },
                                     empty_search_result: function() {
                                         return !this.states.is_fetching && !!this.search_string.trim() && !this.search_items.length;
+                                    },
+                                    selected_tags: function() {
+                                        return this.items.filter(t => (t.is_locked || t.states.enabled)).reduce((obj, t) => (obj[t.id]=true,obj), {});
                                     }
                                 },
                                 mounted: function () {
@@ -2175,6 +2179,7 @@
                                         const params = new URLSearchParams(this.fetch_params);
                                         $.get(`${that.urls["tags_get"]}&${params}`, (r) => {
                                             if (r.status === 'ok' && Array.isArray(r.data.tags)) {
+                                                r.data.tags = r.data.tags.filter(t => !this.selected_tags[t.id]);
                                                 dfd.resolve(r.data);
                                                 this.fetch_params = r.data.params;
                                                 this.states.is_fetching = false;
@@ -2183,7 +2188,7 @@
 
                                         return dfd.promise();
                                     },
-                                    debounceSearch: function(q) {
+                                    debouncedSearch: function(q) {
                                         this.fetch_params = { q };
                                         this.states.is_fetching = true;
                                         if (this.search_timer) {

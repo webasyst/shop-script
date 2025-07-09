@@ -959,6 +959,11 @@ class shopConfig extends waAppConfig
     {
         return shopLicensing::isAnyPremiumFeatureEnabled();
     }
+
+    public function isFrontendAnnouncementsEnabled()
+    {
+        return true;
+    }
 }
 
 function shop_currency($n, $in_currency = null, $out_currency = null, $format = true)

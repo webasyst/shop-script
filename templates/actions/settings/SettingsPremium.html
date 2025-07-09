@@ -198,9 +198,15 @@
                         <p class="s-description{if empty($_feature.image)} align-center width-70 width-100-mobile custom-mx-auto{/if}">{$_feature.description}</p>
                     </div>
                     {if !empty($_feature.image)}
-                    <div class="s-image-wrapper custom-mt-8-mobile align-center-mobile">
-                        <img class="s-image" src="{$wa_app_static_url}img/backend/settings/premium/{$_lang}/{$_feature.image.name|escape}?v={$_version}" alt="{$_feature.title|escape}" {if !empty($_feature.noshadow)} style="box-shadow: none;"{/if} {if !empty($_feature.image.width)}style="max-width: {$_feature.image.width}"{/if}>
-                    </div>
+                        {if !empty($_feature.id) && $_feature.id == 'ai'}
+                            <div class="s-image-wrapper custom-mt-8-mobile align-center">
+                                <span class="icon webasyst-magic-wand-ai" title="{$_feature.title|escape}" style="font-size: 12rem;"></span>
+                            </div>
+                        {else}
+                            <div class="s-image-wrapper custom-mt-8-mobile align-center-mobile">
+                                <img class="s-image" src="{$wa_app_static_url}img/backend/settings/premium/{$_lang}/{$_feature.image.name|escape}?v={$_version}" alt="{$_feature.title|escape}" {if !empty($_feature.noshadow)} style="box-shadow: none;"{/if} {if !empty($_feature.image.width)}style="max-width: {$_feature.image.width}"{/if}>
+                            </div>
+                        {/if}
                     {/if}
                 </div>
             {/foreach}

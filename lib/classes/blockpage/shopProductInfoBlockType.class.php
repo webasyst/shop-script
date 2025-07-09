@@ -14,44 +14,56 @@ class shopProductInfoBlockType extends siteBlockType
         if ($tmpl_vars['product']['status'] < 0) {
             $data->data['additional']['html'] = _w('Unavailable for purchase');
         }
+
         return parent::render($data, $is_backend, $tmpl_vars);
     }
 
     public function additionalData(siteBlockData $data)
     {
         $hash = '';
-        $fields = 'id,name,summary,images,price,status';
+        $fields = 'id,name,summary,description,images,price,status,sku_stock,skus,compare_price';
         if (!empty($data->data['product_id'])) {
             $hash = 'id/'.$data->data['product_id'];
-        }
-        $products = (new shopProductsCollection($hash))->getProducts($fields, 0, 1);
-        if (empty($products) || $hash == '') {
-            $p = ['id' => null, 'sku_id' => null, 'skus' => [], 'sku_type' => '1', 'status' => '0','price' => _w('Product price'), 'name' => _w('Product name'), 'summary' => _w('Product description')];
-            if (empty($products)) {
-                $p['status'] = '-1';
-            }
-        } else {
-            $p = reset($products);
-            //unset($data->data['html']);
-        }
+            $prod_data = new shopProduct($data->data['product_id']);
+            //
+            $p = $prod_data->data;
+            $p['skus'] = $prod_data->skus;
 
-        $data->data['product_id'] = $p['id'];
+            switch (ifset($data->data, 'info_type', 'name')) {
+                case 'price':
+                    //$result['html'] = shop_currency($p['price'], ["unit" => $p['currency'], "in_currency" => $p['currency'], "format" => "price_wrapper"]);
+                    $result_html = wa_currency_html($p['price'], $p['currency']);
+                    break;
+                case 'compare_price':
+                    $result_html = '<span style="text-decoration: line-through;">'.wa_currency_html($p['compare_price'], $p['currency']).'</span>';
+                    break;
+                case 'description':
+                    $result_html = strip_tags($p['description']);
+                    break;
+                case 'summary':
+                    $result_html = strip_tags($p['summary']);
+                    break;
+                case 'stock':
+                    $result_html = strip_tags($this->getStockInfo($p['skus'][$p['sku_id']]['count']));
+                    break;
+                case 'name':
+                default:
+                    $result_html = htmlspecialchars($p['name']);
+                    break;
+            }
+
+        } else {
+                $p = ['id' => null, 'sku_id' => null, 'skus' => [], 'sku_type' => '1', 'status' => '0','price' => _w('Product price'), 'name' => _w('Product name'), 'summary' => _w('Product description')];
+            
+                $result_html = _w('Choose product');
+        }
+        //wa_dump($prod_data['skus']);
         $result = [
             'product' => $p,
         ];
+        $result['html'] = $result_html;
 
-        switch (ifset($data->data, 'info_type', 'name')) {
-            case 'price':
-                $result['html'] = shop_currency($p['price']);
-                break;
-            case 'description':
-                $result['html'] = strip_tags($p['summary']);
-                break;
-            case 'name':
-            default:
-                $result['html'] = htmlspecialchars($p['name']);
-                break;
-        }
+
         return $result;
     }
 
@@ -119,4 +131,22 @@ class shopProductInfoBlockType extends siteBlockType
     {
         return 'shop.ProductInfo';
     }
+
+    public function getStockInfo($n=0)
+    {
+        $low=5; 
+        $critical=2;
+
+    if ($n > $low || $n === null)
+        $result = '<span class="text-green">'._w("In stock").'</span>';
+    elseif ($n > $critical)
+        $result = '<span class="stock-low">'._w("Only %d left in stock", "Only %d left in stock", $n).'</span>';
+    elseif ($n > 0)
+        $result = '<span class="text-orange">'._w("Only %d left in stock", "Only %d left in stock", $n).'</span>';
+    else
+        $result = '<span class="stock-none">'._w("Out of stock").'</span>';
+
+        return $result;
+    }
+
 }

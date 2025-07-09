@@ -84,7 +84,16 @@ class shopProdListAction extends waViewAction
         $this->static_categories_tree = $category_model->buildNestedTree($static_categories);
 
         $filter = $active_filter->getFilter();
-        $filter_options = $active_filter->getFilterOptions(['tags_limit' => 100]);
+        $tags_include_ids = [];
+        foreach ($filter['rules'] as $rule) {
+            if ($rule['rule_type'] === 'tags') {
+                $tags_include_ids[] = $rule['rule_params'];
+            }
+        }
+        $filter_options = $active_filter->getFilterOptions([
+            'tags_limit' => 100,
+            'tags_include_ids' => $tags_include_ids
+        ]);
         $this->clearMissingRules($filter['rules'], $filter_options, $categories);
 
         $sort_column_type = $presentation->getSortColumnType();
@@ -1149,7 +1158,7 @@ class shopProdListAction extends waViewAction
                     [
                         "id" => "ai_generate",
                         "name" => _w("AI descriptions & SEO"),
-                        "icon" => '<i class="icon webasyst-ai"></i>',
+                        "icon" => '<i class="icon webasyst-magic-wand-ai"></i>',
                         "action_url" => $wa_app_url."?module=prod&action=massAIGenerateDescriptionDialog",
                         "premium_is_required" => !shopLicensing::isPremium()
                     ]

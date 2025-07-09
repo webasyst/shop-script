@@ -7,7 +7,7 @@
 {else}
     {$img_src = $default_empty_image_url}
 {/if}
-{$static_classes_props = 'style-wrapper img'}
+{$static_classes_props = 'cl style-wrapper img'}
 <picture {if $anchor_id}id="{$anchor_id|escape}"{/if} class="{$static_classes_props}" {if $is_backend}style="visibility: hidden;"{/if} data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}">
     {*$product|wa_dumpc*}
     {if !empty($data->data['html'])}

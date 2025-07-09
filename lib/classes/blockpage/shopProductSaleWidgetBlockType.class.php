@@ -98,7 +98,7 @@ class shopProductSaleWidgetBlockType extends siteBlockType
     protected function getRawBlockSettingsFormConfig()
     {
         return [
-            'type_name' => _w('Widget with a shopping button'),
+            'type_name' => _w('Widget'),
             'sections' => [
                 [   'type' => 'ProductIdGroup',
                     'name' => _w('Product'),
