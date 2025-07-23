@@ -8,15 +8,15 @@ class shopProductPriceBlockType extends siteBlockType
     public function render(siteBlockData $data, bool $is_backend, array $tmpl_vars=[])
     {
         $data->data['additional']['product'] = $tmpl_vars['product'];
-        $data->data['product_id'] = $tmpl_vars['product']['id'];
-        $data->data['sku_id'] = $tmpl_vars['sku_id'];
-        $tmpl_vars['modification'] = $tmpl_vars['sku_id'];
-        //$result = $this->additionalData($data);
-        if (ifset($tmpl_vars['product']['skus'], $tmpl_vars['sku_id'], false)) {
-            $tmpl_vars['html'] = wa_currency_html($tmpl_vars['product']['skus'][$tmpl_vars['sku_id']]['primary_price_float'], $tmpl_vars['product']['currency']);//$result['html']; 
-            //shop_currency
+        if ($tmpl_vars['product']['id'] === null) {
+            return;
         }
-        else {
+        $data->data['product_id'] = $tmpl_vars['product']['id'];
+        $tmpl_vars['modification'] = $tmpl_vars['sku_id'];
+
+        if (ifset($tmpl_vars['product']['skus'], $tmpl_vars['sku_id'], false)) {
+            $tmpl_vars['html'] = wa_currency_html($tmpl_vars['product']['skus'][$tmpl_vars['sku_id']]['primary_price_float'], $tmpl_vars['product']['currency']);
+        } else {
             $tmpl_vars['html'] = 0;
         }
         return parent::render($data, $is_backend, $tmpl_vars);
@@ -25,7 +25,7 @@ class shopProductPriceBlockType extends siteBlockType
     public function getExampleBlockData()
     {
         $result = $this->getEmptyBlockData();
-        $result->data = ['info_type' => 'price', 'tag' => 'p', 'block_props' => ['font-header' => "t-rgl", 'font-size' => ["name" => "Size #5", "value" => "t-5", "unit" => "px", "type" => "library"], 'margin-top' => "m-t-0", 'margin-bottom' => "m-b-0", 'margin-right' => "m-r-16",'align' => "t-l"]];
+        $result->data = ['info_type' => 'price', 'tag' => 'p', 'block_props' => ['font-header' => "t-rgl", 'font-size' => ["name" => "Size #5", "value" => "t-5", "unit" => "px", "type" => "library"], 'margin-top' => "m-t-0", 'margin-bottom' => "m-b-10", 'margin-right' => "m-r-16",'align' => "t-l"]];
         return $result;
     }
 
@@ -40,12 +40,6 @@ class shopProductPriceBlockType extends siteBlockType
                 [   'type' => 'FontGroup',
                     'name' => _w('Font'),
                 ],
-                /*[   'type' => 'FontStyleGroup',
-                    'name' => _w('Font style'),
-                ],
-                [   'type' => 'TextColorGroup',
-                    'name' => _w('Color'),
-                ],*/
                 [   'type' => 'LineHeightGroup',
                     'name' => _w('Line height'),
                 ],

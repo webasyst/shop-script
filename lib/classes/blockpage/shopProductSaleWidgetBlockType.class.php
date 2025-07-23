@@ -9,16 +9,21 @@ class shopProductSaleWidgetBlockType extends siteBlockType
     public function render(siteBlockData $data, bool $is_backend, array $tmpl_vars=[])
     {
         $tmpl_vars['product'] = $data->data['additional']['product'];
-        if ($tmpl_vars['product']['status'] < 0) {
-            $data->data['html'] = _w('Unavailable for purchase');
+        $hidden_block = !$is_backend && $tmpl_vars['product']['id'] === null;
+        if ($hidden_block) {
+            return;
         }
-        if (!$tmpl_vars['product']['id']) {
-            $data->data['html'] = _w('Choose product');
-        }
+        // if ($tmpl_vars['product']['status'] < 0) {
+        //     $data->data['html'] = _w('Unavailable for purchase');
+        // }
+        // if (!$tmpl_vars['product']['id']) {
+        //     $data->data['html'] = _w('Choose product');
+        // }
         return parent::render($data, $is_backend, $tmpl_vars + [
             'children' => array_reduce($data->getRenderedChildren($is_backend, [
                 'product' => $tmpl_vars['product'],
-                'sku_id' => $data->data['sku_id'],
+                'sku_id' => ifset($tmpl_vars['product']['sku_id']),
+                'disabled' => ifset($tmpl_vars['product']['status']) < 0,
             ]), 'array_merge', []),
         ]);
     }
@@ -29,11 +34,12 @@ class shopProductSaleWidgetBlockType extends siteBlockType
         $fields = 'id,name,summary,images,price,skus,sku_type,status,sku_features';
         if (!empty($data->data['product_id'])) {
             $hash = 'id/'.$data->data['product_id'];
-            /*if ($data->data['product_id'] !== $data->data['additional']['product']['id']) {
-                unset($data->data['sku_id']);
-            }*/
+            $products = (new shopProductsCollection($hash, ['frontend' => false]))->getProducts($fields, 0, 1);
+            if (wa()->getEnv() === 'frontend' && $products && $products[$data->data['product_id']]['status'] == '-1') {
+                $products = [];
+            }
         }
-        $products = (new shopProductsCollection($hash))->getProducts($fields, 0, 1);
+
         if (empty($products) || $hash == '') {
             //throw new waException('No product selected');
             $p = ['id' => null, 'sku_id' => null, 'sku_type' => '1','status' => '0', 'skus' => [], 'currency' => 'RUB', 'price' => '0', 'name' => '', 'summary' => ''];
@@ -41,33 +47,25 @@ class shopProductSaleWidgetBlockType extends siteBlockType
             $p = reset($products);
             unset($data->data['html']);
         }
-
         $data->data['product_id'] = $p['id'];
-        if (empty($data->data['sku_id'])) {
-            $data->data['sku_id'] = $p['sku_id'];
+
+        if(!isset($data->data['hidden_attrs'])) {
+            $data->data['hidden_attrs'] = [];
+        }
+        if(!isset($data->data['element_layout'])) {
+            $data->data['element_layout'] = 'line';
         }
 
         $result = [
             'product' => $p,
         ];
-       /* switch (ifset($data->data, 'info_type', 'name')) {
-            case 'price':
-                $result['html'] = shop_currency($p['price']);
-                break;
-            case 'description':
-                $result['html'] = strip_tags($p['summary']);
-                break;
-            case 'name':
-            default:
-                $result['html'] = htmlspecialchars($p['name']);
-                break;
-        }*/
+
         return $result;
     }
 
     public function shouldRenderBlockOnSave($old_data, $new_data)
     {
-        return (ifset($old_data, 'product_id', null) != ifset($new_data, 'product_id', null)) || (ifset($old_data, 'sku_id', null) != ifset($new_data, 'sku_id', null));
+        return (ifset($old_data, 'product_id', null) != ifset($new_data, 'product_id', null));
     }
 
     public function getExampleBlockData()
@@ -90,7 +88,7 @@ class shopProductSaleWidgetBlockType extends siteBlockType
         $hseq->data['is_complex'] = 'no_complex';
         $result = $this->getEmptyBlockData();
         $result->addChild($hseq, '');
-        $result->data = ['block_props' => ['padding-top' => "p-t-10", 'padding-bottom' => "p-b-10"], 'wrapper_props' => ['justify-align' => "j-s"]];
+        $result->data = ['block_props' => ['padding-top' => "p-t-10", 'padding-bottom' => "p-b-10", 'full-width' => 'f-w'], 'wrapper_props' => ['justify-align' => "j-s"], 'element_layout' => 'line', 'hidden_attrs' => ['sku' => 1, 'price' => 1]];
 
         return $result;
     }
@@ -103,8 +101,8 @@ class shopProductSaleWidgetBlockType extends siteBlockType
                 [   'type' => 'ProductIdGroup',
                     'name' => _w('Product'),
                 ],
-                [   'type' => 'ProductSkuGroup',
-                    'name' => _w('Variant'),
+                [   'type' => 'ProductSkuElementLayoutGroup',
+                    'name' => _w('Positioning'),
                 ],
                 [   'type' => 'RowsAlignGroup',
                     'name' => _w('Alignment'),
@@ -112,8 +110,8 @@ class shopProductSaleWidgetBlockType extends siteBlockType
                 [   'type' => 'RowsWrapGroup',
                     'name' => _w('Wrap line'),
                 ],
-                [   'type' => 'TabsWrapperGroup',
-                    'name' => _w('Tabs'),
+                [   'type' => 'RowsAttrsVisibilityGroup',
+                    'name' => _w('Display in each variant'),
                 ],
                 [   'type' => 'MarginGroup',
                     'name' => _w('Margin'),
@@ -123,9 +121,6 @@ class shopProductSaleWidgetBlockType extends siteBlockType
                 ],
                 [   'type' => 'IdGroup',
                     'name' => _w('Identifier (ID)'),
-                ],
-                [   'type' => 'TagsGroup',
-                    'name' => _w('SEO'),
                 ],
             ],
         ] + parent::getRawBlockSettingsFormConfig();

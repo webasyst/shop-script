@@ -15,9 +15,9 @@
         {$target = $link_props.target}
     {/if}
 {/if}
-{$static_classes_props = 'style-wrapper btn'}
+{$static_classes_props = 'style-wrapper btn'|cat:(($disabled)?' disabled':'')}
 {$anchor_id = $data->data['id']|default:0}
-<{$tag} {if $anchor_id}id="{$anchor_id|escape}"{/if} href="javascript:void(0)" class="{$static_classes_props}" {if $is_backend}style="visibility: hidden;"{/if} data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}" {if $is_backend} contenteditable="true"{/if} {if !empty($target)}target="{$target}"{/if} data-sku-id="{$data->data['sku_id']}" data-goto="{$data->data['goto']|default:'cart'}">
+<{$tag} {if $anchor_id}id="{$anchor_id|escape}"{/if} href="javascript:void(0)" class="{$static_classes_props}" data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}" {if $is_backend} contenteditable="true"{/if} {if !empty($target)}target="{$target}"{/if} data-sku-id="{$modification}" data-goto="{$data->data['goto']|default:'cart'}">
     {$data->data['html']}
 </{$tag}>
 
@@ -42,7 +42,7 @@
 
 });</script>
 {else}
-<script>$(function() { "use strict";
+<script>(function() { "use strict";
     const block_id = {$data->getId()|json_encode};
     const $wrapper = $('.btn[data-block-id="'+block_id+'"]');
     const data = {$data->data|json_encode};
@@ -51,21 +51,21 @@
         data.sku_id = new_sku;
         $wrapper.data('sku-id', new_sku)
     });
+    {if !$disabled}
     const submit_url = "{$wa->getUrl('shop/frontendCart/add')}"; //"shop/frontend/" + $wrapper.data('goto'); '{$wa_url}cart/add/'
     $wrapper.on('click', function() {
-        //console.log( $wrapper.data('goto'), $wrapper.data('sku-id'), submit_url)
         $.post(submit_url, {
             product_id: data['additional']['product']['id'],
             sku_id: $wrapper.data('sku-id')
         }, function (response) {
-           console.log('submit', response)
-           if (response.status == 'ok') {
+
+        if (response.status === 'ok') {
             const cart_total = $(".cart-total");
             cart_total.closest('#cart').removeClass('empty');
             cart_total.html(response.data.total);
-            $(document).trigger("cartIsChanged", { 
-                'count': response.data.count, 
-                'text': response.data.total 
+            $(document).trigger("cartIsChanged", {
+                'count': response.data.count,
+                'text': response.data.total
             })
             if (response.data.error) {
                 alert(response.data.error);
@@ -75,13 +75,19 @@
         }
         }, 'json')
     });
-
-});</script>
+    {/if}
+})();</script>
 {/if}
-<script>
-    $(function() { "use strict";
-        const block_id = {$data->getId()|json_encode};
-        const $wrapper = $('.btn[data-block-id="'+block_id+'"]');
+<script>(function() { "use strict";
+    const block_id = {$data->getId()|json_encode};
+    const parent_id = {$data->getParentId()|json_encode};
+    const $wrapper = $('.btn[data-block-id="'+block_id+'"]');
+    const available_for_purchase = {$product.status} > 0;
 
-    });
-</script>
+    window['productSaleWidget'+parent_id] = {
+        disableButtonByCount: (count) => {
+            if (!available_for_purchase) return;
+            $wrapper.toggleClass('disabled', count !== undefined && count !== '' && count <= 0)
+        }
+    };
+})();</script>

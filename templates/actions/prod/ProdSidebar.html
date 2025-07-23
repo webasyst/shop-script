@@ -109,7 +109,16 @@
 
             <!-- plugin hook: 'backend_prod.sidebar_item' -->
             {* @event backend_prod.%plugin_id%.sidebar_item *}
-            {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{ifset($_.sidebar_item)}{/foreach}{/if}
+            {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{strip}
+                {ifset($_.sidebar_item)}
+                {if isset($_.sidebar_item_tooltip_id)}
+                    {$_tooltips[$_.sidebar_item_tooltip_id] = [
+                        "id" => $_.sidebar_item_tooltip_id,
+                        "html" => $_.sidebar_item_tooltip_html,
+                        "start_time" => 500
+                    ]}
+                {/if}
+            {/strip}{/foreach}{/if}
 
         </ul>
     </section>

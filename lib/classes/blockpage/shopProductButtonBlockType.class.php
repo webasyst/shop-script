@@ -10,9 +10,10 @@ class shopProductButtonBlockType extends siteBlockType
     {
         $data->data['additional']['product'] = $tmpl_vars['product'];
         $data->data['product_id'] = $tmpl_vars['product']['id'];
-        $data->data['sku_id'] = $tmpl_vars['sku_id'];
-        if ($tmpl_vars['product']['status'] < 0) {
-            $data->data['html'] = _w('Unavailable for purchase');
+        $tmpl_vars['disabled'] = $tmpl_vars['product']['status'] < 1;
+        if (!$tmpl_vars['disabled'] && $tmpl_vars['sku_id']) {
+            $count = $tmpl_vars['product']['skus'][$tmpl_vars['sku_id']]['count'];
+            $tmpl_vars['disabled'] = $count !== null && $count <= 0;
         }
         $tmpl_vars['modification'] = $tmpl_vars['sku_id'];
         //$result = $this->additionalData($data);
@@ -23,7 +24,7 @@ class shopProductButtonBlockType extends siteBlockType
     public function getExampleBlockData()
     {
         $result = $this->getEmptyBlockData();
-        $result->data = ['html' => _w('Add to cart'), 'goto' => 'cart', 'tag' => 'a', 'block_props' => ['margin-bottom' => "m-b-0", 'button-style' => ['name' => "complementary", 'scheme' => 'complementary', 'value' => "btn-a", 'type' => 'palette'], 'button-size' => 'inp-m p-l-13 p-r-13']];
+        $result->data = ['html' => _w('Add to cart'), 'goto' => 'cart', 'tag' => 'a', 'block_props' => ['margin-bottom' => "m-b-10", 'button-style' => ['name' => "complementary", 'scheme' => 'complementary', 'value' => "btn-a", 'type' => 'palette'], 'button-size' => 'inp-m p-l-13 p-r-13']];
         return $result;
     }
 

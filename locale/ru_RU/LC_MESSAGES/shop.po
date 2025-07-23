@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.4.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -3430,7 +3430,7 @@ msgstr "Необязательный параметр <em>offset</em> означ
 msgid "Returns array of products from the specified set."
 msgstr "Возвращает массив товаров из указанного списка."
 
-msgid "Product summary (brief description)"
+msgid "Product summary"
 msgstr "Краткое описание товара"
 
 msgid "Product description"
@@ -13716,3 +13716,21 @@ msgstr "Доступно только с премиум-лицензией."
 
 msgid "Product link"
 msgstr "Ссылка на страницу товара"
+
+msgid "Connect <a %s>Webasyst ID</a> to use the Webasyst AI service."
+msgstr "Подключите <a %s>Webasyst ID</a>, чтобы пользоваться службой Webasyst AI."
+
+msgid "Widget"
+msgstr "Виджет"
+
+msgid "Read about the product"
+msgstr "Подробнее о товаре"
+
+msgid "Strike-through product price"
+msgstr "Зачеркнутая цена товара"
+
+msgid "Product availability"
+msgstr "Наличие на складе"
+
+msgid "Service temporarily unavailable. Please try again later."
+msgstr "Сервис временно недоступен. Повторите попытку позднее."

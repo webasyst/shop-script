@@ -58,22 +58,10 @@ class shopSettingsAiActions extends waActions
         }
 
         if (method_exists($wa_service_api, 'isBrokenConnection') && $wa_service_api->isBrokenConnection()) {
-            /*
-                _ws('Connection to Webasyst ID server is broken. Please re-connect your account to continue using Webasyst Email service.')
-                sprintf_wp(
-                    'To do so, open the <a href="%s">Webasyst ID settings</a>, disable sign-in with Webasyst ID and enable it again.',
-                    wa()->getConfig()->getBackendUrl(true) . 'webasyst/settings/waid/'
-                )
-            */
             return null;
         }
+
         if (!$wa_service_api->isConnected()) {
-            /*
-                sprintf_wp(
-                    '<a href="%s">Connect to Webasyst ID</a> to use the Webasyst Email.',
-                    wa()->getConfig()->getBackendUrl(true) . 'webasyst/settings/waid/'
-                )
-            */
             return null;
         }
 

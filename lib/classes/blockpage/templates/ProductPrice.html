@@ -3,7 +3,7 @@
 {if !empty($data->data['tag'])}
     {$tag = $data->data['tag']}
 {/if}
-{$static_classes_props = 'site-block-product-info style-wrapper f-w'}
+{$static_classes_props = 'site-block-product-info style-wrapper f-w'|cat:(($disabled)?' opc-5':'')}
 {$anchor_id = $data->data['id']|default:0}
 <{$tag} class="{$static_classes_props}" {if $is_backend}style="visibility: hidden;"{/if} data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}" data-page-id="{$data->getPageId()|escape}" {if $anchor_id}id="{$anchor_id}"{/if}>
     {$html}
@@ -28,24 +28,27 @@
 </script>
 {else}
 <script>
-    $(function() { "use strict";
+    (function() { "use strict";
         const block_id = {$data->getId()|json_encode};
         const $wrapper = $('.site-block-product-info[data-block-id="'+block_id+'"]');
         const data = {$data->data|json_encode};
         updateBlockStyles($wrapper, data, block_id);
-    });
+    })();
 </script>
 {/if}
+{$formated_prices = []}
+{$_p = $data->data.additional.product}
+{foreach $_p.skus as $_sku}
+    {$formated_prices[$_sku.id] = wa_currency_html($_sku.price_float, $_p.currency)}
+{/foreach}
 <script>
     $(function() { "use strict";
         const block_id = {$data->getId()|json_encode};
         const $wrapper = $('.site-block-product-info[data-block-id="'+block_id+'"]');
         $wrapper.on('update_sku', function(event, new_sku) {
             const data = {$data->data|json_encode};
-            data.sku_id = new_sku;
-            let new_price = data?.additional?.product?.skus?.[data.sku_id]['primary_price_float'] || 0;
-            let new_currency = data?.additional?.product?.currency || 'RUB';
-            let new_html = {wa_currency_html(new_price, new_currency)|default:0};
+            const formated_prices = {$formated_prices|json_encode};
+            const new_html = formated_prices[new_sku];
             $(this).html(new_html);
         });
     });

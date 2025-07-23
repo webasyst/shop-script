@@ -8,34 +8,42 @@ class shopProductInfoBlockType extends siteBlockType
     public function render(siteBlockData $data, bool $is_backend, array $tmpl_vars=[])
     {
         $tmpl_vars['product'] = $data->data['additional']['product'];
-
-        $tmpl_vars['html'] = $data->data['additional']['html'];
-
-        if ($tmpl_vars['product']['status'] < 0) {
-            $data->data['additional']['html'] = _w('Unavailable for purchase');
+        $hidden_block = !$is_backend && ($tmpl_vars['product']['status'] == '-1' || $tmpl_vars['product']['id'] === null);
+        if ($hidden_block) {
+            return;
         }
 
+        $tmpl_vars['html'] = $data->data['additional']['html'];
+        $tmpl_vars['disabled'] = $data->data['additional']['disabled'];
         return parent::render($data, $is_backend, $tmpl_vars);
     }
 
     public function additionalData(siteBlockData $data)
     {
-        $hash = '';
-        $fields = 'id,name,summary,description,images,price,status,sku_stock,skus,compare_price';
+        $result_html = $this->getExampleTitle($data);
         if (!empty($data->data['product_id'])) {
-            $hash = 'id/'.$data->data['product_id'];
             $prod_data = new shopProduct($data->data['product_id']);
-            //
             $p = $prod_data->data;
+
+            if (empty($data->data['sku_id'])) {
+                $data->data['sku_id'] = $p['sku_id'];
+            }
             $p['skus'] = $prod_data->skus;
+            $sku = [];
+            if (isset($data->data['sku_id']) && isset($p['skus'][$data->data['sku_id']])) {
+                $sku = $p['skus'][$data->data['sku_id']];
+            }
+
 
             switch (ifset($data->data, 'info_type', 'name')) {
                 case 'price':
                     //$result['html'] = shop_currency($p['price'], ["unit" => $p['currency'], "in_currency" => $p['currency'], "format" => "price_wrapper"]);
-                    $result_html = wa_currency_html($p['price'], $p['currency']);
+                    $price = $sku['price'] ?? $p['price'];
+                    $result_html = wa_currency_html($price, $p['currency']);
                     break;
                 case 'compare_price':
-                    $result_html = '<span style="text-decoration: line-through;">'.wa_currency_html($p['compare_price'], $p['currency']).'</span>';
+                    $compare_price = $sku['compare_price'] ?? $p['compare_price'];
+                    $result_html = '<span style="text-decoration: line-through;">'.wa_currency_html($compare_price, $p['currency']).'</span>';
                     break;
                 case 'description':
                     $result_html = strip_tags($p['description']);
@@ -44,7 +52,7 @@ class shopProductInfoBlockType extends siteBlockType
                     $result_html = strip_tags($p['summary']);
                     break;
                 case 'stock':
-                    $result_html = strip_tags($this->getStockInfo($p['skus'][$p['sku_id']]['count']));
+                    $result_html = strip_tags($this->getStockInfo($sku['count'] ?? $p['count']));
                     break;
                 case 'name':
                 default:
@@ -53,18 +61,21 @@ class shopProductInfoBlockType extends siteBlockType
             }
 
         } else {
-                $p = ['id' => null, 'sku_id' => null, 'skus' => [], 'sku_type' => '1', 'status' => '0','price' => _w('Product price'), 'name' => _w('Product name'), 'summary' => _w('Product description')];
-            
-                $result_html = _w('Choose product');
+            $p = ['id' => null, 'sku_id' => null, 'skus' => [], 'sku_type' => '1', 'status' => '0','price' => _w('Product price'), 'name' => _w('Product name'), 'summary' => _w('Product description')];
         }
-        //wa_dump($prod_data['skus']);
+
         $result = [
             'product' => $p,
+            'html' => $result_html,
+            'disabled' => $p['id'] !== null && $p['status'] < 0,
         ];
-        $result['html'] = $result_html;
-
 
         return $result;
+    }
+
+    public function shouldRenderBlockOnSave($old_data, $new_data)
+    {
+        return (ifset($old_data, 'product_id', null) != ifset($new_data, 'product_id', null));
     }
 
     public function getExampleBlockData()
@@ -85,6 +96,10 @@ class shopProductInfoBlockType extends siteBlockType
                 ],
                 [   'type' => 'ProductInfoGroup',
                     'name' => _w('Type of product information'),
+                ],
+                [
+                    'type' => 'ProductSkuGroup',
+                    'name' => _w('Variant'),
                 ],
                 [   'type' => 'FontHeaderGroup',
                     'name' => _w('Font header'),
@@ -134,7 +149,7 @@ class shopProductInfoBlockType extends siteBlockType
 
     public function getStockInfo($n=0)
     {
-        $low=5; 
+        $low=5;
         $critical=2;
 
     if ($n > $low || $n === null)
@@ -149,4 +164,22 @@ class shopProductInfoBlockType extends siteBlockType
         return $result;
     }
 
+    protected function getExampleTitle(siteBlockData $data)
+    {
+        $info_type = ifset($data->data, 'info_type', null);
+        switch ($info_type) {
+            case 'price':
+                return _w('Product price');
+            case 'compare_price':
+                return _w('Strike-through product price');
+            case 'description':
+                return _w('Product description');
+            case 'summary':
+                return _w('Product summary');
+            case 'stock':
+                return _w('Product availability');
+            default:
+                return _w('Product name');
+        }
+    }
 }

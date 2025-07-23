@@ -17,9 +17,9 @@
         {$rel = $link_props.rel}
     {/if}
 {/if}
-{$static_classes_props = 'style-wrapper btn'}
+{$static_classes_props = 'style-wrapper btn'|cat:(($disabled)?' disabled':'')}
 {$anchor_id = $data->data['id']|default:0}
-<a {if $anchor_id}id="{$anchor_id|escape}"{/if} href="{$href}" class="{$static_classes_props}" {if $is_backend}style="visibility: hidden;"{/if} data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}" data-page-id="{$data->getPageId()|escape}"{if $is_backend} contenteditable="true"{/if} {if !empty($target)}target="_blank"{/if} {if !empty($rel)}rel="nofollow"{/if}>
+<a {if $anchor_id}id="{$anchor_id|escape}"{/if} href="{$href}" class="{$static_classes_props}" data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}" data-page-id="{$data->getPageId()|escape}"{if $is_backend} contenteditable="true"{/if} {if !empty($target)}target="_blank"{/if} {if !empty($rel)}rel="nofollow"{/if}>
     {$data->data['html']}
 </a>
 
@@ -36,31 +36,26 @@
 
     $wrapper.on('block_data_updated', function(event, updated_block_id, data_new) {
         event.stopPropagation();
-        //console.log('block_data_updated', data.product_id,data_new.product_id,data_new.link_props.href,data_new.additional.href)
+
         if (updated_block_id == block_id) {
             updateBlockStyles($wrapper, data_new, block_id);
-            
+
             if (data.product_id !== data_new.product_id && data_new.link_props.href !== data_new.additional.href) {
                 data_new.link_props.href = data_new.additional.href;
                 $.wa.editor.api.setSelectedBlock(block_id, false, true);
                 data.product_id = data_new.product_id;
-                //$wrapper.html(data_new.html);
                 $(this).attr('href', data_new.link_props.href);
             }
-            /*if (data_new.link_props.href !== data_new.additional.href) {
-                
-                $(this).attr('href', data_new.link_props.href)//$.wa.editor.saveBlockData(block_id, data, false);
-                //console.log(data)
-            }*/
-        } 
+            $wrapper.toggleClass('disabled', data_new.additional.disabled);
+        }
     });
 
 });</script>
 {else}
-<script>$(function() { "use strict";
+<script>(function() { "use strict";
     const block_id = {$data->getId()|json_encode};
     const $wrapper = $('.btn[data-block-id="'+block_id+'"]');
     const data = {$data->data|json_encode};
     updateBlockStyles($wrapper, data, block_id);
-});</script>
+})();</script>
 {/if}

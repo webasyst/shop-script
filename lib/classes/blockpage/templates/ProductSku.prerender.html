@@ -1,6 +1,8 @@
 <style>
-    ul.skus {
-    list-style: none;
-    padding-left: 2px;
-}
+    .site-block-product-sale ul.skus { list-style: none; padding-left: 2px; }
+    .site-block-product-sale ul.skus > li { margin-top: 0; margin-bottom: 0.75rem; }
+    .site-block-product-sale ul.skus > li:last-child { margin-bottom: 0; }
+    .seq-child:has(>.site-block-product-sku.f-w) { width: 100%; }
+    .site-block-product-sale:has(>.hseq-wrapper.y-j-cnt) .site-block-product-sku { justify-items: center; }
+    .site-block-product-sale:has(>.hseq-wrapper.j-end) .site-block-product-sku { justify-items: end; }
 </style>

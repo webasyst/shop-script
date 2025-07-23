@@ -1,31 +1,19 @@
 {$block_props = []}
-{$static_classes_props = 'site-block-product-sku style-wrapper f-w'}
+{$static_classes_props = 'site-block-product-sku style-wrapper'|cat:(($disabled)?' opc-5':'')}
 {$anchor_id = $data->data['id']|default:0}
-<div class="{$static_classes_props}" style="{if !$articles}display:none;{/if} {if $is_backend}visibility: hidden;{/if}" data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}" data-page-id="{$data->getPageId()|escape}" {if $anchor_id}id="{$anchor_id}"{/if}>
+<div class="{$static_classes_props}" style="{if !$articles || count($articles) === 1}display:none;{/if} {if $is_backend}visibility: hidden;{/if}" data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}" data-page-id="{$data->getPageId()|escape}" {if $anchor_id}id="{$anchor_id}"{/if}>
     {if $product.sku_type}
 
     <!-- SELECTABLE FEATURES selling mode -->
-
     {$product_available = $product.status}
     <div class="options">
         <select class="js-sku-feature sku-feature t-7">
             {foreach $product.skus as $n => $article}
-                <option value="{$article['id']}" {if $modification == $n}selected{/if} >
+                <option value="{$article['id']}" {if $modification == $n}selected{/if} data-count="{$article.count}">
                     <span>{$article['name']}</span>
                 </option>
             {/foreach}
         </select>
-        <!--
-            {*$default_sku_features = $product.sku_features}
-            {foreach $features_selectable as $f}
-        {$f.name}:
-        <select data-feature-id="{$f.id}" class="sku-feature" name="features[{$f.id}]">
-            {foreach $f.values as $v_id => $v}
-            <option value="{$v_id}" {if $v_id == ifset($default_sku_features[$f.id])}selected{/if}>{$v}</option>
-            {/foreach}
-        </select>
-        <br>
-        {/foreach*}-->
     </div>
     {else}
 
@@ -43,9 +31,9 @@
             <meta itemprop="price" content="{shop_currency($sku.price, $product.currency, null, 0)}">
 
             <label{if !$sku.available} class="disabled"{/if}>
-            <input name="sku_id_{$product.id}" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-compare-price="{shop_currency($sku.compare_price, $product.currency, null, 0)}" data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if}> <span itemprop="name">{$sku.name|escape}</span>
-            {if $sku.sku}<span class="hint" itemprop="name">{$sku.sku|escape}</span>{/if}
-            <span class="price tiny nowrap">{shop_currency_html($sku.price, $product.currency)}</span>
+            <input name="sku_id_{$product.id}" type="radio" value="{$sku.id}"{if !$sku.available} disabled="true"{/if}{if !$sku_available}data-disabled="1"{/if}{if $sku.id == $product.sku_id} checked="checked"{/if} data-compare-price="{shop_currency($sku.compare_price, $product.currency, null, 0)}" data-price="{shop_currency($sku.price, $product.currency, null, 0)}"{if $sku.image_id} data-image-id="{$sku.image_id}"{/if} data-count="{$sku.count}"> <span itemprop="name">{$sku.name|escape}</span>
+            {if $sku.sku}<span class="hint m-l-8" data-attr="sku" itemprop="name">{$sku.sku|escape}</span>{/if}
+            <span class="price tiny nowrap m-l-8" data-attr="price">{shop_currency_html($sku.price, $product.currency)}</span>
             {if (!($sku.count === null) && $sku.count <= 0)}
             <link itemprop="availability" href="http://schema.org/OutOfStock" />
             {else}
@@ -88,10 +76,9 @@
 <script>
     $(function() { "use strict";
         const block_id = {$data->getId()|json_encode};
-        const product = {$product|json_encode};
         const wrapper_class = '.site-block-product-sku[data-block-id="'+block_id+'"]';
         const $wrapper_parent = $(wrapper_class).parent();
-
+        // console.log('productSku', $wrapper_parent);
         $wrapper_parent.on('block_data_updated', wrapper_class, function(event, updated_block_id, data) {
             event.stopPropagation();
             if (+updated_block_id === +block_id) {
@@ -102,29 +89,51 @@
 </script>
 {elseif $articles}
 <script>
-    $(function() { "use strict";
+    (function() { "use strict";
         const block_id = {$data->getId()|json_encode};
         const $wrapper = $('.site-block-product-sku[data-block-id="'+block_id+'"]');
         const data = {$data->data|json_encode};
         updateBlockStyles($wrapper, data, block_id);
-    });
+    })();
 </script>
 {/if}
 <script>
-    $(function() { "use strict";
+    (function() { "use strict";
         const block_id = {$data->getId()|json_encode};
+        const parent_id = {$data->getParentId()|json_encode};
         const $wrapper = $('.site-block-product-sku[data-block-id="'+block_id+'"]');
         const $select = $wrapper.find('select');
         const $radio_sku = $wrapper.find('ul.skus');
+        const product_id = {$product.id|default:null|json_encode};
+
         $select.on('change', function(event) {
             $wrapper.closest('.js-seq-wrapper').find('> .seq-child .style-wrapper').trigger('update_sku', [this.value])
-            {if $is_backend}$wrapper.closest('.site-block-product-sale').trigger('update_sku', [this.value]){/if}
+            {*{if $is_backend}$wrapper.closest('.site-block-product-sale').trigger('backend_update_sku', [[product_id, this.value]]){/if};*}
+            const count = $(this).find(':selected').data('count');
+            window['productSaleWidget'+parent_id]?.disableButtonByCount(count);
         });
 
         $radio_sku.on('change', 'input', function(event) {
             $wrapper.closest('.js-seq-wrapper').find('> .seq-child .style-wrapper').trigger('update_sku', [this.value])
-            {if $is_backend}$wrapper.closest('.site-block-product-sale').trigger('update_sku', [this.value]){/if}
-            //console.log(this.value)
+            {*{if $is_backend}$wrapper.closest('.site-block-product-sale').trigger('backend_update_sku', [[product_id, this.value]]){/if};*}
+            const count = $(this).data('count');
+            window['productSaleWidget'+parent_id]?.disableButtonByCount(count);
         });
-    });
+
+        $wrapper.on('backend_update_widget', (_, data) => {
+            queueMicrotask(() => {
+                if (data.element_layout === 'line') {
+                    $wrapper.removeClass('f-w');
+                } else if (data.element_layout === 'sku_above') {
+                    $wrapper.addClass('f-w');
+                }
+            });
+
+            $radio_sku.find('[data-attr]').each(function() {
+                const $sku = $(this);
+                const attr = $sku.data('attr');
+                $sku.toggle(!data.hidden_attrs[attr]);
+            });
+        })
+    })();
 </script>

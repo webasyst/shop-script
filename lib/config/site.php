@@ -248,7 +248,7 @@ return array(
 
             '$product.id'          => _w('Product ID. Other elements of <em>$product</em> object available in this template are listed below.'),
             '$product.name'        => _w('Product name'),
-            '$product.summary'     => _w('Product summary (brief description)'),
+            '$product.summary'     => _w('Product summary'),
             '$product.description' => _w('Product description'),
             '$product.rating'      => _w('Product average rating (float, 0 to 5)'),
             '$product.skus'        => _w('Array of product SKUs'),
@@ -379,7 +379,7 @@ return array(
                 '$product->crossSelling(<em>$limit</em>, <em>$available_only</em>)' => _w('Returns array of product’s cross-selling items.<br><strong>$limit</strong> (default: <em>5</em>) limits the number of returned items.<br><strong>$available_only</strong> (default: <em>false</em>) excludes out-of-stock products from the result. By default, out-of-stock products are not skipped.'),
                 '$product.id'                                                       => _w('Product ID. Other elements of <em>$product</em> object available in this template are listed below.'),
                 '$product.name'                                                     => _w('Product name'),
-                '$product.description'                                              => _w('Product summary (brief description)'),
+                '$product.description'                                              => _w('Product summary'),
                 '$product.rating'                                                   => _w('Product average rating (float, 0 to 5)'),
                 '$product.skus'                                                     => _w('Array of product’s SKUs'),
                 '$product.images'                                                   => _w('Array of product’s images'),

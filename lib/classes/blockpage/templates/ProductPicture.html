@@ -1,13 +1,9 @@
-{$default_empty_image_url = "`$wa_app_static_url`img/image.svg"}
-
 {$anchor_id = $data->data['id']|default:0}
 {$picture_type = $data->data['picture_type']}
 {if !empty($product['image_id'])}
     {$img_src = $product['images'][$product['image_id']][$picture_type]}
-{else}
-    {$img_src = $default_empty_image_url}
 {/if}
-{$static_classes_props = 'cl style-wrapper img'}
+{$static_classes_props = 'cl style-wrapper img'|cat:(($is_empty)?' is-empty':'')|cat:(($disabled)?' opc-5':'')}
 <picture {if $anchor_id}id="{$anchor_id|escape}"{/if} class="{$static_classes_props}" {if $is_backend}style="visibility: hidden;"{/if} data-static="{$static_classes_props}" data-block-id="{$data->getId()|escape}">
     {*$product|wa_dumpc*}
     {if !empty($data->data['html'])}
@@ -30,19 +26,30 @@
             if (+updated_block_id === +block_id) {
                 updateBlockStyles($(this), data, block_id);
                 let picture_type = data['picture_type'];
-                //$(this).html(product['images'][product['image_id']][picture_type]);
-                if (data.additional?.product?.image_id)  $image.prop('src', data.additional.product.images[data.additional.product.image_id][picture_type]);
+                const product = data.additional.product;
+                if (!product) {
+                    console.error('product not found');
+                    return;
+                }
+
+                if (data.additional.is_empty) {
+                    $image.prop('src', '');
+                } else if (product.image_id) {
+                    $image.prop('src', product.images[product.image_id][picture_type]);
+                }
+                $wrapper.toggleClass('is-empty', data.additional.is_empty);
+                $wrapper.toggleClass('opc-5', data.additional.disabled);
             }
         });
     });
 </script>
 {else}
 <script>
-    $(function() { "use strict";
+    (function() { "use strict";
         const block_id = {$data->getId()|json_encode};
         const $wrapper = $('picture.img[data-block-id="'+block_id+'"]');
         const data = {$data->data|json_encode};
         updateBlockStyles($wrapper, data, block_id);
-    });
+    })();
 </script>
 {/if}

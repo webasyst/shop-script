@@ -7,10 +7,14 @@ class shopProductPictureBlockType extends siteBlockType
     public function render(siteBlockData $data, bool $is_backend, array $tmpl_vars=[])
     {
         $tmpl_vars['product'] = $data->data['additional']['product'];
-        //$tmpl_vars['html'] = $data->data['additional']['html'];
-        if ($tmpl_vars['product']['status'] < 0) {
-            $data->data['html'] = _w('Unavailable for purchase');
+        $tmpl_vars['is_empty'] = $data->data['additional']['is_empty'];
+        $tmpl_vars['disabled'] = $data->data['additional']['disabled'];
+        $hidden_block = !$is_backend && $tmpl_vars['product']['id'] === null;
+        if ($hidden_block) {
+            return;
         }
+        // wa_dump($tmpl_vars['product']);
+        //$tmpl_vars['html'] = $data->data['additional']['html'];
         return parent::render($data, $is_backend, $tmpl_vars);
     }
 
@@ -20,8 +24,12 @@ class shopProductPictureBlockType extends siteBlockType
         $fields = 'id,name,summary,images,price,status';
         if (!empty($data->data['product_id'])) {
             $hash = 'id/'.$data->data['product_id'];
+
+            $products = (new shopProductsCollection($hash, ['frontend' => false]))->getProducts($fields, 0, 1);
+            if (wa()->getEnv() === 'frontend' && $products && $products[$data->data['product_id']]['status'] == '-1') {
+                $products = [];
+            }
         }
-        $products = (new shopProductsCollection($hash))->getProducts($fields, 0, 1);
 
         if (empty($products) || $hash == '') {
             //throw new waException('No product selected');
@@ -37,6 +45,8 @@ class shopProductPictureBlockType extends siteBlockType
         $data->data['product_id'] = $p['id'];
         $result = [
             'product' => $p,
+            'is_empty' => empty($p['image_id']) || $p['id'] === null,
+            'disabled' => !empty($p['image_id']) && $p['status'] == '-1',
         ];
         return $result;
     }

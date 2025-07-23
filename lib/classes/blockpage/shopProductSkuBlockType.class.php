@@ -9,7 +9,6 @@ class shopProductSkuBlockType extends siteBlockType
     {
         $data->data['additional']['product'] = $tmpl_vars['product'];
         $data->data['product_id'] = $tmpl_vars['product']['id'];
-        $data->data['sku_id'] = $tmpl_vars['sku_id'];
         $tmpl_vars['modification'] = $tmpl_vars['sku_id'];
         $tmpl_vars['articles'] = ifset($tmpl_vars['product']['skus'], false);
         //$result = $this->additionalData($data);
@@ -20,7 +19,7 @@ class shopProductSkuBlockType extends siteBlockType
     public function getExampleBlockData()
     {
         $result = $this->getEmptyBlockData();
-        $result->data = ['info_type' => 'color', 'block_props' => ['font-header' => "t-rgl", 'font-size' => ["name" => "Size #5", "value" => "t-5", "unit" => "px", "type" => "library"], 'margin-top' => "m-t-0", 'margin-bottom' => "m-b-0", 'margin-right' => "m-r-16", 'align' => "t-l"]];
+        $result->data = ['info_type' => 'color', 'block_props' => ['font-header' => "t-rgl", 'font-size' => ["name" => "Size #5", "value" => "t-5", "unit" => "px", "type" => "library"], 'margin-top' => "m-t-0", 'margin-bottom' => "m-b-10", 'margin-right' => "m-r-16", 'align' => "t-l"]];
         return $result;
     }
 

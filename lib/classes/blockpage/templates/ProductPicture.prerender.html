@@ -1,0 +1,7 @@
+{if $is_backend}
+<style>
+.seq-child:has(>picture.img.is-empty) { min-height: 150px; width: 100%; }
+.seq-child > picture.img.is-empty { width: 100%; background: url({$wa_app_static_url}img/camera.svg?v1) #d7d5d5 no-repeat center; }
+.seq-child > picture.img.is-empty img { display: none; }
+</style>
+{/if}

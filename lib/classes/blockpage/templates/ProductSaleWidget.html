@@ -1,7 +1,6 @@
 {$block_id = $data->getId()}
 {$static_main = "site-block-product-sale rw f-w"}
 {$anchor_id = $data->data['id']|default:0}
-
 <div class="{$static_main}" {if $is_backend}style="visibility: hidden;"{/if} data-static="{$static_main}" data-block-id="{$data->getId()|escape}" data-page-id="{$data->getPageId()|escape}" {if $anchor_id}id="{$anchor_id|escape}"{/if}>
     {if !empty($data->data['html'])}
         {$data->data['html']}
@@ -10,45 +9,49 @@
             {$c.html}
         {/foreach}
     {/if}
+</div>
 {if $is_backend}
 <script>
-    $(function() { "use strict";
+    (function() { "use strict";
         const block_id = {$data->getId()|json_encode};
-        const product = {$product|json_encode};
         const wrapper_class = '.site-block-product-sale[data-block-id="'+block_id+'"]';
         const $wrapper_parent = $(wrapper_class).parent();
-
-        $wrapper_parent.on('block_data_updated', wrapper_class, function(event, updated_block_id, data) {
+        $wrapper_parent.on('block_data_updated', wrapper_class , function(event, updated_block_id, data) {
             event.stopPropagation();
             if (+updated_block_id === +block_id) {
-                //console.log('block_data_updated', data);
-                if(data.additional.html) $(this).html($(data.additional.html).filter(".site-block-product-sale").html());
-                updateBlockStyles($(this), data, block_id);
+                const $this = $(this);
+                if(data.additional.html) {
+                    const $html = $(data.additional.html);
+                    $this.html($html.filter(".site-block-product-sale")).html();
+                    $this.append($html.filter("script[executor]"));
+                }
+                updateBlockStyles($this, data, block_id);
+                $wrapper_parent.find('.site-block-product-sku').trigger('backend_update_widget', [data]);
             }
         });
-    });
+    })();
 </script>
-{else}
 <script>
     $(function() { "use strict";
         const block_id = {$data->getId()|json_encode};
         const $wrapper = $('.site-block-product-sale[data-block-id="'+block_id+'"]');
         const data = {$data->data|json_encode};
-        updateBlockStyles($wrapper, data, block_id);
+        const product = {$product|json_encode};
+        /*$wrapper.on('backend_update_sku', function(event, [product_id, new_sku]) {
+            data.product_id = product_id;
+            data.sku_id = new_sku;
+            $.wa.editor.saveBlockData(block_id, data);
+        });*/
     });
 </script>
-{/if}
+{else}
 <script>
-    $(function() { "use strict";
+    (function() { "use strict";
         const block_id = {$data->getId()|json_encode};
         const $wrapper = $('.site-block-product-sale[data-block-id="'+block_id+'"]');
-        $wrapper.on('update_sku', function(event, new_sku) {
-            const data = {$data->data|json_encode};
-            data.sku_id = new_sku;
-            {if $is_backend}
-                $.wa.editor.saveBlockData(block_id, data);
-            {/if}
-        });
-    });
+        const data = {$data->data|json_encode};
+        updateBlockStyles($wrapper, data, block_id);
+        $wrapper.find('.site-block-product-sku').trigger('backend_update_widget', [data]);
+    })();
 </script>
-</div>
+{/if}
