@@ -306,13 +306,14 @@ class shopCml1cPluginFrontendController extends waController
             $this->response('success', 'Имитация обмена. Фактического обмена данными не произошло', 'Imitation completed. There no data exchange');
         } else {
 
-            $key = 'processId'.$filename;
+            $zipfile = $s->get('filename');
+            $key = 'processId'.$zipfile.$filename;
 
             #init required POST fields
             $_POST['processId'] = $s->get($key);
             $_POST['direction'] = 'import';
             $_POST['filename'] = $filename;
-            $_POST['zipfile'] = $zipfile = $s->get('filename');
+            $_POST['zipfile'] = $zipfile;
 
             if (empty($_POST['processId'])) {
                 ob_start();
