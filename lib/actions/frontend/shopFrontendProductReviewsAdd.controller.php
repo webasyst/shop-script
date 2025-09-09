@@ -69,6 +69,7 @@ class shopFrontendProductReviewsAddController extends waJsonController
             ];
 
             if ($data['service_agreement']) {
+                wa('webasyst');
                 webasystHelper::logAgreementAcceptance(
                     'service_agreement',
                     wa('shop')->getSetting('review_service_agreement_hint'),

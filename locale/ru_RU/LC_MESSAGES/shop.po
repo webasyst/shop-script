@@ -13734,3 +13734,39 @@ msgstr "Наличие на складе"
 
 msgid "Service temporarily unavailable. Please try again later."
 msgstr "Сервис временно недоступен. Повторите попытку позднее."
+
+msgid "Premium only"
+msgstr "Только в премиум"
+
+msgid "Headless API"
+msgstr "Headless API"
+
+msgid "Shop-Script Headless API is a JSON API for retrieving product data, working with the shopping cart, and placing orders — virtually everything handled via a typical storefront, but with no visual UI and, therefore, great for building custom ecommerce functionality using any programming language of your choice."
+msgstr "Shop-Script Headless API — это API в формате JSON для получения информации о товарах, управления корзиной покупок и оформления заказов. Позволяет выполнять все основные действия покупателей без визуального интерфейса — для создания нестандартных решений для онлайн-торговли на разных языках программирования."
+
+msgid "Enable the API for desired storefront routes to view the OpenAPI (Swagger) documentation."
+msgstr "Включите API для требуемых адресов, чтобы стала доступна ссылка на документацию OpenAPI (Swagger)."
+
+msgid "Headless mode (API only, no public site)"
+msgstr "Headless-режим (только API, без витрины)"
+
+msgid "Minimal shipping rate"
+msgstr "Минимальная стоимость доставки"
+
+msgid "Secure your store from underestimated shipping expenses by setting the minimal fallback rate."
+msgstr "Обезопасьте свой магазин от излишне низкой стоимости доставки — установите любую минимальную сумму в качестве ограничителя."
+
+msgid "Enable Headless API to allow external apps and widgets to retrieve your storefront’s public content. See <em>Shop-Script › Storefront › Headless</em> for detailed OpenAPI (Swagger) docs."
+msgstr "Включите Headless API, чтобы позволить сторонним приложениям и виджетам получать публичные данные вашей витрины. В разделе «<em>Shop-Script › Витрина › Headless</em>» доступна подробная документация OpenAPI (Swagger)."
+
+msgid "Disabled (site only)"
+msgstr "Выключено (только обычная витрина)"
+
+msgid "Enabled (site + API)"
+msgstr "Включено (витрина + API)"
+
+msgid "API only (no site)"
+msgstr "Только API (без витрины)"
+
+msgid "Headless"
+msgstr "Headless"

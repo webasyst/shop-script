@@ -21,6 +21,7 @@ class shopSettingsShippingSetupAction extends waViewAction
             $guide_html = method_exists($instance, 'getGuide') ? $instance->getGuide($params) : '';
             $this->view->assign('settings_html', $instance->getSettingsHTML($params));
             $this->view->assign('guide_html', $guide_html);
+            $this->view->assign('def_cur', wa()->getConfig()->getCurrency());
         } catch (waException $ex) {
             $this->view->assign('error', $ex->getMessage());
         }

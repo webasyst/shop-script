@@ -704,7 +704,7 @@ class shopCheckoutConfig implements ArrayAccess
     public function getShippingPluginByRate($variant)
     {
         list($shop_plugin_id, $internal_variant_id) = explode('.', $variant['variant_id'], 2) + [1 => ''];
-        $plugin = shopShipping::getPlugin($variant['plugin'], $shop_plugin_id);
+        $plugin = shopShipping::getPlugin(ifset($variant, 'plugin', null), $shop_plugin_id);
         if (!$plugin || !$plugin instanceof waShipping) {
             return null;
         }

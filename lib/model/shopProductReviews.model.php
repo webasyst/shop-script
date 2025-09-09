@@ -17,8 +17,14 @@ class shopProductReviewsModel extends waNestedSetModel
 
     public function getFullTree($product_id, $offset = 0, $count = null, $order = null, array $options = array())
     {
-        // first lever reviews - reviews to products
-        $reviews = $this->getReviews($product_id, $offset, $count, $order, $options);
+        $options_answers = $options_reviews = $options;
+        if (isset($options['where_reviews']) && is_array($options['where_reviews'])) {
+            $options_reviews['where'] = $options['where_reviews'];
+            unset($options_answers['where_reviews'], $options_reviews['where_reviews']);
+        }
+
+        // first level reviews - reviews to products
+        $reviews = $this->getReviews($product_id, $offset, $count, $order, $options_reviews);
         if (!empty($reviews)) {
 
             $is_frontend = wa()->getEnv() == 'frontend';
@@ -29,7 +35,7 @@ class shopProductReviewsModel extends waNestedSetModel
                 'product_id' => (int)$product_id,
                 'review_id'  => array_keys($reviews),
             ];
-            $where += ifset($options, 'where', []);
+            $where += ifset($options_answers, 'where', []);
             $sql .= ' WHERE '.$this->getWhere($where);
             $sql .= " ORDER BY review_id, {$this->left}";
 
@@ -453,7 +459,7 @@ class shopProductReviewsModel extends waNestedSetModel
         return $this->query($sql)->fetchField('cnt');
     }
 
-    private function countInFrontend($product_id = null, $reviews_only = true)
+    public function countInFrontend($product_id = null, $reviews_only = true)
     {
         if ($product_id) {
             $where = "product_id = ".(int)$product_id;

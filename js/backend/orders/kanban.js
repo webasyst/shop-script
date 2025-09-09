@@ -181,6 +181,14 @@ var Kanban = (($) => {
         });
     };
 
+    const handleOrderClick = ($cols) => {
+        $cols.on('click', '[data-order-id]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            location.href = $(this).find('a:first').attr('href');
+        });
+    };
+
     const defineSortable = () => {
         const dfd = $.Deferred();
 
@@ -251,6 +259,7 @@ var Kanban = (($) => {
             const $kanbanCols = $("[data-kanban-list-status-id]");
             addSortable($kanbanCols, options.state_transitions, options.locale);
             addLazyLoad($kanbanCols);
+            handleOrderClick($kanbanCols);
         });
     };
 

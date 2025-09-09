@@ -248,6 +248,7 @@ class shopCheckoutContactinfo extends shopCheckout
         if ($agreed !== null) {
             wa()->getStorage()->set('shop_checkout_contactinfo_agreement', !!$agreed);
             if ($agreed) {
+                wa('webasyst');
                 $config = self::getCheckoutSettings();
                 webasystHelper::logAgreementAcceptance(
                     'service_agreement',

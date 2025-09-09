@@ -121,7 +121,10 @@
                     waDesignLoad();
                 });
             }
-        }
+        },
 
+        apiAction: function (params) {
+            $("#s-storefronts-content").load('?module=api');
+        }
     }
 })(jQuery);

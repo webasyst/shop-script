@@ -19,7 +19,7 @@ paths:
 #CATEGORY
   /shop.ai.gpt:
     post:
-      summary: Генерация текстов с помощью ИИ
+      summary: Возвращает текст, сгенерированный с помощью искусственного интеллекта.
       security:
         - ApiKeyAuth: []
       externalDocs:
@@ -36,12 +36,23 @@ paths:
               properties:
                 entity:
                   type: string
-                  description: Тип сущности, для которой генерить текст (например, товар ШС - product)
+                  description: |
+                    Тип объекта, для которого нужно сгенерировать текст:
+
+                    + **product**: товар
                   enum:
                     - product
                 field:
                   type: string
-                  description: Для какого поля сущности генерить текст (например, для описания товара - description)
+                  description: |
+                    Обозначение свойства объекта, для которого нужно сгенерировать текст:
+
+                    + **description**: описание товара
+                    + **summary**: краткое описание товара
+                    + **meta_title**: заголовок TITLE товара
+                    + **meta_keywords**: метатег keywords товара
+                    + **meta_description**: метатег description товара
+                    + **page**: текст подстраницы товара
                   enum:
                     - description
                     - summary
@@ -51,21 +62,40 @@ paths:
                     - page
                 entity_id:
                   type: integer
-                  description: ID сущности, для которой генерить текст (например, id товара). Сохранённые в ней данные будут использованы при генерации.
+                  description: ID объекта, для которого нужно сгенерировать текст (например, ID товара). Имеющиеся в объекте данные будут использованы для генерации.
                   minimum: 0
                 objective:
                   type: string
-                  description: Текстовый запрос для генерации, используется (и обязателен) для entity=product field=page
+                  description: Дополнительный текстовый запрос для генерации (промпт); обязателен для подстраниц товаров (`entity`=*product* + `field`=*page*).
               required:
                 - entity
                 - field
       responses:
         200:
-          description: Результат генерации содержит поле field, указанное в запросе.
+          description: Сгенерированные фрагменты текста.
           content:
             application/json:
               schema:
                 type: object
+                properties:
+                  description:
+                    type: string
+                    description: Описание товара
+                  summary:
+                    type: string
+                    description: Краткое описание товара
+                  meta_title:
+                    type: string
+                    description: Заголовок TITLE товара
+                  meta_keywords:
+                    type: string
+                    description: Метатег keywords товара
+                  meta_description:
+                    type: string
+                    description: Метатег description товара
+                  content:
+                    type: string
+                    description: Текст подстраницы товара
         400:
           description: Некорректное содержимое запроса.
           content:
@@ -1313,13 +1343,13 @@ paths:
                   description: Комментарий к заказу
                 currency:
                   type: string
-                  description: Код валюты заказа в формате ISO 4217, соответствующий одной из валют, настроенных в магазине (по умолчанию используется основная валюта магазина)
+                  description: Числовой код валюты заказа в формате ISO 4217, соответствующий одной из валют, настроенных в магазине (по умолчанию используется основная валюта магазина)
                 coupon_id:
                   type: integer
                   description: Купон для применения к заказу
                 discount:
                   type: number
-                  description: Размер скидки в валюте заказа; игнорирует ID купона, указанный в параметре 'coupon_id'
+                  description: Размер скидки в валюте заказа; игнорирует ID купона, указанный в параметре `coupon_id`
                 params:
                   type: array
                   description: Дополнительные параметры заказа
@@ -1334,7 +1364,7 @@ paths:
                         description: ID модификации товара
                       service_variant_id:
                         type: integer
-                        description: ID варианта услуги (каждая услуга указывается отдельной позицией в заказе и привязывается к значению *sku_id*)
+                        description: ID варианта услуги (каждая услуга указывается отдельной позицией в заказе и привязывается к значению `sku_id`)
                       quantity:
                         type: number
                         description: Количество товара; для услуг автоматически равно количеству соответствующего товара
@@ -1346,37 +1376,37 @@ paths:
                       - sku_id
                 items[0][codes][0]:
                   type: array
-                  description: Товарные коды (например, маркировка Честный Знак)
+                  description: Товарные коды (например, маркировка «Честный Знак»)
                   items:
                     type: object
                     properties:
                       code:
                         type: string
-                        description: Товарный код, настроенный в ШС (например, chestnyznak)
+                        description: Идентификатор настроенного товарного кода, например, *chestnyznak*
                       value:
                         type: string
                         description: Значение товарного кода
                 items[0][codes][1]:
                   type: array
-                  description: Товарные коды (например, маркировка Честный Знак)
+                  description: Товарные коды (например, маркировка «Честный Знак»)
                   items:
                     type: object
                     properties:
                       code:
                         type: string
-                        description: Товарный код, настроенный в ШС (например, chestnyznak)
+                        description: Идентификатор настроенного товарного кода, например, *chestnyznak*
                       value:
                         type: string
                         description: Значение товарного кода
                 items[0][codes][2]:
                   type: array
-                  description: Товарные коды (например, маркировка Честный Знак)
+                  description: Товарные коды (например, маркировка «Честный Знак»)
                   items:
                     type: object
                     properties:
                       code:
                         type: string
-                        description: Товарный код, настроенный в ШС (например, chestnyznak)
+                        description: Идентификатор настроенного товарного кода, например, *chestnyznak*
                       value:
                         type: string
                         description: Значение товарного кода
@@ -1391,7 +1421,7 @@ paths:
                         description: ID модификации товара
                       service_variant_id:
                         type: integer
-                        description: ID варианта услуги (каждая услуга указывается отдельной позицией в заказе и привязывается к значению *sku_id*)
+                        description: ID варианта услуги (каждая услуга указывается отдельной позицией в заказе и привязывается к значению `sku_id`)
                       quantity:
                         type: number
                         description: Количество товара; для услуг автоматически равно количеству соответствующего товара
@@ -1410,7 +1440,7 @@ paths:
                         description: ID модификации товара
                       service_variant_id:
                         type: integer
-                        description: ID варианта услуги (каждая услуга указывается отдельной позицией в заказе и привязывается к значению *sku_id*)
+                        description: ID варианта услуги (каждая услуга указывается отдельной позицией в заказе и привязывается к значению `sku_id`)
                       quantity:
                         type: number
                         description: Количество товара; для услуг автоматически равно количеству соответствующего товара
@@ -1487,7 +1517,7 @@ paths:
                   description: Комментарий к заказу
                 currency:
                   type: string
-                  description: Код валюты заказа в формате ISO 4217, соответствующий одной из валют, настроенных в магазине (по умолчанию используется основная валюта магазина)
+                  description: Числовой код валюты заказа в формате ISO 4217, соответствующий одной из валют, настроенных в магазине (по умолчанию используется основная валюта магазина)
                 payment_id:
                   type: integer
                   description: ID способа оплаты
@@ -2083,37 +2113,37 @@ paths:
                   description: Количество
                 codes[0]:
                   type: array
-                  description: Товарные коды (например, маркировка Честный Знак)
+                  description: Товарные коды (например, маркировка «Честный Знак»)
                   items:
                     type: object
                     properties:
                       code:
                         type: string
-                        description: Товарный код, настроенный в ШС (например, chestnyznak)
+                        description: Идентификатор настроенного товарного кода, например, *chestnyznak*
                       value:
                         type: string
                         description: Значение товарного кода
                 codes[1]:
                   type: array
-                  description: Товарные коды (например, маркировка Честный Знак)
+                  description: Товарные коды (например, маркировка «Честный Знак»)
                   items:
                     type: object
                     properties:
                       code:
                         type: string
-                        description: Товарный код, настроенный в ШС (например, chestnyznak)
+                        description: Идентификатор настроенного товарного кода, например, *chestnyznak*
                       value:
                         type: string
                         description: Значение товарного кода
                 codes[2]:
                   type: array
-                  description: Товарные коды (например, маркировка Честный Знак)
+                  description: Товарные коды (например, маркировка «Честный Знак»)
                   items:
                     type: object
                     properties:
                       code:
                         type: string
-                        description: Товарный код, настроенный в ШС (например, chestnyznak)
+                        description: Идентификатор настроенного товарного кода, например, *chestnyznak*
                       value:
                         type: string
                         description: Значение товарного кода
@@ -3640,6 +3670,8 @@ paths:
             + **skus_filtered**: аналогично полю *sku*, но в элементе '*skus*' содержатся только те модификации, свойства которых соответствуют условиям фильтрации товаров.
             + **sku_filtered**: аналогично полю *skus_filtered*, но в элементе '*skus*' содержится только одна модификация, свойства которого соответствуют условиям фильтрации товаров.
             + **sku**: в содержимое ответа добавляется элемент с ключом '*sku*' с названием основной модификации товара.
+            + **categories**: в содержимое ответа добавляется элемент с ключом '*categories*' с информацией обо всех категориях, в которые включен товар.
+            + **category_ids**: в содержимое ответа добавляется элемент с ключом '*categories*' с информацией обо всех категориях, в которые включен товар.
             + **frontend_url**: в содержимое ответа добавляется элемент с ключом '*frontend_url*' с URL страницы товара относительно URL витрины.
             + **sales_30days**: в содержимое ответа добавляются элементы с ключами '*sales_30days*' (с суммарной стоимостью всех модификаций товара в оплаченных заказах в виде числа, соответствующего основной валюте магазина) и '*sales_30days_html*' (с аналогичным значением, но с обозначением основной валюты магазина, подготовленным для использования в HTML-коде).
             + **stock_worth**: в содержимое ответа добавляются элементы с ключами '*stock_worth*' (с суммарной стоимостью всех модификаций товара, доступных на складе, в виде числа, соответствующего основной валюте магазина) и '*stock_worth_html*' (с аналогичным значением, но с обозначением основной валюты магазина, подготовленным для использования в HTML-коде).
@@ -4123,7 +4155,7 @@ paths:
                   description: Зачеркнутая цена
                 currency:
                   type: string
-                  description: ISO3-код валюты товара
+                  description: 3-буквенный код валюты товара
                 tax_id:
                   type: integer
                   description: ID налогового правила, применимого к товару
@@ -4656,7 +4688,7 @@ paths:
                     description: Признак включенного режима отладки
                   default_currency:
                     type: string
-                    description: ISO-код основной валюты
+                    description: 3-буквенный код основной валюты
                   settings:
                     type: object
                     description: Основные настройки
@@ -4962,7 +4994,7 @@ paths:
                                     type: integer
                             currency:
                               type: string
-                              description: ISO-код валюты по умолчанию
+                              description: 3-буквенный код валюты по умолчанию
                             stock_id:
                               description: Идентификатор основного склада
                               oneOf:
@@ -5375,7 +5407,7 @@ paths:
               properties:
                 currency:
                   type: string
-                  description: ISO-код основной валюты магазина
+                  description: 3-буквенный код основной валюты магазина
                 country:
                   type: string
                   description: ISO-код страны магазина (это влияет на первоначальную настройку некоторых параметров, например, налогов)
@@ -6262,7 +6294,7 @@ components:
           description: Итого
         currency:
           type: string
-          description: ISO-код валюты
+          description: 3-буквенный код валюты
         rate:
           type: number
           description: Курс валюты заказа по отношению к основной валюте магазина
@@ -6584,7 +6616,7 @@ components:
           description: Зачеркнутая цена основной модификации
         currency:
           type: string
-          description: ISO-код валюты
+          description: 3-буквенный код валюты
         min_price:
           type: number
           description: Цена самой дешевой модификации
@@ -6787,7 +6819,7 @@ components:
           description: Остатки на складах
         currency:
           type: string
-          description: ISO-код валюты
+          description: 3-буквенный код валюты
         stocks:
           type: array
           description: Остатки на складах
@@ -7268,7 +7300,7 @@ components:
             Тип купона.
             + **$FS**: Бесплатная доставка
             + **%**: Скидка в виде процентов
-            + *(ISO-код валюты)*: Скидка в виде суммы в указанной валюте
+            + *(3-буквенный код валюты)*: Скидка в виде суммы в указанной валюте
           enum:
             - '%'
             - $FS
@@ -7385,7 +7417,7 @@ components:
         quantity_denominator:
           type: integer
           description: |
-            Доступная точность указания складских остатков заказанного товара.
+            Доступная точность указания складских остатков заказанного товара:
             + **1**: целые штуки
             + **10**: точность до десятых
             + **100**: точность до сотых

@@ -30,15 +30,16 @@
         </label>
     {/strip}{/foreach}
 {/function}
-{function render_field f=[] for_premium=false}
+{function render_field f=[] is_premium_only=false}
     <div class="field" data-field-id={$f.id|escape}>
         <div class="name for-checkbox">
             {$f.title|escape}
-            {if $for_premium}
+            {if $is_premium_only}
                 <i class="fas fa-star text-yellow small opacity-70"></i>
+                <p class="hint custom-mt-4">* [`Premium only`]</p>
             {/if}
         </div>
-        <div class="value"{if $for_premium} style="opacity: 0.4;pointer-events: none;"{/if}>
+        <div class="value"{if $is_premium_only} style="opacity: 0.4;pointer-events: none;"{/if}>
             {if $f.id == ''}
                 {* ... custom field implementation by id ... *}
             {elseif $f.type == 'input'}

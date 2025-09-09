@@ -1,9 +1,33 @@
 <?php
+
+$api_rules = [
+    'api/v1/shop/?' => 'frontend/apiShop',
+    'api/v1/promos/?' => 'frontend/apiPromos',
+    'api/v1/shipping/list/?' => 'frontend/apiShippingList',
+    'api/v1/shipping/costs/?' => 'frontend/apiShippingCosts',
+    'api/v1/customer_token/?' => 'frontend/apiCustomerToken',
+    'api/v1/order/calculate/?' => 'frontend/apiOrderCalculate',
+    'api/v1/order/create/?' => 'frontend/apiOrderCreate',
+    'api/v1/cart/?' => 'frontend/apiCart',
+    'api/v1/category/<category_id:\d+>/products/?'                          => 'frontend/apiProductsSearch',
+    'api/v1/set/<set_id:[^/]+>/products/?'                                  => 'frontend/apiProductsSearch',
+    'api/v1/tag/<tag_id:[^/]+>/products/?'                                  => 'frontend/apiProductsSearch',
+    'api/v1/products/<product_ids:[\d,]+>/?'                                => 'frontend/apiProductsSearch',
+    'api/v1/products/search/?'                                              => 'frontend/apiProductsSearch',
+    'api/v1/product/<product_id_cross_selling:\d+>/related/cross_selling/?' => 'frontend/apiProductsSearch',
+    'api/v1/product/<product_id_upselling:\d+>/related/upselling/?'         => 'frontend/apiProductsSearch',
+    'api/v1/product/<id>/reviews/?' => 'frontend/apiProductReviews',
+    'api/v1/product/<id>/?' => 'frontend/apiProduct',
+    'api/v1/categories/?' => 'frontend/apiCategories',
+    'api/swagger/v<api_version_number:[\d]+>.yaml' => 'frontend/apiYaml',
+    'api/v1/*' => 'frontend/apiErr404',
+];
+
 return array(
     // default
     // url to category: /category/categoryurl/
     // url to product: /producturl/
-    0 => array(
+    0 => $api_rules + array(
         '' => 'frontend/',
         'login/' => 'login/',
         'forgotpassword/' => 'forgotpassword/',
@@ -61,7 +85,7 @@ return array(
         '<product_url:[^/]+>/' => 'frontend/product',
     ),
 
-    1 => array(
+    1 => $api_rules + array(
         '' => 'frontend/',
         'login/' => 'login/',
         'forgotpassword/' => 'forgotpassword/',
@@ -123,7 +147,7 @@ return array(
         'product/<product_url:[^/]+>/' => 'frontend/product',
     ),
 
-    2 => array(
+    2 => $api_rules + array(
         '' => 'frontend/',
         'login/' => 'login/',
         'forgotpassword/' => 'forgotpassword/',
@@ -184,5 +208,7 @@ return array(
         '<category_url>/<product_url:[^/]+>/' => 'frontend/product',
         '<category_url>/<product_url:[^/]+>/<page_url>/' => 'frontend/productPage',
         '<category_url>/' => 'frontend/category',
-    )
+    ),
+    3 => $api_rules + [
+    ],
 );

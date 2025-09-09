@@ -182,6 +182,7 @@ class shopFrontendOrderActions extends waJsonActions
                 ifset($data, 'result', 'auth', 'service_agreement', false)
                 && ifempty($config, 'customer', 'service_agreement', false)
             ) {
+                wa('webasyst');
                 webasystHelper::logAgreementAcceptance(
                     'service_agreement',
                     ifset($config, 'customer', 'service_agreement_hint', ''),
@@ -194,6 +195,7 @@ class shopFrontendOrderActions extends waJsonActions
                 ifset($data, 'result', 'confirm', 'terms', false)
                 &&  ifempty($config, 'confirmation', 'terms', false)
             ) {
+                wa('webasyst');
                 webasystHelper::logAgreementAcceptance(
                     'terms',
                     ifset($config, 'confirmation', 'terms_text', ''),

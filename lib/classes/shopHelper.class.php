@@ -510,6 +510,12 @@ class shopHelper
                                 $rate_name = $m['name'].(!empty($info['name']) ? ' ('.$info['name'].')' : '');
                             }
 
+                            if ($min_shipping_cost = (float) ifset($m, 'options', 'min_shipping_cost', 0)) {
+                                if (empty($rate) || $rate < $min_shipping_cost) {
+                                    $rate = $min_shipping_cost;
+                                }
+                            }
+
                             $result[$key] = array(
                                 'plugin'               => $m['plugin'],
                                 'plugin_original_name' => $plugin_info['name'],

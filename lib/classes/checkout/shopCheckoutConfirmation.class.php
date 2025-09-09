@@ -136,6 +136,7 @@ class shopCheckoutConfirmation extends shopCheckout
         $settings = self::getCheckoutSettings();
         if (!empty($settings['confirmation']['terms'])) {
             if (waRequest::post('terms')) {
+                wa('webasyst');
                 $contact = $this->getContact();
                 webasystHelper::logAgreementAcceptance(
                     'terms',

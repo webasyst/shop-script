@@ -157,8 +157,15 @@
                     <div class="hint custom-mt-4">{sprintf('[`In  “%s” mode shipping is offered only to selected customer types.<br>In “%s” mode this setting is ignored and shipping is always offered to all customer types.`]', '[`In-cart checkout`]', '[`Multi-step checkout`]')}</div>
                 </div>
             </div>
+            <div class="field">
+                <div class="name">[`Minimal shipping rate`]</div>
+                <div class="value">
+                    <input type="text" name="shipping[options][min_shipping_cost]" value="{ifset($plugin, 'options', 'min_shipping_cost', '')}" placeholder="0" class="number shorter"> {$def_cur}
+                    <div class="hint custom-mt-4">[`Secure your store from underestimated shipping expenses by setting the minimal fallback rate.`]</div>
+                </div>
+            </div>
         </div>
-        
+
     </div>
 
     <div class="bottombar sticky s-settings-fixed-bottombar">

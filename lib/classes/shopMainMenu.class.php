@@ -168,6 +168,10 @@ class shopMainMenu
                     [
                         "name" => _w("Pages"),
                         "url" => "{$wa_app_url}?action=storefronts#/design/pages/"
+                    ],
+                    [
+                        "name" => _w('Headless'),
+                        "url" => "{$wa_app_url}?action=storefronts#/api/"
                     ]
                 ]
             ],

@@ -36,7 +36,7 @@
                             <h5>{$s.title|escape}</h5>
                         </div>
                         {foreach $s.fields as $f}
-                            {render_field f=$f for_premium=(!$is_premium && !in_array($f.id, $fields_for_any_license))}
+                            {render_field f=$f is_premium_only=(!$is_premium && !in_array($f.id, $fields_for_any_license))}
                         {/foreach}
                     {/foreach}
                 </div>

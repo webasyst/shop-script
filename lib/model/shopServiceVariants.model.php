@@ -29,7 +29,7 @@ class shopServiceVariantsModel extends waModel
         if (!$ids) {
             return array();
         }
-        $sql = "SELECT v.*, IFNULL(v.price, s.price) price, s.currency FROM ".$this->table." v
+        $sql = "SELECT v.*, IFNULL(v.price, s.price) price, IF(v.name = '', s.name, v.name) name, s.currency FROM ".$this->table." v
                 JOIN shop_service s ON v.service_id = s.id
                 WHERE v.id IN (i:ids)";
         return $this->query($sql, array('ids' => $ids))->fetchAll('id');

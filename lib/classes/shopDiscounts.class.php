@@ -358,7 +358,8 @@ HTML;
                     $result = $coupon;
                 }
             }
-        } elseif (!empty($order['params']['coupon_id'])) {
+        }
+        if (empty($result) && !empty($order['params']['coupon_id'])) {
             // Work for test cases and API
             $result = $cm->getById((int)$order['params']['coupon_id']);
         }

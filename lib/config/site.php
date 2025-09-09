@@ -69,8 +69,64 @@ if ($new_route_rule) {
     $checkout_version_params['default'] = 2;
 }
 
+$storefront_mode_js = <<<SCRIPT
+<script>
+$(function () {
+    var storefront_mode_select = $('select[name="params[storefront_mode]"]');
+    var selectors = [
+        'input[name="params[title]"]',
+        'input[name="params[meta_keywords]"]',
+        'textarea[name="params[meta_description]"]',
+        'input[name="params[og_title]"]',
+        'input[name="params[og_image]"]',
+        'input[name="params[og_video]"]',
+        'textarea[name="params[og_description]"]',
+        'input[name="params[og_type]"]',
+        'input[name="params[og_url]"]',
+        'input[name="params[url_type]"]',
+        'input[name="params[products_per_page]"]',
+        'input[name="params[checkout_version]"]',
+        '.js-theme-select button',
+        'input.js-toggle-mobile-theme-select'
+    ];
+
+    storefront_mode_select.on('change', function () {
+        let select_val = $(this).val();
+        if (select_val === 'api') {
+            for (let selector of selectors) {
+                $(selector).closest('div.field').hide();
+            }
+            $(this).closest('div.value').append('<input type="hidden" name="params[url_type]" value="3">');
+        } else {
+            for (let selector of selectors) {
+                $(selector).closest('div.field').show();
+            }
+            $(this).closest('div.value').find('input[name="params[url_type]"]').remove();
+            if ($('input[name="params[url_type]"]:checked').val() === undefined) {
+                $('input[name="params[url_type]"][value="2"]').prop('checked', true);
+            }
+        }
+    });
+
+    if (storefront_mode_select.val() === 'api') {
+        storefront_mode_select.trigger('change');
+    }
+});
+</script>
+SCRIPT;
+
 return array(
     'params' => array(
+        'storefront_mode' => array(
+            'name' => _w('Headless API'),
+            'description' => _w('Enable Headless API to allow external apps and widgets to retrieve your storefront’s public content. See <em>Shop-Script › Storefront › Headless</em> for detailed OpenAPI (Swagger) docs.').$storefront_mode_js,
+            'type' => 'select',
+            'items' => [
+                '' => _w('Disabled (site only)'),
+                'storefront_api' => _w('Enabled (site + API)'),
+                'api' => _w('API only (no site)')
+            ]
+        ),
         _w('Homepage'),
         'title'             => array(
             'name' => _w('Homepage title <title>'),

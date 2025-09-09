@@ -1,0 +1,52 @@
+<div class="article">
+    <div class="article-body">
+        <h1>[`Headless API`]</h1>
+        <p class="small">
+            [`Shop-Script Headless API is a JSON API for retrieving product data, working with the shopping cart, and placing orders — virtually everything handled via a typical storefront, but with no visual UI and, therefore, great for building custom ecommerce functionality using any programming language of your choice.`]
+        </p>
+        <p class="small">
+            [`Enable the API for desired storefront routes to view the OpenAPI (Swagger) documentation.`]
+        </p>
+        <table class="zebra">
+            <tr>
+                <th class="min-width">[`Storefront`]</th>
+                <th>[`URL`]</th>
+                <th class="align-center">API</th>
+            </tr>
+
+
+            {foreach $domains as $domain => $data}
+                {foreach $data as $id => $route}
+                {$storefront_mode = ifset($route, 'storefront_mode', '')}
+            <tr>
+                <td>{ifset($route, '_name', '(none)')}</td>
+                <td>
+                    {$domain}/<code>{$route.url}</code>
+                    <p class="smaller"{if empty($storefront_mode)} style="display: none;"{/if}>Swagger: <a href="{$route.yaml_url|escape}" class="bold" target="_blank">{$route.yaml_url|escape}</a></p>
+                </td>
+                <td class="align-center">
+                    <span class="switch-{$id} switch smaller"{if $storefront_mode == 'api'} title="[`Headless mode (API only, no public site)`]"{/if}>
+                        <input type="checkbox" name="storefront-{$id}" value="{$id}" data-domain="{$domain}" {if $storefront_mode == 'api'} disabled{/if}{if !empty($storefront_mode) || $storefront_mode == 'api'} checked{/if}>
+                    </span>
+                </td>
+            </tr>
+                {/foreach}
+            {/foreach}
+        </table>
+    </div>
+</div>
+
+<script>
+    (function ($) {
+        $('[class^="switch-"]').waSwitch({
+            change: function(active, wa_switch) {
+                let data = {
+                    id: wa_switch.$wrapper.find('input').val(),
+                    domain: wa_switch.$wrapper.find('input').data('domain'),
+                    on: (active ? 1 : 0)
+                };
+                $.post('{$wa_app_url}?module=api&action=switch', data);
+            }
+        });
+    })(jQuery);
+</script>
