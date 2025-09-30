@@ -1675,8 +1675,8 @@ msgstr "Для сохранения заказа необходимо добав
 msgid "Order not found."
 msgstr "Заказ не найден."
 
-msgid "Writing a review to product is available just on frontend"
-msgstr "Добавление отзыва к товару доступно только на витрине"
+msgid "Adding a product review is available in the storefront only."
+msgstr "Добавлять отзывы о товарах можно только на витрине."
 
 msgid "Unknown service to delete"
 msgstr "Неизвестная удаляемая услуга"
@@ -2555,7 +2555,7 @@ msgid "Shipping rate was not calculated because required currency %s is not defi
 msgstr "Стоимость доставки не рассчитана, потому что требуемая валюта %s не определена в настройках магазина."
 
 msgid "Core content loaded according to the requested resource: product, category, search results, static page, etc."
-msgstr "Основное содержимое, отображаемое в зависимости от типа текущей страницы: товар, категория, результаты поиска, инф. страница и т. д."
+msgstr "Основное содержимое, отображаемое в зависимости от типа текущей страницы: товар, категория, результаты поиска, информационная страница и т. д."
 
 msgid "Product ID. Other elements of <em>$product</em> object available in this template are listed below."
 msgstr "ID товара. Остальные элементы объекта <em>$product</em>, доступные в этом шаблоне, перечислены ниже"
@@ -5449,8 +5449,8 @@ msgstr "Период"
 msgid "The amount will be gradually distributed by day over the entire period, which allows you to estimate ROI more precisely."
 msgstr "Введенная сумма будет равномерно распределена по дням всего указанного временного интервала, что позволяет сделать оценку ROI более точной."
 
-msgid "No marketing expenses on the selected period"
-msgstr "В течение выбранного отчетного периода не было затрат на маркетинг"
+msgid "No marketing expenses on the selected period."
+msgstr "В течение выбранного отчетного периода не было затрат на маркетинг."
 
 msgid "Add your marketing expenses to automate ROI (Return On Investment) calculation by traffic source and campaign."
 msgstr "Добавление затрат на маркетинг позволяет автоматизировать расчет возврата вложений в продвижение (ROI, Return On Investment) по каждому источнику покупателей и UTM-кампаниям."
@@ -6156,6 +6156,9 @@ msgstr "Обратный отсчет"
 
 msgid "New transfer"
 msgstr "Новый трансфер"
+
+msgid "Transfer"
+msgstr "Между складами"
 
 msgid "Show all %d completed transfers"
 msgstr "Показать все выполненные трансферы (%d)"
@@ -6874,7 +6877,7 @@ msgstr "Восстановить стандартный текст"
 msgid "Show notice"
 msgstr "Показывать уведомление"
 
-msgid "Please confirm your agreement"
+msgid "Please confirm your consent"
 msgstr "Подтвердите согласие с условиями"
 
 msgid "Not updated by order actions"
@@ -13375,7 +13378,7 @@ msgstr "Изображение товара не найдено."
 msgid "Product page not found."
 msgstr "Подстраница товара не найдена."
 
-msgid "The “limit” parameter value must not exceed %s."
+msgid "A “limit” parameter value must not exceed %s."
 msgstr "Значение параметра «limit» не должно превышать %s."
 
 msgid "Invalid value of parameter “%s”."
@@ -13424,7 +13427,7 @@ msgid "Online fiscalization"
 msgstr "Онлайн-кассы и фискализация"
 
 msgid "If your jurisdiction requires online sales fiscalization, use these plugins for setup and automation."
-msgstr "Если ваша юрисдикация требует использования онлайн-кассы для фискализации платежей, используйте плагины для ее настройки и автоматизации."
+msgstr "Если ваша юрисдикция требует использования онлайн-кассы для фискализации платежей, используйте плагины для ее настройки и автоматизации."
 
 msgid "Special lifetime upgrade discount for our beloved Shop-Script merchants."
 msgstr "Специальная скидка на апгрейд для владельцев лицензий Shop-Script."
@@ -13770,3 +13773,174 @@ msgstr "Только API (без витрины)"
 
 msgid "Headless"
 msgstr "Headless"
+
+msgid "A rate value must be an integer from 0 to 5."
+msgstr "Оценка должна целым числом от 0 до 5."
+
+msgid "Review adding error."
+msgstr "Ошибка добавления отзыва."
+
+msgid "Product quantities and pricing will be saved to the stock log and consignment notes."
+msgstr "Заданные количества и цены будут сохранены в журнале остатков и сопроводительных документах."
+
+msgid "This promo"
+msgstr "Эта промоакция"
+
+msgid "Overall"
+msgstr "Всего"
+
+msgid "New sale"
+msgstr "Новая распродажа"
+
+msgid "Required. The internal promo name is not visible to website visitors."
+msgstr "Обязательно. Внутреннее название промоакции не видно посетителям на сайте."
+
+msgid "Finished"
+msgstr "Завершена"
+
+msgid "Optional. Use for automating the promo launch."
+msgstr "Необязательно. Используйте для автоматизации запуска промоакции."
+
+msgid "Optional. Use for automating the promo finish."
+msgstr "Необязательно. Используйте для автоматизации окончания промоакции."
+
+msgid "Promo is a combination of tools and smart rules defining your marketing focus."
+msgstr "Промоакция — это комбинация настроенных инструментов и правил, определяющих вашу маркетинговую цель."
+
+msgid "Tools & Smart rules"
+msgstr "Инструменты и правила"
+
+msgid "Active now"
+msgstr "Активна"
+
+msgid "Scheduled promos automatically launch on their specified beginning time."
+msgstr "Запланированные промоакции автоматически запускаются в указанное для них время начала."
+
+msgid "Promos are considered completed on their specified end time."
+msgstr "Промоакции считаются завершенными при наступлении указанного для них времени окончания."
+
+msgid "No orders are associated with this promo at the moment. Try to change the tools & smart rules settings."
+msgstr "Пока нет заказов, связанных с этой промоакцией. Попробуйте изменить настройки инструментов и правил."
+
+msgid "Failed to create an order."
+msgstr "Не удалось создать заказ."
+
+msgid "An “offset” parameter value must be greater than or equal to zero."
+msgstr "Значение параметра «offset» должно быть не ниже нуля."
+
+msgid "A “limit” parameter value must be greater than or equal to zero."
+msgstr "Значение параметра «limit» должно быть не ниже нуля."
+
+msgid "An “id” parameter value is required."
+msgstr "Значение параметра «id» обязательно."
+
+msgid "The “fields” parameter must contain either a string of values separated by comma or an array of strings."
+msgstr "Параметр «fields» должен содержать или строку значений, разделенных запятой, или массив строк."
+
+msgid "Incorrect value of the “%s” parameter."
+msgstr "Некорректное значение параметра «%s»."
+
+msgid "Cart item not found."
+msgstr "Позиция корзины не найдена."
+
+msgid "When a “shipping_variant_id” value is provided then an address is also required with at least “country”, “region” and “city” fields’ values."
+msgstr "Когда указано значение параметра «shipping_variant_id», требуется также указание адреса, содержащего хотя бы значения полей «country», «region» и «city»."
+
+msgid "Unknown “%s” parameter value: %s."
+msgstr "Неизвестное значение параметра «%s»: %s."
+
+msgid "Missing address fields required by the shipping plugin: %s."
+msgstr "Отсутствуют поля адреса, обязательные для плагина доставки: %s."
+
+msgid "“address” with “country”, “region” and ”city” fields’ values"
+msgstr "«address» со значениями полей «country», «region» и «city»"
+
+msgid "plugin not found"
+msgstr "плагин не найден"
+
+msgid "unable to use a shipping method"
+msgstr "невозможно использовать плагин доставки"
+
+msgid "Incorrect or empty “%s” parameter value."
+msgstr "Некорректное или пустое значение параметра «%s»."
+
+msgid "Access denied for the limited courier token."
+msgstr "Доступ запрещен для ограниченного токена курьера."
+
+msgid "Product variant IDs not found."
+msgstr "ID модификаций товара не найдены."
+
+msgid "The “%s” parameter value must be a positive integer."
+msgstr "Значение параметра «%s» должно быть целым положительным числом."
+
+msgid "Action not available to user."
+msgstr "Действие недоступно пользователю."
+
+msgid "An error has occurred."
+msgstr "Произошла ошибка."
+
+msgid "The specified “client_id” is already subscribed via a different URL."
+msgstr "Указанный «client_id» уже подписан по другому URL."
+
+msgid "Order items are required."
+msgstr "Требуется указать позиции заказа."
+
+msgid "A static category is required."
+msgstr "Требуется статическая категория."
+
+msgid "Code %s already exists."
+msgstr "Код %s уже существует."
+
+msgid "Invalid type: %s."
+msgstr "Неверный тип: %s."
+
+msgid "Parent category not found."
+msgstr "Родительская категория не найдена."
+
+msgid "The “period” parameter value cannot be greater than 48 hours."
+msgstr "Значение параметра «period» не может быть больше 48 часов."
+
+msgid "No data to update."
+msgstr "Нет данных для обновления."
+
+msgid "Missing required data."
+msgstr "Отсутствуют обязательные данные."
+
+msgid "The “%s” field is disabled."
+msgstr "Поле «%s» отключено."
+
+msgid "The “%s” action is not allowed."
+msgstr "Действие «%s» недоступно."
+
+msgid "failed to calculate the shipping cost"
+msgstr "не удалось посчитать стоимость доставки"
+
+msgid "Antispam protection"
+msgstr "Защита от спама"
+
+msgid "<b>You are all set!</b> Requests to the Headless API for saving data will be protected with this antispam key. All apps and widgets by Webasyst offer support for the antispam protection out of the box."
+msgstr "<b>Отлично!</b> Запросы к Headless API для сохранения данных будут защищены этим антиспам-ключом. Все приложения и виджеты, разработанные Webasyst, уже поддерживают защиту от спама."
+
+msgid "Antispam key"
+msgstr "Антиспам-ключ"
+
+msgid "Do not expose the key to a third party. Feel free to reset it in case of any issues with spam."
+msgstr "Не отправляйте ключ посторонним. Обновляйте его в любое время в случае обнаружения спама."
+
+msgid "Save new antispam key"
+msgstr "Сохранить новый антиспам-ключ"
+
+msgid "Parent cart item not found."
+msgstr "Родительская позиция корзины не найдена."
+
+msgid "Parent cart item must be a product."
+msgstr "Родительской позицией корзины должен быть товар."
+
+msgid "Positioning"
+msgstr "Расположение"
+
+msgid "Display in each variant"
+msgstr "Показывать в каждом варианте"
+
+msgid "A rate value must be a number from 0 to 5."
+msgstr "Значение оценки должно быть числом от 0 до 5."

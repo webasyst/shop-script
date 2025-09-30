@@ -2,7 +2,7 @@
 openapi: 3.0.0
 
 info:
-  title: 'Shop-Script Storefront API'
+  title: 'Shop-Script Headless API'
   version: 1.0.0
   contact:
     name: Webasyst
@@ -10,6 +10,31 @@ servers:
   - url: http://localhost/api/v1
 
 paths:
+  /customer_token:
+    get:
+      summary: Возвращает новый токен покупателя.
+      parameters:
+        - $ref: '#/components/parameters/customerToken'
+      responses:
+        200:
+          description: Успешное выполнение запроса.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customer_token:
+                    type: string
+                    description: Токен покупателя
+                  antispam_cart_key:
+                    type: string
+                    nullable: true
+                    description: Автоматически обновляемый ключ для защиты от спама; если защита включена, то используется при добавлении отзывов о товарах и создании заказов, а также добавляется в ответ сервера
+                  checkout_url:
+                    type: string
+                    nullable: true
+                    description: URL страницы оформления заказа в браузере — без использования Headless API; доступен, если такая возможность включена в настройках Shop-Script
+
   /cart:
     get:
       summary: Возвращает информацию о корзине покупателя.
@@ -36,7 +61,7 @@ paths:
                   coupon_valid:
                     type: boolean
                     nullable: true
-                    description: true если передан павильный код купона, false если неправильный. Если coupon_code не указан, то значение отсутствует.
+                    description: Признак передачи правильного кода купона в параметре `coupon_code`; или пустое значение, если код купона не был указан при вызове метода
         400:
           description: Некорректное содержимое запроса.
           content:
@@ -60,13 +85,13 @@ paths:
               properties:
                 item_id:
                   type: integer
-                  description: ID позиции корзины
+                  description: ID позиции в корзине
                 service_variant_id:
                   type: integer
-                  description: ID варианта услуги.
+                  description: ID варианта услуги
                 quantity:
                   type: number
-                  description: Количество.
+                  description: Количество
       responses:
         200:
           description: Успешное выполнение запроса.
@@ -86,7 +111,7 @@ paths:
                   coupon_valid:
                     type: boolean
                     nullable: true
-                    description: true если передан павильный код купона, false если неправильный. Если coupon_code не указан, то значение отсутствует.
+                    description: Признак корректного кода купона в параметре `coupon_code`; или пустое значение, если код купона не был указан при вызове метода
         400:
           description: Некорректное содержимое запроса.
           content:
@@ -110,18 +135,25 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - sku_id
               properties:
                 sku_id:
                   type: integer
-                  description: ID модификации товара.
-                service_variant_id:
+                  description: ID модификации товара (обязателен, если не указано значение для параметра `parent_id`)
+                parent_id:
                   type: integer
-                  description: ID варианта услуги.
+                  description: ID позиции корзины со значением *'product'* в свойстве `type` (товар); используется для добавления услуг к этому товару
+                service_variant_id:
+                  oneOf:
+                  - type: integer
+                    description: ID варианта услуги
+                  - type: array
+                    description: Список услуг для товара в корзине
+                    items:
+                      type: integer
+                      description: ID варианта услуги
                 quantity:
                   type: number
-                  description: Количество.
+                  description: Количество
       responses:
         200:
           description: Успешное выполнение запроса.
@@ -141,7 +173,7 @@ paths:
                   coupon_valid:
                     type: boolean
                     nullable: true
-                    description: true если передан павильный код купона, false если неправильный. Если coupon_code не указан, то значение отсутствует.
+                    description: Признак передачи правильного кода купона в параметре `coupon_code`; или пустое значение, если код купона не был указан при вызове метода
         400:
           description: Некорректное содержимое запроса.
           content:
@@ -168,21 +200,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/invalidResponse'
 
-  /customer_token:
-    get:
-      summary: Возвращает новый токен покупателя.
-      responses:
-        200:
-          description: Успешное выполнение запроса.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  customer_token:
-                    type: string
-                    description: Токен покупателя.
-
   /product/{id}:
     get:
       summary: Возвращает информацию о товаре.
@@ -202,9 +219,99 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProductInfo'
 
+  /product/{id}/reviews/add:
+    post:
+      summary: Добавляет отзыв о товаре с оценкой.
+      parameters:
+        - $ref: '#/components/parameters/customerToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - title
+                - email
+              properties:
+                parent_id:
+                  type: integer
+                  nullable: true
+                  description: ID отзыва, если нужно добавить комментарий к нему; если не указан, то добавляется отзыв, а не комментарий
+                rate:
+                  type: number
+                  nullable: true
+                  description: Оценка товара от 0 до 5
+                title:
+                  type: string
+                  description: Заголовок отзыва
+                text:
+                  type: string
+                  description: Текст отзыва
+                name:
+                  type: string
+                  description: Имя покупателя
+                email:
+                  type: string
+                  description: Email-адрес покупателя
+                site:
+                  type: string
+                  format: uri
+                  description: Адрес сайта покупателя
+                antispam_hash:
+                  type: string
+                  description: |
+                    Хеш для защиты от спама — вычисляется по формуле:
+
+                    `SHA-256(antispam_api_key + antispam_cart_key + title + text)`
+
+                    где
+                    + `antispam_api_key` — секретный ключ, который нужно скопировать в разделе «*Витрина → Headless*» бекенда Shop-Script
+                    + `antispam_cart_key` — привязанный к корзине ключ, который обновляется несколько раз в сутки и используется в методах */shop* и */customer_token*
+                    + `title` — заголовок отзыва (используется при добавлении отзывов)
+                    + `text` — текст отзыва (используется при добавлении отзывов)
+
+                    Строки хешируются в кодировке UTF-8. Если в ответах на запросы к методам */shop* и */customer_token* отсутствует значение `antispam_cart_key`, значит, защита отключена и отправлять параметры `antispam_hash` и `customer_token` необязательно.
+
+                    При получении ошибки валидации `antispam_check_failed` нужно повторно получить значение `antispam_cart_key` — это значит, что ключ мог устареть.
+                service_agreement:
+                  type: integer
+                  nullable: true
+                  description: |
+                    Признак подтверждения согласия с политикой обработки персональных данных, если включена соответствующая настройка:
+
+                    + **0**: не подтверждено
+                    + **1**: подтверждено
+                  enum:
+                    - 0
+                    - 1
+      responses:
+        200:
+          description: Успешное выполнение запроса.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  review_id:
+                    type: integer
+                    description: ID добавленного отзыва
+        400:
+          description: Некорректное содержимое запроса.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: Товар не найден.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
   /product/{id}/reviews:
     get:
-      summary: Возвращает отзывы покупателей о товаре. Ограничения offset и limit работают для отзывов верхнего уровня. Дополнительно к каждому отзыву верхнего уровня будет возвращено полное дерево ответов на него (с ограничением на глубину, если передан параметр depth).
+      summary: Возвращает список отзывов покупателей о товаре. Ограничения в параметрах `offset` и `limit` работают только для отзывов верхнего уровня. Дополнительно к каждому отзыву верхнего уровня будет возвращено полное дерево ответов на него (с ограничением на глубину, если оно указано в параметре `depth`).
       parameters:
         - name: id
           in: path
@@ -216,17 +323,17 @@ paths:
         - $ref: '#/components/parameters/productListParamLimit'
         - in: query
           name: tree
-          description: Если передано значение больше 0, то список ответов на отзывы будет в виде дерева, а не плоского списка.
+          description: Признак возврата списка отзывов в виде *дерева* (если указано значение больше 0) либо *плоского списка* (если указано 0)
           schema:
             type: integer
         - in: query
           name: depth
-          description: Если передано значение больше 0, то будут возвращены только ответы на отзывы не дальше указанной глубины
+          description: Уровень вложенности ответов на отзывы, которые нужно получить в составе информации об отзывах верхнего уровня (значение больше 0)
           schema:
             type: integer
         - in: query
           name: parent_review_id
-          description: Если передано значение больше 0, то будет возвращен указанный отзыв верхнего уровня и все ответы на него (с ограничением на глубину, если передан параметр depth). Параметры offset и limit игнорируются.
+          description: ID единственного отзыва верхнего уровня, который нужно получить вместо всего списка отзывов, — вместе со списком ответов на него (с ограничением на глубину, если оно указано в параметре `depth`). Параметры `offset` и `limit` игнорируются.
           schema:
             type: integer
 
@@ -246,7 +353,7 @@ paths:
                     description: Смещение относительно начала списка отзывов
                   limit:
                     type: integer
-                    description: Количество отзывов верхнего уровня, которые нужно получить.
+                    description: Максимальное количество отзывов верхнего уровня, которые нужно получить
                   reviews:
                     type: array
                     description: Список отзывов
@@ -274,7 +381,11 @@ paths:
                 properties:
                   customer_token:
                     type: string
-                    description: Токен покупателя.
+                    description: Токен покупателя
+                  antispam_cart_key:
+                    type: string
+                    nullable: true
+                    description: Автоматически обновляемый ключ для защиты от спама; если защита включена, то используется при добавлении отзывов о товарах и создании заказов, а также добавляется в ответ сервера
                   ignore_stock_count:
                     type: integer
                     description: |
@@ -322,9 +433,65 @@ paths:
                     type: array
                     items:
                       type: string
+                    description: Идентификаторы доступных полей адреса
                   default_currency:
                     type: string
                     description: 3-буквенный код основной валюты витрины
+                  customer_agreement:
+                    type: object
+                    description: Настройки согласия с условиями регистрации (например, с обработкой персональных данных)
+                    properties:
+                      setting:
+                        type: string
+                        description: |
+                          Элемент интерфейса для получения согласия:
+
+                          + **checkbox**: флажок, который должен явно включить покупатель
+                          + **notice**: текстовое уведомление (покупатель подтверждает свое согласие, просто совершая действие на сайте, — например, регистрируясь или оформляя заказ)
+                          + *(пустая строка)*: не требовать согласия
+                        enum:
+                          - checkbox
+                          - notice
+                          -
+                      text:
+                        type: string
+                        description: HTML-код для отображения текста рядом с флажком (если в параметре `setting` указано *checkbox*) либо простое текстовое уведомление (без HTML-тегов) о согласии с обработкой персональных данных (если в параметре `setting` указано *notice*)
+                  service_terms:
+                    type: object
+                    description: Настройки согласия с условиями предоставления услуг (описание процедуры возврата денежных средств и любая другая юридическая информация, с которой покупатель должен ознакомиться и согласиться для оформления заказа)
+                    properties:
+                      setting:
+                        type: string
+                        description: |
+                          Элемент интерфейса для получения согласия:
+
+                          + **checkbox**: флажок, который должен явно включить покупатель
+                          + *(пустая строка)*: не требовать согласия
+                        enum:
+                          - checkbox
+                          -
+                      text:
+                        type: string
+                        description: HTML-код для отображения текста условий предоставления услуг
+                  review_service_agreement:
+                    type: object
+                    description: Настройки согласия с условиями политики обработки персональных данных при добавлении отзыва о товаре
+                    properties:
+                      setting:
+                        type: string
+                        description: |
+                          Элемент интерфейса для получения согласия:
+
+                          + **checkbox**: флажок, который должен явно включить покупатель
+                          + **notice**: текстовое уведомление (покупатель подтверждает свое согласие, просто оставляя отзыв о товаре)
+                          + *(пустая строка)*: не требовать согласия
+                        enum:
+                          - checkbox
+                          - notice
+                          -
+                      text:
+                        type: string
+                        description: HTML-код для отображения текста рядом с флажком (если в параметре `setting` указано *checkbox*) либо простое текстовое уведомление (без HTML-тегов) о согласии с обработкой персональных данных (если в параметре `setting` указано *notice*)
                   currencies:
                     type: array
                     description: Список настроенных валют
@@ -370,7 +537,8 @@ paths:
                         sign_position:
                           type: integer
                           description: |
-                            Обозначение положения символа валюты относительно числа
+                            Обозначение положения символа валюты относительно числа:
+
                             + **0**: до числа
                             + **1**: после числа
                           enum:
@@ -387,11 +555,7 @@ paths:
                           description: Режим округления
                         round_up_only:
                           type: boolean
-                          description: |
-                            Признак необходимости округления только вверх:
-
-                            + **false**: округлять в любую сторону.
-                            + **true**: округлять только вверх.
+                          description: Признак необходимости округления только вверх
                         sort:
                           type: integer
                           description: Значение сортировки
@@ -415,7 +579,7 @@ paths:
                     description: Номер версии Shop-Script
                   locale:
                     type: string
-                    description: Локаль витрины магазина, например ru_RU или en_US
+                    description: Идентификатор локали витрины
                   shop_schedule:
                     type: object
                     description: График работы
@@ -439,6 +603,7 @@ paths:
                           properties:
                             date:
                               type: string
+                              format: date
                               description: Дата
                             start_work:
                               type: string
@@ -470,6 +635,10 @@ paths:
                             end_processing:
                               type: string
                               description: Время окончания приема заказов в обработку
+                  checkout_url:
+                    type: string
+                    nullable: true
+                    description: URL страницы оформления заказа в браузере — без использования Headless API; доступен, если такая возможность включена в настройках Shop-Script
 
   /categories:
     get:
@@ -478,19 +647,31 @@ paths:
         - $ref: '#/components/parameters/customerToken'
         - in: query
           name: parent_id
-          description: если передан, то будут возвращены только потомки указанной категории (включая саму parent_id)
+          description: ID единственной категории, информацию о которой нужно получить вместо всего списка категорий, вместе с ее подкатегориями
           schema:
             type: integer
         - in: query
           name: tree
-          description: Если передано значение больше 0, то список категорий будет в виде дерева, а не плоского списка.
+          description: Признак возврата списка подкатегорий в виде *дерева* (если указано значение больше 0) либо *плоского списка* (если указано 0)
           schema:
             type: integer
         - in: query
           name: depth
-          description: Если передано значение больше 0, то будут возвращены только категории не дальше указанной глубины от корня (или parent_id)
+          description: Уровень вложенности подкатегорий, которые нужно получить (значение больше 0)
           schema:
             type: integer
+        - in: query
+          name: filters
+          description: |
+            Необходимость возврата информации о фильтрах товаров:
+
+            + **0**: не возвращать
+            + **1**: возвращать
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
       responses:
         200:
           description: Информация о категориях товаров.
@@ -544,7 +725,7 @@ paths:
 
   /set/{set_id}/products:
     get:
-      summary: Возвращает товары из указанного списка товаров.
+      summary: Возвращает товары из указанного списка.
       parameters:
         - name: set_id
           in: path
@@ -631,7 +812,7 @@ paths:
 
   /product/{product_id}/related/cross_selling:
     get:
-      summary: Возвращает список товаров, выбранных в качестве перекрестных продаж для товара с указанным ID.
+      summary: Возвращает список товаров, выбранных в качестве перекрестных продаж для основного товара с указанным ID.
       parameters:
         - name: product_id
           in: path
@@ -662,7 +843,7 @@ paths:
 
   /product/{product_id}/related/upselling:
     get:
-      summary: Возвращает товары, выбранные в качестве схожих и альтернативных для товара с указанным ID.
+      summary: Возвращает товары, выбранные в качестве схожих и альтернативных для основного товара с указанным ID.
       parameters:
         - name: product_id
           in: path
@@ -723,7 +904,7 @@ paths:
 
   /promos:
     get:
-      summary: Возвращает действующие промоакции для текущей витрины
+      summary: Возвращает действующие промоакции для текущей витрины.
       responses:
         200:
           description: Информация о промоакциях.
@@ -742,10 +923,15 @@ paths:
                       description: Название промоакции
                     enabled:
                       type: integer
-                      description: Статус промоакции (остановлена/действует)
+                      description: |
+                        Статус промоакции:
+
+                        + *0*: остановлена
+                        + *1*: действует
                     note:
                       nullable: true
                       type: string
+                      description: Описание
                     start_datetime:
                       type: string
                       nullable: true
@@ -756,18 +942,25 @@ paths:
                       description: Дата и время окончания промоакции
                     rules:
                       type: array
+                      description: Список инструментов промоакции
                       items:
                         type: object
                         properties:
                           id:
                             type: integer
-                            description: ID правила промоакции
+                            description: ID инструмента
                           promo_id:
                             type: integer
-                            description: ID промоакции к которой относится правило
+                            description: ID промоакции, к которой относится инструмент
                           rule_type:
                             type: string
-                            description: Тип правила
+                            description: |
+                              Тип инструмента:
+
+                              + **banner**: Баннер
+                              + **custom_price**: Товары и цены
+                              + **utm**: UTM-метки
+                              + **coupon**: Купоны
                             enum:
                               - banner
                               - custom_price
@@ -776,6 +969,7 @@ paths:
                           rule_params:
                             type: object
                             nullable: true
+                            description: Параметры инструментов промоакции
                             properties:
                               banners:
                                 type: array
@@ -784,12 +978,13 @@ paths:
                                   properties:
                                     type:
                                       type: string
+                                      description: Тип баннера
                                     title:
                                       type: string
                                       description: Заголовок
                                     body:
                                       type: string
-                                      description: Подзаголовок промокарточки
+                                      description: Подзаголовок
                                     link:
                                       type: string
                                       description: Ссылка
@@ -806,11 +1001,11 @@ paths:
                                     image:
                                       type: string
                                       format: uri
-                                      description: URL баннера
+                                      description: URL файла изображения баннера
 
   /shipping/list:
     get:
-      summary: Возвращает способы доставок для текущей витрины
+      summary: Возвращает список способов доставки, доступных для текущей витрины.
       responses:
         200:
           description: Информация о способах доставки.
@@ -826,7 +1021,7 @@ paths:
                       description: ID способа доставки
                     plugin:
                       type: string
-                      description: ID плагина
+                      description: Идентификатор плагина
                     name:
                       type: string
                       description: Название способа доставки
@@ -841,7 +1036,7 @@ paths:
 
   /order/calculate:
     post:
-      summary: Валидация данных заказа без создания заказа
+      summary: Выполняет валидацию данных заказа без создания заказа.
       parameters:
         - $ref: '#/components/parameters/customerToken'
         - $ref: '#/components/parameters/couponCode'
@@ -849,10 +1044,10 @@ paths:
         content:
           application/json:
             schema:
-              - $ref: '#/components/schemas/orderCalculateCreateParams'
+              $ref: '#/components/schemas/orderCalculateCreateParams'
       responses:
         200:
-          description: Заказ прошёл валидацию без ошибок
+          description: Успешное прохождение валидации.
           content:
             application/json:
               schema:
@@ -860,16 +1055,61 @@ paths:
                 properties:
                   items:
                     $ref: '#/components/schemas/OrderCartInfo'
+                  currency:
+                    type: string
+                    description: 3-буквенный код валюты
                   total:
                     type: number
-                    description: Суммарная стоимость позиций
+                    description: Общая стоимость заказа
                   discount:
                     type: number
                     description: Общая скидка на всю корзину
+                  shipping:
+                    type: number
+                    description: Стоимость доставки
+                  tax:
+                    type: number
+                    description: Размер налога
+                  shipping_exact:
+                    type: string
+                    description: Стоимость доставки в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+                  shipping_str:
+                    type: string
+                    description: Стоимость доставки (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+                  shipping_html:
+                    type: string
+                    description: Стоимость доставки (форматированное число с HTML-вариантом названия валюты, если оно доступно)
+                  tax_exact:
+                    type: string
+                    description: Размер налога в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+                  tax_str:
+                    type: string
+                    description: Размер налога (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+                  tax_html:
+                    type: string
+                    description: Размер налога (форматированное число с HTML-вариантом названия валюты, если оно доступно)
+                  discount_exact:
+                    type: string
+                    description: Размер скидки в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+                  discount_str:
+                    type: string
+                    description: Размер скидки (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+                  discount_html:
+                    type: string
+                    description: Размер скидки (форматированное число с HTML-вариантом названия валюты, если оно доступно)
+                  total_exact:
+                    type: string
+                    description: Общая стоимость заказа в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+                  total_str:
+                    type: string
+                    description: Общая стоимость заказа (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+                  total_html:
+                    type: string
+                    description: Общая стоимость заказа (форматированное число с HTML-вариантом названия валюты, если оно доступно)
 
   /order/create:
     post:
-      summary: Создание заказа
+      summary: Создает новый заказ.
       parameters:
         - $ref: '#/components/parameters/customerToken'
         - $ref: '#/components/parameters/couponCode'
@@ -877,10 +1117,10 @@ paths:
         content:
           application/json:
             schema:
-              - $ref: '#/components/schemas/orderCalculateCreateParams'
+              $ref: '#/components/schemas/orderCalculateCreateParams'
       responses:
         200:
-          description: Заказ успешно создан
+          description: Успешное создание заказа.
           content:
             application/json:
               schema:
@@ -888,11 +1128,11 @@ paths:
                 properties:
                   id:
                     type: integer
-                    description: id созданного заказа
+                    description: ID созданного заказа
 
   /shipping/costs:
     post:
-      summary: Возвращает варианты и стоимость доставки указанной корзины на указанный адрес
+      summary: Возвращает варианты и стоимость доставки товаров в корзине на указанный адрес
       parameters:
         - $ref: '#/components/parameters/customerToken'
         - $ref: '#/components/parameters/couponCode'
@@ -905,7 +1145,7 @@ paths:
                 - address
               properties:
                 address:
-                  - $ref: '#/components/schemas/shippingAddress'
+                  $ref: '#/components/schemas/shippingAddress'
       responses:
         200:
           description: Информация о способах доставки.
@@ -916,70 +1156,76 @@ paths:
                 properties:
                   shipping_types:
                     type: array
-                    description: Человекочитаемые названия типов доставки (курьер, почта, самовывоз)
+                    description: Список типов доставки
                     items:
                       type: object
                       properties:
                         id:
                           type: string
+                          description: ID типа
                         name:
                           type: string
-
+                          description: Название
                   shipping:
                     type: array
                     description: Список вариантов доставки
                     items:
                       type: object
-                      properties: 
-                        variant_id: 
+                      properties:
+                        variant_id:
                           type: string
-                          description: Идентификатор варианта доставки для сохранения при создании заказа
-                        plugin: 
+                          description: Идентификатор варианта доставки (можно использовать при создании заказов)
+                        plugin:
                           type: string
-                          description: Идентификатор службы доставки
-                        plugin_name: 
+                          description: Идентификатор плагина доставки
+                        plugin_name:
                           type: string
-                          description: Название службы доставки
-                        logo: 
+                          description: Название плагина доставки
+                        logo:
                           type: string
-                          description: URL логотипа службы доставки
-                        name: 
+                          description: URL логотипа способа доставки
+                        name:
                           type: string
-                          description: Название варианта доставки (например, название конкретного пункта выдачи заказов)
-                        description: 
+                          description: Название варианта доставки
+                        description:
                           type: string
                           description: Описание варианта доставки
-                        rate: 
+                        rate:
                           type: number
-                          description: Стоимость доставки в валюте currency
-                        rate_exact: 
+                          description: Стоимость доставки
+                        rate_exact:
                           type: string
-                          description: Стоимость доставки в виде строки позволяет избежать ошибок представления в виде числа с плавающей точкой
-                        rate_str: 
+                          description: Стоимость доставки в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+                        rate_str:
                           type: string
-                          description: Человекочитаемая стоимость доставки с указанием валюты, формат plaintext
-                        rate_html: 
+                          description: Стоимость доставки (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+                        rate_html:
                           type: string
-                          description: Человекочитаемая стоимость доставки с указанием валюты, формат HTML
-                        currency: 
+                          description: Стоимость доставки (форматированное число с HTML-вариантом названия валюты, если оно доступно)
+                        currency:
                           type: string
-                          description: 3-буквенный код валюты, например, RUB
-                        type: 
+                          description: 3-буквенный код валюты
+                        type:
                           type: string
                           enum:
                             - todoor
                             - post
                             - pickup
-                          description: Тип доставки, один из shipping_types. Курьер, почта, самовывоз.
-                        est_delivery: 
+                          description: |
+                            Тип доставки:
+
+                            + **todoor**: курьер
+                            + **post**: почта
+                            + **pickup**: самовывоз
+                        est_delivery:
                           type: string
-                          description: Ориентировочная дата доставки, человекочитаемая строка.
-                        delivery_date: 
+                          description: Ориентировочная дата доставки в виде локализованной строки
+                        delivery_date:
                           type: array
-                          description: Ориентировочная дата доставки, машиночитаемый формат. Одна или две даты. Одна - доставка в указанный день. Две - возможный интервал доставки.
-                          items: 
+                          description: Информация об ориентировочном времени доставки (в машиночитаемом формате); одно значение — доставка в указанный день, два значения — границы допустимого интервала времени доставки
+                          items:
                             type: string
-                            description: Дата в формате "2001-01-31 00:00:01"
+                            description: Дата и время в формате `гггг-мм-дд чч:мм:сс`
 
 components:
   schemas:
@@ -1003,7 +1249,7 @@ components:
           description: Смещение относительно начала списка отфильтрованных товаров
         limit:
           type: integer
-          description: Количество товаров, которые нужно получить
+          description: Максимальное количество товаров, которые нужно получить
         products:
           type: array
           description: Список товаров
@@ -1011,20 +1257,20 @@ components:
             $ref: '#/components/schemas/ProductInfo'
     ProductReviewInfo:
       type: object
-      description: Отзыв покупателя о товаре или комментарий на отзыв
+      description: Отзыв покупателя о товаре или ответ на отзыв
       properties:
         id:
           type: integer
           description: ID отзыва
         depth:
           type: integer
-          description: Глубина в дереве комментариев. У отзыва depth=0, у комментария depth>0.
+          description: Глубина расположения в дереве ответов; значение 0 — у *отзывов* верхнего уровня, значение больше 0 — у *ответов*
         parent_id:
           type: integer
-          description: ID отзыва или комментария, ответом на который является текущий комментарий.
+          description: ID отзыва либо ответа, являющегося родительским для текущего ответа
         datetime:
           type: string
-          description: Время создания отзыва или комментария в формате 'YYYY-MM-DD hh:mm:ss'
+          description: Время создания отзыва или ответа в формате `гггг-мм-дд чч:мм:сс`
         title:
           type: string
           description: Заголовок
@@ -1033,43 +1279,45 @@ components:
           description: Текст
         rate:
           type: number
-          description: Оценка товара. Бывает только у отзывов, у комментариев отсутствует.
+          description: Оценка товара (только для отзывов, недоступна для ответов)
           nullable: true
         author_name:
           type: string
           description: Имя автора
         author_photo_url_20:
           type: string
-          description: Аватар автора, квадрат размером 20 пикселей
+          format: uri
+          description: URL файла изображения автора в виде квадрата со стороной 20 пикселей
         author_photo_url_50:
           type: string
-          description: Аватар автора, квадрат размером 50 пикселей
+          format: uri
+          description: URL файла изображения автора в виде квадрата со стороной 50 пикселей
         images:
           type: array
-          description: Фотографии товара, оставленные с отзывом или комментарием
+          description: Список изображений, добавленных вместе с отзывом или ответом
           items:
             $ref: '#/components/schemas/ProductReviewImageInfo'
         comments:
           type: array
-          description: Комментарии на текущий отзыв или комментарий. Без параметра tree все комментарии будут внутри отзыва плоским списком. Если передан непустой параметр tree, то комментарии будут древовидной структурой, каждый непосредственно внутри того комментария, на который оставлен.
+          description: Список ответов на текущий отзыв или комментарий; без флага в параметре `tree` все ответы на отзыв перечисляются в виде простого списка, в противном случае — в виде древовидной структуры
           items:
             $ref: '#/components/schemas/ProductReviewInfo'
     ProductReviewImageInfo:
       type: object
-      description: Фотография товара, оставленная покупателем вместе с отзывом на товар
+      description: Изображение, добавленное вместе с отзывом
       properties:
         id:
           type: integer
-          description: ID фотографии
+          description: ID изображения
         description:
           type: string
-          description: Описание фотографии
+          description: Описание
         width:
           type: integer
-          description: Ширина картинки в пикселях
+          description: Ширина в пикселях
         height:
           type: integer
-          description: Высота картинки в пикселях
+          description: Высота в пикселях
         size:
           type: integer
           description: Размер файла в байтах
@@ -1078,25 +1326,32 @@ components:
           description: Имя файла
         url_0:
           type: string
-          description: URL самого крупного изображения. Ограничение по максимальной стороне 970 пикселей.
+          format: uri
+          description: URL самого большого изображения с максимальной стороной 970 пикселей
         url_1:
           type: string
-          description: URL изображения. Ограничение по максимальной стороне 750 пикселей.
+          format: uri
+          description: URL изображения с максимальной стороной 750 пикселей
         url_2:
           type: string
-          description: URL изображения. Ограничение по ширине 750 пикселей.
+          format: uri
+          description: URL изображения с максимальной шириной 750 пикселей
         url_3:
           type: string
-          description: URL изображения. Ограничение по ширине 200 пикселей.
+          format: uri
+          description: URL изображения с максимальной шириной 200 пикселей
         url_4:
           type: string
-          description: URL изображения. Квадрат размером 96 пикселей.
+          format: uri
+          description: URL изображения в виде квадрата со стороной 96 пикселей
         url_5:
           type: string
-          description: URL изображения. Квадрат размером 48 пикселей.
+          format: uri
+          description: URL изображения в виде квадрата со стороной 48 пикселей
         url_6:
           type: string
-          description: URL изображения. Ограничение по высоте 320 пикселей.
+          format: uri
+          description: URL изображения с максимальной высотой 320 пикселей
     ProductInfo:
       type: object
       description: Свойства товара
@@ -1129,7 +1384,8 @@ components:
         status:
           type: integer
           description: |
-            Статус
+            Статус:
+
             + **-1**: снят с публикации
             + **0**: скрытый
             + **1**: опубликован
@@ -1150,17 +1406,19 @@ components:
         image_count:
           type: integer
           nullable: true
-          description: Количество изображений товара
+          description: Количество изображений
         reviews_count:
           type: integer
           nullable: true
-          description: Количество отзывов о товаре
+          description: Количество отзывов
         image_crop_small:
           type: string
+          format: uri
           nullable: true
-          description: URL изображения размером 48х48
+          description: URL изображения в виде квадрата со стороной 48 пикселей
         video_url:
           type: string
+          format: uri
           nullable: true
           description: URL видеоролика
         sku_id:
@@ -1185,7 +1443,8 @@ components:
         count_denominator:
           type: integer
           description: |
-            Доступная точность указания складских остатков товара
+            Доступная точность указания складских остатков товара:
+
             + **1**: целые штуки
             + **10**: точность до десятых
             + **100**: точность до сотых
@@ -1219,13 +1478,15 @@ components:
         category_id:
           type: integer
           description: ID основной категории
+          nullable: true
         badge:
           type: string
-          description: Обозначение одной из стандартных наклеек либо HTML собственной наклейки для изображений
+          description: Обозначение одной из стандартных наклеек либо HTML-код собственной наклейки для изображений
         sku_type:
           type: integer
           description: |
-            Тип выбора модификаций товара на витрине
+            Тип выбора модификаций товара на витрине:
+
             + **0**: по наименованиям артикулов
             + **1**: по значениям характеристик
           enum:
@@ -1236,18 +1497,18 @@ components:
           description: Количество модификаций
         skus:
           type: array
-          description: Модификации
+          description: Список модификаций
           items:
             $ref: '#/components/schemas/ProductVariantInfo'
         category_ids:
           type: array
-          description: id категорий, в которых состоит товар
+          description: Список ID категорий, в которых состоит товар
           nullable: true
           items:
             type: integer
         categories:
           type: array
-          description: Информация о категориях, в которых состоит товар
+          description: Список категорий, в которых состоит товар
           nullable: true
           items:
             $ref: '#/components/schemas/ProductCategoryInfo'
@@ -1259,13 +1520,97 @@ components:
             type: string
         features:
           type: array
-          description: Информация о характеристиках товара
+          description: Список значений характеристик
           nullable: true
           items:
             $ref: '#/components/schemas/FeatureInfo'
+        sku_selection:
+          type: object
+          description: Информация о способе выбора модификаций товара на витрине
+          nullable: true
+          properties:
+            features_selectable:
+              type: array
+              description: Список характеристик, использующихся для выбора модификаций
+              items:
+                $ref: '#/components/schemas/FeatureInfo'
+            sku_features_selectable:
+              type: array
+              description: Список комбинаций модификаций товара и значений характеристик, используемых для их выбора на витрине
+              items:
+                type: object
+                properties:
+                  sku_id:
+                    type: integer
+                    description: ID модификации
+                  feature_id:
+                    type: integer
+                    description: ID характеристики
+                  price:
+                    type: number
+                    description: Цена модификации
+                  available:
+                    type: boolean
+                    description: Статус доступности модификации для покупки
+                  image_id:
+                    type: integer
+                    description: ID изображения
+        services:
+          type: array
+          description: Список услуг товара
+          nullable: true
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: ID услуги
+              name:
+                type: string
+                description: Название
+              description:
+                type: string
+                nullable: true
+                description: Описание
+              currency:
+                type: string
+                description: 3-буквенный код валюты
+              variant_id:
+                type: integer
+                description: ID варианта услуги
+              sort:
+                type: integer
+                description: Значение сортировки
+              variants:
+                type: array
+                description: Варианты услуги
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: ID варианта
+                    name:
+                      type: string
+                      description: Название
+                    price:
+                      type: number
+                      description: Цена
+                    currency:
+                      type: string
+                      description: 3-буквенный код валюты
+                    price_exact:
+                      type: string
+                      description: Цена в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+                    price_str:
+                      type: string
+                      description: Цена (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+                    price_html:
+                      type: string
+                      description: Цена (форматированное число с HTML-вариантом названия валюты, если оно доступно)
         images:
           type: array
-          description: Изображения
+          description: Список изображений
           nullable: true
           items:
             $ref: '#/components/schemas/ProductImageInfo'
@@ -1276,15 +1621,15 @@ components:
             thumb_url:
               type: string
               format: uri
-              description: URL эскиза размером '200x0'
+              description: URL основного изображения с максимальной шириной 200 пикселей
             crop_url:
               type: string
               format: uri
-              description: URL эскиза размером '96x96'
+              description: URL основного изображения в виде квадрата со стороной 96 пикселей
             big_url:
               type: string
               format: uri
-              description: URL эскиза размером по большой стороне 970 px
+              description: URL основного изображения с максимальной стороной 970 пикселей
     OrderCartInfo:
       type: array
       description: Список позиций в заказе
@@ -1307,6 +1652,15 @@ components:
           price:
             type: number
             description: Стоимость одной единицы товара или услуги
+          price_str:
+            type: string
+            description: Цена (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+          price_html:
+            type: string
+            description: Цена (форматированное число с HTML-вариантом названия валюты, если оно доступно)
+          price_exact:
+            type: string
+            description: Цена в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
           product_id:
             type: integer
             description: ID товара
@@ -1330,7 +1684,20 @@ components:
             description: Количество
           total_discount:
             type: number
-            description: Общая скидка на всю позицию (не за единицу товара)
+            description: Общая скидка на все количество данной позиции
+          value:
+            type: number
+            description: Общая стоимость позиции
+          value_str:
+            type: string
+            description: Стоимость (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+          value_html:
+            type: string
+            description: Стоимость (форматированное число с HTML-вариантом названия валюты, если оно доступно)
+          value_exact:
+            type: string
+            description: Стоимость в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+
     CartInfo:
       type: array
       description: Список позиций в корзине покупателя
@@ -1377,11 +1744,12 @@ components:
             description: Количество
           total_discount:
             type: number
-            description: Общая скидка на всю позицию (не за единицу товара)
+            description: Общая скидка на все количество позиции
           product:
             $ref: '#/components/schemas/ProductInfo'
     ProductVariantInfo:
       type: object
+      description: Свойства модификации товара
       properties:
         id:
           type: integer
@@ -1404,32 +1772,36 @@ components:
           description: Цена
         price_str:
           type: string
-          description: Форматированная цена со знаком валюты, plaintext
+          description: Цена (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
         price_html:
           type: string
-          description: Форматированная цена со знаком валюты, HTML
+          description: Цена (форматированное число с HTML-вариантом названия валюты, если оно доступно)
         price_exact:
           type: string
-          description: Цена в виде строки (чтобы избежать ошибки представления в виде float)
+          description: Цена в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
         compare_price:
           type: number
           description: Зачеркнутая цена
         compare_price_str:
           type: string
-          description: Форматированная цена со знаком валюты, plaintext
+          description: Зачеркнутая цена (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
         compare_price_html:
           type: string
-          description: Форматированная цена со знаком валюты, HTML
+          description: Зачеркнутая цена (форматированное число с HTML-вариантом названия валюты, если оно доступно)
         compare_price_exact:
           type: string
-          description: Цена в виде строки (чтобы избежать ошибки представления в виде float)
+          description: Зачеркнутая цена в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
         count:
           type: number
           nullable: true
           description: Общее количество на всех складах
         available:
           type: integer
-          description: Флаг доступности для заказа
+          description: |
+            Статус доступности для заказа:
+
+            + **0**: недоступна
+            + **1**: доступна
           enum:
             - 0
             - 1
@@ -1444,7 +1816,11 @@ components:
           description: Значение изменения количества кнопками «+/-»
         status:
           type: integer
-          description: Флаг видимости на витрине
+          description: |
+            Статус видимости на витрине:
+
+            + **0**: не видна
+            + **1**: видна
           enum:
             - 0
             - 1
@@ -1456,7 +1832,7 @@ components:
           description: Размер прикрепленного файла в байтах
         file_description:
           type: string
-          description: Описание прикрепленного файла в байтах
+          description: Описание прикрепленного файла
         stock:
           type: object
           description: Остатки на складах
@@ -1466,12 +1842,41 @@ components:
           description: 3-буквенный код валюты
         features:
           type: array
-          description: Информация о характеристиках артикула
+          description: Список значений характеристик
           nullable: true
           items:
             $ref: '#/components/schemas/FeatureInfo'
+        services:
+          type: array
+          description: Список услуг
+          nullable: true
+          items:
+            type: object
+            properties:
+              service_id:
+                type: integer
+                description: ID услуги
+              variant_id:
+                type: integer
+                description: ID варианта
+              name:
+                type: string
+                description: Название варианта
+              price:
+                type: number
+                description: Цена варианта
+              price_exact:
+                type: string
+                description: Цена в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+              price_str:
+                type: string
+                description: Цена (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+              price_html:
+                type: string
+                description: Цена (форматированное число с HTML-вариантом названия валюты, если оно доступно)
     ProductImageInfo:
       type: object
+      description: Информация об изображении товара
       properties:
         id:
           type: integer
@@ -1496,7 +1901,7 @@ components:
           description: Имя файла
         ext:
           type: string
-          description: расширение имени файла
+          description: Расширение имени файла
         badge_type:
           type: integer
           nullable: true
@@ -1508,17 +1913,18 @@ components:
         url_thumb:
           type: string
           format: uri
-          description: URL эскиза размером '200x0'
+          description: URL эскиза с максимальной шириной 200 пикселей
         url_crop:
           type: string
           format: uri
-          description: URL эскиза размером '96x96'
+          description: URL эскиза в виде квадрата со стороной 96 пикселей
         url_big:
           type: string
           format: uri
-          description: URL эскиза размером '750x0'
+          description: URL эскиза с максимальной стороной 750 пикселей
     ProductCategoryInfo:
       type: object
+      description: Свойства категории товаров
       properties:
         id:
           type: integer
@@ -1528,6 +1934,7 @@ components:
           description: Уровень в структуре иерархии
         parent_id:
           type: integer
+          nullable: true
           description: ID родительской категории
         name:
           type: string
@@ -1550,64 +1957,122 @@ components:
             - 0
             - 1
           description: |
-            Тип
+            Тип:
+
             + **0**: статическая
             + **1**: динамическая
         url:
           type: string
-          format: uri
           description: Редактируемая часть URL страницы категории
         full_url:
           type: string
-          format: uri
-          description: Относительный URL категории с учетом URL родительских категорий
+          description: Конечный фрагмент URL категории с учетом адресов ее родительских категорий
         description:
           type: string
           description: Описание
         categories:
           type: array
           nullable: true
-          description: Подкатегории
+          description: Список подкатегорий
           items:
             $ref: '#/components/schemas/ProductCategoryInfo'
+        filters:
+          type: array
+          nullable: true
+          description: Список фильтров
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/FeatureInfo'
+              - type: object
+                properties:
+                  name:
+                    type: string
+                    description: Название
+                  values:
+                    type: array
+                    nullable: true
+                    description: Список значений
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Название
+                        value:
+                          type: string
+                          description: Значение
     FeatureInfo:
       type: object
+      description: Свойства характеристики товаров
       properties:
         id:
           type: integer
-          description: Идентификатор характеристики
+          description: Идентификатор
         code:
           type: string
-          description: Код характеристики
-        status:
-          type: string
-          description: Статус характеристки
-          enum:
-            - public
-            - hidden
-            - private
+          description: Код
         name:
           type: string
-          description: Название характеристики
+          description: Название
         type:
           type: string
-          description: Тип характеристики
+          description: Тип
         selectable:
           type: integer
-          description: Флаг указывающий возможность выбора одного значения из списка
+          description: |
+            Статус доступности выбора значений из списка:
+
+            + **0**: недоступен
+            + **1**: доступен
+          enum:
+            - 0
+            - 1
         multiple:
           type: integer
-          description: Флаг указывающий возможность выбора нескольких значений из списка
+          description: |
+            Статус доступности выбора нескольких значений из списка
+
+            + **0**: недоступен
+            + **1**: доступен
+          enum:
+            - 0
+            - 1
         count:
           type: integer
-          description: Количество значений характеристики
+          description: Количество значений
         default_unit:
           nullable: true
           type: string
-          description: Единица измерения характеристики по умолчанию
-        value_html:
-          type: string
-          description: Значение характеристики
+          description: Единица измерения по умолчанию
+        value:
+          oneOf:
+            - type: string
+              nullable: true
+              description: Одно значение
+            - type: object
+              properties:
+                name:
+                  type: string
+                  description: Название
+                value:
+                  type: string
+                  description: Значение
+        values:
+          type: array
+          nullable: true
+          description: Список значений
+          items:
+            oneOf:
+              - type: string
+                description: Значение
+              - type: object
+                properties:
+                  name:
+                    type: string
+                    description: Название
+                  value:
+                    type: string
+                    description: Значение
     shippingAddress:
       type: object
       description: Адрес доставки
@@ -1618,12 +2083,13 @@ components:
       properties:
         country:
           type: string
-          description: 3-буквенный код страны, например, rus
+          description: 3-буквенный код страны
+          example: rus
         region:
-          description: Код региона или название региона, если коды у страны не предусмотрены
+          description: Код региона (или его название, если у региона отсутствует код)
           type: string
         city:
-          description: Город
+          description: Название населенного пункта
           type: string
         zip:
           description: Почтовый индекс
@@ -1639,7 +2105,7 @@ components:
       properties:
         name:
           type: string
-          description: Имя
+          description: Полное имя
         email:
           type: string
           description: Email-адрес
@@ -1653,21 +2119,37 @@ components:
       type: object
       properties:
         address:
-          - $ref: '#/components/schemas/shippingAddress'
+          $ref: '#/components/schemas/shippingAddress'
         customer:
-          - $ref: '#/components/schemas/orderCustomer'
+          $ref: '#/components/schemas/orderCustomer'
         payment_id:
           type: string
           nullable: true
-          description: id способа оплаты
+          description: Идентификатор способа оплаты
         shipping_id:
           type: string
           nullable: true
-          description: способ доставки, см. /shipping/list; можно указать ли shipping_id, либо shipping_variant_id
+          description: Идентификатор способа или варианта доставки
         shipping_variant_id:
           type: string
           nullable: true
-          description: способ доставки, см. /shipping/costs
+          description: Идентификатор варианта доставки
+        antispam_hash:
+          type: string
+          description: |
+            Хеш для защиты от спама — вычисляется по формуле:
+
+            `SHA-256(antispam_api_key + antispam_cart_key + title + text)`
+
+            где
+            + `antispam_api_key` — секретный ключ, который нужно скопировать в разделе «*Витрина → Headless*» бекенда Shop-Script
+            + `antispam_cart_key` — привязанный к корзине ключ, который обновляется несколько раз в сутки и используется в методах */shop* и */customer_token*
+            + `title` — заголовок отзыва (используется при добавлении отзывов)
+            + `text` — текст отзыва (используется при добавлении отзывов)
+
+            Строки хешируются в кодировке UTF-8. Если в ответах на запросы к методам */shop* и */customer_token* отсутствует значение `antispam_cart_key`, значит, защита отключена и отправлять параметры `antispam_hash` и `customer_token` необязательно.
+
+            При получении ошибки валидации `antispam_check_failed` нужно повторно получить значение `antispam_cart_key` — это значит, что ключ мог устареть.
 
   parameters:
     customerToken:
@@ -1724,8 +2206,8 @@ components:
         + **categories**: в содержимое ответа добавляется элемент с ключом '*categories*' с информацией обо всех категориях, в которые включен товар.
         + **category_ids**: в содержимое ответа добавляется элемент с ключом '*categories*' с информацией обо всех категориях, в которые включен товар.
         + **tags**: в содержимое ответа добавляется элемент с ключом '*tags*' со списком тегов товара.
-        + **features**: в содержимое ответа добавляется элемент с ключом '*features*' со списком характристик товара
-        + **sku_features**: в содержимое ответа каждой модификации товара добавляется элемент с ключом '*features*' со списком характристик модификации
+        + **features**: в содержимое ответа добавляется элемент с ключом '*features*' со списком характеристик товара
+        + **sku_features**: в содержимое ответа каждой модификации товара добавляется элемент с ключом '*features*' со списком характеристик модификации
       required: false
       schema:
         type: array
@@ -1758,7 +2240,8 @@ components:
       in: query
       name: sort
       description: |
-        Правило сортировки
+        Правило сортировки**:
+
         + по **любому стандартному полю товара**, например: *name*, *create_datetime*, *price*, или нескольким полям, указанным в виде массива
         + **minimum_price**: по минимальной цене среди артикулов
         + **minimum_base_price**: по минимальной базовой цене среди артикулов
@@ -1773,7 +2256,7 @@ components:
           - type: string
             description: ID поля
           - type: array
-            description: Массив ID полей
+            description: Список ID полей
             items:
               type: string
     productListParamOrder:
@@ -1781,6 +2264,7 @@ components:
       name: order
       description: |
         Направление сортировки:
+
         + **asc**: по возрастанию
         + **desc**: по убыванию
       required: false

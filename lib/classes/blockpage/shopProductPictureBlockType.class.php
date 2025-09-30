@@ -13,7 +13,6 @@ class shopProductPictureBlockType extends siteBlockType
         if ($hidden_block) {
             return;
         }
-        // wa_dump($tmpl_vars['product']);
         //$tmpl_vars['html'] = $data->data['additional']['html'];
         return parent::render($data, $is_backend, $tmpl_vars);
     }

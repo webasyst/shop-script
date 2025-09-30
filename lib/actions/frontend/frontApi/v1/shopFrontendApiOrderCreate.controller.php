@@ -52,7 +52,7 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
                 $ex->getCode(),
                 $ex instanceof waException ? $ex->getFullTraceAsString() : $ex->getTraceAsString(),
             ]);
-            throw new waAPIException('checkout_error', _w('Unable to create order.'), 500);
+            throw new waAPIException('checkout_error', _w('Failed to create an order.'), 500);
         }
 
         list($stock_id, $virtualstock_id) = shopFrontendCheckoutAction::determineStockIds($order);
@@ -65,10 +65,10 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
 
         try {
             $saved_order = $order->save();
-            $this->logAgreementAcceptance($order, $config);
+            $this->logAgreementAcceptance($saved_order, $config);
         } catch (waException $ex) {
             $errors = $order->errors();
-            throw new waAPIException('checkout_error', _w('Unable to create order.'), 400, [
+            throw new waAPIException('checkout_error', _w('Failed to create an order.'), 400, [
                 'data' => $errors,
             ]);
         }
@@ -82,9 +82,6 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
 
     protected function logAgreementAcceptance($order, $config)
     {
-        return; // !!! TODO
-
-
         if (ifempty($config, 'customer', 'service_agreement', false)) {
             wa('webasyst');
             webasystHelper::logAgreementAcceptance(

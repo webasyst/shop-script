@@ -1,4 +1,4 @@
-<div class="article">
+<div class="article" id="js-headless-page-wrapper">
     <div class="article-body">
         <h1>[`Headless API`]</h1>
         <p class="small">
@@ -22,7 +22,7 @@
                 <td>{ifset($route, '_name', '(none)')}</td>
                 <td>
                     {$domain}/<code>{$route.url}</code>
-                    <p class="smaller"{if empty($storefront_mode)} style="display: none;"{/if}>Swagger: <a href="{$route.yaml_url|escape}" class="bold" target="_blank">{$route.yaml_url|escape}</a></p>
+                    <p class="js-yaml-url smaller"{if empty($storefront_mode)} style="display: none;"{/if}>OpenAPI: <a href="{$route.yaml_url|escape}" class="bold" target="_blank">{$route.yaml_url|escape}</a></p>
                 </td>
                 <td class="align-center">
                     <span class="switch-{$id} switch smaller"{if $storefront_mode == 'api'} title="[`Headless mode (API only, no public site)`]"{/if}>
@@ -33,20 +33,77 @@
                 {/foreach}
             {/foreach}
         </table>
+
+        <h3>
+            [`Antispam protection`]
+            <span id="js-antispam-toggle" class="switch small custom-ml-4">
+              <input type="checkbox"{if !empty($antispam_enabled)} checked{/if}>
+            </span>
+        </h3>
+
+        <p>
+
+        </p>
+
+        <div class="fields form" id="js-antispam-form"{if empty($antispam_enabled)} style="display:none"{/if}>
+            <p class="small"><i class="fas fa-check-circle custom-mr-4 text-blue"></i>[`<b>You are all set!</b> Requests to the Headless API for saving data will be protected with this antispam key. All apps and widgets by Webasyst offer support for the antispam protection out of the box.`]</p>
+            <div class="field">
+                <div class="name for-input">
+                    [`Antispam key`]
+                </div>
+                <div class="value">
+                    <input type="text" id="js-antispam-key-field" class="long" value="{$antispam_key|default:''|escape}">
+                    <p class="hint">[`Do not expose the key to a third party. Feel free to reset it in case of any issues with spam.`]</p>
+                </div>
+            </div>
+
+            <div class="field" style="display:none">
+                <div class="value submit">
+                    <input id="js-save-antispam-key" type="submit" class="button green" value="[`Save new antispam key`]">
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
     (function ($) {
-        $('[class^="switch-"]').waSwitch({
+        $('#js-headless-page-wrapper .switch[class^="switch-"]').waSwitch({
             change: function(active, wa_switch) {
                 let data = {
                     id: wa_switch.$wrapper.find('input').val(),
                     domain: wa_switch.$wrapper.find('input').data('domain'),
-                    on: (active ? 1 : 0)
+                    on: (active ? '1' : '')
                 };
                 $.post('{$wa_app_url}?module=api&action=switch', data);
+
+                wa_switch.$wrapper.closest('tr').find('.js-yaml-url').toggle(active);
             }
+        });
+
+        const $antispam_fields = $('#js-antispam-form');
+        const $antispam_save_button = $('#js-save-antispam-key');
+        const $antispam_field = $('#js-antispam-key-field');
+
+        $('#js-antispam-toggle').waSwitch({
+            change: function(active, wa_switch) {
+                $antispam_fields.toggle(active);
+                $.post('{$wa_app_url}?module=api&action=antispam', {
+                    on: (active ? 1 : 0)
+                });
+            }
+        });
+
+        $antispam_field.on('keyup change', function() {
+            $antispam_save_button.closest('.field').show();
+        });
+
+        $antispam_save_button.click(function() {
+            $antispam_save_button.closest('.field').hide();
+            $.post('{$wa_app_url}?module=api&action=antispam', {
+                key: $antispam_field.val()
+            });
         });
     })(jQuery);
 </script>

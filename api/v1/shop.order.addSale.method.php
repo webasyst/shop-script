@@ -8,7 +8,7 @@ class shopOrderAddSaleMethod extends shopApiMethod
     public function execute()
     {
         if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
-            throw new waAPIException('access_denied', 'Action not available for user', 403);
+            throw new waAPIException('access_denied', _w('Action not available to user.'), 403);
         }
         $contact_id = $this->post('contact_id');
         if ($contact_id !== null) {
@@ -45,7 +45,7 @@ class shopOrderAddSaleMethod extends shopApiMethod
             $order['comment'] = $comment;
         }
         if (empty($order['items'])) {
-            throw new waAPIException('items_required', 'Order items are required', 400);
+            throw new waAPIException('items_required', _w('Order items are required.'), 400);
         }
         if (empty($order['params']['coupon_id'])) {
             $coupon_id = waRequest::post('coupon_id', null, 'int');
@@ -60,7 +60,7 @@ class shopOrderAddSaleMethod extends shopApiMethod
             $method = new shopOrderGetInfoMethod();
             $this->response = $method->getResponse(true);
         } else {
-            throw new waAPIException('server_error', 'Error', 500);
+            throw new waAPIException('server_error', _w('An error has occurred.'), 500);
         }
     }
 

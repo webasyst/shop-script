@@ -61,7 +61,7 @@ class shopProdAiGenerateDescriptionController extends waJsonController
             $fields_to_fill = ['description' => 1];
         }
         if (isset($fields_to_fill['description'])) {
-            if (!$skip_if_exists || !$product['description']) {
+            if (!$skip_if_exists || !strlen(trim(ifset($product, 'description', '')))) {
                 $res = $description_request->generate();
                 if (!empty($res['description'])) {
                     $product['description'] = $this->response['description'] = $res['description'];
@@ -72,7 +72,7 @@ class shopProdAiGenerateDescriptionController extends waJsonController
             }
         }
         if (isset($fields_to_fill['summary'])) {
-            if (!$skip_if_exists || !$product['summary']) {
+            if (!$skip_if_exists || !strlen(trim(ifset($product, 'summary', '')))) {
                 $description_request->setFieldValue('text_length', 'minimal');
                 if ($product['description']) {
                     $description_request->setFieldValue('traits', $product['description']);

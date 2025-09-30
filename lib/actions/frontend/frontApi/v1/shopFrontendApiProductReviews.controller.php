@@ -13,14 +13,14 @@ class shopFrontendApiProductReviewsController extends shopFrontApiJsonController
     {
         $offset = waRequest::request('offset', 0, 'int');
         if ($offset < 0) {
-            throw new waAPIException('invalid_param', 'offset must be greater than or equal to zero');
+            throw new waAPIException('invalid_param', _w('An “offset” parameter value must be greater than or equal to zero.'));
         }
         $limit = waRequest::request('limit', 100, 'int');
         if ($limit < 0) {
-            throw new waAPIException('invalid_param', 'limit must be greater than or equal to zero');
+            throw new waAPIException('invalid_param', _w('A “limit” parameter value must be greater than or equal to zero.'));
         }
         if ($limit > 1000) {
-            throw new waAPIException('invalid_param', sprintf_wp('The “limit” parameter value must not exceed %s.', 1000));
+            throw new waAPIException('invalid_param', sprintf_wp('A “limit” parameter value must not exceed %s.', 1000));
         }
         return [$offset, $limit];
     }
@@ -29,7 +29,7 @@ class shopFrontendApiProductReviewsController extends shopFrontApiJsonController
     {
         $product_id = waRequest::param('id', null, 'int');
         if (!$product_id) {
-            throw new waAPIException('invalid_param', 'product id is required');
+            throw new waAPIException('invalid_param', _w('An “id” parameter value is required.'));
         }
 
         $parent_review_id = waRequest::request('parent_review_id', null, 'int');
@@ -53,7 +53,7 @@ class shopFrontendApiProductReviewsController extends shopFrontApiJsonController
             'max_depth' => $depth,
         ]);
         $reviews = array_map([$formatter, 'format'], $reviews);
-        
+
         $this->response = [
             'count' => $parent_review_id ? 1 : (int) $reviews_model->countInFrontend($product_id),
             'offset' => $offset,

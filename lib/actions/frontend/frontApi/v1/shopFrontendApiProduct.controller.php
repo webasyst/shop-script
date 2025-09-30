@@ -10,7 +10,7 @@ class shopFrontendApiProductController extends shopFrontendApiProductsSearchCont
     {
         parent::get();
         if (empty($this->response['products'])) {
-            throw new waAPIException('not_found', 'Product not found', 404);
+            throw new waAPIException('not_found', _w('Product not found.'), 404);
         }
         $product = reset($this->response['products']);
 
@@ -18,7 +18,6 @@ class shopFrontendApiProductController extends shopFrontendApiProductsSearchCont
             $view = wa('shop')->getView();
             $view->assign('product', $product);
             $product['description'] = $view->fetch('string:'.$product['description']);
-            wa_dump($product['description']);
         }
 
         $this->response = $product;
@@ -29,7 +28,7 @@ class shopFrontendApiProductController extends shopFrontendApiProductsSearchCont
     {
         $id = $this->getRequest()->param('id', 0, waRequest::TYPE_INT);
         if (!$id) {
-            throw new waAPIException('invalid_param', 'id is required');
+            throw new waAPIException('invalid_param', _w('An “id” parameter value is required.'));
         }
         return 'id/'.$id;
     }

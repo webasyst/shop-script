@@ -567,6 +567,18 @@ class shopFrontendOrderCartActions extends waJsonActions
         exit;
     }
 
+    public function customertokenAction()
+    {
+        $customer_token = waRequest::request('customer_token', null, 'string');
+        if ($customer_token) {
+            wa()->getResponse()->setCookie(shopCart::COOKIE_KEY, $customer_token);
+            new shopCart($customer_token, [
+                'merge_carts' => false,
+            ]);
+        }
+        $this->redirect(wa()->getRouteUrl('shop/frontend/order'), 302);
+    }
+
     protected function getOpts()
     {
         $opts = waRequest::post('opts', array(), 'array');

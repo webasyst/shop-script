@@ -30,7 +30,7 @@ class shopFrontendApiProductsSearchController extends shopFrontApiJsonController
         if ($product_ids) {
             $product_ids = array_filter(array_map('intval', array_map('trim', explode(',', $product_ids))));
             if (!$product_ids) {
-                throw new waAPIException('invalid_param', 'bad product_ids');
+                throw new waAPIException('invalid_param', sprintf_wp('Incorrect value of the “%s” parameter.', 'product_ids'));
             }
             return 'id/'.join(',', $product_ids);
         }
@@ -50,7 +50,7 @@ class shopFrontendApiProductsSearchController extends shopFrontApiJsonController
             return 'search/query='.str_replace('&', '\&', $search_term);
         }
 
-        throw new waAPIException('invalid_param', 'query is required');
+        throw new waAPIException('invalid_param', sprintf_wp('Missing required parameter: %s.', 'query'));
     }
 
     protected function getFilters()
@@ -62,14 +62,14 @@ class shopFrontendApiProductsSearchController extends shopFrontApiJsonController
     {
         $offset = waRequest::request('offset', 0, 'int');
         if ($offset < 0) {
-            throw new waAPIException('invalid_param', 'offset must be greater than or equal to zero');
+            throw new waAPIException('invalid_param', _w('An “offset” parameter value must be greater than or equal to zero.'));
         }
         $limit = waRequest::request('limit', 100, 'int');
         if ($limit < 0) {
-            throw new waAPIException('invalid_param', 'limit must be greater than or equal to zero');
+            throw new waAPIException('invalid_param', _w('A “limit” parameter value must be greater than or equal to zero.'));
         }
         if ($limit > 1000) {
-            throw new waAPIException('invalid_param', sprintf_wp('The “limit” parameter value must not exceed %s.', 1000));
+            throw new waAPIException('invalid_param', sprintf_wp('A “limit” parameter value must not exceed %s.', 1000));
         }
         return [$offset, $limit];
     }
@@ -111,7 +111,7 @@ class shopFrontendApiProductsSearchController extends shopFrontApiJsonController
                 $additional_fields = explode(',', $additional_fields);
             }
             if (!is_array($additional_fields)) {
-                throw new waAPIException('invalid_param', 'fields parameter must be a string or a list of strings');
+                throw new waAPIException('invalid_param', _w('The “fields” parameter must contain either a string of values separated by comma or an array of strings.'));
             }
             foreach ($additional_fields as $f) {
                 $f = trim($f);

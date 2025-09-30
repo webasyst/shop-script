@@ -15,7 +15,7 @@ class shopFeatureAddMethod extends shopApiMethod
         $this->post('name', true);
         $feature_model = new shopFeatureModel();
         if ($feature_model->getByCode($code)) {
-            throw new waAPIException('invalid_param', 'Code '.$code.' already exists');
+            throw new waAPIException('invalid_param', sprintf_wp('Code %s already exists.', $code));
         }
 
         $types =  array(
@@ -27,7 +27,7 @@ class shopFeatureAddMethod extends shopApiMethod
         );
 
         if (!in_array($type, $types)) {
-            throw new waAPIException('invalid_param', 'Invalid type: '.$type);
+            throw new waAPIException('invalid_param', sprintf_wp('Invalid type: %s.', $type));
         }
 
         $data = waRequest::post();

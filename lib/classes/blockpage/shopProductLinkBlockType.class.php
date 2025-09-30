@@ -40,7 +40,6 @@ class shopProductLinkBlockType extends siteBlockType
                 $routing = wa()->getRouting();
                 $storefront = preg_replace('@^https?://@', '', $routing->getUrl('shop/frontend', true));
             }
-            //wa_dump($storefront);
             $url = $prod_data ->getProductUrl($storefront, true);
             if ($url) {
                 $data->data['link_props']['href'] = $p['url'];

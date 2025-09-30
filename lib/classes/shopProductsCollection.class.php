@@ -2271,6 +2271,16 @@ SQL;
             $fields[] = 'currency'; // required for proper rounding and conversion
             $fields[] = 'sku_id'; // be sure to get the main sku to find it in the promo
         }
+        if (in_array('sku_selection', $fields)) {
+            $fields[] = 'currency';
+            $fields[] = 'status';
+            $fields[] = 'order_count_min';
+        }
+        if (in_array('services', $fields)) {
+            $fields[] = 'price';
+            $fields[] = 'currency';
+            $fields[] = 'type_id';
+        }
 
         $virtual_fields = array(
             'images',
@@ -2287,12 +2297,14 @@ SQL;
             'sku',
             'sku_filtered',
             'sku_features',
+            'sku_selection',
             'skus_filtered',
             'skus',
             'skus_image',
             'categories',
             'category_ids',
             'features',
+            'services',
             'tag_ids',
             'tags',
         );
@@ -3289,24 +3301,102 @@ SQL;
                     }
 
                     $product_features = $this->getModel()->query($sql, [array_keys($products)])->fetchAll();
-
                     $feature_ids = array_unique(array_column($product_features, 'feature_id'));
-                    $feature_model = new shopFeatureModel();
-                    $features = $feature_model->getByField('id', $feature_ids, 'id');
+                    $features = $this->getModel('feature')->getById($feature_ids);
 
-                    list($feature_values, $feature_values_skus) = $this->getFeatureValues($product_features, $features);
+                    $type_values = [];
+                    foreach ($product_features as $key => $row) {
+                        if (empty($features[$row['feature_id']])) {
+                            continue;
+                        }
+                        $f = $features[$row['feature_id']];
+                        $type = preg_replace('/\..*$/', '', $f['type']);
+                        if ($type == shopFeatureModel::TYPE_DIVIDER) {
+                            unset($product_features[$key]);
+                        } elseif ($type == shopFeatureModel::TYPE_BOOLEAN) {
+                            $type_values[$type][] = $row['feature_id'];
+                        } else {
+                            $type_values[$type][] = $row['feature_value_id'];
+                        }
+                    }
+
+                    foreach ($type_values as $type => $value_ids) {
+                        $model = shopFeatureModel::getValuesModel($type);
+                        if ($type == shopFeatureModel::TYPE_BOOLEAN) {
+                            $type_values[$type] = $model->getValues('feature_id', array_unique($value_ids));
+                        } else if (is_object($model)) {
+                            $type_values[$type] = $model->getValues('id', $value_ids);
+                        }
+                    }
+
+                    $feature_values = [];
+                    $feature_values_skus = [];
+                    $composite_feature_values = [];
+                    foreach ($product_features as $row) {
+                        if (empty($features[$row['feature_id']])) {
+                            continue;
+                        }
+                        $f = $features[$row['feature_id']];
+                        $type = preg_replace('/\..*$/', '', $f['type']);
+                        if (!ifset($type_values, $type, $row['feature_id'], $row['feature_value_id'], null)) {
+                            continue;
+                        }
+                        if (null === $f['parent_id']) {
+                            if (empty($row['sku_id'])) {
+                                $feature_values[$row['product_id']][$row['feature_id']] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
+                            } else {
+                                $feature_values_skus[$row['sku_id']][$row['feature_id']] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
+                            }
+                        } else {
+                            // Composite features will be processed below.
+                            // Group parts by sku_id and feature.
+                            $composite_feature_values[$row['product_id']][$row['sku_id']][$f['parent_id']][$f['code']] = $type_values[$type][$row['feature_id']][$row['feature_value_id']];
+                        }
+                    }
+
+                    // Process composite features (e.g. NxNxN dimension)
+                    $parent_feature_ids = [];
+                    foreach($composite_feature_values as $product_id => $product_composite_features) {
+                        foreach($product_composite_features as $sku_id => $sku_composite_features) {
+                            foreach($sku_composite_features as $parent_feature_id => $sub_feature_values) {
+                                $parent_feature_ids[$parent_feature_id] = 1;
+                                $count_before = count($sub_feature_values);
+                                $parent_feature_code = rtrim(key($sub_feature_values), '0123456789.');
+                                $value = new shopCompositeValue($parent_feature_code, $sub_feature_values);
+                                if ($count_before != count($sub_feature_values)) {
+                                    // Call to CompositeValue constructor removes its parts from second argument array X_x
+                                    if (empty($sku_id)) {
+                                        $feature_values[$product_id][$parent_feature_id] = $value;
+                                    } else {
+                                        $feature_values_skus[$sku_id][$parent_feature_id] = $value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if ($parent_feature_ids) {
+                        $features += $this->getModel('feature')->getById(array_keys($parent_feature_ids));
+                    }
                     if (!isset($fields['features'])) {
                         unset($feature_values);
                     }
                     foreach ($products as &$p) {
+                        $p['features'] = [];
+                        if (isset($fields['sku_features']) && !empty($p['skus'])) {
+                            foreach ($p['skus'] as &$sku) {
+                                $sku['features'] = [];
+                            }
+                            unset($sku);
+                        }
                         foreach ($features as $fid => $_feature) {
                             if ($feature_val = ifset($feature_values, $p['id'], $fid, [])) {
-                                $p['features'][$fid] = $_feature + $feature_val;
+                                $p['features'][$fid] = $_feature + ['value' => $feature_val];
                             }
-                            if (!empty($p['skus'])) {
+                            if (isset($fields['sku_features']) && !empty($p['skus'])) {
                                 foreach ($p['skus'] as &$sku) {
                                     if ($feature_val = ifset($feature_values_skus, $sku['id'], $fid, [])) {
-                                        $sku['features'][$fid] = $_feature + $feature_val;
+                                        $sku['features'][$fid] = $_feature + ['value' => $feature_val];
                                     }
                                 }
                                 unset($sku);
@@ -3314,6 +3404,176 @@ SQL;
                         }
                     }
                     unset($p);
+                }
+
+                if (isset($fields['sku_selection']) && isset($fields['skus'])) {
+                    $selectable_data = $this->getModel('feature')->query('
+                        SELECT pf.* FROM shop_product_features_selectable pfs
+                        LEFT JOIN shop_product_features pf ON pf.product_id = pfs.product_id AND pf.feature_id = pfs.feature_id AND pf.feature_value_id = pfs.value_id
+                        WHERE pf.product_id IN (?) AND pf.sku_id IS NOT NULL
+                        ORDER BY pfs.product_id, pfs.sort
+                    ', [array_keys($products)])->fetchAll();
+
+                    $selectable_features = $this->getModel('feature')->getById(array_unique(array_column($selectable_data, 'feature_id')));
+
+                    $s = [];
+                    $v = [];
+                    foreach ($selectable_data as $_data) {
+                        if (isset($selectable_features[$_data['feature_id']])) {
+                            $s[$_data['feature_id']] = $selectable_features[$_data['feature_id']];
+                            $v[$_data['feature_id']][] = $_data['feature_value_id'];
+                        }
+                    }
+
+                    $selectable_values = (new shopFeatureModel())->getValues($s, $v);
+                    unset($s, $v);
+
+                    $features_selectable = [];
+                    $ignore_stock_count = $config->getGeneralSettings('ignore_stock_count');
+                    foreach ($selectable_data as $_selectable) {
+                        $selectable_id = ifset($_selectable, 'feature_id', null);
+                        $f_selectable = ifset($selectable_features, $_selectable['feature_id'], []);
+
+                        if (empty($features_selectable[$_selectable['product_id']][$selectable_id])) {
+                            $features_selectable[$_selectable['product_id']][$selectable_id] = $f_selectable + ['values' => []];
+                        }
+
+                        $selectable_value = ifset($selectable_values, $selectable_id, 'values', $_selectable['feature_value_id'], null);
+                        $features_selectable[$_selectable['product_id']][$selectable_id]['values'][$_selectable['feature_value_id']] = $selectable_value;
+
+                        $_product = ifset($products, $_selectable['product_id'], []);
+                        $sku = ifset($_product, 'skus', $_selectable['sku_id'], []);
+                        $order_count_min = (empty($sku['order_count_min']) ? ifset($_product, 'order_count_min', 1) : $sku['order_count_min']);
+                        $skus_selectable[$_selectable['product_id']][] = [
+                            'sku_id'     => $sku['id'],
+                            'feature_id' => $selectable_id,
+                            'price'      => (float) shop_currency($sku['price'], ifset($_product, 'currency', $default_currency), null, false),
+                            'available'  => $_product['status'] && $sku['available'] && $sku['status'] && ($ignore_stock_count || $sku['count'] === null || $sku['count'] >= $order_count_min),
+                            'image_id'   => (int) $sku['image_id'],
+                        ];
+                    }
+
+                    foreach ($products as &$p) {
+                        $p['sku_selection'] = [
+                            'features_selectable' => ifset($features_selectable, $p['id'], []),
+                            'sku_features_selectable' => ifset($skus_selectable, $p['id'], [])
+                        ];
+                    }
+                    unset($selectable_data, $selectable_features, $selectable_values, $features_selectable, $skus_selectable, $f_selectable, $p, $sku);
+                }
+
+                if (isset($fields['services'])) {
+                    $get_price = function ($price, $currency, $product_price, $product_currency) {
+                        if ($currency == '%') {
+                            $round_services = wa()->getSetting('round_services');
+                            if ($round_services) {
+                                return shopRounding::roundCurrency($price * $product_price / 100, $product_currency);
+                            } else {
+                                return shop_currency($price * $product_price / 100, $product_currency, null, 0);
+                            }
+                        } else {
+                            return shop_currency($price, $currency, null, 0);
+                        }
+                    };
+
+                    $shop_product_services = $this->getModel()->query("
+                        SELECT * FROM shop_product_services
+                        WHERE product_id IN (?) AND status <> ?
+                    ", [array_keys($products), shopProductServicesModel::STATUS_FORBIDDEN])->fetchAll();
+
+                    $where = [];
+                    $shop_services = [];
+                    if ($service_ids = array_unique(array_column($shop_product_services, 'service_id'))) {
+                        $where[] = 'ss.id IN (i:service_ids)';
+                    }
+                    if ($product_type_ids = array_column($products, 'type_id')) {
+                        $where[] = 'sts.type_id IN (i:type_ids)';
+                    }
+                    if ($where) {
+                        $shop_services = $this->getModel()->query("
+                            SELECT ss.*, sts.type_id AS product_type_id FROM shop_type_services sts 
+                            JOIN shop_service ss ON ss.id = sts.service_id
+                            WHERE ".implode(' OR ', $where)."
+                            ORDER BY ss.sort
+                        ", ['service_ids' => $service_ids, 'type_ids' => $product_type_ids])->fetchAll();
+                    }
+
+                    $variants = (array) (new shopServiceVariantsModel())->getByField('service_id', array_column($shop_services, 'id'), 'id');
+                    foreach ($shop_services as &$_shop_service) {
+                        $_shop_service['variants'] = array_filter($variants, function ($_v) use ($_shop_service) {return $_v['service_id'] == $_shop_service['id'];});
+                    }
+                    unset($_shop_service, $variants);
+
+                    if (wa()->getSetting('round_services')) {
+                        shopRounding::roundServices($shop_services);
+                    }
+
+                    $services = [];
+                    $skus_services = [];
+                    $product_ids_additional_service = array_unique(array_column($shop_product_services, 'product_id'));
+                    foreach ($products as $_product_id => $_product) {
+                        foreach ($shop_services as $_shop_service) {
+                            // Convert service.price from default currency to service.currency
+                            $_shop_service['price'] = shop_currency($_shop_service['price'], null, $_shop_service['currency'], false);
+                            if ($_product['type_id'] == $_shop_service['product_type_id']) {
+                                $services[$_product_id][$_shop_service['id']] = $_shop_service;
+                            }
+                            if (in_array($_product_id, $product_ids_additional_service)) {
+                                foreach ($shop_product_services as $_key => $_additional_service) {
+                                    if (
+                                        $_product_id == $_additional_service['product_id']
+                                        && $_shop_service['id'] == $_additional_service['service_id']
+                                        && is_null($_additional_service['sku_id'])
+                                    ) {
+                                        $services[$_product_id][$_shop_service['id']] = $_shop_service;
+                                        unset($shop_product_services[$_key]);
+                                    }
+                                }
+                            }
+
+                            if (isset($_product['skus'])) {
+                                foreach ($_product['skus'] as $_sku_id => $_sku) {
+                                    if ($_product['type_id'] == $_shop_service['product_type_id']) {
+                                        if (isset($_shop_service['variants'])) {
+                                            foreach ($_shop_service['variants'] as $_var_id => $_variant) {
+                                                $skus_services[$_product['id']][$_sku_id][$_shop_service['id']][$_var_id] = [
+                                                    'name' => $_variant['name'],
+                                                    'price' => $get_price($_variant['price'], $_shop_service['currency'], $_sku['price'], $_product['currency'])
+                                                ];
+                                            }
+                                        }
+                                    }
+
+                                    if (in_array($_product_id, $product_ids_additional_service)) {
+                                        foreach ($shop_product_services as $_key => $_additional_service) {
+                                            if (
+                                                $_product_id == $_additional_service['product_id']
+                                                && $_shop_service['id'] == $_additional_service['service_id']
+                                                && $_sku_id == $_additional_service['sku_id']
+                                            ) {
+                                                $_additional_variant = ifset($_shop_service, 'variants', $_additional_service['service_variant_id'], []);
+                                                $skus_services[$_product['id']][$_sku_id][$_shop_service['id']][$_additional_service['service_variant_id']] = [
+                                                    'name' => $_additional_variant['name'],
+                                                    'price' => $get_price($_additional_variant['price'], $_shop_service['currency'], $_sku['price'], $_product['currency'])
+                                                ];
+                                                unset($shop_product_services[$_key]);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    foreach ($products as &$prod) {
+                        $prod['services'] = ifset($services, $prod['id'], []);
+                        if (isset($prod['skus'])) {
+                            foreach ($prod['skus'] as $_sku_id => &$_sku) {
+                                $_sku['services'] = ifset($skus_services, $prod['id'], $_sku_id, []);
+                            }
+                        }
+                    }
+                    unset($prod, $_sku);
                 }
 
                 if (isset($fields['sales_30days'])) {
@@ -3386,7 +3646,77 @@ SQL;
                         array_keys($features),
                     ));
 
-                    list($feature_values, $feature_values_skus) = $this->getFeatureValues($product_features, $features);
+                    // Prepare list of value_ids to fetch later, and places to fetch them from
+                    $storages = array(); // feature type => feature_value_id => product_id => list of sku ids
+                    foreach ($product_features as $row) {
+                        $f = $features[$row['feature_id']];
+                        $type = preg_replace('/\..*$/', '', $f['type']);
+                        if ($type == shopFeatureModel::TYPE_BOOLEAN) {
+                            /** @var shopFeatureValuesBooleanModel $model */
+                            $model = shopFeatureModel::getValuesModel($type);
+                            $values = $model->getValues('id', $row['feature_value_id']);
+                            $feature_values[$row['product_id']][$row['feature_id']]['value'] = reset($values);
+                            if (!empty($row['sku_id'])) {
+                                $feature_values_skus[$row['sku_id']][$row['feature_id']]['value'] = reset($values);
+                            }
+                        } elseif ($type == shopFeatureModel::TYPE_DIVIDER) {
+                            // ignore dividers
+                        } else {
+                            if (!isset($storages[$type][$row['feature_value_id']][$row['product_id']])) {
+                                $storages[$type][$row['feature_value_id']][$row['product_id']] = [];
+                            }
+                            if (!empty($row['sku_id'])) {
+                                $storages[$type][$row['feature_value_id']][$row['product_id']][$row['sku_id']] = $row['sku_id'];
+                            }
+                        }
+                    }
+
+                    // Fetch actual values from shop_feature_values_* tables
+                    foreach ($storages as $type => $value_products) {
+                        $model = shopFeatureModel::getValuesModel($type);
+                        foreach ($model->getValues('id', array_keys($value_products)) as $feature_id => $values) {
+                            if (isset($features[$feature_id])) {
+                                $f = $features[$feature_id];
+                                foreach ($values as $value_id => $value) {
+                                    foreach ($value_products[$value_id] as $product_id => $sku_ids) {
+                                        if (!empty($f['multiple'])) {
+                                            $feature_values[$product_id][$feature_id]['value'][] = $value;
+                                            foreach ($sku_ids as $sku_id) {
+                                                $feature_values_skus[$sku_id][$feature_id]['value'][] = $value;
+                                            }
+                                        } else {
+                                            $feature_values[$product_id][$feature_id]['value'] = $value;
+                                            foreach ($sku_ids as $sku_id) {
+                                                $feature_values_skus[$sku_id][$feature_id]['value'] = $value;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Prepare value_html for each feature value
+                    foreach ($feature_values as &$fv) {
+                        foreach ($fv as $feature_id => &$arr) {
+                            if (is_array($arr['value'])) {
+                                $arr['value_html'] = join(', ', $arr['value']);
+                            } else {
+                                $arr['value_html'] = (string)$arr['value'];
+                            }
+                        }
+                    }
+                    unset($fv, $arr);
+                    foreach ($feature_values_skus as &$fv) {
+                        foreach ($fv as $feature_id => &$arr) {
+                            if (is_array($arr['value'])) {
+                                $arr['value_html'] = join(', ', $arr['value']);
+                            } else {
+                                $arr['value_html'] = (string)$arr['value'];
+                            }
+                        }
+                    }
+                    unset($fv, $arr);
                 }
 
                 // Finally, assign feature data to actual products and skus
@@ -4478,87 +4808,5 @@ SQL;
             $result['next']['name'] = $next_name;
         }
         return $result;
-    }
-
-    private function getFeatureValues($product_features, $features)
-    {
-        // Prepare list of value_ids to fetch later, and places to fetch them from
-        $storages = array(); // feature type => feature_value_id => product_id => list of sku ids
-        $feature_values = [];
-        $feature_values_skus = [];
-        foreach ($product_features as $row) {
-            $f = $features[$row['feature_id']];
-            $type = preg_replace('/\..*$/', '', $f['type']);
-            if ($type == shopFeatureModel::TYPE_BOOLEAN) {
-                /** @var shopFeatureValuesBooleanModel $model */
-                $model = shopFeatureModel::getValuesModel($type);
-                $values = $model->getValues('id', $row['feature_value_id']);
-                $feature_values[$row['product_id']][$row['feature_id']]['value'] = reset($values);
-                if (!empty($row['sku_id'])) {
-                    $feature_values_skus[$row['sku_id']][$row['feature_id']]['value'] = reset($values);
-                }
-            } elseif ($type == shopFeatureModel::TYPE_DIVIDER) {
-                // ignore dividers
-            } else {
-                if (!isset($storages[$type][$row['feature_value_id']][$row['product_id']])) {
-                    $storages[$type][$row['feature_value_id']][$row['product_id']] = [];
-                }
-                if (!empty($row['sku_id'])) {
-                    $storages[$type][$row['feature_value_id']][$row['product_id']][$row['sku_id']] = $row['sku_id'];
-                }
-            }
-        }
-
-        // Fetch actual values from shop_feature_values_* tables
-        foreach ($storages as $type => $value_products) {
-            $model = shopFeatureModel::getValuesModel($type);
-            if (!$model) {
-                continue; // !!! TODO
-            }
-            foreach ($model->getValues('id', array_keys($value_products)) as $feature_id => $values) {
-                if (isset($features[$feature_id])) {
-                    $f = $features[$feature_id];
-                    foreach ($values as $value_id => $value) {
-                        foreach ($value_products[$value_id] as $product_id => $sku_ids) {
-                            if (!empty($f['multiple'])) {
-                                $feature_values[$product_id][$feature_id]['value'][] = $value;
-                                foreach ($sku_ids as $sku_id) {
-                                    $feature_values_skus[$sku_id][$feature_id]['value'][] = $value;
-                                }
-                            } else {
-                                $feature_values[$product_id][$feature_id]['value'] = $value;
-                                foreach ($sku_ids as $sku_id) {
-                                    $feature_values_skus[$sku_id][$feature_id]['value'] = $value;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Prepare value_html for each feature value
-        foreach ($feature_values as &$fv) {
-            foreach ($fv as &$arr) {
-                if (is_array($arr['value'])) {
-                    $arr['value_html'] = join(', ', $arr['value']);
-                } else {
-                    $arr['value_html'] = (string) $arr['value'];
-                }
-            }
-        }
-        unset($fv, $arr);
-        foreach ($feature_values_skus as &$fv) {
-            foreach ($fv as &$arr) {
-                if (is_array($arr['value'])) {
-                    $arr['value_html'] = join(', ', $arr['value']);
-                } else {
-                    $arr['value_html'] = (string) $arr['value'];
-                }
-            }
-        }
-        unset($fv, $arr);
-
-        return [$feature_values, $feature_values_skus];
     }
 }

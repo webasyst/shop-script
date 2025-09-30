@@ -516,7 +516,7 @@ input.error, textarea.error { border: 2px solid var(--red); }
 .filters .filters-toggle-wrapper { display: none }
 .filters input[type="text"] { font-size: 0.9em; width: 100px; text-align: right; }
 .filters input[type="text"].hasDatepicker { width: 93px; font-size: 1em; }
-.filters input[type="submit"] { font-size: 0.95em; padding: .678em .857em; font-weight: 400; width: 100%; margin-top: 50px; color: var(--link-color); position: sticky; bottom: 1em; z-index: 1; }
+.filters input[type="submit"], .filters input[type="reset"] { font-size: 0.95em; padding: .678em .857em; font-weight: 400; width: 100%; margin-top: 50px; color: var(--link-color); position: sticky; bottom: 1em; z-index: 1; }
 .filters .filters-form-wrapper {gap: 16px; }
 .filters .filter-param:not(:first-child) { margin-top: 34px;}
 .filters .filter-param input { font-size: 75%; flex-shrink: 0; }

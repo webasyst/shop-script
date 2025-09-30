@@ -71,6 +71,7 @@ class shopFrontApiProductSkuFormatter extends shopFrontApiFormatter
 
             "image_id" => 1,
             "features" => 1,
+            'services' => 1,
             //"ext" => 1,
             //"image_filename" => 1,
             //"image_description" => 1,

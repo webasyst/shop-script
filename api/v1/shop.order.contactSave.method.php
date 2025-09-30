@@ -13,7 +13,7 @@ class shopOrderContactSaveMethod extends shopApiMethod
         $contact_data = waRequest::post('contact', array(), 'array');
 
         if ($this->courier && $this->courier['rights_customer_edit'] == 0) {
-            throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
+            throw new waAPIException('access_denied', _w('Access denied for the limited courier token.'), 403);
         }
 
         // Check courier access rights
@@ -21,7 +21,7 @@ class shopOrderContactSaveMethod extends shopApiMethod
             $order_params_model = new shopOrderParamsModel();
             $courier_id = $order_params_model->getOne($order_id, 'courier_id');
             if (empty($courier_id) || ($courier_id != $this->courier['id'])) {
-                throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
+                throw new waAPIException('access_denied', _w('Access denied for the limited courier token.'), 403);
             }
         }
 

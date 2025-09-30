@@ -42,7 +42,7 @@ class shopFrontApiProductFormatter extends shopFrontApiFormatter
         if ($this->product_fields === null) {
             $default_fields = 'id,name,summary,status,type_id,image_id,image_filename,ext,video_url,sku_id,url,rating,currency,count,count_denominator,order_multiplicity_factor,order_count_min,order_count_step,stock_unit_id,base_unit_id,stock_base_ratio,rating_count,category_id,badge,sku_type,sku_count,sku_filtered';
             $default_fields = array_fill_keys(explode(',', $default_fields), true);
-            $allowed_fields = 'description,meta_title,meta_keywords,meta_description,images,images2x,image,image_crop_small,image_count,skus,skus_filtered,stock_counts,skus_image,frontend_url,reviews_count,categories,category_ids,tags,tag_ids,features,sku_features';
+            $allowed_fields = 'description,meta_title,meta_keywords,meta_description,images,images2x,image,image_crop_small,image_count,skus,skus_filtered,stock_counts,skus_image,frontend_url,reviews_count,categories,category_ids,tags,tag_ids,features,sku_features,sku_selection,services';
             $allowed_fields = array_fill_keys(explode(',', $allowed_fields), true);
 
             $fields = array_fill_keys($this->fields, true);
@@ -110,6 +110,7 @@ class shopFrontApiProductFormatter extends shopFrontApiFormatter
                 "category_id" => "integer",
                 "sku_type" => "integer",
                 "sku_count" => "integer",
+                "sku_selection" => "object",
                 "images" => "array",
                 "image" => "object",
                 "image_count" => "integer",
@@ -117,6 +118,7 @@ class shopFrontApiProductFormatter extends shopFrontApiFormatter
                 'category_ids' => 'array',
                 'reviews_count' => 'integer',
                 'features' => 'array',
+                'services' => 'object',
                 'tags' => [
                     '_multiple' => true,
                     '_type' => 'string',
@@ -165,6 +167,20 @@ class shopFrontApiProductFormatter extends shopFrontApiFormatter
                         unset($_f);
                         $s['features'] = array_values($s['features']);
                     }
+                    if (!empty($s['services'])) {
+                        $s_services = [];
+                        $_formatter = $this->getServiceFormatter();
+                        foreach ($s['services'] as $_ser_id => $_sku_service) {
+                            foreach ($_sku_service as $_variant_id => $_sku_variant) {
+                                $s_services[] = [
+                                    'service_id' => $_ser_id,
+                                    'variant_id' => $_variant_id,
+                                    'currency' => $p['currency'],
+                                ] + $_sku_variant;
+                            }
+                        }
+                        $s['services'] = array_map([$_formatter, 'skuService'], $s_services);
+                    }
                 }
                 unset($s);
                 if (!empty($this->options['public_stocks']) && array_key_exists('count', $p)) {
@@ -193,11 +209,42 @@ class shopFrontApiProductFormatter extends shopFrontApiFormatter
                 $p['categories'] = array_values($p['categories']);
             }
             if (!empty($p['features'])) {
-                foreach ($p['features'] as &$_f) {
-                    $_f = $this->getFatureFormatter()->format($_f);
+                foreach ($p['features'] as $key => &$_f) {
+                    if ($_f['status'] === shopFeatureModel::STATUS_PRIVATE) {
+                        unset($p['features'][$key]);
+                    } else {
+                        $_f = $this->getFatureFormatter()->format($_f);
+                    }
                 }
                 unset($_f);
                 $p['features'] = array_values($p['features']);
+            }
+
+            if (!empty($p['services'])) {
+                $_formatter = $this->getServiceFormatter();
+                foreach ($p['services'] as &$_service) {
+                    if (!empty($_service['variants'])) {
+                        foreach ($_service['variants'] as &$_sku_variant) {
+                            $_sku_variant = $_formatter->formatVariant($_sku_variant + ['currency' => $_service['currency']]);
+                        }
+                        unset($_sku_variant);
+                    }
+                    $_service = $_formatter->formatService($_service);
+                }
+                unset($_service);
+                $p['services'] = array_values($p['services']);
+            }
+
+            if (!empty($p['sku_selection'])) {
+                foreach ($p['sku_selection']['features_selectable'] as &$_f) {
+                    $_f = $this->getFatureFormatter()->format($_f);
+                }
+                foreach ($p['sku_selection']['sku_features_selectable'] as &$_f) {
+                    $_f = $this->getFatureFormatter()->formatSelectable($_f);
+                }
+                unset($_f);
+
+                $p['sku_selection']['features_selectable'] = array_values($p['sku_selection']['features_selectable']);
             }
 
             $result[$p['id']] = $p;
@@ -225,6 +272,11 @@ class shopFrontApiProductFormatter extends shopFrontApiFormatter
     protected function getFatureFormatter()
     {
         return new shopFrontApiFeatureFormatter();
+    }
+
+    protected function getServiceFormatter()
+    {
+        return new shopFrontApiServiceFormatter();
     }
 
     protected function getVisibleStocks()

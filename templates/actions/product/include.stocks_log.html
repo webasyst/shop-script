@@ -109,7 +109,7 @@
 {/if}
 
 {capture assign="lazy_loading_footer"}
-<div class="box align-center">
+<div class="box small custom-mt-16 gray">
     <div class="lazyloading-progress-string">{_w('%d log item','%d log items', $offset + $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
     <div class="lazyloading-progress custom-mt-8" style="display:none">
         <i class="fas fa-spinner fa-spin text-gray loading"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d log item', '%d log items', min($total_count - $offset - $count, $count))}...</span>

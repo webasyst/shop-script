@@ -197,7 +197,7 @@
         {* @event products_reviews_hook.%plugin_id% *}
         {foreach $products_reviews_hook as $_}{$_|default:''}{/foreach}
 
-        <div class="lazyloading-wrapper">
+        <div class="lazyloading-wrapper small gray">
             <div class="lazyloading-progress-string">{_w('%d review','%d reviews', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
             <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more reviews`]</a>
             <span class="lazyloading-progress" style="display:none">

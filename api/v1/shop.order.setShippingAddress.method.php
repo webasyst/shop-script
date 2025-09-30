@@ -14,7 +14,7 @@ class shopOrderSetShippingAddressMethod extends shopApiMethod
         $order = $order_model->getById($order_id);
         if (!$order) {
             if ($this->courier) {
-                throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
+                throw new waAPIException('access_denied', _w('Access denied for the limited courier token.'), 403);
             } else {
                 throw new waAPIException('invalid_param', _w('Order not found.'), 404);
             }
@@ -25,20 +25,20 @@ class shopOrderSetShippingAddressMethod extends shopApiMethod
             $order_params_model = new shopOrderParamsModel();
             $courier_id = $order_params_model->getOne($order_id, 'courier_id');
             if (empty($courier_id) || ($courier_id != $this->courier['id'])) {
-                throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
+                throw new waAPIException('access_denied', _w('Access denied for the limited courier token.'), 403);
             }
         }
 
         // Check if address field exists
         if (!waContactFields::get('address')) {
-            throw new waAPIException('access_denied', 'Address field is disabled.', 403);
+            throw new waAPIException('access_denied', sprintf_wp('The “%s” field is disabled.', 'address'), 403);
         }
 
         // Check if order state allows an Edit action
         $workflow = new shopWorkflow();
         $actions = $workflow->getStateById($order['state_id'])->getActions($order);
         if (empty($actions['edit'])) {
-            throw new waAPIException('access_denied', 'Edit action is not allowed.', 403);
+            throw new waAPIException('access_denied', sprintf_wp('The “%s” action is not allowed.', 'edit'), 403);
         }
 
         // Get address data from POST

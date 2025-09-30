@@ -20,7 +20,7 @@ class shopPushnotificationEnableMethod extends shopApiMethod
         if (!$force && $force !== null) {
             $row = $push_client_model->getById($client_id);
             if ($row && $row['shop_url'] != $shop_url) {
-                throw new waAPIException('already_subscribed', 'client_id subscribed via different URL', 412, array(
+                throw new waAPIException('already_subscribed', _w('The specified “client_id” is already subscribed via a different URL.'), 412, array(
                     'shop_url' => $row['shop_url'],
                 ));
             }

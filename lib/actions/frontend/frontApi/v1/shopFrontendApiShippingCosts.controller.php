@@ -14,7 +14,7 @@ class shopFrontendApiShippingCostsController extends shopFrontApiJsonController
     {
         $token = waRequest::request('customer_token', null, waRequest::TYPE_STRING_TRIM);
         if (empty($token)) {
-            throw new waAPIException('required_param', 'Missing required parameter: customer_token', 400);
+            throw new waAPIException('required_param', sprintf_wp('Missing required parameter: %s.', 'customer_token'), 400);
         }
 
         $address = waRequest::request('address', null, waRequest::TYPE_ARRAY);
@@ -23,7 +23,7 @@ class shopFrontendApiShippingCostsController extends shopFrontApiJsonController
             return is_string($v);
         });
         if (empty($address['country']) || empty($address['region']) || empty($address['city'])) {
-            throw new waAPIException('required_param', 'Missing required parameter: address with country, region and city', 400);
+            throw new waAPIException('required_param', sprintf_wp('Missing required parameter: %s.', _w('“address” with “country”, “region” and ”city” fields’ values')), 400);
         }
 
         $coupon_code = waRequest::request('coupon_code', null, waRequest::TYPE_STRING_TRIM);

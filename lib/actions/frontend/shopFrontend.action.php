@@ -15,6 +15,16 @@ class shopFrontendAction extends waViewAction
         }
     }
 
+    public function preExecute()
+    {
+        parent::preExecute();
+
+        $storefront_mode = waRequest::param('storefront_mode');
+        if ($storefront_mode === 'api') {
+            throw new waException(_ws('Page not found'), 404);
+        }
+    }
+
     /**
      * @deprecated
      */

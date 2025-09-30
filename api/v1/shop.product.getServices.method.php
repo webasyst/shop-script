@@ -9,14 +9,14 @@ class shopProductGetServicesMethod extends shopApiMethod
     public function execute()
     {
         if ($this->courier && $this->courier['rights_order_edit'] == 0) {
-            throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
+            throw new waAPIException('access_denied', _w('Access denied for the limited courier token.'), 403);
         }
 
 
         $sku_ids = waRequest::post('sku_ids', array(), waRequest::TYPE_ARRAY_INT);
 
         if (!$sku_ids) {
-            throw new waAPIException('invalid_param', 'Sku ids not found', 404);
+            throw new waAPIException('invalid_param', _w('Product variant IDs not found.'), 404);
         }
 
         $spsm = new shopProductServicesModel();

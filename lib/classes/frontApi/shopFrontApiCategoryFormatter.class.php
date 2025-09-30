@@ -31,6 +31,7 @@ class shopFrontApiCategoryFormatter extends shopFrontApiFormatter
             //"include_sub_categories" => "integer",
             //"status" => "integer",
             "categories" => 'array',
+            "filters" => "array",
         ];
 
         if (!empty($this->options['without_meta'])) {

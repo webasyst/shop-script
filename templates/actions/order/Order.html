@@ -692,7 +692,7 @@
                                             <span class="custom-ml-4">{$printable_doc.name|escape}</span>
                                         </span>
                                         {if !empty($printable_doc.mail_url)}
-                                            <a href="#" class="action custom-ml-8 js-printable-docs-send" data-order-id="{$order.id}" data-url="{$printable_doc.mail_url|escape}" title="[`Email this form to customer`]">
+                                            <a href="#" class="action custom-ml-8 js-printable-docs-send" data-order-id="{$order.id}" data-url="{$printable_doc.mail_url|escape}" title="[`Email this form to customer`]" style="height: 1rem;">
                                                 <i class="fas fa-envelope on-hover-only"></i>
                                             </a>
                                         {/if}

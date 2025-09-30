@@ -196,7 +196,20 @@
                     {/foreach}
                     {if $wa->get('sort')}<input type="hidden" name="sort" value="{$wa->get('sort')|escape}">{/if}
                     {if $wa->get('order')}<input type="hidden" name="order" value="{$wa->get('order')|escape}">{/if}
-                    <input type="submit" class="gray" value="[`Filter products`]">
+                    
+                    {* Проверка применения фильтров *}
+                    {$filters_applied = false}
+                    {if $wa->get('price_min') || $wa->get('price_max')}
+                        {$filters_applied = true}
+                    {/if}
+                    {foreach $filters as $fid => $filter}
+                        {if $fid != 'price' && $wa->get($filter.code)}
+                            {$filters_applied = true}
+                            {break}
+                        {/if}
+                    {/foreach}
+                    
+                    <input class="gray" type="reset" value="[`Reset`]" id="filters-reset-btn"{if !$filters_applied} style="display: none;"{/if}>
                 </form>
             </div>
         </div>

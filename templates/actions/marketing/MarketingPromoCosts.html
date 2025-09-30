@@ -42,7 +42,7 @@
         {/if}
 
         <div class="s-costs-actions">
-            <a class="js-disable-router js-add-cost" href="{$marketing_url}costs/?promo_id={$_promo_id|escape}">
+            <a class="js-disable-router button light-gray rounded js-add-cost" href="{$marketing_url}costs/?promo_id={$_promo_id|escape}">
                 <i class="fas fa-plus-circle text-green add"></i> [`Add entry`]
             </a>
 
@@ -78,6 +78,6 @@
             {$_html}
         {/foreach}
     {else}
-        <p>[`Save a promo to add marketing costs for it.`]</p>
+        <p class="small gray">[`Save a promo to add marketing costs for it.`]</p>
     {/if}
 </div>

@@ -1,9 +1,8 @@
+{$stocks_count = count($stocks)}
 <div class="box contentbox wide" id="s-stocks-container">
 
     <h1>[`In stock now`]</h1>
 
-    {$stocks_count = count($stocks)}
-    {if $stocks_count > 1}
     <div class="s-stocks-chips-wrapper">
         <ul class="js-s-stocks-chips chips small">
             <li class="rounded{if !$stock_id} accented{/if}">
@@ -19,7 +18,6 @@
             </li>
         </ul>
     </div>
-    {/if}
 
     {if !empty($product_stocks)}
         {* After filtred by stock_id *}
@@ -86,7 +84,7 @@
                 {/strip}</tbody>
             </table>
         </div>
-        <div class="lazyloading-wrapper align-center box">
+        <div class="lazyloading-wrapper box small gray">
             <div class="lazyloading-progress-string custom-mb-8">{_w('%d product','%d products', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
             <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more products`]</a>
             <span class="lazyloading-progress" style="display:none">
@@ -97,7 +95,8 @@
     {else}
         <p class="small">[`See the general picture of your overall stock assets by every SKU and stock.`]</p>
         <ol class="small">
-            <li>{sprintf('[`Add at least one stock in your <a href="%s">store settings</a>.`]', '?action=settings#/stock')}</li>
+            {$stocks_count = count($stocks)}
+            <li{if $stocks_count > 0} class="strike"{/if}>{sprintf('[`Add at least one stock in your <a href="%s">store settings</a>.`]', '?action=settings#/stock')}</li>
             <li>{sprintf('[`Save stock quantities for your <a href="%s">products</a>.`]', 'products/')}</li>
         </ol>
     {/if}

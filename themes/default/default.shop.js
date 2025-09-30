@@ -335,6 +335,76 @@ $(document).ready(function () {
             });
         });
 
+        // Функция проверки применения фильтров
+        var checkFiltersApplied = function() {
+            var $form = $('.filters.ajax form');
+            var hasFilters = false;
+
+            // Проверка текстовых полей (кроме скрытых sort/order)
+            $form.find('input[type="text"]').each(function() {
+                if ($(this).val() && $(this).val() !== $(this).attr('placeholder')) {
+                    hasFilters = true;
+                    return false;
+                }
+            });
+            // Проверка чекбоксов
+            if (!hasFilters) {
+                hasFilters = $form.find('input[type="checkbox"]:checked').length > 0;
+            }
+
+            return hasFilters;
+        };
+
+        // Функция показа/скрытия кнопки Reset
+        var toggleResetButton = function() {
+
+            var $resetBtn = $('#filters-reset-btn');
+            if (checkFiltersApplied()) {
+                $resetBtn.show();
+            } else {
+                $resetBtn.hide();
+            }
+        };
+
+        // Функция сброса фильтров к исходному состоянию
+        var resetFilters = function() {
+            var $form = $('.filters.ajax form');
+
+            // Сброс полей формы
+            $form.find('input[type="text"], input[type="hidden"]').val('')
+                 .end().find('input[type="checkbox"], input[type="radio"]').prop('checked', false);
+
+            // Сброс слайдеров
+            $('.filters .slider').each(function() {
+                var $slider = $(this).find('.filter-slider');
+                if ($slider.slider) {
+                    var min = +$(this).find('.min').attr('placeholder'),
+                        max = +$(this).find('.max').attr('placeholder');
+                    $slider.slider('values', [min, max]);
+                }
+            });
+
+            // Скрытие кнопки Reset
+            $('#filters-reset-btn').hide();
+
+            // AJAX запрос без параметров фильтрации
+            $(window).lazyLoad && $(window).lazyLoad('sleep');
+            $('#product-list').html($form.data('loading'));
+
+            $.get(location.pathname, function(html) {
+                var $tmp = $('<div>').html(html);
+                $('#product-list').html($tmp.find('#product-list').html());
+                history.pushState && history.pushState({}, '', location.pathname);
+                $(window).lazyLoad && $(window).lazyLoad('reload');
+            });
+
+            return false;
+        };
+
+        // Привязка обработчиков
+        $('.filters.ajax form [type="reset"]').on('click.resetFilters', resetFilters);
+        $('.filters.ajax form input').on('change.toggleReset input.toggleReset', toggleResetButton);
+
         window.addEventListener('popstate', function(event) {
             location.reload();
         });

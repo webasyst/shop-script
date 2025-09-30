@@ -29,7 +29,7 @@ class shopProdReviewsAddController extends waJsonController
 
         $review_id = $product_reviews_model->add($data, $data['parent_id']);
         if (!$review_id) {
-            throw new waException('Error in adding review');
+            throw new waException(_w('Review adding error.'));
         }
 
         $reviews = [$product_reviews_model->getReview($review_id)];
@@ -53,7 +53,7 @@ class shopProdReviewsAddController extends waJsonController
         $title      = '';
 
         if (wa()->getEnv() == 'backend' && !$parent_id) {
-            throw new waException(_w('Writing a review to product is available just on frontend'));
+            throw new waException(_w('Adding a product review is available in the storefront only.'));
         }
 
         if (!$product_id && !$parent_id) {

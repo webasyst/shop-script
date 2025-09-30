@@ -180,7 +180,7 @@
                     <div class="s-column">
                         <div class="s-date-wrapper">
                             {if !empty($_promo.start_datetime)}
-                                [`from`] <span class="s-date">{$_promo.start_datetime|wa_datetime:'humandate'}</span>
+                                [`from`] <br><span class="s-date">{$_promo.start_datetime|wa_datetime:'humandate'}</span>
                             {else}
                                 &nbsp;
                             {/if}
@@ -190,7 +190,7 @@
                     <div class="s-column align-right">
                         <div class="s-date-wrapper">
                             {if !empty($_promo.finish_datetime)}
-                                [`to`] <span class="s-date">{$_promo.finish_datetime|wa_datetime:'humandate'}</span>
+                                [`to`] <br><span class="s-date">{$_promo.finish_datetime|wa_datetime:'humandate'}</span>
                             {else}
                                 &nbsp;
                             {/if}
@@ -271,7 +271,7 @@
                 <div class="flexbox wrap-mobile">
 
                     <div class="s-section-header custom-mr-12">
-                        <h4 class="s-title">[`Active promos`]</h4>
+                        <h4 class="s-title"><i class="fas fa-play small text-light-gray custom-mr-4"></i> [`Active promos`]</h4>
                     </div>
 
                 </div>
@@ -303,7 +303,7 @@
             {* PLANNED *}
             <div class="s-promos-section">
                 <div class="s-section-header">
-                    <h4 class="s-title">[`Scheduled promos`]</h4>
+                    <h4 class="s-title"><i class="fas fa-clock text-light-gray custom-mr-4"></i> [`Scheduled promos`]</h4>
                 </div>
 
                 {if !empty($planned_promos)}
@@ -317,7 +317,7 @@
                         {/foreach}
                     </div>
                 {else}
-                    <p class="gray small">[`No scheduled promos.`]</p>
+                    <p class="gray small">[`Scheduled promos automatically launch on their specified beginning time.`]</p>
                 {/if}
             </div>
         {/if}
@@ -328,7 +328,7 @@
                 <div class="s-section-header custom-mb-4">
                     <div class="s-table-box fixed middle">
                         <div class="s-column">
-                            <h4 class="s-title">[`Completed promos`]</h4>
+                            <h4 class="s-title"><i class="fas fa-check text-light-gray custom-mr-4"></i> [`Completed promos`]</h4>
                             <a href="{$wa_app_url}?action=reports" class="button rounded smaller light-gray">[`Complete report`]</a>
                         </div>
                     </div>
@@ -339,7 +339,7 @@
                     <div id="skeleton_completed_promos">
                         {_render_completed_promo_skeleton count=2}
                     </div>
-                    <table class="zebra s-promo-table" data-skeleton="#skeleton_completed_promos">
+                    <table class="bigdata s-promo-table" data-skeleton="#skeleton_completed_promos">
                         <thead>
                             <tr>
                                 <th>
@@ -385,7 +385,7 @@
                                                 <div class="s-rules-wrapper">
                                                     {foreach ifset($promos_markers, $_promo.id, []) as $marker}
                                                         <div class="s-rule-wrapper">
-                                                            <div class="s-rule" title="{$marker.name|escape}">
+                                                            <div class="s-rule gray" title="{$marker.name|escape}">
                                                                 {$wa->shop->getIcon($marker.css_class)}
                                                             </div>
                                                         </div>
@@ -460,7 +460,7 @@
                     </div>
                     </div>
                 {else}
-                    <p class="gray small">[`No completed promos.`]</p>
+                    <p class="gray small custom-mt-4">[`Promos are considered completed on their specified end time.`]</p>
                 {/if}
             </div>
         {/if}

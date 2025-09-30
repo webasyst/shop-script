@@ -16,15 +16,13 @@
 {/strip}
 
 <div class="s-custom-price-rule-section js-custom-price-rule-section" id="js-custom-price-rule-section-{$_uniqid}">
-    <div class="alert">
-        <div class="s-section-description">
-            [`Use the form below to set up extra rules for ordinary and purchase prices which should apply while this promo is active.`]
-        </div>
-    </div>
+    <p class="hint">
+        [`Use the form below to set up extra rules for ordinary and purchase prices which should apply while this promo is active.`]
+    </p>
 
     <div class="s-products-autocomplete fields">
         <div class="field">
-            <div class="name">[`Add product`]:</div>
+            <div class="name for-input">[`Add product`]</div>
             <div class="value">
                 <i class="fas fa-plus-circle text-green"></i>
                 <input type="text" class="s-autocomplete js-autocomplete long" value="" placeholder="{_w("type a product name")|escape}">
@@ -36,7 +34,7 @@
     <div class="s-products-wrapper s-block {if empty($products)}is-empty{/if}">
         <table class="s-products-table zebra">
             <thead>
-                <tr class="transparent">
+                <!-- DEFINITELY DIFFICULT TO UNDERSTAND STATEMENT <tr class="transparent">
                     <td colspan="5">
                         <div class="flexbox middle space-8 custom-pb-16 bordered-bottom" style="justify-content: center;">
                             <span class="icon"><i class="fas fa-exclamation-triangle text-yellow"></i></span>
@@ -44,7 +42,7 @@
                             {shopHinter::hint('marketing_promo_stock_price_products')}
                         </div>
                     </td>
-                </tr>
+                </tr> -->
                 <tr class="transparent uppercase">
                     <th colspan="2">[`Products`]</th>
                     <th>[`Default prices`]</th>
@@ -63,7 +61,7 @@
             </tbody>
         </table>
 
-        <div class="s-empty-message">[`No products in this tool. First add products please.`]</div>
+        <div class="s-empty-message small">[`No products in this tool. First add products please.`]</div>
     </div>
 
     <input class="js-rule-type" type="hidden" name="{$_rule_name}[rule_type]" value="custom_price">

@@ -1,4 +1,4 @@
-<div class="s-banner-wrapper js-banner-wrapper">
+<div class="s-banner-wrapper js-banner-wrapper custom-pt-0">
     {* @description Show this block when multiple banners are used *}
     <div class="s-banner-header" style="display: none;">
         <a class="inline-link js-banner-delete" href="javascript:void(0);"{if !empty($banner.image_filename)} data-filename="{$banner.image_filename|escape}"{/if}>
@@ -46,30 +46,30 @@
         </div>
 
         <div class="field">
-            <div class="name">[`Title`]</div>
+            <div class="name for-input">[`Title`]</div>
             <div class="value">
 
-                <input class="long" type="text" data-name="[title]" value="{$banner.title|default:''|escape}">
+                <input class="long bold large" type="text" data-name="[title]" value="{$banner.title|default:''|escape}">
 
             </div>
         </div>
 
         <div class="field">
-            <div class="name">[`Promo subtitle`]</div>
+            <div class="name for-input">[`Promo subtitle`]</div>
             <div class="value">
                 <textarea type="text" data-name="[body]">{$banner.body|default:""|escape}</textarea>
             </div>
         </div>
 
         <div class="field">
-            <div class="name">[`Link`]</div>
+            <div class="name for-input">[`Link`]</div>
             <div class="value">
                 <input class="long" type="text" data-name="[link]" value="{$banner.link|default:""|escape}" required>
             </div>
         </div>
 
         <div class="field">
-            <div class="name">[`Text color`]</div>
+            <div class="name for-input">[`Text color`]</div>
             <div class="value s-color-picker">
                 <input type="text" data-name="[color]" value="{$banner.color|escape|default:'#ffffff'}" class="shorter">
                 <div class="js-toggle-colorpicker icon color"></div>
@@ -78,7 +78,7 @@
         </div>
 
         <div class="field">
-            <div class="name">[`Background color`]</div>
+            <div class="name for-input">[`Background color`]</div>
             <div class="value s-color-picker">
                 <input type="text" data-name="[background_color]" value="{$banner.background_color|escape|default:'#aaaaaa'}" class="shorter">
                 <div class="js-toggle-colorpicker icon color"></div>

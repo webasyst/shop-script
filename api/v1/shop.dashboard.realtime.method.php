@@ -10,9 +10,9 @@ class shopDashboardRealtimeMethod extends shopApiMethod
 
         $period = waRequest::get('period', $max_time, waRequest::TYPE_INT);
         if ($period <= 0) {
-            throw new waAPIException('invalid_request', 'period must be a positive integer', 400);
+            throw new waAPIException('invalid_request', sprintf_wp('The “%s” parameter value must be a positive integer.', 'period'), 400);
         } elseif ($period > $max_time) {
-            throw new waAPIException('invalid_request', 'period cannot be more than 48 hours', 400);
+            throw new waAPIException('invalid_request', _w('The “period” parameter value cannot be greater than 48 hours.'), 400);
         }
 
         list($graph_data, $totals) = self::getGraphData($period);

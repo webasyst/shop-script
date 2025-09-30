@@ -16,8 +16,8 @@
 
 <div class="box js-edit-costs-form-section">
 
-    <div class="flexbox middle custom-mb-24">
-        <h2 class="custom-mb-0 wide">{if $expense.id}[`Modify expense`]{else}[`Add expense`]{/if}</h2>
+    <div class="flexbox middle custom-mt-24">
+        <h3 class="custom-mb-0 wide">{if $expense.id}[`Modify expense`]{else}[`Add expense`]{/if}</h3>
         {if $expense.id}
             <div class="cost-edit-controls">
                 <button href="javascript:void" class="js-delete-expense-link button small light-gray rounded">
@@ -33,18 +33,18 @@
 
             <input type="hidden" name="expense_id" value="{$expense.id|escape}">
 
-            <div class="field">
-                <div class="name">[`Amount`]</div>
+            <div class="field custom-mt-0">
+                <div class="name for-input">[`Amount`]</div>
                 <div class="value">
-                    <input type="text" name="expense[amount]" class="bold numerical" value="{if !empty($expense.amount)}{$expense.amount|floatval}{/if}" style="max-width: 155px; min-width: auto; width: auto;">
-                    {$def_cur}
+                    <input type="text" name="expense[amount]" class="bold large number" value="{if !empty($expense.amount)}{$expense.amount|floatval}{/if}" style="max-width: 155px; min-width: auto; width: auto;">
+                    <b>{$def_cur}</b>
                 </div>
             </div>
             <div class="field">
                 <div class="name">[`Channel`]</div>
                 <div class="value" id="channel_controls">
                     <div class="flexbox wrap space-8">
-                    <div class="wa-select">
+                    <div class="wa-select small">
                         <select class="channel-selector" name="channel_selector">
                             <option></option>
                             {if !empty($promos)}
@@ -79,7 +79,7 @@
             <div class="field">
                 <div class="name">[`Storefront`]</div>
                 <div class="value">
-                    <div class="wa-select">
+                    <div class="wa-select small">
                         <select name="expense[storefront]">
                             <option value="">[`Not specified`]</option>
                             {foreach $storefronts as $s}
@@ -90,7 +90,7 @@
                 </div>
             </div>
             <div class="field">
-                <div class="name">[`Payment term`]</div>
+                <div class="name for-checkbox">[`Payment term`]</div>
                 <div class="value">
                     <ul>
                         <li>
@@ -102,7 +102,7 @@
                                 [`One-time`]
                             </label>
                             <span class="custom-ml-4 state-with-inner-icon right">
-                                <input type="text" class="small s-datepicker" name="expense_period_single" value="{$expense.start|escape}">
+                                <input type="text" class="small s-datepicker" name="expense_period_single" value="{$expense.start|escape}" style="min-width: 10rem;">
                                 <span class="icon"><i class="fas fa-calendar-alt"></i></span>
                             </span>
                         </li>
@@ -117,12 +117,12 @@
                             <div class="hint">[`The amount will be gradually distributed by day over the entire period, which allows you to estimate ROI more precisely.`]</div>
                             <div class="custom-mt-8">
                                 <span class="state-with-inner-icon right">
-                                    <input type="text" class="small s-datepicker" name="expense_period_from"  value="{$expense.start|escape}">
+                                    <input type="text" class="small s-datepicker" name="expense_period_from"  value="{$expense.start|escape}" style="min-width: 10rem;">
                                     <span class="icon"><i class="fas fa-calendar-alt"></i></span>
                                 </span>
                                     &mdash;
                                 <span class="state-with-inner-icon right">
-                                    <input type="text" class="small s-datepicker" name="expense_period_to"  value="{$expense.end|escape}">
+                                    <input type="text" class="small s-datepicker" name="expense_period_to"  value="{$expense.end|escape}" style="min-width: 10rem;">
                                     <span class="icon"><i class="fas fa-calendar-alt "></i></span>
                                 </span>
                             </div>
@@ -133,12 +133,12 @@
             <div class="field">
                 <div class="name">[`Note`]</div>
                 <div class="value">
-                    <textarea name="expense[note]" placeholder="[`optional`]">{$expense.note|escape}</textarea>
+                    <textarea name="expense[note]" placeholder="[`optional`]" class="smaller">{$expense.note|escape}</textarea>
                 </div>
             </div>
             <div class="field">
                 <div class="value submit">
-                    <button type="submit" class="button green">[`Save`]</button>
+                    <button type="submit" class="button orange">[`Save`]</button>
                     <a href="javascript:void(0)" class="cancel-button button light-gray">[`Cancel`]</a>
                 </div>
             </div>

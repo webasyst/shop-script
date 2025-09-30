@@ -9,7 +9,7 @@ class shopProductMassUpdateMethod extends shopApiMethod
         $raw_products = self::getArrayParam('product');
         $raw_skus = self::getArrayParam('sku');
         if (!$raw_products && !$raw_skus) {
-            throw new waAPIException('invalid_param', 'no data to update', 400);
+            throw new waAPIException('invalid_param', _w('No data to update.'), 400);
         }
 
         try {

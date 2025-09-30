@@ -8,7 +8,7 @@ class shopDashboardSalesMethod extends shopApiMethod
     {
         $period = waRequest::get('period', 30*24*3600, 'int');
         if ($period <= 0) {
-            throw new waAPIException('invalid_request', 'period must be a positive integer', 400);
+            throw new waAPIException('invalid_request', sprintf_wp('The “%s” parameter value must be a positive integer.', 'period'), 400);
         }
         list($graph_data, $totals) = self::getGraphData($period);
         $this->response = array(

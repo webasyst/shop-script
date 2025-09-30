@@ -43,4 +43,37 @@ class shopFrontApiServiceFormatter extends shopFrontApiFormatter
         ];
         return array_intersect_key(self::formatFieldsToType($variant, $allowed_fields), $allowed_fields);
     }
+
+    public function formatService($service)
+    {
+        $allowed_fields = [
+            'id' => 'integer',
+            'name' => 'string',
+            'description' => 'string',
+//            'price' => 'number',
+            'currency' => 'string',
+            'variant_id' => 'integer',
+//            'tax_id' => 'integer',
+            'variants' => 'array',
+            'sort' => 'integer',
+        ];
+
+        return array_intersect_key(self::formatFieldsToType($service, $allowed_fields), $allowed_fields);
+    }
+
+    public function skuService($_sku_service)
+    {
+        $allowed_fields = [
+            'service_id' => 'integer',
+            'variant_id' => 'integer',
+            'name' => 'string',
+            'price' => 'number',
+        ];
+
+        $result = array_intersect_key(self::formatFieldsToType($_sku_service, $allowed_fields), $allowed_fields);
+        if (!empty($_sku_service['currency'])) {
+            $result = self::formatPriceField($result, ['price'], $_sku_service['currency']);
+        }
+        return $result;
+    }
 }

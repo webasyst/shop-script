@@ -23,10 +23,10 @@ class shopCouponGetListMethod extends shopApiMethod
     protected function validateRequest($offset, $limit, $search, $active_only)
     {
         if ($offset < 0) {
-            throw new waAPIException('invalid_param', 'Param offset must be greater than or equal to zero');
+            throw new waAPIException('invalid_param', _w('An “offset” parameter value must be greater than or equal to zero.'));
         }
         if ($limit < 0) {
-            throw new waAPIException('invalid_param', 'Param limit must be greater than or equal to zero');
+            throw new waAPIException('invalid_param', _w('A “limit” parameter value must be greater than or equal to zero.'));
         }
     }
 

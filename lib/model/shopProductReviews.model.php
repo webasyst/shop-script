@@ -9,6 +9,9 @@ class shopProductReviewsModel extends waNestedSetModel
     const AUTH_GUEST = 'guest';
     const AUTH_USER = 'user';
 
+    const RATE_MIN = 0;
+    const RATE_MAX = 5;
+
     protected $left = 'left_key';
     protected $right = 'right_key';
     protected $parent = 'parent_id';
@@ -636,13 +639,14 @@ class shopProductReviewsModel extends waNestedSetModel
         $config = wa('shop')->getConfig();
 
         if ($review['auth_provider'] == self::AUTH_GUEST) {
+            if (empty($review['is_front_api'])) {
+                if ($config->getGeneralSettings('require_authorization', false)) {
+                    return array('name' => _w('Only authorized users can post reviews'));
+                }
 
-            if ($config->getGeneralSettings('require_authorization', false)) {
-                return array('name' => _w('Only authorized users can post reviews'));
-            }
-
-            if ($config->getGeneralSettings('require_captcha') && !wa()->getCaptcha()->isValid()) {
-                return array('captcha' => _w('Invalid captcha code'));
+                if ($config->getGeneralSettings('require_captcha') && !wa()->getCaptcha()->isValid()) {
+                    return array('captcha' => _w('Invalid captcha code'));
+                }
             }
 
             if (!empty($review['site']) && strpos($review['site'], '://') === false) {
@@ -680,6 +684,11 @@ class shopProductReviewsModel extends waNestedSetModel
         if (mb_strlen($review['text']) > 4096) {
             $errors['text'] = _w('Review length should not exceed 4096 symbols');
         }
+
+        if (isset($review['rate']) && (!is_numeric($review['rate']) || $review['rate'] < self::RATE_MIN || $review['rate'] > self::RATE_MAX)) {
+            $errors['text'] = _w('A rate value must be a number from 0 to 5.');
+        }
+
         return $errors;
     }
 

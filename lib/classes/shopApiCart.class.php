@@ -34,6 +34,22 @@ class shopApiCart
         return md5(uniqid(mt_rand().mt_rand().mt_rand().mt_rand(), true));
     }
 
+    public static function getAntispamCartKey($customer_token, $timestamp=null)
+    {
+        if (!$customer_token || !wa()->getSetting('headless_api_antispam_enabled', false, 'shop')) {
+            return null;
+        }
+        $antispam_key = wa()->getSetting('headless_api_antispam_key', '', 'shop');
+        if (!$antispam_key) {
+            $antispam_key = shopApiActions::generateAntispamKey();
+            (new waAppSettingsModel())->set('shop', 'headless_api_antispam_key', $antispam_key);
+        }
+        if (!$timestamp) {
+            $timestamp = time();
+        }
+        return md5($antispam_key.'shop-api-antispam'.$customer_token.date('YmdH', $timestamp));
+    }
+
     /**
      * Adds a new entry to table 'shop_cart_items'
      *
@@ -53,9 +69,9 @@ class shopApiCart
         return $item['id'];
     }
 
-    public function setQuantity($sku_id, $quantity)
+    public function setQuantity($item_id, $quantity)
     {
-        if ($item = $this->cart_items_model->getByField(['code' => $this->token, 'sku_id' => $sku_id])) {
+        if ($item = $this->cart_items_model->getByField(['code' => $this->token, 'id' => $item_id])) {
             if ($quantity > 0) {
                 $this->cart_items_model->updateByField([
                     'code' => $this->token,

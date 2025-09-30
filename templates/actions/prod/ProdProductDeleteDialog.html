@@ -24,13 +24,13 @@
                 )}
 
                 <p class="text-red">{$message}</p>
-                <p>
+                <p class="small">
                     [`After the deletion of this product, related orders will be preserved but the information on order-viewing pages will become incomplete — only the product name will be visible.`]
                 </p>
 
-                <p>[`Delete the product?`]</p>
+                <p class="small">[`Delete the product?`]</p>
             {else}
-                <p>{sprintf_wp('No orders containing product “%s”.', $product.name|escape)}</p>
+                <p class="small">{sprintf_wp('No orders containing product “%s”.', $product.name|escape)}</p>
             {/if}
 
             <!-- plugin hook: 'backend_prod_dialog.bottom' -->

@@ -14,7 +14,7 @@
 {$_tabs = [
     "rules" => [
         "id"   => "rules",
-        "name" => _w("Tools")
+        "name" => _w("Tools & Smart rules")
     ],
     "orders" => [
         "id"   => "orders",
@@ -61,7 +61,7 @@
             <header class="s-page-header flexbox space-12 custom-mb-32">
                 <div class="s-column s-title-column">
                     <h1 class="s-title flexbox">
-                        <a href="{$marketing_url}" class="back"><i class="fas fa-arrow-circle-left"></i></a>
+                        <a href="{$marketing_url}" class="back"><i class="fas fa-arrow-circle-left custom-mr-4"></i></a>
                         <span class="s-title-name editable js-name-editable">{$_name|escape}</span>
                         <input class="s-title-field js-title-field" type="text" value="{$promo.name|default:''|escape}">
                     </h1>
@@ -71,11 +71,11 @@
 
                         <div class="s-actions-wrapper">
                             <span>
-                                <a class="nowrap js-promo-clone button rounded light-gray" href="javascript:void(0);">
-                                    <i class="fas fa-copy text-gray custom-mr-4"></i> <span class="desktop-and-tablet-only">[`Add a new promo based on this one`]</span>
+                                <a class="nowrap js-promo-clone button rounded light-gray small" href="javascript:void(0);">
+                                    <i class="fas fa-copy text-blue custom-mr-4"></i> <span class="desktop-and-tablet-only">[`Add a new promo based on this one`]</span>
                                 </a>
 
-                                <a class="nowrap js-promo-delete button rounded light-gray" href="javascript:void(0);">
+                                <a class="nowrap js-promo-delete button rounded light-gray small" href="javascript:void(0);">
                                     <i class="fas fa-trash-alt text-red custom-mr-4"></i> <span class="desktop-and-tablet-only">[`Delete promo`]</span>
                                 </a>
                             </span>
@@ -121,23 +121,23 @@
                             </thead>
                             <tbody>
                                 <tr class="s-current-indicators">
-                                    <th>[`Promo`]</th>
+                                    <th class="bold">[`This promo`]</th>
                                     <td>
-                                        <div class="s-indicator-block is-green">
+                                        <div class="s-indicator-block is-green larger">
                                             <div class="s-background" style="width: {$promo_totals.sales_percent|round}%;"></div>
                                             <span class="s-price">{shop_currency_html($promo_totals.sales)}</span>
                                             <span class="s-percent">{$promo_totals.sales_percent|round}%</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="s-indicator-block">
+                                        <div class="s-indicator-block larger">
                                             <div class="s-background" style="width: {$promo_totals.order_count_percent|round}%;"></div>
                                             <span class="s-orders">{$promo_totals.order_count|round}</span>
                                             <span class="s-percent">{$promo_totals.order_count_percent|round}%</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="s-indicator-block">
+                                        <div class="s-indicator-block larger">
                                             {$_width = $promo_totals.avg_order_percent}
                                             {if $_width > 100}{$_width = 100}{/if}
 
@@ -147,36 +147,36 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="s-roi">{if !empty($promo_totals.roi)}{$promo_totals.roi}%{else}—{/if}</span>
+                                        <span class="s-roi larger">{if !empty($promo_totals.roi)}{$promo_totals.roi}%{else}—{/if}</span>
                                     </td>
                                     <td>
-                                        <span class="s-price">{shop_currency_html($promo_totals.profit)}</span>
+                                        <span class="s-price larger">{shop_currency_html($promo_totals.profit)}</span>
                                     </td>
                                     <td>
-                                        <span class="s-price">{shop_currency_html($promo_totals.expense)}</span>
+                                        <span class="s-price larger">{shop_currency_html($promo_totals.expense)}</span>
                                     </td>
                                 </tr>
                                 <tr class="s-total-indicators">
                                     <th>
-                                        [`Total`]
+                                        [`Overall`]
                                         <span class="wa-tooltip" data-wa-tooltip-content="[`Data of all paid orders received from storefronts enabled for this promo, including orders not matching the promo’s settings`]">
                                             <i class="fas fa-info-circle text-dark-gray small top"></i>
                                         </span>
                                     </th>
                                     <td>
-                                        <div class="s-indicator-block is-blue">
+                                        <div class="s-indicator-block is-blue large">
                                             <div class="s-background" style="width: 100%;"></div>
                                             <span class="s-price">{shop_currency_html($overall_totals.sales)}</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="s-indicator-block">
+                                        <div class="s-indicator-block large">
                                             <div class="s-background" style="width: 100%;"></div>
                                             <span class="s-orders">{$overall_totals.order_count|round}</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="s-indicator-block">
+                                        <div class="s-indicator-block large">
                                             {$_width = 100}
                                             {if $promo_totals.avg_order_percent > $_width}
                                                 {$_width = ($overall_totals.avg_order*100/$promo_totals.avg_order)}
@@ -202,9 +202,9 @@
                 <div class="fields-group">
                     {* Name *}
                     <div class="field">
-                        <div class="name">[`Name`]</div>
+                        <div class="name for-input bold">[`Name`]</div>
                         <div class="value">
-                            <input class="long" type="text" name="promo[name]" value="{$promo.name|default:''|escape}">
+                            <input class="bold large long" type="text" name="promo[name]" value="{$promo.name|default:''|escape}" placeholder="[`New sale`]">
 
                             {if !empty($promo.id)}
                                 <div class="s-ident-wrapper">
@@ -213,44 +213,56 @@
                                 </div>
                             {/if}
 
-                            <div class="s-field-hint hint">[`This name is not visible to website visitors.`]</div>
+                            {if empty($promo.id)}<div class="s-field-hint hint"><i class="fas fa-lock text-light-gray small"></i> [`Required. The internal promo name is not visible to website visitors.`]</div>{/if}
                         </div>
                     </div>
 
                     {* Status *}
-                    <div class="field">
-                        <div class="name">[`Status`]</div>
+                    <div class="field"{if empty($promo.id)} style="display: none;"{/if}>
+                        <div class="name for-input">[`Status`]</div>
                         <div class="value">
 
                             {strip}
                             {$_is_active = $promo.enabled}
 
                             {$_status_icon_class = "play"}
-                            {$_status_title = _w("Active action")}
+                            {$_status_color = "green"}
+                            {$_status_title = _w("Active now")}
                             {if !empty($promo.start_datetime)}
                                 {$_start_time = $promo.start_datetime|strtotime}
                                 {$_now = waDateTime::format('timestamp')}
                                 {if $_start_time > $_now}
                                     {$_status_icon_class = "clock"}
                                     {$_status_title = "[`Scheduled`]"}
+                                    {$_status_color = "yellow"}
+                                {/if}
+                            {/if}
+                            {if !empty($promo.finish_datetime)}
+                                {$_finish_time = $promo.finish_datetime|strtotime}
+                                {$_now = waDateTime::format('timestamp')}
+                                {if $_finish_time < $_now}
+                                    {$_status_icon_class = "stop"}
+                                    {$_status_title = "[`Finished`]"}
+                                    {$_status_color = "gray"}
+                                    {$_status_nothing_to_stop = true}
                                 {/if}
                             {/if}
 
                             <div class="s-status-section js-status-section {if empty($_is_active)}is-disabled{/if}">
                                 <input class="s-checkbox" type="checkbox" name="promo[enabled]" value="1" {if !empty($_is_active)}checked{/if}>
                                 <div class="s-visible tablebox middle">
-                                    <span class="text-green nowrap" style="width: 13%;">
-                                        <i class="fas fa-{$_status_icon_class|escape} custom-mr-8"></i>
+                                    <span class="text-{$_status_color} nowrap" style="width: 13%;">
+                                        <i class="fas fa-{$_status_icon_class|escape} small custom-mr-8"></i>
                                         <span class="s-title">{$_status_title|escape}</span>
                                     </span>
-                                    <button type="button" class="button light-gray rounded js-stop-status">[`Stop`]</button>
+                                    {if empty($_status_nothing_to_stop)}<button type="button" class="button small light-gray rounded js-stop-status">[`Stop`]</button>{/if}
                                 </div>
                                 <div class="s-hidden tablebox middle">
                                     <span class="text-red nowrap" style="width: 13%;">
                                         <i class="fas fa-pause custom-mr-8"></i>
                                         <span class="s-title">[`Stopped`]</span>
                                     </span>
-                                    <button type="button" class="button light-gray rounded js-restore-status">[`Resume`]</button>
+                                    <button type="button" class="button small green rounded js-restore-status">[`Resume`]</button>
                                 </div>
                             </div>
                             {/strip}
@@ -258,7 +270,7 @@
                         </div>
                     </div>
                     <div class="field">
-                        <div class="name">[`Beginning`]</div>
+                        <div class="name for-input">[`Beginning`]</div>
                         <div class="value">
 
                             <div class="s-datetime-section flexbox middle">
@@ -289,11 +301,12 @@
                                     ></span>
                                 </span>
                             </div>
+                            {if empty($promo.id)}<p class="hint custom-my-4">[`Optional. Use for automating the promo launch.`]</p>{/if}
 
                         </div>
                     </div>
                     <div class="field">
-                        <div class="name">[`End`]</div>
+                        <div class="name for-input">[`End`]</div>
                         <div class="value">
 
                             <div class="s-datetime-section flexbox middle">
@@ -324,11 +337,12 @@
                                     ></span>
                                 </span>
                             </div>
+                            {if empty($promo.id)}<p class="hint custom-my-4">[`Optional. Use for automating the promo finish.`]</p>{/if}
 
                         </div>
                     </div>
                 </div>
-                <div class="fields-group">
+                <div class="fields-group"{if empty($storefronts) || count($storefronts) <= 1} style="display: none;"{/if}>
                     <div class="s-storefronts-section">
                         <div class="flexbox middle">
                             <h6 class="wide custom-mb-4"><span>[`Storefronts`] (<span class="js-counter">{$storefronts_count|escape}</span>)</span></h6>
@@ -448,7 +462,10 @@
 
                         </div>
                         <div class="s-content js-content" data-id="rules"  style="{if $_active_tab_id === "rules"}display: block;{/if}">
-                            <p>[`Add tools to run this promo campaign and to define when placed orders must be associated with this promo.`]</p>
+                            <p class="small">
+                                {if empty($promo.id)}<b>[`Promo is a combination of tools and smart rules defining your marketing focus.`]</b> {/if}
+                                [`Add tools to run this promo campaign and to define when placed orders must be associated with this promo.`]
+                            </p>
 
                             <div class="s-rules-section js-rules-section">
 
@@ -508,16 +525,16 @@
                                                 <div class="s-column">
                                                     <div class="s-actions">
 
-                                                        <a class="button rounded light-gray s-visible-action js-edit-rule" href="javascript:void(0);">
+                                                        <a class="button rounded smaller light-gray s-visible-action js-edit-rule" href="javascript:void(0);">
                                                             <i class="fas fa-pencil-alt text-blue"></i> [`Edit`]
                                                         </a>
 
-                                                        <a class="button rounded light-gray s-hidden-action js-cancel-edit-rule" href="javascript:void(0);">
+                                                        <a class="button rounded smaller light-gray s-hidden-action js-cancel-edit-rule" href="javascript:void(0);">
                                                             [`Cancel`]
                                                         </a>
 
                                                         {if !empty($_rule.id)}
-                                                            <a class="button rounded light-gray  js-delete-rule" href="javascript:void(0);">
+                                                            <a class="button rounded smaller light-gray js-delete-rule" href="javascript:void(0);">
                                                                 <i class="fas fa-trash-alt text-red"></i> [`Delete`]
                                                             </a>
                                                         {/if}
@@ -583,13 +600,13 @@
 
         {strip}
         {capture assign="_saving_html"}
-            <span class="s-message">[`Saving`]...</span>
+            <span class="s-message small gray custom-ml-12">[`Saving`]...</span>
         {/capture}
         {capture assign="_saved_html"}
-            <span class="s-message"><i class="fas fa-check-circle text-green yes"></i> [`Saved`]</span>
+            <span class="s-message small custom-ml-12"><i class="fas fa-check-circle text-green yes"></i> [`Saved`]</span>
         {/capture}
         {capture assign="_prepare_html"}
-            <span class="s-message">[`Preparing`] ...</span>
+            <span class="s-message small gray custom-ml-12">[`Preparing`] ...</span>
         {/capture}
         {/strip}
 

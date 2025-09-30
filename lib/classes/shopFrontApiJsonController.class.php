@@ -28,6 +28,7 @@ abstract class shopFrontApiJsonController extends waJsonController
 
         $this->supportJsonRequestBody();
         $this->getResponse()->addHeader('Content-Type', 'application/json; charset=utf-8');
+        $this->getResponse()->addHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
     public function execute()
@@ -111,6 +112,43 @@ abstract class shopFrontApiJsonController extends waJsonController
         return shopApiCart::generateToken();
     }
 
+    /** Link to storefront checkout to create order in browser without Headless API. Returns NULL if disabled in store settings. */
+    protected function getStorefrontCheckoutUrl(string $customer_token): ?string
+    {
+        if (waRequest::param('storefront_mode') === 'api') {
+            return null;
+        }
+        return wa()->getRouting()->getUrl('shop/frontendOrderCart/customertoken', true).'?customer_token='.$customer_token;
+    }
+
+    protected function checkAntispamHash(Callable $getData=null)
+    {
+        if (!$getData) {
+            $getData = function($antispam_api_key, $antispam_cart_key, $customer_token) {
+                return $antispam_api_key.$antispam_cart_key;
+            };
+        }
+        $customer_token = waRequest::request('customer_token', '', waRequest::TYPE_STRING_TRIM);
+        if (!$customer_token) {
+            throw new waAPIException('required_param', sprintf_wp('Missing required parameter: %s.', 'customer_token'), 400);
+        }
+        $antispam_hash = waRequest::request('antispam_hash', '', waRequest::TYPE_STRING_TRIM);
+        if (!$antispam_hash) {
+            throw new waAPIException('required_param', sprintf_wp('Missing required parameter: %s.', 'antispam_hash'), 400);
+        }
+
+        $antispam_api_key = wa()->getSetting('headless_api_antispam_key', '', 'shop');
+        foreach ([time(), time() - 3600] as $ts) {
+            $antispam_cart_key = shopApiCart::getAntispamCartKey($customer_token, $ts);
+            $calculated_hash = hash('sha256', $getData($antispam_api_key, $antispam_cart_key, $customer_token));
+            if ($calculated_hash == $antispam_hash) {
+                return true;
+            }
+        }
+
+        throw new waAPIException('antispam_check_failed', sprintf_wp('Incorrect value of the “%s” parameter.', 'antispam_hash'), 400);
+    }
+
     public function convertDateToISO8601($date, $tz = 'UTC')
     {
         if (empty($date)) {
@@ -192,7 +230,7 @@ abstract class shopFrontApiJsonController extends waJsonController
 
         return $order;
     }
-    
+
     protected function getCheckoutConfig()
     {
         return new shopCheckoutConfig(waRequest::param('checkout_storefront_id', null));

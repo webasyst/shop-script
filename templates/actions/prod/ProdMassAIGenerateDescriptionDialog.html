@@ -3,6 +3,7 @@
 {function top_badge title=''}
     <span class="badge custom-py-6 custom-px-8 blue"><i class="fas fa-check"></i> {$title}</span>
 {/function}
+{$_lang = substr($wa->locale(), 0, 2)}
 {$fields_for_fill = [
     'description' => ['title' => _w('Description'), 'request_id' => 1],
     'summary' => ['title' => _w('Summary'), 'request_id' => 2],
@@ -116,22 +117,48 @@
         </div>
     </div>
     <script>
-    $(() => {
-        new ProductDescriptionAIGenerate({
-            product_ids: {$product_ids|json_encode},
-            $wrapper: $('#js-ai-generate-dialog'),
-            per_transaction_seconds: 10,
-            wa_backend_url: {$wa_backend_url|json_encode},
-            locales: {
-                sec: '[`sec`]',
-                min: '[`min`]',
-                hr: '[`hr`]'
-            },
-            templates: {
-                one_by_one_dialog: {json_encode({include file="./ProdOneByOneAIGenerateDescriptionDialog.inc.html"})}
+    (() => {
+        const lang = {$_lang|json_encode};
+        const sources = [{
+            id: "redactor-2-css",
+            type: "css",
+            uri: "{$wa_url}wa-content/js/redactor/2/redactor.css?v={$wa->version(true)}"
+        }, {
+            id: "redactor-2-js",
+            type: "js",
+            uri: "{$wa_url}wa-content/js/redactor/2/redactor.min.js?v={$wa->version(true)}"
+        }];
+
+        $.wa.loadSources(sources).then( function() {
+            if (["ru"].indexOf(lang) === 0) {
+                $.wa.loadSources([{
+                    id: "redactor-2-ru-js",
+                    type: "js",
+                    uri: "{$wa_url}wa-content/js/redactor/2/ru.js?v={$wa->version(true)}"
+                }]).then(init);
+            } else {
+                init();
             }
         });
-    });
+
+        function init() {
+            new ProductDescriptionAIGenerate({
+                product_ids: {$product_ids|json_encode},
+                $wrapper: $('#js-ai-generate-dialog'),
+                per_transaction_seconds: 10,
+                wa_backend_url: {$wa_backend_url|json_encode},
+                lang,
+                locales: {
+                    sec: '[`sec`]',
+                    min: '[`min`]',
+                    hr: '[`hr`]'
+                },
+                templates: {
+                    one_by_one_dialog: {json_encode({include file="./ProdOneByOneAIGenerateDescriptionDialog.inc.html"})}
+                }
+            });
+        }
+    })();
     </script>
 </div>
 {else}

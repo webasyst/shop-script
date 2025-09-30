@@ -5437,6 +5437,34 @@ paths:
         400:
           description: Некорректное содержимое запроса.
 
+  /shop.settings.enableHeadless:
+    post:
+      summary: Включает Headless API на указанной витрине магазина
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.settings.enableHeadless
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.settings.enableHeadless/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - storefront_url
+              properties:
+                storefront_url:
+                  type: string
+                  description: URL витрины, как указан в shop.settings.get storefronts[].url
+      responses:
+        200:
+          description: Успешное выполнение запроса.
+        400:
+          description: Некорректное содержимое запроса.
+
 #STOCK
   /shop.stock.getInfo:
     get:

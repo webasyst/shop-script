@@ -17,7 +17,7 @@ class shopAiGptMethod extends shopApiMethod
                 $this->executeProduct();
                 break;
             default:
-                throw new waAPIException('entity_required', 'entity is unknown or missing', 400);
+                throw new waAPIException('entity_required', sprintf_wp('Incorrect or empty “%s” parameter value.', 'entity'), 400);
                 break;
         }
     }
@@ -40,7 +40,7 @@ class shopAiGptMethod extends shopApiMethod
                         $product = new shopProduct($product_id);
                         $description_request->loadFieldValuesFromProduct($product);
                     } catch (waException $e) {
-                        throw new waAPIException('product_not_found', 'Bad product_id', 400);
+                        throw new waAPIException('product_not_found', sprintf_wp('Incorrect value of the “%s” parameter.', 'product_id'), 400);
                     }
                 }
 
@@ -104,7 +104,7 @@ class shopAiGptMethod extends shopApiMethod
                 break;
 
             default:
-                throw new waAPIException('field_required', 'field is unknown or missing', 400);
+                throw new waAPIException('field_required', sprintf_wp('Incorrect or empty “%s” parameter value.', 'field'), 400);
                 break;
         }
     }

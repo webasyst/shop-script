@@ -259,7 +259,7 @@ class shopCheckoutContactinfo extends shopCheckout
                 );
             } else {
                 $this->assign('errors', array(
-                    'service_agreement' => _w('Please confirm your agreement'),
+                    'service_agreement' => _w('Please confirm your consent'),
                 ));
                 return false;
             }

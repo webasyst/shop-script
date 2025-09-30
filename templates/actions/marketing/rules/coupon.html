@@ -80,11 +80,9 @@
 {/strip}
 
 <div class="s-coupon-rule-section js-coupon-rule-section" id="js-coupon-rule-section-{$_uniqid}">
-    <div class="alert">
-        <div class="s-section-description">
-            [`Select coupons for this promo. Orders with selected coupons will be automatically associated with this promo.`]
-        </div>
-    </div>
+    <p class="hint">
+        [`Select coupons for this promo. Orders with selected coupons will be automatically associated with this promo.`]
+    </p>
 
     {if !empty($coupons)}
         <div class="s-coupons-list s-block">
@@ -101,9 +99,8 @@
         </div>
         {/strip}
     {else}
-        <div class="">
-            <span class="gray">[`No coupons.`]</span>
-            <a href="{$marketing_url}coupons/create/">[`Add a new coupon`]</a>
+        <div class="small">
+            <a href="{$marketing_url}coupons/create/" class="button small rounded light-gray">[`Add a new coupon`]</a>
         </div>
     {/if}
 

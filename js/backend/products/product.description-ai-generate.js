@@ -5,6 +5,7 @@
             options = options || {};
             this.wa_backend_url = options.wa_backend_url;
             this.product_ids = options.product_ids;
+            this.lang = options.lang;
             this.locales = options.locales;
             this.templates = options.templates;
             this.per_transaction_seconds = options.per_transaction_seconds || 0;
@@ -226,10 +227,11 @@
         async initOneByOneDialog({ product }) {
             this.progressbar_one_by_one_state[product.id] = 'current';
             const deferred = $.Deferred();
-            let is_saved = false;
-
             const $wrapper = $(this.templates.one_by_one_dialog);
             const $form = $wrapper.find('form');
+            const $textarea = $('[name="product[description]"]', $form);
+            let is_saved = false;
+
             this.setFormData($wrapper, product);
             this.renderProgressbarByOne($wrapper);
             const resizeContentObserver = (() => {
@@ -248,6 +250,59 @@
                 };
                 return new ResizeObserver(debounced);
             })();
+
+            const initRedactor = ($textarea) => {
+                const getOptions = () => {
+                    const options = {
+                        lang: this.lang,
+                        focus: false,
+                        deniedTags: false,
+                        minHeight: 150,
+                        maxHeight: 250,
+                        linkify: false,
+                        source: false,
+                        paragraphy: false,
+                        replaceDivs: false,
+                        replaceTags: {
+                            'b': 'strong',
+                            'i': 'em',
+                            'strike': 'del'
+                        },
+                        removeNewlines: false,
+                        removeComments: false,
+                        buttons: ['format', 'bold', 'italic', 'underline', 'deleted', 'lists',
+                            'table', 'link', 'alignment',
+                            'horizontalrule',  'fontcolor', 'fontsize', 'fontfamily'],
+                        plugins: ['fontcolor', 'fontfamily', 'alignment', 'fontsize', 'table']
+                    };
+                    options.callbacks = {
+                        sync: function (html) {
+                            html = html.replace(/{[a-z$][^}]*}/gi, function (match, offset, full) {
+                                var i = full.indexOf("</script", offset + match.length);
+                                var j = full.indexOf('<script', offset + match.length);
+                                if (i === -1 || (j !== -1 && j < i)) {
+                                    match = match.replace(/&gt;/g, '>');
+                                    match = match.replace(/&lt;/g, '<');
+                                    match = match.replace(/&amp;/g, '&');
+                                    match = match.replace(/&quot;/g, '"');
+                                }
+                                return match;
+                            });
+                            this.$textarea.val(html);
+                        },
+                        syncClean: function (html) {
+                            // Unescape '->' in smarty tags
+                            return html.replace(/\{[a-z\$'"_\(!+\-][^\}]*\}/gi, function (match) {
+                                return match.replace(/-&gt;/g, '->');
+                            });
+                        }
+                    };
+                    return options;
+                }
+                return $textarea.redactor(getOptions());
+            };
+            initRedactor($textarea);
+
             $.waDialog({
                 $wrapper,
                 onOpen: (_, d) => {

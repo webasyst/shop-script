@@ -18,10 +18,13 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
         }
 
         $shop_config = wa()->getConfig();
+        $checkout_config = $this->getCheckoutConfig();
 
         $currency_formatter = new shopFrontApiCurrencyFormatter();
         $currencies = array_values((new shopCurrencyModel())->getCurrencies());
         $currencies = array_map([$currency_formatter, 'format'], $currencies);
+
+        $review_service_agreement = $shop_config->getGeneralSettings('review_service_agreement');
 
         $this->response = [
             'customer_token'        => $customer_token,
@@ -45,7 +48,24 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
             'shop_version'          => wa('shop')->getVersion(),
             'shop_schedule'         => (new shopFrontApiScheduleFormatter())->format($shop_config->getSchedule()),
             'locale'                => wa()->getLocale(),
+            'customer_agreement'    => [
+                'setting' => ifset($checkout_config, 'customer', 'service_agreement', ''), // 'checkbox' | 'notice' | ''
+                'text' => ifset($checkout_config, 'customer', 'service_agreement', '') ? ifset($checkout_config, 'customer', 'service_agreement_hint', '') : '',
+            ],
+            'service_terms'    => [
+                'setting' => ifset($checkout_config, 'confirmation', 'terms', '') ? 'checkbox' : '',
+                'text' => ifset($checkout_config, 'confirmation', 'terms', '') ? ifset($checkout_config, 'confirmation', 'terms_text', '') : '',
+            ],
+            'review_service_agreement' => [
+                'setting' => $review_service_agreement, // 'checkbox' | 'notice' | ''
+                'text' => (empty($review_service_agreement) ? '' : $shop_config->getGeneralSettings('review_service_agreement_hint'))
+            ],
         ];
+
+        $antispam_cart_key = shopApiCart::getAntispamCartKey($customer_token);
+        if ($antispam_cart_key !== null) {
+            $this->response['antispam_cart_key'] = $antispam_cart_key;
+        }
     }
 
     /**

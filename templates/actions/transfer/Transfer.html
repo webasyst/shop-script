@@ -46,7 +46,7 @@
                                         </select>
                                     </div>
 
-                                    <div class="wa-select">
+                                    <div class="wa-select small">
                                         <select name="currency">
                                             {foreach $currencies as $currency}
                                                 <option value="{$currency.code}" data-sign-html="{$currency.sign_html|escape}" data-sign-position="{$currency.sign_position}">{$currency.code}</option>
@@ -69,6 +69,7 @@
                                 </div>
                                 <div class="value ">
                                     <select name="from" class="text-ellipsis width-100-mobile">
+                                        <option value=""></option>
                                         <option value="0">[`New arrival (no source stock)`]</option>
                                         {foreach $stocks as $stock}
                                             <option value="{$stock.id}" {if $from == $stock.id}selected="selected"{/if}>{$stock.name|escape}</option>
@@ -91,7 +92,7 @@
                                 </div>
                             </div>
                             <div class="field">
-                                <div class="name custom-pt-16">
+                                <div class="name for-input">
                                     [`Products`]
                                 </div>
                                 <div class="value">
@@ -117,13 +118,14 @@
                                                     <input class="s-transfer-input-price small number bold shorter" type="text" name="price[]" value="" disabled="disabled">
                                                 </td>
                                                 <td class="min-width custom-pt-8">
-                                                    <a class="s-delete-item"><i class="fas fa-trash-alt text-red"></i></a>
+                                                    <a class="s-delete-item"><i class="fas fa-trash-alt small text-red"></i></a>
                                                 </td>
                                             </tr>
                                         </tfoot>
                                     </table>
+                                    <p class="hint">[`Product quantities and pricing will be saved to the stock log and consignment notes.`]</p>
 
-                                    <input type="search" class="s-transfer-products-add-autocomplete search longer" placeholder="[`Enter a product name, an SKU name, or an SKU code`]">
+                                    <input type="search" class="s-transfer-products-add-autocomplete search longer small" placeholder="[`Enter a product name, an SKU name, or an SKU code`]">
 
                                 </div>
                             </div>
@@ -376,7 +378,7 @@
         })(form.find('[name=from]'));
 
         $('.js-close-new-transfer').on('click', function () {
-            $('#s-new-transfer-product').trigger('click');
+            $('.s-new-transfer-product:first').trigger('click');
         });
     });
 </script>

@@ -78,11 +78,11 @@ class shopCustomerSearchMethod extends shopApiMethod
         $offset = waRequest::request('offset', 0, 'int');
 
         if ($offset < 0) {
-            throw new waAPIException('invalid_param', 'Param offset must be greater than or equal to zero');
+            throw new waAPIException('invalid_param', _w('An “offset” parameter value must be greater than or equal to zero.'));
         }
         $limit = waRequest::request('limit', 100, 'int');
         if ($limit < 0) {
-            throw new waAPIException('invalid_param', 'Param limit must be greater than or equal to zero');
+            throw new waAPIException('invalid_param', _w('A “limit” parameter value must be greater than or equal to zero.'));
         }
     }
 

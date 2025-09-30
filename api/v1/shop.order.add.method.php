@@ -7,7 +7,7 @@ class shopOrderAddMethod extends shopApiMethod
     public function execute()
     {
         if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
-            throw new waAPIException('access_denied', 'Action not available for user', 403);
+            throw new waAPIException('access_denied', _w('Action not available to user.'), 403);
         }
         $contact_id = $this->post('contact_id');
         if ($contact_id) {
@@ -56,7 +56,7 @@ class shopOrderAddMethod extends shopApiMethod
             $method = new shopOrderGetInfoMethod();
             $this->response = $method->getResponse(true);
         } else {
-            throw new waAPIException('server_error', 'Error', 500);
+            throw new waAPIException('server_error', _w('An error has occurred.'), 500);
         }
     }
 

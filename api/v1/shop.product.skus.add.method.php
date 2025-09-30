@@ -11,7 +11,7 @@ class shopProductSkusAddMethod extends shopProductSkusUpdateMethod
         $data = waRequest::post();
 
         if (!$data) {
-            throw new waAPIException('invalid_param', 'Required data is missing', 400);
+            throw new waAPIException('invalid_param', _w('Missing required data.'), 400);
         }
         if (empty($data['name'])) {
             $data['name'] = '';

@@ -17,7 +17,7 @@ class shopProductImagesSortMethod extends shopProductUpdateMethod
 
         $first_image = $spim->getById($photo_ids[0]);
         if (!$first_image) {
-            throw new waAPIException('not_found', 'Product image not found', 404);
+            throw new waAPIException('not_found', _w('Product image not found.'), 404);
         }
 
         $all_images = $spim->getByField(array('product_id' => $first_image['product_id']), true);

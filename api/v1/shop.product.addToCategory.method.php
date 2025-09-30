@@ -18,7 +18,7 @@ class shopProductAddToCategoryMethod extends shopProductUpdateMethod
         }
 
         if ($category['type'] == shopCategoryModel::TYPE_DYNAMIC) {
-            throw new waAPIException('invalid_param', 'Category type must be static');
+            throw new waAPIException('invalid_param', _w('A static category is required.'));
         }
 
         $category_products_model = new shopCategoryProductsModel();

@@ -19,7 +19,7 @@ class shopCategoryUpdateMethod extends shopApiMethod
             }
             if (isset($data['parent_id']) && $category['parent_id'] != $data['parent_id']) {
                 if (!$category_model->getById($data['parent_id'])) {
-                    throw new waAPIException('invalid_param', 'Parent category not found', 404);
+                    throw new waAPIException('invalid_param', _w('Parent category not found.'), 404);
                 }
                 if (!$category_model->move($id, null, $data['parent_id'])) {
                     throw new waAPIException('server_error', 500);

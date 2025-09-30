@@ -14,7 +14,7 @@ class shopOrderActionMethod extends shopApiMethod
         $order = $order_model->getById($order_id);
         if (!$order) {
             if ($this->courier) {
-                throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
+                throw new waAPIException('access_denied', _w('Access denied for the limited courier token.'), 403);
             } else {
                 throw new waAPIException('invalid_param', _w('Order not found.'), 404);
             }
@@ -25,12 +25,12 @@ class shopOrderActionMethod extends shopApiMethod
             $order_params_model = new shopOrderParamsModel();
             $courier_id = $order_params_model->getOne($order_id, 'courier_id');
             if (empty($courier_id) || ($courier_id != $this->courier['id'])) {
-                throw new waAPIException('access_denied', 'Access denied to limited courier token.', 403);
+                throw new waAPIException('access_denied', _w('Access denied for the limited courier token.'), 403);
             }
         } else {
             // Check normal user access rights
             if (!wa()->getUser()->isAdmin('shop') && !wa()->getUser()->getRights('shop', sprintf('workflow_actions.%s', $action_id))) {
-                throw new waAPIException('access_denied', 'Action not available for user', 403);
+                throw new waAPIException('access_denied', _w('Action not available to user.'), 403);
             }
         }
 

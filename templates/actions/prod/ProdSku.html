@@ -288,8 +288,8 @@
 ]}
 
 {capture assign="_tooltip_visible_in_storefront"}
-    <p>[`The heading is visible in the storefront.`]</p>
-    <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
+    <p class="small">[`The heading is visible in the storefront.`]</p>
+    <p class="small">{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
 {/capture}
 {$_tooltips["visible_in_storefront"] = [
     "id" => "visible_in_storefront",
@@ -314,8 +314,8 @@
                         <div class="wa-tooltip custom js-show-tooltip-on-hover">
                             <span class="s-icon text-gray"><i class="fas fa-eye"></i></span>
                             <div class="tooltip-text" style="width: 15rem;">
-                                <p>[`The heading is visible in the storefront.`]</p>
-                                <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
+                                <p class="small">[`The heading is visible in the storefront.`]</p>
+                                <p class="small">{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
                             </div>
                         </div>
                     </template>
@@ -323,8 +323,8 @@
                         <div class="wa-tooltip custom js-show-tooltip-on-hover">
                             <span class="s-icon is-inactive"><i class="fas fa-eye-slash"></i></span>
                             <div class="tooltip-text" style="width: 15rem;">
-                                <p>[`The heading is hidden from the storefront.`]</p>
-                                <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
+                                <p class="small">[`The heading is hidden from the storefront.`]</p>
+                                <p class="small">{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
                             </div>
                         </div>
                     </template>
@@ -642,8 +642,8 @@
                                     <div class="wa-tooltip custom js-show-tooltip-on-hover">
                                         <span class="s-icon"><i class="fas fa-eye"></i></span>
                                         <div class="tooltip-text" style="width: 15rem;">
-                                            <p>[`The feature is visible in the storefront.`]</p>
-                                            <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
+                                            <p class="small">[`The feature is visible in the storefront.`]</p>
+                                            <p class="small">{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
                                         </div>
                                     </div>
                                 </template>
@@ -651,8 +651,8 @@
                                     <div class="wa-tooltip custom js-show-tooltip-on-hover">
                                         <span class="s-icon is-inactive"><i class="fas fa-eye-slash"></i></span>
                                         <div class="tooltip-text" style="width: 15rem;">
-                                            <p>[`The feature is hidden from the storefront.`]</p>
-                                            <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
+                                            <p class="small">[`The feature is hidden from the storefront.`]</p>
+                                            <p class="small">{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
                                         </div>
                                     </div>
                                 </template>
@@ -663,8 +663,8 @@
                             <div class="wa-tooltip custom js-show-tooltip-on-hover">
                                 <span class="s-icon text-orange"><i class="fas fa-exclamation-triangle"></i></span>
                                 <div class="tooltip-text" style="width: 15rem;">
-                                    <p>[`This feature is not visible in the storefront because it is not selected for the product type to which this product belongs. Delete this feature value if you want to remove it from this product.`]</p>
-                                    <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
+                                    <p class="small">[`This feature is not visible in the storefront because it is not selected for the product type to which this product belongs. Delete this feature value if you want to remove it from this product.`]</p>
+                                    <p class="small">{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
                                 </div>
                             </div>
 
@@ -686,8 +686,8 @@
                                 <div class="wa-tooltip custom js-show-tooltip-on-hover">
                                     <span class="s-icon icon"><svg><use xlink:href='{$_sprite_url}#sitemap'></use></svg></span>
                                     <div class="tooltip-text" style="width: 15rem;">
-                                        <p>[`You can save this feature’s values for SKU variants. If no value has been saved for a variant, then a default value specified here is used.`]</p>
-                                        <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
+                                        <p class="small">[`You can save this feature’s values for SKU variants. If no value has been saved for a variant, then a default value specified here is used.`]</p>
+                                        <p class="small">{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
                                     </div>
                                 </div>
                             </template>
@@ -695,8 +695,8 @@
                                 <div class="wa-tooltip custom js-show-tooltip-on-hover">
                                     <span class="s-icon icon is-inactive"><svg><use xlink:href='{$_sprite_url}#sitemap-slash'></use></svg></span>
                                     <div class="tooltip-text" style="width: 15rem;">
-                                        <p>[`A feature value for entire product.`]</p>
-                                        <p>{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
+                                        <p class="small">[`A feature value for entire product.`]</p>
+                                        <p class="small">{sprintf_wp("You can change this setting in <a href=\"%s\" target=\"_blank\">product types and features</a> setup section.", $_settings_url)}</p>
                                     </div>
                                 </div>
                             </template>
@@ -1578,7 +1578,7 @@
                                                                         <component-file-manager v-bind:sku_mod="sku_mod"></component-file-manager>
                                                                     </template>
                                                                     <template v-else>
-                                                                        <p>[`Save product data to attach a file.`]</p>
+                                                                        <p class="small">[`Save product data to attach a file.`]</p>
                                                                     </template>
                                                                 </div>
                                                             </div>
@@ -1791,7 +1791,7 @@
                                 </template>
                             </template>
                             <template v-else>
-                                <p>[`No badges`]</p>
+                                <p class="small">[`No badges`]</p>
                             </template>
                         </div>
                     </div>

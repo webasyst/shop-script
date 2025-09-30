@@ -61,7 +61,7 @@ class shopFrontendProductReviewsAddController extends waJsonController
 
         $id = $model->add($data, $data['parent_id']);
         if (!$id) {
-            throw new waException("Error in adding review");
+            throw new waException(_w('Review adding error.'));
         } else {
             $options = [
                 'review_id'  => $id,
@@ -212,7 +212,7 @@ class shopFrontendProductReviewsAddController extends waJsonController
             return array();
         } else {
             return array(
-                'service_agreement' => _w('Please confirm your agreement'),
+                'service_agreement' => _w('Please confirm your consent'),
             );
         }
     }
