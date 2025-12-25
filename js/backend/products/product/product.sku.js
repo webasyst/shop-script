@@ -265,14 +265,13 @@
 
             // feature components
             var ComponentFeature = {
-                props: ["product", "feature", "value", "vertical", "columns"],
+                props: ["product", "feature", "vertical", "columns"],
                 emits: ["change"],
                 template: that.templates["component-feature"],
                 delimiters: ['{ { ', ' } }'],
                 methods: {
                     changeFeatureValues: function(feature) {
                         var self = this;
-
                         that.initChangeFeatureValuesDialog(self, feature);
                     },
                     resetFeatureValues: function(feature) {
@@ -3080,6 +3079,13 @@
                     }
                 }
             });
+
+            if (0) {
+                // Debugging helper
+                $.vue_app.config.errorHandler = (err, instance, info) => {
+                    console.log('Vue error:', err, instance, info);
+                };
+            }
 
             $.vue_app.config.compilerOptions.isCustomElement = tag => ['component-fractional-changes'].includes(tag);
             $.vue_app.config.compilerOptions.whitespace = 'preserve';

@@ -121,7 +121,7 @@ class shopMainMenu
                         "url" => "{$wa_app_url}marketing/recommendations/"
                     ],
                     [
-                        "name" => _w("Affiliate program"),
+                        "name" => _w("Loyalty program"),
                         "userRights" => ['setup_marketing'],
                         "url" => "{$wa_app_url}marketing/affiliate/"
                     ]
@@ -153,28 +153,6 @@ class shopMainMenu
                     ]
                 ]
             ],
-            "storefront" => [
-                "id" => "storefront",
-                "name" => _w("Storefront"),
-                "icon" => '<i class="fas fa-store"></i>',
-                "url" => "{$wa_app_url}?action=storefronts#/design/themes/",
-                "userRights" => ['design', 'pages'],
-                "placement" => "body",
-                "submenu" => [
-                    [
-                        "name" => _w("Design"),
-                        "url" => "{$wa_app_url}?action=storefronts#/design/themes/"
-                    ],
-                    [
-                        "name" => _w("Pages"),
-                        "url" => "{$wa_app_url}?action=storefronts#/design/pages/"
-                    ],
-                    [
-                        "name" => _w('Headless'),
-                        "url" => "{$wa_app_url}?action=storefronts#/api/"
-                    ]
-                ]
-            ],
             "plugins" => [
                 "id" => "plugins",
                 "name" => _w("Plugins"),
@@ -199,7 +177,41 @@ class shopMainMenu
                 "userRights" => ['settings'],
                 "placement" => "footer",
             ],
+            "storefront" => [
+                "id" => "storefront",
+                "name" => _w("Site"),
+                "header_above" => _w("Sales channels"),
+                "icon" => '<i class="fas fa-store"></i>',
+                "url" => "{$wa_app_url}?action=storefronts#/design/themes/",
+                "userRights" => ['design', 'pages'],
+                "placement" => "channels",
+                "submenu" => [
+                    [
+                        "name" => _w("Design"),
+                        "userRights" => ['design'],
+                        "url" => "{$wa_app_url}?action=storefronts#/design/themes/"
+                    ],
+                    [
+                        "name" => _w("Pages"),
+                        "userRights" => ['pages'],
+                        "url" => "{$wa_app_url}?action=storefronts#/design/pages/"
+                    ],
+                    [
+                        "name" => _w('Headless'),
+                        "userRights" => ['design'],
+                        "url" => "{$wa_app_url}?action=storefronts#/api/"
+                    ],
+                    [
+                        "name" => _w('Settings & SEO'),
+                        "userRights" => ['design'],
+                        "url" => "{$wa_app_url}?action=storefronts#/seo/"
+                    ],
+                ]
+            ],
         ];
+
+        // Sales channels go after storefront
+        $result += self::getSalesChannelItems();
 
         // This set of icons is used when Font Awesome is not available on the page (i.e. WA 1.3 design mode)
         if (!empty($options['inline_icons'])) {
@@ -227,7 +239,7 @@ class shopMainMenu
      * - insert_before: new section will be inserted before given section id.
      * - insert_after: new section will be inserted after given section id.
      *   When neither insert_before or insert_after is specified, new section is added at the end.
-     * - placement: can be 'body' or 'footer'. Defaults to same as section (if specified)
+     * - placement: can be 'body', 'footer' or 'channels'. Defaults to same as section (if specified)
      *   insert_before or insert_after, or 'body' otherwise.
      * - url: new section will open given page. Only supported by sections with no submenu.
      * - submenu: list of submenu links, each being array ['url' => string, 'name' => string]
@@ -388,5 +400,31 @@ class shopMainMenu
             }
         }
         unset($item);
+    }
+
+    protected static function getSalesChannelItems()
+    {
+        $result = [];
+        $channels = (new shopSalesChannelModel())->getAll();
+        if (!$channels) {
+            return $result;
+        }
+
+        $wa_app_url = wa('shop')->getAppUrl(null, true);
+        $channel_types = shopSalesChannelType::getAllTypes();
+        $channel_types = array_combine(array_column($channel_types, 'id'), $channel_types);
+
+        foreach ($channels as $channel) {
+            $result['channel'.$channel['id']] = [
+                "id" => 'channel'.$channel['id'],
+                "name" => $channel['name'],
+                "icon" => ifset($channel_types, $channel['type'], 'menu_icon', '<i class="fas fa-plug"></i>'),
+                "url" => "{$wa_app_url}channels/editor/".$channel['id'],
+                "userRights" => ['design'],
+                "placement" => "channels",
+                "available" => isset($channel_types[$channel['type']]),
+            ];
+        }
+        return $result;
     }
 }

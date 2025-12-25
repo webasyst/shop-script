@@ -39,6 +39,20 @@ class shopOrderSaveController extends waJsonController
             ),
         );
 
+        $data['params']['sales_channel_name'] = null;
+        $default_channel = shopSalesChannels::getDefaultChannel();
+        if (empty($storefront)) {
+            $data['params']['sales_channel'] = $default_channel['id'];
+        } else {
+            $sales_channel = shopSalesChannels::describeChannels();
+            if (empty($sales_channel[$storefront])) {
+                $data['params']['sales_channel'] = 'storefront:'.$storefront;
+            } else {
+                $data['params']['sales_channel'] = ifset($sales_channel, $storefront, 'id', $default_channel['id']);
+                $data['params']['sales_channel_name'] = ifset($sales_channel, $storefront, 'name', null);
+            }
+        }
+
         $this->workupData($data);
 
         $form = new shopBackendCustomerForm();

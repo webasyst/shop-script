@@ -107,6 +107,7 @@ class shopOrdersAction extends shopOrderListAction {
 
             if ($view === 'split' && !empty($filter_params['viewpos'])) {
                 $sales_stats_action = new shopOrdersSalesStatsAction([
+                    'viewposid' => ifset($filter_params, 'viewposid', null),
                     'date' => $filter_params['viewpos'],
                 ]);
                 $orders_sales_html = $sales_stats_action->display();

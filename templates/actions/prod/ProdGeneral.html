@@ -257,7 +257,7 @@
                                         <div class="s-column-name wide">
 
                                             <div class="s-url-field-wrapper js-simulate-border-lighting">
-                                                <span class="s-tail">{ifset($url_template, 'base', '')|escape}</span>
+                                                <span class="s-tail desktop-and-tablet-only">{ifset($url_template, 'base', '')|rtrim:'/'|escape}</span>
                                                 <input class="s-field js-product-url-field" type="text" name="product[url]" value="{$product.url|escape}">
                                             </div>
 
@@ -816,7 +816,7 @@
                         </div>
                         {* BAGES *}
                         <div class="s-product-badges-section js-product-badges-section fields custom-mt-16">
-                            <div class="tablebox fixed space-16 field">
+                            <div class="field">
                                 <div class="name">
                                     <span class="s-name">[`Badge`]</span>
                                     <span class="wa-tooltip inline right" data-title="{_w("An icon or brief caption to highlight this product among others.")|escape}">

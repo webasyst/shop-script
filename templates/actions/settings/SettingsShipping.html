@@ -75,18 +75,19 @@
                             {$plugin.name|escape}
                             {if empty($plugin.status)}([`disabled`]){/if}
                             {if empty($plugin.installed)}
-                                <span class="red">[`deleted`]</span>
+                                <span class="text-red">[`deleted`]</span>
                             {/if}
                         </strong>
 
                         {if empty($plugin.installed)}
-                            <span><i class="fa fa-info-circle"></i>
+                        <p class="state-caution-hint">
+                            <i class="fa fa-info-circle"></i>
                             {if $installer}
                                 {"#/shipping/plugins/"|string_format:'[`You can remove settings or install the <a href="%s" class="inline">plugin</a>.`]'}
                             {else}
                                 [`You can remove settings or install the plugin.`]
                             {/if}
-                        </span>
+                        </p>
                         {/if}
 
                         <div class="hint custom-mt-4">
@@ -162,7 +163,7 @@
         </div>
     </div>
 
-    <div class="alert outlined small custom-mt-16">
+    <div class="small">
         {foreach $shipping_params as $param => $param_data}
         {if !empty($param_data.states)}
         {foreach $param_data.states as $state=>$description}
@@ -275,15 +276,15 @@
 
 <div id="s-settings-shipping-cron">
     {if $cron_params.count}
-    <div class="custom-mt-40">
+    <div class="custom-mt-24">
         {if $cron_params.status==='ok'}
         <div class="hint">
             <i class="fas {if $cron_params.status==='ok'}fa-check-circle text-green{else} fa-exclamation-triangle text-red{/if}"></i>
             {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Shipping-related information is automatically updated. Latest cron execution time: <strong>%s</strong>.`]"}
         </div>
         {else}
-        <div class="alert warning align-center-mobile small" style="line-height: 2rem;">
-            <i class="fas text-red {if $cron_params.status==='error'}fa-ban{else}fa-exclamation-triangle{/if}"></i>
+        <div class="alert info align-center-mobile small" style="line-height: 2rem;">
+            <i class="fas text-orange fa-exclamation-triangle small"></i>
             [`Shipping-related information is not automatically updated, because cron is not properly configured.`]
             <button id="cron-message-link" class="button smaller light-gray rounded">
                 <i class="fas fa-info-circle"></i>

@@ -7,17 +7,28 @@ class shopOrdersSalesStatsAction extends waViewAction
     public function execute()
     {
         $date = $this->getSelectedDate();
+        $pos_id = $this->getSelectedPos();
         list($date_start, $date_end) = $this->getDateRangeFromDays($date, 10);
+
+        $points_of_sale = (new shopSalesChannelModel())->getByField('type', 'pos', true);
+        if ($pos_id !== null) {
+            $poi_ids_str = ['pos:'.$pos_id];
+        } else {
+            $poi_ids_str = array_map(function($c){
+                return 'pos:'.$c['id'];
+            }, $points_of_sale);
+            $poi_ids_str[] = 'pos:';
+        }
 
         $sales_model = new shopSalesModel();
         $sales_by_payment = $sales_model->getPeriod('payment', $date, $date, [
-            'sales_channel' => 'pos:',
+            'sales_channel' => $poi_ids_str,
         ]);
         $sales_by_currency = $sales_model->getPeriod('currencies', $date, $date, [
-            'sales_channel' => 'pos:',
+            'sales_channel' => $poi_ids_str,
         ]);
         $sales_by_day = $sales_model->getPeriodByDate('currencies', $date_start, $date_end, [
-            'sales_channel' => 'pos:',
+            'sales_channel' => $poi_ids_str,
         ]);
 
         // shop default currency should be first in list
@@ -44,6 +55,8 @@ class shopOrdersSalesStatsAction extends waViewAction
             'sales_by_currency' => $sales_by_currency,
             'sales_by_day' => $sales_by_day,
             'primary_currency' => $primary_currency,
+            'points_of_sale' => $points_of_sale,
+            'selected_pos_id' => $pos_id,
         ]);
     }
 
@@ -62,6 +75,26 @@ class shopOrdersSalesStatsAction extends waViewAction
             return date('Y-m-d');
         }
         return date('Y-m-d', $date_ts); // make sure it's yyyy-mm-dd and not something else strtotime() reads
+    }
+
+    public function getSelectedPos()
+    {
+        if (!empty($this->params['viewposid'])) {
+            // take date from constructor params when this action is called from shopOrdersAction
+            $viewposid = $this->params['viewposid'];
+        } else {
+            $viewposid = waRequest::request('viewposid', null, 'string');
+        }
+
+        if (!isset($viewposid)) {
+            return null; // no filtering
+        }
+        if (!$viewposid || $viewposid < 0) {
+            // unspecified point of sale
+            return '';
+        }
+        // point of sale with id
+        return (int) $viewposid;
     }
 
     public function getDateRangeFromDays(string $date, int $range)

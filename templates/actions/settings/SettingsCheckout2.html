@@ -23,8 +23,8 @@
                             <div class="flexbox middle">
                                 <h4 class="name wide">[`Cart`]</h4>
                                 {* Show/hide settings *}
-                                <a href="javascript:void(0);" class="js-settings-link nowrap">
-                                    <i class="fas fa-cog"></i>
+                                <a href="javascript:void(0);" class="js-settings-link button light-gray smaller nowrap">
+                                    <i class="fas fa-cog text-blue"></i>
                                     [`Settings`]
                                 </a>
                             </div>
@@ -52,8 +52,8 @@
                                         </label>
                                     </div>
 
-                                    <a href="javascript:void(0);" class="nowrap js-settings-link"{if !$checkout_config.recommendations.used} style="display: none;"{/if}>
-                                        <i class="fas fa-cog"></i>
+                                    <a href="javascript:void(0);" class="nowrap js-settings-link button light-gray smaller"{if !$checkout_config.recommendations.used} style="display: none;"{/if}>
+                                        <i class="fas fa-cog text-blue"></i>
                                         [`Settings`]
                                     </a>
                             </div>
@@ -72,8 +72,8 @@
                                 <h4 class="name wide">[`General checkout settings`]</h4>
 
                                 {* Show/hide settings *}
-                                <a href="javascript:void(0);" class="js-settings-link nowrap">
-                                    <i class="fas fa-cog"></i>
+                                <a href="javascript:void(0);" class="js-settings-link button light-gray smaller nowrap">
+                                    <i class="fas fa-cog text-blue"></i>
                                     [`Settings`]
                                 </a>
                             </div>
@@ -92,8 +92,8 @@
                                 <h4 class="name wide">[`Customer`]</h4>
 
                                 {* Show/hide settings *}
-                                <a href="javascript:void(0);" class="js-settings-link nowrap">
-                                    <i class="fas fa-cog"></i>
+                                <a href="javascript:void(0);" class="js-settings-link button light-gray smaller nowrap">
+                                    <i class="fas fa-cog text-blue"></i>
                                     [`Settings`]
                                 </a>
 
@@ -124,8 +124,8 @@
                                         </label>
                                     </div>
 
-                                    <a href="javascript:void(0);" class="js-settings-link nowrap"{if !$checkout_config.shipping.used} style="display: none;"{/if}>
-                                        <i class="fas fa-cog"></i>
+                                    <a href="javascript:void(0);" class="js-settings-link button light-gray smaller nowrap"{if !$checkout_config.shipping.used} style="display: none;"{/if}>
+                                        <i class="fas fa-cog text-blue"></i>
                                         [`Settings`]
                                     </a>
                                 {else}
@@ -172,11 +172,6 @@
                                             {if $checkout_config.payment.used}[`Enabled`]{else}[`Disabled`]{/if}
                                         </label>
                                     </div>
-
-                                    <a href="javascript:void(0);" class="js-settings-link nowrap"{if !$checkout_config.payment.used} style="display: none;"{/if}>
-                                        <i class="fas fa-cog"></i>
-                                        [`Settings`]
-                                    </a>
                                 {else}
                                     <span class="nowrap custom-mr-8">
                                         {sprintf_wp('<a href="%s" target="_blank">Add a payment method</a>', '?action=settings#/payment/')}
@@ -195,7 +190,7 @@
                             </div>
 
                             {if !empty($payment_plugins)}
-                                <div class="s-block-content js-block-content" style="display: none;">
+                                <div class="s-block-content">
                                     {payment_block settings=$checkout_config.payment}
                                 </div>
                             {/if}
@@ -210,8 +205,8 @@
                             <div class="flexbox middle">
                                 <h4 class="name wide">[`Confirmation`]</h4>
                                 {* Show/hide settings *}
-                                <a href="javascript:void(0);" class="js-settings-link nowrap">
-                                    <i class="fas fa-cog"></i>
+                                <a href="javascript:void(0);" class="js-settings-link button light-gray smaller nowrap">
+                                    <i class="fas fa-cog text-blue"></i>
                                     [`Settings`]
                                 </a>
                             </div>

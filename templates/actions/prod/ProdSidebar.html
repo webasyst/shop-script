@@ -112,7 +112,7 @@
 
 <script>
     ( function($) {
-        var tooltips = {$_tooltips|json_encode};
+        var tooltips = {$_tooltips|default:[]|json_encode};
 
         $.each(tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
 

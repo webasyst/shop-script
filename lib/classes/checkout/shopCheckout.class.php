@@ -136,8 +136,8 @@ abstract class shopCheckout
         $params = array();
         $params['namespace'] = $namespace;
         $params['title_wrapper'] = '%s';
-        $params['description_wrapper'] = '<span class="hint">%s</span>';
-        //$params['description_wrapper'] = '<br><span class="hint">%s</span>';
+        $params['description_wrapper'] = '<p class="hint">%s</p>';
+        //$params['description_wrapper'] = '<p class="hint">%s</p>';
         $params['control_wrapper'] = '<div class="wa-name">%s</div><div class="wa-value"><p><span>%3$s %2$s</span></p></div>';
         //$params['control_wrapper'] = '<div class="wa-name">%s</div><div class="wa-value">%s %s</div>';
         $params['control_separator'] = '</span><span>';

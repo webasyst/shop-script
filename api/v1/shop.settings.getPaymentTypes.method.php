@@ -12,6 +12,7 @@ class shopSettingsGetPaymentTypesMethod extends shopApiMethod
     public function getMethods()
     {
         $return_pos_only = waRequest::request('pos', null);
+        $channel_id = waRequest::request('channel_id', null);
 
         $payment_methods = shopHelper::getPaymentMethods([], false, false);
         usort($payment_methods, function($a, $b) {
@@ -49,6 +50,30 @@ class shopSettingsGetPaymentTypesMethod extends shopApiMethod
                 return !empty($m['pos_enabled']);
             });
         }
-        return $payment_methods;
+        if ($channel_id) {
+            if (strpos($channel_id, ':') !== false) {
+                list($ch_name, $channel_id) = explode(':', $channel_id, 2);
+            }
+            $id = (int) $channel_id;
+            if ($ch_name === 'pos' && $id > 0) {
+                $channel_params = (new shopSalesChannelParamsModel())->get($id);
+                 if (ifset($channel_params, 'payment_id', null) === 'id') {
+                     $payment_ids = [];
+                     foreach ($channel_params as $_name_param => $_param) {
+                         if (strpos($_name_param, 'payment_id_') !== false) {
+                             $payment_ids[] = $_param;
+                         }
+                     }
+                     $payment_methods = array_filter($payment_methods, function ($m) use ($payment_ids) {
+                         return in_array($m['id'], $payment_ids);
+                     });
+                 }
+            }
+            if (empty($channel_params)) {
+                throw new waAPIException('not_found', _w('Channel not found.'), 404);
+            }
+        }
+
+        return array_values($payment_methods);
     }
 }

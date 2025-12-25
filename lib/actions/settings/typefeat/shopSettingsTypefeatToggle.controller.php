@@ -40,7 +40,7 @@ class shopSettingsTypefeatToggleController extends waJsonController
                         $this->errors[] = [
                             'id' => 'not_allowed_disable_sku',
                             'type' => 'fatal',
-                            'text' => _w('You cannot disable the editing of this feature’s values in product SKUs’ properties, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode.'),
+                            'text' => _w('You cannot disable the editing of this feature’s values in product variants’ properties, because some existing products’ variants have been generated from this feature’s values.'),
                         ];
                         return;
                     }

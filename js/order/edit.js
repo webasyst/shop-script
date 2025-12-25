@@ -1515,7 +1515,7 @@ $.order_edit = {
                     is_new: true
                 });
                 if ($.order_edit.slide(false, true)) {
-                    const states_processing = 'state_id=new|processing|auth|paid';
+                    const states_processing = 'state_id=new|processing|auth|paid|pickup';
                     $.orders.setFiltersHashStorage(states_processing);
                     location.href = `#/orders/${states_processing}&view=split&id=${r.data.order.id}/`;
                 }

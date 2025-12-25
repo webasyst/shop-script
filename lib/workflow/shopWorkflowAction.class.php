@@ -71,22 +71,22 @@ class shopWorkflowAction extends waWorkflowAction
      */
     public function getButton()
     {
-        $is_wa2 = wa()->whichUI() >= '2.0';
-        $name = htmlspecialchars($this->getName(), ENT_QUOTES, 'utf-8');
         if (func_num_args()) {
             $attrs = func_get_arg(0);
         } else {
             $attrs = '';
         }
 
+        $is_wa2 = wa()->whichUI() == '2.0';
+        $name = htmlspecialchars($this->getName(), ENT_QUOTES, 'utf-8');
         $description = htmlspecialchars($this->getOption('description', ''), ENT_QUOTES, 'utf-8');
+        $icon = $this->getOption('icon');
         $class_icon = $is_wa2 ? 'icon' : 'icon16';
+
         if ($this->getOption('position') || $this->getOption('top')) {
-
             // LINK
-
             if ($is_wa2) {
-                $icon = wa()->getView()->getHelper()->shop->convertIcon("icon16 {$this->getOption('icon')}");
+                $icon = wa()->getView()->getHelper()->shop->convertIcon("icon16 {$icon}");
 
                 return <<<HTML
                 <a {$attrs} href="#" class="wf-action actions-link {$this->getOption('button_class')}" data-action-id="{$this->getId()}" title="{$description}">
@@ -98,49 +98,56 @@ HTML;
             // 1.3 fallback
             return <<<HTML
             <a {$attrs} href="#" class="wf-action {$this->getOption('button_class')}" data-action-id="{$this->getId()}" title="{$description}">
-                <i class="$class_icon {$this->getOption('icon')}"></i>{$name}
+                <i class="$class_icon {$icon}"></i>{$name}
             </a>
 HTML;
         } else {
-
             // BUTTON
+            $button_class = $this->getOption('button_class') ? $this->getOption('button_class') : 'black';
             $class = array(
                 'wf-action',
                 'button',
-                $this->getOption('button_class'),
+                $button_class
             );
             if ($is_wa2) {
                 $class[] = 'rounded white';
             }
             $class = implode(' ', array_filter($class));
 
-            if ($this->getOption('icon')) {
-                $icons = (array)$this->getOption('icon');
-                foreach ($icons as &$icon) {
-                    $icon = '<i class="' . $class_icon . ' ' . $icon.'"></i>';
+            $notification_icons = $this->getOption('notification_icons');
+            if ($notification_icons) {
+                foreach ($notification_icons as &$_icon) {
+                    $_icon = '<i class="' . $class_icon . ' ' . $_icon.'"></i>';
                 }
-                unset($icon);
-                $icons = implode('', $icons);
+                unset($_icon);
+                $notification_icons = implode('', $notification_icons);
             } else {
-                $icons = '';
+                $notification_icons = '';
             }
 
             $style = array();
+            $border_color = '';
             if ($this->getOption('border_color')) {
-                $bc = '#'.$this->getOption('border_color');
-                $style[] = $is_wa2 ? "color: $bc" : "border-color: $bc";
+                $button_class = '';
+                $border_color = '#'.$this->getOption('border_color');
+                $style[] = $is_wa2 ? "color: $border_color" : "border-color: $border_color";
             }
-            $style = implode(' ', $style);
+            if ($is_wa2) {
+                $color = ifempty($border_color, "var(--$button_class)");
+                $style[] = "--color: $color";
+            }
+            $style = implode(';', $style);
 
             if ($is_wa2) {
+                $icon = '<i class="fas fa-'.ifempty($icon, 'circle').' js-icon custom-mr-4 small text-'.$button_class.'"></i>';
                 return <<<HTML
-    <a href="#" {$attrs} class="{$class}" data-action-id="{$this->getId()}" title="{$description}"><i class="fas fa-circle custom-mr-4 small text-{$this->getOption('button_class')} js-icon" style="{$style}"></i> {$name}<span class="smaller">{$icons}</span></a>
+    <a href="#" {$attrs} class="{$class}" style="{$style}" data-action-id="{$this->getId()}" title="{$description}">{$icon} {$name}<span class="smaller">{$notification_icons}</span></a>
 HTML;
             }
 
             // 1.3 fallback
             return <<<HTML
-<a href="#" {$attrs} class="{$class}" data-action-id="{$this->getId()}" style="{$style}" title="{$description}">{$name}{$icons}</a>
+<a href="#" {$attrs} class="{$class}" data-action-id="{$this->getId()}" style="{$style}" title="{$description}">{$name}{$notification_icons}</a>
 HTML;
         }
     }
@@ -197,6 +204,7 @@ HTML;
          * @event order_action_form.delete
          * @event order_action_form.restore
          * @event order_action_form.complete
+         * @event order_action_form.pickup @since 12.0.0
          * @event order_action_form.comment
          * @event order_action_form.refund
          *
@@ -621,7 +629,7 @@ HTML;
             $params = array();
             $params['namespace'] = 'shipping_data';
             $params['title_wrapper'] = '%s';
-            $params['description_wrapper'] = '<br/><span class="hint">%s</span>';
+            $params['description_wrapper'] = '<p class="hint">%s</p>';
             $params['control_wrapper'] = <<<HTML
 <div class="field">
     <div class="name">%s</div>

@@ -121,7 +121,7 @@ abstract class shopFrontApiJsonController extends waJsonController
         return wa()->getRouting()->getUrl('shop/frontendOrderCart/customertoken', true).'?customer_token='.$customer_token;
     }
 
-    protected function checkAntispamHash(Callable $getData=null)
+    protected function checkAntispamHash(?Callable $getData=null)
     {
         if (!$getData) {
             $getData = function($antispam_api_key, $antispam_cart_key, $customer_token) {
@@ -204,8 +204,7 @@ abstract class shopFrontApiJsonController extends waJsonController
 
     protected function makeShopOrder($customer_token, $coupon_code)
     {
-        $cart = new shopApiCart($customer_token);
-        $cart_items = $cart->getItems();
+        $cart_items = (new shopCartItemsModel())->getByCode($customer_token, true, false);
         if (!$cart_items) {
             throw new waAPIException('empty_cart', 'Unable to make order from an empty cart', 400);
         }

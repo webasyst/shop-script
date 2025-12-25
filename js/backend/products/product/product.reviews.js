@@ -496,6 +496,51 @@
 
                                     return $.post(that.urls["add"], data, "json");
                                 }
+                            },
+                            answerWithAi: function(button) {
+                                const self = this;
+                                const form = self.review.form;
+                                button.disabled = true;
+                                button.querySelector('.webasyst-magic-wand-ai').classList.add('shimmer');
+                                   
+                                if (!form.is_locked) {
+                                    form.is_locked = true;
+
+                                    addAiRequest()
+                                        .always( function() {
+                                            form.is_locked = false;
+                                            button.disabled = false;
+                                            button.querySelector('.webasyst-magic-wand-ai').classList.remove('shimmer');
+                                        })
+                                        .done( function(r) {
+                                            if (r.status == 'fail') {
+                                                const $error = $('<span class="state-error-hint"></span>').text(r.errors);
+                                                $(button).after($error);
+                                                setTimeout(() => $error.remove(), 5000);
+                                                return;
+                                            }
+                        
+                                            self.formToggle(true);
+                                            self.$nextTick(() => {
+                                                const $textarea = $(self.$el.querySelector('.s-form-description')).find('textarea');
+                                                $textarea.val($textarea.val() ? $textarea.val() + '\n' + r.data : r.data);
+                                            });
+                                        })
+                                        .catch(function(r) {
+                                            if (console) {
+                                                console.log(r.responseText ? 'Error occured: ' + r.responseText : 'Error occured.');
+                                            }
+                                        });
+                                }
+
+                                function addAiRequest() {
+                                    var data = {
+                                        parent_id: self.review.id,
+                                        product_id: that.product.id
+                                    };
+
+                                    return $.post('?module=reviews&action=addAi', data, "json");
+                                }
                             }
                         }
                     }

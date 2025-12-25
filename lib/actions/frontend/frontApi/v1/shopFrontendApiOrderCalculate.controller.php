@@ -120,7 +120,13 @@ class shopFrontendApiOrderCalculateController extends shopFrontApiJsonController
         $required_address_fields = ifempty($required_address_fields, []);
         $missing_field_ids = array_keys(array_diff_key($required_address_fields, $address));
         if ($missing_field_ids) {
-            throw new waAPIException('required_param', sprintf_wp('Missing address fields required by the shipping plugin: %s.', join(', ', $missing_field_ids)), 400);
+            throw new waAPIException(
+                'required_param', 
+                sprintf_wp('Missing address fields required by the shipping plugin: %s.', join(', ', $missing_field_ids)), 
+                400, [
+                    'address_fields' => $missing_field_ids,
+                ]
+            );
         }
 
         // Ask shipping plugin for final shipping rate, taking address data into account
@@ -161,6 +167,9 @@ class shopFrontendApiOrderCalculateController extends shopFrontApiJsonController
             $min_rate = ifset($plugin_info, 'options', 'min_shipping_cost', 0);
             $min_rate = shop_currency($min_rate, null, $order['currency'], false);
 
+            if (isset($selected_variant['rate']) && is_array($selected_variant['rate'])) {
+                $selected_variant['rate'] = $selected_variant['rate'] ? min($selected_variant['rate']) : 0;
+            }
             if (isset($selected_variant['error']) || !is_numeric($selected_variant['rate'])) {
                 $selected_variant['rate'] = $min_rate;
             } else {

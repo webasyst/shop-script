@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="4.0.5">
-  <name locale="en_US">Default 4.0</name>
-  <name locale="ru_RU">Дефолт 4.0</name>
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="26.0.0">
+  <name locale="en_US">Webasyst 2026</name>
+  <name locale="ru_RU">Webasyst 2026</name>
   <files>
     <file path="index.html" parent="1">
         </file>
@@ -148,51 +148,10 @@
 
     </about>
   <settings>
-    <setting var="divider_storefront" control_type="group_divider">
+    <setting var="divider_storefront" control_type="group_divider" icon_class="fas fa-store">
       <value/>
       <name locale="en_US">Storefront</name>
       <name locale="ru_RU">Витрина</name>
-    </setting>
-    <setting var="homepage_bxslider_mode" control_type="radio">
-      <value>promos</value>
-      <name locale="ru_RU">Слайдер</name>
-      <name locale="en_US">Slider</name>
-      <options>
-        <option value="promos">
-          <name locale="ru_RU">Баннеры промоакций</name>
-          <name locale="en_US">Promo banners</name>
-          <description locale="ru_RU">В слайдере будут показаны баннеры, настроенные в разделе «Маркетинг» в свойствах промоакций.</description>
-          <description locale="en_US">The slider will consist of banners set up in promos in the “Marketing” section.</description>
-        </option>
-        <option value="products">
-          <name locale="ru_RU">Товары</name>
-          <name locale="en_US">Products</name>
-          <description locale="ru_RU">В слайдере будут показаны основные изображения товаров из списка с указанным ниже идентификатором. Списки товаров редактируются в разделе «Товары → Списки».</description>
-          <description locale="en_US">Slider will display main images of products from a product set with ID specified below. Product sets are editable in “Products → Sets” section.</description>
-        </option>
-        <option value="products_wide">
-          <name locale="ru_RU">Товары: последнее фото в качестве фона</name>
-          <name locale="en_US">Products: last photo as a background</name>
-          <description locale="ru_RU">В слайдере будут показаны последние изображения товаров из списка с указанным ниже идентификатором — в качестве фона по размерам всего слайдера.</description>
-          <description locale="en_US">Slider will display last images of products from a product set with ID specified below, as background for entire slider area.</description>
-        </option>
-        <option value="hidden">
-          <name locale="ru_RU">Не показывать слайдер</name>
-          <name locale="en_US">Don’t show the slider</name>
-        </option>
-      </options>
-    </setting>
-    <setting var="homepage_productset_promo" control_type="text">
-      <value>promo</value>
-      <name locale="en_US">Slider product set ID</name>
-      <name locale="ru_RU">Список промотоваров в слайдере</name>
-      <description locale="ru_RU">Идентификатор списка товаров, которые будут показаны в слайдере, если это выбрано в настройке слайдера выше.</description>
-      <description locale="en_US">ID of product set whose products will be shown in homepage slider if selected in the corresponding setting above.</description>
-    </setting>
-    <setting var="homepage_promocards_below_the_slider" control_type="checkbox">
-      <value>1</value>
-      <name locale="en_US">Display smaller promo cards below the slider</name>
-      <name locale="ru_RU">Показывать маленькие промокарточки под слайдером</name>
     </setting>
     <setting var="homepage_bestsellers_title" control_type="text">
       <value locale="en_US">Hot deals for {$date}</value>
@@ -235,7 +194,7 @@
       <name locale="en_US">Show latest blog posts on storefront homepage</name>
       <name locale="ru_RU">Показывать последние записи блога на главной странице интернет-магазина</name>
     </setting>
-    <setting var="divider_storefront_sidebar" control_type="group_divider">
+    <setting var="divider_storefront_sidebar" control_type="group_divider" icon_class="fas fa-columns">
       <value/>
       <name locale="en_US">Storefront sidebar</name>
       <name locale="ru_RU">Боковая панель витрины</name>
@@ -325,7 +284,7 @@
       <name locale="en_US">Block content</name>
       <name locale="ru_RU">Текст блока</name>
     </setting>
-    <setting var="divider_shop" control_type="group_divider">
+    <setting var="divider_shop" control_type="group_divider" icon_class="fas fa-cog">
       <value/>
       <name locale="en_US">Сommon store settings</name>
       <name locale="ru_RU">Общие настройки магазина</name>
@@ -338,14 +297,14 @@
         <option value="dropdown">
           <name locale="ru_RU">Выпадающее меню «Каталог товаров»</name>
           <name locale="en_US">Drop-down menu “Shop by Department”</name>
-          <description locale="ru_RU">Выпадающее развернутое меню с полным каталогом товаров.</description>
-          <description locale="en_US">Category list will be available under the "Shop by Department" header link.</description>
+          <description locale="ru_RU">Выпадающее развернутое меню с полным каталогом товаров. Универсальный и рекомендованный вариант для больших каталогов.</description>
+          <description locale="en_US">Category list will be available under the "Shop by Department" header link. Universal and recommended option for large product catalogs.</description>
         </option>
         <option value="inline">
           <name locale="ru_RU">Список категорий</name>
           <name locale="en_US">Inline list</name>
-          <description locale="ru_RU">Рекомендуется, если в корне не более четырех-пяти категорий, и все они помещаются в один ряд.</description>
-          <description locale="en_US">Great for menus with up to four or five top-level categories.</description>
+          <description locale="ru_RU">Рекомендуется, если в корне не более четырех-пяти (главных) категорий, и все они помещаются в один ряд.</description>
+          <description locale="en_US">Great for menus with up to four or five top-level categories so they fit a laptop screen.</description>
         </option>
       </options>
     </setting>
@@ -388,6 +347,49 @@
       <name locale="en_US">Show product features in product lists</name>
       <name locale="ru_RU">Показывать значения характеристик в списках товаров</name>
     </setting>
+    <setting var="show_header_search" control_type="checkbox">
+      <value>1</value>
+      <name locale="en_US">Show header search</name>
+      <name locale="ru_RU">Показывать поиск в шапке</name>
+    </setting>
+    <setting var="product_in_row" control_type="select">
+      <value>4</value>
+      <name locale="ru_RU">Количество товаров в ряду</name>
+      <name locale="en_US">Number of products in a row</name>
+      <options>
+        <option value="2">
+          <name locale="ru_RU">2 товара</name>
+          <name locale="en_US">2 products</name>
+        </option>
+        <option value="3">
+          <name locale="ru_RU">3 товара</name>
+          <name locale="en_US">3 products</name>
+          <description locale="ru_RU" />
+          <description locale="en_US" />
+        </option>
+        <option value="4">
+          <name locale="ru_RU">4 товара</name>
+          <name locale="en_US">4 products</name>
+        </option>
+      </options>
+    </setting>
+    <setting var="product_image_slider" control_type="radio">
+      <value>1</value>
+      <name locale="ru_RU">Фото товаров в списках</name>
+      <name locale="en_US">Images within product lists</name>
+      <options>
+        <option value="1">
+          <name locale="ru_RU">Быстрый просмотр всех фото товара по движению курсора :hover</name>
+          <name locale="en_US">Quick preview of all product images on cursor move :hover</name>
+          <description locale="ru_RU">При отображении товаров в списках (в каталоге, в категориях, в поиске) покупатели смогут сразу же увидеть все фото товаров простым движением курсора.</description>
+          <description locale="en_US">When browsing product lists and categories, your customers will be able to quickly see all product images by simply sliding the cursor over product listings.</description>
+        </option>
+        <option value="0">
+          <name locale="ru_RU">Только одно главное изображение</name>
+          <name locale="en_US">Just a single main product image</name>
+        </option>
+      </options>
+    </setting>
     <setting var="compare_products" control_type="checkbox">
       <value>1</value>
       <name locale="en_US">Allow product comparison</name>
@@ -424,7 +426,7 @@
   <thumbs>
     <thumb>64x64</thumb>
     <thumb>96x96</thumb>
-    <thumb>255</thumb>
+    <thumb>275</thumb>
     <thumb>0x320</thumb>
     <thumb>420</thumb>
     <thumb>970</thumb>

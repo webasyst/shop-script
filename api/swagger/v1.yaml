@@ -1948,9 +1948,15 @@ paths:
                     type: string
                     format: uri
                     description: URL изображения (QR-кода) плагина оплаты
+                    nullable: true
                   payment_image_data_url:
                     type: string
                     description: Данные изображения (QR-кода) плагина оплаты в формате *data-url*
+                    nullable: true
+                  payment_image_qr_payload:
+                    type: string
+                    description: Раскодированное содержимое QR-кода
+                    nullable: true
         400:
           description: Некорректное содержимое запроса.
           content:
@@ -4475,6 +4481,319 @@ paths:
                   workflow_actions.capture:
                     type: integer
                     description: Доступ к действию с заказами «Списать средства»
+#Sales channels
+  /shop.saleschannel.getInfo:
+    get:
+      summary: Возвращает информацию о канале продаж.
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.saleschannel.getInfo
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.saleschannel.getInfo/
+      parameters:
+        - in: query
+          name: id
+          description: ID канала продаж
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: Свойства канала продаж.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesChannelInfo'
+        400:
+          description: Некорректное содержимое запроса.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        403:
+          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: Не найден канал продаж с указанным ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+  /shop.saleschannel.list:
+    get:
+      summary: Возвращает информацию о каналах продаж.
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.saleschannel.list
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.saleschannel.list/
+      parameters:
+        - in: query
+          name: type
+          description: Фильтр по типу канала продаж
+          schema:
+            type: string
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: Список каналов продаж
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SalesChannelInfo'
+        403:
+          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        400:
+          description: Некорректное содержимое запроса.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+  /shop.saleschannel.listTypes:
+    get:
+      summary: Возвращает информацию о типах каналов продаж.
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.saleschannel.listTypes
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.saleschannel.listTypes/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: Список типов каналов продаж
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  types:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SalesChannelTypeInfo'
+        403:
+          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        400:
+          description: Некорректное содержимое запроса.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+  /shop.saleschannel.add:
+    post:
+      summary: Создать новый канал продаж.
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.saleschannel.add
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.saleschannel.add/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  description: Тип канала продаж
+                name:
+                  type: string
+                  description: Название
+                description:
+                  type: string
+                  description: Описание
+                status:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                  description: |
+                    Состояние: 0 выключен, 1 включен
+                sort:
+                  type: integer
+                  description: Порядок сортировки для определения позиции в списках
+                params:
+                  type: object
+                  additionalProperties: true
+                  description: Дополнительные настройки, разные для разных типов каналов продаж
+              required:
+                - name
+                - type
+      responses:
+        200:
+          description: Информация о созданном канале продаж
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channel:
+                    $ref: '#/components/schemas/SalesChannelInfo'
+        400:
+          description: Некорректное содержимое запроса.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        402:
+          description: Payment required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        403:
+          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+  /shop.saleschannel.update:
+    post:
+      summary: Изменить существующий канал продаж.
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.saleschannel.update
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.saleschannel.update/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+               - id
+              properties:
+                id:
+                  type: integer
+                  description: ID канала продаж
+                name:
+                  type: string
+                  description: Название
+                description:
+                  type: string
+                  description: Описание
+                status:
+                  type: integer
+                  enum:
+                    - 0
+                    - 1
+                  description: |
+                    Состояние: 0 выключен, 1 включен
+                sort:
+                  type: integer
+                  description: Порядок сортировки для определения позиции в списках
+                params:
+                  type: object
+                  additionalProperties: true
+                  description: Дополнительные настройки, разные для разных типов каналов продаж
+                params_mode:
+                  type: string
+                  enum:
+                    - set
+                    - update
+                  description: |
+                    Меняет поведение сохранения params:
+
+                    - set: (по умолчанию) все ключи, не указанные в params, будут удалены.
+                    - update: ключи, не указанные в params, не будут затронуты сохранением.
+      responses:
+        200:
+          description: Информация о созданном канале продаж
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channel:
+                    $ref: '#/components/schemas/SalesChannelInfo'
+        400:
+          description: Некорректное содержимое запроса.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        403:
+          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        404:
+          description: Не найден канал продаж с указанным ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+  /shop.saleschannel.delete:
+    post:
+      summary: Удалить существующий канал продаж.
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.saleschannel.delete
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.saleschannel.delete/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+               - id
+              properties:
+                id:
+                  type: integer
+                  description: ID канала продаж
+      responses:
+        200:
+          description: Удаление успешно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - ok
+        403:
+          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        400:
+          description: Некорректное содержимое запроса.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+
 #SET
   /shop.set.add:
     post:
@@ -5077,6 +5396,13 @@ paths:
                   base_units_enabled:
                     type: boolean
                     description: Признак доступности использования базовых единиц количества товаров
+                  is_premium:
+                    type: boolean
+                    description: Доступно ли использование возможностей премиум-лицензии
+                  headless_api_antispam:
+                    type: string
+                    nullable: true
+                    description: Антиспам-ключ `antispam_api_key` для создания заказа в Headless API на витрине магазина
 
   /shop.settings.getContactFields:
     get:
@@ -5194,6 +5520,12 @@ paths:
             enum:
               - 0
               - 1
+        - in: query
+          name: channel_id
+          description: Параметр вида **pos:N** для получения способов оплаты, которые разрешены в настройках конкретной точки продаж **N**
+          required: false
+          schema:
+            type: string
         - $ref: '#/components/parameters/requestFormat'
       responses:
         200:
@@ -5439,7 +5771,7 @@ paths:
 
   /shop.settings.enableHeadless:
     post:
-      summary: Включает Headless API на указанной витрине магазина
+      summary: Включает Headless API на указанной витрине магазина.
       security:
         - ApiKeyAuth: []
       externalDocs:
@@ -5458,7 +5790,7 @@ paths:
               properties:
                 storefront_url:
                   type: string
-                  description: URL витрины, как указан в shop.settings.get storefronts[].url
+                  description: Адрес витрины, доступный в ответе метода `shop.settings.get` в ключе 'url' в свойствах нужной витрины.
       responses:
         200:
           description: Успешное выполнение запроса.
@@ -6508,6 +6840,19 @@ components:
           type: string
           format: uri
           description: URL ссылки для оплаты заказа
+        payment_image_url:
+          type: string
+          format: uri
+          description: URL изображения (QR-кода) плагина оплаты
+          nullable: true
+        payment_image_data_url:
+          type: string
+          description: Данные изображения (QR-кода) плагина оплаты в формате *data-url*
+          nullable: true
+        payment_image_qr_payload:
+          type: string
+          description: Раскодированное содержимое QR-кода
+          nullable: true
     OrderLogEntry:
       type: object
       properties:
@@ -7483,7 +7828,40 @@ components:
         sort:
           type: integer
           description: Значение сортировки
-
+    SalesChannelInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID канала продаж
+        type:
+          type: string
+          description: Тип канала продаж
+        name:
+          type: string
+          description: Название
+        description:
+          type: string
+          description: Описание
+        status:
+          type: integer
+          description: |
+            Состояние: 0 выключен, 1 включен
+        sort:
+          type: integer
+          description: Порядок сортировки для определения позиции в списках
+        params:
+          type: object
+          description: Дополнительные настройки, разные для разных типов каналов продаж
+    SalesChannelTypeInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        menu_icon:
+          type: string
   parameters:
     requestFormat:
       name: format

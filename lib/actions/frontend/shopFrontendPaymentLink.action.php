@@ -4,7 +4,7 @@
  * 1) Renders HTML form that redirects to self (via POST). This protects from messenger prefetch bots:
  *    we don't want to initialize payment plugins unless it's a real human.
  * 2) Then renders a proper form as returned by payment plugin. Most of the time it auto-submits.
- *    In anu case, this second form is supposed to redirect user to payment gateway.
+ *    In any case, this second form is supposed to redirect user to payment gateway.
  *
  * Template for this action is in app templates, not in theme.
  */
@@ -41,11 +41,24 @@ class shopFrontendPaymentLinkAction extends waViewAction
             wa()->getStorage()->set('shop_paymentlink_challenge', $challenge);
         }
 
-        $methods = [];
+        $payment_options = [];
         $payment_id = waRequest::get('payment_id', null, waRequest::TYPE_INT);
         $show_methods = waRequest::post('challenge', null, waRequest::TYPE_STRING_TRIM) && empty($payment_form_html);
         if ($show_methods) {
-            $methods = $this->getMethods($order);
+            $methods = shopPayment::getMethodsByOrder($order);
+            $payment_ids = waRequest::param('payment_id');
+            foreach ($methods as $method_index => &$m) {
+                // Ignore manual payment e.g. cash
+                if (!empty($m['info']['type']) && $m['info']['type'] == 'manual') {
+                    unset($methods[$method_index]);
+                } elseif (!empty($payment_ids) && !in_array($method_index, $payment_ids)) {
+                    unset($methods[$method_index]);
+                }
+            }
+            unset($m);
+
+            $payment_options = shopPayment::getPaymentOptions($methods, $order);
+            $payment_image = shopPayment::getPaymentImage($methods, $order);
         }
         if ($payment_id && $payment_form_html) {
             $order_params_model = new shopOrderParamsModel();
@@ -62,8 +75,9 @@ class shopFrontendPaymentLinkAction extends waViewAction
 
         $this->view->assign([
             'order' => $order,
-            'methods' => $methods,
             'challenge' => $challenge,
+            'methods' => $payment_options,
+            'payment_image' => ifset($payment_image),
             'payment_form_html' => $payment_form_html,
             'enable_auto_submit' => !$this_is_a_bot,
             'show_methods' => $show_methods
@@ -77,83 +91,27 @@ class shopFrontendPaymentLinkAction extends waViewAction
         }
 
         $payment_id = waRequest::get('payment_id', null, waRequest::TYPE_INT);
+        $payment_index = waRequest::get('index', null, waRequest::TYPE_INT);
         if (!$payment_id) {
             $payment_id = ifset($order, 'params', 'payment_id', null);
         }
         if ($payment_id !== null) {
             try {
+                $payment_form_data = [];
                 $plugin = shopPayment::getPlugin(null, $payment_id);
-                return $plugin->payment(waRequest::post(), shopPayment::getOrderData($order['id'], $plugin), false);
+                $order_data = shopPayment::getOrderData($order['id'], $plugin);
+                if ($plugin instanceof waIPaymentMultipleOptions && $payment_index !== null) {
+                    $payment_options = array_values($plugin->paymentOptions($order_data));
+                    $payment_form_data = ifempty($payment_options, $payment_index, 'payment_form_data', []);
+                }
+                $payment_form_data += waRequest::post();
+                unset($payment_form_data['challenge']);
+                return $plugin->payment($payment_form_data + waRequest::post(), $order_data, false);
             } catch (waException $ex) {
                 return '';
             }
         } else {
             return null;
         }
-    }
-
-    protected function getMethods($order)
-    {
-        $plugin_model = new shopPluginModel();
-        $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_PAYMENT);
-
-        $currencies = wa()->getConfig()->getCurrencies();
-        $order_has_frac = shopFrac::itemsHaveFractionalQuantity($order->items);
-        $order_has_units = shopUnits::itemsHaveCustomStockUnits($order->items);
-
-        foreach ($methods as $method_index => &$m) {
-            // Some plugins are disabled
-            if (empty($m['available']) || (!empty($m['info']['type']) && $m['info']['type'] == 'manual') || !empty($m['info']['pos_initiates_payment'])) {
-                unset($methods[$method_index]);
-                continue;
-            }
-
-            try {
-                $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
-                $plugin_info = $plugin->info($m['plugin']);
-                $methods[$method_index]['icon'] = ifset($plugin_info, 'icon', null);
-                $allowed_currencies = $plugin->allowedCurrency();
-                if ($allowed_currencies !== true) {
-                    $allowed_currencies = (array)$allowed_currencies;
-                    if (!array_intersect($allowed_currencies, array_keys($currencies))) {
-                        $format = _w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.');
-                        throw new waException(sprintf($format, implode(', ', $allowed_currencies)));
-                    }
-                }
-            } catch (waException $ex) {
-                waLog::log($ex->getMessage(), 'shop/paymentlink.error.log');
-                unset($methods[$method_index]);
-                continue;
-            }
-
-            if ($order_has_units && shopUnits::stockUnitsEnabled()) {
-                if (!isset($plugin_info['stock_units'])) {
-                    $plugin_mode = shopFrac::getPluginFractionalMode($m['plugin'], shopFrac::PLUGIN_MODE_UNITS);
-                    if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_DISABLED) {
-                        // Store admin disabled this payment method for orders containing custom stock units
-                        unset($methods[$method_index]);
-                        continue;
-                    }
-                } else if ($plugin_info['stock_units'] !== true) {
-                    // Plugin declared it does not support custom stock units
-                    unset($methods[$method_index]);
-                    continue;
-                }
-            }
-            if ($order_has_frac && shopFrac::isEnabled()) {
-                if (!isset($plugin_info['fractional_quantity'])) {
-                    $plugin_mode = shopFrac::getPluginFractionalMode($m['plugin']);
-                    if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_DISABLED) {
-                        // Store admin disabled this payment method for orders containing fractional quantities
-                        unset($methods[$method_index]);
-                    }
-                } else if ($plugin_info['fractional_quantity'] !== true) {
-                    // Plugin declared it does not support fractional quantities
-                    unset($methods[$method_index]);
-                }
-            }
-        }
-
-        return $methods;
     }
 }

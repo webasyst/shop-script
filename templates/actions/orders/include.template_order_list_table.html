@@ -17,7 +17,11 @@
             <td>
                 <div class="s-order-status" title="{%#state_name%}">
                     <strong class="badge uppercase text-ellipsis" style="background-color: {%#state_color%}">{%#state_name%}</strong>
-                    {% if ((order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
+                    {% if (order.sales_channel && order.sales_channel.menu_icon) { %}
+                    <span class="gray text-ellipsis">
+                        {%#order.sales_channel.menu_icon%} {%#order.sales_channel.name%}
+                    </span>
+                    {% } else if ((order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
                     <i class="fas fa-cash-register large text-light-gray"></i>
                     {% } %}
                 </div>
@@ -31,8 +35,8 @@
             </td>
             <td class="nowrap align-right">
                 <div>
-                    <a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}" class="custom-mr-4 bold">
-                        {%#order.total_str%}
+                    <a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str}/{/if}{literal}">
+                        <span class="bold custom-mr-4{%=(order.state_id == 'new' ? ' highlighted orange' : '') %}">{%#order.total_str%}</span>
                     </a>
                     {% if (order.paid_date) { %}
                         <span class="text-green custom-mr-4 cursor-pointer" data-wa-tooltip-content="[`Paid`] {% if (order.paid_datetime_str) { %}{%#order.paid_datetime_str%}{% } else { %}{%#order.paid_date_str%}{% } %}" data-wa-tooltip-placement="left">

@@ -388,7 +388,7 @@
     {* Schedule mode *}
     {$_schedule = $checkout_config.schedule}
     <div class="field">
-        <div class="name s-table-field-name bold">[`Store working schedule`]</div>
+        <div class="name s-table-field-name bold">[`Working hours`]</div>
         <div class="value s-table-field-value radio js-schedule-block">
             {foreach $schedule_mode_variants as $_id => $_variant}
                 <div class="s-checkout-radio-variant js-variant" data-id="{$_id|escape}">
@@ -572,7 +572,7 @@
             <div class="js-person-company-settings">
                 <div class="field">
                     <div class="name">
-                        <label for="customer_person_mode_name">[`Person mode name`]</label>
+                        <label for="customer_person_mode_name">[`Individual mode name`]</label>
                     </div>
                     <div class="value input">
                         <input type="text" id="customer_person_mode_name" name="data[customer][person_mode_name]" value="{$settings.person_mode_name|escape}" autocomplete="off" />
@@ -580,7 +580,7 @@
                 </div>
                 <div class="field">
                     <div class="name">
-                        <label for="customer_company_mode_name">[`Company mode name`]</label>
+                        <label for="customer_company_mode_name">[`Organization mode name`]</label>
                     </div>
                     <div class="value input">
                         <input type="text" id="customer_company_mode_name" name="data[customer][company_mode_name]" value="{$settings.company_mode_name|escape}" autocomplete="off" />
@@ -591,7 +591,7 @@
             <div class="js-company-settings">
                 <div class="field">
                     <div class="name">
-                        <label for="customer_company_hint">[`Hint text for companies`]</label>
+                        <label for="customer_company_hint">[`Hint text for organizations`]</label>
                     </div>
                     <div class="value">
                         <textarea id="customer_company_hint" name="data[customer][company_hint]">{$settings.company_hint|escape}</textarea>
@@ -599,7 +599,7 @@
                 </div>
                 <div class="field">
                     <div class="name">
-                        <label for="customer_company_terms">[`Companies service terms text`]</label>
+                        <label for="customer_company_terms">[`Organizations service terms text`]</label>
                     </div>
                     <div class="value">
                         <textarea id="customer_company_terms" name="data[customer][company_terms]">{$settings.company_terms|escape}</textarea>
@@ -608,7 +608,7 @@
             </div>
 
             <div class="js-fields-editor" style="margin: 10px 0 20px 0;" data-type="person">
-                <div class="heading bold js-contact-type" style="margin: 10px 0;">[`Persons:`]</div>
+                <div class="heading bold js-contact-type" style="margin: 10px 0;">[`Individuals:`]</div>
                 <table class="zebra s-sort-table js-sort-table">
                     <tbody>
                         {renderContactFieldsEditor _fields=$settings.fields_person}
@@ -620,7 +620,7 @@
                 </div>
             </div>
             <div class="js-fields-editor" style="margin: 10px 0 20px 0;" data-type="company">
-                <div class="heading bold js-contact-type" style="margin: 10px 0;">[`Companies:`]</div>
+                <div class="heading bold js-contact-type" style="margin: 10px 0;">[`Organizations:`]</div>
                 <table class="zebra s-sort-table js-sort-table">
                     <tbody>
                         {renderContactFieldsEditor _fields=$settings.fields_company}

@@ -17,6 +17,8 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
             $customer_token = self::generateToken();
         }
 
+        $sales_channel_id = $this->getRequest()->request('sales_channel_id', '', waRequest::TYPE_STRING_TRIM);
+
         $shop_config = wa()->getConfig();
         $checkout_config = $this->getCheckoutConfig();
 
@@ -26,6 +28,7 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
 
         $review_service_agreement = $shop_config->getGeneralSettings('review_service_agreement');
 
+        $route = wa()->getRouting()->getRoute();
         $this->response = [
             'customer_token'        => $customer_token,
             'ignore_stock_count'    => (int) $shop_config->getGeneralSettings('ignore_stock_count'),
@@ -38,6 +41,10 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
             'base_units_enabled'    => (bool) shopUnits::stockUnitsEnabled(),
             'debug_mode'            => waSystemConfig::isDebug(),
             'is_premium'            => shopLicensing::isPremium(),
+            'storefront_enabled'    => ifset($route, 'storefront_mode', '') === 'storefront_api',
+            'moderation_reviews'    => (bool)$shop_config->getGeneralSettings('moderation_reviews'),
+            'require_auth_to_add_review' => (bool)$shop_config->getGeneralSettings('require_authorization'),
+            'allow_review_image_upload' => (bool)$shop_config->getGeneralSettings('allow_image_upload'),
             'address_fields'        => self::getAddressSubfieldsOrder(),
             'default_currency'      => $shop_config->getCurrency(false), // storefront currency
             'currencies'            => $currencies,
@@ -65,6 +72,13 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
         $antispam_cart_key = shopApiCart::getAntispamCartKey($customer_token);
         if ($antispam_cart_key !== null) {
             $this->response['antispam_cart_key'] = $antispam_cart_key;
+        }
+
+        if ($sales_channel_id) {
+            $channel_data = $this->getSalesChannelData($sales_channel_id);
+            if ($channel_data) {
+                $this->response['sales_channel'] = $channel_data;
+            }
         }
     }
 
@@ -104,5 +118,36 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
             }
         }
         return $result;
+    }
+
+    protected function getSalesChannelData($id)
+    {
+        if (strpos($id, ':') !== false) {
+            list($type, $id) = explode(':', $id, 2);
+        }
+        $id = (int) $id;
+
+        if ($id <= 0) {
+            return null;
+        }
+
+        $sales_channel_model = new shopSalesChannelModel();
+        $channel = $sales_channel_model->getById($id);
+        if (empty($channel) || $channel['status'] <= 0) {
+            return null;
+        }
+
+        try {
+            $sales_channel_params_model = new shopSalesChannelParamsModel();
+            $channel['params'] = $sales_channel_params_model->get($id);
+            $channel['params'] = shopSalesChannelType::factory($channel['type'])->getPublicStorefrontParams($id, $channel['params']);
+            return [
+                'id' => (int) $id,
+                'type' => $channel['type'],
+                'params' => $channel['params'],
+            ];
+        } catch (Throwable $e) {
+            return null;
+        }
     }
 }

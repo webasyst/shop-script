@@ -30,7 +30,7 @@
                             <span class="icon shift-up-1" v-bind:class="icon_class"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
                         </div>
                         <template v-if="states.is_preview">
-                            <input class="s-field small full-width s-square-field align-right" placeholder="∞" type="text" readonly
+                            <input class="s-field small full-width s-square-field" placeholder="∞" type="text" readonly
                                    v-bind:class="{ 'state-error' : errors['stock_error'] }"
                                    v-on:focus="togglePreview(false)"
                                    v-on:click="togglePreview(false)"
@@ -38,7 +38,7 @@
                         </template>
                         <template v-else>
                             <component-input
-                                class="s-field small full-width s-square-field align-right"
+                                class="s-field small full-width s-square-field"
                                 v-model="column_data.value"
                                 v-bind:cancel="true"
                                 v-bind:focus="true"
@@ -79,7 +79,7 @@
                     <div class="s-icon-wrapper">
                         <span class="icon shift-up-1 text-light-gray"><svg><use xlink:href='{$_sprite_url}#warehouse'></use></svg></span>
                     </div>
-                    <input class="s-field small full-width s-square-field align-right is-disabled" type="text" readonly
+                    <input class="s-field small full-width s-square-field is-disabled" type="text" readonly
                            v-bind:value="column_data.value ? formatted_value : '∞'">
                 </div>
             </template>

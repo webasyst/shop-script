@@ -1,0 +1,31 @@
+<div class="content not-blank">
+    <div class="article">
+
+    {if !shopLicensing::isPremium() && ifset($channel.type_count) > 0}
+        <div class="article-body">
+            {include file="templates/includes/availableWithPremiumAlert.html" title="[`2+ channels of the same type available with premium only`]" inline}
+        </div>
+    {else}
+        <div class="article-body">
+
+            {if !empty($channel.type_available)}
+                <header class="s-page-header">
+                    <h1 class="s-title">
+                        {if !empty($channel.id)}
+                            {$channel.name|escape}
+                        {else}
+                            [`New sales channel`]
+                        {/if}
+                        <span class="hint">{$channel.type|escape}</span>
+                    </h1>
+                </header>
+            {/if}
+
+            <!-- {var_dump($channel.orders)} TODO: replace with a quick at a glance chart and a link to the channel filtered order list -->
+
+            {$channel_form}
+
+        </div>
+    {/if}
+    </div>
+</div>

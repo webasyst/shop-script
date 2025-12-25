@@ -66,13 +66,13 @@
             <div class="name">[`Indicator`]</div>
 
             <div class="value">
-                <i class="fas fa-battery-half text-yellow"></i>
+                <i class="fas fa-home text-yellow"></i>
                 ≤ <input class="small shortest" data-name="low_count" type="text" name="{$input_var}[low_count][]" value="{ifset($stock.low_count, shopStockModel::LOW_DEFAULT)}"{$disabled}>
                 <span class="hint">[`Low`]</span>
                 <span class="state-error" style="display:none"></span>
             </div>
             <div class="value">
-                <i class="fas fa-battery-quarter text-red"></i>
+                <i class="fas fa-home text-red"></i>
                 ≤ <input class="small shortest" data-name="critical_count" type="text" name="{$input_var}[critical_count][]" value="{ifset($stock.critical_count, shopStockModel::CRITICAL_DEFAULT)}"{$disabled}>
                 <span class="hint">[`Critical`]</span>
                 <span class="state-error" style="display:none"></span>
@@ -160,12 +160,12 @@
                             </td>
 
                             <td class="hide-when-editable">
-                                <i class="fas fa-battery-half text-yellow"></i>
+                                <i class="fas fa-home text-yellow"></i>
                                 ≤ {$stock.low_count}
                             </td>
 
                             <td class="hide-when-editable">
-                                <i class="fas fa-battery-quarter text-red"></i>
+                                <i class="fas fa-home text-red"></i>
                                 ≤ {$stock.critical_count}
                             </td>
 

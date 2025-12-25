@@ -28,11 +28,11 @@
     {$_currency_data = $wa->shop->getCurrencyData($_currency)}
 {else}
     {if ($currency_info["sign_position"])}
-        {$_pattern_html = "<span class=\"price-wrapper\"><span class=\"price\">%s</span>`$currency_info["sign_delim"]`<span class=\"currency\">`$currency_info["sign_html"]`</span></span>"}
-        {$_pattern_text = "<span class=\"price-wrapper\"><span class=\"price\">%s</span>`$currency_info["sign_delim"]`<span class=\"currency\">`$currency_info["sign"]`</span></span>"}
+        {$_pattern_html = "<span class=\"price-wrapper\"><span class=\"price nowrap\">%s</span>`$currency_info["sign_delim"]`<span class=\"currency\">`$currency_info["sign_html"]`</span></span>"}
+        {$_pattern_text = "<span class=\"price-wrapper\"><span class=\"price nowrap\">%s</span>`$currency_info["sign_delim"]`<span class=\"currency\">`$currency_info["sign"]`</span></span>"}
     {else}
-        {$_pattern_html = "<span class=\"price-wrapper\"><span class=\"currency\">`$currency_info["sign_html"]`</span>`$currency_info["sign_delim"]`<span class=\"price\">%s</span></span>"}
-        {$_pattern_text = "<span class=\"price-wrapper\"><span class=\"currency\">`$currency_info["sign"]`</span>`$currency_info["sign"]`<span class=\"price\">%s</span></span>"}
+        {$_pattern_html = "<span class=\"price-wrapper\"><span class=\"currency\">`$currency_info["sign_html"]`</span>`$currency_info["sign_delim"]`<span class=\"price nowrap\">%s</span></span>"}
+        {$_pattern_text = "<span class=\"price-wrapper\"><span class=\"currency\">`$currency_info["sign"]`</span>`$currency_info["sign"]`<span class=\"price nowrap\">%s</span></span>"}
     {/if}
 
     {$_currency_data = [
@@ -57,10 +57,14 @@
     {if $wa->get('cart')}
         {$wa->shop->productImgHtml($product, '96x96', [ 'class' => 'wa-mb-24', 'itemprop' => 'image', 'id' => 'product-image', 'alt' => $product.name|escape ])}
     {/if}
+    {$_product_badge_html = $wa->shop->badgeHtml($product.badge)}
+    {if $_product_badge_html || $product.compare_price > 0}
+    <div class="wa-mb-16">
+            {$wa->shop->badgeHtml($product.badge)}
+            {if $product.compare_price > 0} <span class="badge low-price wa-mr-16">[`Скидка`]</span> {/if}
+        </div>
+    {/if}
     <div class="add2cart js-top wa-flex align-items-center{if $wa->get('cart')} wa-mb-28{/if}">
-        {$wa->shop->badgeHtml($product.badge)}
-        {if $product.compare_price > 0} <span class="badge low-price wa-mr-16">[`Скидка`]</span> {/if}
-
         {if !empty($_show_fractional)}
             {$_stock_unit = $formatted_units[$product["stock_unit_id"]]}
             {$_base_unit = $formatted_units[$product["base_unit_id"]]}
@@ -254,9 +258,12 @@
                 </script>
             </div>
 
-            <button type="submit"{if !$product_available} disabled="disabled"{/if}>{if $wa->shop->cart->total() > 0}[`Add to cart`]{else}[`Buy now`]{/if}</button>
-            <i class="adding2cart"></i>
-            <span class="added2cart" style="display: none;">{sprintf('[`%s is now <a href="%s"><strong>in your shopping cart</strong></a>`]', $product.name|escape, $_cart_url)}</span>
+            <button type="submit"{if !$product_available} disabled="disabled"{/if} class="blink">{if $wa->shop->cart->total() > 0}[`Add to cart`]{else}[`Buy now`]{/if}</button>
+            <a href="{$wa->getUrl('shop/frontend/order')}" class="wa-flex-column align-items-center button gotocart-btn wa-hide">
+                <span class="">[`В корзине`]</span>
+                <span class="smaller">[`Перейти`]</span>
+            </a>
+            {$wa->shop->getPickupButton($product)}
         </div>
 
         {if $services}
@@ -264,7 +271,7 @@
             <div class="services">
                 {foreach $services as $s}
                     <div class="service-{$s.id}">
-                        <label class="wa-flex">
+                        <label class="wa-flex align-items-center">
                             <input data-price="{shop_currency($s.price, $s.currency, null, 0)}" {if !$product_available}disabled="disabled"{/if} type="checkbox" name="services[]" value="{$s.id}" class="wa-mr-8 wa-flex-none"> <span class="wa-mt-4">{$s.name|escape} {if $s.price && !isset($s.variants)}(+<span class="service-price">{shop_currency_html($s.price, $s.currency)}</span>)</span>{/if}
                         </label>
                         {if isset($s.variants)}

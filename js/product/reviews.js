@@ -90,6 +90,7 @@
             };
             this.addHotkeyHandler('textarea', 'ctrl+enter', addReview);
             this.form.find('input.save').unbind('click').bind('click', addReview);
+            this.form.find('.js-ai-answer-button').off('click').on('click', $.product_reviews.addAnswerAi);
 
             this.initView();
 
@@ -417,6 +418,37 @@
                     }
                 },
             'json');
+        },
+
+        addAnswerAi: function() {
+            const self = $(this);
+            self.prop('disabled', true);
+            $.post(
+                '?module=reviews&action=addAi',
+                $.product_reviews.form.serialize(),
+                function (r) {
+                    if (r.status == 'fail') {
+                        const $error = $('<em class="errormsg"></em>').text(r.errors);
+                        self.after($error);
+                        setTimeout(() => {
+                            $error.remove();
+                        }, 5000);
+                        return;
+                    }
+
+                    const $textarea = $('textarea', $.product_reviews.form);
+                    $textarea.val($textarea.val() ? $textarea.val() + '\n' + r.data : r.data);
+
+                },
+            'json')
+            .error(function(r) {
+                if (console) {
+                    console.log(r.responseText ? 'Error occured: ' + r.responseText : 'Error occured.');
+                }
+            })
+            .always(function() {
+                self.prop('disabled', false);
+            });
         },
 
         clear: function(clear_inputs) {

@@ -71,6 +71,10 @@ class shopFrontendOrderAction extends shopFrontendAction
         $this->getResponse()->setTitle(_w('Cart'));
         $this->view->assign($this->getVars());
 
+        if ($channel_id = waRequest::request('channel_id')) {
+            wa()->getStorage()->set('shop_order_channel_id', $channel_id);
+        }
+
         /**
          * @event frontend_order
          * Allows to append HTML to single-page checkout in frontend - /order/

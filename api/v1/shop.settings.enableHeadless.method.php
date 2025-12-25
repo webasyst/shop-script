@@ -13,7 +13,7 @@ class shopSettingsEnableHeadlessMethod extends shopApiMethod
 
         $storefront_url = waRequest::request('storefront_url', null, 'string');
         
-        $storefronts = shopHelper::getStorefronts(true);
+        $storefronts = shopStorefrontList::getAllStorefronts(true);
         foreach ($storefronts as $s) {
             if ($s['url'] === $storefront_url) {
                 $this->enableForStorefront($s);

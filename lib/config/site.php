@@ -29,7 +29,11 @@ foreach (shopHelper::getStocks() as $stock_id => $s) {
 if (count($stocks) === 0) {
     $stocks_form = array(
         'name'        => _w('Default stock'),
-        'description' => _w('There are no stocks available for selection. Set up stocks in section “Settings → Stocks”.'),
+        'description' => sprintf_wp(
+            'There are no stocks available for selection. Set up stocks in section <em>%s › %s</em>.',
+            _w('Settings'),
+            _w('Stocks')
+        ),
         'type'        => 'help',
     );
 } else {
@@ -51,14 +55,15 @@ $new_route_rule = empty($route);
 $checkout_version_params = array(
     'name'  => _w('Checkout mode'),
     'type'  => 'radio_select',
+    'class' => 'small',
     'items' => array(
         2 => array(
             'name'        => _w('In-cart checkout'),
-            'description' => '<br>'.sprintf(_w('If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>in-cart checkout.'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><strong>'. _w('Read <a href="https://www.shop-script.com/help/29297/in-cart-checkout/" target="_blank">user manual</a> before enabling this checkout option.') . '</strong><br><br>',
+            'description' => sprintf(_w('If your design theme does not support “in-cart checkout”, standard checkout design of “Default” theme can be used. <a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>in-cart checkout.'), wa()->getAppUrl('shop/?action=settings#/checkout')) . '<br><strong>'. _w('Read <a href="https://www.shop-script.com/help/29297/in-cart-checkout/" target="_blank">user manual</a> before enabling this checkout option.') . '</strong><br><br>',
         ),
         1 => array(
             'name'        => _w('Multi-step checkout') . ' ' . _w('(deprecated)'),
-            'description' => '<br>'.sprintf(_w('<a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>multi-step checkout'), wa()->getAppUrl('shop/?action=settings#/checkout&r=1')) . $checkout_version_move_setting,
+            'description' => sprintf(_w('<a href="%s" target="_blank">Set up</a> <i class="icon16 new-window"></i>multi-step checkout'), wa()->getAppUrl('shop/?action=settings#/checkout&r=1')) . $checkout_version_move_setting,
         ),
     ),
     'original_name' => true,
@@ -127,7 +132,7 @@ return array(
                 'api' => _w('API only (no site)')
             ]
         ),
-        _w('Homepage'),
+        _w('Homepage SEO & Social'),
         'title'             => array(
             'name' => _w('Homepage title <title>'),
             'type' => 'input',
@@ -143,11 +148,12 @@ return array(
         'og_title'          => array(
             'name'        => _w('Social sharing Title (og:title)'),
             'type'        => 'input',
-            'description' => _w('For detailed information on Open Graph parameters and examples please refer to <a href="http://ogp.me" target="_blank">ogp.me</a>.')
+            'description' => _w('Optional. If not set, the default homepage title will be used.')
         ),
         'og_image'          => array(
             'name' => _w('Social sharing Image URL (og:image)'),
-            'type' => 'input'
+            'type' => 'input',
+            'description' => _w('Recommended! Must be a valid full URL. To upload an image, use the <em>Site</em> app’s “Files” section.')
         ),
         'og_video'          => array(
             'name' => _w('Social sharing Video URL (og:video)'),
@@ -165,7 +171,7 @@ return array(
         'og_url'            => array(
             'name'        => _w('Social sharing URL (og:url)'),
             'type'        => 'input',
-            'description' => _w('If at least one og: value above is not empty, then you may keep this field empty for og:url meta tag to contain this storefront’s URL by default. Or type a custom og:url value manually, if necessary.'),
+            'description' => _w('If at least one <em>og:</em> value above is not empty, then you may keep this field empty for <em>og:url</em> meta tag to contain this storefront’s URL by default. Or type a custom <em>og:url</em> value manually, if necessary.'),
         ),
         _w('Products'),
         'url_type'          => array(

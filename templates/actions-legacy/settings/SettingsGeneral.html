@@ -40,6 +40,15 @@
             </div>
 
             <div class="field-group">
+                <div class="gray" style="margin-bottom: 0.5rem;">
+                    Удобно работать с магазином в мобильном приложении <i class="fas fa-check-circle text-green"></i>
+                </div>
+                <div class="field">
+                    {include file="templates/includes/mobileApps.html" show_qr=true inline}
+                </div>
+            </div>
+
+            <div class="field-group">
                 <div class="field">
                     <div class="name">[`Storefront settings`]</div>
                     {foreach $routes as $_d => $_d_routes}
@@ -200,7 +209,7 @@
                             [`Only authorized users can post reviews`]
                             <br>
                             <p class="hint">
-                                [`If enabled, user needs to sign in to post a review.`]<br>
+                                [`When on, a customer must sign in to post a review.`]<br>
                                 <strong>{sprintf('[`Make sure sign up and login forms are enabled in your <a href="%s">Site app settings</a>.`]',$wa_backend_url|cat:'site/#/settings/')}</strong>
                             </p>
                         </label>
@@ -274,7 +283,7 @@
                             <input type="checkbox" name="lazy_loading" {if !empty($lazy_loading)}checked{/if} value="1">
                             [`Use lazy loading`]
                         </label>
-                        <p class="hint">[`Products will be loaded automatically when you scroll the page in “Products” section in backend. If you need pagination, disable this setting.`]</p>
+                        <p class="hint">[`Products will be loaded automatically when you scroll the page in “Products › Catalog” section in backend. If you need pagination, disable this setting.`]</p>
                     </div>
                 </div>
             </div>

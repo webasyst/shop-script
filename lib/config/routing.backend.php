@@ -63,6 +63,10 @@ return array(
     'products/<id:\d+|new>/prices/?'           => 'prod/prices',
     'products/<id:\d+|new>/?'                  => 'prod/',
 
+    // Sales channels
+    'channels/new/<type_id>/?'                 => 'channelsEditor',
+    'channels/editor/<id>/?'                   => 'channelsEditor',
+
     // everything else uses old routing via ?module=&action=
     '' => 'backend',
 );

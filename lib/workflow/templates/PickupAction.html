@@ -1,0 +1,67 @@
+<form id="wf-pickup-form" action="?module=workflow&action=perform" method="post">
+    <input type="hidden" name="id" value="{$order_id}">
+    <input type="hidden" name="action_id" value="{$action_id}">
+
+    {if empty($order.paid_date)}
+        <h4 class="custom-mt-0"><i class="fas fa-exclamation-triangle text-red"></i> [`The order is not paid`]</h4>
+        <label>
+            <input type="checkbox" name="skip-payment"> <span class="state-error">[`Bypass the rules and hand over the order to the customer`]</span><br>
+            <span class="hint">[`The order will be marked as paid automatically.`]</span>
+        </label>
+    {else}
+        <p class="custom-mt-0"><i class="fas fa-check-circle text-green"></i> [`The order is paid and is ready for handing over to the customer.`]</p>
+    {/if}
+
+    {if $pickup_require_pin}
+    <div class="custom-mt-8">[`PIN`]: <input type="text" name="pin" required></div>
+    {/if}
+
+    <div class="custom-my-16">
+        {if !empty($plugins_html)}
+            {foreach $plugins_html as $plugin_id => $html}
+                <!-- {$plugin_id} -->
+                {$html}
+            {/foreach}
+        {/if}
+    </div>
+
+    <footer class="js-form-footer-actions">
+        <input class="js-submit-button button purple" type="submit" value="[`Mark the order as picked up and complete`]"{if empty($order.paid_date)} disabled{/if}>
+        <a class="cancel button light-gray js-cancel-button" href="javascript:void(0);">[`Cancel`]</a>
+    </footer>
+</form>
+
+<script>
+    (function () {
+        'use strict';
+
+        $('input[name="skip-payment"]').on('change', function () {
+            $('.js-submit-button').prop('disabled', !$(this).prop('checked'));
+        });
+
+        // cancel link
+        $('#wf-pickup-form .js-cancel-button').on('click', function () {
+            $('#workflow-content').empty().hide();
+            $('.workflow-actions').show();
+            return false;
+        });
+
+        $('#wf-pickup-form').submit(function () {
+            let that = $(this);
+            that.find(':submit').attr('disabled', true);
+            $.post(that.attr('action'), that.serialize(), function (response) {
+                if (response.status === 'ok') {
+                    if ('order' in $) {
+                        $.order.reload();
+                    }
+                } else if (response.status === 'fail') {
+                    if (response.errors[0]) {
+                        alert(response.errors[0].shift());
+                    }
+                }
+                that.find(':submit').attr('disabled', false);
+            }, 'json');
+            return false;
+        });
+    }());
+</script>

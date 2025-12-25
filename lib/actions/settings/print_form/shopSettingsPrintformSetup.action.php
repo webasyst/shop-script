@@ -37,7 +37,7 @@ class shopSettingsPrintformSetupAction extends waViewAction
                     'id'                  => $plugin_id,
                     'namespace'           => $namespace,
                     'title_wrapper'       => '%s',
-                    'description_wrapper' => '<br><span class="hint">%s</span>',
+                    'description_wrapper' => '<p class="hint">%s</p>',
                     'control_wrapper'     => '<div class="name">%s</div><div class="value">%s %s</div>',
                     'subject'             => 'printform',
                 );

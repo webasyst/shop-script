@@ -1,0 +1,249 @@
+{if empty($channel.id)}
+<p class="small">
+    [`Set up a new point of sale to <b>link Shop-Script mobile POS app</b> to a specific stock location & payment flow, and to enable <b>in-store pickup</b> express checkout option on your site.`]
+</p>
+{/if}
+
+<div class="fields form">
+    <form action="{$wa_app_url}?module=channels&action=save" id="js-sales-channel-form">
+        <div class="fields-group custom-mt-16">
+            {if !empty($channel.id)}
+            <input type="hidden" name="id" value="{$channel.id|escape}">
+            {else}
+            <input type="hidden" name="is_new" value="1">
+            {/if}
+            <input type="hidden" name="data[type]" value="{$channel.type|escape}">
+
+            <div class="field">
+                <div class="name">
+                    [`Enabled`]
+                </div>
+                <div class="value">
+                    <label>
+                        <input type="checkbox" name="data[status]" value="1"{if !empty($channel.status)} checked{/if}>
+                    </label>
+                </div>
+            </div>
+
+            {foreach $form_fields as $name => $control_html}
+            <div class="field">
+                {$control_html}
+            </div>
+            {/foreach}
+
+            <div class="field">
+                <div class="name">
+                    [`Address`]
+                </div>
+                <div class="value">
+                    <input type="text" name="data[params][address]" class="longer input" title="[`Address`]" value="{$channel.params.address|default:''|escape}">
+                    {if !empty($channel.params.map_adapter_disabled)}
+                    <button class="js-search-address"><i class="fas fa-search"></i></button>
+                    {/if}
+                    <p class="hint">[`Physical address of the point of sale`]</p>
+                    {if empty($channel.params.map_adapter_disabled)}
+                        <p class="state-caution-hint">[`Configure an online map engine in the <em>Settings</em> app to be able to set a location on a map.`]</p>
+                    {/if}
+                    <div class="js-map-point">{ifempty($channel, 'params', 'map_html', '')}</div>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">
+                    [`Location`]
+                </div>
+                <div class="value">
+                    <input type="text" name="data[params][latitude]" class="js-input-latitude number shorter" placeholder="[`Latitude`]" title="[`Latitude`]" value="{$channel.params.latitude|default:''|escape}">N
+                    &nbsp;
+                    <input type="text" name="data[params][longitude]" class="js-input-longitude number shorter" placeholder="[`Longitude`]" title="[`Longitude`]" value="{$channel.params.longitude|default:''|escape}">E
+                    <div class="hint">[`Location latitude & longitude for precise display on a map.`] <br>[`For S & W hemispheres, use negative values.`]</div>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">
+                    [`Description`]
+                </div>
+                <div class="value">
+                    <textarea name="data[params][point_info]" class="textarea" title="[`Description`]">{$channel.params.point_info|default:''|escape}</textarea>
+                    <p class="hint">[`Public information about this point of sale such as working hours or hints on how to get there. Any text that will be useful to your customers.`]</p>
+                </div>
+            </div>
+
+            <div class="field">
+                {$payment_id = ifempty($channel.params, 'payment_id', 'all')}
+                <div class="name">
+                    [`Payment options`]
+                </div>
+                <div class="value">
+                    <label>
+                        <span class="wa-radio">
+                            <input type="radio" name="data[params][payment_id]" value="all"{if $payment_id === 'all'} checked="checked"{/if}>
+                            <span></span>
+                        </span>
+                        [`All available payment options`]
+                    </label><br>
+                    <label>
+                        <span class="wa-radio">
+                            <input type="radio" name="data[params][payment_id]" value="id"{if $payment_id === 'id'} checked="checked"{/if}>
+                            <span></span>
+                        </span>
+                        [`Selected only`]
+                    </label>
+
+                    {if $payment_methods}
+                    <div class="small custom-mt-4">
+                        {$payment_methods}
+                    </div>
+                    {else}
+                    <p class="hint">[`No payment options are defined.`]</p>
+                    {/if}
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">
+                    [`In-store pickup`]
+                </div>
+                <div class="value">
+                    <span class="switch smaller js-switch-pickup">
+                        <input type="checkbox" name="data[params][pickup]" value="1"{if ifempty($channel, 'params', 'pickup', '0')} checked{/if}>
+                    </span>
+                    {if $storefronts}
+                    <p class="small custom-my-8">[`Enable the pickup option for the selected storefronts only:`]</p>
+                    <div class="small custom-mt-4">
+                        {$storefronts}
+                    </div>
+                    {else}
+                    <p class="hint">[`No public storefronts are available.`]</p>
+                    {/if}
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name"></div>
+                <div class="value">
+                    <div class="flexbox">
+                        <div class="wide js-place-for-errors">
+                            <input type="submit" class="button green" value="[`Save`]">
+                        </div>
+                        {if !empty($channel.id)}
+                        <div>
+                            <button class="button red js-delete-button">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript" src="{$wa_app_static_url}js/backend/channels/channels.js?{$wa->version()}"></script>
+<script>
+    $(function () {
+        "use strict";
+        const delete_url = {$wa_app_url|json_encode} + '?module=channels&action=delete';
+
+        const $form = $('#js-sales-channel-form');
+        const controller = new SalesChannelForm({
+            $place_for_errors: $form.find('.js-place-for-errors'),
+            $form,
+        });
+        const $submit_button = $form.find(':submit').last();
+
+        $form.on('save_request', function () {
+            $submit_button.prop('disabled', true).after('<div class="spinner"></div>');
+        });
+        $form.on('save_success save_fail', function () {
+            $submit_button.prop('disabled', false).siblings('.spinner').remove();
+        });
+
+        $('input[name="data[params][payment_id]"]').on('change', function () {
+            if ($(this).val() === 'all') {
+                $('input[name="data[params][payment_id]"]').closest('div.value').find('input:checkbox').prop('disabled', true).prop('checked', false);
+            } else {
+                $('input[name="data[params][payment_id]"]').closest('div.value').find('input:checkbox').prop('disabled', false).prop('checked', false);
+            }
+        });
+
+        $('input[name="data[params][address]"]').on('change', function (event) {
+            $('input[name="data[params][latitude]"]').val('');
+            $('input[name="data[params][longitude]"]').val('');
+            $('.js-map-point').html('');
+        });
+
+        $('.js-search-address').on('click', function (event) {
+            event.preventDefault();
+            let that = this;
+            let href = '{$wa_backend_url}?action=map&method=address';
+            let address = $('input[name="data[params][address]"]').val();
+            if (address) {
+                let data = {
+                    address: address,
+                    width: 500,
+                    height: 150
+                };
+                $(that).prop('disabled', true);
+                $.post(href, data, function (data) {
+                    if (data.status === 'ok') {
+                        if (data.data.map_html) {
+                            $('.js-map-point').html(data.data.map_html);
+                        }
+                        if (data.data.geocode) {
+                            if (data.data.geocode.lat) {
+                                $('input[name="data[params][latitude]"]').val(data.data.geocode.lat);
+                            }
+                            if (data.data.geocode.lng) {
+                                $('input[name="data[params][longitude]"]').val(data.data.geocode.lng);
+                            }
+                        }
+                    }
+                }).always(function () {
+                    $(that).prop('disabled', false);
+                });
+            }
+        });
+
+        $('.js-switch-pickup').waSwitch({
+            change: function (active, wa_switch) {
+                if (active) {
+                    $('input[name="data[params][pickup]"]').closest('div.value').find('input:checkbox').prop('disabled', false).prop('checked', false);
+                    $('input[name="data[params][pickup]"]').prop('checked', true);
+                } else {
+                    $('input[name="data[params][pickup]"]').closest('div.value').find('input:checkbox').prop('disabled', true).prop('checked', false);
+                    $('input[name="data[params][pickup]"]').prop('checked', false);
+                }
+            }
+        });
+
+        {if empty($channel.id)}
+            // After successfull save of a new channel, redirect to its proper URL containing id
+            $form.on('save_success', function (evt, data) {
+                window.location = {$wa_app_url|json_encode} + 'channels/editor/' + data.result.id;
+            });
+        {else}
+            const channel_id = {$channel.id|json_encode};
+            const $delete_button = $form.find('.js-delete-button');
+            $delete_button.on('click', function (e) {
+                e.preventDefault();
+                $.waDialog.confirm({
+                    title: {_w("Delete permanently?")|json_encode},
+                    success_button_title: {_w("Delete")|json_encode},
+                    success_button_class: 'danger',
+                    cancel_button_title: {_w("Cancel")|json_encode},
+                    cancel_button_class: 'light-gray',
+                    onSuccess: function() {
+                        $delete_button.prop('disabled', true).after('<div class="spinner"></div>');
+                        $.post(delete_url, { id: channel_id }, 'json').then(function(r) {
+                            $submit_button.prop('disabled', false).siblings('.spinner').remove();
+                            window.location = {$wa_app_url|json_encode} + '?action=plugins#/';
+                        });
+                    }
+                });
+            });
+        {/if}
+    });
+</script>

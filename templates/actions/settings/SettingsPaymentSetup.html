@@ -37,7 +37,19 @@
             </div>
 
             <div class="value">
-                <input type="text" name="payment[name]" class="small bold full-width-mobile" value="{$plugin.name|escape}" id="s-payment-plugin-name">
+                <input type="text" name="payment[name]" class="small bold long full-width-mobile" value="{$plugin.name|escape}" id="s-payment-plugin-name">
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name">
+                [`Description`]
+            </div>
+
+            <div class="value">
+                <textarea name="payment[description]" class="small full-width-mobile">{$plugin.description|escape}</textarea>
+
+                <div class="hint custom-mt-4">[`HTML. Payment option description is shown to customer during the checkout.`]</div>
             </div>
         </div>
 
@@ -58,22 +70,9 @@
                     </div>
                     {/if}
                 </div>
-
-                <div class="hint custom-mt-4">{sprintf('[`A collection of payment option icons is available for free: <a href="%s" target="_blank">%s</a> <i class="icon10 new-window"></i>`]','[`https://www.shop-script.com/help/729/payment-shipping-icons/`]','[`https://www.shop-script.com/help/729/payment-shipping-icons/`]')}</div>
             </div>
         </div>
 
-        <div class="field">
-            <div class="name">
-                [`Description`]
-            </div>
-
-            <div class="value">
-                <textarea name="payment[description]" class="small full-width-mobile">{$plugin.description|escape}</textarea>
-
-                <div class="hint custom-mt-4">[`HTML. Payment option description is shown to customer during the checkout.`]</div>
-            </div>
-        </div>
     </div>
 
     <!-- CUSTOM PAYMENT MODULE PARAMS -->
@@ -91,6 +90,7 @@
 
     <!-- CONDITIONS OF APPLICABILITY OF PAYMENT METHODS -->
     <div class="fields-group">
+        <h4>[`Checkout`]</h4>
         <div class="field">
             <div class="name">[`Offer payment to customer types`]</div>
 
@@ -109,7 +109,7 @@
                             <input type="radio" class="js-settings-payment-customer-type" name="payment[options][customer_type]" value="person" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'person'))} checked{/if}>
                             <span></span>
                         </span>
-                        [`Persons`]
+                        [`Individuals`]
                     </label>
                 </div>
                 <div class="custom-mt-4">
@@ -118,7 +118,7 @@
                             <input type="radio" class="js-settings-payment-customer-type" name="payment[options][customer_type]" value="company" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'company'))} checked{/if}>
                             <span></span>
                         </span>
-                        [`Companies`]
+                        [`Organizations`]
                     </label>
                 </div>
 
@@ -199,6 +199,7 @@
                             </span>
                         </span>
                         {$p.name|escape}
+                        <span class="hint">id:{$p.plugin}</span>
                     </label>
 
                     <span class="hint" style="display: none;">[`This payment method may be unavailable during checkout due to limitations by shipping type or customer type.`]</span>
@@ -209,11 +210,11 @@
             </div>
         </div>
     </div>
-    
+
     <div class="bottombar sticky s-settings-fixed-bottombar">
         <div class="flexbox space-12">
             <div class="wide">
-                <button type="submit" class="button green">[`Save`]</button>
+                <button type="submit" class="button green" data-disable-redirect="">[`Save`]</button>
                 <a href="#/payment/" class="button light-gray">[`Cancel`]</a>
             </div>
 

@@ -45,6 +45,18 @@
 
             <div class="field">
                 <div class="name">
+                    <label for="s-shipping-plugin-description">[`Description`]</label>
+                </div>
+
+                <div class="value">
+                    <textarea name="shipping[description]" class="small full-width-mobile" id="s-shipping-plugin-description">{$plugin.description|escape}</textarea>
+
+                    <div class="hint custom-mt-4">[`HTML. Shipping option description is shown to customer during the checkout.`]</div>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">
                     <label for="s-shipping-plugin-logo">[`Logo URL`]</label>
                 </div>
 
@@ -58,8 +70,6 @@
                             <img src="{$plugin.logo|default:''|escape}" class="s-payment-shipping-logo">
                         </div>
                     </div>
-
-                    <div class="hint custom-mt-4">{sprintf('[`A collection of shipping option icons is available for free: <a href="%1$s" target="_blank">%1$s</a> <i class="icon10 new-window"></i>`]','[`https://www.shop-script.com/help/729/payment-shipping-icons/`]')}</div>
                 </div>
             </div>
 
@@ -96,17 +106,6 @@
                 </div>
             </div>
 
-            <div class="field">
-                <div class="name">
-                    <label for="s-shipping-plugin-description">[`Description`]</label>
-                </div>
-
-                <div class="value">
-                    <textarea name="shipping[description]" class="small full-width-mobile" id="s-shipping-plugin-description">{$plugin.description|escape}</textarea>
-
-                    <div class="hint custom-mt-4">[`HTML. Shipping option description is shown to customer during the checkout.`]</div>
-                </div>
-            </div>
         </div>
 
         <!-- CUSTOM SHIPPING MODULE PARAMS -->
@@ -123,6 +122,7 @@
         {/if}
 
         <div class="fields-group">
+            <h4>[`Checkout`]</h4>
             <div class="field">
                 <div class="name">[`Offer shipping to customer types`]</div>
                 <div class="value">
@@ -140,7 +140,7 @@
                                 <input type="radio" name="shipping[options][customer_type]" value="person" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'person'))} checked{/if}>
                                 <span></span>
                             </span>
-                            [`Persons`]
+                            [`Individuals`]
                         </label>
                     </div>
 
@@ -150,7 +150,7 @@
                                 <input type="radio" name="shipping[options][customer_type]" value="company" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'company'))} checked{/if}>
                                 <span></span>
                             </span>
-                            [`Companies`]
+                            [`Organizations`]
                         </label>
                     </div>
 

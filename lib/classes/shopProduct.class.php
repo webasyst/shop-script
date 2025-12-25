@@ -1797,7 +1797,9 @@ class shopProduct implements ArrayAccess
                 break;
             }
         }
-        $keywords = array_filter($keywords, 'trim');
+        $keywords = array_filter($keywords, static function ($value) {
+            return trim((string) $value) !== '';
+        });
         return str_replace('"', '', implode(', ', $keywords));
     }
 

@@ -96,7 +96,7 @@
 {capture assign="_component_prices_section"}
     <div class="vue-component-prices-section">
         <div class="s-section-header">
-            <div class="flexbox space-16 full-width">
+            <div class="s-header">
                 <div class="s-column-title flexbox middle space-4 {if $formatted_product["normal_mode"]}cursor-pointer{/if}"
                      {if $formatted_product["normal_mode"]}v-on:click.prevent="pricesToggle"{/if}>
                     {if $formatted_product["normal_mode"]}
@@ -107,7 +107,7 @@
                     {/if}
                     <div><h4 class="s-title">[`Prices & availability`]</h4></div>
                 </div>
-                <div class="s-column-filters wide" v-if="prices_model.is_extended">
+                <div class="s-column-filters" v-if="prices_model.is_extended">
                     <div class="s-filters-list">
                         <template v-for="(active_filter_id, filter_name) in prices_model.filters">
                             <div class="s-filter-section">
@@ -134,114 +134,105 @@
 
 {capture assign="_component_price_table"}
     <div class="vue-component-price-table small">
-        <div class="s-table-header">
-            <div class="s-table-row">
-                <div class="s-table-column s-column-name">
-                    <span class="s-label">[`SKU`]</span>
-                </div>
-                <div class="s-table-column s-column-compare-price">
-                    <span class="s-label">[`Compare at price`]</span>
-                </div>
-                <div class="s-table-column s-column-price">
-                    <span class="s-label">[`Price`]</span>
-                </div>
-                <div class="s-table-column s-column-amount">
-                    <span class="s-label">
-                        [`Quantity`]
-                        <span class="s-unit" v-if="product.stock_unit">({ { product.stock_unit.name_short } })</span>
-                    </span>
-                </div>
+        <div class="s-table-header s-table-row">
+            <div class="s-table-column s-column-name">
+                <span class="s-label">[`SKU`]</span>
+            </div>
+            <div class="s-table-column s-column-compare-price">
+                <span class="s-label">[`Compare at price`]</span>
+            </div>
+            <div class="s-table-column s-column-price">
+                <span class="s-label">[`Price`]</span>
+            </div>
+            <div class="s-table-column s-column-amount">
+                <span class="s-label">
+                    [`Quantity`]
+                    <span class="s-unit" v-if="product.stock_unit">({ { product.stock_unit.name_short } })</span>
+                </span>
             </div>
         </div>
         <template v-if="skus_is_displayed">
-            <div class="s-table-body">
-                <template v-for="sku in skus">
-                    <div class="s-sku-section"
-                         v-if="sku.is_visible"
-                         v-bind:key="sku.sku">
-                        <div class="s-table-row s-sku-wrapper"
-                             v-if="product.normal_mode">
-                            <div class="s-table-column s-column-name">
-                                <div class="s-sku-sku" v-text="sku.sku"></div>
-                                <div class="s-sku-name" v-text="sku.name"></div>
-                            </div>
-                            <div class="s-table-column s-column-compare-price"></div>
-                            <div class="s-table-column s-column-price"></div>
-                            <div class="s-table-column s-column-amount"></div>
+            <template v-for="sku in skus" v-bind:key="sku.sku">
+                <template v-if="sku.is_visible">
+                    <div v-if="product.normal_mode" class="s-table-row s-sku-wrapper">
+                        <div class="s-table-column s-column-name">
+                            <div v-if="sku.sku" class="s-sku-sku" v-text="sku.sku"></div>
+                            <div class="s-sku-name" v-text="sku.name"></div>
                         </div>
-                        <template v-for="sku_mod in sku.modifications">
-                            <div class="s-table-row s-modification-wrapper"
-                                 v-if="sku_mod_visible(sku_mod)"
-                                 v-bind:class="{ 'is-highlighted' : sku_mod.is_highlighted }"
-                                 v-bind:data-id="sku_mod.id"
-                                 v-bind:key="sku_mod.id">
-                                <div class="s-table-column s-column-name">
-                                    <div class="flexbox middle space-8">
-                                        <div class="s-modification-percentage"
-                                             v-if="show_percentage(sku.modifications) && sku_mod.promos">
-                                            <button class="button nobutton circle light-gray no-indent"
-                                                    v-bind:data-tooltip-id="promo_tooltip(sku_mod)"
-                                                    v-bind:style="{ 'visibility' : (Object.keys(sku_mod.promos).length ? '' : 'hidden' ) }"
-                                                    v-on:click.prevent="scrollToPromo(sku_mod)">
-                                                <span class="s-icon" v-bind:class="promo_icon_class(sku_mod)"><i class="fas fa-percentage"></i></span>
-                                            </button>
-                                        </div>
-                                        <div class="s-modification-icon s-modification-status">
-                                            <div class="text-gray"
-                                                    v-bind:data-tooltip-id="(sku_mod.status ? 'prices-tooltip-1' : 'prices-tooltip-2')">
-                                                <span class="icon s-icon baseline text-blue"
-                                                      v-if="sku_mod.status"
-                                                      v-bind:key="'eye'"><i class="fas fa-eye"></i></span>
-                                                <span class="icon s-icon baseline text-light-gray"
-                                                      v-if="!sku_mod.status"
-                                                      v-bind:key="'eye-slash'"><i class="fas fa-eye-slash"></i></span>
-                                                </div>
-                                        </div>
-                                        <div class="s-modification-icon s-modification-available">
-                                            <div class="text-gray"
-                                                    v-bind:data-tooltip-id="(sku_mod.available ? 'prices-tooltip-3' : 'prices-tooltip-4')">
-                                                <span class="s-icon icon top size-18 text-green"
-                                                      v-if="sku_mod.available"
-                                                      v-bind:key="'cart'"><svg><use xlink:href='{$_sprite_url}#cart'></use></svg></span>
-                                                <span class="s-icon icon top size-18 text-light-gray"
-                                                      v-if="!sku_mod.available"
-                                                      v-bind:key="'cart-slash'"><svg><use xlink:href='{$_sprite_url}#cart-slash'></use></svg></span>
+                        <div class="s-table-column s-column-compare-price"></div>
+                        <div class="s-table-column s-column-price"></div>
+                        <div class="s-table-column s-column-amount"></div>
+                    </div>
+                    <template v-for="sku_mod in sku.modifications">
+                        <div class="s-table-row s-modification-wrapper"
+                                v-if="sku_mod_visible(sku_mod)"
+                                v-bind:class="{ 'is-highlighted' : sku_mod.is_highlighted }"
+                                v-bind:data-id="sku_mod.id"
+                                v-bind:key="sku_mod.id">
+                            <div class="s-table-column s-column-name">
+                                <div class="flexbox space-8">
+                                    <div class="s-modification-percentage"
+                                            v-if="show_percentage(sku.modifications) && sku_mod.promos">
+                                        <button class="button nobutton circle light-gray no-indent"
+                                                v-bind:data-tooltip-id="promo_tooltip(sku_mod)"
+                                                v-bind:style="{ 'visibility' : (Object.keys(sku_mod.promos).length ? '' : 'hidden' ) }"
+                                                v-on:click.prevent="scrollToPromo(sku_mod)">
+                                            <span class="s-icon" v-bind:class="promo_icon_class(sku_mod)"><i class="fas fa-percentage"></i></span>
+                                        </button>
+                                    </div>
+                                    <div class="s-modification-icon s-modification-status">
+                                        <div class="text-gray"
+                                                v-bind:data-tooltip-id="(sku_mod.status ? 'prices-tooltip-1' : 'prices-tooltip-2')">
+                                            <span class="icon s-icon baseline text-blue"
+                                                    v-if="sku_mod.status"
+                                                    v-bind:key="'eye'"><i class="fas fa-eye"></i></span>
+                                            <span class="icon s-icon baseline text-light-gray"
+                                                    v-if="!sku_mod.status"
+                                                    v-bind:key="'eye-slash'"><i class="fas fa-eye-slash"></i></span>
                                             </div>
-                                        </div>
-                                        <div class="s-modification-name wide">
-                                            <template v-if="product.normal_mode">
-                                                <span class="s-name" v-text="sku_mod.name"></span>
-                                            </template>
-                                            <template v-else>
-                                                <span class="s-sku-sku" v-text="sku.sku"></span>
-                                                <span class="s-sku-name" v-text="product.name"></span>
-                                            </template>
+                                    </div>
+                                    <div class="s-modification-icon s-modification-available">
+                                        <div class="text-gray"
+                                                v-bind:data-tooltip-id="(sku_mod.available ? 'prices-tooltip-3' : 'prices-tooltip-4')">
+                                            <span class="s-icon icon top size-18 text-green"
+                                                    v-if="sku_mod.available"
+                                                    v-bind:key="'cart'"><svg><use xlink:href='{$_sprite_url}#cart'></use></svg></span>
+                                            <span class="s-icon icon top size-18 text-light-gray"
+                                                    v-if="!sku_mod.available"
+                                                    v-bind:key="'cart-slash'"><svg><use xlink:href='{$_sprite_url}#cart-slash'></use></svg></span>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="s-table-column s-column-compare-price">
-                                    <div class="s-modification-compare-price"
-                                         v-bind:class="sku_mod_price_class(sku_mod, 'compare_price')"
-                                         v-html="sku_mod_price(sku_mod, 'compare_price')"></div>
-                                </div>
-                                <div class="s-table-column s-column-price">
-                                    <div class="s-modification-price"
-                                         v-bind:class="sku_mod_price_class(sku_mod, 'price')"
-                                         v-html="sku_mod_price(sku_mod, 'price')"></div>
-                                </div>
-                                <div class="s-table-column s-column-amount">
-
-                                    <component-stocks-manager
-                                        v-bind:sku_mod="sku_mod"
-                                        v-bind:key="sku_mod.stocks_data.render_key"
-                                        v-on:stocks_updated="updateStocks(sku_mod)"></component-stocks-manager>
-
+                                    <div class="s-modification-name wide">
+                                        <template v-if="product.normal_mode">
+                                            <span class="s-name" v-text="sku_mod.name"></span>
+                                        </template>
+                                        <template v-else>
+                                            <span v-if="sku.sku" class="s-sku-sku" v-text="sku.sku"></span>
+                                            <span class="s-sku-name" v-text="product.name"></span>
+                                        </template>
+                                    </div>
                                 </div>
                             </div>
-                        </template>
-                    </div>
+                            <div class="s-table-column s-column-compare-price">
+                                <div class="s-modification-compare-price"
+                                        v-bind:class="sku_mod_price_class(sku_mod, 'compare_price')"
+                                        v-html="sku_mod_price(sku_mod, 'compare_price')"></div>
+                            </div>
+                            <div class="s-table-column s-column-price">
+                                <div class="s-modification-price"
+                                        v-bind:class="sku_mod_price_class(sku_mod, 'price')"
+                                        v-html="sku_mod_price(sku_mod, 'price')"></div>
+                            </div>
+                            <div class="s-table-column s-column-amount">
+                                <component-stocks-manager
+                                    v-bind:sku_mod="sku_mod"
+                                    v-bind:key="sku_mod.stocks_data.render_key"
+                                    v-on:stocks_updated="updateStocks(sku_mod)"></component-stocks-manager>
+                            </div>
+                        </div>
+                    </template>
                 </template>
-            </div>
+            </template>
         </template>
         <template v-else>
             <div class="s-message-empty">[`No SKUs.`]</div>

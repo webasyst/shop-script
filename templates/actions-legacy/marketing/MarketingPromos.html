@@ -553,7 +553,7 @@
                         sort_notice_dialog: {$_sort_notice_dialog|json_encode}
                     },
                     urls: {
-                        sort: "{$wa_app_url}?module=marketingPromo&action=sort&storefront="+{ifset($active_storefront)|urlencode|json_encode},
+                        sort: "{$wa_app_url}?module=marketingPromo&action=sort&storefront="+{ifset($active_storefront, '')|urlencode|json_encode},
                         status: "{$wa_app_url}?module=marketingPromoEnabled"
                     }
                 });

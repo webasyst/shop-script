@@ -112,7 +112,7 @@ class shopHelper
                     $params = array();
                     $params['namespace'] = 'payment_'.$m['id'];
                     $params['title_wrapper'] = '%s';
-                    $params['description_wrapper'] = '<br><span class="hint">%s</span>';
+                    $params['description_wrapper'] = '<p class="hint">%s</p>';
                     $params['control_wrapper'] = '<div class="name">%s</div><div class="value">%s %s</div>';
                     $params['control_separator'] = '</div><div class="value>"';
 
@@ -511,6 +511,7 @@ class shopHelper
                             }
 
                             if ($min_shipping_cost = (float) ifset($m, 'options', 'min_shipping_cost', 0)) {
+                                $min_shipping_cost = (float) shop_currency($min_shipping_cost, $config->getCurrency(), $currency, false);
                                 if (empty($rate) || $rate < $min_shipping_cost) {
                                     $rate = $min_shipping_cost;
                                 }
@@ -569,7 +570,7 @@ class shopHelper
                             $control_params = array();
                             $control_params['namespace'] = 'shipping_'.$m['id'];
                             $control_params['title_wrapper'] = '%s';
-                            $control_params['description_wrapper'] = '<br><span class="hint">%s</span>';
+                            $control_params['description_wrapper'] = '<p class="hint">%s</p>';
                             $control_params['control_wrapper'] = '<div class="field s-desired-delivery-time-wrapper"><div class="name">%s</div><div class="value">%s %s</div></div>';
                             $control_params['control_separator'] = '</div><div class="value">';
 
@@ -1204,7 +1205,7 @@ class shopHelper
             $stocks = $model->getAll('id');
         }
         if ($count === null) {
-            $icon = "<i class='" . self::getNeedIconClass('icon10 status-green') . "' title='"._w("In stock")."'></i>";
+            $icon = "<i class='" . self::getStockIcon('icon10 status-green') . "' title='"._w("In stock")."'></i>";
         } else {
             if (!$stock_id || empty($stocks[$stock_id])) {
                 $bounds = array(
@@ -1215,17 +1216,17 @@ class shopHelper
                 $bounds = $stocks[$stock_id];
             }
             if ($count <= 0) {
-                $icon = "<i class='" . self::getNeedIconClass('icon10 status-red') . "' title='"._w("Out of stock")."'></i>";
+                $icon = "<i class='" . self::getStockIcon('icon10 status-red') . "' title='"._w("Out of stock")."'></i>";
                 $warn = 's-stock-warning-none';
             } else {
                 if ($count <= $bounds['critical_count']) {
-                    $icon = "<i class='" . self::getNeedIconClass('icon10 status-red') . "' title='"._w("Almost out of stock")."'></i>";
+                    $icon = "<i class='" . self::getStockIcon('icon10 status-red') . "' title='"._w("Almost out of stock")."'></i>";
                     $warn = 's-stock-warning-none';
                 } elseif ($count > $bounds['critical_count'] && $count <= $bounds['low_count']) {
-                    $icon = "<i class='" . self::getNeedIconClass('icon10 status-yellow') . "' title='"._w("Low stock")."'></i>";
+                    $icon = "<i class='" . self::getStockIcon('icon10 status-yellow') . "' title='"._w("Low stock")."'></i>";
                     $warn = 's-stock-warning-low';
                 } else {
-                    $icon = "<i class='" . self::getNeedIconClass('icon10 status-green') . "' title='"._w("In stock")."'></i>";
+                    $icon = "<i class='" . self::getStockIcon('icon10 status-green') . "' title='"._w("In stock")."'></i>";
                     $warn = '';
                 }
             }
@@ -1252,11 +1253,12 @@ class shopHelper
      * @param string $icon_class
      * @return string
      */
-    private static function getNeedIconClass($icon_class)
+    private static function getStockIcon($icon_class)
     {
         if (wa()->whichUI() == '2.0') {
             $icon_class = str_replace('icon10 ', '', $icon_class);
-            return wa()->getView()->getHelper()->shop->convertIcon($icon_class);
+            $icon =  wa()->getView()->getHelper()->shop->convertIcon($icon_class);
+            return str_replace('fa-circle', 'fa-home', $icon);
         }
 
         return $icon_class;
@@ -2459,5 +2461,33 @@ SQL;
     {
         $locale = wa()->getSetting('locale', '', 'webasyst');
         return ifempty($locale, wa()->getLocale()) === "ru_RU" && !!wa()->getUser()->getRights('installer', 'backend');
+    }
+
+    /** @since 12.0.0 */
+    public static function waPayPromotionEnabled()
+    {
+        static $result;
+        if (!isset($result)) {
+            // Store must have RUB currency settings
+            $result = !!array_filter(wa('shop')->getConfig()->getCurrencies(), function($c) {
+                return $c['code'] === 'RUB';
+            });
+            if ($result) {
+                // Store must not have WA Pay set up already
+                $result = (new shopPluginModel())->countByField([
+                    'type' => 'payment',
+                    'plugin' => 'pay',
+                ]) <= 0;
+            }
+            if ($result) {
+                try {
+                    // Installer (if present) must be in ru region
+                    wa('installer');
+                    $result = installerHelper::getGeoZone() === 'ru';
+                } catch (Throwable $e) {
+                }
+            }
+        }
+        return $result;
     }
 }

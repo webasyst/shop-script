@@ -35,6 +35,8 @@ class shopSettingsGetMethod extends shopApiMethod
             'base_units_enabled'    => (bool) shopUnits::stockUnitsEnabled(),
             // since 11.2.0
             'is_premium'            => (bool) shopLicensing::isPremium(),
+            // since 12.0.0
+            'headless_api_antispam' => wa('shop')->getSetting('headless_api_antispam_enabled') ? (string) wa('shop')->getSetting('headless_api_antispam_key') : null,
         );
     }
 

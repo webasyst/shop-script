@@ -86,10 +86,10 @@
                 <label><input type="radio" name="shipping[options][customer_type]" value="" {if empty($plugin.options.customer_type)} checked{/if}> [`All`]</label>
             </div>
             <div class="value">
-                <label><input type="radio" name="shipping[options][customer_type]" value="person" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'person'))} checked{/if}> [`Persons`]</label>
+                <label><input type="radio" name="shipping[options][customer_type]" value="person" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'person'))} checked{/if}> [`Individuals`]</label>
             </div>
             <div class="value">
-                <label><input type="radio" name="shipping[options][customer_type]" value="company" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'company'))} checked{/if}> [`Companies`]</label>
+                <label><input type="radio" name="shipping[options][customer_type]" value="company" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'company'))} checked{/if}> [`Organizations`]</label>
             </div>
             <div class="value hint">{sprintf('[`In  “%s” mode shipping is offered only to selected customer types.<br>In “%s” mode this setting is ignored and shipping is always offered to all customer types.`]', '[`In-cart checkout`]', '[`Multi-step checkout`]')}</div>
         </div>

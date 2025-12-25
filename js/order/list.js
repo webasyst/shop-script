@@ -747,7 +747,7 @@
                 hash = hash.replace(/(^[^#]*#\/*|\/$)/g, ''); /* fix syntax highlight*/
 
                 if (!hash.split('/')[1]) {
-                    hash = '#/orders/state_id=new|processing|auth|paid'
+                    hash = '#/orders/state_id=new|processing|auth|paid|pickup'
                 }
 
                 // clear hash, delete substring like sort[0]=foo and sort[1]=bar
@@ -1496,7 +1496,7 @@
             let param_state_id = state_id ? `&state_id=${state_id}` : '';
             sort = sort || this.sort;
 
-            if (this.options.view === 'kanban' && this.filter_params_str === 'state_id=new|processing|auth|paid') {
+            if (this.options.view === 'kanban' && this.filter_params_str === 'state_id=new|processing|auth|paid|pickup') {
                 this.filter_params_str = null;
             }
 

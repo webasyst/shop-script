@@ -83,13 +83,13 @@
                 <label><input type="radio"
                               class="js-settings-payment-customer-type"
                               name="payment[options][customer_type]"
-                              value="person" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'person'))} checked{/if}> [`Persons`]</label>
+                              value="person" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'person'))} checked{/if}> [`Individuals`]</label>
             </div>
             <div class="value">
                 <label><input type="radio"
                               class="js-settings-payment-customer-type"
                               name="payment[options][customer_type]"
-                              value="company" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'company'))} checked{/if}> [`Companies`]</label>
+                              value="company" {if (!empty($plugin.options.customer_type) && ($plugin.options.customer_type eq 'company'))} checked{/if}> [`Organizations`]</label>
             </div>
             <div class="value hint">{sprintf('[`In  “%s” mode payment is offered only to selected customer types.<br>In “%s” mode this setting is ignored and payment is always offered to all customer types.`]', '[`In-cart checkout`]', '[`Multi-step checkout`]')}</div>
         </div>

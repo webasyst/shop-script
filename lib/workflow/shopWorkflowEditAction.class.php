@@ -284,8 +284,8 @@ class shopWorkflowEditAction extends shopWorkflowAction
         $class_icon_edit = "icon16 edit";
         $class_icon_loading = "icon16 loading";
         if (wa()->whichUI() >= '2.0') {
-            $class_icon_edit = "icon text-gray fas fa-pen";
-            $class_icon_loading = "text-gray fas fa-spinner wa-animation-spin";
+            $class_icon_edit = "icon fas fa-pen";
+            $class_icon_loading = "fas fa-spinner wa-animation-spin";
         }
 
         return <<<HTML

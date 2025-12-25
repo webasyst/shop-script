@@ -1,0 +1,112 @@
+<div class="article" id="js-headless-page-wrapper">
+    <div class="article-body">
+        <h1>[`Settings & SEO`]</h1>
+        <p class="small">
+            [`Shop-Script easily handles multiple storefronts (sites). Each storefront can have its own design settings, published products, and even payment and shipping setup.`]
+            {if !$wa->isSingleAppMode()}
+                {sprintf_wp(
+                    'For multiple domains, use the <a %s>Site</a> app.',
+                    sprintf(
+                        'href="%s"',
+                        $wa_backend_url|cat:'site/'
+                    )
+                )}
+            {/if}
+        </p>
+        <table class="zebra">
+            <tr>
+                <th class="min-width">[`Storefront`]</th>
+                <th colspan="2">[`URL`]</th>
+                <th class="align-center"></th>
+            </tr>
+
+            {foreach $domains as $domain => $data}
+                {foreach $data as $id => $route}
+                    <tr>
+                        <td>{ifset($route, '_name', _wp('(none)'))|escape}</td>
+                        <td>
+                            {waIdna::dec($domain)|escape}/<code>{$route.url|escape}</code>
+                            <p class="hint">
+                                {foreach [
+                                    'title' => _w('Homepage title'),
+                                    'meta_keywords' => _wp('Keywords'),
+                                    'meta_description' => _wp('Description')
+                                ] as $key => $label}
+                                    {$label}: {if !empty($route[$key])}<b>{$route[$key]|truncate:50|escape}</b>{else}<i class="fas fa-exclamation-triangle text-orange small"></i> [`Not set`]{/if}<br>
+                                {/foreach}
+                            </p>
+                        </td>
+                        <td class="align-center">
+                            <a href="{$route.settings_url|escape}" class="button light-gray small nowrap"><i class="fas fa-cog text-blue"></i> [`Settings`]</a>
+                        </td>
+                    </tr>
+                {/foreach}
+            {/foreach}
+        </table>
+        {if !empty($can_add_storefronts)}
+            <p>
+                <button id="js-add-storefront-button" class="button light-gray small nowrap"><i class="fas fa-plus-circle text-green"></i> [`Add storefront`]</button>
+            </p>
+        {/if}
+
+        {* @event backend_storefront_seo.%plugin_id%.main_html *}
+        {foreach $backend_storefront_seo as $_}{ifset($_.main_html)}{/foreach}
+
+        {if !empty($installer_url)}
+            <div class="s-frame-wrapper" id="js-insaller-iframe-wrapper">
+                <i class="fas fa-spin fa-spinner"></i>
+            </div>
+        {/if}
+    </div>
+</div>
+
+<script>(function ($) { "use strict";
+    document.title = "[`Settings & SEO`] — {$wa->accountName(false)|escape:javascript}";
+    // installer iframe with seo plugins
+    let themes_url = {$installer_url|json_encode};
+    if (themes_url) {
+        $("#js-insaller-iframe-wrapper").load(themes_url);
+    }
+
+    // button to add new storefront opens dialog
+    let $button = $('#js-add-storefront-button').click(function() {
+        $button.attr('disabled', true);
+        $.get('?module=seo&action=dialog', function(html) {
+            $button.attr('disabled', false);
+            $.waDialog({
+                html,
+                onOpen($dialog, dialog) {
+                    const $form = dialog.$block.find('form');
+                    const $dialog_submit = $form.find('.js-submit-button');
+                    $form.submit(function(e) {
+                        e.preventDefault();
+                        $dialog_submit.attr('disabled', true);
+                        $form.find('.state-error-hint').remove();
+                        $form.find('.state-error').removeClass('state-error');
+                        $.post('?module=seo&action=createStorefront', $form.serialize(), function(r) {
+                            if (r.status === 'ok') {
+                                dialog.close();
+                                window.location = r.data.redirect;
+                            } else {
+                                $dialog_submit.attr('disabled', false);
+                                if (r.errors) {
+                                    r.errors.forEach(e => {
+                                        var $el = $dialog_submit;
+                                        if (e.field) {
+                                            let $field = $form.find('[name="'+e.field+'"]').addClass('state-error');
+                                            if ($field.length) {
+                                                $el = $field;
+                                            }
+                                        }
+                                        $el.parent().append($('<div class="state-error-hint"></div>').text(e.error_description));
+                                    });
+                                }
+                            }
+                        });
+                    });
+                }
+            });
+        });
+    });
+
+}(jQuery));</script>

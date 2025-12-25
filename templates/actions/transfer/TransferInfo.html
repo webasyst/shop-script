@@ -41,6 +41,7 @@
                         {if $transfer.status == 'sent'}
                             <em class="s-transfer-status-sent"><i class="fas fa-truck"></i> [`On its way`]</em>
                             <p class="hint width-80">[`Products left the source stock and to be added to the destination stock as soon as the transfer is marked as completed.`]</p>
+                            <p class="state-caution-hint width-80">[`The transfer cannot be edited as all products have already been written off the source stock.`]</p>
                         {elseif $transfer.status == 'completed'}
                             <span class="s-transfer-status-completed bold"><i class="fas fa-check-circle text-green"></i> [`Completed`]</span>
                             <p class="hint width-80">[`Products successfully left the source stock and added to the destination stock.`]</p>

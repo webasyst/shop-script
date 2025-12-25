@@ -37,7 +37,7 @@
                                 <span class="s-state-with-time smallest" data-state-id="{$order.state_id}">
                                     {if $order.state}
                                         <span class="text-ellipsis custom-mr-8" style="{$order.state->getStyle()}">
-                                            <i class="{$wa->shop->convertIcon($order.state->getOption('icon'))}"></i>
+                                            <i class="{$wa->shop->convertIcon($order.state->getOption('icon'))} custom-mr-2"></i>
                                             <span title="{$order.state->getName()|escape}">{$order.state->getName()|escape}</span>
                                         </span>
                                         {if $last_action_datetime}
@@ -95,7 +95,7 @@
                                     <span class="gray">{$customer_essentials.name|default:'[`(no customer information)`]'|escape}</span>
                                 {/if}
                                 {if $customer_essentials.registered|default:false}
-                                    <i class="fas fa-check-circle fa-xs text-green" title="[`Registered customer`]"></i>
+                                    <i class="fas fa-user-check fa-xs text-green" title="[`Registered customer`]"></i>
                                 {/if}
                                 {if !empty($customer) && !empty($customer_essentials.id)}
                                     {if $customer.number_of_orders == 1}
@@ -724,6 +724,7 @@
                                 </span>
                             {/if}
                             {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront_decoded|default:$order.params.storefront}</strong><br>{/if}
+                            {if !empty($order.params.cashier_contact_id)}[`Cashier`]: <strong>{$order.params.cashier_contact_name|truncate:42|escape|default:'[`Deleted contact`]'}</strong><br>{/if}
                             {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword|escape}</strong><br>{/if}
                             {if !empty($order.params.ip)}[`IP`]: <strong>{$order.params.ip}</strong><br>{/if}
 

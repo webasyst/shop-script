@@ -193,16 +193,16 @@
     <div class="fields js-block-wrapper" data-block="design">
         {* Default design style *}
         <div class="fields-group" style="background: transparent !important;">
-            <div class="flexbox space-16 custom-mb-24">
-                <div class="wide gray custom-pt-4">[`Enable default fallback design`]</div>
-
+            <div class="flexbox space-16 custom-mb-12">
+                <div class="wide custom-pt-4">[`Enable default fallback design`]</div>
                 <div>
                     <input type="hidden" name="data[design][custom]" value="0">
-                    <span class="switch small custom-mt-8 js-design-toggle">
+                    <span class="switch smaller custom-mt-8 js-design-toggle">
                         <input type="checkbox" name="data[design][custom]" value="1"{if $settings.custom} checked{/if}>
                     </span>
                 </div>
             </div>
+            <p class="hint custom-mt-12">[`When off, your custom checkout design will depend exclusively on your site’s design theme. When on, the default minimalistic fallback checkout design mode with a few available settings will be activated.`]</p>
             <div class="js-design-values custom-mt-12"{if !$settings.custom} style="display: none"{/if}>
                 {* Logo *}
                 {$_logo = $settings.logo|default:null|escape}
@@ -242,7 +242,7 @@
                 {* Business scope *}
                 <div class="field">
                     <div class="name">
-                        <label for="design_business_scope">[`Business scope`]</label>
+                        <label for="design_business_scope">[`Subtitle under the logo`]</label>
                     </div>
 
                     <div class="value input">
@@ -279,7 +279,7 @@
                     </div>
 
                     <div class="value input">
-                        <input type="text" id="design_address" name="data[design][address]" class="long" value="{$settings.address|escape}" autocomplete="off">
+                        <textarea id="design_address" name="data[design][address]" class="long" autocomplete="off">{$settings.address|escape}</textarea>
                     </div>
                 </div>
 
@@ -290,7 +290,7 @@
                     </div>
 
                     <div class="value input">
-                        <input type="text" id="design_working_hours" name="data[design][working_hours]" class="shortest" value="{$settings.working_hours|escape}" autocomplete="off">
+                        <input type="text" id="design_working_hours" name="data[design][working_hours]" class="short" value="{$settings.working_hours|escape}" autocomplete="off">
                     </div>
                 </div>
 
@@ -323,7 +323,7 @@
                     </div>
 
                     <div class="value">
-                        <textarea id="design_custom_css" name="data[design][custom_css]" class="small">{$settings.custom_css|escape}</textarea>
+                        <textarea id="design_custom_css" name="data[design][custom_css]" class="small width-100">{$settings.custom_css|escape}</textarea>
 
                         <div class="hint custom-mt-4">
                             [`Entered CSS code will be added inside <code>&lt;style&gt; ... &lt;/style&gt;</code> tags in <code>&lt;head&gt;</code> block only on checkout page.`]
@@ -441,9 +441,9 @@
 {* Recommendations block *}
 {function recommendations_block settings=[]}
 <div class="s-checkout-field-group fields custom-my-4">
-    <div>
+    <p class="small">
         <a href="{$wa_app_url}marketing/recommendations/" target="_blank">[`Configure recommendations (cross-selling)`] <i class="fas fa-external-link-alt smaller"></i></a>
-   	</div>
+   	</p>
     {* Block name *}
     <div class="field">
         <div class="name for-input">[`Block name`]</div>
@@ -471,7 +471,7 @@
     {* Schedule mode *}
     {$_schedule = $checkout_config.schedule}
     <div class="field vertical">
-        <div class="name s-table-field-name bold">[`Store working schedule`]</div>
+        <div class="name s-table-field-name bold">[`Working hours`]</div>
         <div class="value s-table-field-value radio js-schedule-block">
             <ul>
             {foreach $schedule_mode_variants as $_id => $_variant}
@@ -642,7 +642,7 @@
             <label for="customer_offer_login">[`Login offer text`]</label>
         </div>
         <div class="value">
-            <textarea id="customer_offer_login" name="data[customer][offer_login]">{$settings.offer_login|escape}</textarea>
+            <textarea id="customer_offer_login" class="width-100" name="data[customer][offer_login]">{$settings.offer_login|escape}</textarea>
         </div>
     </div>
 
@@ -652,13 +652,13 @@
             <label for="customer_offer_logout">[`Logout offer text`]</label>
         </div>
         <div class="value">
-            <textarea id="customer_offer_logout" name="data[customer][offer_logout]">{$settings.offer_logout|escape}</textarea>
+            <textarea id="customer_offer_logout" class="width-100" name="data[customer][offer_logout]">{$settings.offer_logout|escape}</textarea>
         </div>
     </div>
 
     {* Customer type *}
     <div class="field vertical">
-        <div class="name for-checkbox s-table-field-name bold">[`Customer types`]</div>
+        <div class="name for-checkbox s-table-field-name bold">[`Who can check out in this storefront`]</div>
         <div class="value s-table-field-value radio js-customer-type-wrapper">
             <div class="flexbox space-12 custom-my-16 bold">
             {foreach $customer_type_variants as $_id => $_variant}
@@ -678,7 +678,7 @@
             <div class="js-person-company-settings custom-pt-0 custom-mx-0 fields-group vertical">
                 <div class="field">
                     <div class="name">
-                        <label for="customer_person_mode_name">[`Person mode name`]</label>
+                        <label for="customer_person_mode_name">[`Individual mode name`]</label>
                     </div>
                     <div class="value input">
                         <input type="text" id="customer_person_mode_name" class="long" name="data[customer][person_mode_name]" value="{$settings.person_mode_name|escape}" autocomplete="off" />
@@ -686,7 +686,7 @@
                 </div>
                 <div class="field">
                     <div class="name">
-                        <label for="customer_company_mode_name">[`Company mode name`]</label>
+                        <label for="customer_company_mode_name">[`Organization mode name`]</label>
                     </div>
                     <div class="value input">
                         <input type="text" id="customer_company_mode_name" class="long" name="data[customer][company_mode_name]" value="{$settings.company_mode_name|escape}" autocomplete="off" />
@@ -697,7 +697,7 @@
             <div class="js-company-settings custom-mt-0 custom-pt-0 custom-mx-0 fields-group vertical">
                 <div class="field">
                     <div class="name">
-                        <label for="customer_company_hint">[`Hint text for companies`]</label>
+                        <label for="customer_company_hint">[`Hint text for organizations`]</label>
                     </div>
                     <div class="value">
                         <textarea id="customer_company_hint" name="data[customer][company_hint]">{$settings.company_hint|escape}</textarea>
@@ -705,7 +705,7 @@
                 </div>
                 <div class="field">
                     <div class="name">
-                        <label for="customer_company_terms">[`Companies service terms text`]</label>
+                        <label for="customer_company_terms">[`Organizations service terms text`]</label>
                     </div>
                     <div class="value">
                         <textarea id="customer_company_terms" name="data[customer][company_terms]">{$settings.company_terms|escape}</textarea>
@@ -714,7 +714,7 @@
             </div>
 
             <div class="js-fields-editor fields-group custom-pt-0 custom-mx-0 custom-mt-0" data-type="person">
-                <div class="heading js-contact-type">[`Persons:`]</div>
+                <div class="heading js-contact-type">[`Individuals:`]</div>
                 <table class="bigdata custom-mt-0 zebra s-sort-table js-sort-table">
                     <tbody>
                         {renderContactFieldsEditor _fields=$settings.fields_person}
@@ -728,7 +728,7 @@
             </div>
 
             <div class="js-fields-editor fields-group custom-pt-0 custom-mx-0 custom-mt-0" data-type="company">
-                <div class="heading js-contact-type">[`Companies:`]</div>
+                <div class="heading js-contact-type">[`Organizations:`]</div>
                 <table class="bigdata custom-mt-0 zebra s-sort-table js-sort-table">
                     <tbody>
                         {renderContactFieldsEditor _fields=$settings.fields_company}
@@ -1148,7 +1148,7 @@
 {function payment_block settings=[]}
 <div class="s-checkout-field-group fields custom-my-4">
     {* Block name *}
-    <div class="field">
+    <div class="field js-block-content"{if !$settings.used} style="display: none;"{/if}>
         <div class="name for-input">
             <label for="payment_block_name">[`Block name`]</label>
         </div>
@@ -1156,6 +1156,8 @@
             <input id="payment_block_name" type="text" class="long bold" name="data[payment][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
         </div>
     </div>
+    <p class="s-notice-success small custom-mt-12" style="display: none;"><i class="fas fa-check-circle text-green"></i> [`<b>Great!</b> Payment options will be offered <em>after</em> an order is placed. The fewer questions, the higher the conversion!`]</p>
+    <p class="s-notice-warning small custom-mt-12" style="display: none;"><i class="fas fa-exclamation-triangle text-orange"></i> <b>[`Recommended to be off!`]</b> [`When off, payment options will be offered <b>after</b> the order is saved, and not during the checkout. The customer will first get an order ID, and the prompt for payment will follow right after. The fewer questions, the higher the conversion!`]</p>
 </div>
 {/function}
 
@@ -1165,7 +1167,7 @@
     {* Auto submit *}
     <div class="field">
         <div class="name for-checkbox">
-            <label for="confirmation_auto_submit">[`Auto-redirect to payment`]</label>
+            <label for="confirmation_auto_submit">[`Payment`]</label>
         </div>
         <div class="value">
             <label>
@@ -1178,7 +1180,8 @@
                             </span>
                         </span>
                     </span>
-                [`Redirect a customer to the payment page`]
+                [`Instant payment after the order is placed`] <i class="fas fa-thumbs-up text-gray small"></i>
+                <p class="hint">[`Immediate prompt to select a preferable payment option and automated redirect to the payment gateway.`]</p>
             </label>
         </div>
     </div>
@@ -1225,7 +1228,7 @@
             </label>
             <div class="js-confirmation-terms-text-wrapper"{if !$settings.terms} style="display: none;"{/if}>
                 <div>
-                    <textarea class=" js-confirmation-terms-text" name="data[confirmation][terms_text]">{$settings.terms_text|escape}</textarea>
+                    <textarea class="width-100 small js-confirmation-terms-text" name="data[confirmation][terms_text]">{$settings.terms_text|escape}</textarea>
                 </div>
                 <div>
                     <a href="javascript:void(0);" class="js-confirmation-terms-generate hint inline-link "><b><i>[`Generate sample policy`]</i></b></a>
@@ -1250,6 +1253,7 @@
                             <span></span>
                         </span>
                         {$_variant.name|escape}
+                        <span class="badge small squared nowrap {$_variant.badge_color|escape}">{$_variant.badge_name|escape}</span>
                     </label>
                     {if isset($_variant.description)}
                         <div class="custom-mb-16 hint">{$_variant.description}</div>
@@ -1282,7 +1286,7 @@
             <label for="confirmation_thankyou_header">[`“Thank you” page title`]</label>
         </div>
         <div class="value">
-            <input id="confirmation_thankyou_header" type="text" class="long" name="data[confirmation][thankyou_header]" autocomplete="off" value="{$settings.thankyou_header|escape}" />
+            <input id="confirmation_thankyou_header" type="text" class="long bold" name="data[confirmation][thankyou_header]" autocomplete="off" value="{$settings.thankyou_header|escape}" />
         </div>
     </div>
 
@@ -1293,7 +1297,7 @@
             <div class="hint">HTML</div>
         </div>
         <div class="value">
-            <textarea id="confirmation_thankyou_content" class="width-100" name="data[confirmation][thankyou_content]">{$settings.thankyou_content|escape}</textarea>
+            <textarea id="confirmation_thankyou_content" class="width-100 small" name="data[confirmation][thankyou_content]">{$settings.thankyou_content|escape}</textarea>
         </div>
     </div>
 </div>

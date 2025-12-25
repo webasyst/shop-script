@@ -227,13 +227,13 @@
                                 </label>
 
                                 {if empty($a.original)}
-                                <a href="#" class="s-edit-action" data-id="{$id}">
-                                    <i class="fas fa-edit"></i>
+                                <a href="#" class="s-edit-action small" data-id="{$id}">
+                                    <i class="fas fa-edit fa-xs"></i>
                                     [`edit`]
                                 </a>
                                 {elseif $id == 'message'}
-                                <a href="#" class="s-edit-action" data-id="{$id}" id="s-edit-message-action">
-                                    <i class="fas fa-edit"></i>
+                                <a href="#" class="s-edit-action small" data-id="{$id}" id="s-edit-message-action">
+                                    <i class="fas fa-edit fa-xs"></i>
                                     [`edit`]
                                 </a>
                                 {/if}
@@ -438,8 +438,8 @@
                                             <textarea name="action_options[message][template]"
                                                 class="small width-100">{ifset($actions.message.options.template)|escape}</textarea>
 
-                                            <div class="custom-mt-4">
-                                                <a href="#" class="template-vars-link">
+                                            <div class="custom-mt-4 custom-mb-16">
+                                                <a href="#" class="template-vars-link small">
                                                     <i class="fas fa-info-circle"></i>
                                                     [`Cheat sheet`]
                                                 </a>

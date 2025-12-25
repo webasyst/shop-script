@@ -4,13 +4,14 @@
             this.options = options || {};
             this.$wrapper = options.$wrapper;
             this.date = options.date;
+            this.viewposid = options.viewposid;
             this.$wrapper.html(options.preloaded_html);
         },
         reload: function () {
             if ($('#js-orders-stats').is(':hidden')) {
                 return;
             }
-            $.post('?module=orders&action=salesStats', { date: this.date }).then((r) => {
+            $.post('?module=orders&action=salesStats', { date: this.date, viewposid: this.viewposid }).then((r) => {
                 this.$wrapper.html(r);
             }, () => {
                 console.log('Error loading orders stats', arguments);
@@ -151,4 +152,25 @@ window.PaymentTypeSalesGraph = (function () { "use-strict";
         return result;
     };
     return Graph;
+})();
+
+window.PointOfSaleSelector = (function () { "use-strict";
+    function PointOfSaleSelector(options) {
+        this.$select = $(options.node);
+        this.init();
+    }
+
+    PointOfSaleSelector.prototype.init = function() {
+        const that = this;
+        this.$select.on('change', function() {
+            const val = that.$select.val();
+            var filter_params_str = '&' + ($.order_list.options.filter_params_str||'').replace(/viewposid=[0-9-]*/, '');
+            if (val !== '') {
+                filter_params_str += '&viewposid='+val;
+            }
+            filter_params_str = filter_params_str.replace('&&', '&').replace(/\&$/, '');
+            window.location.hash = '#/orders/view=split' + filter_params_str + '/';
+        });
+    }
+    return PointOfSaleSelector;
 })();

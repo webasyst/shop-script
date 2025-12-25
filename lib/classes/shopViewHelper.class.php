@@ -1600,16 +1600,16 @@ SQL;
             "ss shop" => "fas fa-store",
             "image" => "fas fa-image",
             "icon16 ss new" => "fas fa-circle",
-            "icon16 ss processing" => "fas fa-check-circle",
-            "icon16 ss confirmed" => "fas fa-check-circle",
+            "icon16 ss processing" => "fas fa-check",
+            "icon16 ss confirmed" => "fas fa-play-circle",
             "icon16 ss paid" => "fas fa-file-invoice-dollar",
-            "icon16 ss sent" => "fas fa-paper-plane",
-            "icon16 ss completed" => "fas fa-check",
-            "icon16 ss refunded" => "fas fa-times",
+            "icon16 ss sent" => "fas fa-truck",
+            "icon16 ss completed" => "fas fa-flag-checkered",
+            "icon16 ss refunded" => "fas fa-times-circle",
             "icon16 ss trash" => "fas fa-trash-alt",
-            "icon16 ss flag-white" => "fas fa-flag",
+            "icon16 ss flag-white" => "fas fa-pause-circle",
             "icon16 ss flag-blue" => "fas fa-flag",
-            "icon16 ss flag-yellow" => "fas fa-flag",
+            "icon16 ss flag-yellow" => "fas fa-receipt",
             "icon16 ss flag-green" => "fas fa-flag",
             "icon16 ss flag-red" => "fas fa-flag",
             "icon16 ss flag-purple" => "fas fa-flag",
@@ -1732,5 +1732,69 @@ SQL;
     public function waidIsConnected()
     {
         return (new waServicesApi())->isConnected();
+    }
+
+    /**
+     * @return bool
+     * @throws waException
+     * @since 12.0.0
+     */
+    public function isPickupEnabled()
+    {
+        $routing = wa()->getRouting();
+        $current_storefront = $routing->getDomain().'/'.rtrim((string) $routing->getRoute('url'), '*');
+
+        $channels = (new shopSalesChannelModel())->getAllWithParams();
+        $channels = array_filter($channels, function ($_channel) use ($current_storefront) {
+            if (
+                empty($_channel['params']['pickup'])
+                || empty($_channel['params']['pickup_storefronts'])
+                || !in_array($current_storefront, $_channel['params']['pickup_storefronts'])
+            ) {
+                return false;
+            }
+            return true;
+        });
+
+        return !empty($channels);
+    }
+
+    /**
+     * @param $product
+     * @param $class
+     * @return string
+     * @throws waException
+     * @since 12.0.0
+     */
+    public function getPickupButton($product = [], $class = 'button pickup-btn')
+    {
+        if (empty($product) || empty($product['id'])) {
+            return '';
+        }
+
+        $url = wa()->getRouteUrl('shop/frontendPickup', ['action' => 'dialog']);
+        $script = <<<SCRIPT
+<script>
+    (function ($) {
+        $('.js-pickup-button-{$product['id']}').on('click', function () {
+            let that = this;
+            let sku_id = new URLSearchParams(window.location.search).get('sku');
+
+            $('body .js-dialog-pickup-content').remove();
+            $.post('{$url}', {product_id: {$product['id']}, sku_id: sku_id }).always(function (html) {
+                $(that).next('div').remove();
+                $(that).after(html);
+            });
+        });
+    })(jQuery);
+</script>
+SCRIPT;
+
+        return sprintf(
+            '<a href="javascript:void(0)" class="js-pickup-button-%d%s"><span>%s</span></a>',
+            $product['id'],
+            ($class ? " $class" : ''),
+            _w('Pick up in store')
+        ).$script;
     }
 }

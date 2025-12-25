@@ -20,7 +20,7 @@
                             <i class="fas fa-check-circle"></i>
                         </span>
                     {% } %}
-                    {%#o.order.total_str%}
+                    <span class="{%=(o.order.state_id == 'new' ? 'highlighted orange' : '') %}">{%#o.order.total_str%}</span>
                 </div>
             </div>
             <div class="flexbox space-4">

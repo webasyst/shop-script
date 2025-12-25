@@ -129,6 +129,12 @@
 
 {capture assign="_component_table_filters_categories_sets_types"}
 <div class="s-filter-categories-section s-section-body">
+    <button
+        class="button light-gray circle custom-ml-auto mobile-only"
+        type="button"
+        style="margin: 0 0 -1.5rem auto;"
+        @click="$emit('toggle-mobile')"
+    ><i class="fas fa-times" /></button>
     <component-sidebar-section
         :expanded="filters_expanded.categories?.is_expanded"
         label="[`Categories`]"

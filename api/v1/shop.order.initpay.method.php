@@ -66,6 +66,7 @@ class shopOrderInitpayMethod extends shopApiMethod
             $this->response = [
                 'payment_image_url' => ifset($payment_image_data, 'image_url', null),
                 'payment_image_data_url' => ifset($payment_image_data, 'image_data_url', null),
+                'payment_image_qr_payload' => ifset($payment_image_data, 'qr_payload', null),
             ];
             return;
         }

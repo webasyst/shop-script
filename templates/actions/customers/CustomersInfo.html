@@ -9,9 +9,12 @@
     </h1>
     {if !$wa->isSingleAppMode()}
         <div class="custom-pt-4">
-            <a href="{$wa->shop->backendContactUrl($contact.id, 'edit')}" class="button small light-gray rounded">
-                <i class="fas fa-edit text-blue"></i>
-                [`Edit contact`]
+            <a href="{$wa->shop->backendContactUrl($contact.id, 'edit')}" class="button small light-gray rounded" target="_blank">
+                {if $wa->crm}
+                    <i class="icon size-16" style="background-image: url('{$wa->appIconUrl('crm')}');"></i> [`Open in CRM`]
+                {else}
+                    <i class="fas fa-edit text-blue"></i> [`Edit contact`]
+                {/if}
             </a>
         </div>
         <div class="custom-pt-4">
@@ -36,59 +39,65 @@
 
 </div>
 
-<div class="custom-my-16">
-    <div class="flexbox full-width space-12 wrap-mobile">
-        <div class="flexbox space-12 wide">
-            <div>
-                <i class="fas {if !empty($contact['password'])}fa-check-circle text-green{else}fa-user-secret text-gray custom-ml-8{/if} largest custom-mt-4"></i>
-            </div>
-
-            <div class="wide">
-                {if !empty($contact['password'])}
-                    <span>
-                        {if $contact.is_user}
-                            [`Permanent user account with Webasyst backend access`]
-                            <i class="icon webasyst-magic-wand small custom-ml-4" title="[`Can access Webasyst backend`]"></i>
-                        {else}
-                            [`Permanent user account`]
-                        {/if}
-                    </span>
-                    <p class="hint custom-mt-0">
-                        {sprintf('[`%s has personal account on your site.`]', $contact_name)}
-                        [`Last login`]: <strong>{$contact.last_login_datetime|wa_datetime:"humandatetime"|default:'[`Never`]'}</strong>
-                    </p>
-                {else}
-                    [`No permanent user account`]
-                    <p class="hint">{sprintf('[`%s did not sign up for personal account on your site yet.`]', $contact_name)}</p>
-                {/if}
-            </div>
-        </div>
-
-        {if $contact['is_user'] <= 0}
-          <div class="align-right custom-pt-4">
-            {if empty($contact['password'])}
-                <a href="#" id="create-password-link" class="button small light-gray rounded">
-                    <i class="fas fa-link text-blue"></i>
-                    [`Create a customer account and send the password`]
-                </a>
-            {else}
-                <a href="#" id="reset-password-link" class="button small light-gray rounded">
-                    <i class="fas fa-link"></i>
-                    [`Reset password for customer account`]
-                </a>
-            {/if}
-          </div>
-        {/if}
-
-    </div>
-</div>
-
 <div class="flexbox space-24 wrap-mobile">
 
     <div class="content">
 
         <div class="s-customer-profile">
 
+            <div class="custom-my-16">
+                <div class="flexbox full-width space-12 wrap-mobile">
+                    <div class="flexbox space-12 wide">
+                        <div>
+                            <i class="fas {if !empty($contact['password'])}fa-user-check text-green{else}fa-user-secret text-gray custom-ml-8{/if} largest custom-mt-4"></i>
+                        </div>
+
+                        <div class="wide">
+                            {if !empty($contact['password'])}
+                                <span>
+                                    {if $contact.is_user}
+                                        [`Permanent user account with Webasyst backend access`]
+                                        <i class="icon webasyst-magic-wand small custom-ml-4" title="[`Can access Webasyst backend`]"></i>
+                                    {else}
+                                        [`Permanent user account`]
+                                    {/if}
+                                </span>
+                                <p class="hint custom-mt-0">
+                                    [`Last login`]: <strong>{$contact.last_login_datetime|wa_datetime:"humandatetime"|default:'[`Never`]'}</strong>
+                                </p>
+                            {else}
+                                [`No permanent user account`]
+                                <p class="hint">
+                                    {if $total_paid_num > 0}
+                                        [`Guest checkout without signup`]
+                                    {else}
+                                        [`No activity in your store yet`]
+                                    {/if}
+                                </p>
+                            {/if}
+                        </div>
+                    </div>
+
+                    {if $contact['is_user'] <= 0}
+                      <div class="align-right custom-pt-4">
+                        {if empty($contact['password'])}
+                            <a href="#" id="create-password-link" class="button small light-gray rounded nowrap">
+                                <i class="fas fa-link text-blue"></i>
+                                [`Create a customer account`]
+                            </a>
+                        {else}
+                            <a href="#" id="reset-password-link" class="button small light-gray rounded nowrap">
+                                <i class="fas fa-link"></i>
+                                [`Reset password`]
+                            </a>
+                        {/if}
+                      </div>
+                    {/if}
+
+                </div>
+            </div>
+
+            {if !empty($top) || !($contact.photo|strstr:".svg")}
             <div class="s-block">
                 <div class="flexbox space-12">
                     <div class="image">
@@ -104,6 +113,7 @@
                     </div>
                 </div>
             </div>
+            {/if}
 
             <!-- plugin hook: 'backend_customer.header' -->
             {* @event backend_customer.%plugin_id%.header *}
@@ -235,9 +245,9 @@
 
     </div>
 
-    <div class="sidebar right width-23rem">
+    <div class="sidebar right width-23rem custom-pt-48 custom-pt-16-mobile">
 
-        <form method="post" action="?module=customers&action=category&set=1&customer_id={$contact.id}" id="s-categories-form">
+        <form method="post" action="?module=customers&action=category&set=1&customer_id={$contact.id}" id="s-categories-form" class="custom-pt-32 custom-pt-0-mobile">
             {foreach $contact_categories as $c}
                 <div class="custom-mt-4">
                     <label>

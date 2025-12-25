@@ -17,7 +17,7 @@
                     <div class="value">
                         <input type="tel" name="phone" value="{$phone|escape}" placeholder="[`+1 212-555-1312`]" class="small long">
 
-                        <div class="hint">[`Phone number is published in the storefront and included in email notification`]</div>
+                        <div class="hint"><b>[`Public data.`]</b> [`Phone number is published in the storefront and included in email notification`]</div>
                     </div>
                 </div>
 
@@ -26,7 +26,7 @@
                     <div class="value">
                         <input type="email" name="email" value="{$email|escape}" class="small long">
 
-                        <div class="hint">[`Email notifications are sent from this address. It is also the administrator’s email address to which order notifications are sent.`]</div>
+                        <div class="hint"><b>[`Public data.`]</b> [`Email notifications are sent from this address. It is also the administrator’s email address to which order notifications are sent.`]</div>
                     </div>
                 </div>
 
@@ -51,21 +51,11 @@
             </div>
 
             <div class="fields-group">
-                <div class="field">
-                    <div class="name">[`Storefronts`]</div>
-
-                    <div class="value s-settings-storefront-list">
-                        {foreach $routes as $_d => $_d_routes}
-                            {foreach $_d_routes as $_r_id => $_r}
-                            <div>
-                                <a href="?action=storefronts#/design/theme={ifset($_r.theme, 'default')}&domain={urlencode($_d)}&route={$_r_id}&action=settings">
-                                    {$domains[$_d]|default:$_d|escape}/{$_r.url}
-                                    <i class="fas fa-cog smaller text-light-gray"></i>
-                                </a>
-                            </div>
-                            {/foreach}
-                        {/foreach}
-                    </div>
+                <div class="heading custom-my-4">
+                    [`Shop-Script mobile app`]
+                </div>
+                <div class="flexbox middle wrap">
+                    {include file="templates/includes/mobileApps.html" show_qr=true inline}
                 </div>
             </div>
 
@@ -85,6 +75,7 @@
                                 </span>
                             </span>
                             [`Sync shopping cart items on all devices for authorized customers.`]
+                            <p class="custom-mt-0 hint">[`When on, adding products to the shopping cart on one device will automatically add the same products on the other device where the customer is authorized. When off, shopping on different devices will allow different cart content.`]</p>
                         </label>
                     </div>
                 </div>
@@ -92,7 +83,7 @@
                 <div class="field">
                     <div class="name">[`Order ID format`]</div>
                     <div class="value">
-                        <input type="text" name="order_format" class="small" value="{$order_format}">
+                        <input type="text" name="order_format" class="small bold" value="{$order_format}">
                         <p class="hint">{sprintf_wp(
                             '%s will be replaced with the actual order ID. Do not delete %s from this string.',
                             '<strong>&#123;$order.id&#125;</strong>',
@@ -108,7 +99,8 @@
                         <p class="hint">{sprintf_wp(
                             '%s will be replaced with the full order ID string.',
                             '<strong>&#123;$order.id_str&#125;</strong>'
-                        )}</p>
+                        )}<br>
+                        [`No-product orders are created manually in the mobile app only.`]</p>
                     </div>
                 </div>
 
@@ -127,6 +119,26 @@
                             </label>
                         </div>
                         {/foreach}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="name">[`Required fields validation`]</div>
+
+                    <div class="value">
+                        <span class="switch smaller js-toggle-backend-validation-status">
+                            <input type="checkbox" name="disable_backend_customer_form_validation" value="1"{if empty($disable_backend_customer_form_validation)} checked{/if}>
+                        </span>
+
+                        <!-- enabled -->
+                        <div class="description small custom-mt-4"{if empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
+                            [`When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend.`]
+                        </div>
+
+                        <!-- disabled -->
+                        <div class="description small custom-mt-4"{if !empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
+                            [`When a new order is created by an administrator on behalf of a customer, contact fields’ values will be validated according to <a href="?action=settings#/checkout/">checkout settings for a selected storefront</a>. All fields marked as required must be completed. For “Manual order” mode, the settings saved in section “<a href="?action=settings#/orderEditor/">Order editor</a>” will be used.`]
+                        </div>
                     </div>
                 </div>
 
@@ -163,82 +175,52 @@
                     </div>
                 </div>
 
-                {* Validation required fields *}
-                <div class="field">
-                    <div class="name">[`Required fields validation`]</div>
-
-                    <div class="value">
-                        <span class="switch smaller js-toggle-backend-validation-status">
-                            <input type="checkbox" name="disable_backend_customer_form_validation" value="1"{if empty($disable_backend_customer_form_validation)} checked{/if}>
-                        </span>
-
-                        <!-- enabled -->
-                        <div class="description small custom-mt-4"{if empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
-                            [`When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend.`]
-                        </div>
-
-                        <!-- disabled -->
-                        <div class="description small custom-mt-4"{if !empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
-                            [`When a new order is created by an administrator on behalf of a customer, contact fields’ values will be validated according to <a href="?action=settings#/checkout/">checkout settings for a selected storefront</a>. All fields marked as required must be completed. For “Manual order” mode, the settings saved in section “<a href="?action=settings#/orderEditor/">Order editor</a>” will be used.`]
-                        </div>
-                    </div>
-                </div>
-
-                {* Anti-spam *}
-                <div class="field" style="display: none;{* OLD CHECKOUT IS DEPRECATED @ WA2UI #105.1797 *}">
-                    <div class="name">[`Checkout anti-spam filter`]</div>
-
-                    <div class="value">
-                        <span class="switch smaller js-toggle-checkout-antispam-status">
-                            <input type="checkbox" name="antispam[enabled]" value="1"{if !empty($checkout_antispam)} checked{/if}>
-                        </span>
-
-                        <!-- enabled -->
-                        <div class="description antispam-enabled"{if empty($checkout_antispam)} style="display:none"{/if}>
-                            <p class="small custom-mt-4">[`Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots.`]</p>
-
-                            <div class="fields">
-                                <div class="field">
-                                    <div class="name">[`Alerts on rejected checkout attempts`]</div>
-                                    <div class="value">
-                                        <input type="email" name="antispam[email]" placeholder="your@email.here" value="{$checkout_antispam_email|escape}" class="long small">
-
-                                        <div class="hint">[`Enable alerts on spammy checkout attempts to make sure none of real orders were rejected by the anti-spam filter.`]</div>
-                                    </div>
-                                </div>
-
-                                <div class="field">
-                                    <div class="name">[`Captcha`]</div>
-                                    <div class="value small">
-                                        <label>
-                                            <span class="wa-checkbox">
-                                                <input type="checkbox" name="antispam[captcha]" value="1" type="checkbox"{if $checkout_antispam_captcha} checked{/if}>
-                                                <span>
-                                                    <span class="icon">
-                                                        <i class="fas fa-check"></i>
-                                                    </span>
-                                                </span>
-                                            </span>
-                                            [`Enable captcha for checkout (not required)`]
-                                        </label>
-
-                                        <div class="hint">[`Optional. Enable checkout captcha when seamless anti-spam protection is not enough.`]</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- disabled -->
-                        <div class="description antispam-disabled hint"{if !empty($checkout_antispam)} style="display:none"{/if}>
-                            [`If your store is under spammers attack and you receive lots of fraudulent orders placed by robots, protect the checkout routine with seamless anti-spam filtering. This will automatically filter all spam and save genuine orders only.`]
-                        </div>
-                        <p class="hint">[`The anti-spam filter works with the multi-step checkout only.`]</p>
-                    </div>
-                </div>
-
             </div>
 
             <div class="fields-group">
+                <h5 class="heading">[`Point of sale pickup`]</h5>
+
+                <div class="field">
+                    <div class="name">[`Require PIN`]</div>
+                    <div class="value">
+                         <span class="switch smaller js-toggle-pickup-require-pin">
+                            <input type="checkbox" name="pickup_require_pin" value="1"{if !empty($pickup_require_pin)} checked{/if}>
+                        </span>
+
+                        <div class="description small custom-mt-4">
+                            [`When on, entering an order PIN code order is required for the cashier to process the order and to hand over the ordered items to the customer.`]
+                            [`PIN codes are randomly generated on the order creation and are sent to customers privately.`]
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fields-group">
+
+                <h5 class="heading">[`Products`]</h5>
+
+                <div class="field">
+                    <div class="name">
+                        [`Product lists`]
+                    </div>
+
+                    <div class="value">
+                        <label>
+                            <span class="wa-checkbox">
+                                <input type="checkbox" name="lazy_loading" {if !empty($lazy_loading)}checked{/if} value="1">
+                                <span>
+                                    <span class="icon">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </span>
+                            </span>
+                            [`Use lazy loading`]
+                        </label>
+
+                        <div class="hint">[`Products will be loaded automatically when you scroll the page in “Products › Catalog” section in backend. If you need pagination, disable this setting.`]</div>
+                    </div>
+                </div>
+
                 <div class="field">
                     <div class="name">[`Reviews`]</div>
 
@@ -256,7 +238,7 @@
                         </label>
 
                         <div class="hint">
-                            [`If enabled, user needs to sign in to post a review.`]<br>
+                            [`When on, a customer must sign in to post a review.`]<br>
                             <strong>{sprintf('[`Make sure sign up and login forms are enabled in your <a href="%s">Site app settings</a>.`]',$wa_backend_url|cat:'site/#/settings/')}</strong>
                         </div>
 
@@ -308,7 +290,7 @@
                             </div>
 
                             <div id="service-agreement-settings-wrapper" class="custom-mt-16 small">
-                                <h5 class="heading">[`Personal data processing`]</h5>
+                                <h5 class="heading">[`Privacy checkbox for posting product reviews`]</h5>
 
                                 <div class="custom-my-4 js-value">
                                     <label>
@@ -367,50 +349,30 @@
                         </div>
                     </div>
                 </div>
+
             </div>
 
-            <div class="fields-group">
-                <div class="field">
-                    <div class="name">
-                        [`Product lists`]
-                    </div>
-
-                    <div class="value">
-                        <label>
-                            <span class="wa-checkbox">
-                                <input type="checkbox" name="lazy_loading" {if !empty($lazy_loading)}checked{/if} value="1">
-                                <span>
-                                    <span class="icon">
-                                        <i class="fas fa-check"></i>
-                                    </span>
-                                </span>
-                            </span>
-                            [`Use lazy loading`]
-                        </label>
-
-                        <div class="hint">[`Products will be loaded automatically when you scroll the page in “Products” section in backend. If you need pagination, disable this setting.`]</div>
-                    </div>
-                </div>
-            </div>
-
+            {if !$wa->isSingleAppMode()}
             <div class="fields-group">
                 <div class="field">
                     <div class="name">[`System settings`]</div>
 
                     <div class="value">
+                        <p>[`Manage Webasyst system-wide settings in the <em>Settings</em> app:`]</p>
                         {if !empty($wa_settings)}
-                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/captcha/">[`Captcha`]</a></div>
-                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/maps/">[`Maps`]</a></div>
-                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/sms/">[`SMS`]</a></div>
-                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/push/">[`Web push notifications`]</a></div>
+                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/captcha/"><i class="fas fa-unlock-alt"></i> [`Captcha`]</a></div>
+                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/maps/"><i class="fas fa-map-marker-alt"></i> [`Maps`]</a></div>
+                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/sms/"><i class="fas fa-sms"></i> [`SMS`]</a></div>
+                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/push/"><i class="fas fa-bell"></i> [`Web push notifications`]</a></div>
                         {else}
                         [`To be able to change system settings, you need access to Settings app.`]
                         {/if}
                     </div>
                 </div>
             </div>
+            {/if}
 
-            <div class="fields-group">
+            <div class="fields-group custom-pt-0" style="background: transparent !important;">
                 <div class="field">
                     <div class="name">[`Shop-Script version`]</div>
                     <div class="value">

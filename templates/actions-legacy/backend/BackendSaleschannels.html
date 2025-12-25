@@ -1,0 +1,23 @@
+<div class="content block double-padded blank">
+    <h1>[`Sales channels`]</h1>
+
+    <div class="s-alert" style="display: block;">
+        <i class="icon16 new"></i>
+        <strong>{sprintf_wp('<a href="%s">Switch to the new UI</a> to use the latest features!', 'javascript:$.wa.switchToNewUI();')}</strong>
+        [`The new Webasyst 2 UI mode is mobile-ready, supports more new features, and is getting further with every Shop-Script update.`]
+    </div>
+
+    <div>[`Simply switch to the new UI mode to start using the sales channels feature in addition to your conventional storefront:`]</div>
+    <ul>
+        {foreach shopSalesChannelType::getEnabledTypes() as $t}
+            <li{if !empty($t.available)} class="bold"{/if} style="margin-bottom: 0.5rem;">
+                <span>{$t.name|escape}{if empty($t.available)} <span class="hint">[`coming soon`]</span>{else} <i class="icon16 yes"></i>{/if}</span>
+            </li>
+        {/foreach}
+    </ul>
+</div>
+<script>
+    (function () {
+        document.title = "[`Sales channels`] — {$wa->accountName(false)|escape:javascript}";
+    })();
+</script>

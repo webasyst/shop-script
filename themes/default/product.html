@@ -51,7 +51,7 @@
 
 <article itemscope itemtype="http://schema.org/Product" id="js-product-page">
 
-    <h1 class="wa-mb-16 font-weight-normal">
+    <h1 class="wa-mb-16 fw-normal">
         <span itemprop="name">{$product.name|escape}</span>
     </h1>
 
@@ -267,7 +267,7 @@
         <!-- categories -->
         {if $product.categories}
             <p>
-                <span class="font-size-big text-black">[`Categories`]:</span>
+                <span class="font-size-big text-black-auto">[`Categories`]:</span>
                 {foreach $product.categories as $c}
                     {if $c.status}
                         <a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}">{$c.name|escape}</a>
@@ -279,7 +279,7 @@
         <!-- tags -->
         {if $product.tags}
             <p class="tags" id="product-tags">
-                 <span class="font-size-big text-black">[`Tags`]:</span>
+                 <span class="font-size-big text-black-auto">[`Tags`]:</span>
                 {foreach $product.tags as $t}
                     <a href="{$wa->getUrl('/frontend/tag', ['tag' => str_replace('%2F', '/', urlencode(htmlspecialchars_decode($t)))])}">{$t}</a>
                 {/foreach}
@@ -290,7 +290,7 @@
         <section class="reviews">
             <div class="row align-items-center justify-content-between wa-mb-16 gap8">
                 <h3 class="wa-mb-0">{sprintf('[`%s reviews`]', $product.name|escape)} <span class="hint">({$reviews_total_count})</span></h3>
-                <a class="button bg-gray font-weight-normal" href="reviews/?writeReview">[`Write a review`]</a>
+                <a class="button bg-gray fw-normal" href="reviews/?writeReview">[`Write a review`]</a>
             </div>
 
             {if !empty($rates)}
@@ -335,7 +335,7 @@
             {if !$reviews}
                 <p class="wa-mt-32">{sprintf('[`Be the first to <a href="%s">write a review</a> of this product!`]', 'reviews/')}</p>
             {else}
-                <a href="reviews/" class="button bg-gray font-weight-normal wa-flex justify-content-center wa-mt-32">[`Читать все отзывы`]</a>
+                <a href="reviews/" class="button bg-gray fw-normal wa-flex justify-content-center wa-mt-32">[`Читать все отзывы`]</a>
             {/if}
         </section>
 

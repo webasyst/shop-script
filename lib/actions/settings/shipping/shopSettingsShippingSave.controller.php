@@ -14,7 +14,7 @@ class shopSettingsShippingSaveController extends waJsonController
                 }
                 shopShipping::savePlugin($plugin);
 
-                $is_edit = $plugin['id'] > 0;
+                $is_edit = intval($plugin['id']) > 0;
 
                 $log_params = array(
                     'id' => $plugin['id'],

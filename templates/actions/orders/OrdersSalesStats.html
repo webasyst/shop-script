@@ -3,6 +3,19 @@
 
 <section class="s-orders-sales-stats">
     <header class="s-orders-sales-header">
+        {if !empty($points_of_sale)}
+            <div class="s-orders-sales__pos-selector align-center">
+                <div class="wa-select smaller">
+                    <select id="s-point-of-sale-selector">
+                        <option value="">[`All points of sale`]</option>
+                        <option value="-1"{if $selected_pos_id === ''} selected{/if}>[`Unspecified point of sale`]</option>
+                        {foreach $points_of_sale as $p}
+                            <option value="{$p.id|escape}"{if $selected_pos_id == $p.id} selected{/if}>{$p.name|escape}</option>
+                        {/foreach}
+                    </select>
+                </div>
+            </div>
+        {/if}
         <div class="s-orders-sales__days-graph">
             <div id="sales-by-days-container" class="flexbox nowrap custom-my-8" style="height: 50px;"></div>
         </div>
@@ -74,6 +87,10 @@ $(function () { "use-strict";
         node: document.getElementById('sales-by-payment-container'),
         colors: {json_encode($type_payment_colors)},
         data: {json_encode($sales_by_payment)}
+    });
+
+    new PointOfSaleSelector({
+        node: document.getElementById('s-point-of-sale-selector')
     });
 })
 </script>

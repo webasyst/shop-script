@@ -86,6 +86,9 @@ ShopSettingsGeneral = (function ($) {
         }
       });
 
+      $('.js-toggle-pickup-require-pin').waSwitch({
+      });
+
       $('.js-toggle-checkout-antispam-status').waSwitch({
         change: function (active, wa_switch) {
           wa_switch.$wrapper.siblings('.description').toggle();

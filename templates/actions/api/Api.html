@@ -69,6 +69,7 @@
 
 <script>
     (function ($) {
+        document.title = "[`Headless API`] — {$wa->accountName(false)|escape:javascript}";
         $('#js-headless-page-wrapper .switch[class^="switch-"]').waSwitch({
             change: function(active, wa_switch) {
                 let data = {

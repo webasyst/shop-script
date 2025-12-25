@@ -1306,11 +1306,21 @@ class shopSalesModel extends waModel
             $storefront_where = "AND opst.value IN (".join(',', $storefronts).") ";
         }
         if (!empty($options['sales_channel'])) {
-            $storefront_join .= "JOIN shop_order_params AS opst2
-                                    ON opst2.order_id=o.id
-                                        AND opst2.name='sales_channel' ";
-            $channel = rtrim($options['sales_channel'], '/*');
-            $storefront_where .= "AND opst2.value IN ('".$this->escape($channel)."', '".$this->escape($channel . '/')."') ";
+            $channels = [];
+            $options['sales_channel'] = (array)$options['sales_channel'];
+            foreach ($options['sales_channel'] as $channel) {
+                $channel = rtrim($channel, '/*');
+                if ($channel) {
+                    $channels[] = "'".$this->escape($channel)."'";
+                    $channels[] = "'".$this->escape($channel . '/')."'";
+                }
+            }
+            if ($channels) {
+                $storefront_join .= "JOIN shop_order_params AS opst2
+                                        ON opst2.order_id=o.id
+                                            AND opst2.name='sales_channel' ";
+                $storefront_where .= "AND opst2.value IN (".join(',', $channels).") ";
+            }
         }
         return array($storefront_join, $storefront_where);
     }

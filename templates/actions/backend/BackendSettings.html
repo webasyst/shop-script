@@ -33,6 +33,9 @@
                         <span class="icon"><i class="fas fa-credit-card"></i></span>
                         <span class="shop-sidebar-hidden">[`Payment`]</span>
                         {if $wa->shop->hasDeactivatedPayments()}<i class="fas fa-exclamation-circle text-red"></i>{/if}
+                        {if shopHelper::waPayPromotionEnabled()}
+                            <span class="count"><span class="purple badge">[`СБП 0.7%`]</span></span>
+                        {/if}
                     </a>
                 </li>
                 <li>
@@ -117,13 +120,13 @@
                 <!-- ORDERS -->
                 <li class="top-padded">
                     <a href="?action=settings#/orderStates/">
-                        <span class="icon"><i class="fas fa-flag"></i></span>
+                        <span class="icon"><i class="fas fa-flag-checkered"></i></span>
                         <span class="shop-sidebar-hidden">[`Order states`]</span>
                     </a>
                 </li>
                 <li>
                     <a href="?action=settings#/orderEditor/">
-                        <span class="icon"><i class="fas fa-money-check"></i></span>
+                        <span class="icon"><i class="fas fa-user-check"></i></span>
                         <span class="shop-sidebar-hidden">[`Order editor`]</span>
                     </a>
                 </li>

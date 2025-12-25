@@ -509,6 +509,7 @@ class shopProductFeaturesModel extends waModel implements shopProductStorageInte
             ) {
                 $n = $matches[1];
                 $pattern = '/^'.implode($multi_pattern, array_fill(0, $n, $value_pattern)).$unit_pattern.'$/ui';
+                $value = (is_array($value) ? reset($value) : $value);
                 if (preg_match($pattern, trim($value), $matches)) {
                     $unit = ifset($matches[$n + 1]);
                     for ($i = 0; $i < $n; $i++) {

@@ -822,7 +822,7 @@ class shopOrdersCollection
                 'frontend_url',
                 'images2x',
             );
-            $products = $products_collection->getProducts(implode(',', $product_fields));
+            $products = $products_collection->getProducts(implode(',', $product_fields), 'all');
             foreach ($data as &$o) {
                 if (!empty($o['items'])) {
                     foreach ($o['items'] as &$it) {

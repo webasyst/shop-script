@@ -167,6 +167,10 @@
                             v-on:click.prevent="formToggle(true)">
                         <span class="s-name">[`Reply`]</span>
                     </button>
+                    <button type="button" class="button nobutton gray small" v-on:click.prevent="answerWithAi($event.target)">
+                        <span class="icon webasyst-magic-wand-ai"></span>
+                        [`Answer with AI`]
+                    </button>
                 </div>
 
                 <div class="s-form-wrapper" v-if="review.form.is_active"
@@ -231,7 +235,7 @@
         {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.top)}{/foreach}{/if}
 
         <div class="s-section-header">
-            <div class="tablebox middle space-24">
+            <div class="flexbox middle space-16 full-width wrap-mobile">
                 {* TITLE *}
                 <div class="s-column">
                     <h4 class="s-title">[`Reviews`]</h4>
@@ -239,7 +243,7 @@
 
                 {* FILTERS *}
                 <div class="s-column">
-                    <div class="s-filters-list flexbox middle right space-16">
+                    <div class="s-filters-list flexbox middle space-16 wrap-mobile">
                         {* PHOTO *}
                         <div class="s-filter-section">
                             <span class="s-label">[`Photos`]: </span>

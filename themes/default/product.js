@@ -82,14 +82,14 @@ function Product(form, options) {
             if (sku.available) {
                 self.button.removeAttr('disabled');
             } else {
-                self.form.find("div.stocks div").hide();
+                self.form.find("div.stocks > div").hide();
                 self.form.find(".sku-no-stock").show();
                 self.button.attr('disabled', 'disabled');
             }
             self.add2cart_top.find(".js-product-price").data('price', sku.price);
             self.updatePrice(sku.price, sku.compare_price);
         } else {
-            self.form.find("div.stocks div").hide();
+            self.form.find("div.stocks > div").hide();
             self.form.find(".sku-no-stock").show();
             self.button.attr('disabled', 'disabled');
             self.add2cart_top.find(".compare-at-price").hide();
@@ -107,65 +107,16 @@ function Product(form, options) {
 
     this.form.submit(function () {
         var f = $(this);
-        f.find('.adding2cart').addClass('icon24 loading').show();
 
         $.post(f.attr('action') + '?html=1', f.serialize(), function (response) {
-            f.find('.adding2cart').hide();
             if (response.status == 'ok') {
                 var cart_total = $(".cart-total");
-                var cart_div = f.closest('.cart');
-                if( $(window).scrollTop() >= 110 )
-                    $('#cart').addClass('fixed');
 
                 cart_total.closest('#cart').removeClass('empty');
 
                 self.cartButtonVisibility(false);
-                if ( !( MatchMedia("only screen and (max-width: 760px)") ) ) {
-
-                    // flying cart
-                    var clone = $('<div class="cart"></div>').append(f.clone());
-                    clone.appendTo('body');
-                    clone.css({
-                        'z-index': 100500,
-                        background: cart_div.closest('.dialog').length ? '#fff' : cart_div.parent().css('background'),
-                        top: cart_div.offset().top,
-                        left: cart_div.offset().left,
-                        width: cart_div.width() + 'px',
-                        height: cart_div.height() + 'px',
-                        position: 'absolute',
-                        overflow: 'hidden'
-                    }).css({'border':'2px solid #eee','padding':'20px','background':'#fff'}).animate({
-                        top: cart_total.offset().top,
-                        left: cart_total.offset().left,
-                        width: '10px',
-                        height: '10px',
-                        opacity: 0.7
-                    }, 600, function () {
-                        $(this).remove();
-                        cart_total.html(response.data.total);
-
-                        var $addedText = $('<div class="cart-just-added"></div>').html( self.getEscapedText( self.add2cart.find('span.added2cart').text() ) );
-                        $('#cart-content').append($addedText);
-                        setTimeout( function() {
-                            $addedText.remove();
-                        }, 2000);
-
-                        if ($('#cart').hasClass('fixed'))
-                            $('.cart-to-checkout').slideDown(200);
-                    });
-                    if (cart_div.closest('.dialog').length) {
-                        setTimeout(function () {
-                            cart_div.closest('.dialog').hide().find('.cart').empty();
-                        }, 0);
-
-                    }
-
-                } else {
-
-                    // mobile: added to cart message
-                    cart_total.html(response.data.total);
-                }
-
+                cart_total.html(response.data.count);
+                
                 if (f.data('cart')) {
                     $("#page-content").load(location.href, function () {
                         $("#dialog").hide().find('.cart').empty();
@@ -243,7 +194,7 @@ Product.prototype.serviceVariantHtml= function (id, name, price) {
 };
 
 Product.prototype.updateSkuServices = function (sku_id) {
-    this.form.find("div.stocks div").hide();
+    this.form.find("div.stocks > div").hide();
     this.product_topbar.find(".stocks div").hide();
     this.form.find(".sku-" + sku_id + "-stock").show();
     this.product_topbar.find(".sku-" + sku_id + "-stock").show();
@@ -320,26 +271,13 @@ Product.prototype.updatePrice = function (price, compare_price) {
 Product.prototype.cartButtonVisibility = function (visible) {
     //toggles "Add to cart" / "%s is now in your shopping cart" visibility status
     if (visible) {
-        if (this.compare_price > 0) {
-            this.add2cart.find('.compare-at-price').show();
-        }
         this.add2cart.find('[type="submit"]').show();
-        this.add2cart.find('.price').show();
         this.add2cart.find('.qty').show();
-        this.add2cart.find('span.added2cart').hide();
+        this.add2cart.find('.gotocart-btn').addClass('wa-hide');
     } else {
-        if ( MatchMedia("only screen and (max-width: 760px)") ) {
-            this.add2cart.find('.compare-at-price').hide();
-            this.add2cart.find('[type="submit"]').hide();
-            this.add2cart.find('.price').hide();
-            this.add2cart.find('.qty').hide();
-            this.add2cart.find('span.added2cart').show();
-            if( $(window).scrollTop() >= 110 )
-                $('#cart').addClass('fixed');
-            $('#cart-content').append($('<div class="cart-just-added"></div>').html( this.getEscapedText( this.add2cart.find('span.added2cart').text() ) ));
-            if ($('#cart').hasClass('fixed'))
-                $('.cart-to-checkout').slideDown(200);
-        }
+        this.add2cart.find('[type="submit"]').hide();
+        this.add2cart.find('.qty').hide();
+        this.add2cart.find('.gotocart-btn').removeClass('wa-hide');
     }
 };
 

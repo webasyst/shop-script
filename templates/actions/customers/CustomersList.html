@@ -81,7 +81,7 @@
 
             <div class="flexbox space-12 middle full-width wrap-mobile wide">
                 <h1 class="s-header custom-mb-0 h3-mobile custom-mb-0-mobile">
-                    <span class="s-title">{$title|escape}</span>
+                    <span class="s-title">{$title|escape|default:"[`New search`]"}</span>
                 </h1>
 
                 {if $hash_start === "#/all/" || $hash_start === "#/shop/"}
@@ -133,7 +133,7 @@
                                     <th class="min-width"></th>
                                     {foreach $cols as $col_id => $col_name}
                                         <th {if $col_id == 'name'}class="align-left"{/if}>
-                                            <a href="javascript:void(0)" class="sort-link" rel="{$col_id}">{$col_name}</a>
+                                            <a href="javascript:void(0)" class="sort-link" rel="{$col_id}">{$col_name}{if $col_id == 'total_spent'} (LTV){/if}</a>
                                         </th>
                                     {/foreach}
                                 </tr>

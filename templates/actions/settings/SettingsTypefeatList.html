@@ -240,7 +240,7 @@
                                                             {elseif $_feature.code === 'gtin'}
                                                                 {$builtin_title = _w('“GTIN (Global Trade Item Number)” is a special feature, which must always be available for editing in product SKUs’ properties.')}
                                                             {else}
-                                                                {$builtin_title = _w('You cannot disable the editing of this feature’s values in product SKUs’ properties, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode.')}
+                                                                {$builtin_title = _w('You cannot disable the editing of this feature’s values in product variants’ properties, because some existing products’ variants have been generated from this feature’s values.')}
                                                             {/if}
                                                             <a class="s-action js-feature-sku-toggle-always" href="javascript:void(0);" title="{$builtin_title}"><i class="fas fa-sitemap"></i></a>
                                                         {else}

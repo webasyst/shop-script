@@ -1,0 +1,231 @@
+<?php
+/**
+ * Implements sales channel type 'telegram:<id>'
+ */
+class shopTelegramSalesChannel extends shopSalesChannelType implements shopSalesChannelWaidInterface
+{
+    protected function getFormFieldsConfig($values = []): array
+    {
+        return [
+            'storefront'       => array(
+                'value'        => '',
+                'title'        => _w('Storefront'),
+                'description'  => _w('Make sure this storefront has Headless API enabled.'),
+                'control_type' => waHtmlControl::SELECT,
+                'options'      => array_map(function($s) {
+                    return ['value' => $s['url'], 'title' => $s['url_decoded']];
+                }, shopStorefrontList::getAllStorefronts(true)),
+            ),
+            'accent_color'     => array(
+                'value'        => '#901010',
+                'title'        => _w('Brand color'),
+                'description'  => _w('Primary accent color for all action buttons'),
+                'control_type' => waHtmlControl::COLORPICKER,
+                'options' => [
+                    '#A538DC' => [
+                        'ru_RU' => 'Сиреневый',
+                        'en_US' => 'Violet',
+                    ],
+                    '#BC2192' => [
+                        'ru_RU' => 'Розовый',
+                        'en_US' => 'Pink',
+                    ],
+                    '#BA2621' => [
+                        'ru_RU' => 'Красный',
+                        'en_US' => 'Red',
+                    ],
+                    '#B37120' => [
+                        'ru_RU' => 'Оранжевый',
+                        'en_US' => 'Orange',
+                    ],
+                    '#7D9B1B' => [
+                        'ru_RU' => 'Оливковый',
+                        'en_US' => 'Olive',
+                    ],
+                    '#2E941A' => [
+                        'ru_RU' => 'Зеленый',
+                        'en_US' => 'Green',
+                    ],
+                    '#178269' => [
+                        'ru_RU' => 'Бирюзовый',
+                        'en_US' => 'Torquoise',
+                    ],
+                    '#1D94A6' => [
+                        'ru_RU' => 'Голубой',
+                        'en_US' => 'Light blue',
+                    ],
+                    '#516DE0' => [
+                        'ru_RU' => 'Синий',
+                        'en_US' => 'Blue',
+                    ],
+                    '#7041DD' => [
+                        'ru_RU' => 'Фиолетовый',
+                        'en_US' => 'Violet',
+                    ],
+                ]
+            ),
+            'border_radius'    => array(
+                'value'        => '10',
+                'title'        => _w('Border radius'),
+                'description'  => _w('Rounded corners for buttons (in pixels)'),
+                'control_type' => waHtmlControl::INPUT,
+                'class'        => 'number shortest',
+            ),
+            'products_per_row' => array(
+                'value'        => '2',
+                'title'        => _w('Products per row'),
+                'description'  => _w('Supported values: 1, 2, 3'),
+                'control_type' => waHtmlControl::INPUT,
+                'class'        => 'number shortest',
+            ),
+
+            'homepage_promos' => array(
+                'value'        => '1',
+                'title'        => _w('Homepage promos'),
+                'description'  => sprintf_wp(
+                    'Display promo banners enabled for the selected storefront in <em>%s › %s</em>.',
+                    _w('Marketing'),
+                    _w('Promos')
+                ),
+                'control_type' => waHtmlControl::CHECKBOX,
+            ),
+            'homepage_product_list' => array(
+                'value'        => '',
+                'title'        => _w('Homepage products'),
+                'description'  => sprintf_wp(
+                    'Defines featured products displayed on the app’s homepage. Manage product sets in <em>%s › %s</em>.',
+                    _w('Products'),
+                    _w('Sets')
+                ),
+                'control_type' => waHtmlControl::SELECT,
+                'options'      => array_map(function($s) {
+                    return ['value' => $s['id'], 'title' => $s['name']];
+                }, (new shopSetModel())->getAll()),
+            ),
+            'homepage_text_footer' => array(
+                'value'        => '',
+                'title'        => _w('Homepage footer text'),
+                'description'  => _w('Any useful footer text for the app’s homepage. Basic HTML markup is allowed.'),
+                'control_type' => waHtmlControl::TEXTAREA,
+                'class'        => 'width-100',
+            ),
+
+            'checkout_section' => array(
+                'value'        => _w('Checkout'),
+                'title'        => '',
+                'class'        => 'bold',
+                'description'  => _w('In-app checkout offers a minimized (express) configuration compared to your main site to help you optimize the customer’s mobile device experience and improve conversions.'),
+                'control_type' => waHtmlControl::TITLE,
+                'custom_control_wrapper' => '<!-- %s --><div>%s %s</div>',
+                'custom_description_wrapper' => '<p class="small">%s</p>',
+            ),
+
+            'checkout_external' => array(
+                'value'        => '',
+                'title'        => _w('Disable in-app checkout'),
+                'description'  => _w('When on, the checkout button will open your storefront in a browser. No direct checkout within the app will be available. This won’t work well for the conversion but may be required due to legal considerations in your country.'),
+                'control_type' => waHtmlControl::CHECKBOX,
+            ),
+            'checkout_phone' => array(
+                'value'        => '1',
+                'title'        => _w('Checkout phone'),
+                'description'  => _w('The list of required checkout contact fields is minimized for the app compared to the site.'),
+                'control_type' => waHtmlControl::CHECKBOX,
+            ),
+            'checkout_email' => array(
+                'value'        => '',
+                'title'        => _w('Checkout email'),
+                'description'  => _w('The list of required checkout contact fields is minimized for the app compared to the site.'),
+                'control_type' => waHtmlControl::CHECKBOX,
+            ),
+            'checkout_country' => array(
+                'value'        => '',
+                'title'        => _w('Country'),
+                'description'  => _w('Shipping will be restricted to the selected country only. If a global shipping option is selected, customers will be prompted to select a country during the checkout.'),
+                'control_type' => waHtmlControl::SELECT,
+                'options'      => array_merge([
+                        ['value' => '', 'title' => _wp('All countries')],
+                    ], array_map(function($c) {
+                        return [
+                            'value' => $c['iso3letter'],
+                            'title' => $c['name'],
+                            'disabled' => empty($c['iso3letter']),
+                        ];
+                    }, (new waCountryModel())->allWithFav()),
+                ),
+            ),
+            'checkout_terms_link' => array(
+                'value'        => '',
+                'title'        => _w('Checkout terms & privacy agreement'),
+                'description'  => _w('A link to a checkout & privacy terms page. If a link is provided, a checkbox with caption “I agree to the terms of service & privacy policy” will be displayed.'),
+                'control_type' => waHtmlControl::INPUT,
+            ),
+
+            'powered_by' => array(
+                'value'        => '1',
+                'title'        => _w('“Powered by ...” link'),
+                'description'  => sprintf_wp(
+                    'Disable to hide the “%s” link. Only available in the premium version.',
+                    _w('Created with Shop-Script')
+                ),
+                'control_type' => waHtmlControl::CHECKBOX,
+            ),
+        ];
+    }
+
+    public function sanitizeAndValidateParams(?int $id, array &$params, $params_mode): array
+    {
+        $errors = [];
+        if ($params_mode == 'set' && empty($params['storefront'])) {
+            $errors['storefront'] = [
+                'error_description' => _w('This field is required'),
+                'field' => 'data[params][storefront]',
+            ];
+        }
+
+        if (isset($params['storefront'])) {
+            $storefronts = array_flip(shopStorefrontList::getAllStorefronts(false));
+            if (!isset($storefronts[$params['storefront']])) {
+                $errors['storefront'] = [
+                    'error_description' => _w('This field is required'),
+                    'field' => 'data[params][storefront]',
+                ];
+            }
+        }
+
+        return array_values($errors);
+    }
+
+    public function getFormHtml(array $channel): string
+    {
+        $view = wa('shop')->getView();
+        $view->assign([
+            'channel' => $channel,
+            'form_fields' => $this->getFormFields($channel),
+        ]);
+        return $view->fetch('file:templates/actions/channels/telegram_channel.include.html');
+    }
+
+    public function getPublicStorefrontParams(int $id, array $params): array
+    {
+        return array_intersect_key($params, [
+            'accent_color'          => 1,
+            'border_radius'         => 1,
+            'products_per_row'      => 1,
+            'homepage_promos'       => 1,
+            'homepage_product_list' => 1,
+            'checkout_external'     => 1,
+            'checkout_phone'        => 1,
+            'checkout_email'        => 1,
+            'checkout_country'      => 1,
+        ]);
+    }
+
+    public function getWaidChannelParams(array $channel): array
+    {
+        return [
+            'https://'.rtrim($channel['params']['storefront'], '/').'/',
+            []
+        ];
+    }
+}

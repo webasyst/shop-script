@@ -10,7 +10,7 @@
         <div class="article-body">
             <form method="post" action="?action=welcome" id="js-welcome-form">
 
-                <div class="s-premium-block custom-pb-20">
+                <div class="s-premium-block custom-pb-20" style="box-shadow: none;">
                     <div class="stars-animation-container">
                         <div class="s-premium-shop"></div>
                         <div class="stars-animation">
@@ -41,38 +41,29 @@
                             <h5 class="heading">
                                 <span>
                                     <span class="badge large light-gray custom-mr-4">1</span>
-                                    [`Region`]
+                                    [`Country`]
                                 </span>
                             </h5>
 
                             <div class="field">
-                                <div class="name for-input">
-                                    [`Primary currency`]
-                                </div>
                                 <div class="value">
-                                    <div class="wa-select">
-                                        <select name="currency" id="" {if $actions['welcome'].complete != 1}required{/if} class="width-100 text-ellipsis">
-                                            <option value="" disabled selected>[`Select currency`]</option>
-                                            {foreach $currencies as $currency}
-                                                <option value="{$currency.code}" title="{$currency.code}" {if $locale_currency && $locale_currency === $currency.code}selected{/if} {if $currency.code === null}disabled{/if}>{$currency.code} — {_w($currency.title)}</option>
-                                            {/foreach}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="field">
-                                <div class="name for-input">
-                                    [`Country`]
-                                </div>
-                                <div class="value">
-                                    <div class="wa-select">
-                                        <select name="country" class="width-100 text-ellipsis">
-                                            {foreach $countries as $country}
-                                                <option value="{$country.iso3letter|escape}"{if $country.iso3letter == $country_iso} selected{/if}>{$country.name|escape}</option>
-                                            {/foreach}
-                                            <option value="">[`Other`] ([`No default regional data will be added`])</option>
-                                        </select>
+                                    <div class="flexbox middle space-16 wrap-mobile">
+                                        <div class="wa-select">
+                                            <select name="country" class="width-100 text-ellipsis">
+                                                {foreach $countries as $country}
+                                                    <option value="{$country.iso3letter|escape}"{if $country.iso3letter == $country_iso} selected{/if}>{$country.name|escape}</option>
+                                                {/foreach}
+                                                <option value="">[`Other`] ([`No default regional data will be added`])</option>
+                                            </select>
+                                        </div>
+                                        <div class="wa-select">
+                                            <select name="currency" id="" {if $actions['welcome'].complete != 1}required{/if} class="width-100 text-ellipsis">
+                                                <option value="" disabled selected>[`Select currency`]</option>
+                                                {foreach $currencies as $currency}
+                                                    <option value="{$currency.code}" title="{$currency.code}" {if $locale_currency && $locale_currency === $currency.code}selected{/if} {if $currency.code === null}disabled{/if}>{$currency.code} — {_w($currency.title)}</option>
+                                                {/foreach}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -85,85 +76,101 @@
                             {/foreach}
                         {/if}
 
-                        {* PRODUCTS *}
                         <div class="fields-group">
 
                             <h5 class="heading">
                                 <span>
                                     <span class="badge large light-gray custom-mr-4">2</span>
-                                    [`Demo products`]
+                                    [`Products`]
                                 </span>
                             </h5>
-                            <p class="small gray">[`Can be easily removed later on altogether.`]</p>
 
                             <div class="field">
                                 <div class="value">
 
-                                    {$_sources_html = []}
-
-                                    {$_can_work = $shop_demo_importer_can_work.status}
-                                    {$_reason   = $shop_demo_importer_can_work.reason}
-
-                                    {if !$_can_work}
-                                        <p class="state-error-hint"><i class="fas fa-exclamation-triangle"></i> {$_reason}</p>
-                                    {/if}
-
-                                    {if count($shop_demo_data_source_list) == 1}
-                                        {foreach $shop_demo_data_source_list as $_source_id => $_source}
-                                            <div class="custom-mb-8">
-                                                <label class="flexbox space-8 middle">
-                                                    <span class="wa-radio">
-                                                        <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
-                                                        <span></span>
-                                                    </span>
-                                                    <div class="custom-pl-4">
-                                                        [`Add a few demo products`]
-                                                    </div>
-                                                </label>
-                                            </div>
-                                        {/foreach}
-                                    {else}
-                                        {foreach $shop_demo_data_source_list as $_source_id => $_source}
-                                            <div class="custom-mb-8">
-                                                <label class="flexbox space-8 middle">
-                                                    <span class="wa-radio">
-                                                        <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
-                                                        <span></span>
-                                                    </span>
-                                                    <div style="width: 1.75rem; text-align: center;">
-                                                        <i class="{$_source.icon} custom-ml-4"></i>
-                                                    </div>
-                                                    <div>
-                                                        {$_source.name|default:''|escape}
-                                                    </div>
-                                                </label>
-                                            </div>
-                                        {/foreach}
-                                    {/if}
-
-                                    <div class="custom-mb-8">
-                                        <label class="flexbox space-8 middle">
-                                            <span class="wa-radio">
-                                                <input type="radio" name="demo_db" value="">
-                                                <span></span>
-                                            </span>
-                                            <span class="gray custom-pl-4">
-                                                [`Don’t add demo products`]
-                                            </span>
-                                        </label>
+                                    <div class="toggle js-filling-store-toggle">
+                                        <span data-content="1" class="selected">[`Migrate my products`]</span>
+                                        <span data-content="2">[`Start from scratch`]</span>
+                                        <span data-content="3">[`Add demo products`]</span>
                                     </div>
 
+                                    <div class="js-filling-store-content custom-mt-16">
+                                        <div class="js-filling-store-content-item" data-content="1">
+
+                                            {if $backend_welcome_event_result}
+                                                {* @event backend_welcome.%plugin_id%.form_bottom *}
+                                                {foreach $backend_welcome_event_result as $p}
+                                                    {ifset($p, 'form_bottom', '')}
+                                                {/foreach}
+                                            {else}
+                                                <p class="small">[`Install the free ‘<em>Migrate to Shop-Script</em>’ plugin to view available quick import options.`]</p>
+                                            {/if}
+                                        </div>
+
+                                        <div class="js-filling-store-content-item hidden" data-content="2">
+                                            <p class="small"><i class="fas fa-check-circle text-green"></i> [`Start with an empty catalog and easily add products in bulk by uploading a folder of photos or by importing product data from a CSV file at any moment.`]</p>
+                                        </div>
+
+                                        <div class="js-filling-store-content-item hidden" data-content="3">
+                                            <p class="small">[`Demo products are great to quickly view Shop-Script in action and just to look around. You can easily delete all demo products at any time with a few clicks.`]</p>
+                                            {$_sources_html = []}
+
+                                            {$_can_work = $shop_demo_importer_can_work.status}
+                                            {$_reason   = $shop_demo_importer_can_work.reason}
+
+                                            {if !$_can_work}
+                                                <p class="state-error-hint"><i class="fas fa-exclamation-triangle"></i> {$_reason}</p>
+                                            {/if}
+
+                                            {if count($shop_demo_data_source_list) == 1}
+                                                {foreach $shop_demo_data_source_list as $_source_id => $_source}
+                                                    <div class="custom-mb-8">
+                                                        <label class="flexbox space-8 middle">
+                                                            <span class="wa-radio">
+                                                                <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
+                                                                <span></span>
+                                                            </span>
+                                                            <div class="custom-pl-4">
+                                                                [`Add a few demo products`]
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                {/foreach}
+                                            {else}
+                                                {foreach $shop_demo_data_source_list as $_source_id => $_source}
+                                                    <div class="custom-mb-8">
+                                                        <label class="flexbox space-8 middle">
+                                                            <span class="wa-radio">
+                                                                <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
+                                                                <span></span>
+                                                            </span>
+                                                            <div style="width: 1.75rem; text-align: center;">
+                                                                <i class="{$_source.icon} custom-ml-4"></i>
+                                                            </div>
+                                                            <div>
+                                                                {$_source.name|default:''|escape}
+                                                            </div>
+                                                        </label>
+                                                    </div>
+                                                {/foreach}
+                                            {/if}
+
+                                            <div class="custom-mb-8">
+                                                <label class="flexbox space-8 middle">
+                                                    <span class="wa-radio">
+                                                        <input type="radio" name="demo_db" value="">
+                                                        <span></span>
+                                                    </span>
+                                                    <span class="gray custom-pl-4">
+                                                        [`Don’t add demo products`]
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        {if $backend_welcome_event_result}
-                            {* @event backend_welcome.%plugin_id%.form_bottom *}
-                            {foreach $backend_welcome_event_result as $p}
-                                {ifset($p, 'form_bottom', '')}
-                            {/foreach}
-                        {/if}
-
                     </div>
 
                 </div>
@@ -213,6 +220,7 @@
                     var $form = $("#js-welcome-form"),
                         html = {$_loading_html|trim|json_encode},
                         is_loading = false;
+
                     $form.on("submit", function() {
                         if (!is_loading) {
                             $('body').css('overflow-y', 'hidden');
@@ -227,21 +235,44 @@
                         }
                     });
 
-                })(jQuery);
+                    $(".js-filling-store-toggle").waToggle({
+                        ready: function(toggle) {
+                            /* хак, ибо делегирование не срабатывает в waToggle */
+                            toggle.$wrapper.find("span").on("click", function(event) {
+                                event.preventDefault();
+                                const $target = $(this);
+                                const is_active = $target.hasClass("selected");
 
-                jQuery.getJSON(
-                "https://restcountries.eu/rest/v1/alpha/in",
-                function (data) {
-                    console.log(data.currencies)
-                    }
-                );
+                                if (is_active) { return false; }
+
+                                if (toggle.$active.length) {
+                                    toggle.$before = toggle.$active.removeClass("selected");
+                                }
+
+                                toggle.$active = $target.addClass("selected");
+
+                                toggle.$wrapper.trigger("change", [this, toggle]);
+                                toggle.on.change(event, this, toggle);
+                            });
+                        },
+                        change: function(event, target, toggle) {
+                            const id = $(target).data("content");
+                            $(".js-filling-store-content-item").addClass("hidden");
+                            $(".js-filling-store-content-item[data-content='" + id + "']").removeClass("hidden");
+
+                            if (id == 2) {
+                                $(".js-filling-store-content-item[data-content='3']").find("input[name='demo_db'][value='']").prop("checked", true).attr('checked', true).trigger("change");
+                            }
+                        }
+                    });
+
+                })(jQuery);
             </script>
 
             {if empty($_is_complete)}
-                <div class="custom-mt-24 align-center">
-                    <button type="submit" form="js-welcome-form" class="button green rounded gradient" style="font-size: 2rem;">[`Launch my store!`]</button>
-                    <br><br>
-                    <a href="{$wa_app_url}?skipwelcome=1" class="gray rounded js-finish-tutorial">[`Skip quick setup`]</a>
+                <div class="custom-mt-32 align-center">
+                    <button type="submit" form="js-welcome-form" class="button green rounded gradient" style="font-size: 1.5rem;">[`We are open!`]</button>
+                    <p><a href="{$wa_app_url}?skipwelcome=1" class="gray rounded js-finish-tutorial">[`Skip quick setup`]</a></p>
                 </div>
             {else}
                 <p class="large italic align-center">

@@ -53,7 +53,7 @@ class shopDimension
 
     public function getDimension($type)
     {
-        $type = preg_replace('/^[^\.]*\./', '', $type);
+        $type = preg_replace('/^[^\.]*\./', '', (string)$type);
         $d = null;
         if (isset($this->units[$type])) {
             $d = $this->units[$type];

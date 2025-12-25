@@ -149,6 +149,10 @@ class shopPluginModel extends shopSortableModel
     public function insert($data, $type = 0)
     {
         $this->encodeOptions($data);
+        if (!isset($data['sort'])) {
+            $min_sort = $this->query("SELECT MIN(sort) FROM {$this->table}")->fetchField();
+            $data['sort'] = -1 + (int) ifempty($min_sort, 0);
+        }
         return parent::insert($data, $type);
     }
 

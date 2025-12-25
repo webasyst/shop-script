@@ -97,7 +97,9 @@ class shopOrderLogModel extends waModel implements shopOrderStorageInterface
             return array();
         }
 
+        $order_ids = [];
         foreach ($data as &$row) {
+            $order_ids[$row['order_id']] = $row['order_id'];
             $contact = array(
                 'firstname'  => $row['contact_firstname'],
                 'middlename' => $row['contact_middlename'],
@@ -109,7 +111,10 @@ class shopOrderLogModel extends waModel implements shopOrderStorageInterface
         unset($row);
 
         $log_params_model = new shopOrderLogParamsModel();
-        $params = $log_params_model->getByField('log_id', array_keys($data), true);
+        $params = $log_params_model->getByField([
+            'log_id' => array_keys($data),
+            'order_id' => $order_ids,
+        ], true);
         foreach ($params as $p) {
             if (!isset($data[$p['log_id']])) {
                 continue;

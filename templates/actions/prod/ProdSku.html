@@ -360,7 +360,7 @@
                             data-tooltip-id="product-feature-used-on-front"
                             v-bind:key="feature.id"
                             v-bind:units="feature.units"
-                            v-bind:default_value="feature.active_unit.value"
+                            v-bind:default_value="feature.active_unit?.value"
                             v-bind:disabled="true"></dropdown-units>
                     </template>
                 </template>
@@ -375,7 +375,7 @@
                     </template>
 
                     <template v-if="feature.units && feature.units.length">
-                        <dropdown-units v-bind:key="feature.id" v-bind:units="feature.units" v-bind:default_value="feature.active_unit.value" v-on:change="onChange" v-on:change_unit="feature.active_unit = $event"></dropdown-units>
+                        <dropdown-units v-bind:key="feature.id" v-bind:units="feature.units" v-bind:default_value="feature.active_unit?.value" v-on:change="onChange" v-on:change_unit="feature.active_unit = $event"></dropdown-units>
                     </template>
                 </template>
             </div>
@@ -499,7 +499,7 @@
                 </template>
 
                 <template v-if="feature.units && feature.units.length">
-                    <dropdown-units v-bind:key="feature.id" v-bind:units="feature.units" v-bind:default_value="feature.active_unit.value" v-on:change_unit="feature.active_unit = $event"></dropdown-units>
+                    <dropdown-units v-bind:key="feature.id" v-bind:units="feature.units" v-bind:default_value="feature.active_unit?.value" v-on:change_unit="feature.active_unit = $event"></dropdown-units>
                 </template>
             </div>
 
@@ -713,7 +713,7 @@
             <div class="value">
 
                 <div class="s-feature-component-wrapper">
-                    <component-feature v-bind:product="product" v-bind:feature="feature" v-bind:value="111" v-bind:vertical="vertical" v-bind:columns="columns" v-on:change="onChange" v-bind:key="feature.id"></component-feature>
+                    <component-feature v-bind:product="product" v-bind:feature="feature" v-bind:vertical="vertical" v-bind:columns="columns" v-on:change="onChange" v-bind:key="feature.id"></component-feature>
                 </div>
 
             </div>
@@ -1184,9 +1184,9 @@
 
             {* SKU/MODIFICATIONS *}
             <div class="s-sku-modifications-section" id="js-sku-modifications-section">
-                <div class="s-section-header tablebox middle custom-pb-0" v-if="product.normal_mode_switch">
+                <div class="s-section-header flexbox full-width custom-pb-0" v-if="product.normal_mode_switch">
 
-                    <div class="column wide">
+                    <div class="wide flexbox wrap space-8">
                         <button class="button light-gray rounded small" type="button"
                                 v-on:click.prevent="addSKU">
                             <span class="s-icon text-green"><i class="fas fa-plus-circle"></i></span>
@@ -1740,7 +1740,7 @@
 
             {* BAGES *}
             <div class="s-product-badges-section js-product-badges-section fields" v-bind:class="{ 'is-minimal-mode' : !product.normal_mode_switch }">
-                <div class="tablebox fixed space-16 field">
+                <div class="field">
                     <div class="name">
                         <span class="s-name">[`Badge`]</span>
                         <span class="wa-tooltip inline right" data-title="{_w("An icon or brief caption to highlight this product among others.")|escape}">

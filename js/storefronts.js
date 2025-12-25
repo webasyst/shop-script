@@ -123,6 +123,10 @@
             }
         },
 
+        seoAction: function (params) {
+            $("#s-storefronts-content").load('?module=seo');
+        },
+
         apiAction: function (params) {
             $("#s-storefronts-content").load('?module=api');
         }

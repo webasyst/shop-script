@@ -27,12 +27,12 @@
 {if $_config.type == shopCheckoutConfig::CUSTOMER_TYPE_PERSON}
     {if !empty($_me_is_company)}
         {$_form_globals["auth"]["locked"] = true}
-        {$_error_text = sprintf('[`You are authorized as a company, and orders can be placed only by persons. Please %slog out%s of your account to check out as a person.`]', "<a class=\"js-logout-button\" href=\"?logout\">", "</a>")}
+        {$_error_text = sprintf('[`You are logged in as an organization, and orders can be placed only by individuals. Please %slog out%s of your account to check out as an individual.`]', "<a class=\"js-logout-button\" href=\"?logout\">", "</a>")}
     {/if}
 {elseif $_config.type == shopCheckoutConfig::CUSTOMER_TYPE_COMPANY}
     {if !empty($_me_is_person)}
         {$_form_globals["auth"]["locked"] = true}
-        {$_error_text = sprintf('[`You are authorized as a person, and orders can be placed only by companies. Please %slog out%s of your account to check out as a company.`]', "<a class=\"js-logout-button\" href=\"?logout\">", "</a>")}
+        {$_error_text = sprintf('[`You are logged in as an individual, and orders can be placed only by organizations. Please %slog out%s of your account to check out as an individual.`]', "<a class=\"js-logout-button\" href=\"?logout\">", "</a>")}
     {/if}
 {elseif $_config.type == shopCheckoutConfig::CUSTOMER_TYPE_PERSON_AND_COMPANY}
     {if !empty($_me_is_person) || !empty($_me_is_company)}

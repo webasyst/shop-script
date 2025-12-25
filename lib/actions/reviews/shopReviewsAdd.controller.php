@@ -7,6 +7,16 @@ class shopReviewsAddController extends waJsonController
      */
     protected $product_reviews_model;
 
+    /**
+     * @var waContact
+     */
+    protected $author;
+
+    /**
+     * @var waView
+     */
+    protected $view;
+
     public function __construct()
     {
         $this->product_reviews_model = new shopProductReviewsModel();

@@ -94,7 +94,7 @@ class shopFrontApiProductFormatter extends shopFrontApiFormatter
                 "type_id" => "integer",
                 "image_id" => "integer",
                 "sku_id" => "integer",
-                "rating" => "integer",
+                "rating" => "number",
                 //"price" => "number",
                 //"base_price" => "number",
                 //"compare_price" => "number",
@@ -317,6 +317,7 @@ class shopFrontApiProductFormatter extends shopFrontApiFormatter
             if ($sku_count === null) {
                 return null;
             }
+            $count = ifset($count, 0) + $sku_count;
         }
 
         return $count;
@@ -325,7 +326,7 @@ class shopFrontApiProductFormatter extends shopFrontApiFormatter
     protected function skuCountOfSelectedStocks($public_stocks, $sku)
     {
         if (empty($sku['stock'])) {
-            return null;
+            return ifset($sku, 'count', null);
         }
         $count = null;
         foreach ($sku['stock'] as $key => $count_stock) {

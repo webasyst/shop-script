@@ -141,11 +141,11 @@
         {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
 
         <div class="bricks s-order-nav-bricks custom-m-0 custom-mb-4">
-            <a href="#/orders/state_id=new|processing|auth|paid" class="brick shadowed js-orders-link js-orders-hide-filters js-order-nav-brick" id="s-pending-orders">
+            <a href="#/orders/state_id=new|processing|auth|paid|pickup" class="brick shadowed js-orders-link js-orders-hide-filters js-order-nav-brick" id="s-pending-orders">
                 {$_pending_count = (empty($pending_count)) ? 0 : $pending_count}
                 <span class="custom-pr-4 icon js-pending-counter js-pending_counters-counter bold">{$_pending_count}</span>
                 {if $wa->user()->getRights('shop', 'orders') > 1}<span class="count js-total_processing-counter"></span>{/if}
-                <span class="label nowrap semibold">[`Processing`]{if $state_counters.new} <span class="small highlighted custom-px-4 js-new-order-counter">+{$state_counters.new}</span>{/if}</span>
+                <span class="label nowrap semibold">[`Processing`]{if $state_counters.new} <span class="badge orange small squared custom-px-4 js-new-order-counter">+{$state_counters.new}</span>{/if}</span>
             </a>
             <a href="#/orders/all/" class="brick shadowed js-orders-link js-orders-show-filters js-order-nav-brick" id="s-all-orders">
                 <span class="icon"><i class="fas fa-shopping-cart"></i></span>
@@ -159,9 +159,9 @@
     <div class="s-order-nav-block s-order-nav-block-chips js-order-nav-block-secondary s-order-nav-block-filters hide-when-view-pos" style="display: none;">
     <ul class="sidebar-dropdown-container chips small custom-m-0">
         <li class="s-order-nav-button-wrapper s-order-nav-only-table-kanban">
-            <a href="#/orders/state_id=new|processing|auth|paid" class="button light-gray js-orders-link js-orders-hide-filters js-order-nav-brick s-order-nav-button js-pending-orders">
+            <a href="#/orders/state_id=new|processing|auth|paid|pickup" class="button light-gray js-orders-link js-orders-hide-filters js-order-nav-brick s-order-nav-button js-pending-orders">
                 <span class="label">[`Processing`]</span>
-                <span class="small highlighted custom-px-4 js-new-order-counter">+{$state_counters.new}</span>
+                <span class="badge orange small squared custom-px-4 js-new-order-counter">+{$state_counters.new}</span>
                 <span class="hint">
                     <span class="js-pending-counter js-pending_counters-counter">{$_pending_count}</span>,
                     <span class="js-total_processing-counter"></span>
@@ -332,7 +332,7 @@
                         {$param_channel = 'params.'|cat:$param_channel|cat:{($has_storefront) ? '/' : ''}}
                         <li data-storefront="{$channel.storefront|escape}" data-sales-channel="{$channel_id_escaped}" class="list">
                             <a href="{$channel.url|escape}" class="js-orders-link" data-param="{$param_channel}">
-                                <span class="icon"><i class="fas fa-shopping-cart"></i></span>
+                                <span class="icon">{$channel.menu_icon|default:'<i class="fas fa-shopping-cart">'}</i></span>
                                 <span class="label">{$channel.name|escape}</span>
                                 <span class="count">{$channel.count}</span>
                             </a>
@@ -487,14 +487,14 @@
                 {% if (product["show_order_counts"]) { %}
                     <div class="s-section-footer small" style="margin-top: 4px;">
                         <div class="s-step">
-                            <span class="s-label">[`Step`]=</span>
+                            <span class="s-label">[`Step`] =</span>
                             <span class="s-value">{%#parseFloat(product["order_multiplicity_factor"])%}</span>
                             {% if (stock_unit) { %}
                                 <span class="s-unit">{%=stock_unit["name_short"]%}</span>
                             {% } %}
                         </div>
                         <div class="s-min js-order_count_min">
-                            <span class="s-label">[`Min.`]=</span>
+                            <span class="s-label">[`Min.`] =</span>
                             <span class="s-value js-value">
                                 {% if (active_sku["order_count_min"]) { %}
                                     {%#parseFloat(active_sku["order_count_min"])%}

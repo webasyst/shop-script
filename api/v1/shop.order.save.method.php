@@ -27,7 +27,6 @@ class shopOrderSaveMethod extends shopApiMethod
         $post = $this->validate($post);
 
         if ($post) {
-
             $form = null;
             if (!empty($post['customer'])) {
                 $form = new shopBackendCustomerForm();
@@ -42,6 +41,13 @@ class shopOrderSaveMethod extends shopApiMethod
             ));
 
             try {
+                if (!empty($so->getData('stock_id'))) {
+                    $items = (array) $so->getData('items');
+                    foreach ($items as $item_id => $item) {
+                        $items[$item_id]['stock_id'] = $so->getData('stock_id');
+                    }
+                    $so->setData('items', $items);
+                }
                 $so->save();
             } catch (waException $ex) {
                 $this->errors = $so->errors();
@@ -64,6 +70,18 @@ class shopOrderSaveMethod extends shopApiMethod
                 $post['discount'] = null; // keep previously saved discount
             }
         }
+        if (isset($post['params']['channel_id']) && preg_match('#^([a-z0-9]+):(\d+)$#', $post['params']['channel_id'], $matches)) {
+            $sales_channel_model = new shopSalesChannelModel();
+            if ($channel = $sales_channel_model->getByField(['id' => $matches[2], 'type' => $matches[1]])) {
+                $post['params']['sales_channel'] = $post['params']['channel_id'];
+                $post['params']['sales_channel_name'] = ifempty($channel, 'name', null);
+                $channel_params = (new shopSalesChannelParamsModel())->get($channel['id']);
+                if ($stock_id = ifempty($channel_params, 'stock_id', null)) {
+                    $post['stock_id'] = (int) $stock_id;
+                }
+            }
+        }
+        unset($post['params']['channel_id']);
 
         if ($this->errors) {
             return false;

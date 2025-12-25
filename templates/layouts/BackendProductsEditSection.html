@@ -15,7 +15,7 @@
     <div class="s-page-body flexbox">
         {* PRODUCTS MENU *}
         <div class="s-page-menu bordered-right">{$products_menu}</div>
-        <div class="wide width-100" style="max-width: calc(100% - var(--main-sidebar-width) - 2px);overflow-x: clip;">
+        <div class="s-page-content-with-sidebar wide width-100">
             <header class="s-page-header bordered-bottom nowrap">
                 <div class="flexbox middle space-8">
                     {* NAVIGATE BACK *}
@@ -68,8 +68,11 @@
                     <div class="s-title-wrapper wide">
                         <h3 class="s-title js-product-name" data-tooltip-id="product_name">{$product.name|default:_w('New product')|escape}</h3>
                     </div>
-                    <div class="s-details">
+                    <div class="s-details desktop-and-tablet-only">
                         <span class="s-ident gray">id: {$product.id|default:_w('Product ID')}</span>
+                    </div>
+                    <div class="mobile-only">
+                        <button class="js-show-mobile-sidebar button light-gray circle" type="button"><i class="fas fa-bars text-gray"></i></button>
                     </div>
 
                     <!-- plugin hook: 'backend_prod.header' -->
@@ -80,7 +83,10 @@
             </header>
             <div class="flexbox">
                 {* SIDEBAR *}
-                <div class="s-page-sidebar sidebar js-page-sidebar">{$sidebar}</div>
+                <div class="s-page-sidebar sidebar js-page-sidebar">
+                    <button class="js-hide-mobile-sidebar mobile-only button circle light-gray" style="margin: 0 1rem -1rem auto;" type="button"><i class="fas fa-times text-gray"></i></button>
+                    {$sidebar}
+                </div>
                 {* CONTENT *}
                 <div class="s-page-content content bordered-left js-page-content">{$content}</div>
             </div>
@@ -123,7 +129,8 @@
                     urls: {
                         "product_delete": "{$wa_app_url}?module=products&action=deleteList",
                         "product_delete_dialog": "{$wa_app_url}?module=prod&action=productDeleteDialog"
-                    }
+                    },
+                    sidebar_toggle_class: "visible-mobile-sidebar"
                 });
             });
 

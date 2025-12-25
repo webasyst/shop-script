@@ -272,11 +272,14 @@ class shopWorkflowRefundAction extends shopWorkflowAction
         $button_class = $this->getOption('button_class');
 
         $currency_id = ($transaction_data && $plugin) ? $plugin->allowedCurrency() : $order->currency;
-        if (is_array($currency_id) && in_array($order->currency, $currency_id)) {
+        if ($currency_id === true || (is_array($currency_id) && in_array($order->currency, $currency_id))) {
             $currency_id = $order->currency;
         }
         $currency = $this->getConfig()->getCurrencies($currency_id);
         $currency = reset($currency);
+        if (!$currency) {
+            throw new waException('Unable to refund order in currency: '.wa_dump_helper($currency_id));
+        }
 
         $locale_info = waLocale::getInfo(wa()->getLocale());
 

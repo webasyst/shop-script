@@ -80,10 +80,11 @@ class shopFrontendAction extends waViewAction
         $count = $collection->count();
 
         $pages_count = ceil((float)$count / $limit);
-        $this->view->assign('pages_count', $pages_count);
-
-        $this->view->assign('products', $products);
-        $this->view->assign('products_count', $count);
+        $this->view->assign([
+            'pages_count' => $pages_count,
+            'products' => $products,
+            'products_count' => $count,
+        ]);
     }
 
     protected function setCollectionParams(shopProductsCollection $collection, $with_sort_unit = true, $additional_filters = [])

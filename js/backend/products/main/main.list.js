@@ -1250,6 +1250,8 @@
                         }
                     });
 
+                    that.states.is_mobile = this.isMobile();
+
                     return {
                         paging       : that.paging,
                         products     : that.products,
@@ -3286,7 +3288,7 @@
                                 let result = [];
 
                                 var name_column = that.columns["name"],
-                                    settings = name_column.settings;
+                                    settings = name_column?.settings;
 
                                 if (settings) {
                                     var name_format = (settings.long_name_format ? settings.long_name_format : "");
@@ -3826,7 +3828,7 @@
                                                 let result = [];
 
                                                 var name_column = that.columns["name"],
-                                                    settings = name_column.settings;
+                                                    settings = name_column?.settings;
 
                                                 if (settings) {
                                                     var name_format = (settings.long_name_format ? settings.long_name_format : "");
@@ -6548,7 +6550,7 @@
                     },
 
                     "component-mass-actions": {
-                        props: ["products"],
+                        props: ["products", "type"],
                         data: function() {
                             return {
                                 actions: that.mass_actions
@@ -6590,6 +6592,142 @@
                                     callAction: function(action) {
                                         const self = this;
                                         self.$emit("call_action", action);
+                                    }
+                                }
+                            },
+                            "component-mass-actions-footer": {
+                                props: ["products", "actions"],
+                                emits: ["call_action"],
+                                data: function() {
+                                    return {
+                                        states: {
+                                            resize_timer: 0
+                                        }
+                                    }
+                                },
+                                template: that.components["component-mass-actions-footer"],
+                                delimiters: ['{ { ', ' } }'],
+                                components: { "component-checkbox": that.vue_components["component-checkbox"] },
+                                computed: {
+                                    products_length: function() {
+                                        let self = this,
+                                            result = self.products.length,
+                                            unselected = that.products.length - self.products.length;
+
+                                        if (that.products_selection.value === "all_products") {
+                                            result = that.products_total_count - unselected;
+                                        }
+
+                                        return result;
+                                    },
+                                    pinned_actions: function() {
+                                        var self = this,
+                                            result = [];
+
+                                        $.each(self.actions, function(i, group) {
+                                            $.each(group.actions, function(j, action) {
+                                                if (action.pinned) {
+                                                    result.push(action);
+                                                }
+                                            });
+                                        });
+
+                                        return result;
+                                    },
+                                    dropdown_actions: function() {
+                                        var self = this;
+                                        return self.actions;
+                                    }
+                                },
+                                methods: {
+                                    resize: function(entry) {
+                                        var self = this,
+                                            $wrapper = $(self.$el);
+
+                                        $wrapper.css("visibility", "hidden");
+                                        clearTimeout(self.states.resize_timeout);
+                                        self.states.resize_timeout = setTimeout(function() {
+                                            resize();
+                                            $wrapper.css("visibility", "");
+                                        }, 100);
+
+                                        function resize() {
+                                            // Включаем всё
+                                            $.each(self.pinned_actions, function(i, action) {
+                                                action.states.visible = true;
+                                            });
+
+                                            // Дожидаемся ререндера
+                                            self.$nextTick( function() {
+                                                var list_w = self.$list.width();
+
+                                                var width = 0,
+                                                    visible_count = 0;
+
+                                                // Считаем сколько пунктов влезает
+                                                self.$list.find(".s-action").each( function() {
+                                                    var $action = $(this),
+                                                        action_w = $action.outerWidth(true);
+
+                                                    width += action_w;
+                                                    if (width <= list_w) {
+                                                        visible_count += 1;
+                                                    } else {
+                                                        return false;
+                                                    }
+                                                });
+
+                                                // Показываем часть пунктов что влезли
+                                                $.each(self.pinned_actions, function(i, action) {
+                                                    action.states.visible = (i < visible_count);
+                                                });
+                                            });
+                                        }
+                                    },
+                                    pin: function() {
+                                        that.states.mass_actions_pinned = true;
+                                        localStorage.setItem(that.states.mass_actions_storage_key, true);
+                                    },
+                                    close: function() {
+                                        var self = this;
+
+                                        $.each(self.products, function(i, product) {
+                                            product.states.selected = false;
+                                        });
+
+                                        that.products_selection.value = 'visible_products';
+                                    },
+
+                                    callAction: function(action) {
+                                        const self = this;
+                                        self.$emit("call_action", action);
+                                    }
+                                },
+                                mounted: function() {
+                                    var self = this,
+                                        $wrapper = $(self.$el);
+
+                                    self.$list = $wrapper.find(".js-actions-list");
+
+                                    $wrapper.find(".dropdown").each( function() {
+                                        $(this).waDropdown({ hover : false });
+                                    });
+
+                                    initObserver(self.$el);
+
+                                    function initObserver(wrapper) {
+                                        var resizeObserver = new ResizeObserver(onSizeChange);
+                                        resizeObserver.observe(wrapper);
+                                        function onSizeChange(entries) {
+                                            var is_exist = $.contains(document, wrapper);
+                                            if (is_exist) {
+                                                var entry = entries[0].contentRect;
+                                                self.resize(entry);
+                                            } else {
+                                                resizeObserver.unobserve(wrapper);
+                                                resizeObserver.disconnect();
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -6717,6 +6855,9 @@
                                 }
                             }
                         }
+                    },
+                    isMobile: function() {
+                        return $('#wa-app .sidebar > .sidebar-mobile-toggle').is(':visible');
                     }
                 },
                 delimiters: ['{ { ', ' } }'],
@@ -6742,6 +6883,13 @@
                     self.$nextTick( function() {
                         self.setScrollProductsSection();
                     });
+
+                    $(window).on('resize.products', () => {
+                        that.states.is_mobile = self.isMobile();
+                    });
+                },
+                beforeUnmount: function() {
+                    $(window).off('resize.products');
                 }
             });
 

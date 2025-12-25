@@ -200,6 +200,72 @@ paths:
               schema:
                 $ref: '#/components/schemas/invalidResponse'
 
+  /countries:
+    get:
+      summary: Список стран и регионов
+      parameters:
+        - name: country
+          in: query
+          required: false
+          description: ISO3 код страны
+          schema:
+            type: string
+        - name: regions
+          in: query
+          required: false
+          description: Включать регионы
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Успешное выполнение запроса.
+          content:
+            application/json:
+              schema:
+                type: array
+                nullable: true
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Название страны
+                    iso3letter:
+                      type: string
+                      description: ISO3 код страны
+                    iso2letter:
+                      type: string
+                      description: ISO2 код страны
+                    isonumeric:
+                      type: string
+                      description: ISO код страны
+                    fav_sort:
+                      type: integer
+                      nullable: true
+                      description: Значение сортировки
+                    regions:
+                      type: array
+                      nullable: true
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: Название региона
+                          country_iso3:
+                            type: string
+                            description: ISO3 код страны региона
+                          code:
+                            type: string
+                            description: Код региона
+                          fav_sort:
+                            type: integer
+                            nullable: true
+                            description: Значение сортировки
+                          region_center:
+                            type: string
+                            description: Региональный центр
+
   /product/{id}:
     get:
       summary: Возвращает информацию о товаре.
@@ -226,7 +292,7 @@ paths:
         - $ref: '#/components/parameters/customerToken'
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               required:
@@ -258,6 +324,18 @@ paths:
                   type: string
                   format: uri
                   description: Адрес сайта покупателя
+                images[]:
+                  type: array
+                  description: Файлы изображений
+                  items:
+                    type: string
+                    format: binary
+                images_data[]:
+                  type: array
+                  items:
+                    type: string
+                    format: text
+                    description: Описание изображения в порядке следования файлов
                 antispam_hash:
                   type: string
                   description: |
@@ -267,7 +345,7 @@ paths:
 
                     где
                     + `antispam_api_key` — секретный ключ, который нужно скопировать в разделе «*Витрина → Headless*» бекенда Shop-Script
-                    + `antispam_cart_key` — привязанный к корзине ключ, который обновляется несколько раз в сутки и используется в методах */shop* и */customer_token*
+                    + `antispam_cart_key` — привязанный к корзине ключ, который обновляется несколько раз в сутки и доступен в ответах на запросы к методам */shop* и */customer_token*
                     + `title` — заголовок отзыва (используется при добавлении отзывов)
                     + `text` — текст отзыва (используется при добавлении отзывов)
 
@@ -298,6 +376,12 @@ paths:
                     description: ID добавленного отзыва
         400:
           description: Некорректное содержимое запроса.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/invalidResponse'
+        401:
+          description: Отсутствуют действительные учетные данные.
           content:
             application/json:
               schema:
@@ -371,6 +455,11 @@ paths:
       summary: Возвращает информацию о магазине.
       parameters:
         - $ref: '#/components/parameters/customerToken'
+        - in: query
+          name: sales_channel_id
+          description: ID канала продаж, информацию о котором вернуть в поле sales_channel
+          schema:
+            type: integer
       responses:
         200:
           description: Успешное выполнение запроса.
@@ -429,6 +518,18 @@ paths:
                   is_premium:
                     type: boolean
                     description: Наличие действующей премиум-лицензии
+                  storefront_enabled:
+                    type: boolean
+                    description: Доступность витрины сайта
+                  moderation_reviews:
+                    type: boolean
+                    description: Признак включенной проверки (модерации) отзывов перед публикацией
+                  require_auth_to_add_review:
+                    type: boolean
+                    description: Признак включенного требования авторизации для добавления отзывов
+                  allow_review_image_upload:
+                    type: boolean
+                    description: Доступность прикрепления изображений к отзывам покупателей
                   address_fields:
                     type: array
                     items:
@@ -639,6 +740,21 @@ paths:
                     type: string
                     nullable: true
                     description: URL страницы оформления заказа в браузере — без использования Headless API; доступен, если такая возможность включена в настройках Shop-Script
+                  sales_channel:
+                    type: object
+                    nullable: true
+                    description: Информация о канале продаж, если указан параметр sales_channel_id
+                    properties:
+                      id:
+                        type: integer
+                        description: ID канала продаж
+                      type:
+                        type: string
+                        description: Тип канала продаж
+                      params:
+                        type: object
+                        description: Параметры канала продаж, разные в зависимости от типа
+                        additionalProperties: true
 
   /categories:
     get:
@@ -1111,6 +1227,12 @@ paths:
     post:
       summary: Создает новый заказ.
       parameters:
+        - name: channel_id
+          in: query
+          required: false
+          description: ID канала
+          schema:
+            type: string
         - $ref: '#/components/parameters/customerToken'
         - $ref: '#/components/parameters/couponCode'
       requestBody:
@@ -1129,6 +1251,9 @@ paths:
                   id:
                     type: integer
                     description: ID созданного заказа
+                  code:
+                    type: string
+                    description: Секретный код для работы с заказом в /order/{order_id}/*
 
   /shipping/costs:
     post:
@@ -1226,6 +1351,122 @@ paths:
                           items:
                             type: string
                             description: Дата и время в формате `гггг-мм-дд чч:мм:сс`
+
+  /order/{order_id}/payment/list:
+    get:
+      summary: Возвращает список доступных способов оплаты для указанного заказа.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: order_id
+          description: ID заказа
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: code
+          description: Код для работы с заказом, полученный при создании заказа
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Список способов оплаты.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: Уникальный ID способа оплаты, скомбинированный из plugin_id, index и type. Используется в /order/{order_id}/payment
+                    type:
+                      type: string
+                      description: |
+                        Вид оплаты:
+                        - link: переход на платёжный шлюз
+                        - image: QR-код для оплаты через СБП
+                      enum:
+                        - link
+                        - image
+                    plugin_id:
+                      type: integer
+                      description: ID платёжного плагина
+                    index:
+                      type: integer
+                      nullable: true
+                      description: В случае, если платёжный плагин предоставляет несколько способов оплаты типа link, это поле содержит индекс способа оплаты
+                    plugin:
+                      type: string
+                      description: Строковый идентификатор платёжного плагина
+                    name:
+                      type: string
+                      description: Название способа оплаты
+                    description:
+                      type: string
+                      description: Описание способа оплаты
+                    logo:
+                      type: string
+                      format: uri
+                      description: URL логотипа способа оплаты
+  /order/{order_id}/payment:
+    post:
+      summary: Инициализирует оплату заказа выбранным способом оплаты
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: order_id
+          description: ID заказа
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: code
+          description: Код для работы с заказом, полученный при создании заказа
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: payment_id
+          description: ID одного из способов оплаты из списка /order/{order_id}/payment/list
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Информация о проводимом платеже: ссылка на страницу оплаты или на картинку с QR-кодом"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required:
+                      - payment_url
+                    properties:
+                      payment_url:
+                        type: string
+                        description: URL страницы оплаты
+                        format: uri
+                      qr_payload:
+                        type: string
+                        nullable: true
+                        description: Содержимое QR-кода на оплату (если поддерживается плагином оплаты)
+                  - type: object
+                    required:
+                      - payment_image_url
+                    properties:
+                      payment_image_url:
+                        type: string
+                        description: "Изображение QR-кода СБП: либо https:// ссылка, либо Data URL в формате data:image/png;base64,..."
+                        format: uri
+                      qr_payload:
+                        type: string
+                        nullable: true
+                        description: Содержимое QR-кода на оплату (если поддерживается плагином оплаты)
 
 components:
   schemas:
@@ -1474,7 +1715,7 @@ components:
           description: Значение изменения количества кнопками «+/-»
         rating_count:
           type: integer
-          description: Количество отзывов
+          description: Количество отзывов с оценкой
         category_id:
           type: integer
           description: ID основной категории
@@ -1922,6 +2163,27 @@ components:
           type: string
           format: uri
           description: URL эскиза с максимальной стороной 750 пикселей
+    FeatureValueInfo:
+      type: object
+      nullable: true
+      description: Значение характеристики
+      properties:
+        id:
+          type: integer
+          description: ID значения
+          nullable: true
+        name:
+          type: string
+          description: Название
+          nullable: true
+        value:
+          type: string
+          description: Значение
+        parts:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/FeatureValueInfo'
     ProductCategoryInfo:
       type: object
       description: Свойства категории товаров
@@ -1993,14 +2255,7 @@ components:
                     nullable: true
                     description: Список значений
                     items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                          description: Название
-                        value:
-                          type: string
-                          description: Значение
+                      $ref: '#/components/schemas/FeatureValueInfo'
     FeatureInfo:
       type: object
       description: Свойства характеристики товаров
@@ -2045,34 +2300,13 @@ components:
           type: string
           description: Единица измерения по умолчанию
         value:
-          oneOf:
-            - type: string
-              nullable: true
-              description: Одно значение
-            - type: object
-              properties:
-                name:
-                  type: string
-                  description: Название
-                value:
-                  type: string
-                  description: Значение
+          $ref: '#/components/schemas/FeatureValueInfo'
         values:
           type: array
           nullable: true
           description: Список значений
           items:
-            oneOf:
-              - type: string
-                description: Значение
-              - type: object
-                properties:
-                  name:
-                    type: string
-                    description: Название
-                  value:
-                    type: string
-                    description: Значение
+            $ref: '#/components/schemas/FeatureValueInfo'
     shippingAddress:
       type: object
       description: Адрес доставки
@@ -2112,6 +2346,12 @@ components:
         phone:
           type: string
           description: Телефонный номер
+        photo_url:
+          type: string
+          description: |
+            URL изображения `http:`, `https:` или `data:image/png;base64,`.
+
+            Поддерживаются изображения в формате jpg, png, gif и webp.
         is_company:
           type: boolean
           description: Признак покупателя-компании
@@ -2139,15 +2379,13 @@ components:
           description: |
             Хеш для защиты от спама — вычисляется по формуле:
 
-            `SHA-256(antispam_api_key + antispam_cart_key + title + text)`
+            `SHA-256(antispam_api_key + antispam_cart_key)`
 
             где
             + `antispam_api_key` — секретный ключ, который нужно скопировать в разделе «*Витрина → Headless*» бекенда Shop-Script
-            + `antispam_cart_key` — привязанный к корзине ключ, который обновляется несколько раз в сутки и используется в методах */shop* и */customer_token*
-            + `title` — заголовок отзыва (используется при добавлении отзывов)
-            + `text` — текст отзыва (используется при добавлении отзывов)
+            + `antispam_cart_key` — привязанный к корзине ключ, который обновляется несколько раз в сутки и доступен в ответах на запросы к методам */shop* и */customer_token*
 
-            Строки хешируются в кодировке UTF-8. Если в ответах на запросы к методам */shop* и */customer_token* отсутствует значение `antispam_cart_key`, значит, защита отключена и отправлять параметры `antispam_hash` и `customer_token` необязательно.
+            Строки хешируются в кодировке UTF-8. Если в ответах на запросы к методам */shop* и */customer_token* отсутствует значение `antispam_cart_key`, значит, защита отключена и отправлять параметр `antispam_hash` необязательно.
 
             При получении ошибки валидации `antispam_check_failed` нужно повторно получить значение `antispam_cart_key` — это значит, что ключ мог устареть.
 
@@ -2208,34 +2446,38 @@ components:
         + **tags**: в содержимое ответа добавляется элемент с ключом '*tags*' со списком тегов товара.
         + **features**: в содержимое ответа добавляется элемент с ключом '*features*' со списком характеристик товара
         + **sku_features**: в содержимое ответа каждой модификации товара добавляется элемент с ключом '*features*' со списком характеристик модификации
+        + **sku_selection**: в содержимое ответа добавляется элемент с ключом '*sku_selection*' с информацией о характеристиках для выбора артикула на витрине
       required: false
       schema:
-        type: array
-        items:
-          type: string
-          enum:
-            - description
-            - meta_title
-            - meta_keywords
-            - meta_description
-            - stock_counts
-            - reviews_count
-            - images
-            - images2x
-            - image
-            - image_crop_small
-            - image_count
-            - skus
-            - skus_filtered
-            - sku_filtered
-            - skus_image
-            - frontend_url
-            - feature_code
-            - categories
-            - category_ids
-            - tags
-            - features
-            - sku_features
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+              enum:
+                - description
+                - meta_title
+                - meta_keywords
+                - meta_description
+                - stock_counts
+                - reviews_count
+                - images
+                - images2x
+                - image
+                - image_crop_small
+                - image_count
+                - skus
+                - skus_filtered
+                - skus_image
+                - sku_filtered
+                - sku_features
+                - sku_selection
+                - frontend_url
+                - feature_code
+                - categories
+                - category_ids
+                - tags
+                - features
     productListParamSort:
       in: query
       name: sort
@@ -2288,4 +2530,10 @@ components:
         + **строковый идентификатор характеристики**: массив информации о значениях характеристики, которые должны присутствовать в свойствах товаров. Каждый элемент массива может представлять собой либо массив ID значений характеристики, либо массив с ключами '*min*' (минимальное значение), '*max*' (максимальное значение), '*unit*' (строковый идентификатор единицы измерения характеристики).
       required: false
       schema:
-        type: string
+        type: object
+        additionalProperties:
+          oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string

@@ -1,0 +1,110 @@
+{*
+ * Template used by shopSalesChannelType->getFormHtml()
+ * with fields rendered by waHtmlControl.
+ *
+ * Custom sales channel may either override getFormFieldsConfig()
+ * and use this generic template; or override getFormHtml(), skip
+ * all waHtmlControl configs and use any custom template they want.
+ *
+ * Note that channels.js included here contains form save logic
+ * and may still be useful even for custom form.
+ *}
+
+<div class="fields form">
+    <form action="{$wa_app_url}?module=channels&action=save" id="js-sales-channel-form">
+        <div class="fields-group custom-mt-16">
+
+            {if !empty($channel.id)}
+                <input type="hidden" name="id" value="{$channel.id|escape}">
+            {else}
+                <input type="hidden" name="is_new" value="1">
+            {/if}
+            <input type="hidden" name="data[type]" value="{$channel.type|escape}">
+
+            <div class="field">
+                <div class="name">
+                    [`Enabled`]
+                </div>
+                <div class="value">
+                    <label>
+                        <input type="checkbox" name="data[status]" value="1"{if !empty($channel.status)} checked{/if}>
+                    </label>
+                </div>
+            </div>
+
+            {*
+             * data[*] see shopSalesChannelType->getBaseFieldsConfig()
+             * data[params][*] see ->getFormFieldsConfig()
+             *}
+            {foreach $form_fields as $name => $control_html}
+                <div class="field">
+                    {$control_html}
+                </div>
+            {/foreach}
+
+            <div class="field">
+                <div class="name"></div>
+                <div class="value">
+                    <div class="flexbox">
+                        <div class="wide js-place-for-errors">
+                            <input type="submit" class="button green" value="[`Save`]">
+                        </div>
+                        {if !empty($channel.id)}
+                            <div>
+                                <button class="button red js-delete-button">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript" src="{$wa_app_static_url}js/backend/channels/channels.js?{$wa->version()}"></script>
+<script>$(function() { "use strict";
+    const delete_url = {$wa_app_url|json_encode} + '?module=channels&action=delete';
+
+    const $form = $('#js-sales-channel-form');
+    const controller = new SalesChannelForm({
+        $place_for_errors: $form.find('.js-place-for-errors'),
+        $form,
+    });
+    const $submit_button = $form.find(':submit').last();
+
+    $form.on('save_request', function() {
+        $submit_button.prop('disabled', true).after('<div class="spinner"></div>');
+    });
+    $form.on('save_success save_fail', function() {
+        $submit_button.prop('disabled', false).siblings('.spinner').remove();
+    });
+
+    {if empty($channel.id)}
+        // After successfull save of a new channel, redirect to its proper URL containing id
+        $form.on('save_success', function(evt, data) {
+            window.location = {$wa_app_url|json_encode} + 'channels/editor/' + data.result.id;
+        });
+    {else}
+        const channel_id = {$channel.id|json_encode};
+        const $delete_button = $form.find('.js-delete-button');
+        $delete_button.on('click', function(e) {
+            e.preventDefault();
+            $.waDialog.confirm({
+                title: {_w("Delete permanently?")|json_encode},
+                success_button_title: {_w("Delete")|json_encode},
+                success_button_class: 'danger',
+                cancel_button_title: {_w("Cancel")|json_encode},
+                cancel_button_class: 'light-gray',
+                onSuccess: function() {
+                    $delete_button.prop('disabled', true).after('<div class="spinner"></div>');
+                    $.post(delete_url, { id: channel_id }, 'json').then(function(r) {
+                        $submit_button.prop('disabled', false).siblings('.spinner').remove();
+                        window.location = {$wa_app_url|json_encode} + '?action=plugins#/';
+                    });
+                }
+            });
+        });
+    {/if}
+});</script>

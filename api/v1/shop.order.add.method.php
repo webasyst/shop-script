@@ -43,6 +43,20 @@ class shopOrderAddMethod extends shopApiMethod
         }
         $params = waRequest::post('params', [], 'array');
         if ($params) {
+            if (isset($params['channel_id']) && preg_match('#^([a-z0-9]+):(\d+)$#', $params['channel_id'], $matches)) {
+                $sales_channel_model = new shopSalesChannelModel();
+                if ($channel = $sales_channel_model->getByField(['id' => $matches[2], 'type' => $matches[1]])) {
+                    $params['sales_channel'] = $params['channel_id'];
+                    $params['sales_channel_name'] = ifempty($channel, 'name', null);
+                    $channel_params = (new shopSalesChannelParamsModel())->get($channel['id']);
+                    if ($stock_id = (int) ifempty($channel_params, 'stock_id', null)) {
+                        foreach ((array) $order['items'] as $key => $item) {
+                            $order['items'][$key]['stock_id'] = $stock_id;
+                        }
+                    }
+                }
+            }
+            unset($params['channel_id']);
             $order['params'] += $params;
         }
 

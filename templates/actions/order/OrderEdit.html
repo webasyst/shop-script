@@ -19,7 +19,7 @@
 {/if}
 
 <form id="order-edit-form" class="flexbox width-100" method="post" action="?module=order&action=save{if !empty($order.id)}&id={$order.id}{/if}">
-<div class="sidebar flexbox s-wide-order-edit-sidebar blank custom-pt-4">
+<div class="sidebar width-adaptive-widest flexbox blank custom-pt-4">
     <div class="sidebar-header box">
         <div class="flexbox middle full-width">
             <a href="#" class="back custom-mr-8 larger"><i class="fas fa-arrow-circle-left"></i></a>
@@ -46,7 +46,7 @@
 
         <em class="errormsg state-error-hint s-customer-errors"></em>
 
-        <div class="fields" id="s-order-edit-customer">
+        <div class="fields vertical" id="s-order-edit-customer">
 
             {if $form}
                 {$form->html()}
@@ -221,41 +221,45 @@
             {/if}
         </td>
         <td>
+            {if $product.id}
             <strong>
                 {if empty($product.fake)}{$product.name|escape}{else}{$product.item.name|escape}{/if}
             </strong>
             <span class="s-order-product-sku-info">
-            <span class="gray custom-mx-4">
-                {if empty($product.fake)}{$product.price_html}{/if}
-            </span>
+                <span class="gray custom-mx-4">
+                    {if empty($product.fake)}{$product.price_html}{/if}
+                </span>
 
-            {if count($product.skus) == 1}
-                {$sku = reset($product.skus)}
-                {if !empty($sku.compare_price) && $sku.compare_price > 0}
-                    <span class="hint compare-price">(<span style="text-decoration: line-through">{shop_currency_html((float)$sku.compare_price,$product.currency,$order.currency)}</span>)</span>
-                {/if}
-            {/if}
-            {if empty($product.fake)}
                 {if count($product.skus) == 1}
-                    <span class="s-orders-stock-icon-aggregate">
-                        {$product.icon}
-                    </span>
-                    <span class="s-orders-stock-icon"></span>
-                {else}
-                    {$product.icon}
+                    {$sku = reset($product.skus)}
+                    {if !empty($sku.compare_price) && $sku.compare_price > 0}
+                        <span class="hint compare-price">(<span style="text-decoration: line-through">{shop_currency_html((float)$sku.compare_price,$product.currency,$order.currency)}</span>)</span>
+                    {/if}
                 {/if}
-            {/if}
+                {if empty($product.fake)}
+                    {if count($product.skus) == 1}
+                        <span class="s-orders-stock-icon-aggregate">
+                            {$product.icon}
+                        </span>
+                        <span class="s-orders-stock-icon"></span>
+                    {else}
+                        {$product.icon}
+                    {/if}
+                {/if}
 
-            {if empty($product.fake) && $product.item.type == 'product'
-            && $product.current_product_name|escape != $product.item.name|escape}
-                <div class="s-product-previous-name">
-                    <i class="fas fa-exclamation-triangle text-yellow"></i>
-                    <span class="gray">
-                [`Old name`]: {$product.item.name|escape}
+                {if empty($product.fake) && $product.item.type == 'product'
+                && $product.current_product_name|escape != $product.item.name|escape}
+                    <div class="s-product-previous-name">
+                        <i class="fas fa-exclamation-triangle text-yellow"></i>
+                        <span class="gray">
+                            [`Old name`]: {$product.item.name|escape}
+                        </span>
+                    </div>
+                {/if}
             </span>
-                </div>
+            {else}
+                <strong>{$product.item.name|escape}</strong>
             {/if}
-            </span>
             <p>
                 {if count($product.skus) > 1}
                     <ul class="unstyled separated small s-orders-skus">
@@ -301,9 +305,11 @@
                     {if !empty($product.fake)}
                         <p><input type="text" name="name[edit][{$product.item.id}]" value="{$product.item.name|escape}" class="small"></p>
                     {elseif !empty($sku.fake)}
+                        {if $product.id}
                         <p class="small red">
                             <i class="fas fa-exclamation-triangle smaller"></i> <span>{sprintf(_w('SKU %s no longer exists for this product'), $sku['name'])}</span>
                         </p>
+                        {/if}
                         <input type="hidden" name="name[edit][{$product.item.id}]" value="{$product.item.name|escape}" class="small">
                     {/if}
 
@@ -355,14 +361,14 @@
                 {if $product["show_order_counts"]}
                     <div class="s-section-footer small" style="margin-top: 4px;">
                         <div class="s-step">
-                            <span class="s-label">[`Step`]=</span>
+                            <span class="s-label">[`Step`] =</span>
                             <span class="s-value">{$product["order_multiplicity_factor"]|default:1|floatval}</span>
                             {if !empty($_stock_unit)}
                                 <span class="s-unit">{$_stock_unit["name_short"]|escape}</span>
                             {/if}
                         </div>
                         <div class="s-min js-order_count_min">
-                            <span class="s-label">[`Min.`]=</span>
+                            <span class="s-label">[`Min.`] =</span>
                             <span class="s-value js-value">{$_order_count_min|floatval}</span>
                             {if !empty($_stock_unit)}
                                 <span class="s-unit">{$_stock_unit["name_short"]|escape}</span>
@@ -423,7 +429,7 @@
                             {if $storefront['contact_type'][shopCustomer::TYPE_PERSON]['enabled']}data-{shopCustomer::TYPE_PERSON}="1"{/if}
                             {if $storefront['contact_type'][shopCustomer::TYPE_COMPANY]['enabled']}data-{shopCustomer::TYPE_COMPANY}="1"{/if}
                             {if $storefront['url'] == $order_storefront}selected="selected" data-order-storefront="1"{/if}>
-                        {$storefront['url_decoded']}
+                        {$storefront['url_decoded']|truncate:64}
                     </option>
                 {/foreach}
             </select>

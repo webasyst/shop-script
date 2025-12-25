@@ -1088,7 +1088,7 @@ class shopOrder implements ArrayAccess
                     }
                 }
                 if ($icons) {
-                    $action->setOption('icon', $icons);
+                    $action->setOption('notification_icons', $icons);
                 }
                 $buttons[] = $action->getButton();
             }

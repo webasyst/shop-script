@@ -119,14 +119,24 @@ class shopOrderListAction extends waViewAction
             if ($filter_params) {
                 $updated_orders_param = '';
                 if (!empty($filter_params['viewpos'])) {
-                    $filter_conditions[] = "params.sales_channel=pos:";
+                    if (isset($filter_params['viewposid'])) {
+                        if ($filter_params['viewposid'] <= 0) {
+                            // unspecified point of sale
+                            $filter_params['viewposid'] = '';
+                        }
+                        // point of sale with id
+                        $filter_conditions[] = "params.sales_channel=pos:".$filter_params['viewposid'];
+                    } else {
+                        // all points of sale
+                        $filter_conditions[] = "params.sales_channel^=pos:";
+                    }
                     $ts = strtotime($filter_params['viewpos']);
                     if ($ts) {
                         $filter_conditions[] = "create_datetime>=".date('Y-m-d 00:00:00', $ts);
                         $filter_conditions[] = "create_datetime<=".date('Y-m-d 23:59:59', $ts);
                     }
                 }
-                unset($filter_params['viewpos']);
+                unset($filter_params['viewpos'], $filter_params['viewposid']);
                 if (!empty($filter_params['updated_orders'])) {
                     $updated_orders_param = $filter_params['updated_orders'];
                     unset($filter_params['updated_orders']);
@@ -254,6 +264,10 @@ class shopOrderListAction extends waViewAction
                     $params['viewpos'] = date('Y-m-d');
                 } else {
                     $params['viewpos'] = date('Y-m-d', strtotime($viewpos));
+                }
+                $viewposid = waRequest::get('viewposid', null, waRequest::TYPE_INT);
+                if ($viewposid !== null) {
+                    $params['viewposid'] = $viewposid;
                 }
             }
             $unsettled = waRequest::get('unsettled', null, waRequest::TYPE_INT);

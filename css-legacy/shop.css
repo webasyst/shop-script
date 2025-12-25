@@ -1584,6 +1584,8 @@ table.zebra p.hint { margin-bottom: 0; }
 .s-sublist {padding-left: 30px; margin-bottom: 0;}
 ul.menu-v li.s-sublist-item {padding-bottom: 0; margin-bottom: 0;}
 
+.s-settings-form .menu-h.with-icons li a i.icon16[style^="background"] { background-size: contain !important; background-repeat: no-repeat !important; background-position: center !important; }
+
 /* ICONS
 -------- */
 

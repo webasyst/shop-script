@@ -80,6 +80,18 @@ class shopOrderAction extends waViewAction
 
         $order_data_array['tax'] = self::calculateNotIncludedTax($order_data_array);
 
+        if (!empty($order_data_array['params']['sales_channel'])) {
+            $sales_channel = shopSalesChannels::describeChannels([$order_data_array['params']['sales_channel']]);
+            $order_data_array['sales_channel'] = ifset($sales_channel, $order_data_array['params']['sales_channel'], []);
+        }
+
+        if (!empty($order_data_array['params']['cashier_contact_id'])) {
+            $cashier = new waContact($order_data_array['params']['cashier_contact_id']);
+            if ($cashier->exists()) {
+                $order_data_array['params']['cashier_contact_name'] = $cashier->getName();
+            }
+        }
+
         if (wa()->whichUI() != '1.3') {
             $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $config->getCurrency(), '%k{h}');
         }

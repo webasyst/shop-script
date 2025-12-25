@@ -1,10 +1,9 @@
-{* HINT: for the rest of footer links, please see index.html <!-- FOOTER --> section *}
-
-<div class="poweredby" role="complementary">
-    <i class="webasyst-magic-wand" title="Webasyst"></i>
-    [`Made on <a href="https://www.shop-script.com" target="_blank">Shop-Script</a>`]
+<div class="copyright small">
+    &copy; {time()|wa_datetime:"Y"}
+    <a href="{$wa_url}">{$wa->accountName()}</a>
 </div>
-<!-- plugin hook: 'frontend_footer' -->
+
+<!-- shop plugin hook: 'frontend_footer' -->
 {* @event frontend_footer.%plugin_id% *}
 {foreach $frontend_footer as $_}{$_}{/foreach}
 

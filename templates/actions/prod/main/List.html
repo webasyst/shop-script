@@ -364,13 +364,12 @@
                             v-on:change="changeView"></component-view-toggle>
                     </div>
                 </div>
-
-                <component-table-filters></component-table-filters>
+                <component-table-filters @show-categories="states.show_sidebar_filters=true"></component-table-filters>
             </div>
             <div class="s-page-body flexbox space-8">
                 {* SIDEBAR FILTERS *}
-                <div v-if="!states.sidebar_filters_hide" class="s-body-aside sidebar">
-                    <component-table-filters-categories-sets-types></component-table-filters-categories-sets-types>
+                <div v-if="!states.sidebar_filters_hide" class="s-body-aside sidebar" :class="{ 'is-visible-on-mobile' : states.show_sidebar_filters }">
+                    <component-table-filters-categories-sets-types @toggle-mobile="states.show_sidebar_filters=false"></component-table-filters-categories-sets-types>
                 </div>
                 {* PRODUCTS THUMBS *}
                 <div v-if="presentation.view === 'thumbs'" class="s-products-thumbs-section" v-on:scroll="onScrollProductsSection">
@@ -392,7 +391,7 @@
                         v-bind:products="products"></component-products-table>
                 </div>
                 {* MASS ACTIONS *}
-                <template v-if="show_mass_actions">
+                <template v-if="!states.is_mobile && show_mass_actions">
                     <div class="s-body-aside" v-bind:class="{ 'is-unpinned' : presentation.view === 'thumbs' }">
                         <component-mass-actions
                             v-bind:type="'aside'"
@@ -435,6 +434,12 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div v-if="states.is_mobile && show_mass_actions">
+                <component-mass-actions
+                    v-bind:type="'footer'"
+                    v-bind:key="keys.mass_actions"
+                    v-bind:products="selected_products"></component-mass-actions>
             </div>
         </div>
     </div>

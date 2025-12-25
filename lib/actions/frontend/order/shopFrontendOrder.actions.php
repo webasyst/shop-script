@@ -149,6 +149,14 @@ class shopFrontendOrderActions extends waJsonActions
             'ignore_stock_validate'        => true,
         ];
 
+        if (!empty($order_data['params']['channel_id']) && preg_match('#^([a-z0-9]+):(\d+)$#', $order_data['params']['channel_id'], $matches)) {
+            $sales_channel_model = new shopSalesChannelModel();
+            if ($sales_channel_model->getByField(['id' => $matches[2], 'type' => $matches[1]])) {
+                $order_data['params']['sales_channel'] = $order_data['params']['channel_id'];
+            }
+        }
+        unset($order_data['params']['channel_id']);
+
         try {
             $order = new shopOrder($order_data, $options);
         } catch (waException $ex) {
@@ -210,6 +218,7 @@ class shopFrontendOrderActions extends waJsonActions
             (new shopCart())->clear();
             // Remove data we kept during checkout process
             wa()->getStorage()->remove('shop/checkout');
+            wa()->getStorage()->remove('shop_order_channel_id');
             // This tells checkout/success page to show proper order number
             wa()->getStorage()->set('shop/order_id', $this->response['order_id']);
             // This tells checkout/success to add google analytics code (separate key to only add it once)
@@ -441,7 +450,9 @@ class shopFrontendOrderActions extends waJsonActions
 
         $routing_url = wa()->getRouting()->getRootUrl();
         $params['storefront'] = wa()->getConfig()->getDomain().($routing_url ? '/'.$routing_url : '');
-        if (wa()->getStorage()->get('shop_order_buybutton')) {
+        if ($channel_id = wa()->getStorage()->get('shop_order_channel_id')) {
+            $params['channel_id'] = $channel_id;
+        } elseif (wa()->getStorage()->get('shop_order_buybutton')) {
             $params['sales_channel'] = 'buy_button:';
         }
 

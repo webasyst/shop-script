@@ -29,7 +29,15 @@
                 {continue}
             {/if}
         {/if}
-        <li class="rounded">
+        {if !empty($_item.header_above)}
+            <li class="rounded s-header-above js-header-above-{$_item.id|escape} s-sub-menu">
+                <span class="item custom-mt-16">
+                    <span class="heading wide custom-m-0">{$_item.header_above|escape}</span>
+                </span>
+            </li>
+        {/if}
+
+        <li class="rounded"{if $placement == 'channels'} data-channel="{$_item['id']|replace:'channel':''}"{/if}>
             {if !empty($_item["submenu"])}
                 <div class="item js-group-toggle js-{$_item["id"]}-toggle">
                     <span class="s-icon-main icon">{$_item["icon"]}</span>
@@ -40,7 +48,7 @@
                     </span>
                 </div>
 
-                <ul class="menu s-sub-menu">
+                <ul class="menu s-sub-menu{if $wa->isMobile()} large{/if}">
                     {foreach $_item["submenu"] as $_sub_item}
                         {if !empty($_sub_item["userRights"])}
                             {$_userRights_result = []}
@@ -59,7 +67,7 @@
                     {/foreach}
                 </ul>
             {else}
-                <a class="item" href="{$_item["url"]|escape}">
+                <a class="item{if $placement == 'channels' && empty($_item.available)} opacity-50{/if}" href="{$_item["url"]|escape}">
                     <span class="s-icon-main icon">{$_item["icon"]}</span>
                     <span class="s-name">{$_item["name"]|escape}</span>
                 </a>
@@ -93,8 +101,9 @@
             </nav>
             <div class="sidebar-body">
                 <div class="box custom-py-0">
-                    <ul class="menu s-main-menu custom-mb-0-mobile">
+                    <ul class="menu s-main-menu custom-mb-0-mobile{if $wa->isMobile()} large{/if}">
                         {_sidebar_menu}
+                        {_sidebar_menu placement="channels"}
                     </ul>
 
                     <!-- plugin hook: 'backend_products.sidebar_section' -->
@@ -107,7 +116,7 @@
 
             <div class="sidebar-footer js-overflowing-gradient">
                 <div class="box custom-py-0">
-                    <ul class="menu s-main-menu custom-mb-0 custom-mt-4 custom-mt-0-mobile">
+                    <ul class="menu s-main-menu custom-mb-0 custom-mt-4 custom-mt-0-mobile{if $wa->isMobile()} large{/if}">
                         {_sidebar_menu placement="footer"}
                         <li class="rounded s-toggle-wrapper">
                             <div class="item js-toggle-products-page-sidebar">
@@ -138,6 +147,11 @@
                         </div>
                     {/if}
                 </div>
+                {if $wa->isMobile()}
+                    <div class="s-mobile-apps box">
+                        {include file="templates/includes/mobileApps.html" inline}
+                    </div>
+                {/if}
             </div>
         </div>
     </div>
@@ -157,7 +171,8 @@
             urls: {
                 "sidebar_menu_state" : "{$wa_app_url}?module=backend&action=sidebarMenuSaveState"
             },
-            app_url: "{$wa_app_url|escape}"
+            app_url: "{$wa_app_url|escape}",
+            is_admin: {$wa->user()->isAdmin('shop')|json_encode}
         });
     })(jQuery);
 </script>
@@ -190,7 +205,8 @@
                     sidebar_menu_state: {if !empty($sidebar_menu_state)}true{else}false{/if},
                     urls: {
                         "sidebar_menu_state" : "{$wa_app_url}?module=backend&action=sidebarMenuSaveState"
-                    }
+                    },
+                    is_admin: {$wa->user()->isAdmin('shop')|json_encode}
                 });
             }
         })(jQuery);
@@ -235,3 +251,34 @@
         intersectionObserver.observe($overlappedEl.get(0));
     })
 </script>
+
+{if $wa->user()->isAdmin('shop')}
+<div id="sales-channels-dropdown" style="display:none">
+    <span class="count action">
+        <div class="dropdown s-sales-channels-dropdown">
+            <span class="dropdown-toggle without-arrow" title="[`Add sales channel`]">
+                <i class="fas fa-plus-circle"></i>
+            </span>
+
+            <div class="dropdown-body right">
+                <ul class="menu">
+                    {foreach shopSalesChannelType::getEnabledTypes() as $t}
+                        <li{if empty($t.available)} class="opacity-50"{/if}>
+                           <a href="{$wa_app_url}channels/new/{$t.id|escape}" class="item">{$t.menu_icon}<span>{$t.name|escape}{if empty($t.available)} <span class="hint">[`coming soon`]</span>{/if}</span></a>
+                        </li>
+                    {/foreach}
+                </ul>
+            </div>
+        </div>
+    </span>
+</div>
+<script>$(function () { "use strict";
+    const $wrapper = $('#sales-channels-dropdown');
+    const $dropdown = $wrapper.find('.dropdown');
+    $dropdown.closest('.count').appendTo($('.js-header-above-storefront .item'));
+    $dropdown.waDropdown({
+        hover: false
+    });
+    $wrapper.remove();
+});</script>
+{/if}

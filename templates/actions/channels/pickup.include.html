@@ -1,0 +1,57 @@
+{*var_dump($product)*}
+{*var_dump($available_pickup)*}
+{*var_dump($stocks)*}
+{*var_dump($stocks_product_count)*}
+
+{function name="_pickup_script" _pickup_id=null _sku_id=null}
+<script>
+    (function ($) {
+        $('.js-pickup-{$_pickup_id}').on('click', function (e) {
+            e.preventDefault();
+            let data = {
+                sku_id: '{$_sku_id}',
+                pickup_id: '{$_pickup.id}',
+                customer: $('.js-pickup-customer').find(':input').serializeArray()
+            };
+
+            $.post('{$wa_app_url}pickup/create/', data, function (response) {
+                console.log('PICKUP OK', response);
+                // close dialog, redirect
+                $('body .js-dialog-pickup-content').remove();
+            });
+        });
+    })(jQuery);
+</script>
+{/function}
+
+<div class="js-dialog-pickup-content" style="border: solid gray 1px; padding: 10px">
+    <h4>[`Pick up in store`]</h4>
+
+        <em style="color:orangered;"><b>BEHOLD!</b> A beautiful dialog will land here! This is a dev preview zaglooshka.</em><br><br>
+
+    <p>[`Customer`]</p>
+
+    <div class="js-pickup-customer">
+        {foreach $form as $name => $_form}
+        <div class="wa-field">
+            <div class="wa-name">{$name|escape}</div>
+            <div class="wa-value">{$_form}</div>
+        </div>
+        {/foreach}
+    </div>
+
+    {foreach $available_pickup as $_pickup}
+        <b>{$_pickup.params.address|escape}</b><br>
+        {foreach $stocks_product_count as $stock_product_count}
+            {if $select_sku_id == $stock_product_count.sku_id}
+                {foreach $stock_product_count.stocks as $_stock}
+                    {if $_stock.stock_id == $_pickup.params.stock_id}
+                        <span>{$stock_product_count.sku_id}</span> - <span>{if $_stock.count < 1}[`Out of stock`]{else}<a class="js-pickup-{$_pickup.id}">[`Pick up from here`]</a>{/if} &times; {$_stock.count}</span><br><br>
+                        {_pickup_script _pickup_id=$_pickup.id _sku_id=$stock_product_count.sku_id}
+                    {/if}
+                {/foreach}
+            {/if}
+        {/foreach}
+    {/foreach}
+
+</div>

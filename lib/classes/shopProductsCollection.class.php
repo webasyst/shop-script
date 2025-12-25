@@ -2572,21 +2572,7 @@ SQL;
         return $this->count = (int) $count;
     }
 
-    /**
-     * Returns array of products included in collection.
-     *
-     * @param string $fields List of product properties, comma-separated, to be included in returned array
-     * @param int $offset Initial position in returned product array, 0 means first product in collection
-     * @param int|bool $limit Maximum product limit.
-     *     If a Boolean value is specified, then $escape = $limit and $limit = null
-     *     If no value is specified, then $limit = 0.
-     *     If no value is specified and $offset is non-zero, then $limit = $offset and $offset = 50
-     * @param bool $escape Whether product names and urls must be escaped using htmlspecialchars() function, defaults to true
-     *
-     * @return array Array of collection products' sub-arrays
-     * @throws waException
-     */
-    public function getProducts($fields = "*", $offset = 0, $limit = null, $escape = true)
+    protected function getProductsArgs($offset = 0, $limit = null, $escape = true)
     {
         if (is_bool($limit)) {
             $escape = $limit;
@@ -2600,6 +2586,31 @@ SQL;
                 $limit = 50;
             }
         }
+        if ($limit === 'all') {
+            $offset = 0;
+        }
+        return [$offset, $limit, $escape];
+    }
+
+    /**
+     * Returns array of products included in collection.
+     *
+     * $offset argument may be skipped, e.g.:
+     * - getProducts('*', 100): 100 products, $offset=0, $escape=true
+     * - getProducts('*', 100, false): 100 products, $offset=0, $escape=false
+     * - getProducts('*', 'all', false): return all products, $escape=false
+     * 
+     * @param string $fields List of product properties, comma-separated, to be included in returned array
+     * @param int $offset Initial position in returned product array, 0 means first product in collection
+     * @param int|string $limit Maximum product limit. Default limit is 50. String 'all' means to return all results (be careful!)
+     * @param bool $escape Whether product names and urls must be escaped using htmlspecialchars() function, defaults to true
+     *
+     * @return array Array of collection products' sub-arrays
+     * @throws waException
+     */
+    public function getProducts($fields = "*", $offset = 0, $limit = null, $escape = true)
+    {
+        list($offset, $limit, $escape) = $this->getProductsArgs($offset, $limit, $escape);
 
         // This builds body of the query and also
         // prepare()s $this instance if not prepared yet.
@@ -2608,7 +2619,7 @@ SQL;
         // for dynamic set
         if ($this->hash[0] == 'set' && !empty($this->info['id']) && $this->info['type'] == shopSetModel::TYPE_DYNAMIC) {
             $this->count();
-            if ($offset + $limit > $this->count) {
+            if ($limit === 'all' || $offset + $limit > $this->count) {
                 $limit = $this->count - $offset;
             }
         }
@@ -2622,7 +2633,9 @@ SQL;
             $sql .= "\nHAVING ".implode(' AND ', $this->having);
         }
         $sql .= $this->_getOrderBy();
-        $sql .= "\nLIMIT ".($offset ? $offset.',' : '').(int)$limit;
+        if ($limit !== 'all') {
+            $sql .= "\nLIMIT ".($offset ? $offset.',' : '').(int)$limit;
+        }
 
         $data = $this->getModel()->query($sql)->fetchAll('id');
         if (!$data) {
@@ -3376,7 +3389,17 @@ SQL;
                     }
 
                     if ($parent_feature_ids) {
-                        $features += $this->getModel('feature')->getById(array_keys($parent_feature_ids));
+                        $composite_features = $this->getModel('feature')->getById(array_keys($parent_feature_ids));
+                        foreach ($features as $f) {
+                            if (!empty($f['parent_id']) && !empty($composite_features[$f['parent_id']])) {
+                                $composite_features[$f['parent_id']]['subfeatures'][] = [
+                                    'id' => $f['id'],
+                                    'code' => $f['code'],
+                                    'type' => $f['type'],
+                                ];
+                            }
+                        }
+                        $features += $composite_features;
                     }
                     if (!isset($fields['features'])) {
                         unset($feature_values);

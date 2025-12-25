@@ -85,6 +85,21 @@ class shopSalesChannels
             );
         }
 
+        $sales_channel_model = new shopSalesChannelModel();
+        foreach($sales_channel_model->getAll() as $row) {
+            if ($row['status'] <= 0) {
+                continue;
+            }
+            $id = $row['type'].':'.$row['id'];
+            $result[$id] = [
+                'id' => $id,
+                'type' => 'channel',
+                'name' => $row['name'],
+                'storefront' => null,
+                'icon_url' => wa()->getConfig()->getRootUrl(true).'wa-content/img/userpic.svg', // !!!
+            ];
+        }
+
         $result['pos:'] = [
             'id' => 'pos:',
             'type' => 'manager',
@@ -194,12 +209,25 @@ class shopSalesChannels
                         continue;
                     }
                 }
-
             }
 
             $this->known_channels += $stub_channels;
             $this->sortKnownChannels();
         }
+
+        $all_types = shopSalesChannelType::getAllTypes();
+        foreach ($this->known_channels as &$_channel) {
+            if (preg_match('#^([a-z0-9]+):(\d+)$#', $_channel['id'], $matches)) {
+                foreach ($all_types as $_type) {
+                    if ($_type['id'] === $matches[1] && isset($_type['menu_icon'])) {
+                        $_channel['type'] = $_type['id'];
+                        $_channel['menu_icon'] = $_type['menu_icon'];
+                        break;
+                    }
+                }
+            }
+        }
+        unset($_channel);
 
         return $this->known_channels;
     }

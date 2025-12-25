@@ -88,7 +88,7 @@
                     </button>
                 </div>
                 <template v-if="pages.length">
-                    <div class="blank">
+                    <div class="s-pages-list-wrapper blank">
                         <div class="s-pages-list">
                             <div v-for="page in pages"
                                 v-bind:key="page.id"
@@ -118,10 +118,10 @@
                                 <div class="s-column-actions nowrap"
                                     v-bind:style="{ 'opacity': (is_locked || page.is_locked) ? .5 : '' }">
                                     <button class="nowrap button nobutton light-gray rounded smaller" type="button"
+                                            title="[`Edit`]"
                                             v-bind:disabled="is_locked || page.is_locked"
                                             v-on:click.prevent="editPage(page)">
                                         <span class="s-icon text-blue"><i class="fas fa-pen"></i></span>
-                                        <span class="s-name"> [`Edit`]</span>
                                     </button>
                                     <button class="nowrap button nobutton light-gray rounded smaller" type="button"
                                             title="[`Delete`]"

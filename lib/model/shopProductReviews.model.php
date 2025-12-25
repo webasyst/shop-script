@@ -120,15 +120,16 @@ class shopProductReviewsModel extends waNestedSetModel
 
     public function getProductRates($product_id)
     {
+        $rates = array_fill(0, self::RATE_MAX + 1, 0);
         $sql = "SELECT rate, COUNT(*) c FROM ".$this->table."
                 WHERE product_id = i:0 AND review_id = 0 AND status = '".self::STATUS_PUBLISHED."'
                 GROUP BY rate
                 ORDER BY rate DESC";
-        $result = array();
         foreach ($this->query($sql, $product_id) as $row) {
-            $result[round((float) $row['rate'])] = $row['c'];
+            $rates[round((float) $row['rate'])] += $row['c'];
         }
-        return $result;
+
+        return $rates;
     }
 
     public function getListDefaultOptions()
@@ -521,17 +522,15 @@ class shopProductReviewsModel extends waNestedSetModel
         if (!$product) {
             return;
         }
-        $product_rate = $product_model->query(
-            "SELECT COUNT(spr.id) rating_count, COALESCE(AVG(spr.rate), 0) rating
-            FROM shop_product_reviews spr
-            WHERE spr.product_id = :product_id AND spr.rate IS NOT NULL AND spr.parent_id = 0 AND spr.status IN (:statuses)",
-            [
+        $product_rate = $product_model->query("
+            SELECT COUNT(id) rating_count, SUM(rate)/COUNT(id) rating FROM shop_product_reviews
+            WHERE product_id = i:product_id 
+              AND rate > 0 
+              AND review_id = 0 
+              AND status = s:status
+            ", [
                 'product_id' => $product_id,
-                'statuses'   => [
-                    self::STATUS_PUBLISHED,
-                    self::STATUS_MODERATION,
-                    //self::STATUS_DELETED,
-                ]
+                'status'     => self::STATUS_PUBLISHED
             ]
         )->fetchAssoc();
 

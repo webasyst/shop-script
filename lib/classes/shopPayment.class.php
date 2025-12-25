@@ -451,6 +451,27 @@ class shopPayment extends waAppPayment
             } else {
                 throw new waException('Plugin not found', 404);
             }
+        } else if (!$this->merchant_id && $payment_id === 'pay') {
+            // Load settings for new instance of WA Pay from other payment plugins, if they exist
+            $result = [];
+
+            $provider_field_defaults = [
+                'tbank' => ['plugin' => 'tinkoff', 'defaults' => ['terminal_key' => '', 'terminal_password' => '']],
+                'yookassa' => ['plugin' => 'yandexkassa', 'defaults' => ['shop_id' => '', 'shop_password' => '']],
+            ];
+
+            foreach ($provider_field_defaults as $key => $provider) {
+                $plugin = $this->pluginModel()->getByField('plugin', $provider['plugin']);
+                if ($plugin) {
+                    $settings = $this->model()->get($plugin['id']);
+                    if ($settings) {
+                        foreach ($provider_field_defaults[$key]['defaults'] as $s_key => $s) {
+                            $result[$s_key] = ifset($settings, $s_key, '');
+                        }
+                    }
+                }
+            }
+            return $result;
         }
         return $this->model()->get($this->merchant_id);
     }
@@ -621,6 +642,7 @@ class shopPayment extends waAppPayment
                 if (!$order) {
                     $result['error'] = 'Order not found';
                 } else {
+                    $result['order_state_id'] = $order['state_id'];
                     $appropriate = $this->isSuitable($order['id']);
                     if ($appropriate !== true) {
                         $result['error'] = $appropriate;
@@ -688,7 +710,22 @@ class shopPayment extends waAppPayment
         } else {
             $order_params_model = new shopOrderParamsModel();
 
-            if ($this->merchant_id != $order_params_model->getOne($order_id, 'payment_id')) {
+            $order_payment_id = $order_params_model->getOne($order_id, 'payment_id');
+            if ($this->merchant_id != $order_payment_id) {
+                if (!$order_payment_id) {
+                    // Payment arrived for order that does not have payment plugin selected
+                    // e.g. order paid via QR image on checkout/success page.
+                    // Update payment plugin in order data.
+                    $info = self::getPluginData($this->merchant_id);
+                    if ($info) {
+                        $order_params_model->set($order_id, [
+                            'payment_id' => $this->merchant_id,
+                            'payment_plugin' => $info['plugin'],
+                            'payment_name' => $info['name'],
+                        ], false);
+                        return true;
+                    }
+                }
                 return _w('Order payment method does not match the callback request.');
             }
         }
@@ -714,7 +751,7 @@ class shopPayment extends waAppPayment
                 // Orders made at points of sale should be marked as completed immediately upon payment
                 $order_params_model = new shopOrderParamsModel();
                 $sales_channel = $order_params_model->getOne($transaction_data['order_id'], 'sales_channel');
-                if (substr($sales_channel, 0, 4) === 'pos:') {
+                if (substr($sales_channel, 0, 4) === 'pos:' && ifset($result, 'order_state_id', '') != 'pickup') {
                     $workflow->getActionById('complete')->run($transaction_data['order_id']);
                 }
             }
@@ -922,5 +959,198 @@ class shopPayment extends waAppPayment
         }
         $custom_data['payment_id'] = $plugin->getPluginKey();
         $fiscalization->declareFiscalization('payment', $plugin->getId(), $custom_data);
+    }
+
+    /** 
+     * Returns a list of payment options for given order, using given payment plugins returned by self::getMethodsByOrder().
+     * Additionally, loads $m['instance'] for all and $m['order_data'] for some of the $methods (unless already present in $m).
+     * Removes $methods for which it was unable to load $m['instance'].
+     * 
+     * @since 12.0.0 
+     */
+    public static function getPaymentOptions(array &$methods, shopOrder $order): array
+    {
+        // Create payment plugin instances
+        $ix = 0;
+        foreach($methods as $i => &$m) {
+            try {
+                $m['index'] = $ix++;
+                $m['instance'] = $m['instance'] ?? shopPayment::getPlugin($m['plugin'], $m['id']);
+            } catch (Throwable $e) {
+                unset($methods[$i]);
+            }
+        }
+        unset($m, $ix);
+
+        // Sort payment plugins, fancy modern ones first
+        uasort($methods, function($a, $b) {
+            $aa = $a['instance'] instanceof waIPaymentMultipleOptions;
+            $bb = $b['instance'] instanceof waIPaymentMultipleOptions;
+            if ($aa xor $bb) {
+                return $aa ? -1 : 1;
+            }
+
+            $aa = $a['instance'] instanceof waIPaymentImage;
+            $bb = $b['instance'] instanceof waIPaymentImage;
+            if ($aa xor $bb) {
+                return $aa ? -1 : 1;
+            }
+
+            return $a['index'] <=> $b['index'];
+        });
+
+        // Load payment options for all plugins
+        $payment_options = [];
+        foreach($methods as &$m) {
+            $plugin = $m['instance'];
+            if ($plugin instanceof waIPaymentMultipleOptions) {
+                try {
+                    $m['order_data'] = $m['order_data'] ?? shopPayment::getOrderData($order['id'], $plugin);
+                    $m['payment_options'] = array_values($plugin->paymentOptions($m['order_data']));
+                    foreach ($m['payment_options'] as $i => $opt) {
+                        $payment_options[] = [
+                            'id' => $m['id'],
+                            'plugin' => $plugin->getId(),
+                            'name' => ifset($opt, 'name', $m['name']),
+                            'description' => ifset($opt, 'description', ''),
+                            'logo' => ifset($opt, 'logo', $m['logo']),
+                            'index' => $i,
+                        ];
+                    }
+                } catch (Throwable $e) {
+                }
+            } else {
+                $payment_options[] = [
+                    'id' => $m['id'],
+                    'plugin' => $plugin->getId(),
+                    'name' => $m['name'],
+                    'description' => $m['description'],
+                    'logo' => $m['logo'],
+                    'index' => null,
+                ];
+            }
+        }
+        unset($m);
+
+        return $payment_options;
+    }
+
+    /** @since 12.0.0 */
+    public static function getMethodsByOrder(shopOrder $order): array
+    {
+        $plugin_model = new shopPluginModel();
+        $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_PAYMENT);
+
+        $currencies = wa('shop')->getConfig()->getCurrencies();
+        $order_has_frac = shopFrac::itemsHaveFractionalQuantity($order->items);
+        $order_has_units = shopUnits::itemsHaveCustomStockUnits($order->items);
+
+        foreach ($methods as $method_index => &$m) {
+            // Some plugins are disabled
+            if (empty($m['available']) || !empty($m['info']['pos_initiates_payment'])) {
+                unset($methods[$method_index]);
+                continue;
+            }
+
+            try {
+                $plugin = shopPayment::getPlugin($m['plugin'], $m['id']);
+                $plugin_info = $plugin->info($plugin->getId());
+                $m['icon'] = ifset($plugin_info, 'icon', null);
+                if (!self::isPaymentMethodApplicable($plugin, $order_has_units, $order_has_frac, $plugin_info, $currencies)) {
+                    unset($methods[$method_index]);
+                }
+            } catch (waException $ex) {
+                unset($methods[$method_index]);
+            }
+        }
+        unset($m);
+
+        return $methods;
+    }
+
+    /** @since 12.0.0 */
+    public static function isPaymentMethodApplicable(waPayment $plugin, bool $order_has_units, bool $order_has_frac, ?array $plugin_info=null, ?array $currencies=null): bool
+    {
+        try {
+            if ($currencies === null) {
+                $currencies = wa('shop')->getConfig()->getCurrencies();
+            }
+            $plugin_id = $plugin->getId();
+            if ($plugin_info === null) {
+                $plugin_info = $plugin->info($plugin_id);
+            }
+            $allowed_currencies = $plugin->allowedCurrency();
+            if ($allowed_currencies !== true) {
+                $allowed_currencies = (array)$allowed_currencies;
+                if (!array_intersect($allowed_currencies, array_keys($currencies))) {
+                    //$format = _w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.');
+                    //throw new waException(sprintf($format, implode(', ', $allowed_currencies)));
+                    return false;
+                }
+            }
+
+            if ($order_has_units && shopUnits::stockUnitsEnabled()) {
+                if (!isset($plugin_info['stock_units'])) {
+                    $plugin_mode = shopFrac::getPluginFractionalMode($plugin_id, shopFrac::PLUGIN_MODE_UNITS);
+                    if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_DISABLED) {
+                        // Store admin disabled this payment method for orders containing custom stock units
+                        return false;
+                    }
+                } else if ($plugin_info['stock_units'] !== true) {
+                    // Plugin declared it does not support custom stock units
+                    return false;
+                }
+            }
+            if ($order_has_frac && shopFrac::isEnabled()) {
+                if (!isset($plugin_info['fractional_quantity'])) {
+                    $plugin_mode = shopFrac::getPluginFractionalMode($plugin_id);
+                    if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_DISABLED) {
+                        // Store admin disabled this payment method for orders containing fractional quantities
+                        return false;
+                    }
+                } else if ($plugin_info['fractional_quantity'] !== true) {
+                    // Plugin declared it does not support fractional quantities
+                    return false;
+                }
+            }
+            return true;
+        } catch (waException $ex) {
+            return false;
+        }
+    }
+
+    /** @since 12.0.0 */
+    public static function getPaymentImage(&$methods, $order)
+    {
+        $payment_image = null;
+        foreach($methods as &$m) {
+            $plugin = $m['instance'] = $m['instance'] ?? shopPayment::getPlugin($m['plugin'], $m['id']);
+            if (!$payment_image && self::pluginSupportsQRCode($plugin)) {
+                $m['order_data'] = $m['order_data'] ?? shopPayment::getOrderData($order['id'], $plugin);
+                try {
+                    $payment_image = $plugin->image($m['order_data']);
+                    if ($payment_image && is_array($payment_image)) {
+                        $payment_image = [
+                            'id' => $m['id'],
+                            'index' => '',
+                        ] + $payment_image + [
+                            'name' => $m['name'],
+                            'description' => $m['description'],
+                            'logo' => $m['logo'],
+                        ];
+                    }
+                    break;
+                } catch (Throwable $e) {
+                }
+            }
+        }
+        unset($m);
+        return $payment_image;
+    }
+
+    protected static function pluginSupportsQRCode($plugin)
+    {
+        //return $plugin instanceof waIPaymentImage;
+        return $plugin instanceof waPayPayment;
     }
 }

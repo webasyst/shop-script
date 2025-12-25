@@ -13,6 +13,7 @@
             that.urls = options["urls"];
             that.templates = options["templates"];
             that.context = options["context"];
+            that.sidebar_toggle_class = options["sidebar_toggle_class"];
 
             that.sidebar = that.initSidebar();
             that.product_uri = options["product_uri"];
@@ -37,6 +38,8 @@
             that.$wrapper.on("change_product_name", function(event, product_name) {
                 $product_name.text(product_name);
             });
+
+            that.initMobileSidebar();
         };
         /**
          * @deprecated
@@ -291,6 +294,24 @@
 
                 return deferred.promise();
             }
+        };
+
+        Page.prototype.initMobileSidebar = function() {
+            const that = this;
+            that.$wrapper.find('.js-show-mobile-sidebar').on('click', () => {
+                that.$wrapper.addClass(that.sidebar_toggle_class);
+
+                that.$wrapper.find('.js-hide-mobile-sidebar').one('click', () => {
+                    that.$wrapper.removeClass(that.sidebar_toggle_class);
+                });
+            });
+
+            const loadWatcher = () => {
+                if (that.$wrapper.hasClass(that.sidebar_toggle_class)) {
+                    that.$wrapper.removeClass(that.sidebar_toggle_class);
+                }
+            };
+            $(document).on("wa_loaded", loadWatcher);
         };
 
         return Page;

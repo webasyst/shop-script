@@ -469,7 +469,7 @@
                                     <span>{_w('The product is displayed in %d storefront', 'The product is displayed in %d storefronts', count($formatted_product.storefronts))}</span>
                                 </div>
                                 <div class="value middle tablebox">
-                                    <ul class="wa-list s-storefronts-list js-storefronts-list">
+                                    <ul class="s-storefronts-list js-storefronts-list">
                                         {foreach $formatted_product.storefronts as $_front}
                                             <li>
                                                 <a href="{$_front.url|escape}" target="_blank">{$_front.url|escape}</a>

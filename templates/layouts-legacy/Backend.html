@@ -87,6 +87,11 @@
                         </li>
                         {$rightmost_li_margin = ''}
                     {/if}
+                    {if $wa->userRights('design')}
+                        <li class="small float-right{if $page=='saleschannels'} selected{else} no-tab{/if}">
+                            <a href="{$wa_app_url}?action=saleschannels">[`Channels`]</a>
+                        </li>
+                    {/if}
 
                     <!-- plugin hook: 'backend_menu.aux_li' -->
                     {* @event backend_menu.%plugin_id%.aux_li *}

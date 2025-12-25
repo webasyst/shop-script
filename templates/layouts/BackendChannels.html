@@ -1,0 +1,30 @@
+<script src="{$wa_app_static_url}js/backend/marketing/content_router.js?v={$wa->version()}"></script>
+<script>(function($) { "use strict";
+    window.wa_app = {$wa->app()|json_encode};
+    window.wa_url = {$wa_url|json_encode};
+})(jQuery);</script>
+
+<div class="s-channels-content height-100 not-blank" id="js-channels-content">{$content}</div>
+<script>(function($) { "use strict";
+    $.shop.channels_router = new ContentRouter({
+        $content: $("#js-channels-content"),
+        app_url: {"`$wa_app_url`channels"|json_encode},
+        onLoaded: function() {
+            updateTitle();
+            hideSkeleton();
+            document.documentElement.scrollIntoView();
+        }
+    });
+    updateTitle();
+    hideSkeleton();
+
+    function updateTitle() {
+        document.title = $('#js-channels-content h1').text() + " — {$wa->accountName(false)|escape:javascript}";
+    }
+
+    function hideSkeleton() {
+        if ('skeletonLoader' in $) {
+            $.skeletonLoader.hide();
+        }
+    }
+})(jQuery);</script>

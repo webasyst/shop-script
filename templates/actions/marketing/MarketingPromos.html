@@ -456,7 +456,11 @@
                         {/if}
                     {/foreach}
                     {$_url_params = substr($_url_params, 1)}
-                    {$wa->shop->pager($total_completed_promos|default:0, $page, $_url_params)}
+                    {wa_pagination
+                        page=$page
+                        total=ceil($total_completed_promos/20)
+                        attrs=['class' => "menu s-paginator-menu"]
+                    }
                     </div>
                     </div>
                 {else}
@@ -587,7 +591,7 @@
                         sort_notice_dialog: {$_sort_notice_dialog|json_encode}
                     },
                     urls: {
-                        sort: "{$wa_app_url}?module=marketingPromo&action=sort&storefront="+{ifset($active_storefront)|urlencode|json_encode},
+                        sort: "{$wa_app_url}?module=marketingPromo&action=sort&storefront="+{ifset($active_storefront, '')|urlencode|json_encode},
                         status: "{$wa_app_url}?module=marketingPromoEnabled"
                     }
                 });

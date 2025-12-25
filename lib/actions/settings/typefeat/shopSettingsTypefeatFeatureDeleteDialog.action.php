@@ -22,7 +22,7 @@ class shopSettingsTypefeatFeatureDeleteDialogAction extends waViewAction
         }
 
         if (!$can_delete_feature) {
-            $notice_html = _w('You cannot delete this feature, because some products in your store have SKUs generated from this feature’s values in “Selectable parameters” mode.');
+            $notice_html = _w('You cannot delete this feature because some existing products’ variants have been generated from its values.');
         } else {
             $product_features_model = new shopProductFeaturesModel();
             $feature_ids = array_keys($feature_model->select('id')->where('parent_id='.intval($feature['id']))->fetchAll('id'));

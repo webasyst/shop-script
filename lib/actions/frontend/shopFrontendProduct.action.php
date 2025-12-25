@@ -346,15 +346,6 @@ class shopFrontendProductAction extends shopFrontendAction
             $this->view->assign('sku_features', $used_features);
         }
 
-
-        $this->view->assign('currency_info', $this->getCurrencyInfo());
-        $this->view->assign('stocks', shopHelper::getStocks(true));
-
-        $units = shopHelper::getUnits();
-        $this->view->assign('units', $units);
-        $this->view->assign('formatted_units', shopFrontendProductAction::formatUnits($units));
-        $this->view->assign('fractional_config', shopFrac::getFractionalConfig());
-
         /**
          * @event frontend_product
          * @param shopProduct $product
@@ -363,7 +354,16 @@ class shopFrontendProductAction extends shopFrontendAction
          * @return array[string][string]string $return[%plugin_id%]['block_aux'] html output
          * @return array[string][string]string $return[%plugin_id%]['block'] html output
          */
-        $this->view->assign('frontend_product', wa()->event('frontend_product', $product, array('menu', 'cart', 'block_aux', 'block')));
+        $stocks = shopHelper::getStocks(true);
+        $units = shopHelper::getUnits();
+            $this->view->assign([
+            'units' => $units,
+            'currency_info' => $this->getCurrencyInfo(),
+            'stocks' => $stocks,
+            'formatted_units' => shopFrontendProductAction::formatUnits($units),
+            'fractional_config' => shopFrac::getFractionalConfig(),
+            'frontend_product' => wa()->event('frontend_product', $product, array('menu', 'cart', 'block_aux', 'block'))
+        ]);
 
         // default title and meta fields
         if (!$is_cart && !empty($meta_fields)) {

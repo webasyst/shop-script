@@ -51,6 +51,7 @@ class shopFrontendApiProductReviewsController extends shopFrontApiJsonController
         $formatter = new shopFrontApiProductReviewFormatter([
             'comments_as_tree' => (boolean) $return_tree,
             'max_depth' => $depth,
+            'use_gravatar' => true,
         ]);
         $reviews = array_map([$formatter, 'format'], $reviews);
 

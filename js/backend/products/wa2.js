@@ -3110,11 +3110,14 @@
                 return;
             }
 
+            this.is_open = !this.is_open;
+
             if (event) {
                 event.preventDefault();
+                if (event.type === 'wa_loaded') {
+                    this.is_open = false;
+                }
             }
-
-            this.is_open = !this.is_open;
 
             window.scrollTo({
                 top:0,
@@ -3123,7 +3126,7 @@
 
             this.$toggler.siblings().each((i, el) => {
                 if (el.nodeName !== 'SCRIPT' && el.nodeName !== 'STYLE') {
-                    $(el).slideToggle(400, function () {
+                    $(el)[this.is_open ? 'slideDown' : 'slideUp'](400, function () {
                         const self = $(this);
 
                         if (self.is(':hidden')) {
@@ -3585,7 +3588,9 @@ var Tooltip = ( function($) {
     var Observer = ( function($) {
 
         Observer = function(options) {
-            var that = this;
+            if ('ontouchstart' in window || navigator.maxTouchPoints) {
+                return;
+            }
 
             this.init();
         };

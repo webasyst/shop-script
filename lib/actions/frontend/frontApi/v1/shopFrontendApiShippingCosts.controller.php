@@ -17,7 +17,7 @@ class shopFrontendApiShippingCostsController extends shopFrontApiJsonController
             throw new waAPIException('required_param', sprintf_wp('Missing required parameter: %s.', 'customer_token'), 400);
         }
 
-        $address = waRequest::request('address', null, waRequest::TYPE_ARRAY);
+        $address = waRequest::request('address', [], waRequest::TYPE_ARRAY);
         $address = array_intersect_key($address, ['country' => 1, 'city' => 1, 'region' => 1, 'zip' => 1]);
         $address = array_filter($address, function($v) {
             return is_string($v);
@@ -77,6 +77,10 @@ class shopFrontendApiShippingCostsController extends shopFrontApiJsonController
         foreach ($services_flat as $s_id => $s) {
             if (!isset($s['type']) || !isset($shipping_types[$s['type']])) {
                 continue;
+            }
+
+            if (is_array($s['rate'])) {
+                $s['rate'] = $s['rate'] ? min($s['rate']) : 0;
             }
 
             // Apply free shipping coupon if set

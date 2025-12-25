@@ -131,7 +131,7 @@
             this.initWaLoading();
 
             this.$wrapper.on('wa_init_orders_nav_before', (e, options) => {
-                if (['orders/all', 'orders/state_id=new|processing|auth|paid'].includes(this.hash)) {
+                if (['orders/all', 'orders/state_id=new|processing|auth|paid|pickup'].includes(this.hash)) {
                     this.setFiltersHashStorage(this.hash);
                 }
             });
@@ -357,7 +357,7 @@
             const that = this;
             const search_hash = 'hash=search';
             const allowed_filters_mask = ['params.', 'state_id=', 'courier_contact_id='];
-            const states_processing = 'state_id=new|processing|auth|paid';
+            const states_processing = 'state_id=new|processing|auth|paid|pickup';
 
             const highlightedButton = (dropdown) => {
                 dropdown.$button.css({
@@ -743,7 +743,7 @@
             }
 
             let show_filters = true;
-            const states_processing = "new|processing|auth|paid";
+            const states_processing = "new|processing|auth|paid|pickup";
             if (params === 'hash') {
                 params = {
                     hash: Array.prototype.slice.call(arguments, 1).join('/')

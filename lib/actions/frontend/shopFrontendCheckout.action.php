@@ -139,11 +139,20 @@ class shopFrontendCheckoutAction extends waViewAction
         if (!$order_id) {
             wa()->getResponse()->redirect(wa()->getRouteUrl('shop/frontend'));
         }
+
+        $route = wa()->getRouting()->getRoute();
+        if (2 == ifset($route, 'checkout_version', null)) {
+            $checkout_config = new shopCheckoutConfig(ifset($route, 'checkout_storefront_id', null));
+        }
+
         $order_model = new shopOrderModel();
         $order = $order_model->getById($order_id);
-        if ($order) {
-            $order['_id'] = $order['id'];
+        if (!$order) {
+            $order = $order_model->getEmptyRow();
         }
+        $order['_id'] = $order_id;
+        $order['id'] = shopHelper::encodeOrderId($order_id);
+        $payment_success = $payment_success || !empty($order['paid_date']);
         if (!$payment_success) {
             $order_params_model = new shopOrderParamsModel();
             $order['params'] = $order_params_model->get($order_id);
@@ -151,34 +160,34 @@ class shopFrontendCheckoutAction extends waViewAction
             $order['items'] = $order_items_model->getByField('order_id', $order_id, true);
             shopOrderItemsModel::sortItemsByGeneralSettings($order['items']);
 
+            if (!empty($checkout_config)) {
+                $auto_submit = isset($checkout_config['confirmation']['auto_submit']) ? $checkout_config['confirmation']['auto_submit'] : true;
+            } else {
+                $auto_submit = true;
+            }
+
             $payment = '';
-            if (!empty($order['params']['payment_id'])) { # order has related payment plugin
-                $workflow = new shopWorkflow();
-                /** @var shopWorkflowState $state */
-                $state = $workflow->getStateById($order['state_id']);
-                if ($state->paymentAllowed()) { # order state allow payment
+            $workflow = new shopWorkflow();
+            /** @var shopWorkflowState $state */
+            $state = $workflow->getStateById($order['state_id']);
+            if ($state->paymentAllowed()) { # order state allow payment
+                if (!empty($order['params']['payment_id'])) { # order has related payment plugin
                     try {
                         /** @var waPayment $plugin */
                         $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
-                        $route = wa()->getRouting()->getRoute();
-                        if (2 == ifset($route, 'checkout_version', null)) {
-                            $checkout_config = new shopCheckoutConfig($route['checkout_storefront_id']);
-                            $auto_submit = isset($checkout_config['confirmation']['auto_submit']) ? $checkout_config['confirmation']['auto_submit'] : true;
-                        } else {
-                            $auto_submit = true;
-                        }
-                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), $auto_submit);
+                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData(['id' => $order_id] + $order, $plugin), $auto_submit);
                     } catch (waException $ex) {
                         $payment = $ex->getMessage();
                     }
-                } else {
-                    $payment = $state->paymentNotAllowedText();
+                } else if ($auto_submit) {
+                    $payment = (new shopFrontendCheckoutSuccessPaymentSelectionAction([
+                        'order_id' => $order_id,
+                    ]))->display();
                 }
+            } else {
+                $payment = $state->paymentNotAllowedText();
             }
-            $order['id'] = shopHelper::encodeOrderId($order_id);
             $this->addGoogleAnalytics($order, $order_id);
-        } else {
-            $order['id'] = shopHelper::encodeOrderId($order_id);
         }
         $this->view->assign('order', $order);
         if (isset($payment)) {
@@ -186,10 +195,8 @@ class shopFrontendCheckoutAction extends waViewAction
         }
 
         // Header and message depend on current used checkout version
-        $route = wa()->getRouting()->getRoute();
         $this->view->assign('my_order_url', wa()->getRouteUrl('shop/frontend/myOrder', ['id' => $order['_id']]));
-        if (2 == ifset($route, 'checkout_version', null)) {
-            $checkout_config = new shopCheckoutConfig(ifset($route, 'checkout_storefront_id', null));
+        if (!empty($checkout_config)) {
             $this->view->assign([
                 'thankyou_header' => $checkout_config['confirmation']['thankyou_header'],
                 'thankyou_content' => $checkout_config['confirmation']['thankyou_content'],

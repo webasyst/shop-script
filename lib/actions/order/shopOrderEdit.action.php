@@ -454,6 +454,19 @@ class shopOrderEditAction extends waViewAction
     {
         $list = new shopStorefrontList();
         $storefronts = $list->fetchAll(array('contact_type'));
+
+        $channels = (new shopSalesChannelModel())->getAll();
+        foreach ($channels as $_channel) {
+            $storefronts[] = [
+                'url' => $_channel['type'].':'.$_channel['id'],
+                'url_decoded' => $_channel['name'],
+                'contact_type' => [
+                    shopCustomer::TYPE_PERSON => ['enabled' => true],
+                    shopCustomer::TYPE_COMPANY => ['enabled' => true],
+                ]
+            ];
+        }
+
         return $storefronts;
     }
 

@@ -2,6 +2,10 @@
     <div class="flexbox middle space-4">
         <img class="userpic userpic-20" src="{$current_author.photo_url_20}">
         <span>{$current_author.name|escape}</span>
+        <button type="button" class="button nobutton gray smaller custom-ml-6 js-ai-answer-button">
+            <span class="icon webasyst-magic-wand-ai"></span>
+            [`Answer with AI`]
+        </button>
     </div>
     <p>
         <textarea name="text"></textarea>

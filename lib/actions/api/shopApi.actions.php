@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Sales channels / Site / Headless section in main menu
+ */
 class shopApiActions extends waActions
 {
     private function checkRight()

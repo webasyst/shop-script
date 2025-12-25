@@ -100,7 +100,6 @@ class shopWorkflowPayAction extends shopWorkflowAction
         } else {
             $order_id = $params;
         }
-        $data = parent::postExecute($order_id, $result);
 
         if (is_array($order_id)) {
             $order = $order_id;
@@ -108,6 +107,11 @@ class shopWorkflowPayAction extends shopWorkflowAction
         } else {
             $order = $this->order_model->getById($order_id);
         }
+
+        if (ifset($order, 'state_id', '') == 'pickup') {
+            $this->state_id = 'pickup';
+        }
+        $data = parent::postExecute($order_id, $result);
 
         if ($order !== null) {
             shopCustomer::recalculateTotalSpent($order['contact_id']);

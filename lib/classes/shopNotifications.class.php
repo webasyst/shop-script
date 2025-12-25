@@ -979,7 +979,7 @@ SQL;
                     $push_data = array(
                         'title' => $notification_text,
                         'message' => _w('Current order status') . ' ' . $workflow->getStateById($data['order']['state_id'])->getName(),
-                        'url' => $shop_orders_app_url . '#/orders/state_id=new|processing|auth|paid&id=' . $data['order']['id'] . '/',
+                        'url' => $shop_orders_app_url . '#/orders/state_id=new|processing|auth|paid|pickup&id=' . $data['order']['id'] . '/',
                     );
 
                     // Send web push notification

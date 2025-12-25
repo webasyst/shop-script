@@ -734,7 +734,7 @@ SQL;
                 'id'       => $f['id'],
                 'value'    => $code,
                 'name'     => $f['name'],
-                'label'    => sprintf('<span title="%s; %s">%s </span><span class="hint">%s</span>', $label['type'], $label['count'], $label['name'], $code),
+                'label'    => sprintf('<span title="%s; %s">%s </span><p class="hint">%s</p>', $label['type'], $label['count'], $label['name'], $code),
                 'type'     => $f['type'],
                 'multiple' => !!$f['multiple'],
             );

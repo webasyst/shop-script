@@ -89,7 +89,7 @@ class shopAiApiRequest
         $result = [];
         foreach ($this->sections as $s) {
             $section = [
-                'title' => $s['title'],
+                'title' => ifset($s, 'title', ''),
                 'fields' => [],
             ];
             foreach ($s['fields'] as $f_id) {

@@ -338,7 +338,8 @@ class shopConfig extends waAppConfig
                          'country'                       => '',
                          'order_format'                  => $this->getOrderFormat(),
                          'order_noproduct_item_name'     => wa()->getSetting('order_noproduct_item_name', '', 'shop'),
-                         'use_gravatar'                  => 1,
+                         'pickup_require_pin'            => 0,
+                         'use_gravatar'                  => 0,
                          'map'                           => 'google',
                          'gravatar_default'              => 'custom',
                          'require_captcha'               => 1, // is captcha is required for add reviews

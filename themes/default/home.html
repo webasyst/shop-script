@@ -21,96 +21,6 @@
                     {/if}
                 {/if}
             </h3>
-            {if !empty($theme_settings.use_shop_schedule) && method_exists($wa->shop, 'schedule')}
-                {$_schedule = $wa->shop->schedule()}
-
-                <div class="s-schedule-wrapper" id="js-schedule-wrapper">
-                    <div class="s-visible">
-                        <div class="s-label-wrapper js-show-schedule" title="[`Business hours`]">
-                            [`Business hours`] <i class="s-icon"></i>
-                        </div>
-                    </div>
-                    <div class="s-hidden">
-                        <div class="s-days-wrapper">
-                            {foreach $_schedule.current_week as $_day}
-                                <div class="s-day-wrapper wa-flex justify-content-between">
-                                    <div class="s-date">{$_day.name|escape}</div>
-                                    <div class="s-day-dot-divider wa-flex-fill"></div>
-                                    <div class="s-value">
-                                        {if !empty($_day.work)}
-                                            <div class="s-time">{$_day.start_work|escape} — {$_day.end_work|escape}</div>
-                                        {else}
-                                            <div class="s-text">[`day off`]</div>
-                                        {/if}
-                                    </div>
-                                </div>
-                            {/foreach}
-                        </div>
-                        <span class="s-close-icon js-close-schedule" title="[`Close`]">
-                            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" version="1.1" preserveAspectRatio="xMinYMin">
-                                <use xlink:href="#img-close"></use>
-                            </svg>
-                        </span>
-                    </div>
-
-                    <script>
-                        ( function($) {
-                            var $wrapper = $("#js-schedule-wrapper");
-
-                            var open_class = "is-open";
-
-                            $wrapper.on("click", ".js-show-schedule", function(event) {
-                                event.preventDefault();
-                                $wrapper.toggleClass(open_class);
-                            });
-
-                            $wrapper.on("click", ".js-close-schedule", function(event) {
-                                event.preventDefault();
-                                $wrapper.removeClass(open_class);
-                            });
-
-                            $(document).on("click", clickWatcher);
-                            function clickWatcher(event) {
-                                var is_exist = $.contains(document, $wrapper[0]);
-                                if (is_exist) {
-                                    var is_target = $.contains($wrapper[0], event.target);
-                                    if (!is_target) {
-                                        if ($wrapper.hasClass(open_class)) {
-                                            $wrapper.removeClass(open_class);
-                                        }
-                                    }
-                                } else {
-                                    $(document).off("click", clickWatcher);
-                                }
-                            }
-
-                            $(document).on("keyup", keyWatcher);
-                            function keyWatcher(event) {
-                                var is_exist = $.contains(document, $wrapper[0]);
-                                if (is_exist) {
-                                    var is_escape = (event.keyCode === 27);
-                                    if (is_escape) {
-                                        if ($wrapper.hasClass(open_class)) {
-                                            $wrapper.removeClass(open_class);
-                                        }
-                                    }
-                                } else {
-                                    $(document).off("click", keyWatcher);
-                                }
-                            }
-                        })(jQuery);
-                    </script>
-                </div>
-
-            {elseif !empty($theme_settings.manual_schedule)}
-                <div class="s-schedule-wrapper">
-                    <div class="s-visible">
-                        <div class="s-label-wrapper">
-                            <span class="s-text">{$theme_settings.manual_schedule|escape}</span>
-                        </div>
-                    </div>
-                </div>
-            {/if}
 
             <meta itemprop="address" content="{$wa->shop->settings('country')}">
             <meta itemprop="currenciesAccepted" content="{$wa->shop->currency()}">
@@ -162,29 +72,14 @@
         {/if}
     </section>
 
-    <!-- FOLLOW -->
-    <aside class="connect">
-        {if !empty($theme_settings.facebook_likebox_code)}
+    {*
+        <!-- FOLLOW -->
+        <aside class="connect">
             <div class="likebox">
-                {$theme_settings.facebook_likebox_code}
+                 your custom social code widgets
             </div>
-        {/if}
-        {if !empty($theme_settings.twitter_timeline_code)}
-            <div class="likebox">
-                {$theme_settings.twitter_timeline_code}
-            </div>
-        {/if}
-        {if !empty($theme_settings.vk_widget_code)}
-            <div class="likebox">
-                {$theme_settings.vk_widget_code}
-            </div>
-        {/if}
-        {*
-        <div class="likebox">
-             your custom social widget
-        </div>
-        *}
-    </aside>
+        </aside>
+    *}
 
 </div>
     {/strip}
@@ -199,11 +94,7 @@
         {$bestsellers = $wa->shop->productSet( $theme_settings.homepage_productset_bestsellers )}
     {/if}
 
-    {if !empty($theme_settings.homepage_productset_promo) && $theme_settings.homepage_bxslider_mode !== 'promos' && $theme_settings.homepage_bxslider_mode !== 'hidden'}
-        {$promoproducts = $wa->shop->productSet( $theme_settings.homepage_productset_promo )}
-    {/if}
-
-    {if empty($promocards) && empty($promoproducts) && empty($bestsellers)}
+    {if empty($promocards) && empty($bestsellers)}
 
         {* DUMMY WELCOME SCREEN *}
         {$_content_exist = false}
@@ -214,38 +105,14 @@
 
     {else}
 
-        {if $theme_settings.homepage_bxslider_mode !== 'hidden'}
-            {* PROMO CARDS SLIDER *}
-            {if $theme_settings.homepage_bxslider_mode === 'promos'}
-                {if !empty($promocards)}
-                    {include file="./home.slider.html" inline}
-                {/if}
-            {* PROMO PRODUCTS SLIDER *}
-            {else}
-                {if !empty($promoproducts)}
-                    {include file="./home.slider.html" inline}
-                {/if}
-            {/if}
-        {/if}
-
-        {* PROMO CARDS *}
-        {if !empty($promocards) && !empty($theme_settings.homepage_promocards_below_the_slider)}
-            <section class="promos">
-                <ul>
-                    {foreach $promocards as $promo}<li id="s-promo-{$promo.id}">
-                        <a href="{$promo.link|escape}" style="background-image: url('{$promo.image}');">
-                            <div class="background-color-layer"></div>
-                            {if !empty($promo.title)}<h5 style="color: {$promo.color};">{$promo.title|escape}</h5>{/if}
-                            {* if !empty($promo.body)}<p style="color: {$promo.color};">{$promo.body|escape}</p>{/if *}
-                        </a>
-                    </li>{/foreach}
-                </ul>
-            </section>
+        {* PROMO CARDS SLIDER *}
+        {if !empty($promocards)}
+            {include file="./home.slider.html" inline}
         {/if}
 
         {* BESTSELLERS *}
         {if !empty($bestsellers) && !empty($theme_settings.homepage_productset_bestsellers)}
-            <section class="bestsellers">
+            <section class="bestsellers wa-pt-16">
                 {if !empty($theme_settings.homepage_bestsellers_title)}
                     <h5 class="bestsellers-header">{str_replace('{$date}', $smarty.now|wa_datetime:"humandate", $theme_settings.homepage_bestsellers_title)}</h5>
                 {/if}
@@ -265,13 +132,6 @@
 {/if}
 
 {if !empty($_content_exist)}
-    <!-- WELCOME note -->
-    {if !empty($theme_settings.homepage_welcome_note)}
-        <figure class="olives">
-            {$theme_settings.homepage_welcome_note}
-        </figure>
-    {/if}
-
     <!-- ON SALE product list -->
     {if !empty($theme_settings.homepage_productset_onsale)}
         {$onsale = $wa->shop->productSet( $theme_settings.homepage_productset_onsale )}
@@ -290,21 +150,27 @@
         {$blog_posts = $wa->blog->posts(null,3)}
         {if is_countable($blog_posts) && count($blog_posts)}
             <h4 class="section-header">[`Latest blog updates`]</h4>
-            <ul class="cards blog-posts row gap20 cols1-mobile cols2-tablet wa-pt-16">
+            <ul class="blog-posts unstyled row gap20 cols1-mobile cols2-tablet wa-pt-16">
                 {foreach $blog_posts as $post}
-                    <li class="col w4 card">
+                    <li class="col w4 wa-flex wa-flex-column">
                         {if !empty($post.thumb_image)}
-                            <img class="card-img" src="{$post.thumb_image}" alt="{$post.title}">
+                            <img class="wa-mb-16" src="{$post.thumb_image}" alt="{$post.title}">
                         {/if}
-                        <div class="card-body wa-flex wa-flex-column">
-                            <p class="text-gray wa-mb-8">{$post.datetime|wa_datetime:"humandate"}</p>
-                            <a href="{$post.link}" title="{$post.title|escape}" class="card-title">{$post.title|escape}</a>
-                            <p class="card-text gray">{strip_tags($post.text)|truncate:128}</p>
-                            <a class="card-read-more wa-mt-auto" href="{$post.link}" title="{$post.title|escape}">[`Read more`]</a>
+                        <div class="wa-flex wa-flex-column">
+                            <p class="text-gray wa-mb-8 small">{$post.datetime|wa_datetime:"humandate"}</p>
+                            <a href="{$post.link}" title="{$post.title|escape}" class="semibold text-black-auto large wa-mb-12">{$post.title|escape}</a>
+                            <p class="gray">{strip_tags($post.text)|truncate:128}</p>
                         </div>
                     </li>
                 {/foreach}
             </ul>
         {/if}
+    {/if}
+
+    <!-- WELCOME note -->
+    {if !empty($theme_settings.homepage_welcome_note)}
+        <div class="welcome-note large gray">
+            {$theme_settings.homepage_welcome_note}
+        </div>
     {/if}
 {/if}

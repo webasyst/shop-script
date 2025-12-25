@@ -83,23 +83,25 @@
                                         </div>
                                         <div class="s-section-body">
                                             <div class="alert small">
-                                                <div class="flexbox space-8">
-                                                    <div class="message-icon">
-                                                        {if !empty($cross_selling.description)}
-                                                            <i class="fas fa-check text-green"></i>
-                                                        {else}
-                                                            <i class="fas fa-ban text-orange"></i>
-                                                        {/if}
+                                                <div class="flexbox space-8 full-width wrap">
+                                                    <div class="flexbox space-8">
+                                                        <div class="message-icon">
+                                                            {if !empty($cross_selling.description)}
+                                                                <i class="fas fa-check text-green"></i>
+                                                            {else}
+                                                                <i class="fas fa-ban text-orange"></i>
+                                                            {/if}
+                                                        </div>
+                                                        <div class="message-body">
+                                                            {if !empty($cross_selling.description)}
+                                                                <div>{sprintf(_w( "Recommendations defined for product type “%s”:" ), $product["type"]["name"]|default:"")}</div>
+                                                                <div class="italic">{$cross_selling.description}</div>
+                                                            {else}
+                                                                <p class="italic">{sprintf(_w( "Recommended complementary products for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
+                                                            {/if}
+                                                        </div>
                                                     </div>
-                                                    <div class="message-body wide">
-                                                        {if !empty($cross_selling.description)}
-                                                            <div>{sprintf(_w( "Recommendations defined for product type “%s”:" ), $product["type"]["name"]|default:"")}</div>
-                                                            <div class="italic">{$cross_selling.description}</div>
-                                                        {else}
-                                                            <p class="italic">{sprintf(_w( "Recommended complementary products for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
-                                                        {/if}
-                                                    </div>
-                                                    <div class="message-actions middle">
+                                                     <div class="message-actions middle">
                                                         <a class="button nobutton rounded nowrap small" href="{$wa_app_url}marketing/recommendations/" target="_blank">
                                                             <span class="s-icon"><i class="fas fa-cog"></i></span>
                                                             <span class="s-name"> [`Options`] </span>
@@ -193,21 +195,23 @@
                                         </div>
                                         <div class="s-section-body">
                                             <div class="alert small">
-                                                <div class="flexbox space-8">
-                                                    <div class="message-icon">
-                                                        {if !empty($upselling.description)}
-                                                            <i class="fas fa-check text-green"></i>
-                                                        {else}
-                                                            <i class="fas fa-ban text-orange"></i>
-                                                        {/if}
-                                                    </div>
-                                                    <div class="message-body wide">
-                                                        {if !empty($upselling.description)}
-                                                            <p class="italic text-gray">{sprintf(_w( "Recommendations defined for product type “%s”:" ), $product["type"]["name"]|default:"")}</p>
-                                                            <p class="italic text-black-light">{$upselling.description}</p>
-                                                        {else}
-                                                            <p class="italic">{sprintf(_w( "Upselling recommendations for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
-                                                        {/if}
+                                                <div class="flexbox space-8 full-width wrap">
+                                                    <div class="flexbox space-8">
+                                                        <div class="message-icon">
+                                                            {if !empty($upselling.description)}
+                                                                <i class="fas fa-check text-green"></i>
+                                                            {else}
+                                                                <i class="fas fa-ban text-orange"></i>
+                                                            {/if}
+                                                        </div>
+                                                        <div class="message-body wide">
+                                                            {if !empty($upselling.description)}
+                                                                <p class="italic text-gray">{sprintf(_w( "Recommendations defined for product type “%s”:" ), $product["type"]["name"]|default:"")}</p>
+                                                                <p class="italic text-black-light">{$upselling.description}</p>
+                                                            {else}
+                                                                <p class="italic">{sprintf(_w( "Upselling recommendations for product type “%s” are not defined." ), $product["type"]["name"]|default:"")}</p>
+                                                            {/if}
+                                                        </div>
                                                     </div>
                                                     <div class="message-actions middle">
                                                         <a class="button nobutton rounded nowrap small" href="{$wa_app_url}marketing/recommendations/" target="_blank">

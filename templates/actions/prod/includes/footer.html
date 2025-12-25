@@ -10,7 +10,7 @@
 
             {if !empty($frontend_urls)}
                 {$_front = reset($frontend_urls)}
-                <a class="button nobutton" href="{$_front.url|escape}" target="_blank"><i class="fas fa-external-link-square-alt"></i> [`View in the storefront`]</a>
+                <a class="button nobutton custom-mt-16-mobile" href="{$_front.url|escape}" target="_blank"><i class="fas fa-external-link-square-alt"></i> [`View in the storefront`]</a>
             {/if}
         </div>
 
@@ -18,7 +18,7 @@
             <div class="column align-right">
                 <button class="button red outlined js-product-delete" type="button">
                     <span class="icon top"><i class="fas fa-trash-alt"></i></span>
-                    [`Delete product`]
+                    <span class="desktop-and-tablet-only">[`Delete product`]</span>
                 </button>
             </div>
         {/if}

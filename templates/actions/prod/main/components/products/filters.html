@@ -2,6 +2,8 @@
 <div class="s-table-filters-section">
     {* PANE *}
     <div class="s-pane-section">
+        {* Categories — mobile only *}
+        <button type="button" class="mobile-only button nobutton custom-m-0 large" style="color: var(--text-color);" @click="$emit('showCategories')"><i class="fas fa-bars"></i></button>
         {* SEARCH *}
         <component-table-product-search class="s-filter-search-section s-pane-item wide"
                                         v-model="search_string"

@@ -6,6 +6,10 @@ class shopFrontendApiProductReviewAddController extends shopFrontApiJsonControll
 {
     public function post()
     {
+        if (wa()->getSetting('require_authorization', false, 'shop')) {
+            throw new waAPIException('unauthorized', 'Unauthorized', 401);
+        }
+
         $product_id = waRequest::param('id', 0, waRequest::TYPE_INT);
         $parent_id = waRequest::post('parent_id', 0, waRequest::TYPE_INT);
         $rate = waRequest::post('rate', null, waRequest::TYPE_STRING_TRIM);
@@ -14,6 +18,8 @@ class shopFrontendApiProductReviewAddController extends shopFrontApiJsonControll
         $name = waRequest::post('name', '', waRequest::TYPE_STRING_TRIM);
         $email = waRequest::post('email', '', waRequest::TYPE_STRING_TRIM);
         $site = waRequest::post('site', '', waRequest::TYPE_STRING_TRIM);
+        $images = waRequest::file('images');
+        $image_data = waRequest::post('images_data', [], waRequest::TYPE_ARRAY);
 
         if (wa()->getSetting('headless_api_antispam_enabled', false, 'shop')) {
             $this->checkAntispamHash(function($antispam_api_key, $antispam_cart_key, $customer_token) use ($title, $text) {
@@ -66,6 +72,45 @@ class shopFrontendApiProductReviewAddController extends shopFrontApiJsonControll
             throw new waAPIException('error_adding', _w('Review adding error.'), 400);
         }
 
+        if ($images) {
+            /** @var shopConfig $config */
+            $config = wa('shop')->getConfig();
+            $sizes = $config->getImageSizes();
+            $review_images_model = new shopProductReviewsImagesModel();
+            $options = [
+                'review_id'  => $id,
+                'product_id' => $product_id
+            ];
+            foreach ($images as $image_id => $_image) {
+                if (!$this->isValidImage($_image)) {
+                    break;
+                };
+                $options['description'] = ifset($image_data, $image_id, '');
+                $options['filename'] = $_image->name;
+
+                $image = $review_images_model->addImage($_image->tmp_name, $options);
+                shopImage::generateThumbs($image, $sizes);
+            }
+        }
+
         $this->response = ['review_id' => $id];
+    }
+
+    /**
+     * @param waRequestFile $file
+     * @return bool
+     */
+    protected function isValidImage($file)
+    {
+        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+        if (!$file->uploaded() || $file->error) {
+            return false;
+        } elseif (!in_array(strtolower($file->extension), $allowed)) {
+            $this->errors[] = _w("Files with extensions *.gif, *.jpg, *.jpeg, *.png, *.webp are allowed only.");
+            return false;
+        }
+
+        return true;
     }
 }

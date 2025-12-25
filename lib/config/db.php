@@ -994,6 +994,28 @@ return array(
         ),
         ':options' => ['charset' => 'utf8mb4'],
     ),
+    'shop_sales_channel' => array(
+        'id' => array('int', 11, 'null' => 0, 'autoincrement' => 1),
+        'type' => array('varchar', 255, 'null' => 0),
+        'name' => array('varchar', 255, 'null' => 0),
+        'description' => array('text'),
+        'wa_channel_id' => array('varchar', 32),
+        'status' => array('int', 11, 'null' => 0, 'default' => '0'),
+        'sort' => array('int', 11, 'null' => 0, 'default' => '0'),
+        ':keys' => array(
+            'PRIMARY' => 'id',
+        ),
+        ':options' => ['charset' => 'utf8mb4'],
+    ),
+    'shop_sales_channel_params' => array(
+        'channel_id' => array('int', 11, 'null' => 0),
+        'name' => array('varchar', 255, 'null' => 0),
+        'value' => array('text', 'null' => 0),
+        ':keys' => array(
+            'PRIMARY' => array('channel_id', ['name', 245]),
+        ),
+        ':options' => ['charset' => 'utf8mb4'],
+    ),
     'shop_search_index' => array(
         'word_id' => array('int', 11, 'null' => 0),
         'product_id' => array('int', 11, 'null' => 0),

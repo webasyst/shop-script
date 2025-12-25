@@ -9,7 +9,7 @@
                 <div class="flexbox middle space-12 semibold">
                     <span{if !empty($smart)} class="gray"{/if}>[`Basic`]</span>
 
-                    <div class="switch js-toggle-status">
+                    <div class="switch smaller js-toggle-status">
                         <input type="checkbox" value="1"{if !empty($smart)} checked{/if}>
                     </div>
 
@@ -94,16 +94,9 @@
                         </div>
                     </div>
 
-                    <div class="fields-group">
-                        <div class="field">
-                            <div class="name"></div>
-
-                            <div class="value">
-                                <button class="button small outlined js-reindex">[`Re-index all products for search`]</button>
-
-                                <div class="hint custom-mt-4">[`Re-generate search index database for all existing products of your online store.`]</div>
-                            </div>
-                        </div>
+                    <div class="custom-m-20">
+                        <button class="button smaller outlined js-reindex">[`Re-index all products for search`]</button>
+                        <div class="hint custom-mt-4">[`Re-generate the search index database for all existing products of your online store.`]</div>
                     </div>
                 </div>
                 {$wa->csrf()}
@@ -120,7 +113,7 @@
 
     <div class="alert-fixed-box">
         <div class="alert info js-submit-message" style="display: none;">
-            [`Updated search settings will be applied only to products added or updated after new settings had been saved. To apply updated search settings to all existing products, re-index entire product search database.`]
+            [`Updated search settings will be applied only to products added or updated after the new settings were saved. To apply updated search settings to all existing products, re-index the search database.`]
         </div>
     </div>
 </div>
@@ -137,7 +130,7 @@
             </header>
 
             <main class="dialog-content">
-                <p>[`This will re-generate search index database table for all existing products of your online store.`] [`Depending on the number of products, this operation may take from few seconds to few minutes or even hours for very large databases.`]</p>
+                <p>[`This will re-generate the search index database table for all existing products of your online store.`] [`Depending on the number of products, this operation may take from several seconds to several minutes, or even hours in case of a very large database.`]</p>
 
                 <div id="s-reindex-progressbar" class="custom-mt-12" style="display:none;">
                     <div class="progressbar">
@@ -160,7 +153,7 @@
             <footer class="dialog-footer">
                 {$wa->csrf()}
                 <button type="submit" class="button small js-dialog-submit">
-                    [`Start re-indexing process`]
+                    [`Start re-indexing`]
                 </button>
 
                 <button type="button" class="button small light-gray js-dialog-close">[`Cancel`]</button>

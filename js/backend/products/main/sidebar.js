@@ -14,6 +14,7 @@ let initMainWaSidebar;
             that.locales = options["locales"];
             that.urls = options["urls"];
             that.app_url = options["app_url"] || $.wa_shop_products.app_url;
+            that.is_admin = options["is_admin"];
 
             // DYNAMIC VARS
             that.$active_menu_item = that.$wrapper.find("li.selected:first");
@@ -111,6 +112,10 @@ let initMainWaSidebar;
                     $group.addClass(active_class);
                     $group.removeClass(selected_class);
                 }
+            }
+
+            if (that.is_admin) {
+                that.initChannelsSorting();
             }
         };
 
@@ -346,6 +351,37 @@ let initMainWaSidebar;
                 container.removeClass('sidebar-pinned');
             }
         }
+
+        Sidebar.prototype.initChannelsSorting = function() {
+            const $menu = this.$wrapper.find('.s-main-menu');
+            const draggable_selector = 'li[data-channel]:not([data-channel="storefront"])';
+
+            const saveSort = (sorting, error) => {
+                $.post('?module=channels&action=sort', { sorting }, (r) => {
+                    if (r.status !== 'ok' && typeof error === 'function') {
+                        error();
+                    }
+                });
+            };
+
+            $menu.sortable({
+                animation: 100,
+                draggable: draggable_selector,
+                delay: 250,
+                delayOnTouchOnly: true,
+                onEnd: (evt) => {
+                    const $channels = $menu.find(draggable_selector);
+                    const new_sorting = Array.from(
+                        $channels.map((i, el) => {
+                            return { id: +el.dataset.channel, sort: i };
+                        })
+                    );
+                    saveSort(new_sorting, () => {
+                        $(evt.item).swap(evt.oldIndex);
+                    });
+                }
+            });
+        };
 
         return Sidebar;
 

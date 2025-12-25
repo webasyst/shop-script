@@ -24,7 +24,11 @@
     {/if}
 {/foreach}
 
-{$_button_text = _w("Confirm order")}
+{if empty($config["payment"]["used"])}
+    {$_button_text = _w("To payment")|cat:" ›"}
+{else}
+    {$_button_text = _w("Confirm order")}
+{/if}
 {if !empty($config["shipping"]["used"])}
     {if $error_step_id === "region" || $error_step_id === "shipping"}
         {$_button_text = _w("Select shipping")}

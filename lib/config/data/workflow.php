@@ -7,7 +7,7 @@ return array(
             'options'           => array(
                 'icon'  => 'icon16 ss new',
                 'style' => array(
-                    'color'       => '#009900',
+                    'color'       => '#22d13d',
                     'font-weight' => 'bold',
                 ),
             ),
@@ -30,7 +30,7 @@ return array(
             'options'           => array(
                 'icon'  => 'icon16 ss confirmed',
                 'style' => array(
-                    'color'      => '#008800',
+                    'color'      => '#22d13d',
                     'font-style' => 'italic',
                 ),
             ),
@@ -52,7 +52,7 @@ return array(
             'options'           => array(
                 'icon'  => 'icon16 ss flag-white',
                 'style' => array(
-                    'color'      => '#008800',
+                    'color'      => '#ff6c00',
                     'font-style' => 'italic',
                 ),
             ),
@@ -68,7 +68,7 @@ return array(
             'options'           => array(
                 'icon'  => 'icon16 ss flag-yellow',
                 'style' => array(
-                    'color'       => '#FF9900',
+                    'color'       => '#f3c200',
                     'font-weight' => 'bold',
                     'font-style'  => 'italic',
                 ),
@@ -88,7 +88,7 @@ return array(
             'options'           => array(
                 'icon'  => 'icon16 ss sent',
                 'style' => array(
-                    'color'      => '#0000FF',
+                    'color'      => '#1a9afe',
                     'font-style' => 'italic',
                 ),
             ),
@@ -106,7 +106,7 @@ return array(
             'options'           => array(
                 'icon'  => 'icon16 ss completed',
                 'style' => array(
-                    'color' => '#800080',
+                    'color' => '#7256ee',
                 ),
             ),
             'available_actions' => array(
@@ -117,19 +117,37 @@ return array(
             ),
         ),
         'pos'        => array(
-            'name'              => _w('POS order'),
+            'name'              => _w('POS'),
             'options'           => array(
-                'icon'  => 'icon16 ss new',
+                'icon'  => 'fas fa-cash-register',
                 'style' => array(
-                    'color'       => '#bae1ba',
+                    'color'       => '#89CE89',
                 ),
             ),
             'available_actions' => array(
-                'process',
                 'initpay',
-                'pay',
-                'ship',
+                //'pay',
                 'complete',
+                'comment',
+                'edit',
+                'editcode',
+                'editshippingdetails',
+                'message',
+                'delete',
+            ),
+        ),
+        'pickup' => array(
+            'name'              => _w('For pickup'),
+            'options'           => array(
+                'icon'  => 'fas fa-map-marker-alt',
+                'style' => array(
+                    'color'       => '#2C70E2',
+                    'font-weight' => 'bold',
+                ),
+            ),
+            'available_actions' => array(
+                'pickup',
+                'initpay',
                 'comment',
                 'edit',
                 'editcode',
@@ -143,7 +161,7 @@ return array(
             'options'           => array(
                 'icon'  => 'icon16 ss refunded',
                 'style' => array(
-                    'color' => '#cc0000',
+                    'color' => '#ed2509',
                 ),
             ),
             'available_actions' => array(
@@ -155,7 +173,7 @@ return array(
             'options'           => array(
                 'icon'  => 'icon16 ss trash',
                 'style' => array(
-                    'color' => '#aaaaaa',
+                    'color' => '#89a',
                 ),
             ),
             'available_actions' => array(
@@ -181,6 +199,7 @@ return array(
             'options'   => array(
                 'log_record'   => _w('Order was confirmed and accepted for processing'),
                 'button_class' => 'green',
+                'icon'         => 'play',
                 'description'  => sprintf(_w('Order status will be changed to “%s”.'), _w('Processing')),
             ),
             'state'     => 'processing',
@@ -191,6 +210,7 @@ return array(
             'options'   => array(
                 'log_record'   => _w('Order was paid'),
                 'button_class' => 'yellow',
+                'icon'         => 'receipt',
                 'description'  => sprintf(_w('Order status will be changed to “%s”.'), _w('Paid'))
                     .' '._w('A payment date will be saved.'),
             ),
@@ -204,7 +224,7 @@ return array(
                 'button_class' => 'green',
                 'description'  => _w('Sends order to payment terminal in manual mode.'),
                 'position' => 'top',
-                'icon' => 'fas fa-fax',
+                'icon' => 'fas fa-cash-register',
             ),
         ),
         'ship'                => array(
@@ -213,6 +233,7 @@ return array(
             'options'   => array(
                 'log_record'   => _w('Order was shipped'),
                 'button_class' => 'blue',
+                'icon'         => 'truck',
                 'description'  => sprintf(_w("Order status will be changed to “%s”."), _w('Sent')),
             ),
             'state'     => 'shipped',
@@ -223,6 +244,7 @@ return array(
             'options'   => array(
                 'log_record'   => _w('Order was refunded'),
                 'button_class' => 'red',
+                'icon' => 'times',
                 'description'  => sprintf(_w("Order status will be changed to “%s”."), _w('Refunded'))
                     .' '._w('Quantities of ordered products and their SKUs, if non-empty, will be increased accordingly. Order payment date will be cleared.'),
             ),
@@ -267,6 +289,8 @@ return array(
             'name'      => _w('Delete'),
             'options'   => array(
                 'log_record'  => _w('Order was deleted'),
+                'icon'         => 'trash-alt',
+                'button_class' => 'gray',
                 'description' => sprintf(_w('Order status will be changed to “%s”.'), _w('Deleted'))
                     .' '._w('Quantities of ordered products and their SKUs, if non-empty, will be increased accordingly. Order payment date will be cleared.'),
             ),
@@ -276,7 +300,7 @@ return array(
             'classname' => 'shopWorkflowRestoreAction',
             'name'      => _w('Restore'),
             'options'   => array(
-                'icon'         => 'restore',
+                'icon'         => 'redo',
                 'log_record'   => _w('Order was re-opened'),
                 'button_class' => 'green',
                 'description'  => _w('Order status will be changed to the one the order had before deletion.'),
@@ -288,12 +312,12 @@ return array(
             'options'   => array(
                 'log_record'   => _w('Order was marked as completed'),
                 'button_class' => 'purple',
+                'icon'         => 'flag-checkered',
                 'description'  => sprintf(_w('Order status will be changed to “%s”.'), _w('Completed'))
                     .' '._w('A payment date will be saved.'),
             ),
             'state'     => 'completed',
         ),
-
         'message' => array(
             'classname' => 'shopWorkflowMessageAction',
             'name'      => _w('Contact customer'),
@@ -303,13 +327,12 @@ return array(
                 'log_record' => _w('Message was sent'),
             ),
         ),
-
         'comment'  => array(
             'classname' => 'shopWorkflowCommentAction',
             'name'      => _w('Add comment'),
             'options'   => array(
                 'position'     => 'bottom',
-                'icon'         => 'add',
+                'icon'         => 'comment',
                 'button_class' => 'inline-link',
                 'log_record'   => _w('A comment was added for the order'),
             ),
@@ -347,7 +370,8 @@ return array(
             'name'      => _w('Cancel payment'),
             'state'     => 'refunded',
             'options'   => array(
-                'button_class' => 'red',
+                'button_class' => 'gray',
+                'icon'         => 'times',
                 'log_record'   => _w('Order payment was canceled'),
             ),
         ),
@@ -357,8 +381,19 @@ return array(
             'state'     => 'paid',
             'name'      => _w('Capture payment'),
             'options'   => array(
-                'button_class' => 'red',
+                'button_class' => 'orange',
+                'icon'         => 'receipt',
                 'log_record'   => _w('Order payment was captured'),
+            ),
+        ),
+        'pickup' => array(
+            'classname' => 'shopWorkflowPickupAction',
+            'name'      => _w('Pick up'),
+            'state'     => 'pickup',
+            'options'   => array(
+                'log_record'   => _w('Order was picked up'),
+                'button_class' => 'purple',
+                'icon'         => 'flag-checkered',
             ),
         ),
     ),

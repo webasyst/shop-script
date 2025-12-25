@@ -24,7 +24,7 @@ class shopOrderAddInvoiceMethod extends shopApiMethod
         }
 
         $params = waRequest::post('params', [], 'array');
-        $comment = $this->post('comment');
+        $comment = (string) $this->post('comment');
         $order = [
             'contact' => $contact_id === null ? 0 : $contact,
             'items' => [[
@@ -51,6 +51,15 @@ class shopOrderAddInvoiceMethod extends shopApiMethod
                 'payment_id' => $this->post('payment_id'),
             ] + $params,
         ];
+
+        if (isset($order['params']['channel_id']) && preg_match('#^([a-z0-9]+):(\d+)$#', $order['params']['channel_id'], $matches)) {
+            $sales_channel_model = new shopSalesChannelModel();
+            if ($channel = $sales_channel_model->getByField(['id' => $matches[2], 'type' => $matches[1]])) {
+                $order['params']['sales_channel'] = $order['params']['channel_id'];
+                $order['params']['sales_channel_name'] = ifempty($channel, 'name', null);
+            }
+        }
+        unset($order['params']['channel_id']);
 
         if (isset($contact)) {
             foreach (array('shipping', 'billing') as $ext) {

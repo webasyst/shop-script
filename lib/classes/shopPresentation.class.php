@@ -255,7 +255,7 @@ class shopPresentation
                 $columns[] = $column;
             }
         }
-        $sort = max(array_column($columns, 'sort'), 0);
+        $sort = $columns ? max(array_column($columns, 'sort')) : 0;
         $column_names = array_column($columns, 'column_type');
         $required_columns = self::getRequiredColumns($this->getField('view'));
         foreach ($required_columns as $required_column) {

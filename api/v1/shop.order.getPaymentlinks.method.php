@@ -12,7 +12,7 @@ class shopOrderGetPaymentlinksMethod extends shopApiMethod
             $order = new shopOrder($order_id);
             $hash = $order->getPaymentLinkHash();
         } catch (waException $e) {
-            throw new waAPIException('not_fount', _w('Order not found.'), 404);
+            throw new waAPIException('not_found', _w('Order not found.'), 404);
         }
 
         if (!$order['state']->paymentAllowed()) {
@@ -30,6 +30,7 @@ class shopOrderGetPaymentlinksMethod extends shopApiMethod
                 $payment_image = [
                     'payment_image_url' => ifset($payment_image_data, 'image_url', null),
                     'payment_image_data_url' => ifset($payment_image_data, 'image_data_url', null),
+                    'payment_image_qr_payload' => ifset($payment_image_data, 'qr_payload', null),
                 ];
             }
         }

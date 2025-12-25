@@ -15,7 +15,7 @@
 {if $category.subcategories}
     <ul class="sub-links row">
         {foreach $category.subcategories as $sc}
-            <li><a class="button bg-gray font-weight-normal" href="{$sc.url}">{$sc.name|escape}</a></li>
+            <li><a class="button bg-gray fw-normal" href="{$sc.url}">{$sc.name|escape}</a></li>
         {/foreach}
     </ul>
 {/if}
@@ -93,7 +93,7 @@
                 <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.mouse.min.js?v{$wa->version(true)}"></script>
                 <script type="text/javascript" src="{$wa_static_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v{$wa->version(true)}"></script>
             {/if}
-            <div class="filters leadbox{if !empty($theme_settings.ajax_filters)} ajax{/if}">
+            <div class="filters{if !empty($theme_settings.ajax_filters)} ajax{/if}">
                 <div class="filters-toggle-wrapper">
                     <a class="filters-toggle-link" id="filters-toggle-link" href="javascript:void(0);" data-show-text="[`Show Filters`]" data-hide-text="[`Hide Filters`]">[`Show Filters`]</a>
                 </div>
@@ -104,8 +104,16 @@
                                 {$c = $wa->shop->currency(true)}
                                 <h5>[`Price`] ({$c.sign})</h5>
                                 <div class="slider nowrap">
-                                    [`from`] <input type="text" class="min" name="price_min" {if $wa->get('price_min')}value="{(int)$wa->get('price_min')}"{/if} placeholder="{floor($filter.min)}">
-                                    [`to`] <input type="text" class="max" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="{ceil($filter.max)}">
+                                    <div class="wa-flex justify-content-between space-05">
+                                        <div class="wa-flex wa-flex-column space-05">
+                                            <span class="s-label">[`from`]</span> 
+                                            <input type="text" class="min" name="price_min" {if $wa->get('price_min')}value="{(int)$wa->get('price_min')}"{/if} placeholder="{floor($filter.min)}">
+                                        </div>
+                                        <div class="wa-flex wa-flex-column space-05">
+                                            <span class="s-label">[`to`]</span> 
+                                            <input type="text" class="max" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="{ceil($filter.max)}">
+                                        </div>
+                                    </div>
                                 </div>
                             {else}
                                 {$is_unit = !empty($filter.unit)}
@@ -120,15 +128,15 @@
 
                                 {elseif $filter.type == "range.date"}
                                     {$_v = $wa->get($filter.code)}
-                                    <div class="s-filter-item s-range-date-item" id="js-filter-{$filter.id|escape}" data-min="{$filter.min}" data-max="{$filter.max}">
-                                        <div class="s-datepicker-wrapper">
+                                    <div class="s-filter-item s-range-date-item wa-flex justify-content-between" id="js-filter-{$filter.id|escape}" data-min="{$filter.min}" data-max="{$filter.max}">
+                                        <div class="s-datepicker-wrapper wa-flex wa-flex-column space-05">
                                             <span class="s-label">[`from`]</span>
                                             <div class="s-fields">
                                                 <input class="js-datepicker" type="text" value="" placeholder="{$filter.min|wa_date}">
                                                 <input name="{$filter.code}[min]" type="hidden" value="{if !empty($_v.min)}{$_v.min|escape}{/if}">
                                             </div>
                                         </div>
-                                        <div class="s-datepicker-wrapper">
+                                        <div class="s-datepicker-wrapper wa-flex wa-flex-column space-05">
                                             <span class="s-label">[`to`]</span>
                                             <div class="s-fields">
                                                 <input class="js-datepicker" type="text" value="" placeholder="{$filter.max|wa_date}">
@@ -180,8 +188,16 @@
                                 {elseif isset($filter.min)}
                                     {$_v = $wa->get($filter.code)}
                                     <div class="slider nowrap">
-                                        [`from`] <input type="text" class="min" name="{$filter.code}[min]" placeholder="{$filter.min}" {if !empty($_v.min)}value="{$_v.min|escape}"{/if}>
-                                        [`to`]</span> <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max|escape}"{/if}>
+                                        <div class="wa-flex justify-content-between space-05">
+                                            <div class="wa-flex wa-flex-column space-05">
+                                                <span class="s-label">[`from`]</span> 
+                                                <input type="text" class="min" name="{$filter.code}[min]" placeholder="{$filter.min}" {if !empty($_v.min)}value="{$_v.min|escape}"{/if}>
+                                            </div>
+                                            <div class="wa-flex wa-flex-column space-05">
+                                                <span class="s-label">[`to`]</span> 
+                                                <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max|escape}"{/if}>
+                                            </div>
+                                        </div>
                                         {if $is_unit && $filter.unit.value != $filter.base_unit.value}<input type="hidden" name="{$filter.code}[unit]" value="{$filter.unit.value}">{/if}
                                     </div>
                                 {else}

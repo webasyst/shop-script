@@ -286,13 +286,13 @@ class shopCheckoutConfig implements ArrayAccess
     {
         return [
             self::CUSTOMER_TYPE_PERSON             => [
-                'name' => _w('Persons'),
+                'name' => _w('Individuals'),
             ],
             self::CUSTOMER_TYPE_COMPANY            => [
-                'name' => _w('Companies'),
+                'name' => _w('Organizations'),
             ],
             self::CUSTOMER_TYPE_PERSON_AND_COMPANY => [
-                'name' => _w('Persons & companies'),
+                'name' => _w('All'),
             ],
         ];
     }
@@ -331,14 +331,20 @@ class shopCheckoutConfig implements ArrayAccess
             self::ORDER_WITHOUT_AUTH_CREATE   => [
                 'name'        => _w('Create a new customer profile for every guest order'),
                 'description' => $locales["locale_1"]."<br><br>".$locales["locale_2"],
+                'badge_name'  => _w('customer duplicates possible'),
+                'badge_color'  => 'yellow',
             ],
             self::ORDER_WITHOUT_AUTH_EXISTING => [
                 'name'        => _w('Add an order to existing customer profile with the same email address or phone number'),
                 'description' => $locales["locale_3"]."<br><br>".$locales["locale_4"]."<br><br>".$locales["locale_5"],
+                'badge_name'  => _w('optimal choice'),
+                'badge_color'  => 'green',
             ],
             self::ORDER_WITHOUT_AUTH_CONFIRM  => [
                 'name'        => _w('Checkout with mandatory email address or phone number confirmation'),
-                'description' => $locales["locale_6"]."<br><br>".$locales["locale_7"]."<br><br>".$locales["locale_8"]
+                'description' => $locales["locale_6"]."<br><br>".$locales["locale_7"]."<br><br>".$locales["locale_8"],
+                'badge_name'  => _w('more lost orders'),
+                'badge_color'  => 'orange',
             ],
         ];
     }
@@ -347,13 +353,13 @@ class shopCheckoutConfig implements ArrayAccess
     {
         return [
             self::SCHEDULE_MODE_DEFAULT => [
-                'name'        => _w('Common working schedule'),
-                'description' => sprintf(_w('Section “<a href="?action=settings#/schedule/" target="_blank">%s</a>” <i class="icon16 new-window"></i> settings are used'),
+                'name'        => _w('Common working hours'),
+                'description' => sprintf(_w('Section “<a href="?action=settings#/schedule/" target="_blank">%s</a>” <i class="icon16 new-window"></i> settings are used.'),
                     _w('Working schedule')),
             ],
             self::SCHEDULE_MODE_CUSTOM  => [
-                'name'        => _w('Custom working schedule for this storefront'),
-                'description' => _w('Select if your online store has several storefronts with different working schedules'),
+                'name'        => _w('Custom working hours fo this storefront'),
+                'description' => _w('Select if your online store has several storefronts with different working schedules.'),
             ],
         ];
     }
@@ -575,47 +581,11 @@ class shopCheckoutConfig implements ArrayAccess
                 $plugin = $m['__instance'];
                 $plugin_info = ifset($m, '__plugin_info', []);
                 $m['icon'] = ifset($plugin_info, 'icon', null);
-
-                $allowed_currencies = $plugin->allowedCurrency();
-                if ($allowed_currencies !== true) {
-                    $allowed_currencies = (array)$allowed_currencies;
-                    if (!array_intersect($allowed_currencies, array_keys($currencies))) {
-                        $format = _w('Payment procedure cannot be processed because required currency %s is not defined in your store settings.');
-                        $m['error'] = sprintf($format, implode(', ', $allowed_currencies));
-                    }
-                }
-
-                if ($order_has_units && shopUnits::stockUnitsEnabled()) {
-                    if (!isset($plugin_info['stock_units'])) {
-                        $plugin_mode = shopFrac::getPluginFractionalMode($m['plugin'], shopFrac::PLUGIN_MODE_UNITS);
-                        if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_DISABLED) {
-                            // Store admin disabled this payment method for orders containing custom stock units
-                            unset($methods[$method_index]);
-                            continue;
-                        }
-                    } else if ($plugin_info['stock_units'] !== true) {
-                        // Plugin declared it does not support custom stock units
-                        unset($methods[$method_index]);
-                        continue;
-                    }
-                }
-
-                if ($order_has_frac && shopFrac::isEnabled()) {
-                    if (!isset($plugin_info['fractional_quantity'])) {
-                        $plugin_mode = shopFrac::getPluginFractionalMode($m['plugin']);
-                        if ($plugin_mode == shopFrac::PLUGIN_TRANSFER_DISABLED) {
-                            // Store admin disabled this payment method for orders containing fractional quantities
-                            unset($methods[$method_index]);
-                            continue;
-                        }
-                    } else if ($plugin_info['fractional_quantity'] !== true) {
-                        // Plugin declared it does not support fractional quantities
-                        unset($methods[$method_index]);
-                        continue;
-                    }
+                if (!shopPayment::isPaymentMethodApplicable($plugin, $order_has_units, $order_has_frac, $plugin_info, $currencies)) {
+                    unset($methods[$method_index]);
                 }
             } catch (waException $ex) {
-                waLog::log($ex->getMessage(), 'shop/checkout.error.log');
+                //waLog::log($ex->getMessage(), 'shop/checkout.error.log');
                 unset($methods[$method_index]);
             }
         }

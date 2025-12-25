@@ -6,6 +6,7 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
 {
     public function post()
     {
+        $channel_id = waRequest::request('channel_id', '', waRequest::TYPE_STRING_TRIM);
         $customer_token = waRequest::request('customer_token', '', waRequest::TYPE_STRING_TRIM);
 
         $config = $this->getCheckoutConfig();
@@ -43,6 +44,13 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
             'ignore_stock_validate'        => true,
         ];
 
+        if ($channel_id && preg_match('#^([a-z0-9]+):(\d+)$#', $channel_id, $matches)) {
+            $sales_channel_model = new shopSalesChannelModel();
+            if ($sales_channel_model->getByField(['id' => $matches[2], 'type' => $matches[1]])) {
+                $order_data['params']['sales_channel'] = $channel_id;
+            }
+        }
+
         try {
             $order = new shopOrder($order_data, $options);
         } catch (Throwable $ex) {
@@ -73,10 +81,17 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
             ]);
         }
 
+        try {
+            $this->updateCustomerPhoto($saved_order);
+        } catch (Throwable $ex) {
+            // ignore
+        }
+        
         (new shopApiCart($customer_token))->clear();
 
         $this->response = [
             'order_id' => $saved_order->getId(),
+            'code' => $saved_order->getPaymentLinkHash(),
         ];
     }
 
@@ -102,6 +117,57 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
                 'checkout'
             );
         }
+    }
+
+    protected function updateCustomerPhoto(shopOrder $order)
+    {
+        $customer_input_data = waRequest::request('customer');
+        if (empty($customer_input_data['photo_url'])) {
+            return;
+        }
+
+        $path_to_tmp_image_file = $this->obtainPhoto($customer_input_data['photo_url']);
+        if (!$path_to_tmp_image_file) {
+            return;
+        }
+
+        $order['contact']->setPhoto($path_to_tmp_image_file);
+        waFiles::delete($path_to_tmp_image_file);
+    }
+
+    protected function obtainPhoto(string $url): string
+    {
+        if (substr($url, 0, 5) === 'data:') {
+            // save data-URL to file
+            [$mime_type, $image_contents] = $this->decodeDataUrl($url);
+        } else if (strtolower(substr($url, 0, 6)) === 'https:' || strtolower(substr($url, 0, 5)) === 'http:') {
+            // fetch image from URL and save to file
+            $image_contents = @file_get_contents($url);
+            if (!$image_contents) {
+                return '';
+            }
+        }
+
+        $file_path = tempnam(sys_get_temp_dir(), 'imgwacontact');
+        file_put_contents($file_path, $image_contents);
+        return $file_path;
+    }
+
+    protected function decodeDataUrl(string $url)
+    {
+        $data = substr($url, 5);
+        [$meta, $data] = explode(',', $data, 2);
+        [$mime_type, $encoding] = explode(';', $meta, 2) + ['', ''];
+        switch ($encoding) {
+            case '':
+            case 'base64':
+                $data = base64_decode(str_replace(' ', '+', $data));
+                break;
+            default:
+                throw new waException('Unknown encoding in data URL '.$encoding);
+        }
+
+        return [$mime_type, $data];
     }
 
     protected function getOrderParamsFromOrder($order)

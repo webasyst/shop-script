@@ -3,9 +3,8 @@ class shopFrontApiProductReviewFormatter extends shopFrontApiFormatter
 {
     public function format(array $review)
     {
+        $this->prepareAuthorPhoto($review);
         $review['author_name'] = ifset($review, 'name', ifset($review, 'author', 'name', null));
-        $review['author_photo_url_20'] = self::urlToAbsolute(ifset($review, 'author', 'photo_url_20', null));
-        $review['author_photo_url_50'] = self::urlToAbsolute(ifset($review, 'author', 'photo_url_50', null));
         $review['comments'] = ifset($review, 'comments', []);
 
         if ($review['comments']) {
@@ -96,5 +95,36 @@ class shopFrontApiProductReviewFormatter extends shopFrontApiFormatter
         }
         unset($c);
         return array_intersect_key($comments, $top_level);
+    }
+
+    protected function prepareAuthorPhoto(array &$review) {
+        $review['author_photo_url_20'] = self::urlToAbsolute(ifset($review, 'author', 'photo_url_20', null));
+        $review['author_photo_url_50'] = self::urlToAbsolute(ifset($review, 'author', 'photo_url_50', null));
+        if (empty($this->options['use_gravatar'])) {
+            return;
+        }
+
+        $userpics = [
+            20 => &$review['author_photo_url_20'],
+            50 => &$review['author_photo_url_50']
+        ];
+        $has_no_userpics = empty(implode('', $userpics));
+        if ($has_no_userpics) {
+            /**
+             * @var shopConfig $config
+             */
+            $config = wa('shop')->getConfig();
+            $use_gravatar = $config->getGeneralSettings('use_gravatar');
+            if ($use_gravatar) {
+                $default = $config->getGeneralSettings('gravatar_default');
+                foreach ($userpics as $size => $_) {
+                    $userpics[$size] = shopHelper::getGravatarPic(ifset($review, 'email', ''), [
+                        'size' => $size,
+                        'default' => $default,
+                        'is_company' => false
+                    ]);
+                }
+            }
+        }
     }
 }

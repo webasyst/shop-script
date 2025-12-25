@@ -15,9 +15,15 @@ class shopFrontendApiProductController extends shopFrontendApiProductsSearchCont
         $product = reset($this->response['products']);
 
         if (wa('shop')->getConfig()->getOption('can_use_smarty') && !empty($product['description'])) {
-            $view = wa('shop')->getView();
-            $view->assign('product', $product);
-            $product['description'] = $view->fetch('string:'.$product['description']);
+            try {
+                $view = wa('shop')->getView();
+                $view->assign('product', $product);
+                $product['description'] = $view->fetch('string:'.$product['description']);
+            } catch (Throwable $e) {
+                if (SystemConfig::isDebug()) {
+                    $product['description'] = (string) $e;
+                }
+            }
         }
 
         $this->response = $product;

@@ -136,7 +136,11 @@
                             <strong class="s-order-status-badge badge uppercase small" style="background-color: {%#o.state_color%};" title="{%#o.state_name%}">
                                 <span class="text-ellipsis">{%#o.state_name%}</span>
                             </strong>
-                            {% if ((o.order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
+                            {% if (o.order.sales_channel && o.order.sales_channel.menu_icon) { %}
+                            <span class="small gray text-ellipsis">
+                                {%#o.order.sales_channel.menu_icon%} {%#o.order.sales_channel.name%}
+                            </span>
+                            {% } else if ((o.order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
                             <i class="fas fa-cash-register text-light-gray"></i>
                             {% } %}
                         </span>
@@ -146,7 +150,7 @@
                                 <i class="fas fa-check-circle"></i>
                             </span>
                             {% } %}
-                            <strong class="black semibold {%=(o.order.state_id == 'new') ? 'highlighted' : '' %}">{%#o.order.total_str%}</strong>
+                            <strong class="black semibold {%=(o.order.state_id == 'new') ? 'highlighted orange' : '' %}">{%#o.order.total_str%}</strong>
                         </span>
                     </div>
 
@@ -268,17 +272,7 @@
 
                     <div class="flexbox space-12">
                         <div>
-                            <a href="https://apps.apple.com/{if $wa->locale() == 'ru_RU'}ru{else}us{/if}/app/webasyst-shop-script/id6443853956" target="_blank">
-                                <img src="{$wa_app_static_url}img/badge-appstore{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="App Store">
-                            </a>
-                            <a href="https://play.google.com/store/apps/details?id=com.webasyst.shopscript" target="_blank">
-                                <img src="{$wa_app_static_url}img/badge-google-play{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="Google Play">
-                            </a>
-                            {if $wa->locale() == 'ru_RU'}
-                                <a href="https://apps.rustore.ru/app/com.webasyst.shopscript" target="_blank">
-                                    <img src="{$wa_app_static_url}img/badge-rustore.svg" class="s-mobile-badge" alt="RuStore">
-                                </a>
-                            {/if}
+                            {include file="templates/includes/mobileApps.html" inline}
                         </div>
 
                         <div class="align-center middle">
@@ -433,6 +427,7 @@
     $.orders_sales.init({
         $wrapper: $('#js-orders-stats'),
         preloaded_html: {$orders_sales_html|default:null|json_encode},
+        viewposid: {$params.viewposid|default:''|json_encode},
         date: {$params.viewpos|json_encode}
     });
     {/if}

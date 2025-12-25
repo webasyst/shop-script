@@ -5,7 +5,7 @@
 <figure class="review" itemprop="review" itemscope itemtype="http://schema.org/Review">
     <div class="summary wa-mb-20">
         <div class="row gap6 align-items-center wa-mb-20">
-            <img class="image" src="{if isset($review.author.id) > 0}{$review.author.photo_url_50}{else}/wa-content/img/userpic.svg{/if}" alt="">
+            <img class="image" src="{if isset($review.author.id) > 0}{$review.author.photo_url_50}{else}{$wa_url}wa-content/img/userpic.svg{/if}" alt="">
             {if ifempty($review.author.is_user) > 0}
                 <span class="staff">{$wa->shop->settings('name')}</span>
             {/if}

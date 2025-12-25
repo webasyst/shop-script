@@ -420,7 +420,7 @@ class shopCsvProductuploadController extends shopUploadController
             $params = array();
             $params['id'] = 'csvproducts';
             $params['title_wrapper'] = '%s';
-            $params['description_wrapper'] = '<br><span class="hint">%s</span>';
+            $params['description_wrapper'] = '<p class="hint">%s</p>';
             $params['control_wrapper'] = '<div class="field"><div class="name">%s</div><div class="value">%s %s</div></div>';
             $params['options'] = $this->options();
             $control = true ? shopCsvReader::TABLE_CONTROL : shopCsvReader::MAP_CONTROL;
