@@ -61,10 +61,36 @@
             </div>
         </div>
 
-        <div class="field">
+        <div class="field custom-my-20">
             <div class="name for-input">[`Link`]</div>
             <div class="value">
-                <input class="long" type="text" data-name="[link]" value="{$banner.link|default:""|escape}" required>
+                {$type_link = $banner.type_link|default:'link'}
+                {$b_link = $banner.link|default:''|escape}
+                <div class="flexbox wrap-mobile middle space-12">
+                    <label class="flexbox middle space-4"><input type="radio" class="custom-m-0" data-name="[type_link]" value="product"{if $type_link == 'product'} checked{/if}> [`Product`]</label>
+                    <input class="long js-product-autocomplete" type="search" data-name="[product_name]" value="{$banner.product_name|default:''|escape}" placeholder="[`Type product or SKU name`]"{if $type_link != 'product'} disabled{/if} required>
+                    <input type="hidden" data-name="[link]" value="{if $type_link == 'product'}{$b_link}{/if}">
+                    <span class="hint">{if $type_link == 'product'}[`ID`]: {$b_link}{/if}</span>
+                </div>
+                <div class="flexbox wrap-mobile middle space-8 custom-my-8">
+                    <label class="flexbox middle space-4"><input type="radio" class="custom-m-0" data-name="[type_link]" value="category"{if $type_link == 'category'} checked{/if}> [`Category`]</label>
+                    {if empty($categories)}
+                    <span>[`There are no product categories.`]</span>
+                    {else}
+                    <div class="wa-select">
+                        <select data-name="[link]"{if $type_link != 'category'} disabled{/if}>
+                            <option value="0" disabled selected>[`Select category`]</option>
+                            {foreach $categories as $category}
+                            <option value="{$category.id}"{if $type_link == 'category' && $b_link == $category.id} selected{/if}>{$category.name|escape}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    {/if}
+                </div>
+                <div class="flexbox wrap-mobile middle space-8">
+                    <label class="flexbox middle space-4"><input type="radio" class="custom-m-0" data-name="[type_link]" value="link"{if $type_link == 'link'} checked{/if}> [`Link`]</label>
+                    <input class="long" type="text" data-name="[link]" value="{if $type_link == 'link'}{$b_link}{/if}"{if $type_link != 'link'} disabled{/if} required>
+                </div>
             </div>
         </div>
 
@@ -145,3 +171,27 @@
 
     </div>
 </div>
+
+<script>
+    (function ($) {
+        $('input[data-name="[type_link]"]').on('change', function () {
+            $(this).closest('div.value').find('select, input:not(input[data-name="[type_link]"])').prop('disabled', true);
+            $(this).closest('div').find('input, select').prop('disabled', false);
+        });
+
+        let autocomplete_product_input = $('.js-product-autocomplete');
+        autocomplete_product_input.autocomplete({
+            source: '{$wa_app_url}?action=autocomplete&with_counts=1',
+            minLength: 3,
+            delay: 300,
+            select: function (event, ui) {
+                if (ui.item.id) {
+                    autocomplete_product_input.val(ui.item.value);
+                    autocomplete_product_input.siblings('span.hint').html('ID: '+ ui.item.id);
+                    autocomplete_product_input.siblings('input[data-name="[link]"]').val(ui.item.id);
+                }
+                return false;
+            }
+        });
+    })(jQuery);
+</script>

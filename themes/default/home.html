@@ -9,24 +9,6 @@
     {strip}
     <div class="sidebar col w3">
 
-    <!-- CONTACT INFO -->
-    {if $theme_settings.homepage_sidebar_storeinfo}
-        <figure class="store-info">
-            <h1 itemprop="name">{$wa->shop->settings('name')}</h1>
-            <h3>
-                <span itemprop="telephone">{$wa->shop->settings('phone')}</span>
-                {if !method_exists($wa->shop, 'schedule')}
-                    {if $wh = $wa->shop->settings('workhours')}<br>
-                        <span class="hint">{$wh.days_from_to}{if $wh.hours_from && $wh.hours_to} {$wh.hours_from}—{$wh.hours_to}{/if}</span>
-                    {/if}
-                {/if}
-            </h3>
-
-            <meta itemprop="address" content="{$wa->shop->settings('country')}">
-            <meta itemprop="currenciesAccepted" content="{$wa->shop->currency()}">
-        </figure>
-    {/if}
-
     <!-- ROOT CATEGORIES -->
     {if $theme_settings.homepage_sidebar_categories}
         {$categories = $wa->shop->categories(0, 0, true)}

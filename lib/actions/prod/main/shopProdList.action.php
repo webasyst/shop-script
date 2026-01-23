@@ -84,15 +84,20 @@ class shopProdListAction extends waViewAction
         $this->static_categories_tree = $category_model->buildNestedTree($static_categories);
 
         $filter = $active_filter->getFilter();
-        $tags_include_ids = [];
+        $filter_tags_ids = [];
+        $filter_features_ids = [];
         foreach ($filter['rules'] as $rule) {
             if ($rule['rule_type'] === 'tags') {
-                $tags_include_ids[] = $rule['rule_params'];
+                $filter_tags_ids[] = $rule['rule_params'];
+            } else if (substr($rule['rule_type'], 0, 8) === 'feature_') {
+                $filter_features_ids[] = substr($rule['rule_type'], 8);
             }
         }
         $filter_options = $active_filter->getFilterOptions([
             'tags_limit' => 100,
-            'tags_include_ids' => $tags_include_ids
+            'tags_ids' => $filter_tags_ids,
+            'features_limit' => 50,
+            'features_ids' => $filter_features_ids
         ]);
         $this->clearMissingRules($filter['rules'], $filter_options, $categories);
 
@@ -131,7 +136,13 @@ class shopProdListAction extends waViewAction
             $offset = ($page - 1) * $limit;
         }
 
-        $columns = $this->mergeColumns($presentation->getColumnsList(), $active_presentation['columns']);
+        $columns_features_ids = [];
+        foreach ($active_presentation['columns'] as $column) {
+            if (substr($column['column_type'], 0, 8) === 'feature_') {
+                $columns_features_ids[] = substr($column['column_type'], 8);
+            }
+        }
+        $columns = $this->mergeColumns($presentation->getColumnsList(['features_ids' => $columns_features_ids]), $active_presentation['columns']);
         $columns = $this->formatColumns($columns);
 
         $_request_view = waRequest::request("view", null, waRequest::TYPE_STRING);

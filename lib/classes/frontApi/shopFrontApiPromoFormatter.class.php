@@ -38,6 +38,8 @@ class shopFrontApiPromoFormatter extends shopFrontApiFormatter
             'title' => 'string',
             'body' => 'string',
             'link' => 'string',
+            'type_id' => 'string',
+            'type_link' => 'string',
             'color' => 'string',
             'background_color' => 'string',
             'countdown_datetime' => 'string',

@@ -92,18 +92,23 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         }
 
         $payment = '';
-        if (!$order['paid_date'] && # order not paid
-            !empty($order['params']['payment_id']) # order has related payment plugin
-        ) {
-            if ($order['state']->paymentAllowed()) { # order state allow payment
-                try {
-                    $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
-                    $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), false);
-                } catch (waException $ex) {
-                    $payment = $ex->getMessage();
+        $payment_link_url = null;
+        if (!$order['paid_date']) { # order not paid
+            if ($order['state']->paymentAllowed()) {
+                $payment_link_url = $this->getPaymentLinkUrl($order['id'], $order['params']);
+            }
+
+            if (!empty($order['params']['payment_id'])) { # order has related payment plugin
+                if ($order['state']->paymentAllowed()) {
+                    try {
+                        $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
+                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData($order, $plugin), false);
+                    } catch (waException $ex) {
+                        $payment = $ex->getMessage();
+                    }
+                } else {
+                    $payment = $order['state']->paymentNotAllowedText();
                 }
-            } else {
-                $payment = $order['state']->paymentNotAllowedText();
             }
         }
 
@@ -146,6 +151,7 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         $this->view->assign('customer', $contact);
         $this->view->assign('shipping_address', $shipping_address);
         $this->view->assign('billing_address', $billing_address);
+        $this->view->assign('payment_link', $payment_link_url);
         $this->view->assign('subtotal', $subtotal);
 
         // Set up layout and template from theme
@@ -224,5 +230,17 @@ class shopFrontendMyOrderAction extends shopFrontendAction
     protected function isNumericOrderId($id)
     {
         return wa_is_int($id) && $id > 0;
+    }
+
+    protected function getPaymentLinkUrl($id, $params)
+    {
+        if (!empty($params['entropy'])) {
+            $hash = shopOrder::getPaymentLinkHashFromEntropy($id, $params['entropy']);
+        } else {
+            $hash = (new shopOrder($id))::getPaymentLinkHash();
+        }
+        return wa()->getRouting()->getUrl('shop/frontend/paymentLink', [
+            'hash' => $hash,
+        ], true);
     }
 }

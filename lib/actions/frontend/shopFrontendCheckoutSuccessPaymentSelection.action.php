@@ -22,6 +22,14 @@ class shopFrontendCheckoutSuccessPaymentSelectionAction extends waViewAction
         }
         $this->order = new shopOrder($order_id);
         $this->methods = shopPayment::getMethodsByOrder($this->order);
+        if ( ( $payment_ids = waRequest::param('payment_id'))) {
+            $this->methods = array_intersect_key($this->methods, array_fill_keys((array)$payment_ids, true));
+        }
+
+        $order_selected_payment_id = ifset($this->order, 'params', 'payment_id', null);
+        if ($order_selected_payment_id) {
+            $this->methods = array_intersect_key($this->methods, [$order_selected_payment_id => 1]);
+        }
 
         // Only keep a single plugin in case user selected it
         $form_payment_id = waRequest::get('payment_id', null, 'string');

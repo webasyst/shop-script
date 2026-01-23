@@ -210,7 +210,7 @@
         <!-- price -->
         <div class="add2cart">
             <input type="hidden" name="product_id" value="{$product.id}">
-            <div class="wa-mb-16 wa-inline-block qty quantity-wrapper{if !$product_available} hidden{/if}" id="js-quantity-section">
+            <div class="wa-inline-block qty quantity-wrapper{if !$product_available} hidden{/if}" id="js-quantity-section">
 
                 {if !empty($fractional_config) && $fractional_config["stock_units_enabled"]}
                     {$_stock_unit = $formatted_units[$product["stock_unit_id"]]}
@@ -260,10 +260,12 @@
 
             <button type="submit"{if !$product_available} disabled="disabled"{/if} class="blink">{if $wa->shop->cart->total() > 0}[`Add to cart`]{else}[`Buy now`]{/if}</button>
             <a href="{$wa->getUrl('shop/frontend/order')}" class="wa-flex-column align-items-center button gotocart-btn wa-hide">
-                <span class="">[`В корзине`]</span>
-                <span class="smaller">[`Перейти`]</span>
+                <span class="">[`Added to cart`]</span>
+                <span class="smaller">[`View`]</span>
             </a>
-            {$wa->shop->getPickupButton($product)}
+            {if $wa->shop->countPickupLocations() > 0}
+                {$wa->shop->getPickupButton($product)}
+            {/if}
         </div>
 
         {if $services}

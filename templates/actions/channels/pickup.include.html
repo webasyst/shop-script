@@ -1,57 +1,181 @@
-{*var_dump($product)*}
-{*var_dump($available_pickup)*}
-{*var_dump($stocks)*}
-{*var_dump($stocks_product_count)*}
-
-{function name="_pickup_script" _pickup_id=null _sku_id=null}
-<script>
-    (function ($) {
-        $('.js-pickup-{$_pickup_id}').on('click', function (e) {
-            e.preventDefault();
-            let data = {
-                sku_id: '{$_sku_id}',
-                pickup_id: '{$_pickup.id}',
-                customer: $('.js-pickup-customer').find(':input').serializeArray()
-            };
-
-            $.post('{$wa_app_url}pickup/create/', data, function (response) {
-                console.log('PICKUP OK', response);
-                // close dialog, redirect
-                $('body .js-dialog-pickup-content').remove();
-            });
-        });
-    })(jQuery);
-</script>
-{/function}
-
-<div class="js-dialog-pickup-content" style="border: solid gray 1px; padding: 10px">
-    <h4>[`Pick up in store`]</h4>
-
-        <em style="color:orangered;"><b>BEHOLD!</b> A beautiful dialog will land here! This is a dev preview zaglooshka.</em><br><br>
-
-    <p>[`Customer`]</p>
-
-    <div class="js-pickup-customer">
-        {foreach $form as $name => $_form}
-        <div class="wa-field">
-            <div class="wa-name">{$name|escape}</div>
-            <div class="wa-value">{$_form}</div>
+{include file="./pickup.functions.include.html" inline}
+<div id="js-pickup-dialog" class="pickup-dialog" style="opacity: 0;">
+    <div class="pickup-dialog-wrapper">
+        <div class="pickup-dialog-body">
+            <div class="pickup-dialog-left">
+                <div class="pickup-map-wrapper" id="wa-pickup-map"></div>
+            </div>
+            <div class="pickup-dialog-right">
+                <div class="pickup-dialog-right-content">
+                    {_step_1_pickup_list}
+                    {_step_2_selected_pickup}
+                    {_step_3_customer}
+                </div>
+            </div>
         </div>
-        {/foreach}
     </div>
-
-    {foreach $available_pickup as $_pickup}
-        <b>{$_pickup.params.address|escape}</b><br>
-        {foreach $stocks_product_count as $stock_product_count}
-            {if $select_sku_id == $stock_product_count.sku_id}
-                {foreach $stock_product_count.stocks as $_stock}
-                    {if $_stock.stock_id == $_pickup.params.stock_id}
-                        <span>{$stock_product_count.sku_id}</span> - <span>{if $_stock.count < 1}[`Out of stock`]{else}<a class="js-pickup-{$_pickup.id}">[`Pick up from here`]</a>{/if} &times; {$_stock.count}</span><br><br>
-                        {_pickup_script _pickup_id=$_pickup.id _sku_id=$stock_product_count.sku_id}
-                    {/if}
-                {/foreach}
-            {/if}
-        {/foreach}
-    {/foreach}
-
 </div>
+
+{$_map = [ "adapter" => null, "api_uri" => null ]}
+{if !empty($map.adapter)}
+    {$_map["adapter"] = $map.adapter}
+
+    {if $map.adapter === "yandex"}
+        {$_api_uri = "//api-maps.yandex.ru/2.1/?lang=ru_RU&load=Geolink,Map,Placemark,Clusterer,Collection,geoObject.addon.balloon,control.FullscreenControl,control.GeolocationControl,control.SearchControl,control.ZoomControl"}
+        {if !empty($map.api_key)}
+            {$_api_uri = "`$_api_uri`&apikey=`$map.api_key`"}
+        {/if}
+        {$_map["api_uri"] = $_api_uri}
+    {/if}
+
+    {if $map.adapter === "google"}
+        {$_api_uri = "//maps.googleapis.com/maps/api/js"}
+        {if !empty($map.api_key)}
+            {$_api_uri = "`$_api_uri`?key=`$map.api_key`"}
+        {/if}
+        {$_map["api_uri"] = $_api_uri}
+    {/if}
+{/if}
+<script>
+(function() { "use-strict";
+    loadSources([
+        {
+            id: "pickup-css",
+            type: "css",
+            uri: "{$wa_app_static_url}css/frontend/channels/pickup.css?v={$wa->version()}"
+        },
+        {
+            id: "product-pickup-js",
+            type: "js",
+            uri: "{$wa_app_static_url}js/frontend/product-pickup.js?v={$wa->version()}"
+        }
+    ]).then(() => {
+        $.loadSource = loadSources;
+
+        new ProductPickup({
+            $wrapper: $('#js-pickup-dialog'),
+            wa_app_url: {$wa_app_url|json_encode},
+            product_id: {$product.id|json_encode},
+            sku_id: {$selected_sku_id|json_encode},
+            map: {$_map|json_encode},
+            pickup_list: {$available_pickup|json_encode},
+            templates: {
+                order_confirmation: {_order_confirmation|json_encode}
+            }
+        });
+    });
+
+    function loadSources (sources) {
+        var deferred = $.Deferred();
+
+        loader(sources).then( function() {
+            deferred.resolve();
+        }, function(bad_sources) {
+            if (console && console.error) {
+                console.error("Error loading resource", bad_sources);
+            }
+            deferred.reject(bad_sources);
+        });
+
+        return deferred.promise();
+
+        function loader(sources) {
+            var deferred = $.Deferred(),
+                counter = sources.length;
+
+            var bad_sources = [];
+
+            $.each(sources, function(i, source) {
+                switch (source.type) {
+                    case "css":
+                        loadCSS(source).then(onLoad, onError);
+                        break;
+                    case "js":
+                        loadJS(source).then(onLoad, onError);
+                        break;
+                }
+            });
+
+            return deferred.promise();
+
+            function loadCSS(source) {
+                var deferred = $.Deferred(),
+                    promise = deferred.promise();
+
+                var $link = $("#" + source.id);
+                if ($link.length) {
+                    promise = $link.data("promise");
+
+                } else {
+                    $link = $("<link />", {
+                        id: source.id,
+                        rel: "stylesheet"
+                    }).appendTo("head")
+                        .data("promise", promise);
+
+                    $link
+                        .on("load", function() {
+                            deferred.resolve(source);
+                        }).on("error", function() {
+                        deferred.reject(source);
+                    });
+
+                    $link.attr("href", source.uri);
+                }
+
+                return promise;
+            }
+
+            function loadJS(source) {
+                var deferred = $.Deferred(),
+                    promise = deferred.promise();
+
+                var $script = $("#" + source.id);
+                if ($script.length) {
+                    promise = $script.data("promise");
+
+                } else {
+                    var script = document.createElement("script");
+                    document.getElementsByTagName("head")[0].appendChild(script);
+
+                    $script = $(script)
+                        .attr("id", source.id)
+                        .data("promise", promise);
+
+                    $script
+                        .on("load", function() {
+                            deferred.resolve(source);
+                        }).on("error", function() {
+                        deferred.reject(source);
+                    });
+
+                    $script.attr("src", source.uri);
+                }
+
+                return promise;
+            }
+
+            function onLoad(source) {
+                counter -= 1;
+                watcher();
+            }
+
+            function onError(source) {
+                bad_sources.push(source);
+                counter -= 1;
+                watcher();
+            }
+
+            function watcher() {
+                if (counter === 0) {
+                    if (!bad_sources.length) {
+                        deferred.resolve();
+                    } else {
+                        deferred.reject(bad_sources);
+                    }
+                }
+            }
+        }
+    };
+})();
+</script>

@@ -125,6 +125,10 @@ class shopSeoActions extends waActions
             'theme' => $theme,
             'theme_mobile' => $theme,
         ];
+        $routing_params = wa('shop')->getConfig()->getInfo('routing_params');
+        if ($routing_params && is_array($routing_params)) {
+            $new_route += $routing_params;
+        }
         if ($url === '*') {
             $routes[$domain][] = $new_route;
         } else {

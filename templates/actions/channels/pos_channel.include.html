@@ -1,6 +1,6 @@
 {if empty($channel.id)}
 <p class="small">
-    [`Set up a new point of sale to <b>link Shop-Script mobile POS app</b> to a specific stock location & payment flow, and to enable <b>in-store pickup</b> express checkout option on your site.`]
+    [`Set up a new point of sale to link Shop-Script mobile POS app to a specific stock location & payment flow, and to enable in-store pickup express checkout option on your site.`]
 </p>
 {/if}
 
@@ -40,7 +40,7 @@
                     {if !empty($channel.params.map_adapter_disabled)}
                     <button class="js-search-address"><i class="fas fa-search"></i></button>
                     {/if}
-                    <p class="hint">[`Physical address of the point of sale`]</p>
+                    <p class="hint">[`Human readable physical address of the point of sale. Displayed publicly in the list of available in-store pickup locations.`]</p>
                     {if empty($channel.params.map_adapter_disabled)}
                         <p class="state-caution-hint">[`Configure an online map engine in the <em>Settings</em> app to be able to set a location on a map.`]</p>
                     {/if}
@@ -66,16 +66,20 @@
                 </div>
                 <div class="value">
                     <textarea name="data[params][point_info]" class="textarea" title="[`Description`]">{$channel.params.point_info|default:''|escape}</textarea>
-                    <p class="hint">[`Public information about this point of sale such as working hours or hints on how to get there. Any text that will be useful to your customers.`]</p>
+                    <p class="hint">[`Additional public information about this point of sale such as working hours or hints on how to get there. Any text that will be useful to your customers.`]</p>
                 </div>
             </div>
 
             <div class="field">
                 {$payment_id = ifempty($channel.params, 'payment_id', 'all')}
                 <div class="name">
-                    [`Payment options`]
+                    [`Mobile POS`]
                 </div>
                 <div class="value">
+                    <p class="small">
+                        <i class="fas fa-cash-register text-gray custom-mr-4"></i>
+                        [`Payment options offered for in-person offline checkout on a mobile POS linked with this location:`]
+                    </p>
                     <label>
                         <span class="wa-radio">
                             <input type="radio" name="data[params][payment_id]" value="all"{if $payment_id === 'all'} checked="checked"{/if}>
@@ -117,6 +121,32 @@
                     {else}
                     <p class="hint">[`No public storefronts are available.`]</p>
                     {/if}
+
+                    <p class="small">
+                        <i class="fas fa-exclamation-triangle text-blue"></i> [`Your design theme must support the order pickup button display in products listings:`]
+                        <code class="nowrap">{literal}{$wa->shop->getPickupButton($product)}){/literal}</code>
+                        <a href="https://developers.webasyst.ru/forum/48434/shop-script-12-in-store-pickup/" target="_blank" class="nowrap">[`See the documentation ›`]</a>
+                        <br>
+                        <span class="gray">[`Consult your theme developer in case of any questions.`]</span>
+                    </p>
+                    <p class="small">
+                        <label>
+                            <input type="checkbox" name="data[params][checkout]" value="1"{if ifempty($channel, 'params', 'checkout', '0')} checked{/if}>
+                            [`Express checkout & online reservation`]
+                            <br>
+                            <span class="gray">[`Allows your customers to quickly place an online pickup order via the pickup order dialog on your site to reserve a purchase in this location. For better conversion, the checkout contact field list in this case is minimized to the very basic contact details.`]</span>
+                            <br>
+                            <span class="gray">[`When off, this point of sale option is displayed in the pickup dialog with a simple disclaimer that online checkout is not necessary.`]</span>
+                        </label>
+                    </p>
+                    <p class="small">
+                        <label>
+                            <input type="checkbox" name="data[params][payment]" value="1"{if ifempty($channel, 'params', 'payment', '0')} checked{/if}>
+                            [`Instant payment online`]
+                            <br>
+                            <span class="gray">[`When an express pickup order is placed, a customer can instantly make payment online.`] [`Payment options available for in-store pickup online orders fully match the online storefront’s payment options.`]</span>
+                        </label>
+                    </p>
                 </div>
             </div>
 

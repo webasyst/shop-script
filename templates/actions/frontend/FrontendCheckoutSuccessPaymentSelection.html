@@ -653,6 +653,28 @@
                 })(jQuery);
             </script>
             <style>
+                .dialog.c-payments-wrapper {
+                    --background-color-blank: light-dark(#fff, #222);
+                    --item-bg-color: light-dark(#f8f9fa, #444);
+                    --item-border-color: light-dark(#e9ecef, #666);
+                    --name-color: light-dark(#000, #fff);
+                    --payment-item-lighter-bg: light-dark(#f3f3f3, #333);
+                    --payment-button-bg: light-dark(#dedede, #333);
+                    --payment-button-color: light-dark(#333, #fff);
+                }
+
+                @supports not (color: light-dark(white, black)) {
+                    .dialog.c-payments-wrapper {
+                        --background-color-blank: #fff;
+                        --item-bg-color: #f8f9fa;
+                        --item-border-color: #e9ecef;
+                        --name-color: #000;
+                        --payment-item-lighter-bg: #f3f3f3;
+                        --payment-button-bg: #dedede;
+                        --payment-button-color: #333;
+                    }
+                }
+
                 body.is-locked {
                     overflow: hidden;
                 }
@@ -680,12 +702,6 @@
                 .dialog.c-payments-wrapper {
                     color-scheme: light dark;
                     --dialog-background-color: rgba(0, 0, 0, 0.5);
-                    --background-color-blank: light-dark(#fff, #222);
-                    --item-bg-color: light-dark(#f8f9fa, #444);
-                    --item-border-color: light-dark(#e9ecef, #666);
-                    --name-color: light-dark(#000, #fff);
-
-
                     display: none;
                     position: fixed;
                     top: 0;
@@ -758,7 +774,7 @@
 
                 .dialog.c-payments-wrapper .dialog-body {
                     position: absolute;
-                    top: 10vh !important;
+                    top: 3vh !important;
                     left: 0;
                     z-index: 10;
                     box-sizing: border-box;
@@ -794,7 +810,7 @@
                     top: 0.5rem;
                     right: 1.5rem;
                     color: #fff;
-                    font-size: 1.5rem;
+                    font-size: 1.25rem;
                     opacity: 0.5;
                     padding: 1.5rem .5rem 1.5rem 1.5rem;
                 }
@@ -953,7 +969,7 @@
                 }
 
                 .dialog.c-payments-wrapper .dialog-body .dialog-content form .c-payment-options .c-payment-item.lighter-bg {
-                    background-color: light-dark(#f3f3f3, #333);
+                    background-color: var(--payment-item-lighter-bg);
                 }
 
                 .dialog.c-payments-wrapper .dialog-body .dialog-content form .c-payment-options .c-payment-item.divider {
@@ -1042,13 +1058,13 @@
                 }
 
                 .dialog.c-payments-wrapper .dialog-body .dialog-content form .c-payment-options .c-payment-item .c-payment-item-inner .c-payment-body .c-payment-button {
-                    background-color: light-dark(#dedede, #333);
-                    padding: 9px 16px;
+                    background-color: var(--payment-button-bg);
+                    padding: 9px 0px;
                     border-radius: 10px;
                     margin-top: 15px;
                     width: 100%;
                     display: block;
-                    color: light-dark(#333, #fff);
+                    color: var(--payment-button-color);
                 }
                 .dialog.c-payments-wrapper .dialog-body .dialog-content form .c-payment-options .c-payment-item:hover .c-payment-item-inner .c-payment-body .c-payment-button {
                     background-color: #d3d3d3;

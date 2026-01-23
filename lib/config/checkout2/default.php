@@ -68,7 +68,7 @@ return [
         'auto_use_timeout'       => 3,  // In seconds, if there is empty or <= 0 timeout will not be applied
     ],
     'payment'         => [
-        'used'       => true,
+        'used'       => false,
         'block_name' => _wd('shop', 'Payment')
     ],
     'confirmation'    => [

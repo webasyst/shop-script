@@ -39,6 +39,15 @@ class shopFrontendApiPromosController extends shopFrontApiJsonController
                 }
                 if ($promo_banner = array_shift($rule['rule_params']['banners'])) {
                     $promo_banner['image'] = $host_url.shopPromoBannerHelper::getPromoBannerUrl($promo['id'], $promo_banner['image_filename']);
+                    if (ifempty($promo_banner, 'type_link', '') == 'category') {
+                        $category = (new shopCategoryModel())->getById($promo_banner['link']);
+                        $promo_banner['link'] = $host_url.wa()->getRouteUrl('/frontend/category', ['category_url' => $category['full_url']]);
+                        $promo_banner['type_id'] = $category['id'];
+                    } elseif (ifempty($promo_banner, 'type_link', '') == 'product') {
+                        $product = (new shopProductModel())->getById($promo_banner['link']);
+                        $promo_banner['link'] = $host_url.wa()->getRouteUrl('/frontend/product', ['product_url' => $product['url']]);
+                        $promo_banner['type_id'] = $product['id'];
+                    }
                     $rule['rule_params']['banners'][] = $promo_banner;
                 }
             }

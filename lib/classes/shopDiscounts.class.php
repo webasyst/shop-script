@@ -722,7 +722,7 @@ HTML;
                     $total_item_discount_cents = round(ifset($item['total_discount'], 0) * $currency_precision);
                     // Quantity may be fractional. PHP's % operator only works with integers.
                     // Multiply by 1000 as a workaround.
-                    if (($total_item_discount_cents*1000) % ($item['quantity']*1000)) {
+                    if (($total_item_discount_cents*1000) % round($item['quantity']*1000)) {
                         throw new waException(); // see catch() below
                     }
                     $total_items_discount_cents += $total_item_discount_cents;
@@ -842,7 +842,7 @@ HTML;
             } else {
                 // When quantity is not integer, we don't care for $discount_batch_cents, but still need total item
                 // discount to be divisible by quanity (even if fractional).
-                $item['discount_batch_cents'] = $item['quantity']*1000 / waUtils::gcd($item['quantity']*1000, 1000);
+                $item['discount_batch_cents'] = round($item['quantity']*1000) / waUtils::gcd(round($item['quantity']*1000), 1000);
             }
             $total_item_discount_cents = $item['discount_batch_cents'] * floor($total_item_discount_cents / $item['discount_batch_cents']);
 

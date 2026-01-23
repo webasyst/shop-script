@@ -129,7 +129,7 @@ class shopOrdersAction extends shopOrderListAction {
             $state_transitions = $this->getStateTransitions($workflow, array_keys($state_counters));
         }
 
-        list($show_mobile_ad, $show_premium_ad) = $this->shouldShowAds();
+        list($show_mobile_ad, $show_premium_ad, $show_wa_pay_ad) = $this->shouldShowAds();
 
         $currency =  $config->getCurrency();
         $total_processing = wa_currency_html($this->model->getTotalSalesByInProcessingStates(), $currency, '%k{h}');
@@ -156,6 +156,7 @@ class shopOrdersAction extends shopOrderListAction {
             'total_processing'     => $total_processing,
             'show_mobile_ad'       => $show_mobile_ad,
             'show_premium_ad'      => $show_premium_ad,
+            'show_wa_pay_ad'       => $show_wa_pay_ad,
             'is_orders_empty'      => !($this->model->countAll()),
             'orders_sales_html'    => ifset($orders_sales_html),
         ]);
@@ -166,16 +167,21 @@ class shopOrdersAction extends shopOrderListAction {
         // Premium ad has priority; show if required
         list($show_premium_ad, $when_premium_add_hidden) = $this->shouldShowPremiumAd();
         if ($show_premium_ad) {
-            return [false, $show_premium_ad];
+            return [false, $show_premium_ad, false];
         }
 
         // three days after premium ad is hidden, show no ads
         if ($when_premium_add_hidden && time() - $when_premium_add_hidden <= 3*24*3600) {
-            return [false, false];
+            return [false, false, false];
+        }
+        $show_wa_pay = $this->shouldShowWaPayAd();
+        if ($show_wa_pay) {
+            return [false, false, $show_wa_pay];
         }
 
         list($show_mobile_ad, $when_mobile_add_hidden) = $this->shouldShowMobileAd();
-        return [$show_mobile_ad, false];
+
+        return [$show_mobile_ad, false, false];
     }
 
     protected function shouldShowMobileAd()
@@ -206,6 +212,22 @@ class shopOrdersAction extends shopOrderListAction {
             return [false, $ts - shopBackendSidebarMenuSaveStateController::HIDE_PREMIUM_AD_DAYS*24*3600];
         }
         return [true, null];
+    }
+
+    protected function shouldShowWaPayAd()
+    {
+        $show_wa_pay_ad = true;
+        $pay_promotion_enabled = shopHelper::waPayPromotionEnabled();
+        $hide_wa_pay_ad_till = wa()->getUser()->getSettings('shop', 'hide_wa_pay_ad_till', null);
+        if ($hide_wa_pay_ad_till && (strtotime($hide_wa_pay_ad_till) > time())) {
+            $show_wa_pay_ad = false;
+        }
+
+        if ($pay_promotion_enabled && $show_wa_pay_ad) {
+            return true;
+        }
+
+        return false;
     }
 
     protected function getLastUpdateDatetime($orders)

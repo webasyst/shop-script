@@ -1150,7 +1150,6 @@ class shopPayment extends waAppPayment
 
     protected static function pluginSupportsQRCode($plugin)
     {
-        //return $plugin instanceof waIPaymentImage;
         return $plugin instanceof waPayPayment;
     }
 }

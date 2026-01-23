@@ -29,6 +29,8 @@ class shopFrontendApiOrderPaymentController extends shopFrontApiJsonController
         if (!empty($order['params']['payment_id'])) {
             // In case order already has a payment plugin selected, only allow options from that plugin
             $methods = array_intersect_key($methods, [$order['params']['payment_id'] => 1]);
+        } else if ( ( $payment_ids = waRequest::param('payment_id'))) {
+            $methods = array_intersect_key($methods, array_fill_keys((array)$payment_ids, true));
         }
 
         $payment_id_parts = explode('.', $payment_method_id);

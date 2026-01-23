@@ -1,3 +1,7 @@
+{if !empty($wa->server('QUERY_STRING'))}
+{$href = explode('?', $wa->currentUrl(true))}
+<link rel="canonical" href="{reset($href)}">
+{/if}
 <!-- shop app css -->
 <link href="{$wa_active_theme_url}default.shop.css?v{$wa_theme_version}" rel="stylesheet">
 <link href="{$wa_active_theme_url}css/order.css?v={$wa_theme_version}" rel="stylesheet">

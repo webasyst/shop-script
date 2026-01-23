@@ -919,6 +919,7 @@ class shopSalesModel extends waModel
                     'sources' => 'referer_host',
                     'shipping' => 'shipping_name',
                     'payment' => 'payment_name',
+                    'payment_plugin' => 'payment_plugin',
                     'campaigns' => 'utm_campaign',
                     'landings' => 'landing',
                     'storefronts' => 'storefront'

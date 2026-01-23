@@ -95,7 +95,7 @@ class shopChannelsSaveController extends waJsonController
 
         try {
             $should_update = empty($this->response['wa_channel_id']);
-            $this->saveWaidChannel($channel_type, $this->response);
+            self::saveWaidChannel($channel_type, $this->response);
             if ($should_update && !empty($this->response['wa_channel_id'])) {
                 $sales_channel_model->updateById($id, [
                     'wa_channel_id' => $this->response['wa_channel_id'],
@@ -188,9 +188,13 @@ class shopChannelsSaveController extends waJsonController
         }
     }
 
-    protected function saveWaidChannel(shopSalesChannelType $channel_type, array &$channel)
+    public static function saveWaidChannel(shopSalesChannelType $channel_type, array &$channel)
     {
         if (!$channel_type instanceof shopSalesChannelWaidInterface) {
+            return;
+        }
+        $wa_services = new waServicesApi();
+        if (!$wa_services->isConnected()) {
             return;
         }
 
@@ -210,7 +214,7 @@ class shopChannelsSaveController extends waJsonController
             $method = waNet::METHOD_PUT;
         }
 
-        $response = (new waServicesApi())->serviceCall('SHOP_CHANNEL', $request, $method, ['request_format' => waNet::FORMAT_JSON], $subpath);
+        $response = $wa_services->serviceCall('SHOP_CHANNEL', $request, $method, ['request_format' => waNet::FORMAT_JSON], $subpath);
 
         if (!isset($channel['wa_channel_id'])) {
             $channel['wa_channel_id'] = ifset($response, 'response', 'id', null);

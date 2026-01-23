@@ -17,6 +17,18 @@ class shopSettingsPaymentSaveController extends waJsonController
                     }
                     $plugin['settings'][$key] = $value;
                 }
+                if ($plugin['plugin'] === 'pay') {
+                    $services_api = new waServicesApi();
+                    if (!$services_api->isConnected()) {
+                        $result = (new waWebasystIDClientManager())->connect();
+                        if ($result['status']) {
+                            $services_api->unsetIsConnected();
+                        } elseif (isset($result['details']['error_message'])) {
+                            $this->setError($result['details']['error_message']);
+                        }
+                    }
+                }
+
                 shopPayment::savePlugin($plugin);
 
                 $this->response['message'] = _w('Saved');

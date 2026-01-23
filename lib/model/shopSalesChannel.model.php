@@ -40,8 +40,8 @@ class shopSalesChannelModel extends waModel
                 if (isset($channels[$param['channel_id']])) {
                     if ($param['name'] == 'payment_id_'.$param['value']) {
                         $channels[$param['channel_id']]['params']['payment_ids'][] = $param['value'];
-                    } elseif ($param['name'] == 'pickup_storefront_'.$param['value']) {
-                        $channels[$param['channel_id']]['params']['pickup_storefronts'][] = $param['value'];
+                    } elseif (rtrim($param['name'], '/') == 'pickup_storefront_'.rtrim($param['value'], '/')) {
+                        $channels[$param['channel_id']]['params']['pickup_storefronts'][] = rtrim($param['value'], '/');
                     } else {
                         $channels[$param['channel_id']]['params'][$param['name']] = $param['value'];
                     }

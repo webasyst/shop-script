@@ -23,9 +23,22 @@
                             v-on:success="success"
                             v-on:feature_dialog="hide"></component-table-filters-features-item>
                     </template>
-                    <div class="s-empty-wrapper" v-if="empty_search_result">[`Parameters not found.`]</div>
+                    <div class="js-lazyloading align-center">
+                        <div
+                            v-show="!empty_search_result"
+                            class="custom-py-4"
+                            :style="{ visibility: states.is_fetching ? 'visible' : 'hidden' }"
+                        >
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                    </div>
+
+                    <div v-if="empty_search_result || (!states.is_fetching && !items.length)"
+                        class="s-empty-wrapper align-center custom-mt-0 custom-py-4"
+                    >[`Parameters not found.`]</div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>

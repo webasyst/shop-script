@@ -96,7 +96,9 @@
                         </a>
                     </form>
                 {/if}
-                {$wa->shop->getPickupButton($p)}
+                {if $wa->shop->countPickupLocations() > 0}
+                    {$wa->shop->getPickupButton($p)}
+                {/if}
                 <link itemprop="availability" href="http://schema.org/InStock">
             {else}
                 <div class="out-of-stock">

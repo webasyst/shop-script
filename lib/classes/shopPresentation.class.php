@@ -320,7 +320,7 @@ class shopPresentation
         return $all_products;
     }
 
-    public function getColumnsList()
+    public function getBaseColumnsList()
     {
         $columns = [];
 
@@ -576,9 +576,38 @@ class shopPresentation
             $columns[$column_id] = $column_data;
         }
 
+        return $columns;
+    }
+
+    public function getColumnsList($options = [])
+    {
+        $columns = [];
+        $last_id = ifset($options, 'last_id', null);
+        $search_string = (string) ifset($options, 'search_string', '');
+        if (null === $last_id && !strlen($search_string)) {
+            $columns = $this->getBaseColumnsList();
+        }
+
         // Column for each feature
         $feature_model = new shopFeatureModel();
-        $features = $feature_model->select('id, code, name, multiple, type, available_for_sku, status')->where('`parent_id` IS NULL')->fetchAll('id');
+        $query = $feature_model->select('id, code, name, multiple, type, available_for_sku, status');
+        if ($last_id) {
+            $query = $query->where('`parent_id` IS NULL AND `id` > (?)', [$last_id]);
+        } else if (!empty($options['features_ids'])) {
+            $query = $query->where('`parent_id` IS NULL AND `id` IN (?)', [$options['features_ids']]);
+        } else {
+            $query = $query->where('`parent_id` IS NULL');
+        }
+
+        if (strlen($search_string)) {
+            $query = $query->where('`name` LIKE (?)', ['%'.$search_string.'%']);
+        }
+
+        if (isset($options['limit']) && is_numeric($options['limit'])) {
+            $query = $query->limit($options['limit']);
+        }
+
+        $features = $query->fetchAll('id');
         foreach ($features as $id => $feature) {
             if ($feature['type'] != shopFeatureModel::TYPE_DIVIDER) {
                 $feature_data = [

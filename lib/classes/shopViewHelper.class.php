@@ -1325,6 +1325,13 @@ SQL;
                 unset($promos[$promo['id']]);
                 continue;
             }
+            if (ifempty($promo_banner, 'type_link', '') == 'category') {
+                $category = (new shopCategoryModel())->getById($promo_banner['link']);
+                $promo_banner['link'] = wa()->getRouteUrl('/frontend/category', ['category_url' => $category['full_url']]);
+            } elseif (ifempty($promo_banner, 'type_link', '') == 'product') {
+                $product = (new shopProductModel())->getById($promo_banner['link']);
+                $promo_banner['link'] = wa()->getRouteUrl('/frontend/product', ['product_url' => $product['url']]);
+            }
 
             $promo_banner['image'] = $this->cdn.shopPromoBannerHelper::getPromoBannerUrl($promo['id'], $promo_banner['image_filename'], $size);
             $promos[$promo['id']] = array_merge($promo_banner, $promo);
@@ -1735,14 +1742,14 @@ SQL;
     }
 
     /**
-     * @return bool
+     * @return int
      * @throws waException
      * @since 12.0.0
      */
-    public function isPickupEnabled()
+    public function countPickupLocations()
     {
         $routing = wa()->getRouting();
-        $current_storefront = $routing->getDomain().'/'.rtrim((string) $routing->getRoute('url'), '*');
+        $current_storefront = $routing->getDomain().'/'.rtrim((string) $routing->getRoute('url'), '/*');
 
         $channels = (new shopSalesChannelModel())->getAllWithParams();
         $channels = array_filter($channels, function ($_channel) use ($current_storefront) {
@@ -1756,7 +1763,7 @@ SQL;
             return true;
         });
 
-        return !empty($channels);
+        return count($channels);
     }
 
     /**
@@ -1776,14 +1783,19 @@ SQL;
         $script = <<<SCRIPT
 <script>
     (function ($) {
-        $('.js-pickup-button-{$product['id']}').on('click', function () {
+        let is_loading = false;
+        $('.js-pickup-button-{$product['id']}').on('click', function (e) {
+            e.stopImmediatePropagation();
+            if (is_loading) return;
+            is_loading = true;
+
             let that = this;
             let sku_id = new URLSearchParams(window.location.search).get('sku');
 
-            $('body .js-dialog-pickup-content').remove();
+            $('body .js-dialog-pickup').remove();
             $.post('{$url}', {product_id: {$product['id']}, sku_id: sku_id }).always(function (html) {
-                $(that).next('div').remove();
-                $(that).after(html);
+                $('body').append(html);
+                is_loading = false;
             });
         });
     })(jQuery);

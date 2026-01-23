@@ -19,8 +19,15 @@ class shopMarketingPromoRuleEditorAction extends waViewAction
         $promo_rules_model = new shopPromoRulesModel();
         $this->rule = !empty($this->rule_id) ? $promo_rules_model->getByField(['id' => $this->rule_id, 'rule_type' => $this->rule_type]) : null;
 
+        $categories = [];
+        if ($this->rule_type === 'banner') {
+            $category_model = new shopCategoryModel();
+            $categories = $category_model->getFullTree('id, name, parent_id');
+        }
+
         $this->view->assign([
             'marketing_url' => shopMarketingViewAction::getMarketingUrl(),
+            'categories'    => $categories,
             'options'       => $this->options,
             'rule_type'     => $this->rule_type,
             'rule_id'       => $this->rule_id,

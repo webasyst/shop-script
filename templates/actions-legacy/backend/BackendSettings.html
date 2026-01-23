@@ -114,6 +114,9 @@
             <li>
                 <a href="?action=settings#/payment/">
                     <i class="icon16 ss payment-bw"></i>[`Payment`]
+                    {if shopHelper::waPayPromotionEnabled()}
+                        <span class="count indicator red" style="background-color: #7256ee;">[`СБП 0.7%`]</span>
+                    {/if}
                 </a>
             </li>
             <li>

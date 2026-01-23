@@ -2068,6 +2068,7 @@
                                             this.debouncedSearch(q);
                                         } else {
                                             // clear search
+                                            this.scrollToStartPosition();
                                             this.states.is_fetching = false;
                                             if (this.search_timer) {
                                                 clearTimeout(this.search_timer);
@@ -2104,8 +2105,9 @@
                                     this.dropbox = $.wa.new.Dropbox({
                                         $wrapper: $wrapper,
                                         protect: false,
-                                        open: function() {
+                                        open: () => {
                                             $wrapper.find("input.js-autofocus").trigger("focus");
+                                            this.scrollToStartPosition();
                                         }
                                     });
 
@@ -2133,6 +2135,9 @@
                                         tag.states.enabled = !tag.states.enabled;
                                         this.onChange();
                                     },
+                                    scrollToStartPosition: function() {
+                                        this.dropbox.$body.find('.s-tags-list').scrollTop(0);
+                                    },
                                     reset: function() {
                                         $.each(this.items, function(i, tag) {
                                             tag.states.enabled = false;
@@ -2156,21 +2161,21 @@
                                         }
 
                                         const intersectionObserver = new IntersectionObserver((entries) => {
-                                            if (this.fetch_params.is_last || this.states.is_fetching || entries[0].intersectionRatio <= 0) {
+                                            if (!this.fetch_params.last_id || this.states.is_fetching || entries[0].intersectionRatio <= 0) {
                                                 return;
                                             }
 
-                                            this.fetchTags().then(data => {
+                                            this.getTags().then(data => {
                                                 if (data.params.q) {
-                                                    this.search_items.push(...this.formatOptions(data.tags));
+                                                    this.search_items.push(...this.formatOptions(data.items));
                                                 } else {
-                                                    this.static_items.push(...this.formatOptions(data.tags));
+                                                    this.static_items.push(...this.formatOptions(data.items));
                                                 }
                                             });
                                         });
                                         intersectionObserver.observe(el);
                                     },
-                                    fetchTags: function() {
+                                    getTags: function() {
                                         const dfd = $.Deferred();
 
                                         if (!Object.keys(this.fetch_params).length) {
@@ -2179,9 +2184,9 @@
 
                                         this.states.is_fetching = true;
                                         const params = new URLSearchParams(this.fetch_params);
-                                        $.get(`${that.urls["tags_get"]}&${params}`, (r) => {
-                                            if (r.status === 'ok' && Array.isArray(r.data.tags)) {
-                                                r.data.tags = r.data.tags.filter(t => !this.selected_tags[t.id]);
+                                        $.get(`${that.urls['tags_get']}&${params}`, (r) => {
+                                            if (r.status === 'ok' && Array.isArray(r.data.items)) {
+                                                r.data.items = r.data.items.filter(t => !this.selected_tags[t.id]);
                                                 dfd.resolve(r.data);
                                                 this.fetch_params = r.data.params;
                                                 this.states.is_fetching = false;
@@ -2198,8 +2203,8 @@
                                         }
 
                                         this.search_timer = setTimeout(() => {
-                                            this.fetchTags().then(({ tags }) => {
-                                                this.search_items = this.formatOptions(tags);
+                                            this.getTags().then(({ items }) => {
+                                                this.search_items = this.formatOptions(items);
                                             });
                                             this.search_timer = null;
                                         }, 1000);
@@ -2209,19 +2214,6 @@
                             "component-table-filters-features": {
                                 template: that.components["component-table-filters-features"],
                                 delimiters: ['{ { ', ' } }'],
-                                mixins: [FilterSearchMixin],
-                                data: function() {
-                                    let options = $.wa.clone(that.filter_options);
-
-                                    return {
-                                        items: formatOptions(options.features),
-                                        states: {}
-                                    };
-
-                                    function formatOptions(items) {
-                                        return items;
-                                    }
-                                },
                                 components: {
                                     "component-table-filters-search": that.vue_components["component-table-filters-search"],
                                     "component-table-filters-features-item": {
@@ -2249,14 +2241,168 @@
                                         }
                                     }
                                 },
-                                computed: { },
+                                data: function() {
+                                    const items = this.formatOptions($.wa.clone(that.filter_options.features || []));
+
+                                    this.fetch_params = {};
+                                    this.prev_fetch_params = null;
+                                    this.search_timer = null;
+                                    this.items_without_id = $.wa.clone(items.filter(item => !item.id));
+
+                                    return {
+                                        static_items: items,
+                                        search_items: [],
+                                        search_string: "",
+                                        states: {
+                                            is_fetching: false,
+                                        }
+                                    };
+                                },
+                                watch: {
+                                    search_string(q) {
+                                        orig_q = q;
+                                        q = q.trim();
+                                        // has a lot of spaces
+                                        if (!q && orig_q !== q) {
+                                            return;
+                                        }
+
+                                        if (q !== '') {
+                                            if (this.prev_fetch_params === null) {
+                                                this.prev_fetch_params = $.wa.clone(this.fetch_params);
+                                                this.items.map(t => (t.is_hide=true,t));
+                                            }
+
+                                            if ('q' in this.fetch_params) {
+                                                if (q === this.fetch_params.q) {
+                                                    return;
+                                                } else {
+                                                    this.search_items = [];
+                                                }
+                                            }
+                                            this.debouncedSearch(q);
+                                        } else {
+                                            // clear search
+                                            this.scrollToStartPosition();
+                                            this.states.is_fetching = false;
+                                            if (this.search_timer) {
+                                                clearTimeout(this.search_timer);
+                                                this.search_timer = null;
+                                            }
+
+                                            if (this.prev_fetch_params !== null) {
+                                                this.fetch_params = $.wa.clone(this.prev_fetch_params);
+                                                this.prev_fetch_params = null;
+                                            }
+
+                                            this.items.map(t => (t.is_hide=false,t));
+                                            this.search_items = [];
+                                        }
+                                    }
+                                },
+                                mounted: function () {
+                                    const $wrapper = $(this.$el);
+
+                                    this.dropbox = $.wa.new.Dropbox({
+                                        $wrapper: $wrapper,
+                                        protect: false,
+                                        open: () => {
+                                            $wrapper.find("input.js-autofocus").trigger("focus");
+                                            this.scrollToStartPosition();
+                                        }
+                                    });
+
+                                    setTimeout(() => {
+                                        this.initLazyLoad();
+                                    }, 500);
+                                },
+                                computed: {
+                                    items: function() {
+                                        return this.static_items.concat(this.search_items);
+                                    },
+                                    has_value: function() {
+                                        return !!this.items.filter(item => item.states.enabled).length;
+                                    },
+                                    empty_search_result: function() {
+                                        return !this.states.is_fetching && !!this.search_string.trim() && !this.search_items.length;
+                                    },
+                                },
                                 methods: {
                                     hide: function(item) {
-                                        this.search_string = "";
-                                        this.dropbox.hide();
+                                        // this.search_string = "";
+                                        // this.dropbox.hide();
                                     },
                                     success: function(data) {
                                         this.$emit("success", data);
+                                    },
+                                    scrollToStartPosition: function() {
+                                        this.dropbox.$body.find('.s-features-list').scrollTop(0);
+                                    },
+                                    formatOptions: function(items) {
+                                        return items;
+                                    },
+                                    initLazyLoad: function() {
+                                        const el = this.$el.querySelector('.js-lazyloading');
+                                        if (!el) {
+                                            return;
+                                        }
+
+                                        const features = this.items.filter(f => f.id).sort((a, b) => (a.id - b.id));
+                                        if (features.length) {
+                                            this.fetch_params.last_id = features.pop().id;
+                                        }
+
+                                        const intersectionObserver = new IntersectionObserver((entries) => {
+                                            if (!this.fetch_params.last_id || this.states.is_fetching || entries[0].intersectionRatio <= 0) {
+                                                return;
+                                            }
+
+                                            this.getItems().then(data => {
+                                                if (data.params.q) {
+                                                    this.search_items.push(...this.formatOptions(data.items));
+                                                } else {
+                                                    this.static_items.push(...this.formatOptions(data.items));
+                                                }
+                                            });
+                                        });
+                                        intersectionObserver.observe(el);
+                                    },
+                                    getItems: function() {
+                                        const dfd = $.Deferred();
+
+                                        if (!Object.keys(this.fetch_params).length) {
+                                            return dfd;
+                                        }
+
+                                        this.states.is_fetching = true;
+                                        const params = new URLSearchParams(this.fetch_params);
+                                        $.get(`${that.urls['features_get']}&${params}`, (r) => {
+                                            if (r.status === 'ok' && Array.isArray(r.data.items)) {
+                                                dfd.resolve(r.data);
+                                                this.fetch_params = r.data.params;
+                                                this.states.is_fetching = false;
+                                            }
+                                        }, "json");
+
+                                        return dfd.promise();
+                                    },
+                                    debouncedSearch: function(q) {
+                                        this.fetch_params = { q };
+                                        this.states.is_fetching = true;
+                                        if (this.search_timer) {
+                                            clearTimeout(this.search_timer);
+                                        }
+
+                                        q = q.toLowerCase();
+                                        // find local features without ID
+                                        this.search_items = this.items_without_id.filter(item => item.name.toLowerCase().includes(q));
+                                        // find with ID via ajax
+                                        this.search_timer = setTimeout(() => {
+                                            this.getItems().then(({ items }) => {
+                                                this.search_items = this.search_items.concat(this.formatOptions(items));
+                                            });
+                                            this.search_timer = null;
+                                        }, 1000);
                                     }
                                 }
                             },
@@ -6156,48 +6302,10 @@
                             showColumnManager: function() {
                                 $.waDialog({
                                     html: that.templates["dialog-list-column-manager"],
-                                    options: {
-                                        columns_ready: getColumns(),
-                                    },
                                     onOpen: function($dialog, dialog) {
                                         that.initDialogColumnManager($dialog, dialog);
                                     }
                                 });
-
-                                function getColumns() {
-                                    var ready = $.Deferred();
-
-                                    (function(resolve) {
-                                        if (that.full_columns_array_loaded) {
-                                            resolve();
-                                        } else {
-                                            $.get(that.urls["presentation_get_columns"], { presentation_id: that.presentation.id }, function(result) {
-                                                that.full_columns_array_loaded = true;
-                                                that.columns_array = result.data;
-                                                that.columns = $.wa.construct(that.columns_array, "id");
-                                                resolve();
-                                            }, "json");
-                                        }
-                                    }(function() {
-                                        ready.resolve(prepareColumns());
-                                    }));
-
-                                    return ready.promise();
-                                }
-
-                                function prepareColumns() {
-                                    let columns = $.wa.clone(that.columns_array);
-                                    $.each(columns, function(i, column) {
-                                        column.settings = (column.settings ? column.settings : {});
-                                        column.states = {
-                                            move: false,
-                                            highlighted: false,
-                                            display: true,
-                                            ready: false
-                                        }
-                                    });
-                                    return columns;
-                                }
                             },
                             onClickItem: function () {
                                 this.$parent.onClickItem.call(null, ...arguments);
@@ -7561,7 +7669,7 @@
                     }
 
                     this.states.is_fetching = true;
-                    $.post(that.urls["features_get"], { id }, "json")
+                    $.post(that.urls["feature_get"], { id }, "json")
                         .always(() => {
                             this.states.is_fetching = false;
                         })
@@ -7666,9 +7774,15 @@
                 data() {
                     return {
                         columns: [],
+                        search_columns: [],
+                        fetch_params: {
+                            last_id: null,
+                            q: ''
+                        },
                         states: {
                             locked: false,
                             column_expand: false,
+                            is_inited: false,
                             is_fetching: false
                         }
                     }
@@ -7676,57 +7790,27 @@
                 delimiters: ['{ { ', ' } }'],
                 components: {
                     "component-search-column": {
+                        emits: ['input'],
                         data: function() {
                             return {
-                                search_string: "",
-                                selection: []
+                                search_string: ''
                             };
                         },
                         template: that.components["component-search-column"],
                         delimiters: ['{ { ', ' } }'],
                         methods: {
                             search: function() {
-                                const self = this;
-                                const columns = self.$root.columns;
-                                const selection = [];
-
-                                // Делаем выборку
-                                checkItems(columns);
-
-                                // Сохраняем выборку
-                                self.selection = selection;
-
-                                function checkItems(columns) {
-                                    $.each(columns, function(i, column) {
-                                        let display = true;
-
-                                        if (!column.enabled) {
-                                            if (self.search_string.length > 0) {
-                                                let is_wanted = (column.name.toLowerCase().indexOf( self.search_string.toLowerCase() ) >= 0 );
-                                                if (is_wanted) {
-                                                    selection.push(column);
-                                                } else {
-                                                    display = false;
-                                                }
-                                            }
-                                        }
-
-                                        if (column.states.display !== display) {
-                                            column.states.display = display;
-                                        }
-                                    });
-                                }
+                                this.$emit('input', this.search_string);
                             },
                             revert: function() {
-                                let self = this;
-                                self.search_string = "";
-                                self.search();
+                                this.search_string = '';
+                                this.search();
                             }
                         }
                     },
                     "component-list-column-item": {
                         props: ["column"],
-                        emits: ["column_enabled", "column_expanded"],
+                        emits: ["column_enabled", "column_disabled", "column_expanded"],
                         data: function() {
                             switch (this.column.id) {
                                 case "name":
@@ -7761,7 +7845,7 @@
                             }
 
                             return {
-                                column_info: that.columns[this.column.id],
+                                column_info: this.column,
                                 settings: settings,
                                 states: {
                                     timer_enable: 0,
@@ -7774,13 +7858,6 @@
                         },
                         template: that.components["component-list-column-item"],
                         delimiters: ['{ { ', ' } }'],
-                        watch: {
-                            "column.enabled": function(value) {
-                                if (value === true) {
-                                    this.$emit("column_enabled", this.column);
-                                }
-                            }
-                        },
                         components: {
                             "component-radio": that.vue_components["component-radio"],
                             "component-switch": that.vue_components["component-switch"]
@@ -7823,6 +7900,7 @@
                                 clearTimeout(self.states.timer_enable);
                                 self.states.timer_enable = setTimeout( function() {
                                     self.column.enabled = value;
+                                    self.$emit(value === true ? "column_enabled" : "column_disabled", self.column);
                                 }, 500);
                             },
                             setup: function() {
@@ -7853,7 +7931,10 @@
                         return this.columns.filter(col => col.enabled);
                     },
                     inactive_columns: function() {
-                        return this.columns.filter(col => !col.enabled);
+                        return !!this.fetch_params.q ? this.columns_not_features.filter(col => !col.enabled && col.name.toLowerCase().includes(this.fetch_params.q.toLowerCase())).concat(this.search_columns) : this.columns.filter(col => !col.enabled);
+                    },
+                    empty_search_result: function() {
+                        return !this.states.is_fetching && !!this.fetch_params.q && !!this.fetch_params.q.trim() && !this.search_columns.length;
                     }
                 },
                 methods: {
@@ -7905,8 +7986,6 @@
                             off();
                         }
 
-                        //
-
                         function moveColumn($over) {
                             var column_id = "" + $over.attr("data-id"),
                                 column = getColumn(column_id);
@@ -7933,7 +8012,10 @@
                         }
 
                         function getColumn(column_id) {
-                            return (columns_object[column_id] ? columns_object[column_id] : null);
+                            if (!columns_object[column_id]) {
+                                columns_object = $.wa.construct(columns, "id");
+                            }
+                            return columns_object[column_id];
                         }
 
                         function off() {
@@ -8003,37 +8085,115 @@
                         var self = this;
                         self.states.column_expand = !!column;
                     },
-                    onColumnEnabled: function(move_column) {
-                        var self = this,
-                            columns = self.columns;
-
-                        if (self.active_columns.length > 1) {
-                            var over_column = self.active_columns[self.active_columns.length - 1];
-                            if (move_column !== over_column) {
-                                var move_index = columns.indexOf(move_column),
-                                    over_index = columns.indexOf(over_column);
-
-                                if (over_index !== move_index) {
-                                    columns.splice(move_index, 1);
-                                    var new_index = columns.indexOf(over_column) + 1;
-                                    columns.splice(new_index, 0, move_column);
-                                }
+                    onActiveColumnDisabled: function(move_column) {
+                        const search_column_index = this.search_columns.findIndex(column => column.feature_id === move_column.feature_id);
+                        if (search_column_index !== -1) {
+                            const found_column_index = this.columns.findIndex(column => column.feature_id === move_column.feature_id);
+                            if (found_column_index !== -1) {
+                                this.columns.splice(found_column_index, 1);
                             }
+                            this.search_columns.splice(search_column_index, 1);
+                            this.$nextTick(() => {
+                                this.search_columns.splice(search_column_index, 0, $.wa.clone(move_column));
+                            });
                         }
+                    },
+                    onInactiveColumnEnabled: function(move_column) {
+                        const search_column_index = this.search_columns.findIndex(column => column.feature_id === move_column.feature_id);
+                        if (search_column_index !== -1) {
+                            const found_column = this.columns.find(column => column.feature_id === move_column.feature_id);
+                            if (!found_column) {
+                                this.columns.push($.wa.clone(move_column));
+                            }
+                            this.search_columns[search_column_index].states.display = false;
+                        }
+                    },
+                    fetchItems: function() {
+                        this.states.is_fetching = true;
+                        return $.get(that.urls["presentation_get_columns"], {
+                            presentation_id: that.presentation.id,
+                            ...(this.fetch_params.q ? { q: this.fetch_params.q } : {}),
+                            ...(this.fetch_params.last_id ? { last_id: this.fetch_params.last_id } : {})
+                         }, "json").then((r) => {
+                            this.fetch_params = r?.data?.params || this.fetch_params;
+                            this.states.is_fetching = false;
+
+                            return r?.data?.items || [];
+                         });
+                    },
+                    formatOptions: function(columns) {
+                        return columns.map(column => {
+                            column.settings = (column.settings ? column.settings : {});
+                            column.states = {
+                                move: false,
+                                highlighted: false,
+                                display: true,
+                                ready: false
+                            }
+                            return column;
+                        });
+                    },
+                    initLazyLoad: function() {
+                        const el = this.$el.parentElement.querySelector('.js-lazyloading');
+                        if (!el) return;
+                        const intersectionObserver = new IntersectionObserver((entries) => {
+                            if (!this.fetch_params.last_id || this.states.is_fetching || entries[0].intersectionRatio <= 0) {
+                                return;
+                            }
+
+                            this.fetchItems().then(items => {
+                                if (this.fetch_params.q) {
+                                    this.search_columns.push(...this.formatOptions(items));
+                                } else {
+                                    this.columns.push(...this.formatOptions(items));
+                                }
+                            });
+                        });
+                        intersectionObserver.observe(el);
+                    },
+                    debouncedSearch: function(q) {
+                        this.fetch_params = { q };
+                        this.search_columns = [];
+
+                        this.states.is_fetching = true;
+                        if (this.search_timer) {
+                            clearTimeout(this.search_timer);
+                        }
+
+                        q = q.toLowerCase();
+                        this.search_timer = setTimeout(() => {
+                            this.fetchItems().then((items) => {
+                                this.search_columns = this.search_columns.concat(this.formatOptions(items));
+                            });
+                            this.search_timer = null;
+                        }, 1000);
                     }
                 },
                 created: function () {
                     $section.css("visibility", "");
 
-                    this.states.is_fetching = true;
-                    dialog.options.columns_ready.then((columns) => {
-                        this.columns = columns;
-                        this.states.is_fetching = false;
+                    const initData = () => {
+                        this.columns = this.formatOptions($.wa.clone(that.columns_array));
+                        this.columns_not_features = this.columns.filter(column => !column.feature_id);
+
                         this.$nextTick(() => {
-                            dialog.resize()
                             this.initDragAndDrop($(this.$el.parentElement));
+                            dialog.resize()
                         });
-                    });
+
+                        setTimeout(() => {
+                            this.initLazyLoad();
+                        }, 500);
+                    };
+
+                    if (!this.states.is_inited) {
+                        this.fetchItems().then(items => {
+                            that.columns_array = items;
+                            that.columns = $.wa.construct(that.columns_array, "id");
+                            this.states.is_inited = true;
+                            initData();
+                        });
+                    }
                 }
             });
             app.mount($section[0]);

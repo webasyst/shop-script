@@ -1052,7 +1052,8 @@
                     var map = new google.maps.Map(document.getElementById("wa-shipping-map"), {
                         center: {lat: center[0], lng: center[1]},
                         zoom: 10,
-                        maxZoom: 18
+                        maxZoom: 18,
+                        ...(isDarkTheme() && { colorScheme: google.maps.ColorScheme.DARK })
                     });
 
                     var placemarks_array = renderPlacemarks();
@@ -4513,6 +4514,10 @@
         }
 
         return is_valid;
+    }
+
+    function isDarkTheme() {
+        return document.documentElement.style.colorScheme === 'dark';
     }
 
 })(jQuery);

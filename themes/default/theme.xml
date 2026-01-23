@@ -218,20 +218,10 @@
         </option>
       </options>
     </setting>
-    <setting var="homepage_sidebar_storeinfo" control_type="checkbox">
-      <value>1</value>
-      <name locale="en_US">Store name, phone number, and working hours</name>
-      <name locale="ru_RU">Название магазина, номер телефона и часы работы</name>
-    </setting>
     <setting var="homepage_sidebar_categories" control_type="checkbox">
       <value>1</value>
       <name locale="en_US">Root product categories in the homepage sidebar</name>
       <name locale="ru_RU">Корневые категории в боковой панели</name>
-    </setting>
-    <setting var="language_toggle" control_type="checkbox">
-      <value/>
-      <name locale="en_US">Show language selector in footer</name>
-      <name locale="ru_RU">Показывать переключатель языка внизу страницы</name>
     </setting>
     <setting var="divider_storefront_infoblock_1" control_type="group_divider">
       <value>divider_storefront_sidebar/divider_storefront_infoblock_1</value>
@@ -289,6 +279,11 @@
       <name locale="en_US">Сommon store settings</name>
       <name locale="ru_RU">Общие настройки магазина</name>
     </setting>
+    <setting var="language_toggle" control_type="checkbox">
+      <value>0</value>
+      <name locale="en_US">Show language selector in footer</name>
+      <name locale="ru_RU">Показывать переключатель языка внизу страницы</name>
+    </setting>
     <setting var="category_nav_mode" control_type="radio">
       <value>dropdown</value>
       <name locale="ru_RU">Каталог товаров</name>
@@ -343,7 +338,7 @@
       </options>
     </setting>
     <setting var="list_features" control_type="checkbox">
-      <value/>
+      <value>0</value>
       <name locale="en_US">Show product features in product lists</name>
       <name locale="ru_RU">Показывать значения характеристик в списках товаров</name>
     </setting>
@@ -397,28 +392,32 @@
     </setting>
     <setting var="ajax_filters" control_type="checkbox">
       <value>1</value>
-      <name locale="en_US">AJAX-enabled product filtering by features</name>
-      <name locale="ru_RU">AJAX-фильтры товаров по характеристикам</name>
+      <name locale="en_US">Show product filters by features</name>
+      <name locale="ru_RU">Блок фильтров товаров по характеристикам</name>
     </setting>
     <setting var="store_address" control_type="text">
       <value/>
-      <name locale="en_US">Store address</name>
-      <name locale="ru_RU">Адрес магазина</name>
+      <name locale="en_US">Physical store address</name>
+      <name locale="ru_RU">Почтовый адрес магазина</name>
+      <description locale="ru_RU">Используется для SEO и микроразметки Schema.org.</description>
+      <description locale="en_US">Used for SEO purposes and Schema.org markup.</description>
     </setting>
     <setting var="store_price_range" control_type="text">
       <value/>
       <name locale="en_US">Store price range</name>
       <name locale="ru_RU">Ценовой диапазон магазина</name>
+      <description locale="ru_RU">Используется для SEO и микроразметки Schema.org.</description>
+      <description locale="en_US">Used for SEO purposes and Schema.org markup.</description>
     </setting>
     <setting var="checkout_payment_success_title" control_type="text">
-      <value locale="en_US">Your payment has been accepted</value>
-      <value locale="ru_RU">Оплата получена</value>
+      <value locale="en_US">Payment successful</value>
+      <value locale="ru_RU">Оплачено</value>
       <name locale="en_US">Successful payment page title</name>
       <name locale="ru_RU">Заголовок страницы с сообщением об успешной оплате</name>
     </setting>
     <setting var="checkout_payment_success_description" control_type="text">
-      <value locale="en_US">We will process your order and will contact you shortly.</value>
-      <value locale="ru_RU">Мы вскоре обработаем ваш заказ и свяжемся с вами в ближайшее время.</value>
+      <value locale="en_US">Processing your order and will contact you shortly!</value>
+      <value locale="ru_RU">Обработаем ваш заказ и свяжемся с вами в ближайшее время!</value>
       <name locale="en_US">Successful payment message</name>
       <name locale="ru_RU">Сообщение после завершения оплаты заказа</name>
     </setting>

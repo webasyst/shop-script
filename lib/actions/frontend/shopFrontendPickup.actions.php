@@ -18,7 +18,7 @@ class shopFrontendPickupActions extends waActions
     protected function dialogAction()
     {
         $product_id = waRequest::post('product_id');
-        $select_sku_id = waRequest::post('sku_id');
+        $selected_sku_id = waRequest::post('sku_id');
         if (empty($product_id)) {
             print _w('Product not found.');
             return;
@@ -38,7 +38,7 @@ class shopFrontendPickupActions extends waActions
         }
         if (!empty($product)) {
             $routing = wa()->getRouting();
-            $current_storefront = $routing->getDomain().'/'.rtrim((string) $routing->getRoute('url'), '*');
+            $current_storefront = $routing->getDomain().'/'.rtrim((string) $routing->getRoute('url'), '/*');
 
             $channels = (new shopSalesChannelModel())->getAllWithParams();
             $channels = array_filter($channels, function ($_channel) use ($current_storefront) {
@@ -104,13 +104,29 @@ class shopFrontendPickupActions extends waActions
                     }
                 }
 
+                // These are used by map that shows pickpoint locations
+                $adapter = null;
+                $api_key = null;
+                try {
+                    $adapter = wa()->getMap()->getId();
+                    if ($adapter === 'yandex') {
+                        $api_key = 'apikey';
+                    } else {
+                        $api_key = 'key';
+                    }
+                    $api_key = wa()->getMap()->getSettings($api_key);
+                } catch (Exception $e) {
+                }
+                $map = compact('adapter', 'api_key');
+
                 $result = $this->display([
                     'stocks' => $stocks,
                     'form' => $this->getForm(),
                     'product' => $product,
-                    'select_sku_id' => ifempty($select_sku_id, $product['sku_id']),
+                    'selected_sku_id' => ifempty($selected_sku_id, $product['sku_id']),
                     'available_pickup'=> $channels,
                     'stocks_product_count' => $stocks_count,
+                    'map' => $map,
                 ], $template_path, true);
             }
         }
@@ -159,9 +175,11 @@ class shopFrontendPickupActions extends waActions
 
         $workflow = new shopWorkflow();
         if ($order_id = $workflow->getActionById('create')->run($order)) {
-            $_GET['id'] = $order_id;
-            $method = new shopOrderGetInfoMethod();
-            $this->displayJson($method->getResponse(true));
+            $saved_order = new shopOrder($order_id);
+            $this->displayJson([
+                'id' => (int) $order_id,
+                'code' => $saved_order->getPaymentLinkHash(),
+            ]);
         } else {
             $this->displayJson([], ['server_error' => _w('An error has occurred.')]);
         }
@@ -202,10 +220,10 @@ class shopFrontendPickupActions extends waActions
     private function getForm()
     {
         return [
-            _w('Customer last name') =>  '<input title="'._w('Customer last name').'" type="text" name="lastname" value="">',
-            _w('Customer first name') =>  '<input title="'._w('Customer first name').'" type="text" name="firstname" value="">',
-            _w('Customer phone') =>  '<input title="'._w('Customer phone').'" type="text" name="phone" value="">',
-            _w('Customer email') =>  '<input title="'._w('Customer email').'" type="text" name="email" value="">',
+            _w('Фамилия') =>  '<input title="'._w('Фамилия').'" type="text" name="lastname" value="">',
+            _w('Имя') =>  '<input title="'._w('Имя').'" type="text" name="firstname" value="">',
+            _w('Номер телефона') =>  '<input title="'._w('Номер телефона').'" type="text" name="phone" value="">',
+            _w('Email-адрес') =>  '<input title="'._w('Email-адрес').'" type="text" name="email" value="">',
         ];
     }
 }

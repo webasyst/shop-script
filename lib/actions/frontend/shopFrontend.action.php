@@ -113,8 +113,15 @@ class shopFrontendAction extends waViewAction
         }
         $title = waRequest::param('title');
         if (!$title) {
+            $request_url = wa()->getConfig()->getRequestUrl();
+            $request_url = explode('?', $request_url, 2)[0];
             $app = wa()->getAppInfo();
-            $title = $app['name'];
+            if ($request_url === '') {
+                // different default title when Shop is the root of domain
+                $title = wa()->accountName();
+            } else {
+                $title = $app['name'];
+            }
         }
         $this->getResponse()->setTitle($title);
         $this->getResponse()->setMeta('keywords', waRequest::param('meta_keywords'));

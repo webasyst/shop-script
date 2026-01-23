@@ -193,12 +193,12 @@ abstract class shopSalesChannelType
         return [
             'name' => [
                 'title'        => _w('Name'),
-                'description'  => '',
+                'description'  => _w('Sales channel name for internal use and order filtering.'),
                 'control_type' => waHtmlControl::INPUT,
             ],
             'description' => [
                 'title'        => _w('Comment'),
-                'description'  => _w('Not visible to your customers.'),
+                'description'  => _w('Optional.') . ' ' . _w('Not visible to your customers.'),
                 'control_type' => waHtmlControl::TEXTAREA,
             ],
         ];

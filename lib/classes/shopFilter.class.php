@@ -126,27 +126,33 @@ class shopFilter
         $tag_model = new shopTagModel();
         if (!empty($params['tags_limit'])) {
             $tags = $tag_model->select('id,name')->limit($params['tags_limit'])->fetchAll();
+
+            if (!empty($params['tags_ids'])) {
+                $tags_ids = array_flip($params['tags_ids']);
+                $tags_included = [];
+                foreach ($tags as $i => $tag) {
+                    if (isset($tags_ids[$tag['id']])) {
+                        $tags_included [] = $tag;
+                        unset($tags[$i], $tags_ids[$tag['id']]);
+                    }
+                }
+                // selected tags to top
+                $tags = array_merge(
+                    $tags_included,
+                    $tags_ids ? $tag_model->select('id,name')->where('id IN (?)', [array_keys($tags_ids)])->fetchAll(): [],
+                    array_values($tags)
+                );
+            }
         } else {
             $tags = $tag_model->getAll();
         }
 
-        if (!empty($params['tags_include_ids'])) {
-            $tags_include_ids = array_flip($params['tags_include_ids']);
-            $tags_filter = [];
-            foreach ($tags as $i => $tag) {
-                if (isset($tags_include_ids[$tag['id']])) {
-                    $tags_filter[] = $tag;
-                    unset($tags[$i], $tags_include_ids[$tag['id']]);
-                }
-            }
-            $tags = array_merge(
-                $tags_filter,
-                $tags_include_ids ? $tag_model->select('id,name')->where('id IN (?)', [array_keys($tags_include_ids)])->fetchAll(): [],
-                array_values($tags)
-            );
-        }
+        $features_data = self::getAllTypes(true, false, [
+            'format' => 'tiny',
+            'limit' => ifset($params['features_limit']),
+            'features_ids' => ifset($params['features_ids'])
+        ]);
 
-        $features_data = self::getAllTypes(true, false, 'tiny');
         usort($features_data, function($f1, $f2) {
             return strnatcasecmp(mb_strtolower(trim($f1['name'])), mb_strtolower(trim($f2['name'])));
         });
@@ -168,10 +174,10 @@ class shopFilter
     /**
      * @param bool $flat
      * @param bool $all
-     * @param bool $format_features
+     * @param array $options
      * @return array
      */
-    public static function getAllTypes($flat = false, $all = true, $format_features = false)
+    public static function getAllTypes($flat = false, $all = true, $options = [])
     {
         $product_fields = [
             'create_datetime' => [
@@ -301,7 +307,13 @@ class shopFilter
         }
         unset($field);
 
-        $features = self::getFilterFeatures();
+        $features = self::getFilterFeatures(null, ifset($options, 'limit', null));
+        if (!empty($options['features_ids'])) {
+            // selected features to top
+            $features = self::getFilterFeatures($options['features_ids']) + $features;
+        }
+
+        $format_features = ifset($options['format']);
         if ($format_features === 'tiny') {
             $features = array_map(function($f) {
                 return [
@@ -719,12 +731,15 @@ class shopFilter
         return $correct_params;
     }
 
-    protected static function getFilterFeatures($ids=null)
+    protected static function getFilterFeatures($ids=null, $limit=null)
     {
         $feature_model = new shopFeatureModel();
         $query = $feature_model->select('*, CONCAT("feature_", id) AS `rule_type`')->where('`type` != "text" AND `type` != "divider" AND `type` NOT LIKE "2d.%" AND `type` NOT LIKE "3d.%" AND `parent_id` IS NULL');
         if ($ids) {
             $query = $query->where('id IN (?)', [$ids]);
+        }
+        if ($limit > 0) {
+            $query = $query->limit($limit);
         }
         $features = $query->fetchAll('rule_type');
 

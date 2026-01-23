@@ -356,6 +356,14 @@ SQL;
             unset($data['order']['params']['signup_url']);
         }
 
+        //payment url
+        if (!isset($data['order']['payment_url'])) {
+            $_order = new shopOrder($data['order']['id']);
+            $data['payment_url'] = wa()->getRouting()->getUrl('shop/frontend/paymentLink', [
+                'hash' => $_order->getPaymentLinkHash(),
+            ], true, ifset($data, 'storefront_domain', null), ifset($data, 'storefront_route', 'url', null));
+        }
+
         // normalize customer
         $customer = ifset($data['customer'], new shopCustomer(ifset($data['order']['contact_id'], 0)));
         if (!($customer instanceof shopCustomer)) {
@@ -496,6 +504,7 @@ SQL;
             'status'               => '',
             'order_url'            => '',
             'signup_url'           => '',
+            'payment_url'          => '',
             'add_affiliate_bonus'  => 0,
             'is_affiliate_enabled' => false,
             'order'                => array(

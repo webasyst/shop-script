@@ -34,6 +34,14 @@
 
         <h1 class="js-bread-crumbs">[`Payment`]</h1>
 
+        {if shopHelper::waPayPromotionEnabled()}
+            <div class="s-alert" style="display: block; background-color: #1A1442; color: #fff;">
+                <img src="{$wa_app_static_url}img/backend/settings/payment/sbp-logo.svg" style="max-width: 60px; float: left; margin-right: 10px;">
+                <strong>{sprintf_wp('Настройка платежей СБП 0.7%% доступна <a href="%s" style="color: #ff3;">только в новом интерфейсе</a>.', 'javascript:$.wa.switchToNewUI();')}</strong>
+                [`The new Webasyst 2 UI mode is mobile-ready, supports more new features, and is getting further with every Shop-Script update.`]
+            </div>
+        {/if}
+
         <br>
         <table class="zebra" id="s-settings-payment">
             <tbody>

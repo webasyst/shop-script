@@ -369,6 +369,7 @@ return array(
             '$order.state'                                             => _w('Current order status'),
             /** ORDER_URL **/
             '$order_url'                                               => _w('An URL to access order page in customer personal account in storefront'),
+            '$payment_link'                                            => _w('URL to access order payment selection page in storefront'),
             /** ORDER.PARAMS **/
             '$order.params'                                            => _w('An array of other (custom) order parameter values'),
             '$order.params.shipping_name'                              => _w('Order selected shipping option name'),
@@ -554,6 +555,7 @@ return array(
             '$action_data.callback_transaction_data'                   => _w('Array of notification callback data received by a payment plugin from a payment gateway.'),
             /** OTHER **/
             '$signup_url'                                              => _w('Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.'),
+            '$payment_url'                                             => _w('Order payment link (URL)'),
             /** AFILIATE **/
             '$is_affiliate_enabled'                                    => _w('Indicates if <a href="?action=settings#/affiliate/">Loyalty program</a> is enabled in store settings.'),
             '$add_affiliate_bonus'                                     => _w('Amount of affiliate bonus that will be credited to customer account when order is paid.'),

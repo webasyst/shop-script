@@ -114,10 +114,10 @@
     </div>
 
     <!-- gallery & purchase -->
-    <div class="product-media-purchase">
+    <div class="product-media-purchase row cols1-mobile gap20">
         {$video = $product->video}
         <!-- gallery -->
-        <div class="product-media">
+        <div class="product-media col w6">
             {if count($product.images) > 1 || (count($product.images) === 1 && $video)}
                 <!-- thumbs -->
                 <div class="img-thumbs">
@@ -187,8 +187,6 @@
                     </div>
                 {/if}
 
-                {if $product.images || $video}
-
                     <figure class="product-gallery wa-flex">
 
                         {if $product.images}
@@ -209,15 +207,16 @@
                                 </a>
                                 <div id="switching-image" style="display: none;"><div class="switching-image-loading"><i class="icon32 loading"></i></div></div>
                             </div>
-
+                        {else}
+                            <div class="image">
+                                <img itemprop="image" id="product-image" alt="{$product.name|escape}" title="{$product.name|escape}" src="{$wa_theme_url}img/dummy200.png">
+                            </div>
                         {/if}
                     </figure>
-
-                {/if}
             </div>
         </div>
         <!-- purchase -->
-        <div class="product-purchase">
+        <div class="product-purchase col w6">
             <div class="cart" id="cart-flyer">
 
                 {include file="product.cart.html" inline}
@@ -313,7 +312,7 @@
                                 <td class="min-width hint">{$_count}</td>
                                 <td>
                                     <div class="bar">
-                                        <div class="filling" style="width: {if $_total_count > 0}{str_replace(',','.', 100*$_count/$_total_count)}{else}0{/if}%;{if !$i} background: #BDBDBD;{/if}{if (100*$_count/$_total_count) >= 100} border-top-right-radius: 7px; border-bottom-right-radius: 7px;{/if}"></div>
+                                        <div class="filling" style="width: {if $_total_count > 0}{str_replace(',','.', 100*$_count/$_total_count)}{else}0{/if}%;{if !$i} background: #BDBDBD;{/if}{if $_total_count > 0 && (100*$_count/$_total_count) >= 100} border-top-right-radius: 7px; border-bottom-right-radius: 7px;{/if}"></div>
                                     </div>
                                 </td>
                                 <td>

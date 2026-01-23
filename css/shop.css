@@ -93,37 +93,6 @@ ul.tags a { display: inline-block; }
 
 ul.menu-v.dropdown > li.is-opened > ul { display: block }
 
-@media (max-width: 760px) {
-    body { --main-sidebar-width: 0px; }
-    .sidebar.shop-second-sidebar {
-        width: 3rem;
-        transition: all var(--timing-fast);
-    }
-
-    .sidebar.shop-second-sidebar.-sidebar-opened,
-    .shop-second-sidebar-wrapper {
-        width: 16rem;
-    }
-
-    .shop-sidebar-hidden {
-        display: none;
-    }
-
-    .-sidebar-opened .shop-sidebar-hidden {
-        display: block;
-    }
-
-    .content.content-mobile-friendly {
-        width: calc(100vw - 3rem);
-    }
-
-
-    #reportscontent, #s-stocks-container { --padding-container-width: 32px !important;  }
-    #reportscontent .graph-wrapper { min-height: 150px; }
-    .s-report-sales h1 .hint { display: block; font-size: 75%; }
-    .s-report-sales .s-report-sales-csv-download { margin-top: 0.5rem; }
-}
-
 /* ORDERS
 --------- */
 
@@ -311,6 +280,7 @@ ul.s-courier-list li.s-expired a { color: #aaa; }
 .wf-action.button.white { box-shadow: 0 3px 13px -5px color-mix(in srgb, var(--color) 60%, transparent); transition: box-shadow 0.5s; }
 .wf-action.button.white:hover { box-shadow: 0 1px 16px 2px  color-mix(in srgb, var(--color) 50%, transparent); }
 .wf-action.button svg:not(.fa-w-10) { font-size: 1rem; height: 1rem; width: auto; }
+ul.workflow-actions > li > a svg, ul.workflow-actions > li > a i { margin-right: 0.5rem !important; }
 
 /* PRODUCTS
 ----------- */
@@ -585,6 +555,12 @@ ul.s-promos-list li.new-promo-placeholder .s-promo-dummy h5 i.icon16 { margin-to
 ul.s-promos-list li.new-promo-placeholder:hover .s-promo-dummy { box-shadow: none; border-color: #dda; background: #ffe; color: #000; transition: 0.3s; }
 #promo-editor-dialog .image-field img { max-width: 300px; }
 
+.s-promotion-alert { background-color: #1A1442; transition: padding .5s; }
+.s-promotion-alert .s-promotion-toggler .toggle { --toggle-background-color: rgba(255, 255, 255, 0.1); --toggle-text-color-hover: #ccd; --toggle-background-color-selected: #001; --toggle-text-color-selected: #fea; }
+.s-promotion-alert .s-promotion-content { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
+.s-promotion-alert .s-promotion-content > * { flex: 1; display: flex; flex-direction: column; }
+.s-promotion-alert .s-vertical-bars { height: 120px; display: flex; align-items: flex-end; gap: 0.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+.s-promotion-alert .s-vertical-bars .s-bar { width: 15px; height: var(--height); border-top-left-radius: 2px; border-top-right-radius: 2px; background: var(--color, #777); }
 /* reviews */
 
 #s-reviews-block { margin-top: 15px; }
@@ -1371,6 +1347,41 @@ and (orientation : portrait) {
     #s-product-profile-page .content.right200px { margin-right: 0 !important; }
     #s-toolbar { display: none !important; }
 
+}
+
+@media (max-width: 760px) {
+    body { --main-sidebar-width: 0px; }
+    .sidebar.shop-second-sidebar {
+        width: 3rem;
+        transition: all var(--timing-fast);
+    }
+
+    .sidebar.shop-second-sidebar.-sidebar-opened,
+    .shop-second-sidebar-wrapper {
+        width: 16rem;
+    }
+
+    .shop-sidebar-hidden {
+        display: none;
+    }
+
+    .-sidebar-opened .shop-sidebar-hidden {
+        display: block;
+    }
+
+    .content.content-mobile-friendly {
+        width: calc(100vw - 3rem);
+    }
+
+    #reportscontent, #s-stocks-container { --padding-container-width: 32px !important;  }
+    #reportscontent .graph-wrapper { min-height: 150px; }
+    .s-report-sales h1 .hint { display: block; font-size: 75%; }
+    .s-report-sales .s-report-sales-csv-download { margin-top: 0.5rem; }
+
+    .s-promotion-alert .s-promotion-toggler { order: 2; flex: 100%; margin: 1rem 0 0 0 !important; text-align: center; }
+    .s-promotion-alert .s-promotion-content { display: grid; }
+    .s-promotion-alert .s-promotion-footer { display: flex; flex-direction: column-reverse; gap: 0.75rem; margin-top: 1rem !important; }
+    .s-promotion-alert .s-promotion-pie-chart-wrapper { flex-direction: column-reverse; gap: 0.75rem; }
 }
 
 .animated {

@@ -8,7 +8,7 @@
                     <p class="s-description">[`Select the columns that you would like to show in the product listing. Drag & drop to change columns’ sort order.`]</p>
                     <div class="s-close-button cursor-pointer js-dialog-close"><span class="s-icon icon size-20"><svg><use xlink:href="{$_sprite_url}#times"></use></svg></span></div>
                 </div>
-                <div v-if="states.is_fetching" class="skeleton box contentbox">
+                <div v-if="!states.is_inited" class="skeleton box contentbox">
                     <div class="skeleton-header"></div>
                     <div class="skeleton-line"></div>
                     <div class="skeleton-line"></div>
@@ -22,16 +22,28 @@
                 </div>
                 <template v-else>
                 <div class="dialog-content">
-                    <div class="s-columns-table" v-bind:class="{ 'is-locked' : states.column_expand }">
-                        <component-list-column-item v-for="column in active_columns" v-bind:key="column.id" v-bind:column="column" v-on:column_expanded="onColumnExpand" v-on:column_enabled="onColumnEnabled"></component-list-column-item>
+                    <div class="s-columns-table" :class="{ 'is-locked' : states.column_expand }">
+                        <component-list-column-item v-for="column in active_columns" :key="column.id" :column="column" @column_expanded="onColumnExpand" @column_disabled="onActiveColumnDisabled"></component-list-column-item>
                     </div>
 
                     <div class="s-search-column-wrapper" v-bind:class="{ 'is-locked' : states.column_expand }">
-                        <component-search-column></component-search-column>
+                        <component-search-column @input="debouncedSearch"></component-search-column>
                     </div>
 
                     <div class="s-columns-table" v-bind:class="{ 'is-locked' : states.column_expand }">
-                        <component-list-column-item v-for="column in inactive_columns" v-bind:key="column.id" v-bind:column="column" v-on:column_expanded="onColumnExpand"></component-list-column-item>
+                        <component-list-column-item v-for="column in inactive_columns" :key="column.id" :column="column" @column_expanded="onColumnExpand" @column_enabled="onInactiveColumnEnabled"></component-list-column-item>
+                        <div class="align-center custom-py-16">
+                            <div v-if="empty_search_result || (!states.is_fetching && !inactive_columns.length)"
+                                class="s-empty-wrapper custom-mt-0"
+                            >[`Parameters not found.`]</div>
+                            <div
+                                v-show="!empty_search_result"
+                                class="js-lazyloading"
+                                :style="{ visibility: states.is_fetching ? 'visible' : 'hidden' }"
+                            >
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="dialog-footer">

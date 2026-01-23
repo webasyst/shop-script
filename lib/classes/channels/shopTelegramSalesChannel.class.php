@@ -10,12 +10,23 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'storefront'       => array(
                 'value'        => '',
                 'title'        => _w('Storefront'),
-                'description'  => _w('Make sure this storefront has Headless API enabled.'),
+                'description'  => _w('A mini-app is linked to a storefront to utilize its basic settings such as product types & listings, active marketing campaigns, and more. Headless API will be enabled for the storefront you select.'),
                 'control_type' => waHtmlControl::SELECT,
                 'options'      => array_map(function($s) {
                     return ['value' => $s['url'], 'title' => $s['url_decoded']];
                 }, shopStorefrontList::getAllStorefronts(true)),
             ),
+
+            'core_section' => array(
+                'value'        => _w('Basic mini-app UI'),
+                'title'        => '',
+                'class'        => 'bold',
+                'description'  => _w('Customize the mini-app layout and colors to align with your branding.'),
+                'control_type' => waHtmlControl::TITLE,
+                'custom_control_wrapper' => '<!-- %s --><div>%s %s</div>',
+                'custom_description_wrapper' => '<p class="small">%s</p>',
+            ),
+
             'accent_color'     => array(
                 'value'        => '#901010',
                 'title'        => _w('Brand color'),
@@ -77,6 +88,25 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                 'description'  => _w('Supported values: 1, 2, 3'),
                 'control_type' => waHtmlControl::INPUT,
                 'class'        => 'number shortest',
+            ),
+
+            'powered_by' => array(
+                'value'        => '1',
+                'title'        => _w('Powered by'),
+                'description'  => sprintf_wp(
+                    'Disable to remove the “%s” link within the mini-app (removing the link is available in Shop-Script premium version only).',
+                    _w('Created with Shop-Script')
+                ),
+                'control_type' => waHtmlControl::CHECKBOX,
+            ),
+
+            'homepage_section' => array(
+                'value'        => _w('Homepage'),
+                'title'        => '',
+                'class'        => 'bold',
+                'control_type' => waHtmlControl::TITLE,
+                'custom_control_wrapper' => '<!-- %s --><div>%s %s</div>',
+                'custom_description_wrapper' => '<p class="small">%s</p>',
             ),
 
             'homepage_promos' => array(
@@ -159,17 +189,9 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                 'title'        => _w('Checkout terms & privacy agreement'),
                 'description'  => _w('A link to a checkout & privacy terms page. If a link is provided, a checkbox with caption “I agree to the terms of service & privacy policy” will be displayed.'),
                 'control_type' => waHtmlControl::INPUT,
+                'class'        => 'width-100',
             ),
 
-            'powered_by' => array(
-                'value'        => '1',
-                'title'        => _w('“Powered by ...” link'),
-                'description'  => sprintf_wp(
-                    'Disable to hide the “%s” link. Only available in the premium version.',
-                    _w('Created with Shop-Script')
-                ),
-                'control_type' => waHtmlControl::CHECKBOX,
-            ),
         ];
     }
 
@@ -214,18 +236,58 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'products_per_row'      => 1,
             'homepage_promos'       => 1,
             'homepage_product_list' => 1,
+            'homepage_text_footer'  => 1,
             'checkout_external'     => 1,
             'checkout_phone'        => 1,
             'checkout_email'        => 1,
             'checkout_country'      => 1,
+            'checkout_terms_link'   => 1,
+            'powered_by'            => 1,
         ]);
     }
 
     public function getWaidChannelParams(array $channel): array
     {
+        $store_params = [];
+        if (wa()->getSetting('headless_api_antispam_enabled', false, 'shop')) {
+            $store_params['antispam_api_key'] = wa()->getSetting('headless_api_antispam_key', '', 'shop');
+        }
         return [
             'https://'.rtrim($channel['params']['storefront'], '/').'/',
-            []
+            $store_params
         ];
+    }
+
+    public function onSave(array $channel)
+    {
+        // make sure selected storefront has Headless API enabled
+        $storefront = ifset($channel, 'params', 'storefront', null);
+
+        $st_info = array_filter(shopStorefrontList::getAllStorefronts(true), function($s) use ($storefront) {
+            return $s['url'] === $storefront;
+        });
+        if (!$st_info) {
+            return;
+        }
+        $st_info = reset($st_info);
+        $storefront_mode = ifset($st_info, 'route', 'storefront_mode', '');
+        if ($storefront_mode) {
+            return; // already enabled
+        }
+
+        $path = wa()->getConfig()->getPath('config', 'routing');
+        if (file_exists($path) && is_writable($path)) {
+            $routes = include($path);
+            $domain = $st_info['domain'];
+            if (isset($routes[$domain]) && is_array($routes[$domain])) {
+                foreach ($routes[$domain] as $id => $route) {
+                    if ($route['app'] === 'shop' && $route['url'] === ifset($st_info, 'route', 'url', null)) {
+                        $routes[$domain][$id]['storefront_mode'] = 'storefront_api';
+                        waUtils::varExportToFile($routes, $path);
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

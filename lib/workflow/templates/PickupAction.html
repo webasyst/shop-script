@@ -5,7 +5,7 @@
     {if empty($order.paid_date)}
         <h4 class="custom-mt-0"><i class="fas fa-exclamation-triangle text-red"></i> [`The order is not paid`]</h4>
         <label>
-            <input type="checkbox" name="skip-payment"> <span class="state-error">[`Bypass the rules and hand over the order to the customer`]</span><br>
+            <input type="checkbox" name="skip-payment"> <span class="state-error">[`Bypass the rules and hand over the unpaid order`]</span><br>
             <span class="hint">[`The order will be marked as paid automatically.`]</span>
         </label>
     {else}
@@ -13,7 +13,7 @@
     {/if}
 
     {if $pickup_require_pin}
-    <div class="custom-mt-8">[`PIN`]: <input type="text" name="pin" required></div>
+        <div class="custom-mt-8">[`PIN`]: <input type="text" name="pin" required></div>
     {/if}
 
     <div class="custom-my-16">

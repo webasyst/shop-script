@@ -1104,6 +1104,14 @@ paths:
                                     link:
                                       type: string
                                       description: Ссылка
+                                    type_id:
+                                      type: string
+                                      nullable: true
+                                      description: ID типа сущности
+                                    type_link:
+                                      type: string
+                                      nullable: true
+                                      description: Тип ссылки
                                     color:
                                       type: string
                                       description: Цвет текста

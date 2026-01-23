@@ -606,6 +606,8 @@
             {/literal}
 
             ( function($) {
+                var notify_server_when_dialog_opens = {json_encode(!empty($payment_form_html) && !empty($payment_image))};
+
                 var $wrapper = $(".c-payment-section");
                 const dialogContent = $wrapper.find(".js-payments-wrapper");
                 const $paymentItems = dialogContent.find(".c-payment-item");
@@ -636,6 +638,11 @@
 
                 $wrapper.on("click", ".js-show-payments", () => {
 
+                    if (notify_server_when_dialog_opens) {
+                        notify_server_when_dialog_opens = false;
+                        $.post(window.location.href, { clear_payment_selection: 1 });
+                    }
+
                     $.waDialog({
                         $wrapper: dialogContent.clone(),
                         onOpen: ($dialog, dialog) => {
@@ -648,7 +655,7 @@
                         }
                     })
                 });
-                {if $payment_image}
+                {if $payment_image && !$payment_form_html}
                     setTimeout(() => $wrapper.find(".js-show-payments").trigger("click"));
                 {/if}
             })(jQuery);
@@ -757,7 +764,7 @@
 
             .dialog.c-payments-wrapper .dialog-body {
                 position: absolute;
-                top: 10vh !important;
+                top: 3vh !important;
                 left: 0;
                 z-index: 10;
                 box-sizing: border-box;
@@ -793,9 +800,9 @@
                 top: 0.5rem;
                 right: 1.5rem;
                 color: #fff;
-                font-size: 1.5rem;
+                font-size: 1.25rem;
                 opacity: 0.5;
-                padding: 1.5rem .5rem 1.5rem 1.5rem;
+                padding: 1.0rem .5rem 1.5rem 1.5rem;
             }
 
             .dialog.c-payments-wrapper .dialog-body .dialog-close:hover {
@@ -1042,7 +1049,7 @@
 
             .dialog.c-payments-wrapper .dialog-body .dialog-content form .c-payment-options .c-payment-item .c-payment-item-inner .c-payment-body .c-payment-button {
                 background-color: #dedede;
-                padding: 9px 16px;
+                padding: 9px 0px;
                 border-radius: 10px;
                 margin-top: 15px;
                 width: 100%;
@@ -1087,9 +1094,9 @@
             }
         </style>
     </section>
-{/capture}
+{/capture}{*
 
-<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+*}<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>[`Order`] {$order.id_str} &mdash; {$wa->shop->settings("name")}</title>
 <link href="{$wa_url}wa-content/css/wa/wa-2.0.css?v{$wa->version(true)}" rel="stylesheet" type="text/css">

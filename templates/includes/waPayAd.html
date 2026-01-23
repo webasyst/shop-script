@@ -1,0 +1,22 @@
+<style>
+    .s-tiny-ad-box { background: #1A1442; color: #fff; text-align: center; padding: 24px 16px; }
+    .s-tiny-ad-box p { opacity: 0.7; margin-top: 8px; }
+    .s-tiny-ad-box .s-tiny-ad-close { color: #4f667c; top: -1.125rem; }
+</style>
+
+<img src="{$wa_app_static_url}img/backend/settings/payment/sbp-logo.svg" style="height: 100% !important; max-width: 170px;">
+
+<p class="small"><b>Включите мгновенную оплату заказов по QR-коду СБП.</b> Комиссия от 0.4% до 0.7% — до 6 раз меньше, чем в интернет-эквайринге.</p>
+
+{$href = '?action=settings#/payment/'}
+{if $wa->whichUI() == '1.3'}
+<script>
+    function redirectToPayment() {
+        $.wa.switchToNewUI();
+        window.location = '{$href}';
+    }
+</script>
+{$href = 'javascript:redirectToPayment()'}
+{/if}
+
+<a href="{$href}" class="large"><b style="color: #fff;">Как подключить &rsaquo;</b></a>

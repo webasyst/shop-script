@@ -11,7 +11,7 @@ class shopPosSalesChannel extends shopSalesChannelType
             'stock_id' => array(
                 'value'        => '',
                 'title'        => _w('Stock'),
-                'description'  => '',
+                'description'  => _w('Required. The selected stock is used for all orders processed via this point of sale; i.e., those with payment via the mobile POS and with in-store pickup.'),
                 'control_type' => waHtmlControl::SELECT,
                 'options'      => array_map(function ($s) {
                     if (!empty($s['substocks'])) {

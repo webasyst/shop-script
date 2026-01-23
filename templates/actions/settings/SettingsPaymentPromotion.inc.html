@@ -1,0 +1,284 @@
+<div class="s-promotion-alert alert custom-p-24 custom-p-16-mobile text-white small semibold custom-mt-16 custom-mb-24">
+    {* Header *}
+    <div class="flexbox middle full-width wrap" href="javascript:void(0)">
+        <h4 class="wide flexbox space-8 text-white custom-mb-0">
+            <span class="icon custom-mt-2"><img src="{$wa_static_url}wa-content/img/payment/sbp.svg" alt=""></span>
+            <span class="wide width-0">Экономия с СБП и Webasyst Pay</span>
+        </h4>
+        <div class="s-promotion-toggler custom-mx-32">
+            <div id="js-period-toggle" class="toggle rounded">
+                <span data-period="per_month">Месяц</span>
+                <span data-period="per_year" class="selected">Год</span>
+            </div>
+        </div>
+
+        <a id="js-toggle-promotion-content" class="icon back larger"><i class="fas fa-chevron-up"></i></a>
+    </div>
+    {* Content *}
+    <div id="js-promotion-content-wrapper">
+        <div id="js-promotion-content" class="s-promotion-content custom-mt-16 custom-px-8-mobile">
+            <div>
+                <h4 class="text-green custom-mb-4 custom-mt-0">
+                    {if $promotion_enabled}Можно сэкономить до{else}Сэкономлено{/if}
+                </h4>
+
+                <h1 data-field="total" class="text-green custom-mt-0 nowrap h2-mobile"></h1>
+
+                <div class="js-promotion-chart s-promotion-chart wide" style="display: none;">
+                    <div class="flexbox space-20 height-100" style="align-items: flex-end; max-width: 20rem;">
+                        <div class="s-positive-block text-green flexbox space-8">
+                            <div>
+                                <div class="flexbox middle space-4">
+                                    <span class="icon size-32"><img src="{$wa_static_url}wa-content/img/payment/sbp.svg" alt=""></span>
+                                    <span data-field="total_fee_sbp_html" class="bold largest"></span>
+                                </div>
+                                <div>{if $promotion_enabled}составила бы {/if}комиссия СБП</div>
+                            </div>
+                        </div>
+
+                        <div class="s-vertical-bars js-vertical-bars">
+                            <div class="s-bar" style="--color: var(--green);"></div>
+                            <div class="s-bar opacity-30" style="--color: #fff;"></div>
+                        </div>
+
+                        <div class="s-negative-block text-white opacity-30 flexbox space-8">
+                            <div>
+                                <div class="flexbox middle space-4">
+                                    <span class="icon size-24 custom-mr-8"><i class="fas fa-credit-card"></i></span>
+                                    <span data-field="total_fee_card_html" class="bold largest"></span>
+                                </div>
+                                <div>комиссия по картам для такого оборота</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="opacity-70 text-white">
+                    <div>Ваш оборот по картам: <span data-field="turnover_on_cards"></span></div>
+                    <div>Комиссия по картам (≈3%): <span data-field="card_fees"></span></div>
+                    <div>Комиссия СБП (0,7%) составила бы: <span data-field="sbp_fee"></span></div>
+                    <div>Можно сэкономить до:  <span data-field="total_savings"></span></div>
+                </div>
+
+                <div class="js-promotion-chart s-promotion-chart wide" style="display: none;">
+                    <div class="s-promotion-pie-chart-wrapper custom-pt-24 flexbox space-20">
+                        <div id="s-sales-chart" style="width: 132px; height: 132px;"></div>
+                        <div>
+                            <div class="opacity-70">
+                                <div>Продажи</div>
+                                <div data-field="total_sales" class="largest"></div>
+                            </div>
+                            <div id="s-sales-markers"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="s-promotion-footer custom-mt-24">
+            {if $promotion_enabled}
+            <a href="#/payment/plugin/add/pay/" id="js-enable-sbp-button" class="button large white width-100-mobile">Включить оплату СБП</a>
+            {/if}
+            <a href="javascript:void(0)" id="js-toggle-stats-button" class="button large nobutton text-white width-100-mobile custom-mt-12-mobile">Как это работает <i class="fas fa-caret-down"></i></a>
+        </div>
+    </div>
+</div>
+<script>(function(){
+    const $wrapper = $('#js-promotion-content-wrapper');
+    const $chart_wrapper = $('.js-promotion-chart', $wrapper);
+    const $vertical_bars = $('.js-vertical-bars', $wrapper);
+    const $toggler = $('#js-toggle-promotion-content');
+    const $toggle_period = $('#js-period-toggle');
+    const $toggle_stats_button = $('#js-toggle-stats-button');
+
+    const promotion_payment = {$promotion_payment|json_encode};
+
+    {literal}
+    init()
+
+    function init () {
+        const initChartsByPeriod = (period) => {
+            const data = promotion_payment[period];
+
+            initPieChart({
+                chart_wrapper_id: 's-sales-chart',
+                markers_wrapper_id: 's-sales-markers',
+                items: data.sales_chart,
+                color_common: 'rgb(187, 186, 204)',
+                color_sbp: '#22d13d'
+            });
+
+            initVerticalBars([data.total_fee_sbp, data.total_fee_card]);
+
+            for (const prop in data) {
+                $wrapper.find(`[data-field="${prop}"]`).html(data[prop]);
+            }
+        };
+
+        const { toggle, inited } = initToggleWrapper();
+
+        toggle(true);
+
+        inited.then(() => {
+            initTogglePeriod(({ currentTarget }) => {
+                const period = currentTarget.dataset.period;
+                initChartsByPeriod(period);
+            });
+        });
+
+        initChartsByPeriod($toggle_period.find('.selected').data('period'));
+
+        // events
+        $toggle_stats_button.on('click', function() {
+            $chart_wrapper.slideToggle();
+            $(this).find('svg').toggleClass('fa-caret-down fa-caret-up');
+        });
+    }
+
+    function initToggleWrapper () {
+        const key = 'shop/payment-promotion-alert-collapsed';
+        const padding_class = 'custom-p-24';
+        const storage = new Proxy({ collapsed: false }, {
+            get: () => localStorage.getItem(key) === 'true',
+            set: (obj, prop, value) => localStorage.setItem(key, value)
+        });
+
+        let _resolve = null;
+        const inited = new Promise((resolve) => {
+            _resolve = () => {
+                resolve();
+                _resolve = () => {};
+            }
+        });
+
+        const _toggle = (without_animation = false) => {
+            $toggler.closest('.alert').toggleClass(padding_class, !storage.collapsed);
+            $toggler.find('svg,i').toggleClass('fa-chevron-down', storage.collapsed).toggleClass('fa-chevron-up', !storage.collapsed);
+            $wrapper[without_animation ? 'toggle' : 'slideToggle'](!storage.collapsed, () => _resolve());
+            $toggle_period.parent().toggle(!storage.collapsed);
+            if (!storage.collapsed && without_animation) {
+                _resolve();
+            }
+        };
+
+        $toggler.on('click', () => {
+            storage.collapsed = !storage.collapsed;
+            _toggle();
+        });
+
+        return { toggle: _toggle, inited };
+    }
+
+    function initTogglePeriod (callback) {
+        $toggle_period.waToggle({ change: callback });
+    }
+
+    function initVerticalBars (values) {
+        const max_value = Math.max(...values);
+        if (max_value <= 0) return;
+
+        values.forEach((value, i) => {
+            const $bar = $vertical_bars.children().eq(i);
+            const percent = Math.round(value * 100 / max_value);
+            $bar.css('--height', `${percent}%`);
+        });
+    }
+
+    function initPieChart ({ chart_wrapper_id, markers_wrapper_id, items = [], color_common, color_sbp }) {
+        const radius = 160;
+        const stroke = 13;
+        const gap = 2.6;
+        const chart_wrapper = document.getElementById(chart_wrapper_id);
+        const markers_wrapper = document.getElementById(markers_wrapper_id);
+
+        items = items.sort((a, b) => (b.value - a.value))
+            .sort((a, b) => (Number(b.is_sbp || false) - Number(a.is_sbp || false)))
+            .map(i => ({ ...i, color: i.is_sbp ? color_sbp : color_common }));
+
+        initChart();
+        initMarkers();
+
+        function initMarkers () {
+            if (!markers_wrapper) return;
+            markers_wrapper.innerHTML = '';
+
+            for (const item of items) {
+                const row = document.createElement('div');
+                row.classList.add('flexbox', 'middle', 'space-8');
+                row.style.color = item.color;
+
+                const icon = document.createElement('i');
+                icon.classList.add('fas', 'fa-dot-circle', 'fa-xs');
+                row.appendChild(icon);
+
+                const percent = document.createElement('span');
+                percent.innerText = `${Math.round(item.value * 100)}%`;
+                row.appendChild(percent);
+
+                const name = document.createElement('span');
+                name.innerText = item.name;
+                row.appendChild(name);
+
+                markers_wrapper.appendChild(row);
+            }
+        }
+
+        function initChart () {
+            if (!chart_wrapper) return;
+            chart_wrapper.innerHTML = '';
+
+            const arcs = [...items].filter(a => a.value > 0);
+            const first_item = arcs.shift();
+            arcs.push(first_item);
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 360 360');
+
+            const half_gap = arcs.length > 1 ? gap / 2 : 1e-4;
+            let start_deg = -90;
+            for (const arc of arcs) {
+                const angle = Math.round(arc.value * 360);
+                const start = start_deg + half_gap;
+                const end = start_deg + angle - half_gap;
+                const path_d = describeDonutSector(0, 0, radius, radius, start, end);
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('stroke', arc.color);
+                path.setAttribute('stroke-width', stroke);
+                path.setAttribute('vector-effect', 'non-scaling-stroke');
+                svg.appendChild(path);
+                path.setAttribute('d', path_d);
+
+                start_deg += angle;
+            }
+            chart_wrapper.appendChild(svg);
+
+            function polarToCartesian(cx, cy, radius, angleDeg){
+                const a = (angleDeg) * Math.PI / 180;
+                return { x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) };
+            }
+
+            function describeDonutSector(cx, cy, rOuter, rInner, startAngle, endAngle){
+                const so = startAngle;
+                const eo = endAngle;
+                const si = startAngle;
+                const ei = endAngle;
+                const o1 = polarToCartesian(cx, cy, rOuter, so);
+                const o2 = polarToCartesian(cx, cy, rOuter, eo);
+                const i2 = polarToCartesian(cx, cy, rInner, ei);
+                const i1 = polarToCartesian(cx, cy, rInner, si);
+
+                return [
+                    `M ${o1.x + 180} ${o1.y + 180}`,
+                    `A ${rOuter} ${rOuter} 0 ${ (eo-so)<=180 ? "0":"1"} 1 ${o2.x + 180} ${o2.y + 180}`,
+                    `A ${rInner} ${rInner} 0 ${ (ei-si)<=180 ? "0":"1"} 0 ${i1.x + 180} ${i1.y + 180}`,
+                    "Z"
+                ].join(' ');
+            }
+        }
+    }
+
+    {/literal}
+}());</script>

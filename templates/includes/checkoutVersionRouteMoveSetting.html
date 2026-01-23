@@ -7,5 +7,8 @@
             $theme_field = $('select[name="params[theme_mobile]"]').parents('.field');
 
         $version_field.insertAfter($theme_field);
+        if ($version_field.find('input[name="params[checkout_version]"]:checked').val() == 2) {
+            $version_field.hide();
+        }
     })(jQuery);
 </script>

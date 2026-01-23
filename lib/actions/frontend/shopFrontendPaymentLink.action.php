@@ -22,9 +22,21 @@ class shopFrontendPaymentLinkAction extends waViewAction
             throw new waException(_w('Order not found.'), 404);
         }
 
+        if (waRequest::post('clear_payment_selection')) {
+            // Clear order payment plugin selection before attempting to pay via QR code.
+            // Otherwise Shop-Script will not accept payment callback from wrong merchant_id.
+            (new shopOrderParamsModel())->set($order['id'], [
+                'payment_id' => null,
+                'payment_plugin' => null,
+                'payment_name' => null,
+            ], false);
+            exit; // we don't care about JSON result and don't want to render template
+        }
+
         $user_agent = waRequest::getUserAgent();
         $this_is_a_bot = preg_match('~WhatsApp|TelegramBot|TwitterBot|facebookexternalhit|Facebot|vkShare|snapchat|Discordbot~i', $user_agent);
 
+        $challenge_passed = false;
         $payment_form_html = null;
         if (waRequest::post() || wa()->getStorage()->get('shop_paymentlink_challenge_passed')) {
             $challenge = waRequest::post('challenge', null, waRequest::TYPE_STRING_TRIM);
@@ -32,6 +44,7 @@ class shopFrontendPaymentLinkAction extends waViewAction
                 $payment_form_html = $this->getPaymentFormHtml($order);
                 wa()->getStorage()->set('shop_paymentlink_challenge_passed', true);
                 wa()->getStorage()->set('shop/order_id', $order_id); // auth for printforms
+                $challenge_passed = true;
             }
         }
 
@@ -43,7 +56,7 @@ class shopFrontendPaymentLinkAction extends waViewAction
 
         $payment_options = [];
         $payment_id = waRequest::get('payment_id', null, waRequest::TYPE_INT);
-        $show_methods = waRequest::post('challenge', null, waRequest::TYPE_STRING_TRIM) && empty($payment_form_html);
+        $show_methods = $challenge_passed;
         if ($show_methods) {
             $methods = shopPayment::getMethodsByOrder($order);
             $payment_ids = waRequest::param('payment_id');

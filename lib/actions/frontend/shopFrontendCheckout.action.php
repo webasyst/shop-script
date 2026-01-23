@@ -171,15 +171,23 @@ class shopFrontendCheckoutAction extends waViewAction
             /** @var shopWorkflowState $state */
             $state = $workflow->getStateById($order['state_id']);
             if ($state->paymentAllowed()) { # order state allow payment
+                $should_render_payment_selection = false;
                 if (!empty($order['params']['payment_id'])) { # order has related payment plugin
                     try {
                         /** @var waPayment $plugin */
                         $plugin = shopPayment::getPlugin(null, $order['params']['payment_id']);
-                        $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData(['id' => $order_id] + $order, $plugin), $auto_submit);
+                        if ($plugin instanceof waIPaymentMultipleOptions) {
+                            $should_render_payment_selection = true;
+                        } else {
+                            $payment = $plugin->payment(waRequest::post(), shopPayment::getOrderData(['id' => $order_id] + $order, $plugin), $auto_submit);
+                        }
                     } catch (waException $ex) {
                         $payment = $ex->getMessage();
                     }
-                } else if ($auto_submit) {
+                } else {
+                    $should_render_payment_selection = !!$auto_submit;
+                }
+                if ($should_render_payment_selection) {
                     $payment = (new shopFrontendCheckoutSuccessPaymentSelectionAction([
                         'order_id' => $order_id,
                     ]))->display();

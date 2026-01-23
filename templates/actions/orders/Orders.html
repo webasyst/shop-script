@@ -295,6 +295,11 @@
                         button="[`What’s there in premium?`]"
                     inline}
                 </div>
+            {elseif !empty($show_wa_pay_ad)}
+                <div class="s-tiny-ad-box">
+                    <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="wapay" title="[`Close`]">&times;</a>
+                    {include file="templates/includes/waPayAd.html" inline}
+                </div>
             {/if}
         </div>
     {/if}
@@ -417,9 +422,10 @@
         $(".s-tiny-ad .s-tiny-ad-close").on('click', function (e) {
             e.preventDefault();
             $(this).closest('.s-tiny-ad').hide();
-            $.post("{$wa_app_url}?module=backend&action=sidebarMenuSaveState", {
-                {if !empty($show_mobile_ad)}hide_mobile_ad{else}hide_premium_ad{/if}: 1
-            });
+
+            let data = {};
+            data['hide_'+ $(this).data('key') +'_ad'] = 1;
+            $.post("{$wa_app_url}?module=backend&action=sidebarMenuSaveState", data);
         });
     }
 

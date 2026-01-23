@@ -4,6 +4,7 @@ class shopBackendSidebarMenuSaveStateController extends waJsonController
 {
     const HIDE_MOBILE_AD_DAYS = 30;
     const HIDE_PREMIUM_AD_DAYS = 21;
+    const HIDE_WA_PAY_AD_DAYS = 30;
 
     public function execute()
     {
@@ -22,6 +23,11 @@ class shopBackendSidebarMenuSaveStateController extends waJsonController
         $hide_premium_ad = waRequest::post('hide_premium_ad', null);
         if ($hide_premium_ad !== null) {
             $contact_settings_model->set(wa()->getUser()->getId(), 'shop', 'hide_premium_ad_till', date('Y-m-d', strtotime('+'.self::HIDE_PREMIUM_AD_DAYS.' days')));
+        }
+
+        $hide_wa_pay_ad = waRequest::post('hide_wapay_ad', null);
+        if ($hide_wa_pay_ad !== null) {
+            $contact_settings_model->set(wa()->getUser()->getId(), 'shop', 'hide_wa_pay_ad_till', date('Y-m-d', strtotime('+'.self::HIDE_WA_PAY_AD_DAYS.' days')));
         }
     }
 }

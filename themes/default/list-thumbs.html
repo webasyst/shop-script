@@ -134,8 +134,8 @@
                                     </span>
                                 </button>
                                 <a href="{$wa->getUrl('shop/frontend/order')}" class="wa-flex-column align-items-center w-100 button gotocart-btn wa-hide">
-                                    <span class="">[`В корзине`]</span>
-                                    <span class="smaller">[`Перейти`]</span>
+                                    <span class="">[`Added to cart`]</span>
+                                    <span class="smaller">[`View`]</span>
                                 </a>
                             </div>
                             {if !empty($theme_settings.compare_products)}
@@ -146,7 +146,9 @@
                                 </a>
                             {/if}
                         </div>
-                        {$wa->shop->getPickupButton($p)}
+                        {if $wa->shop->countPickupLocations() > 0}
+                            {$wa->shop->getPickupButton($p)}
+                        {/if}
                     </form>
                     <link itemprop="availability" href="http://schema.org/InStock">
                 {else}
