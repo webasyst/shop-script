@@ -56,11 +56,14 @@ class shopSettingsPaymentSaveController extends waJsonController
 
     protected static function maybeDisablePaymentInCheckout()
     {
-        if (!waRequest::request('move_checkout_payment')) {
-            return false;
+        $something_changed = false;
+        $path = wa()->getConfig()->getConfigPath('checkout2.php', true, 'shop');
+        if (file_exists($path)) {
+            $full_config = include($path);
+        } else {
+            $full_config = [];
         }
 
-        $something_changed = false;
         foreach (wa()->getRouting()->getByApp('shop') as $domain => $routes) {
             foreach ($routes as $r) {
                 if (empty($r['checkout_storefront_id'])) {
@@ -75,10 +78,13 @@ class shopSettingsPaymentSaveController extends waJsonController
                         'payment' => ['used' => false],
                         'confirmation' => ['auto_submit' => true],
                     ]);
-                    $checkout_config->commit();
+                    $full_config[$checkout_config->getStorefront()] = $checkout_config->getStorefrontConfigStorage();
                     $something_changed = true;
                 }
             }
+        }
+        if ($something_changed) {
+            waUtils::varExportToFile($full_config, $path);
         }
         return $something_changed;
     }

@@ -134,7 +134,7 @@ class shopStorefrontList
         $idna = new waIdna();
         $routing = new waRouting(wa());
         foreach ($routing->getByApp('shop') as $domain => $domain_routes) {
-            foreach ($domain_routes as $route) {
+            foreach ($domain_routes as $route_index => $route) {
                 $url = rtrim($domain.'/'.$route['url'], '/*');
                 if (strpos($url, '/') !== false) {
                     $url .= '/';
@@ -142,6 +142,7 @@ class shopStorefrontList
                 $storefronts[] = array(
                     'domain'      => $domain,
                     'route'       => $route,
+                    'route_index' => $route_index,
                     'url'         => $url,
                     'url_decoded' => $idna->decode($url),
                 );

@@ -2116,6 +2116,9 @@ class shopOrder implements ArrayAccess
                 if (!empty($rate['name'])) {
                     $params['shipping_name'] .= ' ('.$rate['name'].')';
                 }
+                if (!empty($rate['type'])) {
+                    $params['shipping_type'] = $rate['type'];
+                }
             } elseif ($rate_id !== null) {
                 $error = "Missed required rate.\nDATA: %s";
                 $debug_data = compact('shipping_id', 'rate_id', 'rates', 'plugin_info', 'shipping_address');
@@ -2167,7 +2170,7 @@ class shopOrder implements ArrayAccess
                 $names[] = $name;
             }
         }
-        foreach (array('id', 'rate_id', 'plugin', 'name', 'est_delivery', 'params_') as $k) {
+        foreach (array('id', 'rate_id', 'plugin', 'name', 'est_delivery', 'params_', 'type') as $k) {
             if (!isset($params['shipping_'.$k])) {
                 $names[] = 'shipping_'.$k;
             }

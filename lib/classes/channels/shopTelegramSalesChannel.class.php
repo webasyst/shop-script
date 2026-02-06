@@ -75,8 +75,46 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                     ],
                 ]
             ),
+            'background_color_light'     => array(
+                'value'        => '#FFFFFF',
+                'title'        => _w('Background color (light mode)'),
+                'control_type' => waHtmlControl::COLORPICKER,
+                'options' => [
+                    '#FFFFFF' => [],
+                    '#F0F0F0' => [],
+                    '#E9E4EC' => [],
+                    '#ECE4EA' => [],
+                    '#EDE4E3' => [],
+                    '#EBE5E0' => [],
+                    '#E6E8DE' => [],
+                    '#E8EFE7' => [],
+                    '#E4ECEA' => [],
+                    '#E4EBEC' => [],
+                    '#E7E8EE' => [],
+                    '#E6E3ED' => []
+                ]
+            ),
+            'background_color_dark'     => array(
+                'value'        => '#000000',
+                'title'        => _w('Background color (dark mode)'),
+                'control_type' => waHtmlControl::COLORPICKER,
+                'options' => [
+                    '#000000' => [],
+                    '#262626' => [],
+                    '#28212C' => [],
+                    '#261C23' => [],
+                    '#261D1C' => [],
+                    '#2B2621' => [],
+                    '#292B22' => [],
+                    '#272C26' => [],
+                    '#252D2B' => [],
+                    '#252C2D' => [],
+                    '#23262E' => [],
+                    '#27242D' => []
+                ]
+            ),
             'border_radius'    => array(
-                'value'        => '10',
+                'value'        => '25',
                 'title'        => _w('Border radius'),
                 'description'  => _w('Rounded corners for buttons (in pixels)'),
                 'control_type' => waHtmlControl::INPUT,
@@ -89,7 +127,17 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                 'control_type' => waHtmlControl::INPUT,
                 'class'        => 'number shortest',
             ),
-
+            'locale' => array(
+                'value'        => '',
+                'title'        => _w('Locale'),
+                'description'  => _w('In Auto, storefront locale will depend on the messenging app custom user settings.'),
+                'control_type' => waHtmlControl::SELECT,
+                'options'      => array(
+                    'auto' => _w('Auto'),
+                    'en'   => _w('English'),
+                    'ru'   => _w('Русский'),
+                ),
+            ),
             'powered_by' => array(
                 'value'        => '1',
                 'title'        => _w('Powered by'),
@@ -228,21 +276,26 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
         return $view->fetch('file:templates/actions/channels/telegram_channel.include.html');
     }
 
-    public function getPublicStorefrontParams(int $id, array $params): array
+    public function getPublicStorefrontParams(array $channel): array
     {
+        $params = ifset($channel, 'params', []);
+
         return array_intersect_key($params, [
-            'accent_color'          => 1,
-            'border_radius'         => 1,
-            'products_per_row'      => 1,
-            'homepage_promos'       => 1,
-            'homepage_product_list' => 1,
-            'homepage_text_footer'  => 1,
-            'checkout_external'     => 1,
-            'checkout_phone'        => 1,
-            'checkout_email'        => 1,
-            'checkout_country'      => 1,
-            'checkout_terms_link'   => 1,
-            'powered_by'            => 1,
+            'accent_color'           => 1,
+            'background_color_light' => 1,
+            'background_color_dark'  => 1,
+            'border_radius'          => 1,
+            'products_per_row'       => 1,
+            'homepage_promos'        => 1,
+            'homepage_product_list'  => 1,
+            'homepage_text_footer'   => 1,
+            'checkout_external'      => 1,
+            'checkout_phone'         => 1,
+            'checkout_email'         => 1,
+            'checkout_country'       => 1,
+            'checkout_terms_link'    => 1,
+            'locale'                 => 1,
+            'powered_by'             => 1,
         ]);
     }
 
@@ -281,7 +334,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             $domain = $st_info['domain'];
             if (isset($routes[$domain]) && is_array($routes[$domain])) {
                 foreach ($routes[$domain] as $id => $route) {
-                    if ($route['app'] === 'shop' && $route['url'] === ifset($st_info, 'route', 'url', null)) {
+                    if (ifset($route, 'app', null) === 'shop' && $route['url'] === ifset($st_info, 'route', 'url', null)) {
                         $routes[$domain][$id]['storefront_mode'] = 'storefront_api';
                         waUtils::varExportToFile($routes, $path);
                         break;

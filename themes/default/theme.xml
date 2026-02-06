@@ -72,10 +72,6 @@
       <description locale="en_US">Product comparison</description>
       <description locale="ru_RU">Сравнение товаров</description>
     </file>
-    <file path="checkout.html">
-      <description locale="en_US">Checkout core wrapper</description>
-      <description locale="ru_RU">Общий шаблон страниц оформления заказа</description>
-    </file>
     <file path="checkout.success.html">
       <description locale="en_US">Checkout: “Thank you!” page</description>
       <description locale="ru_RU">Оформление заказа: страница с благодарностью об оформленном заказе</description>
@@ -153,9 +149,28 @@
       <name locale="en_US">Storefront</name>
       <name locale="ru_RU">Витрина</name>
     </setting>
+    <setting var="homepage_promos_thumbs" control_type="radio">
+      <value>source</value>
+      <name locale="en_US">Slider</name>
+      <name locale="ru_RU">Слайдер</name>
+      <options>
+        <option value="source">
+          <name locale="ru_RU">Оригинальные изображения</name>
+          <name locale="en_US">Original images</name>
+          <description locale="ru_RU">Будут использованы исходные изображений баннеров, которые вы загрузили для промоакций на главной.</description>
+          <description locale="en_US">In the main promo slider, use original banner images as uploaded.</description>
+        </option>
+        <option value="thumbs">
+          <name locale="ru_RU">Эскизы</name>
+          <name locale="en_US">Thumbnails</name>
+          <description locale="ru_RU">Из оригинальных изображений будут автоматически созданы эскизы оптимального уменьшенного размера.</description>
+          <description locale="en_US">Use optimized auto-generated thumbnails.</description>
+        </option>
+      </options>
+    </setting>
     <setting var="homepage_bestsellers_title" control_type="text">
-      <value locale="en_US">Hot deals for {$date}</value>
-      <value locale="ru_RU">Лучшие предложения на {$date}</value>
+      <value locale="en_US"></value>
+      <value locale="ru_RU"></value>
       <name locale="en_US">Title above the bestseller (Hot deals) list</name>
       <name locale="ru_RU">Заголовок над списком бестселлеров (лучших предложений)</name>
       <description locale="en_US">If provided, &lt;b&gt;{$date}&lt;/b&gt; will be replaced with the current date</description>
@@ -423,11 +438,9 @@
     </setting>
   </settings>
   <thumbs>
-    <thumb>64x64</thumb>
     <thumb>96x96</thumb>
-    <thumb>275</thumb>
-    <thumb>0x320</thumb>
-    <thumb>420</thumb>
+    <thumb>200</thumb>
+    <thumb>750</thumb>
     <thumb>970</thumb>
   </thumbs>
   <locales>

@@ -110,11 +110,27 @@
                     [`In-store pickup`]
                 </div>
                 <div class="value">
+                    {$pickup_checked = ifempty($channel, 'params', 'pickup', '0')}
                     <span class="switch smaller js-switch-pickup">
-                        <input type="checkbox" name="data[params][pickup]" value="1"{if ifempty($channel, 'params', 'pickup', '0')} checked{/if}>
+                        <input type="checkbox" name="data[params][pickup]" value="1"{if $pickup_checked} checked{/if}>
                     </span>
                     {if $storefronts}
+                    {$pickup_storefront = ifempty($channel, 'params', 'pickup_storefront', 'all')}
                     <p class="small custom-my-8">[`Enable the pickup option for the selected storefronts only:`]</p>
+                    <label>
+                        <span class="wa-radio">
+                            <input type="radio" name="data[params][pickup_storefront]" value="all"{if $pickup_storefront === 'all'} checked="checked"{/if}{if !$pickup_checked} disabled{/if}>
+                            <span></span>
+                        </span>
+                        [`All storefronts`]
+                    </label><br>
+                    <label>
+                        <span class="wa-radio">
+                            <input type="radio" name="data[params][pickup_storefront]" value="id"{if $pickup_storefront === 'id'} checked="checked"{/if}{if !$pickup_checked} disabled{/if}>
+                            <span></span>
+                        </span>
+                        [`Selected only`]
+                    </label>
                     <div class="small custom-mt-4">
                         {$storefronts}
                     </div>
@@ -131,7 +147,7 @@
                     </p>
                     <p class="small">
                         <label>
-                            <input type="checkbox" name="data[params][checkout]" value="1"{if ifempty($channel, 'params', 'checkout', '0')} checked{/if}>
+                            <input type="checkbox" name="data[params][checkout]" value="1"{if ifempty($channel, 'params', 'checkout', '0') || empty($channel.id)} checked{/if}>
                             [`Express checkout & online reservation`]
                             <br>
                             <span class="gray">[`Allows your customers to quickly place an online pickup order via the pickup order dialog on your site to reserve a purchase in this location. For better conversion, the checkout contact field list in this case is minimized to the very basic contact details.`]</span>
@@ -141,7 +157,7 @@
                     </p>
                     <p class="small">
                         <label>
-                            <input type="checkbox" name="data[params][payment]" value="1"{if ifempty($channel, 'params', 'payment', '0')} checked{/if}>
+                            <input type="checkbox" name="data[params][payment]" value="1"{if ifempty($channel, 'params', 'payment', '0') || empty($channel.id)} checked{/if}>
                             [`Instant payment online`]
                             <br>
                             <span class="gray">[`When an express pickup order is placed, a customer can instantly make payment online.`] [`Payment options available for in-store pickup online orders fully match the online storefront’s payment options.`]</span>
@@ -153,18 +169,19 @@
             <div class="field">
                 <div class="name"></div>
                 <div class="value">
-                    <div class="flexbox">
-                        <div class="wide js-place-for-errors">
+                    <div class="flexbox middle">
+                        <div class="wide">
                             <input type="submit" class="button green" value="[`Save`]">
                         </div>
                         {if !empty($channel.id)}
-                        <div>
-                            <button class="button red js-delete-button">
-                                <i class="fas fa-trash"></i>
+                        <div class="nowrap">
+                            <button class="button red outlined js-delete-button" type="button">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                         {/if}
                     </div>
+                    <div class="js-place-for-errors custom-mt-4"></div>
                 </div>
             </div>
         </div>
@@ -176,26 +193,59 @@
     $(function () {
         "use strict";
         const delete_url = {$wa_app_url|json_encode} + '?module=channels&action=delete';
-
+        const spinner_html = '<span class="spinner" />';
         const $form = $('#js-sales-channel-form');
+        const $place_for_errors = $form.find('.js-place-for-errors');
+        const messages = {
+            payment_required: "[`Нужно выбрать хотя бы один способ оплаты`]",
+            storefront_required: "[`Нужно выбрать хотя бы одну витрину`]"
+        };
+
         const controller = new SalesChannelForm({
-            $place_for_errors: $form.find('.js-place-for-errors'),
+            $place_for_errors,
             $form,
         });
+
         const $submit_button = $form.find(':submit').last();
 
         $form.on('save_request', function () {
-            $submit_button.prop('disabled', true).after('<div class="spinner"></div>');
+            $place_for_errors.empty();
+            $submit_button.prop('disabled', true).after(spinner_html);
         });
-        $form.on('save_success save_fail', function () {
+        $form.on('save_success save_fail', function (evt, data) {
+            if (data.result?.error_description) {
+                $place_for_errors.append('<span class="state-caution-hint">'+ data.result.error_description +'</span>');
+            }
             $submit_button.prop('disabled', false).siblings('.spinner').remove();
         });
 
-        $('input[name="data[params][payment_id]"]').on('change', function () {
+        // validation before submitting
+        $submit_button.on('click', () => {
+            $form.find('.state-error-hint').remove();
+
+            const $payment_radio = $('[type="radio"][name="data[params][payment_id]"]', $form);
+            const is_payment_valid = $payment_radio.filter('[value="all"]').is(':checked') || $('[type="checkbox"][name^="data[params][payment_id"]', $form).is(':checked');
+            if (!is_payment_valid) {
+                $payment_radio.filter('[value="id"]').closest('label').after('<div class="state-error-hint">'+messages.payment_required+'</div>');
+            }
+
+            const $storefront_radio = $('[type="radio"][name="data[params][pickup_storefront]"]', $form);
+            const is_storefront_valid = $storefront_radio.filter('[value="all"]').is(':checked') || $('[type="checkbox"][name^="data[params][pickup_storefront"]', $form).is(':checked');
+            if (!is_storefront_valid) {
+                $storefront_radio.filter('[value="id"]').closest('label').after('<div class="state-error-hint">'+messages.storefront_required+'</div>');
+            }
+
+            controller.scrollToEl($('.state-error-hint', $form));
+
+            const can_submit = is_storefront_valid && is_payment_valid;
+            return can_submit;
+        });
+
+        $('input[name="data[params][payment_id]"], input[name="data[params][pickup_storefront]"]').on('change', function () {
             if ($(this).val() === 'all') {
-                $('input[name="data[params][payment_id]"]').closest('div.value').find('input:checkbox').prop('disabled', true).prop('checked', false);
+                $(this).closest('div.value').find('input:checkbox').not('[name="data[params][pickup]"], [name="data[params][checkout]"], [name="data[params][payment]"]').prop('disabled', true).prop('checked', false);
             } else {
-                $('input[name="data[params][payment_id]"]').closest('div.value').find('input:checkbox').prop('disabled', false).prop('checked', false);
+                $(this).closest('div.value').find('input:checkbox').not('[name="data[params][pickup]"], [name="data[params][checkout]"], [name="data[params][payment]"]').prop('disabled', false).prop('checked', false);
             }
         });
 
@@ -203,6 +253,18 @@
             $('input[name="data[params][latitude]"]').val('');
             $('input[name="data[params][longitude]"]').val('');
             $('.js-map-point').html('');
+        });
+
+        $('input[name="data[params][payment]"]').on('click', function () {
+            if ($(this).prop('checked')) {
+                $('input[name="data[params][checkout]"]').prop('checked', true);
+            }
+        });
+
+        $('input[name="data[params][checkout]"]').on('click', function (e) {
+            if (!$(this).prop('checked')) {
+                $('input[name="data[params][payment]"]').prop('checked', false);
+            }
         });
 
         $('.js-search-address').on('click', function (event) {
@@ -239,12 +301,15 @@
 
         $('.js-switch-pickup').waSwitch({
             change: function (active, wa_switch) {
+                let input = $('input[name="data[params][pickup]"]');
                 if (active) {
-                    $('input[name="data[params][pickup]"]').closest('div.value').find('input:checkbox').prop('disabled', false).prop('checked', false);
-                    $('input[name="data[params][pickup]"]').prop('checked', true);
+                    input.closest('div.value').find('input:checkbox').not('[name="data[params][checkout]"], [name="data[params][payment]"]').prop('disabled', false).prop('checked', false);
+                    input.closest('div.value').find('input:radio').prop('disabled', false);
+                    input.prop('checked', true);
                 } else {
-                    $('input[name="data[params][pickup]"]').closest('div.value').find('input:checkbox').prop('disabled', true).prop('checked', false);
-                    $('input[name="data[params][pickup]"]').prop('checked', false);
+                    input.closest('div.value').find('input:checkbox').not('[name="data[params][checkout]"], [name="data[params][payment]"]').prop('disabled', true).prop('checked', false);
+                    input.closest('div.value').find('input:radio').prop('disabled', true);
+                    input.prop('checked', false);
                 }
             }
         });
@@ -266,7 +331,7 @@
                     cancel_button_title: {_w("Cancel")|json_encode},
                     cancel_button_class: 'light-gray',
                     onSuccess: function() {
-                        $delete_button.prop('disabled', true).after('<div class="spinner"></div>');
+                        $delete_button.prop('disabled', true).after(spinner_html);
                         $.post(delete_url, { id: channel_id }, 'json').then(function(r) {
                             $submit_button.prop('disabled', false).siblings('.spinner').remove();
                             window.location = {$wa_app_url|json_encode} + '?action=plugins#/';

@@ -225,10 +225,10 @@
             const $promos_lists = that.$wrapper.find(".js-active-promos-list");
 
             $promos_lists.sortable({
+                animation: 150,
                 distance: 5,
                 opacity: 0.75,
                 items: "> .s-promo-wrapper",
-                handle: ".js-sort",
                 cursor: "move",
                 tolerance: "pointer",
                 onEnd: function(ui) {

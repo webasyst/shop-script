@@ -57,7 +57,7 @@
 			</div>';
 
         plugin.settings = {};
-        
+
 		$.swipebox.close = function () {
 			ui.closeSlide();
 		};
@@ -673,10 +673,12 @@
 			openMedia : function ( index ) {
 				var $this = this,
 					src,
+					srcset,
 					slide;
 
 				if ( elements[ index ] !== undefined ) {
 					src = elements[ index ].href;
+					srcset = elements[ index ].srcset || false;
 				}
 
 				if ( index < 0 || index >= elements.length ) {
@@ -687,7 +689,7 @@
 
 				if ( ! $this.isVideo( src ) ) {
 					slide.addClass( 'slide-loading' );
-					$this.loadMedia( src, function() {
+					$this.loadMedia( src, srcset, function() {
                         slide.removeClass( 'slide-loading' );
 						slide.html( this );
 
@@ -757,7 +759,7 @@
 				if ( a.search ) {
 					qs = JSON.parse( '{"' + a.search.toLowerCase().replace('?','').replace(/&/g,'","').replace(/=/g,'":"') + '"}' );
 				}
-				
+
 				// Extend with custom data
 				if ( $.isPlainObject( customData ) ) {
 					qs = $.extend( qs, customData, plugin.settings.queryStringData ); // The dev has always the final word
@@ -782,12 +784,12 @@
 					youtubeShortUrl = url.match(/(?:www\.)?youtu\.be\/([a-zA-Z0-9\-_]+)/),
 					vimeoUrl = url.match( /(?:www\.)?vimeo\.com\/([0-9]*)/ ),
 					qs = '';
-                
+
                 if ( youtubeUrl || youtubeShortUrl) {
 					if ( youtubeShortUrl ) {
 						youtubeUrl = youtubeShortUrl;
                     }
-                    
+
                     console.log( youtubeUrl );
 
 					qs = ui.parseUri( url, {
@@ -815,7 +817,7 @@
 			/**
 			 * Load image
 			 */
-			loadMedia : function ( src, callback ) {
+			loadMedia : function ( src, srcset, callback ) {
                 // Inline content
                 if ( src.trim().indexOf('#') === 0 ) {
                     callback.call(
@@ -837,6 +839,9 @@
     					} );
 
     					img.attr( 'src', src );
+						if(srcset) {
+							img.attr( 'srcset', srcset + ' 2x' );
+						}
     				}
                 }
 			},

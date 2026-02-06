@@ -238,7 +238,7 @@
 
                 if (that.value === limit) {
                     $button.addClass(locked_class);
-                    description = limit_string;
+                    description = false;
                 } else {
                     if (show_step) {
                         if (limit > 0 && validate("float", Math.abs(that.value - limit)) < that.step) {

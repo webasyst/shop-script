@@ -43,8 +43,14 @@
 
 {$_skus_features_html = []}
 {foreach $product.skus as $_sku}
-    {if !empty($_sku.features)}
-        {capture assign="_sku_features_html"}{_render_sku_features _features=$_sku.features}{/capture}
+    {$_sku_features = []}
+    {foreach $_sku.features as $_feature_id => $_feature_value}
+        {if $_feature_value !== null}
+            {$_sku_features[$_feature_id] = $_feature_value}
+        {/if}
+    {/foreach}
+    {if !empty($_sku_features)}
+        {capture assign="_sku_features_html"}{_render_sku_features _features=$_sku_features}{/capture}
         {$_skus_features_html[$_sku.id] = $_sku_features_html}
     {/if}
 {/foreach}
@@ -135,12 +141,8 @@
                         {/if}
                         {foreach $product.images as $image}
                             <div class="image{if $image.id == $product.image_id && empty($video)} selected{/if}">
-                                <a id="product-image-{$image.id}" data-href="{if $wa->shop->config('enable_2x')}{$wa->shop->imgUrl($image, '970@2x')}{else}{$wa->shop->imgUrl($image, '970')}{/if}" href="{if $wa->shop->config('enable_2x')}{$wa->shop->imgUrl($image, '420@2x')}{else}{$wa->shop->imgUrl($image, '420')}{/if}">
-                                    {if $wa->shop->config('enable_2x')}
-                                        {$wa->shop->imgHtml($image, '64x64', ['srcset' => "`$wa->shop->imgUrl($image, '64x64@2x')` 2x"])}
-                                    {else}
-                                        {$wa->shop->imgHtml($image, '64x64')}
-                                    {/if}
+                                <a id="product-image-{$image.id}" data-href="{$wa->shop->imgUrl($image, '970')}" data-srcset="{$wa->shop->imgUrl($image, '970@2x')}" href="{$wa->shop->imgUrl($image, '750')}">
+                                    {$wa->shop->imgHtml($image, '96x96', ['srcset' => "`$wa->shop->imgUrl($image, '96x96@2x')` 2x"])}
                                 </a>
                             </div>
                         {/foreach}
@@ -149,20 +151,45 @@
                         ( function($) {
                             const $slider = $("#product-gallery");
                             const href = "{$wa_active_theme_url}bxslider/jquery.bxslider.min.js?v{$wa_theme_version}";
+                            const mq = window.matchMedia("(max-width: 760px)");
+                            let sliderInstance = null;
+                            let isMobile = mq.matches;
 
                             (!$.fn.bxSlider) ? $.getScript(href, initSlider) : initSlider();
 
                             function initSlider() {
-                                $slider.bxSlider({
-                                    mode: {if $wa->isMobile()}'horizontal'{else}'vertical'{/if},
+                                sliderInstance = $slider.bxSlider(getOptions(isMobile));
+                                bindViewportWatcher();
+                            }
+
+                            function getOptions(is_mobile) {
+                                return {
+                                    mode: is_mobile ? "horizontal" : "vertical",
                                     touchEnabled: true,
-                                    minSlides : {if $wa->isMobile()}4{else}5{/if},
-                                    maxSlides : {if $wa->isMobile()}4{else}5{/if},
+                                    minSlides : is_mobile ? 4 : 5,
+                                    maxSlides : is_mobile ? 4 : 5,
                                     infiniteLoop: false,
-                                    slideWidth: {if $wa->isMobile()}300{else}64{/if},
+                                    slideWidth: 64,
                                     slideMargin: 14,
                                     pager: false
-                                });
+                                };
+                            }
+
+                            function bindViewportWatcher() {
+                                if (mq.addEventListener) {
+                                    mq.addEventListener("change", onViewportChange);
+                                } else if (mq.addListener) {
+                                    mq.addListener(onViewportChange);
+                                }
+                            }
+
+                            function onViewportChange(e) {
+                                const nextIsMobile = e.matches;
+                                if (nextIsMobile === isMobile) { return; }
+                                isMobile = nextIsMobile;
+                                if (sliderInstance) {
+                                    sliderInstance.reloadSlider(getOptions(isMobile));
+                                }
                             }
                         })(jQuery);
                     </script>
@@ -193,17 +220,13 @@
 
                             <!-- main image -->
                             <div class="image" id="product-core-image" {if $video}style="display:none"{/if}>
-                                <a class="wa-flex" href="{if $wa->shop->config('enable_2x')}{$wa->shop->productImgUrl($product, '970')}{else}{$wa->shop->productImgUrl($product, '970')}{/if}">
-                                    {if $wa->shop->config('enable_2x')}
-                                         {$wa->shop->productImgHtml($product, '420', [
-                                            'itemprop' => 'image',
-                                            'id' => 'product-image',
-                                            'alt' => $product.name|escape,
-                                            'srcset' => "`$wa->shop->productImgUrl($product, '420@2x')` 2x"
-                                         ])}
-                                    {else}
-                                        {$wa->shop->productImgHtml($product, '420', [ 'itemprop' => 'image', 'id' => 'product-image', 'alt' => $product.name|escape])}
-                                    {/if}
+                                <a class="wa-flex" href="{$wa->shop->productImgUrl($product, '970')}" data-srcset="{$wa->shop->productImgUrl($product, '970@2x')}">
+                                     {$wa->shop->productImgHtml($product, '750', [
+                                        'itemprop' => 'image',
+                                        'id' => 'product-image',
+                                        'alt' => $product.name|escape,
+                                        'srcset' => "`$wa->shop->productImgUrl($product, '750@2x')` 2x"
+                                     ])}
                                 </a>
                                 <div id="switching-image" style="display: none;"><div class="switching-image-loading"><i class="icon32 loading"></i></div></div>
                             </div>
@@ -289,7 +312,7 @@
         <section class="reviews">
             <div class="row align-items-center justify-content-between wa-mb-16 gap8">
                 <h3 class="wa-mb-0">{sprintf('[`%s reviews`]', $product.name|escape)} <span class="hint">({$reviews_total_count})</span></h3>
-                <a class="button bg-gray fw-normal" href="reviews/?writeReview">[`Write a review`]</a>
+                <a class="button fw-normal" href="reviews/?writeReview">[`Write a review`]</a>
             </div>
 
             {if !empty($rates)}
@@ -334,7 +357,7 @@
             {if !$reviews}
                 <p class="wa-mt-32">{sprintf('[`Be the first to <a href="%s">write a review</a> of this product!`]', 'reviews/')}</p>
             {else}
-                <a href="reviews/" class="button bg-gray fw-normal wa-flex justify-content-center wa-mt-32">[`Читать все отзывы`]</a>
+                <a href="reviews/" class="button fw-normal wa-flex justify-content-center wa-mt-32">[`Читать все отзывы`]</a>
             {/if}
         </section>
 
@@ -346,21 +369,6 @@
                 $wrapper: $("#js-product-page"),
                 skus_features_html: {$_skus_features_html|json_encode}
             });
-
-            const $product_image = document.querySelector('#product-image');
-            if ($product_image) {
-                const observer = new MutationObserver(mutations => {
-                    for (const mutation of mutations) {
-                        if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-                            mutation.target.srcset = '';
-                        }
-                    }
-                });
-                observer.observe($product_image, {
-                    attributes: true,
-                    attributeFilter: ['src']
-                });
-            }
         })(jQuery);
     </script>
 </article>

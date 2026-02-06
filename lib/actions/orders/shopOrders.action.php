@@ -164,7 +164,12 @@ class shopOrdersAction extends shopOrderListAction {
 
     protected function shouldShowAds()
     {
-        // Premium ad has priority; show if required
+        // WA Pay ad has priority; show if required
+        $show_wa_pay = $this->shouldShowWaPayAd();
+        if ($show_wa_pay) {
+            return [false, false, $show_wa_pay];
+        }
+
         list($show_premium_ad, $when_premium_add_hidden) = $this->shouldShowPremiumAd();
         if ($show_premium_ad) {
             return [false, $show_premium_ad, false];
@@ -173,10 +178,6 @@ class shopOrdersAction extends shopOrderListAction {
         // three days after premium ad is hidden, show no ads
         if ($when_premium_add_hidden && time() - $when_premium_add_hidden <= 3*24*3600) {
             return [false, false, false];
-        }
-        $show_wa_pay = $this->shouldShowWaPayAd();
-        if ($show_wa_pay) {
-            return [false, false, $show_wa_pay];
         }
 
         list($show_mobile_ad, $when_mobile_add_hidden) = $this->shouldShowMobileAd();

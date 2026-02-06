@@ -255,22 +255,20 @@
                     <td style="border: 0;">
                     </td>
                 </tr>
+                {if !empty($order.params.payment_name)}
                 <tr>
                     <td style="border: 0;">
                     </td>
                     <td style="border: 0; padding: 16px 0;">
                         <b style="color:#222;">
-                            {if !empty($order.params.payment_name)}
-                                <font style="color: #9ab;">%12%&nbsp;—</font>&nbsp;{$order.params.payment_name}
-                            {else}
-                                <font style="color: #9ab;">%12%</font>
-                            {/if}
+                            <font style="color: #9ab;">%12%&nbsp;—</font>&nbsp;{$order.params.payment_name}
                         </b>
                         <p style="margin: 10px 0 0;color: #444;">{$customer.name|escape}<br>{$billing_address}</p>
                     </td>
                     <td style="border: 0;">
                     </td>
                 </tr>
+                {/if}
 
                 <!-- BONUS POINTS -->
                 {if $is_affiliate_enabled}

@@ -1,20 +1,109 @@
 {include file="./pickup.functions.include.html" inline}
+{$has_map = $map.adapter !== 'waDisabledMapAdap'}
 <div id="js-pickup-dialog" class="pickup-dialog" style="opacity: 0;">
-    <div class="pickup-dialog-wrapper">
+    <div class="pickup-dialog-wrapper"{if !$has_map} style="max-width: 480px;"{/if}>
         <div class="pickup-dialog-body">
-            <div class="pickup-dialog-left">
-                <div class="pickup-map-wrapper" id="wa-pickup-map"></div>
-            </div>
+            {* MAP *}
+            {if $has_map}
+                <div class="pickup-dialog-left">
+                    <div class="pickup-map-wrapper" id="wa-pickup-map"></div>
+                </div>
+            {/if}
+            {* FORM *}
             <div class="pickup-dialog-right">
                 <div class="pickup-dialog-right-content">
-                    {_step_1_pickup_list}
-                    {_step_2_selected_pickup}
-                    {_step_3_customer}
+                    {* STEP 1 *}
+                    <div data-step="1">
+                        {_header_block title=$title show_product_name=true mobile_toolbar=$has_map}
+
+                        {if !empty($available_pickup)}
+                        <div class="pickup-body">
+                            <div class="pickup-body-inner">
+                                <ul class="pickup-list">
+                                    {foreach $available_pickup as $pickup}
+                                        {_pickup_item pickup=$pickup}
+                                    {/foreach}
+                                </ul>
+                            </div>
+                        </div>
+                        {/if}
+                    </div>
+                    {* STEP 2 *}
+                    <div data-step="2">
+                        {_header_block show_back=true}
+
+                        <div class="pickup-body">
+                            <div class="pickup-body-inner">
+                                <div class="js-info card-info"></div>
+                                <div class="mt-32 mb-32">
+                                    <p class="js-no-order-alert" style="color: #14B00E; margin-top: -0.75rem;">
+                                        [`No need to place an order and reserve the purchase. See you in the store!`]
+                                    </p>
+                                    <button class="js-preorder-button js-action button w-full" type="button">
+                                        [`Pick up from here`]
+                                    </button>
+                                </div>
+                                <div class="js-description"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {* STEP 3 *}
+                    <div data-step="3">
+                        {_header_block title=_w('Pickup order') show_back=true}
+
+                        <div class="pickup-body">
+                            <div class="pickup-body-inner">
+                                <div class="mb-32">{_product product=$product}</div>
+                                <p>[`Will prepare the order upon your arrival.`]</p>
+                                {if $customer}
+                                    <div class="pickup-customer flex items-center gap-8 mb-16">
+                                        <strong>[`Customer`]:</strong>
+                                        {if !empty($customer.userpic)}
+                                        <img src="{$customer.userpic}" alt="">
+                                        {/if}
+                                        <span>{$customer.firstname|escape}</span>
+                                        <a href="?logout">[`Logout`]</a>
+                                    </div>
+                                {/if}
+                                <form id="js-pickup-checkout" class="customer-form mb-16">
+                                    {foreach $form as $name => $_form}
+                                        <div class="field">
+                                            <div class="name">{$name|escape}</div>
+                                            <div class="value">{$_form}</div>
+                                        </div>
+                                    {/foreach}
+                                    <button class="js-pickup button w-full" type="submit">[`To payment`]</button>
+                                    <div id="js-place-for-error" class="pickup-error"></div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{* FINAL STEP *}
+{capture assign="_order_confirmation"}
+<div style="position: relative; flex: auto; display: flex; justify-content: center; align-items: center; text-align: center;">
+    <div style="position: absolute; top: 1rem; right: 1rem;">
+        {_close_button}
+    </div>
+    <div>
+        <div class="pickup-icon icon-success" style="margin: 1rem auto; width: 4rem; height: 4rem;"></div>
+
+        <h3>[`Thank you!`]</h3>
+
+        <div class="js-redirect-block">
+            [`Hopping on to the payment...`]
+            <div class="pickup-icon icon-spinner animation-spin" style="margin: 2rem auto; width: 2rem; height: 2rem;"></div>
+        </div>
+        <div class="js-no-redirect-block">
+            [`See you in the store!`]
+        </div>
+    </div>
+</div>
+{/capture}
 
 {$_map = [ "adapter" => null, "api_uri" => null ]}
 {if !empty($map.adapter)}
@@ -59,8 +148,11 @@
             sku_id: {$selected_sku_id|json_encode},
             map: {$_map|json_encode},
             pickup_list: {$available_pickup|json_encode},
+            messages: {
+                something_went_wrong: {_w('Something went wrong during the processing of your data. A notification about this error has been sent to the store administrator. Please contact our support team regarding your order.')|json_encode}
+            },
             templates: {
-                order_confirmation: {_order_confirmation|json_encode}
+                order_confirmation: {$_order_confirmation|json_encode}
             }
         });
     });

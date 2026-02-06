@@ -106,7 +106,7 @@ class shopFrontendApiCategoriesController extends shopFrontApiJsonController
 
             foreach ($filter_ids as $fid) {
                 if (!isset($filters['price']) && ($fid == 'price' || $fid == 'base_price')) {
-                    if ($range['min'] != $range['max']) {
+                    if ($range && $range['min'] != $range['max']) {
                         if (($range['max'] - $range['min']) <= 1) {
                             $range['max'] +=2;
                         }

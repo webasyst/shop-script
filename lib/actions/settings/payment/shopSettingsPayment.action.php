@@ -10,21 +10,41 @@ class shopSettingsPaymentAction extends waViewAction
 
         $plugins = shopPayment::getList();
 
+        $wa_pay_instance_exists = false;
         $model = new shopPluginModel();
-        $instances = $model->listPlugins(shopPluginModel::TYPE_PAYMENT, array('all' => true,));
+        $instances = $model->listPlugins(shopPluginModel::TYPE_PAYMENT, [
+            'all' => true,
+            'list_storefronts' => true,
+        ]);
         foreach ($instances as &$instance) {
-            $instance['installed'] = isset($plugins[$instance['plugin']]);
+            $wa_pay_instance_exists = $wa_pay_instance_exists || $instance['plugin'] === 'pay';
+            $instance['installed'] = $instance['plugin'] === 'pay' || isset($plugins[$instance['plugin']]);
             unset($instance);
         }
+        if ($wa_pay_instance_exists && !isset($plugins['pay'])) {
+            try {
+                $plugins['pay'] = waPayment::info('pay');
+            } catch (Throwable $e) {
+            }
+        }
 
-        $promotion_enabled = shopHelper::waPayPromotionEnabled();
+        $wa_pay_available = $wa_pay_instance_exists || $this->isWaPayAvailable();
+        if ($wa_pay_available) {
+            $promotion_enabled = shopHelper::waPayPromotionEnabled();
+            $promotion_payment = $this->getPromotionData($promotion_enabled, $plugins);
+        } else {
+            $promotion_enabled = false;
+            $promotion_payment = null;
+        }
 
         $this->view->assign(array(
             'instances' => $instances,
             'plugins'   => $plugins,
             'installer' => $this->getUser()->getRights('installer', 'backend'),
+            'wa_pay_available' => $wa_pay_available,
             'promotion_enabled' => $promotion_enabled,
-            'promotion_payment' => $this->getPromotionData($promotion_enabled, $plugins),
+            'promotion_payment' => $promotion_payment,
+            'has_sales' => $promotion_payment ? $promotion_payment['per_year']['total_sales'] > 0 : false,
         ));
     }
 
@@ -34,8 +54,8 @@ class shopSettingsPaymentAction extends waViewAction
             'per_month' => self::getPromotionDataForPeriod(30, $promotion_enabled, $plugins),
             'per_year' => self::getPromotionDataForPeriod(365, $promotion_enabled, $plugins),
         ];
+        if ($promotion_enabled) $result['per_year']['total'] .= '/'._w('year');
         $result['per_month']['total'] .= '/'._w('mo.');
-        $result['per_year']['total'] .= '/'._w('year');
         return $result;
     }
 
@@ -95,7 +115,7 @@ class shopSettingsPaymentAction extends waViewAction
             foreach ($table_data as &$row) {
                 if ($row['name'] === 'pay') {
                     if ($row['sales'] > $sbp_total_sales) {
-                        $row['name'] = _w('WA Pay картой');
+                        $row['name'] = _w('Card payment');
                         $row['sales'] -= $sbp_total_sales;
                         $sbp_payment['sales'] = $sbp_total_sales;
                         $table_data[] = $sbp_payment;
@@ -176,16 +196,22 @@ class shopSettingsPaymentAction extends waViewAction
         $total_fee_card_predicted_from_sbp = $total_fee_sbp_actual / 0.007 * 0.03;
 
         $cur = function($amount) {
-            return strip_tags(shop_currency_html($amount));
+            return strip_tags(shop_currency_html(round($amount)));
+        };
+
+        $primary_currency = wa('shop')->getConfig()->getCurrency();
+        $curForTotal = function($amount) use ($primary_currency) {
+            return waCurrency::format('%k{h}', round($amount), $primary_currency);
         };
 
         return [
             'sales_chart' => $sales_pie_chart,
-            'total_fee_sbp' => $total_fee_sbp_actual,
-            'total_fee_card' => $total_fee_card,
-            'total_fee_sbp_html' => waCurrency::formatWithUnit($total_fee_sbp_actual),
-            'total_fee_card_html' => waCurrency::formatWithUnit($total_fee_card),
-            'total_sales' => waCurrency::formatWithUnit($total_sales),
+            'total_fee_sbp' => round($total_fee_sbp_actual),
+            'total_fee_card' => round($total_fee_card),
+            'total_fee_sbp_html' => $curForTotal($total_fee_sbp_actual),
+            'total_fee_card_html' => $curForTotal($total_fee_card),
+            'total_sales' => round($total_sales),
+            'total_sales_html' => $curForTotal($total_sales),
             'total' => $cur($total_fee_card_predicted_from_sbp - $total_fee_sbp_actual),
             'turnover_on_cards' => $cur($total_card_sales),
             'card_fees' => $cur($total_fee_card),
@@ -230,6 +256,16 @@ class shopSettingsPaymentAction extends waViewAction
         }
 
         return [$total_sales, $total_fee];
+    }
+
+    protected function isWaPayAvailable()
+    {
+        try {
+            wa('installer');
+            return installerHelper::getGeoZone() === 'ru';
+        } catch (Throwable $e) {
+        }
+        return false;
     }
 
 }

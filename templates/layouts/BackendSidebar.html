@@ -37,7 +37,7 @@
             </li>
         {/if}
 
-        <li class="rounded"{if $placement == 'channels'} data-channel="{$_item['id']|replace:'channel':''}"{/if}>
+        <li class="rounded{if !empty($_item['count_is_selected'])} s-count-is-selected{/if}"{if $placement == 'channels'} data-channel="{$_item['id']|replace:'channel':''}" {if isset($_item.type)} data-channel-type="{$_item.type}"{/if}{/if}>
             {if !empty($_item["submenu"])}
                 <div class="item js-group-toggle js-{$_item["id"]}-toggle">
                     <span class="s-icon-main icon">{$_item["icon"]}</span>
@@ -70,6 +70,9 @@
                 <a class="item{if $placement == 'channels' && empty($_item.available)} opacity-50{/if}" href="{$_item["url"]|escape}">
                     <span class="s-icon-main icon">{$_item["icon"]}</span>
                     <span class="s-name">{$_item["name"]|escape}</span>
+                    {if isset($_item["count"])}
+                    <span class="count">{$_item["count"]}</span>
+                    {/if}
                 </a>
             {/if}
         </li>
@@ -277,8 +280,20 @@
     const $dropdown = $wrapper.find('.dropdown');
     $dropdown.closest('.count').appendTo($('.js-header-above-storefront .item'));
     $dropdown.waDropdown({
-        hover: false
+        hover: false,
+        protect: false
     });
     $wrapper.remove();
+
+    // hide channel type teaser
+    $('.s-main-menu [data-channel-type] .count').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const $teaser = $(this).closest('[data-channel-type]');
+        const channel_type = $teaser.data('channel-type');
+        $.post('?module=channels&action=closeTeaser', { channel_type }, (r) => {
+            if (r.status === 'ok') $teaser.remove();
+        });
+    })
 });</script>
 {/if}

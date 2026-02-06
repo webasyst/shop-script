@@ -45,7 +45,19 @@ class shopSettingsPaymentSetupAction extends waViewAction
                 unset($m);
             }
 
-            $this->view->assign(compact('plugin', 'shipping_types', 'payment_types', 'shipping', 'settings_html', 'guide_html'));
+            $storefronts = shopStorefrontList::getAllStorefronts(true);
+            foreach ($storefronts as &$s) {
+                $enabled_payment_ids = ifset($s, 'route', 'payment_id', null);
+                $s['force_enabled'] = !$enabled_payment_ids;
+                if (!empty($plugin['id']) && is_array($enabled_payment_ids) && array_values($enabled_payment_ids) == [$plugin['id']]) {
+                    $s['force_enabled'] = true; // last payment plugin can not be disabled
+                }
+                $s['is_enabled'] = empty($plugin['id']) || !$enabled_payment_ids || in_array($plugin['id'], $enabled_payment_ids);
+                $s['route_url'] = ifset($s, 'route', 'url', null);
+            }
+            unset($s);
+
+            $this->view->assign(compact('plugin', 'shipping_types', 'payment_types', 'shipping', 'settings_html', 'guide_html', 'storefronts'));
         } catch (waException $ex) {
             $this->view->assign('error', $ex->getMessage());
         }

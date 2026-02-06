@@ -209,6 +209,36 @@ class shopPayment extends waAppPayment
                 unset($settings[$plugin['id']]);
             }
             $app_settings->set('shop', 'shipping_payment_disabled', json_encode($settings));
+
+            if (!empty($plugin['storefronts'])) {
+                $path = wa()->getConfig()->getPath('config', 'routing');
+                if (file_exists($path) && is_writable($path)) {
+                    $routes = include($path);
+                    $something_changed = false;
+                    $storefronts = shopStorefrontList::getAllStorefronts(true);
+                    foreach ($storefronts as $s) {
+                        $enabled_payment_ids = ifset($routes, $s['domain'], $s['route_index'], 'payment_id', null);
+                        if ($enabled_payment_ids && is_array($enabled_payment_ids) && isset($plugin['storefronts'][$s['url']])) {
+                            $old_status = in_array($plugin['id'], $enabled_payment_ids);
+                            $new_status = !empty($plugin['storefronts'][$s['url']]);
+                            if ($old_status != $new_status) {
+                                if ($new_status) {
+                                    $something_changed = true;
+                                    $routes[$s['domain']][$s['route_index']]['payment_id'][] = $plugin['id'];
+                                } else if (count($enabled_payment_ids) > 1) {
+                                    $something_changed = true;
+                                    $routes[$s['domain']][$s['route_index']]['payment_id'] = array_filter($routes[$s['domain']][$s['route_index']]['payment_id'], function($id) use ($plugin) {
+                                        return $id != $plugin['id'];
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    if ($something_changed) {
+                        waUtils::varExportToFile($routes, $path);
+                    }
+                }
+            }
         }
         return $plugin;
     }
@@ -456,8 +486,33 @@ class shopPayment extends waAppPayment
             $result = [];
 
             $provider_field_defaults = [
-                'tbank' => ['plugin' => 'tinkoff', 'defaults' => ['terminal_key' => '', 'terminal_password' => '']],
-                'yookassa' => ['plugin' => 'yandexkassa', 'defaults' => ['shop_id' => '', 'shop_password' => '']],
+                'tbank' => ['plugin' => 'tinkoff', 'mapping' => [
+                    'terminal_key' => '', 
+                    'terminal_password' => '',
+                    'currency_id' => '',
+                    'two_steps' => '',
+                    'check_data_tax' => '',
+                    'taxation' => '',
+                    'payment_object_type_product' => '',
+                    'payment_object_type_service' => '',
+                    'payment_object_type_shipping' => '',
+                    'payment_method_type' => 'payment_method_type_tbank',
+                    'payment_ffd' => '',
+                    'payment_language' => '',
+                ]],
+                'yookassa' => ['plugin' => 'yandexkassa', 'mapping' => [
+                    'shop_id' => '', 
+                    'shop_password' => '',
+                    'receipt' => '',
+                    'payment_subject_type_product' => '',
+                    'payment_subject_type_service' => '',
+                    'payment_subject_type_shipping' => '',
+                    'payment_method_type' => '',
+                    'taxes' => '',
+                    'tax_system_code' => '',
+                    'merchant_currency' => '',
+                    'manual_capture' => '',
+                ]],
             ];
 
             foreach ($provider_field_defaults as $key => $provider) {
@@ -465,8 +520,11 @@ class shopPayment extends waAppPayment
                 if ($plugin) {
                     $settings = $this->model()->get($plugin['id']);
                     if ($settings) {
-                        foreach ($provider_field_defaults[$key]['defaults'] as $s_key => $s) {
-                            $result[$s_key] = ifset($settings, $s_key, '');
+                        foreach ($provider_field_defaults[$key]['mapping'] as $s_key => $s_key_2) {
+                            $s_key_2 = ifempty($s_key_2, $s_key);
+                            if (isset($settings[$s_key])) {
+                                $result[$s_key_2] = $settings[$s_key];
+                            }
                         }
                     }
                 }
@@ -939,13 +997,23 @@ class shopPayment extends waAppPayment
     /**
      * @since 10.3.0
      */
-    public static function statePolling(shopOrder $order)
+    public static function statePolling(shopOrder $order, ?waPayment $p = null)
     {
-        $plugin = $order['payment_plugin'];
-        if (!$plugin || !$order['payment_plugin'] instanceof waIPaymentStatePolling) {
+        $plugin = ifempty($order, 'payment_plugin', $p);
+        if (!$plugin || !$plugin instanceof waIPaymentStatePolling) {
             return;
         }
-        $plugin->statePolling(shopPayment::getOrderData($order['id'], $plugin));
+        [$next_time, $interval] = explode(':', ifset($order, 'params', 'state_polling', ':13'));
+        if (!$next_time) {
+            $next_time = strtotime($order['create_datetime']) + 30;
+        }
+        if (time() > $next_time) {
+            // 13, 17, 23, 30, 39, 51, 67, 88, 90, 90, ...
+            $interval = min(ceil($interval*1.3), 90);
+            $next_time = time() + $interval;
+            (new shopOrderParamsModel())->setOne($order['id'], 'state_polling', $next_time.":".$interval);
+            $plugin->statePolling(shopPayment::getOrderData($order['id'], $plugin));
+        }
     }
 
     public function declareFiscalization($order_id, waPayment $plugin, array $custom_data = null)
@@ -999,9 +1067,17 @@ class shopPayment extends waAppPayment
             return $a['index'] <=> $b['index'];
         });
 
+        // order shipping type: todoor / pickup / post
+        $shipping_type = ifset($order, 'params', 'shipping_type', null);
+
         // Load payment options for all plugins
         $payment_options = [];
         foreach($methods as &$m) {
+            if ($shipping_type && !empty($m['options']['shipping_type'])) {
+                if (!isset($m['options']['shipping_type'][$shipping_type])) {
+                    continue;
+                }
+            }
             $plugin = $m['instance'];
             if ($plugin instanceof waIPaymentMultipleOptions) {
                 try {
@@ -1148,7 +1224,8 @@ class shopPayment extends waAppPayment
         return $payment_image;
     }
 
-    protected static function pluginSupportsQRCode($plugin)
+    /** @since 12.0.0 */
+    public static function pluginSupportsQRCode($plugin)
     {
         return $plugin instanceof waPayPayment;
     }

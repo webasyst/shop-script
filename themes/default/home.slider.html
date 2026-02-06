@@ -3,11 +3,11 @@
     {* PROMOCARDS *}
     <ul class="s-slider-block" id="js-home-slider">
         {foreach $promocards as $_slide}
-            <li class="s-slide-wrapper row cols1-mobile" style="
+            <li class="s-slide-wrapper" style="
                 {if $_slide.color}color: {$_slide.color};{/if}
                 {if $_slide.image}background-image: url({$_slide.image});{/if}
             ">
-                <div class="s-slide-block col w5">
+                <div class="s-slide-block">
 
                     {if !empty($_slide.countdown_datetime)}
                         <div class="s-counter">

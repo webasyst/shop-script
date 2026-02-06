@@ -51,7 +51,9 @@
         {/if}
     </p>
 
-    {include file="./SettingsPaymentPromotion.inc.html" inline}
+    {if !empty($wa_pay_available)}
+        {include file="./SettingsPaymentPromotion.inc.html" inline}
+    {/if}
 </div>
 <div id="s-settings-payment" class="fields">
     <div class="fields-group custom-pl-8-mobile">
@@ -78,7 +80,7 @@
                             {$plugin.name|escape}
                             {if empty($plugin.status)}([`disabled`]){/if}
                             {if empty($plugin.installed)}
-                            <span class="text-red">[`deleted`]</span>
+                                <span class="text-red">[`deleted`]</span>
                             {/if}
                         </strong>
 
@@ -98,6 +100,9 @@
                             {$descr = strip_tags($plugin.description)}
                             <div class="desktop-only">{$descr}</div>
                             <div class="tablet-only" title="{$descr}">{$descr|truncate:50}</div>
+                            {if empty($plugin.storefronts)}
+                                <div class="state-caution"><i class="fas fa-exclamation-circle text-orange"></i> [`Payment options is active, but is not in use on any storefronts`]</div>
+                            {/if}
                         </div>
                     </td>
 

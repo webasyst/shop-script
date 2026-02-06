@@ -223,14 +223,6 @@ if (typeof ($) != 'undefined') {
                 $title.hide();
                 $title.after($plugin_name);
                 $title.hide();
-
-                // this implements a checkbox in WA Pay promotion banner, see SettingsPayment.html
-                if (localStorage.getItem('shop/move_checkout_payment_on_wa_pay_save')) {
-                    localStorage.removeItem('shop/move_checkout_payment_on_wa_pay_save');
-                    self.$payment_plugin_container.find('form').append(
-                        '<input type="hidden" name="move_checkout_payment" value="1">'
-                    );
-                }
             });
         },
 

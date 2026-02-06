@@ -683,15 +683,14 @@
                     display: block !important;
                     width: 100% !important;
                     height: auto  !important;
-                    max-width: 400px;
+                    max-width: 250px;
                     margin: 0 auto !important;
-                    padding: 18px !important;
-                    border-radius: 1.125rem;
+                    padding: 14px !important;
+                    border-radius: 2rem;
                     background: #1A1442 !important;
                     color: #fff !important;
                     text-align: center !important;
-                    font-size: 28px !important;
-                    font-weight: bold !important;
+                    font-size: 24px !important;
                     cursor: pointer !important;
                     transition: background-color 0.3s ease;
                 }
@@ -709,7 +708,7 @@
                     width: 100%;
                     height: 100%;
                     box-sizing: border-box;
-                    z-index: 1050;
+                    z-index: 10005000;
                     background-color: transparent;
                 }
 
@@ -862,7 +861,6 @@
                     padding: 0;
                     list-style: none;
                     overflow: hidden;
-                    max-height: 80vh;
                     overflow-y: auto;
                     scrollbar-width: none;
                     -ms-overflow-style: none;
@@ -1023,6 +1021,7 @@
                 .dialog.c-payments-wrapper .dialog-body .dialog-content form .c-payment-options .c-payment-item .c-payment-item-inner .c-payment-body {
                     flex: 1 1 80%;
                     text-align: left;
+                    line-height: 1.4;
                 }
 
                 .dialog.c-payments-wrapper .dialog-body .dialog-content form .c-payment-options .c-payment-item .c-payment-item-inner .c-payment-body.is-pay-plugin {
@@ -1108,7 +1107,7 @@
 
 {if $status_check_url}
 <script>(function(){
-    const PERIOD = 120000;
+    const PERIOD = 9000;
     const check_url = {$status_check_url|json_encode};
     var timeout = schedule();
 

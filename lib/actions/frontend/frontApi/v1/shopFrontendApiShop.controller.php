@@ -140,7 +140,7 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
         try {
             $sales_channel_params_model = new shopSalesChannelParamsModel();
             $channel['params'] = $sales_channel_params_model->get($id);
-            $channel['params'] = shopSalesChannelType::factory($channel['type'])->getPublicStorefrontParams($id, $channel['params']);
+            $channel['params'] = shopSalesChannelType::factory($channel['type'])->getPublicStorefrontParams($channel);
             return [
                 'id' => (int) $id,
                 'type' => $channel['type'],

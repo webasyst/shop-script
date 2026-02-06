@@ -46,9 +46,9 @@ window.SalesChannelForm = (function() { "use strict";
             that.trigger('save_request');
 
             $.post(that.save_url, that.$form.serialize(), 'json').then(function(r) {
-                if (r && r.status == 'ok') {
+                if (r?.status == 'ok') {
                     that.trigger('save_success', { result: r.data });
-                } else {
+                } else if (r?.errors) {
                     if (!that.skip_display_errors) {
                         that.showValidationErrors(r.errors);
                     }
@@ -77,10 +77,13 @@ window.SalesChannelForm = (function() { "use strict";
 
     SalesChannelForm.prototype.showValidationErrors = function(errors) {
         var that = this;
-        errors && errors.forEach && errors.forEach(function(e) {
+        errors?.forEach((e, i) => {
             var $field;
             if (e.field) {
                 $field = that.$form.find('[name="'+e.field+'"]').addClass('state-error');
+                if (i === 0) {
+                    that.scrollToEl($field);
+                }
             }
             if (e.error_description) {
                 var $error = $('<div class="state-error-hint"></div>').html(e.error_description);
@@ -99,6 +102,13 @@ window.SalesChannelForm = (function() { "use strict";
             return $result;
         }
         return this.$form;
+    };
+
+    SalesChannelForm.prototype.scrollToEl = function($field) {
+        if (!$field?.length) return;
+        $('html, body').animate({
+            scrollTop: $field.offset().top - ($('#wa-header').height() || 0) - 30
+        }, 500);
     };
 
     return SalesChannelForm;

@@ -116,7 +116,7 @@ function Product(form, options) {
 
                 self.cartButtonVisibility(false);
                 cart_total.html(response.data.count);
-                
+
                 if (f.data('cart')) {
                     $("#page-content").load(location.href, function () {
                         $("#dialog").hide().find('.cart').empty();
@@ -320,13 +320,13 @@ $(function () {
             if ($("#product-gallery a").length) {
                 var k = $("#product-gallery div.selected").prevAll('.image').length;
                 $('#product-gallery div.image').each(function () {
-                    images.push({href: $(this).find('a').data('href')});
+                    images.push({href: $(this).find('a').data('href'), srcset: $(this).find('a').data('srcset')});
                 });
                 if (k) {
                     images = images.slice(k).concat(images.slice(0, k));
                 }
             } else {
-                images.push({href: $(this).attr('href')});
+                images.push({href: $(this).attr('href'), srcset: $(this).data('srcset') });
             }
 
             $.swipebox(images, {
@@ -366,9 +366,11 @@ $(function () {
         var img = $(this).find('img');
         var size = $("#product-image").attr('src').replace(/^.*\/[^\/]+\.(.*)\.[^\.]*$/, '$1');
         var src = img.attr('src').replace(/^(.*\/[^\/]+\.)(.*)(\.[^\.]*)$/, '$1' + size + '$3');
+        var srcset = img.attr('src').replace(/^(.*\/[^\/]+\.)(.*)(\.[^\.]*)$/, '$1' + size + '@2x$3 2x');
         $('<img>').attr('src', src).load(function () {
             $("#product-image")
                 .attr('src', src)
+                .attr('srcset', srcset)
                 .attr("title", $small_image.attr("title"))
                 .attr("alt", $small_image.attr("alt"))
                 .removeClass('blurred');

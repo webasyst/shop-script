@@ -83,14 +83,29 @@ class shopWorkflowAction extends waWorkflowAction
         $icon = $this->getOption('icon');
         $class_icon = $is_wa2 ? 'icon' : 'icon16';
 
+        $convertIcon = function ($icon_class) {
+            $isIconConverted = function ($icon) {
+                return strpos($icon, 'fas fa-') !== false || strpos($icon, 'fab fa-') !== false || strpos($icon, 'far fa-') !== false;
+            };
+            if (!$isIconConverted($icon_class)) {
+                $icon_class = wa()->getView()->getHelper()->shop->convertIcon($icon_class);
+                if (!$isIconConverted($icon_class)) {
+                    $icon_class = wa()->getView()->getHelper()->shop->convertIcon("icon16 {$icon_class}");
+                    if (!$isIconConverted($icon_class)) {
+                        $icon_class = 'fas fa-circle';
+                    }
+                }
+            }
+            return $icon_class;
+         };
+
         if ($this->getOption('position') || $this->getOption('top')) {
             // LINK
             if ($is_wa2) {
-                $icon = wa()->getView()->getHelper()->shop->convertIcon("icon16 {$icon}");
-
+                $icon = $convertIcon($icon);
                 return <<<HTML
                 <a {$attrs} href="#" class="wf-action actions-link {$this->getOption('button_class')}" data-action-id="{$this->getId()}" title="{$description}">
-                    <i class="$class_icon {$icon}"></i>{$name}
+                    <span class="icon custom-mr-4"><i class="{$icon}"></i></span> {$name}
                 </a>
 HTML;
             }
@@ -139,9 +154,17 @@ HTML;
             $style = implode(';', $style);
 
             if ($is_wa2) {
-                $icon = '<i class="fas fa-'.ifempty($icon, 'circle').' js-icon custom-mr-4 small text-'.$button_class.'"></i>';
+                $icon = ifempty($icon, 'circle');
+
+                if (strpos($icon, 'ss ') !== false || strpos($icon, 'icon16 ') !== false) {
+                    $icon = $convertIcon($icon);
+                } else {
+                    $icon = 'fas fa-'.$icon;
+                }
+                $icon = '<i class="'.$icon.' js-icon custom-mr-4 small text-'.$button_class.'"></i>';
+
                 return <<<HTML
-    <a href="#" {$attrs} class="{$class}" style="{$style}" data-action-id="{$this->getId()}" title="{$description}">{$icon} {$name}<span class="smaller">{$notification_icons}</span></a>
+<a href="#" {$attrs} class="{$class}" style="{$style}" data-action-id="{$this->getId()}" title="{$description}">{$icon} {$name}<span class="smaller">{$notification_icons}</span></a>
 HTML;
             }
 

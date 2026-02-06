@@ -41,6 +41,15 @@ class shopFrontendApiOrderPaymentController extends shopFrontApiJsonController
             throw new waAPIException('bad_payment_id', _w('Payment method not found.'), 400);
         }
 
+        $order_set_params = waRequest::request('params', [], waRequest::TYPE_ARRAY);
+        if ($order_set_params) {
+            $order_set_params = array_diff_key($order_set_params, ['payment_id' => 1, 'payment_plugin' => 1]);
+            if ($order_set_params) {
+                $order['params'] = array_merge($order['params'], $order_set_params);
+                (new shopOrderParamsModel())->set($order['id'], $order_set_params, false);
+            }
+        }
+
         if ($payment_type === 'image') {
             $this->response = $this->getResponseImage(reset($methods), $order);
         } else { // $payment_type === 'link'

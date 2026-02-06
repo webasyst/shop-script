@@ -44,6 +44,10 @@ class shopPluginModel extends shopSortableModel
             $non_available = shopHelper::getDisabledMethods($type, $options[$complementary]);
         }
 
+        if (!empty($options['list_storefronts'])) {
+            $storefronts = shopStorefrontList::getAllStorefronts(true);
+        }
+
         foreach ($plugins as &$plugin) {
             $plugin['available'] = !in_array($plugin['id'], $non_available);
             #filter by customer type
@@ -72,6 +76,22 @@ class shopPluginModel extends shopSortableModel
                 $payment_type = array_keys(array_filter($plugin['options']['payment_type']));
                 if (!array_intersect($payment_type, $options['payment_type'])) {
                     $plugin['available'] = false;
+                }
+            }
+
+            if (!empty($options['list_storefronts'])) {
+                $plugin['storefronts'] = [];
+                foreach ($storefronts as $s) {
+                    $enabled_payment_ids = ifset($s, 'route', 'payment_id', null);
+                    if (!$enabled_payment_ids || in_array($plugin['id'], $enabled_payment_ids)) {
+                        $plugin['storefronts'][] = [
+                            'domain' => $s['domain'],
+                            'route_url' => ifset($s, 'route', 'url', null),
+                            'route_index' => $s['route_index'],
+                            'url_decoded' => $s['url_decoded'],
+                            'url' => $s['url'],
+                        ];
+                    }
                 }
             }
         }

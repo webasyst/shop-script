@@ -4544,12 +4544,9 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  channels:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/SalesChannelInfo'
+                type: array
+                items:
+                  $ref: '#/components/schemas/SalesChannelInfo'
         403:
           description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
           content:
@@ -7843,6 +7840,10 @@ components:
         description:
           type: string
           description: Описание
+        wa_channel_id:
+          type: string
+          nullable: true
+          description: Глобальный уникальный идентификатор канала продаж
         status:
           type: integer
           description: |

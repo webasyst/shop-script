@@ -1607,9 +1607,9 @@ SQL;
             "ss shop" => "fas fa-store",
             "image" => "fas fa-image",
             "icon16 ss new" => "fas fa-circle",
-            "icon16 ss processing" => "fas fa-check",
+            "icon16 ss processing" => "fas fa-play-circle",
             "icon16 ss confirmed" => "fas fa-play-circle",
-            "icon16 ss paid" => "fas fa-file-invoice-dollar",
+            "icon16 ss paid" => "fas fa-receipt",
             "icon16 ss sent" => "fas fa-truck",
             "icon16 ss completed" => "fas fa-flag-checkered",
             "icon16 ss refunded" => "fas fa-times-circle",
@@ -1742,43 +1742,57 @@ SQL;
     }
 
     /**
+     * @return array|array[][]
+     * @throws waException
+     * @since 12.0.0
+     */
+    public static function getPickupChannels()
+    {
+        $routing = wa()->getRouting();
+        $current_storefront = $routing->getDomain().'/'.rtrim((string) $routing->getRoute('url'), '/*');
+
+        $channels = (new shopSalesChannelModel())->getAllWithParams();
+
+        return array_filter($channels, function ($_channel) use ($current_storefront) {
+            if (empty($_channel['params']['pickup'])) {
+                return false;
+            }
+            if (ifset($_channel, 'params', 'pickup_storefront', '') === 'all') {
+                return true;
+            }
+            if (in_array($current_storefront, ifset($_channel, 'params', 'pickup_storefronts', []))) {
+                return true;
+            }
+            return false;
+        });
+    }
+
+    /**
      * @return int
      * @throws waException
      * @since 12.0.0
      */
     public function countPickupLocations()
     {
-        $routing = wa()->getRouting();
-        $current_storefront = $routing->getDomain().'/'.rtrim((string) $routing->getRoute('url'), '/*');
-
-        $channels = (new shopSalesChannelModel())->getAllWithParams();
-        $channels = array_filter($channels, function ($_channel) use ($current_storefront) {
-            if (
-                empty($_channel['params']['pickup'])
-                || empty($_channel['params']['pickup_storefronts'])
-                || !in_array($current_storefront, $_channel['params']['pickup_storefronts'])
-            ) {
-                return false;
-            }
-            return true;
-        });
-
-        return count($channels);
+        return count(self::getPickupChannels());
     }
 
     /**
      * @param $product
      * @param $class
+     * @param $title
      * @return string
      * @throws waException
      * @since 12.0.0
      */
-    public function getPickupButton($product = [], $class = 'button pickup-btn')
+    public function getPickupButton($product = [], $class = '', $title = '')
     {
         if (empty($product) || empty($product['id'])) {
             return '';
         }
 
+        $class = $class ?: 'button pickup-btn';
+        $title = $title ?: _w('Pick up in store');
         $url = wa()->getRouteUrl('shop/frontendPickup', ['action' => 'dialog']);
         $script = <<<SCRIPT
 <script>
@@ -1793,7 +1807,7 @@ SQL;
             let sku_id = new URLSearchParams(window.location.search).get('sku');
 
             $('body .js-dialog-pickup').remove();
-            $.post('{$url}', {product_id: {$product['id']}, sku_id: sku_id }).always(function (html) {
+            $.post('{$url}', {product_id: {$product['id']}, sku_id: sku_id, title: '{$title}' }).always(function (html) {
                 $('body').append(html);
                 is_loading = false;
             });
@@ -1803,10 +1817,10 @@ SQL;
 SCRIPT;
 
         return sprintf(
-            '<a href="javascript:void(0)" class="js-pickup-button-%d%s"><span>%s</span></a>',
+            '<a href="javascript:void(0)" class="js-pickup-button-%d %s"><span>%s</span></a>',
             $product['id'],
-            ($class ? " $class" : ''),
-            _w('Pick up in store')
+            $class,
+            $title
         ).$script;
     }
 }

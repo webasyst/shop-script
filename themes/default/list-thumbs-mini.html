@@ -3,11 +3,7 @@
 {function name="_product_image_mini" p=[]}
     <a href="{$p.frontend_url}" title="{$p.name}" class="wa-mb-8 text-center">
         <div class="image">
-            {if $wa->shop->config('enable_2x')}
-                {$wa->shop->productImgHtml($p, '170x170', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy96.png", 'srcset' => "`$wa->shop->productImgUrl($p, '170x170@2x')` 2x"])}
-            {else}
-                {$wa->shop->productImgHtml($p, '170x170', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy96.png"])}
-            {/if}
+            {$wa->shop->productImgHtml($p, '200', ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy96.png", 'srcset' => "`$wa->shop->productImgUrl($p, '200@2x')` 2x"])}
         </div>
         <meta itemprop="name" content="{$p.name|escape}">
         <meta itemprop="description" content="{$p.description|strip_tags:false|truncate:'100'}">
@@ -38,11 +34,7 @@
                         {$_left_offset = $_item_width * $_image@index}
                         <div class="image-item">
                             <span class="image-zone" style="left: {$_left_offset}%; width: {$_item_width}%;" aria-hidden="true"></span>
-                            {if $wa->shop->config('enable_2x')}
-                                {$wa->shop->imgHtml($_image, '170x170', ['itemprop' => 'image', 'class' => 'image-frame', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
-                            {else}
-                                {$wa->shop->imgHtml($_image, '170x170', ['itemprop' => 'image', 'class' => 'image-frame', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
-                            {/if}
+                            {$wa->shop->imgHtml($_image, '200', ['itemprop' => 'image', 'class' => 'image-frame', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png", 'srcset' => "`$wa->shop->imgUrl($_image, '200@2x')` 2x"])}
                             <div class="slider-indicators">
                                 {for $i = 1 to $_images_count}
                                     <span class="slider-indicator{if $_image@index != $i - 1} inactive{else} active{/if}"></span>
@@ -60,7 +52,7 @@
             {_product_image_mini p=$p}
         {/if}
 
-        <div class="pricing wa-flex wa-flex-wrap space-05 align-items-center">
+        <div class="pricing wa-flex wa-flex-wrap space-05 align-items-center wa-mt-4">
             <span class="price nowrap wa-mb-0">{shop_currency_html($p.price)}</span>{$p.compare_price = 12345}
             {if $available && $p.compare_price > 0}
                 <span class="compare-at-price nowrap small"> {shop_currency_html($p.compare_price)}</span>
@@ -84,7 +76,7 @@
                     <div class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if}>
                         <button type="button" class="blink" data-product_id="{$p.id}" data-url="{$wa->getUrl('shop/frontendCart/add')}" class="text-white">[`Add to cart`]</button>
                         <a href="{$wa->getUrl('shop/frontend/order')}" class="button blink gotocart-btn wa-hide">
-                            [`Перейти в корзину`]
+                            [`Added to cart`]
                         </a>
                     </div>
                 {else}
@@ -92,7 +84,7 @@
                         <input type="hidden" name="product_id" value="{$p.id}">
                         <button type="submit" class="blink">[`Add to cart`]</button>
                         <a href="{$wa->getUrl('shop/frontend/order')}" class="button gotocart-btn wa-hide">
-                            [`Перейти в корзину`]
+                            [`Added to cart`]
                         </a>
                     </form>
                 {/if}
@@ -101,14 +93,16 @@
                 {/if}
                 <link itemprop="availability" href="http://schema.org/InStock">
             {else}
-                <div class="out-of-stock">
-                    <strong>
-                        {if $wa->shop->settings('ignore_stock_count')}
-                            {_wd('shop', 'Pre-order only')}
-                        {else}
-                            {_wd('shop', 'Out of stock')}
-                        {/if}
-                    </strong>
+                <div class="out-of-stock w-100">
+                    <a href="{$p.frontend_url}" title="{$p.name}" class="w-100 gray button">
+                        <span>
+                            {if $wa->shop->settings('ignore_stock_count')}
+                                {_wd('shop', 'Pre-order only')}
+                            {else}
+                                {_wd('shop', 'Out of stock')}
+                            {/if}
+                        </span>
+                    </a>
                 </div>
                 <link itemprop="availability" href="http://schema.org/OutOfStock">
             {/if}

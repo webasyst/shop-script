@@ -40,7 +40,17 @@
         "title" => _w("Multiple POS locations"),
         "description" => _w("Shop-Script <a href=\"https://www.webasyst.com/mobile/\">mobile app</a> is a next-gen Point Of Sale terminal: quickly create orders, accept payments offline via QR codes and credit cards — all in one app.<br><br> Premium enables advanced POS features such as barcode scanner, multiple store locations, cashier shifts, and more."),
         "image" => [
-            "name" => "image7.webp"
+            "name" => "image7.webp?v12"
+        ]
+    ],
+    [
+        "id" => "pay",
+        "noshadow" => true,
+        "title" => "Webasyst Pay выгоднее",
+        "description" => "Принимайте платежи по QR-коду СБП в чекауте без редиректа на сайт платежной системы. Легко экономьте более 2% оборота за счет снижения расходов на интернет-эквайринг. Мгновенное зачисление. Комиссия ниже, конверсия — выше.<br><br> В премиум-версии Shop-Script — более выгодные условия работы и <a href=\"https://www.shop-script.ru/pricing/\">ниже стоимость</a> службы Webasyst Pay.",
+        "ru_only" => 1,
+        "image" => [
+            "name" => "image-pay.webp"
         ]
     ],
     [
@@ -188,6 +198,7 @@
 
         <div class="s-features-list custom-mt-24-mobile custom-mb-24-mobile">
             {foreach $_features as $_feature name=featureloop}
+              {if $_is_ru || empty($_feature.ru_only)}
                 <div class="flexbox space-32 s-feature-wrapper vertical-mobile custom-mt-24-mobile"{if !empty($_feature.id)} data-attr-id="{$_feature.id}"{/if}>
                     <div class="s-description-wrapper width-100-mobile custom-p-8-mobile{if empty($_feature.image)} align-center{/if}"{if $smarty.foreach.featureloop.iteration % 2} style="order: 2;"{/if}>
                         <h3 class="s-title{if !empty($_feature.soon)} gray{/if}">
@@ -208,6 +219,7 @@
                         {/if}
                     {/if}
                 </div>
+              {/if}
             {/foreach}
         </div>
 

@@ -12,9 +12,9 @@
     {/if}
 
     {$categories = $wa->shop->categories(0, null, true)}
-    
+
     {$tagcloud = $wa->shop->tags()}
-    
+
     <!-- plugin hook: 'frontend_nav' -->
     {* @event frontend_nav.%plugin_id% *}
     {$_hook_frontend_sidebar_section = false}
@@ -30,7 +30,7 @@
             {* DROPDOWN "Shop by Department" navigation *}
 
             <li class="collapsible category-btn-item">
-                <a href="{$wa_app_url}" class="chevron down button nowrap"><span class="wa-hide-m">&#9776; </span>[`Shop by Department`]</a>
+                <a href="javascript:void(0);" class="chevron down button nowrap">[`Shop by Department`]</a>
                 <div class="flyout">
                     <div class="container">
                         {if count($categories)}
@@ -162,7 +162,7 @@
                     </li>
                 {/foreach}
             {/if}
-            
+
             {if $shop_pages}
             {* PAGES *}
 

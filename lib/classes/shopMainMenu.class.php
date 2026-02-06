@@ -197,7 +197,7 @@ class shopMainMenu
                         "url" => "{$wa_app_url}?action=storefronts#/design/pages/"
                     ],
                     [
-                        "name" => _w('Headless'),
+                        "name" => _w('Headless API'),
                         "userRights" => ['design'],
                         "url" => "{$wa_app_url}?action=storefronts#/api/"
                     ],
@@ -405,14 +405,42 @@ class shopMainMenu
     protected static function getSalesChannelItems()
     {
         $result = [];
-        $channels = (new shopSalesChannelModel())->getAll();
-        if (!$channels) {
+        $channel_types = shopSalesChannelType::getAllTypes();
+        if (!$channel_types) {
             return $result;
         }
 
-        $wa_app_url = wa('shop')->getAppUrl(null, true);
-        $channel_types = shopSalesChannelType::getAllTypes();
         $channel_types = array_combine(array_column($channel_types, 'id'), $channel_types);
+        $channels = (new shopSalesChannelModel())->getAll();
+        $wa_app_url = wa('shop')->getAppUrl(null, true);
+
+        $unused_channels = $channel_types;
+        foreach ($channels as $channel) {
+            if (!$unused_channels) break;
+            unset($unused_channels[$channel['type']]);
+        }
+
+        $teasers_closed = wa()->getUser()->getSettings('shop', 'sales_channel_teasers_closed', []);
+        if ($teasers_closed) {
+            $teasers_closed = explode(',', $teasers_closed);
+        }
+        foreach ($unused_channels as $type) {
+            $is_count_hidden = in_array($type['id'], $teasers_closed);
+            if ($is_count_hidden || empty($type['available'])) continue;
+
+            $result['type_'.$type['id']] = [
+                "id" => "",
+                "type" => $type['id'],
+                "name" => $type['name'],
+                "icon" => ifset($type, 'menu_icon', '<i class="fas fa-plug"></i>'),
+                "count" => '<i class="fas fa-times"></i>',
+                "count_is_selected" => true,
+                "url" => "{$wa_app_url}channels/new/".$type['id']."/",
+                "userRights" => ['design'],
+                "placement" => "channels",
+                "available" => false,
+            ];
+        }
 
         foreach ($channels as $channel) {
             $result['channel'.$channel['id']] = [

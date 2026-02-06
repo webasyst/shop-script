@@ -209,6 +209,39 @@
                 {/foreach}
             </div>
         </div>
+        <div class="field">
+            <div class="name">[`Offer this payment method on selected storefronts`]</div>
+            <div class="value">
+                {foreach $storefronts as $s}
+                    <div class="custom-mt-4">
+                        {if !$s.force_enabled}
+                            <input type="hidden" name="payment[storefronts][{$s.url|escape}]" value="">
+                        {/if}
+                        <label>
+                            <span class="wa-checkbox">
+                                <input type="checkbox"
+                                    name="payment[storefronts][{$s.url|escape}]"
+                                    value="1"
+                                    {if $s.is_enabled} checked{/if}
+                                    {if $s.force_enabled} disabled{/if}>
+                                <span>
+                                    <span class="icon">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </span>
+                            </span>
+                            {$s.url_decoded|escape}
+                            <a href="{$wa_app_url}?action=storefronts#/design/theme={$s.route.theme|default:'default'|escape}&domain={$s.domain|escape}&route={$s.route_index|escape}&action=settings" target="_blank" title="[`Storefront settings`]">
+                                <i class="fas fa-cog custom-ml-4 small s-menu-link-new-window"></i>
+                            </a>
+                        </label>
+                    </div>
+                {foreachelse}
+                    <div class="hint">[`No storefronts`]</div>
+                {/foreach}
+            </div>
+
+        </div>
     </div>
 
     <div class="bottombar sticky s-settings-fixed-bottombar">

@@ -22,8 +22,6 @@ class shopSaleschannelListMethod extends shopApiMethod
             $channel = shopSaleschannelGetInfoMethod::formatSalesChannel($channel);
         }
         unset($channel);
-        $this->response = [
-            'channels' => $channels,
-        ];
+        $this->response = array_values($channels);
     }
 }

@@ -19,6 +19,7 @@ class shopFrontendPickupActions extends waActions
     {
         $product_id = waRequest::post('product_id');
         $selected_sku_id = waRequest::post('sku_id');
+        $title = waRequest::post('title');
         if (empty($product_id)) {
             print _w('Product not found.');
             return;
@@ -37,20 +38,7 @@ class shopFrontendPickupActions extends waActions
             $template_path = wa()->getAppPath('templates/actions/channels/pickup.include.html', 'shop');
         }
         if (!empty($product)) {
-            $routing = wa()->getRouting();
-            $current_storefront = $routing->getDomain().'/'.rtrim((string) $routing->getRoute('url'), '/*');
-
-            $channels = (new shopSalesChannelModel())->getAllWithParams();
-            $channels = array_filter($channels, function ($_channel) use ($current_storefront) {
-                if (
-                    empty($_channel['params']['pickup'])
-                    || empty($_channel['params']['pickup_storefronts'])
-                    || !in_array($current_storefront, $_channel['params']['pickup_storefronts'])
-                ) {
-                    return false;
-                }
-                return true;
-            });
+            $channels = shopViewHelper::getPickupChannels();
             if (!empty($channels)) {
                 $virtual_stock = [];
                 $available_stock_ids = [];
@@ -119,14 +107,30 @@ class shopFrontendPickupActions extends waActions
                 }
                 $map = compact('adapter', 'api_key');
 
+                $customer = [];
+                $user = wa()->getUser();
+                $contact = new waContact($user->getId());
+                if ($contact->getId()) {
+                    $userpic = $user->getPhoto2x(20);
+                    $customer = [
+                        'firstname' => $contact->get('firstname') ? $contact->get('firstname') : $user->getName(),
+                        'lastname' => $contact->get('lastname'),
+                        'phone' => $contact->get('phone', 'default'),
+                        'email' => $contact->get('email', 'default'),
+                        'userpic' => $userpic,
+                    ];
+                }
+
                 $result = $this->display([
+                    'title' => $title,
                     'stocks' => $stocks,
-                    'form' => $this->getForm(),
+                    'form' => $this->getForm($customer),
                     'product' => $product,
                     'selected_sku_id' => ifempty($selected_sku_id, $product['sku_id']),
                     'available_pickup'=> $channels,
                     'stocks_product_count' => $stocks_count,
                     'map' => $map,
+                    'customer' => $customer,
                 ], $template_path, true);
             }
         }
@@ -139,7 +143,7 @@ class shopFrontendPickupActions extends waActions
         $pickup_id = waRequest::post('pickup_id');
         $customer = waRequest::post('customer');
         $customer = array_combine(array_column($customer, 'name'), array_column($customer, 'value'));
-
+        unset($customer['id']);
 
         $item = $this->getItem();
         $channel = (new shopSalesChannelModel())->getById($pickup_id);
@@ -148,7 +152,12 @@ class shopFrontendPickupActions extends waActions
             $item['stock_id'] = $stock_id;
         }
 
-        $customer = new waContact($customer);
+        $user = wa()->getUser();
+        if ($user->exists()) {
+            $customer = $user;
+        } else {
+            $customer = new waContact($customer);
+        }
 
         $routing_url = wa()->getRouting()->getRootUrl();
         $storefront = wa()->getConfig()->getDomain().($routing_url ? "/$routing_url" : '');
@@ -217,13 +226,14 @@ class shopFrontendPickupActions extends waActions
         return $item;
     }
 
-    private function getForm()
+    private function getForm($customer = [])
     {
+        $disabled_attr = $customer ? ' disabled' : '';
         return [
-            _w('Фамилия') =>  '<input title="'._w('Фамилия').'" type="text" name="lastname" value="">',
-            _w('Имя') =>  '<input title="'._w('Имя').'" type="text" name="firstname" value="">',
-            _w('Номер телефона') =>  '<input title="'._w('Номер телефона').'" type="text" name="phone" value="">',
-            _w('Email-адрес') =>  '<input title="'._w('Email-адрес').'" type="text" name="email" value="">',
+            _w('First name') => '<input title="'._w('First name').'" type="text" name="firstname" value="'.htmlentities(ifset($customer, 'firstname', '')).'"'.$disabled_attr.'>',
+            _w('Last name') => '<input title="'._w('Last name').'" type="text" name="lastname" value="'.htmlentities(ifset($customer, 'lastname', '')).'"'.$disabled_attr.'>',
+            _w('Phone') => '<input title="'._w('Phone').'" type="text" name="phone" value="'.htmlentities(ifset($customer, 'phone', '')).'"'.$disabled_attr.'>',
+            _w('Email') => '<input title="'._w('Email').'" type="text" name="email" value="'.htmlentities(ifset($customer, 'email', '')).'"'.$disabled_attr.'>',
         ];
     }
 }

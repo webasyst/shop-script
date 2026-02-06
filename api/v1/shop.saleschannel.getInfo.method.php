@@ -28,11 +28,13 @@ class shopSaleschannelGetInfoMethod extends shopApiMethod
             'type' => 'string',
             'name' => 'string',
             'description' => 'string',
+            'wa_channel_id' => 'string',
             'status' => 'integer',
             'sort' => 'integer',
             'params' => 'object',
         ];
         $channel = shopFrontApiFormatter::formatFieldsToType($channel, $schema);
+        unset($channel['params']['bot_token']);
         return array_intersect_key($channel, $schema);
     }
 }

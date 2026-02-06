@@ -655,7 +655,7 @@
                         }
                     })
                 });
-                {if $payment_image && !$payment_form_html}
+                {if $auto_open_overlay}
                     setTimeout(() => $wrapper.find(".js-show-payments").trigger("click"));
                 {/if}
             })(jQuery);
@@ -669,15 +669,14 @@
                 display: block !important;
                 width: 100% !important;
                 height: auto  !important;
-                max-width: 400px;
+                max-width: 250px;
                 margin: 0 auto !important;
-                padding: 18px !important;
-                border-radius: 1.125rem;
+                padding: 14px !important;
+                border-radius: 2rem;
                 background: #1A1442 !important;
                 color: #fff !important;
                 text-align: center !important;
-                font-size: 28px !important;
-                font-weight: bold !important;
+                font-size: 24px !important;
                 cursor: pointer !important;
                 transition: background-color 0.3s ease;
             }
@@ -699,7 +698,7 @@
                 width: 100%;
                 height: 100%;
                 box-sizing: border-box;
-                z-index: 1050;
+                z-index: 10005000;
                 background-color: transparent;
             }
 
@@ -852,7 +851,6 @@
                 padding: 0;
                 list-style: none;
                 overflow: hidden;
-                max-height: 80vh;
                 overflow-y: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
@@ -897,6 +895,7 @@
             .dialog.c-payments-wrapper .dialog-body .dialog-content form .c-payment-options .c-payment-item.c-payment-item-qr .c-payment-item-inner .c-payment-body {
                 flex: 1 0 100%;
                 text-align: center;
+                line-height: 1.4;
             }
 
             .dialog.c-payments-wrapper .dialog-body .dialog-content form .c-payment-options .c-payment-item.c-payment-item-sbp {
@@ -1147,11 +1146,13 @@
         <h1 class="align-center custom-mt-0 custom-mb-4">{$order.total_str}</h1>
         <h4 class="gray align-center custom-mt-0 custom-mb-32">[`Order`] {$order.id_str}</h4>
 
-{if $payment_form_html}
-    {$payment_form_html}
-    {$_payment_dialog}
-{elseif $payment_image}
-    {$_payment_dialog}
+{if $payment_form_html || $payment_image}
+    {if $payment_form_html}
+        {$payment_form_html}
+    {/if}
+    {if $payment_image || $auto_open_overlay}
+        {$_payment_dialog}
+    {/if}
 {elseif $methods}
     <div class="wa-methods-list wide js-methods-list">
         {foreach $methods as $_method}

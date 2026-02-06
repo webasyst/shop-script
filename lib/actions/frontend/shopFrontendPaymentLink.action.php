@@ -86,11 +86,17 @@ class shopFrontendPaymentLinkAction extends waViewAction
             ]));
         }
 
+        // Open overlay immediately if there's a QR code and no payment plugin selected
+        $auto_open_overlay = !empty($payment_image) && !$payment_form_html;
+        // Open overlay immediately if plugin saved in order is WA Pay (unless user clicks WA Pay option in overlat itself)
+        $auto_open_overlay = $auto_open_overlay || ($payment_form_html && !$payment_id && ifset($order, 'params', 'payment_plugin', null) === 'pay');
+
         $this->view->assign([
             'order' => $order,
             'challenge' => $challenge,
             'methods' => $payment_options,
             'payment_image' => ifset($payment_image),
+            'auto_open_overlay' => $auto_open_overlay,
             'payment_form_html' => $payment_form_html,
             'enable_auto_submit' => !$this_is_a_bot,
             'show_methods' => $show_methods
@@ -106,7 +112,10 @@ class shopFrontendPaymentLinkAction extends waViewAction
         $payment_id = waRequest::get('payment_id', null, waRequest::TYPE_INT);
         $payment_index = waRequest::get('index', null, waRequest::TYPE_INT);
         if (!$payment_id) {
+            $auto_submit = false;
             $payment_id = ifset($order, 'params', 'payment_id', null);
+        } else {
+            $auto_submit = true;
         }
         if ($payment_id !== null) {
             try {
@@ -119,7 +128,7 @@ class shopFrontendPaymentLinkAction extends waViewAction
                 }
                 $payment_form_data += waRequest::post();
                 unset($payment_form_data['challenge']);
-                return $plugin->payment($payment_form_data + waRequest::post(), $order_data, false);
+                return $plugin->payment($payment_form_data + waRequest::post(), $order_data, $auto_submit);
             } catch (waException $ex) {
                 return '';
             }

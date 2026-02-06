@@ -187,17 +187,22 @@ class shopCheckoutConfig implements ArrayAccess
         }
     }
 
+    public function getStorefrontConfigStorage()
+    {
+        $this->ensureConsistency();
+        unset($this->config['design']['logo_url']);
+        $this->removeAliasesBeforeCommit();
+        $result = $this->config;
+        $this->prepareConfig();
+        $this->prepareAliases();
+        return $result;
+    }
+
     public function commit()
     {
         if (!$this->storefront) {
             waException::dump('In test mode it is impossible to save the config', $this->config);
         }
-
-        $this->ensureConsistency();
-
-        unset($this->config['design']['logo_url']);
-
-        $this->removeAliasesBeforeCommit();
 
         $path = $this->getConfigPath();
         if (file_exists($path)) {
@@ -205,7 +210,7 @@ class shopCheckoutConfig implements ArrayAccess
         } else {
             $full_config = [];
         }
-        $full_config[$this->storefront] = $this->config;
+        $full_config[$this->storefront] = $this->getStorefrontConfigStorage();
         return waUtils::varExportToFile($full_config, $path);
     }
 

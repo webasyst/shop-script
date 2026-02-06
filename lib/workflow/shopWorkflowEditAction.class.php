@@ -290,8 +290,11 @@ class shopWorkflowEditAction extends shopWorkflowAction
 
         return <<<HTML
 <a href="#" class="s-edit-order show-alert actions-link" {$attrs}>
-    <i class="$class_icon_edit"></i><span>{$this->getName()}</span>
-    <i class="$class_icon_loading" style="margin-left: 4px; display:none;"></i>
+    <span class="icon custom-mr-4">
+        <i class="$class_icon_edit"></i>
+        <i class="$class_icon_loading" style="margin-left: 4px; display:none;"></i>
+    </span>
+    <span>{$this->getName()}</span>
 </a>
 HTML;
     }

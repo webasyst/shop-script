@@ -44,9 +44,12 @@
     {$wa->js()}
     {$wa->head()}
 
-    {if !empty($design_settings.custom_css)}
-        <style>{$design_settings.custom_css}</style>
-    {/if}
+    <style>
+        .wa-order-footer:empty { display: none; }
+        {if !empty($design_settings.custom_css)}
+            {$design_settings.custom_css}
+        {/if}
+    </style>
 
     {if !empty($design_settings.order_background)}
         <style>.wa-order-body { background: {$design_settings.order_background} !important; }</style>
@@ -79,6 +82,22 @@
                 </div>
             {/if}
 
+            <div class="wa-shop-details-section">
+            {if !empty($design_settings.address)}
+                <div class="wa-line">
+                    <i class="wa-icon location"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg#location"></use></svg></i>
+                    {$design_settings.address|escape}
+                </div>
+            {/if}
+
+            {if !empty($design_settings.working_hours)}
+                <div class="wa-line">
+                    <i class="wa-icon time size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg#time"></use></svg></i>
+                    {$design_settings.working_hours|escape}
+                </div>
+            {/if}
+        </div>
+
             {if !empty($design_settings.phone)}
                 <div class="wa-phone-section">
 
@@ -103,32 +122,13 @@
             {$content}
         </div>
     </main>
-
+{strip}
     <footer class="wa-order-footer">
-        <div class="container">
-
-            <div class="wa-shop-details-section">
-                {if !empty($design_settings.address)}
-                    <div class="wa-line">
-                        <i class="wa-icon location"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg#location"></use></svg></i>
-                        {$design_settings.address|escape}
-                    </div>
-                {/if}
-
-                {if !empty($design_settings.working_hours)}
-                    <div class="wa-line">
-                        <i class="wa-icon time size-11"><svg><use xlink:href="{$wa_url}wa-apps/shop/img/frontend/order/svg/sprite.svg#time"></use></svg></i>
-                        {$design_settings.working_hours|escape}
-                    </div>
-                {/if}
-            </div>
-
-        </div>
         <!-- plugin hook: 'frontend_footer' -->
         {* @event frontend_footer.%plugin_id% *}
         {foreach $frontend_footer as $_}{$_}{/foreach}
     </footer>
-
+{/strip}
     <script>
         ( function($) { "use strict";
 

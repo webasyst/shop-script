@@ -12,7 +12,9 @@ window.ProductPickup = class {
         this.sku_id = params.sku_id;
         this.templates = params.templates || {};
         this.map = params.map;
-        this.variants = Object.values(params.pickup_list ?? {}).map(p => ({
+        this.messages = params.messages;
+        this.pickup_list = params.pickup_list || {};
+        this.variants = Object.values(this.pickup_list).map(p => ({
             pos_id: p.id,
             name: p.name,
             lat: parseFloat(p.params.latitude),
@@ -31,52 +33,62 @@ window.ProductPickup = class {
         setTimeout(() => this.$wrapper.css('opacity', '1'), 10);
 
         this.initEvents();
+
+        this.initMobileToggleViewMode();
+
+        this.initSubmit();
     }
 
     initEvents() {
         const that = this;
-        const $step_2_block = $('#pickup-selected-store', this.$wrapper);
+        const $step_2_block = $('[data-step="2"]', this.$wrapper);
 
-        const slideToStep = (step = 1) => {
-            const translate_x = Math.min(this.$form.width() * (step - 1) * -1, 0);
-            that.$form.css('transform', `translateX(${translate_x}px)`);
-            that.$form.parent().scrollTop(0);
-        }
-        // go to step 2
+        // step 2: select pos
         that.$form.on('click', '[data-pickup-id]', function() {
             const $selected_pickup = $(this).clone();
-            const pos_id = $selected_pickup.data('pickup-id');
-            const stock = $selected_pickup.data('stock');
+            that.pickup_id = $selected_pickup.data('pickup-id');
+            if (that.selectedPickup.id === null) return;
 
-            $step_2_block.find('.js-actions').toggle(parseFloat(stock) !== 0);
+            const stock = $selected_pickup.data('stock');
+            const is_show_actions = stock === '' || parseFloat(stock) > 0;
+            const is_checkout = that.selectedPickup.params.checkout === '1';
+            $step_2_block.find('.js-action').toggle(is_checkout && is_show_actions);
+            $step_2_block.find('.js-no-order-alert').toggle(!is_checkout);
 
             $step_2_block.find('.js-heading').html($selected_pickup.find('.js-name').html());
-            $step_2_block.find('.js-info').html($selected_pickup.find('.js-info').html());
+            $step_2_block.find('.js-info').replaceWith($selected_pickup.find('.js-info'));
             $step_2_block.find('.js-description').html($selected_pickup.find('.js-description').show().html());
 
-
-            that.current_pickup_id = pos_id;
-            that.getMap().then(map => map.moveTo(pos_id));
-            slideToStep(2);
+            that.getMap().then(map => map.moveTo(that.selectedPickup.id));
+            that.slideToStep(2);
         });
-        // go to step 3
-        that.$form.on('click', '.js-preorder', () => {
-            slideToStep(3);
+        // step 3: confirm order
+        that.$form.on('click', '.js-preorder-button', () => {
+            if (that.selectedPickup.params.checkout === '1') {
+                that.slideToStep(3);
+            }
         });
         // back to previous step
         that.$form.on('click', '.js-back', () => {
-            slideToStep(-1);
+            that.slideToStep(-1);
             that.getMap().then(map_provider => map_provider.reset());
         });
 
         // close dialog
-        that.$form.on('click', '.js-close-dialog', () => {
+        that.$wrapper.on('click', '.js-close-dialog', () => {
             that.closeDialog();
         });
 
-        that.initMobileToggleViewMode();
+        $(window).on('unload', () => {
+            that.closeDialog();
+        });
+    }
 
-        that.initSubmit();
+    slideToStep(step = 1) {
+        const that = this;
+        const translate_x = Math.min(that.$form.width() * (step - 1) * -1, 0);
+        that.$form.css('transform', `translateX(${translate_x}px)`);
+        that.$form.parent().scrollTop(0);
     }
 
     // pay
@@ -90,17 +102,19 @@ window.ProductPickup = class {
             $place_for_error.empty();
             const payload = {
                 sku_id: that.sku_id,
-                pickup_id: that.current_pickup_id,
+                pickup_id: that.pickup_id,
                 customer: $checkout_form.find(':input').serializeArray()
             };
 
             return $.post(`${that.wa_app_url}pickup/create/`, payload, function (response) {
                 if (response.status === 'ok' && response?.data?.code) {
-                    that.$body.html(that.templates.order_confirmation);
-                    // redirect to paymentlink
-                    location.href = `${that.wa_app_url}paymentlink/${response.data.code}/`;
+                    that.orderConfirmation(response.data.code);
                 } else if (response.errors) {
                     $place_for_error.html(response.errors.server_error ?? response.errors.error_description);
+                }
+            }).fail((response, error) => {
+                if (response.status === 200 && error === 'parsererror') {
+                    $place_for_error.text(that.messages.something_went_wrong);
                 }
             });
         };
@@ -134,10 +148,6 @@ window.ProductPickup = class {
             }
             that.initMap();
         });
-    }
-
-    closeDialog() {
-        this.$wrapper.remove();
     }
 
     initMap() {
@@ -504,6 +514,8 @@ window.ProductPickup = class {
 
         function getZoomForBounds(variants) {
             let zoom = 10;
+            if (variants.length <= 1) return zoom;
+
             const tile_size = 256;
             const lat_array = [];
             const lng_array = [];
@@ -530,6 +542,7 @@ window.ProductPickup = class {
 
                 const dx = Math.abs(x1 - x2);
                 const dy = Math.abs(y1 - y2);
+                if (dx === 0 && dy === 0) return zoom;
 
                 // учёт обёртки по долготе
                 const dx_wrapped = Math.min(dx, 1 - dx);
@@ -546,8 +559,32 @@ window.ProductPickup = class {
         }
     }
 
+    get selectedPickup () {
+        if (!this.pickup_list[this.pickup_id]) {
+            return { id: null, params: {} };
+        }
+        return this.pickup_list[this.pickup_id];
+    }
+
+    closeDialog() {
+        this.$wrapper.remove();
+    }
+
     openPos(pos_id) {
         if (!pos_id) return;
         this.$form.find(`[data-pickup-id="${pos_id}"]`).click();
+    }
+
+    orderConfirmation(code) {
+        const that = this;
+        const is_redirect_to_payment = that.selectedPickup.params.payment === '1';
+        const $order_confirmation = $(that.templates.order_confirmation);
+        $order_confirmation.find('.js-redirect-block').toggle(is_redirect_to_payment);
+        $order_confirmation.find('.js-no-redirect-block').toggle(!is_redirect_to_payment);
+        that.$body.empty().append($order_confirmation);
+
+        if (is_redirect_to_payment) {
+            setTimeout(() => { location.href = `${that.wa_app_url}paymentlink/${code}/`; }, 1000);
+        }
     }
 }

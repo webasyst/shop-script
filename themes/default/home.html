@@ -69,7 +69,11 @@
 
 <div class="content{if $theme_settings.homepage_sidebar_layout != 'hidden'} col w9{/if}">
 
-    {$promocards = $wa->shop->promos('link', '900')}
+    {if !empty($theme_settings.homepage_promos_thumbs) && $theme_settings.homepage_promos_thumbs == 'source'}
+        {$promocards = $wa->shop->promos('link')}
+    {else}
+        {$promocards = $wa->shop->promos('link', '0x840')}
+    {/if}
 
     {$bestsellers = null}
     {if !empty($theme_settings.homepage_productset_bestsellers)}
@@ -151,7 +155,7 @@
 
     <!-- WELCOME note -->
     {if !empty($theme_settings.homepage_welcome_note)}
-        <div class="welcome-note large gray">
+        <div class="welcome-note large">
             {$theme_settings.homepage_welcome_note}
         </div>
     {/if}

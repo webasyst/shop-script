@@ -11,6 +11,7 @@ $api_rules = [
     'api/v1/order/create/?' => 'frontend/apiOrderCreate',
     'api/v1/order/<order_id:\d+>/payment/?' => 'frontend/apiOrderPayment',
     'api/v1/order/<order_id:\d+>/payment/list/?' => 'frontend/apiOrderPaymentList',
+    'api/v1/order/<order_id:\d+>/?' => 'frontend/apiOrder',
     'api/v1/cart/?' => 'frontend/apiCart',
     'api/v1/category/<category_id:\d+>/products/?'                          => 'frontend/apiProductsSearch',
     'api/v1/set/<set_id:[^/]+>/products/?'                                  => 'frontend/apiProductsSearch',

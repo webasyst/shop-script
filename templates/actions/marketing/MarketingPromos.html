@@ -71,7 +71,7 @@
     {/if}
 
     <div class="s-promo-wrapper {" "|implode:$_promo_classes}" id="s-promo-{$_promo.id|escape}" data-id="{$_promo.id|escape}">
-        <div class="s-promo-block">
+        <div class="s-promo-block s-cursor-move">
 
             <div class="s-promo-header">
                 <h5 class="s-title">
@@ -115,7 +115,7 @@
             <div class="s-promo-body">
                 <div class="s-image-section">
                     <div class="s-image-wrapper" style="{if !empty($_promo.image)}background-image: url({$_promo.image|escape});{else}background-color: {shopPromoBannerHelper::getColorById($_promo.id)};{/if}"></div>
-                    <div class="s-rules-wrapper s-cursor-move js-sort">
+                    <div class="s-rules-wrapper js-sort">
                         {foreach ifset($promos_markers, $_promo.id, []) as $marker}
                             <div class="s-rule-wrapper" data-type="{$marker.type|escape}">
                                 <div class="s-rule" title="{$marker.name|escape}">

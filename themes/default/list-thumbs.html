@@ -7,11 +7,7 @@
 {function name="_product_image" p=[]}
     <a href="{$p.frontend_url}" title="{$p.name}" class="wa-mb-8 text-center">
         <div class="image">
-            {if $wa->shop->config('enable_2x')}
-                {$wa->shop->productImgHtml($p, $_img_size_2x, ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
-            {else}
-                {$wa->shop->productImgHtml($p, $_img_size, ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
-            {/if}
+            {$wa->shop->productImgHtml($p, $_img_size, ['itemprop' => 'image', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png", 'srcset' => "`$wa->shop->productImgUrl($p, $_img_size|cat:'@2x')` 2x"])}
         </div>
     </a>
 {/function}
@@ -22,10 +18,8 @@
     {/if}
 
     {$_col_width = 12 / $theme_settings.product_in_row}
-    {$_img_sizes = ['2' => '554', '3' => '363', '4' => '267']}
-    {$_img_sizes_2x = ['2' => '1108', '3' => '726', '4' => '534']}
+    {$_img_sizes = ['2' => '970', '3' => '750', '4' => '750']}
     {$_img_size = $_img_sizes[$theme_settings.product_in_row]}
-    {$_img_size_2x = $_img_sizes_2x[$theme_settings.product_in_row]}
 
     {$_product_image_slider = $theme_settings.product_image_slider|default:1}
     {if !empty($_product_image_slider)}
@@ -62,11 +56,7 @@
                             {$_left_offset = $_item_width * $_image@index}
                             <div class="image-item">
                                 <span class="image-zone" style="left: {$_left_offset}%; width: {$_item_width}%;" aria-hidden="true"></span>
-                                {if $wa->shop->config('enable_2x')}
-                                    {$wa->shop->imgHtml($_image, $_img_size_2x, ['itemprop' => 'image', 'class' => 'image-frame', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
-                                {else}
-                                    {$wa->shop->imgHtml($_image, $_img_size, ['itemprop' => 'image', 'class' => 'image-frame', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png"])}
-                                {/if}
+                                    {$wa->shop->imgHtml($_image, $_img_size, ['itemprop' => 'image', 'class' => 'image-frame', 'alt' => $p.name, 'default' => "`$wa_theme_url`img/dummy200.png", 'srcset' => "`$wa->shop->imgUrl($_image, $_img_size|cat:'@2x')` 2x"])}
                                 <div class="slider-indicators">
                                     {for $i = 1 to $_images_count}
                                         <span class="slider-indicator{if $_image@index != $i - 1} inactive{else} active{/if}"></span>
@@ -82,7 +72,7 @@
                 {_product_image p=$p}
             {/if}
 
-            <div class="pricing wa-flex wa-flex-wrap space-1 align-items-center wa-mb-18">
+            <div class="pricing wa-flex wa-flex-wrap space-1 align-items-center wa-mb-16 wa-mt-8">
                 <span class="price nowrap">{shop_currency_html($p.price)}</span>
                 {if $available && $p.compare_price > 0}
                     <span class="compare-at-price nowrap"> {shop_currency_html($p.compare_price)}</span>
@@ -126,7 +116,7 @@
                     <form class="purchase addtocart" {if $p.sku_count > 1}data-url="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1"{/if} method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
                         <input type="hidden" name="product_id" value="{$p.id}">
                         <div class="wa-flex align-items-center space-025">
-                            <div class="wa-flex-fill" style="position: relative;">
+                            <div class="wa-flex-fill addtocart-btn-wrapper" style="position: relative;">
                                 <button type="submit" class="w-100 addtocart-btn blink">
                                     <span class="wa-hide-m">{$add2cart_label}</span>
                                     <span class="wa-hide wa-show-m">
@@ -152,14 +142,23 @@
                     </form>
                     <link itemprop="availability" href="http://schema.org/InStock">
                 {else}
-                    <div class="out-of-stock">
-                        <strong>
-                            {if $wa->shop->settings('ignore_stock_count')}
-                                {_wd('shop', 'Pre-order only')}
-                            {else}
-                                {_wd('shop', 'Out of stock')}
-                            {/if}
-                        </strong>
+                    <div class="wa-flex align-items-center space-025">
+                        <a href="{$p.frontend_url}" title="{$p.name}" class="w-100 gray button nowrap">
+                            <span>
+                                {if $wa->shop->settings('ignore_stock_count')}
+                                    {_wd('shop', 'Pre-order only')}
+                                {else}
+                                    {_wd('shop', 'Out of stock')}
+                                {/if}
+                            </span>
+                        </a>
+                        {if !empty($theme_settings.compare_products)}
+                            <a data-product="{$p.id}" class="compare" href="#" title="[`Compare`]">
+                                <svg class="compare compare-from-list{if $wa->shop->inComparison($p.id)} active{/if}" width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" version="1.1" preserveAspectRatio="xMinYMin">
+                                    <use xlink:href="#img-comparison"></use>
+                                </svg>
+                            </a>
+                        {/if}
                     </div>
                     <link itemprop="availability" href="http://schema.org/OutOfStock">
                 {/if}

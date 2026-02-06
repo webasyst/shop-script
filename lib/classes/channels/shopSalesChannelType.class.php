@@ -98,11 +98,10 @@ abstract class shopSalesChannelType
     /**
      * Used to make some of channel's settings available to read via public Shop storefront (Headless) API.
      *
-     * @param $id int           Channel ID
-     * @param $params array     Settings previously saved for this channel
+     * @param array $channel     Channel data, including 'params' key
      * @return array with arbitrary keys and values specific to this sale channel type
      */
-    public function getPublicStorefrontParams(int $id, array $params): array
+    public function getPublicStorefrontParams(array $channel): array
     {
         return [];
     }
@@ -153,6 +152,9 @@ abstract class shopSalesChannelType
     protected function getFormFields(array $channel): array
     {
         $result = [];
+        if (empty($channel['id'])) {
+            $channel['name'] = $this->get('name');
+        }
 
         $field_params = ['namespace' => 'data'] + $this->getFormFieldParams();
         foreach ($this->getBaseFieldsConfig() as $name => $row) {

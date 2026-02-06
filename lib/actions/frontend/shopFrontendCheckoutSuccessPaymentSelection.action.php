@@ -14,12 +14,8 @@ class shopFrontendCheckoutSuccessPaymentSelectionAction extends waViewAction
     protected $order;
     protected $methods;
 
-    public function execute()
+    protected function loadOrderAndMethods($order_id)
     {
-        $order_id = ifset($this->params, 'order_id', null);
-        if (!$order_id) {
-            throw new waException(); // can not happen
-        }
         $this->order = new shopOrder($order_id);
         $this->methods = shopPayment::getMethodsByOrder($this->order);
         if ( ( $payment_ids = waRequest::param('payment_id'))) {
@@ -30,6 +26,15 @@ class shopFrontendCheckoutSuccessPaymentSelectionAction extends waViewAction
         if ($order_selected_payment_id) {
             $this->methods = array_intersect_key($this->methods, [$order_selected_payment_id => 1]);
         }
+    }
+
+    public function execute()
+    {
+        $order_id = ifset($this->params, 'order_id', null);
+        if (!$order_id) {
+            throw new waException(); // can not happen
+        }
+        $this->loadOrderAndMethods($order_id);
 
         // Only keep a single plugin in case user selected it
         $form_payment_id = waRequest::get('payment_id', null, 'string');
@@ -87,16 +92,34 @@ class shopFrontendCheckoutSuccessPaymentSelectionAction extends waViewAction
 
     public function executeBackgroundCheck()
     {
-        try {
-            $order_id = wa()->getStorage()->get('shop/order_id');
-            if ($order_id) {
+        $order_id = wa()->getStorage()->get('shop/order_id');
+        if ($order_id) {
+
+            // Query payment plugin if order state has changed
+            try {
+                $this->loadOrderAndMethods($order_id);
+                if (empty($this->order['paid_date'])) {
+                    $plugin = null;
+                    foreach($this->methods as $m) {
+                        $plugin = $m['instance'] ?? shopPayment::getPlugin($m['plugin'], $m['id']);
+                        if (shopPayment::pluginSupportsQRCode($plugin)) {
+                            break;
+                        }
+                    }
+                    shopPayment::statePolling($this->order, $plugin);
+                }
+            } catch (Throwable $e) {
+            }
+
+            try {
+                // Reload order info in case state polling changed its state
                 $order_model = new shopOrderModel();
                 $order = $order_model->getById($order_id);
                 if ($order) {
                     return ['is_paid' => !empty($order['paid_date']), 'order_id' => $order_id,];
                 }
+            } catch (Throwable $e) {
             }
-        } catch (Throwable $e) {
         }
         return ['is_paid' => false, 'error' => true];
     }

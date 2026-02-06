@@ -1,4 +1,10 @@
-{function name="_header_block" title='' show_back=false show_toolbar=false}
+{function name="_close_button"}
+    <a class="js-close-dialog p-4" href="javascript:void(0)">
+        <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.0718 12.0714L5 19.1432M12.0718 12.0714L5 5M12.0718 12.0714L19.1428 5.00041M12.0718 12.0714L19.1428 19.1423" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+{/function}
+
+{function name="_header_block" title='' show_back=false mobile_toolbar=false}
 <div class="pickup-header">
     <div class="flex">
         {if $show_back}
@@ -7,11 +13,9 @@
             </a>
         {/if}
         <h3 class="pickup-heading js-heading">{$title|escape}</h3>
-        <a class="js-close-dialog p-4" href="javascript:void(0)">
-            <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.0718 12.0714L5 19.1432M12.0718 12.0714L5 5M12.0718 12.0714L19.1428 5.00041M12.0718 12.0714L19.1428 19.1423" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
+        {_close_button}
     </div>
-    {if $show_toolbar}
+    {if $mobile_toolbar}
         <div class="pickup-mobile-toolbar mt-16">
             <h4 class="m-0">
                 [`Pickup locations`]
@@ -59,6 +63,7 @@
         </span>
     </div>
 {/function}
+
 {function name="_pickup_item" pickup=[]}
     {$_stock_id = null}
     {$_count = null}
@@ -81,12 +86,12 @@
             </a>
         </div>
         <div class="card-body">
-            <div class="js-info">
-                <div class="flex flex-col justify-between">
+            <div class="js-info card-info">
+                <div class="flex flex-col justify-between gap-8">
                     {if $_stock_id && ($_count === null || $_count > 0)}
-                        <p>[`Available for pickup today`]</p>
+                        <div>[`Available for pickup today`]</div>
                     {/if}
-                    <div class="mb-16">
+                    <div>
                         {_sku_remainder stock_id=$_stock_id count=$_count}
                     </div>
                     {if !empty($pickup.params.address)}
@@ -94,9 +99,9 @@
                             <span>
                                 <svg width="18" height="19" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.4466 17.4093C4.36009 11.4851 3.60156 10.877 3.60156 8.69981C3.60156 5.71746 6.01922 3.2998 9.00156 3.2998C11.9839 3.2998 14.4016 5.71746 14.4016 8.69981C14.4016 10.877 13.643 11.4851 9.55653 17.4093C9.28835 17.7967 8.71474 17.7966 8.4466 17.4093ZM9.00156 10.9498C10.2442 10.9498 11.2516 9.94245 11.2516 8.69981C11.2516 7.45716 10.2442 6.44981 9.00156 6.44981C7.75892 6.44981 6.75156 7.45716 6.75156 8.69981C6.75156 9.94245 7.75892 10.9498 9.00156 10.9498Z" fill="currentColor"/></svg>
                             </span>
-                            <p class="gray">
+                            <span class="gray">
                                 {$pickup.params.address|escape}
-                            </p>
+                            </span>
                         </div>
                     {/if}
                 </div>
@@ -108,44 +113,10 @@
     </li>
 {/function}
 
-{function name="_step_1_pickup_list"}
-<div data-step="1">
-    {_header_block title=_w('Pick up in store') show_product_name=true show_toolbar=true}
-
-    {if !empty($available_pickup)}
-    <div class="pickup-body">
-        <div class="pickup-body-inner">
-            <ul class="pickup-list">
-                {foreach $available_pickup as $pickup}
-                    {_pickup_item pickup=$pickup}
-                {/foreach}
-            </ul>
-        </div>
-    </div>
-    {/if}
-</div>
-{/function}
-
-{function name="_step_2_selected_pickup"}
-<div id="pickup-selected-store" data-step="2">
-    {_header_block show_back=true}
-
-    <div class="pickup-body">
-        <div class="pickup-body-inner">
-            <div class="js-info flex flex-col justify-between"></div>
-            <div class="js-actions flex flex-col mb-16">
-                <button class="js-preorder button" type="button">[`Pick up from here`]</button>
-            </div>
-            <div  class="js-description"></div>
-        </div>
-    </div>
-</div>
-{/function}
-
 {function name="_product" product=[]}
     {$sku = $product.skus[$selected_sku_id]}
 
-    {$url_crop = ''}
+    {$url_crop = "`$wa_app_static_url`img/frontend/dummy48.png"}
     {$image_description = ''}
     {$image_id = ifempty($sku.image_id, $product.image_id)}
     {$images = $product->getImages()}
@@ -163,42 +134,6 @@
                 <div class="semibold">{$product.name|escape}</div>
                 <div>{$sku.name|escape}</div>
             </div>
-            <div>
-                <!-- Select count -->
-            </div>
         </div>
     {/if}
-{/function}
-
-{function name="_step_3_customer"}
-<div data-step="3">
-    {_header_block title=_w('Pickup order') show_back=true}
-
-    <div class="pickup-body">
-        <div class="pickup-body-inner">
-            <div class="mb-32">{_product product=$product}</div>
-            <p>[`Will prepare the order upon your arrival.`]</p>
-            <form id="js-pickup-checkout" class="customer-form mb-16">
-                {foreach $form as $name => $_form}
-                    <div class="field">
-                        <div class="name">{$name|escape}</div>
-                        <div class="value">{$_form}</div>
-                    </div>
-                {/foreach}
-                <div id="js-place-for-error" class="pickup-error"></div>
-                <button class="js-pickup button w-full" type="submit">[`To payment`]</button>
-            </form>
-        </div>
-    </div>
-</div>
-{/function}
-
-{function name="_order_confirmation"}
-<div style="flex: auto; display: flex; justify-content: center; align-items: center; text-align: center;">
-    <div>
-        <div class="pickup-icon icon-success" style="margin: 1rem auto; width: 4rem; height: 4rem;"></div>
-        <h3>[`Thank you!`]</h3> [`Hopping on to the payment...`]
-        <div class="pickup-icon icon-spinner animation-spin" style="margin: 2rem auto; width: 2rem; height: 2rem;"></div>
-    </div>
-</div>
 {/function}

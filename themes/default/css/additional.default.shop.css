@@ -241,7 +241,7 @@ width: 100%;
   overflow: hidden;
   width: 48px;
   height: 48px;
-  background: var(--white-auto) url("data:image/svg+xml,%3Csvg width='12' height='20' viewBox='0 0 12 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M10.7416 19.4918C10.286 19.9474 9.54733 19.9474 9.09172 19.4918L0.34172 10.7418C-0.113893 10.2862 -0.113893 9.54748 0.34172 9.09187L9.09172 0.341871C9.54733 -0.113741 10.286 -0.113741 10.7416 0.341871C11.1972 0.797483 11.1972 1.53618 10.7416 1.99179L2.81659 9.91683L10.7416 17.8419C11.1972 18.2975 11.1972 19.0362 10.7416 19.4918Z' fill='currentColor'/%3E%3C/svg%3E%0A") center no-repeat;
+  background: var(--white) url("data:image/svg+xml,%3Csvg width='12' height='20' viewBox='0 0 12 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M10.7416 19.4918C10.286 19.9474 9.54733 19.9474 9.09172 19.4918L0.34172 10.7418C-0.113893 10.2862 -0.113893 9.54748 0.34172 9.09187L9.09172 0.341871C9.54733 -0.113741 10.286 -0.113741 10.7416 0.341871C11.1972 0.797483 11.1972 1.53618 10.7416 1.99179L2.81659 9.91683L10.7416 17.8419C11.1972 18.2975 11.1972 19.0362 10.7416 19.4918Z' fill='currentColor'/%3E%3C/svg%3E%0A") center no-repeat;
   box-shadow: var(--shadow);
   border-radius: var(--element-border-radius);
   top: calc(50% - 24px);
@@ -290,9 +290,7 @@ width: 100%;
   font-size: var(--h1-size);
   font-weight: 700;
   line-height: normal;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
+  word-break: break-word;
 }
 @media (max-width: 768px) {
   .s-slider-section .s-slider-block .s-slide-wrapper .s-header {
@@ -342,6 +340,11 @@ width: 100%;
     padding: .25rem .5rem
   }
 }
+@media (max-width: 768px) {
+  .s-slider-section .s-slider-block .s-slide-wrapper .s-counter {
+    margin-top: 1rem;
+  }
+}
 .s-slider-section .s-slider-block .s-slide-wrapper .s-badge-wrapper .badge span {
   font-size: 0.9rem;
 }
@@ -381,12 +384,17 @@ width: 100%;
         background-size: cover;
       }
 .s-slider-section.is-promocards .s-slider-block .s-slide-wrapper .s-slide-block {
-          padding: 2em 2em 2em 5em;
-        }
+  padding: 1.75em 2em 2em 5.25em;
+}
+.s-slider-section.is-promocards .s-slider-block .s-slide-wrapper .s-slide-block .s-description {
+  width:38%;
+}
 @media (max-width: 768px) {
 .s-slider-section.is-promocards .s-slider-block .s-slide-wrapper .s-slide-block {
-            padding: 1em;
-            flex: 1
+            padding: 0.5em 1.5em;
+        }
+.s-slider-section.is-promocards .s-slider-block .s-slide-wrapper .s-slide-block .s-description {
+          width: 83%;
         }
           }
 .s-slider-section.is-promocards .s-slider-block .s-slide-wrapper .s-header,

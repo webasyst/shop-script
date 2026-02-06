@@ -22,7 +22,7 @@ $(document).ready(function () {
     // $('.homepage-bxslider').bxSlider( { auto : $('.homepage-bxslider li').length > 1, pause : 7000, autoHover : true, pager: $('.homepage-bxslider li').length > 1 });
     // $('.homepage-bxslider').css('height','auto');
 
-    $('.related-bxslider').bxSlider( { minSlides: 1, maxSlides: 7, slideWidth: 170, slideMargin: 0, infiniteLoop: true, pager: false });
+    $('.related-bxslider').bxSlider( { minSlides: 1, maxSlides: 7, slideWidth: 170, slideMargin: 20, infiniteLoop: true, pager: false });
     $('.onsale-bxslider').bxSlider( { minSlides: 1, maxSlides: 7, slideWidth: 170, slideMargin: 0, infiniteLoop: true, pager: false });
 
     // SIDEBAR HEADER click (smartphones only)
@@ -146,7 +146,7 @@ $(document).ready(function () {
 
                 submitButton.addClass('wa-hide');
                 f.find('.gotocart-btn').removeClass('wa-hide');
-                
+
                 cart_total.html(response.data.count);
             } else if (response.status == 'fail') {
                 alert(response.errors);

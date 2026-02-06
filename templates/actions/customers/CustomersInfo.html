@@ -301,7 +301,7 @@
                         {else}
                             <div class="value">
                                 {if $f->getId() == 'company'}
-                                    <a href="{$wa->shop->backendContactUrl($contact['company_contact_id'])}" target="_blank">
+                                    <a href="{$wa->shop->backendContactUrl($contact['id']|default:0)}" target="_blank">
                                         {$contact->get($f->getId(), 'html')}
                                     </a>
                                 {else}

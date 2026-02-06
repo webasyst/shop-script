@@ -44,10 +44,17 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
             'ignore_stock_validate'        => true,
         ];
 
-        if ($channel_id && preg_match('#^([a-z0-9]+):(\d+)$#', $channel_id, $matches)) {
+        if ($channel_id) {
             $sales_channel_model = new shopSalesChannelModel();
-            if ($sales_channel_model->getByField(['id' => $matches[2], 'type' => $matches[1]])) {
-                $order_data['params']['sales_channel'] = $channel_id;
+            if (preg_match('#^([a-z0-9]+):(\d+)$#', $channel_id, $matches)) {
+                if ($sales_channel_model->getByField(['id' => $matches[2], 'type' => $matches[1]])) {
+                    $order_data['params']['sales_channel'] = $channel_id;
+                }
+            } else if (wa_is_int($channel_id)) {
+                $channel = $sales_channel_model->getById($channel_id);
+                if ($channel) {
+                    $order_data['params']['sales_channel'] = $channel['type'].':'.$channel['id'];
+                }
             }
         }
 
@@ -90,7 +97,11 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
         (new shopApiCart($customer_token))->clear();
 
         $this->response = [
-            'order_id' => $saved_order->getId(),
+            'order_id' => (int) $saved_order->getId(),
+            'order_id_str' => $saved_order['id_str'],
+            'order_total' => (float) $saved_order['total'],
+            'order_currency' => $saved_order['currency'],
+            'order_total_str' => shop_currency_html($saved_order['total'], $saved_order['currency'], $saved_order['currency']),
             'code' => $saved_order->getPaymentLinkHash(),
         ];
     }

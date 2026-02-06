@@ -1238,7 +1238,8 @@ paths:
         - name: channel_id
           in: query
           required: false
-          description: ID канала
+          description: |
+            Идентификатор канала продаж в формате `type:id`, например: `telegram:11`; либо integer ID без type.
           schema:
             type: string
         - $ref: '#/components/parameters/customerToken'
@@ -1256,9 +1257,21 @@ paths:
               schema:
                 type: object
                 properties:
-                  id:
+                  order_id:
                     type: integer
                     description: ID созданного заказа
+                  order_id_str:
+                    type: string
+                    description: Форматированный ID созданного заказа
+                  order_total:
+                    type: number
+                    description: Сумма заказа
+                  order_currency:
+                    type: string
+                    description: Валюта заказа (3-символьный код)
+                  order_total_str:
+                    type: string
+                    description: Сумма заказа с валютой
                   code:
                     type: string
                     description: Секретный код для работы с заказом в /order/{order_id}/*
@@ -1360,6 +1373,32 @@ paths:
                             type: string
                             description: Дата и время в формате `гггг-мм-дд чч:мм:сс`
 
+  /order/{order_id}:
+    get:
+      summary: Возвращает информацию о заказе
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: order_id
+          description: ID заказа
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: code
+          description: Код для работы с заказом, полученный при создании заказа
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Список способов оплаты.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderInfo'
+
   /order/{order_id}/payment/list:
     get:
       summary: Возвращает список доступных способов оплаты для указанного заказа.
@@ -1444,6 +1483,16 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                params:
+                  type: object
+                  additionalProperties: true
+                  description: Возможность сохранить дополнительные параметры в заказ, если они требуются плагину оплаты
       responses:
         '200':
           description: "Информация о проводимом платеже: ссылка на страницу оплаты или на картинку с QR-кодом"
@@ -1879,12 +1928,88 @@ components:
               type: string
               format: uri
               description: URL основного изображения с максимальной стороной 970 пикселей
+    OrderInfo:
+      type: object
+      description: Свойства товара
+      properties:
+        id:
+          type: integer
+          description: ID заказа
+        create_datetime:
+          type: string
+          format: date-time
+          description: Дата и время создания заказа
+        state_id:
+          type: string
+          description: Идентификатор состояния заказа
+        currency:
+          type: string
+          description: 3-символьный код валюты заказа
+        total:
+          type: number
+          description: Общая стоимость заказа
+        total_str:
+          type: string
+          description: Общая стоимость (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+        total_html:
+          type: string
+          description: Общая стоимость (форматированное число с HTML-вариантом названия валюты, если оно доступно)
+        total_exact:
+          type: string
+          description: Общая стоимость в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+        tax:
+          type: number
+          description: Общая сумма налога со всего заказа
+        tax_str:
+          type: string
+          description: Налог (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+        tax_html:
+          type: string
+          description: Налог (форматированное число с HTML-вариантом названия валюты, если оно доступно)
+        tax_exact:
+          type: string
+          description: Налог в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+        shipping:
+          type: number
+          description: Стоимость доставки
+        shipping_str:
+          type: string
+          description: Стоимость доставки (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+        shipping_html:
+          type: string
+          description: Стоимость доставки (форматированное число с HTML-вариантом названия валюты, если оно доступно)
+        shipping_exact:
+          type: string
+          description: Стоимость доставки в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+        discount:
+          type: number
+          description: Общая сумма скидки на весь заказ
+        discount_str:
+          type: string
+          description: Скидка (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
+        discount_html:
+          type: string
+          description: Скидка (форматированное число с HTML-вариантом названия валюты, если оно доступно)
+        discount_exact:
+          type: string
+          description: Скидка в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
+        paid_date:
+          type: string
+          format: date
+          description: Дата оплаты заказа или null, если не оплачен
+          nullable: true
+        items:
+          $ref: '#/components/schemas/OrderCartInfo'
     OrderCartInfo:
       type: array
       description: Список позиций в заказе
       items:
         type: object
         properties:
+          id:
+            type: integer
+            nullable: true
+            description: ID позиции заказа (если уже сохранена в БД)
           type:
             type: string
             description: |
@@ -1927,7 +2052,7 @@ components:
           parent_id:
             type: integer
             nullable: true
-            description: ID товара, к которому относится услуга
+            description: ID позиции заказа, к которому относится услуга
           quantity:
             type: number
             description: Количество

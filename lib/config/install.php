@@ -69,21 +69,6 @@ $model->set($app_id, 'welcome', 1);
 // Initializing currencies and notifications is moved to a separate file,
 // see install.after.php
 
-//payment plugins
-try {
-    $plugins = shopPayment::getList();
-    unset($plugins['dummy']); // do not set up "Manual payment"
-    foreach ($plugins as $plugin => $info) {
-        if (!empty($info['pos_initiates_payment'])) {
-            continue;
-        }
-        $info['plugin'] = $plugin;
-        shopPayment::savePlugin($info);
-    }
-} catch (waException $ex) {
-    waLog::log($ex->getMessage(), 'wa-apps/shop/install.log');
-}
-
 //shipping plugins
 try {
     $plugins = shopShipping::getList();

@@ -354,7 +354,7 @@ let initMainWaSidebar;
 
         Sidebar.prototype.initChannelsSorting = function() {
             const $menu = this.$wrapper.find('.s-main-menu');
-            const draggable_selector = 'li[data-channel]:not([data-channel="storefront"])';
+            const draggable_selector = 'li[data-channel]:not([data-channel=""]):not([data-channel="storefront"])';
 
             const saveSort = (sorting, error) => {
                 $.post('?module=channels&action=sort', { sorting }, (r) => {

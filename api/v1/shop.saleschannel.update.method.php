@@ -52,6 +52,9 @@ class shopSaleschannelUpdateMethod extends shopApiMethod
         $channel['params'] = $sales_channel_params_model->get($id);
         try {
             shopChannelsSaveController::saveWaidChannel($channel_type, $channel);
+        } catch (Throwable $e) {
+        }
+        try {
             $channel_type->onSave($channel);
         } catch (Throwable $e) {
         }

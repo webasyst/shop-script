@@ -127,7 +127,7 @@
                                                     <div class="custom-mb-8">
                                                         <label class="flexbox space-8 middle">
                                                             <span class="wa-radio">
-                                                                <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
+                                                                <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if}>
                                                                 <span></span>
                                                             </span>
                                                             <div class="custom-pl-4">
@@ -141,7 +141,7 @@
                                                     <div class="custom-mb-8">
                                                         <label class="flexbox space-8 middle">
                                                             <span class="wa-radio">
-                                                                <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} {if $_source@first}checked="checked"{/if}>
+                                                                <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if}>
                                                                 <span></span>
                                                             </span>
                                                             <div style="width: 1.75rem; text-align: center;">
@@ -257,11 +257,16 @@
                         },
                         change: function(event, target, toggle) {
                             const id = $(target).data("content");
+                            const $content_3 = $(".js-filling-store-content-item[data-content='3']").find("input[name='demo_db']");
                             $(".js-filling-store-content-item").addClass("hidden");
                             $(".js-filling-store-content-item[data-content='" + id + "']").removeClass("hidden");
 
-                            if (id == 2) {
-                                $(".js-filling-store-content-item[data-content='3']").find("input[name='demo_db'][value='']").prop("checked", true).attr('checked', true).trigger("change");
+                            $content_3.prop('checked', false).attr('checked', false).trigger('change');
+                            if (id == 3) {
+                                $content_3.first().prop('checked', true).attr('checked', true).trigger('change');
+                            } else {
+                                //Don’t add demo products
+                                $content_3.last().prop('checked', true).attr('checked', true).trigger('change');
                             }
                         }
                     });
