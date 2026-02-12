@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 2.3\n"
+"X-Generator: Poedit 3.4.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -507,3 +507,354 @@ msgstr "Неправильный URL: отсутствует имя хоста."
 
 msgid "<b>Great, we can import from that!</b> You will be taken to the import configuration page to provide some more details on your previous store’s setup..."
 msgstr "<b>Отлично, сможем импортировать!</b> На следующем шаге нужно будет заполнить настройки подключения к платформе-источнику данных, чтобы начать импорт..."
+
+msgid "Ozon Client ID"
+msgstr "Ozon Client ID"
+
+msgid "Ozon API Key"
+msgstr "Ozon API Key"
+
+msgid "Connection"
+msgstr "Подключение"
+
+msgid "Test connection"
+msgstr "Тест подключения"
+
+msgid "Testing connection..."
+msgstr "Проверяем соединение..."
+
+msgid "Connection successful"
+msgstr "Соединение успешно"
+
+msgid "Unknown error"
+msgstr "Неизвестная ошибка"
+
+msgid "Request failed"
+msgstr "Ошибка запроса"
+
+msgid "Client ID or API Key is empty"
+msgstr "Client ID или API Key не заполнены"
+
+msgid "Client ID is required"
+msgstr "Client ID обязателен"
+
+msgid "API Key is required"
+msgstr "API Key обязателен"
+
+msgid "Import products from Ozon (ozon seller API)"
+msgstr "Импорт товаров из Ozon Seller API."
+
+msgid "Ozon import"
+msgstr "Импорт из Ozon"
+
+msgid "Categories synced: created %d, updated %d, skipped %d"
+msgstr "Категории синхронизированы: создано %d, обновлено %d, пропущено %d"
+
+msgid "Features synced: created %d, updated %d, skipped %d"
+msgstr "Характеристики синхронизированы: создано %d, обновлено %d, пропущено %d"
+
+msgid "Created"
+msgstr "Создано"
+
+msgid "Updated"
+msgstr "Обновлено"
+
+msgid "Skipped"
+msgstr "Пропущено"
+
+msgid "Errors"
+msgstr "Ошибки"
+
+msgid "Do not map"
+msgstr "Не определять категорию"
+
+msgid "Do not import to this stock"
+msgstr "Пропустить этот склад"
+
+msgid "Import all Ozon stock to this stock"
+msgstr "Импортировать все складские остатки на этот склад"
+
+msgid "Do not import Ozon stock"
+msgstr "Не импортировать складские остатки"
+
+msgid "Shop-Script stock"
+msgstr "Склады Shop-Script"
+
+msgid "Ozon stock"
+msgstr "Склады Озон"
+
+msgid "Stock mapping"
+msgstr "Перенос складских остатков"
+
+msgid "Category mapping"
+msgstr "Перенос категорий товаров"
+
+msgid "Ozon category"
+msgstr "Категории Ozon"
+
+msgid "Ozon warehouses"
+msgstr "Склады Озон"
+
+msgid "Shop-Script category"
+msgstr "Категории Shop-Script"
+
+msgid "Automatic"
+msgstr "Автоматически"
+
+msgid "Do not import this warehouse"
+msgstr "Не импортировать этот склад"
+
+msgid "Load data to map warehouses."
+msgstr "Загрузите данные, чтобы настроить склады."
+
+msgid "Select Shop-Script stocks for each Ozon warehouse. Automatic mode will find or create stocks by name."
+msgstr "Выберите склады Shop-Script для каждого склада Ozon. Автоматический режим найдет или создаст склады с совпадающими названиями."
+
+msgid "Import products from the Ozon seller API."
+msgstr "Импортируйте товары из своего профиля селлера через Ozon Seller API."
+
+msgid "Client ID Ozon"
+msgstr "Client ID Ozon"
+
+msgid "Ozon snapshot"
+msgstr "Снапшот Ozon"
+
+msgid "Snapshot collected at"
+msgstr "Снапшот собран"
+
+msgid "Press “Load data” to fetch a fresh snapshot for preview and mapping."
+msgstr "Нажмите «Загрузить данные», чтобы получить свежий снапшот для предпросмотра и маппинга."
+
+msgid "Products detected"
+msgstr "Товаров найдено"
+
+msgid "Categories detected"
+msgstr "Категорий найдено"
+
+msgid "Warehouses detected"
+msgstr "Складов найдено"
+
+msgid "Top 5 of your categories"
+msgstr "5 самых больших категорий"
+
+msgid "Detected warehouses"
+msgstr "Обнаруженные склады"
+
+msgid "No snapshot yet. Use the button below to prepare data."
+msgstr "Снапшот еще не подготовлен. Используйте кнопку ниже, чтобы собрать данные."
+
+msgid "Load data"
+msgstr "Загрузить данные"
+
+msgid "Switch to manual mode to adjust mappings before import."
+msgstr "Переключитесь в ручной режим, чтобы настроить маппинги перед импортом."
+
+msgid "Mode"
+msgstr "Режим"
+
+msgid "Import automatically"
+msgstr "Импортировать автоматически"
+
+msgid "Manual mapping"
+msgstr "Ручное сопоставление категорий и типов товаров"
+
+msgid "Override automatic decisions for types, categories and warehouses."
+msgstr "Переопределите автоматические решения для типов, категорий и складов."
+
+msgid "Ozon connection"
+msgstr "Подключение к Ozon"
+
+msgid "Logging"
+msgstr "Логирование"
+
+msgid "Full"
+msgstr "Полное"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Load data from Ozon"
+msgstr "Загрузка данных с Ozon"
+
+msgid "Snapshot"
+msgstr "Снапшот"
+
+msgid "updated"
+msgstr "обновлен"
+
+msgid "Products"
+msgstr "Товаров"
+
+msgid "Categories"
+msgstr "Категории товаров"
+
+msgid "Warehouses"
+msgstr "Складов"
+
+msgid "Snapshot is not ready yet."
+msgstr "Снапшот еще не создан."
+
+msgid "Load"
+msgstr "Загрузить"
+
+msgid "Import"
+msgstr "Импортировать"
+
+msgid "Transfer stocks"
+msgstr "Переносить остатки"
+
+msgid "Mapping mode"
+msgstr "Режим маппинга"
+
+msgid "Auto / Manual"
+msgstr "Авто / Ручной"
+
+msgid "Manual mode unlocks mapping tables below."
+msgstr "В ручном режиме доступны таблицы маппинга ниже."
+
+msgid "Features"
+msgstr "Характеристики"
+
+msgid "Do not import features"
+msgstr "Не импортировать характеристики"
+
+msgid "Product types"
+msgstr "Типы товаров"
+
+msgid "Quantity"
+msgstr "Товаров"
+
+msgid "Shop-Script type"
+msgstr "Типы товаров Shop-Script"
+
+msgid "Skip"
+msgstr "Пропустить"
+
+msgid "Stock transfer"
+msgstr "Перенос складских остатков"
+
+msgid "Ozon warehouse"
+msgstr "Склады Ozon"
+
+msgid "Skip this stock"
+msgstr "Пропустить этот склад"
+
+msgid "Saved"
+msgstr "Сохранено"
+
+msgid "In progress..."
+msgstr "Выполняется..."
+
+msgid "Done"
+msgstr "Готово"
+
+msgid "Fill in Client ID and API Key."
+msgstr "Заполните Client ID и API Key."
+
+msgid "Fill in Client ID and API Key first."
+msgstr "Сначала заполните Client ID и API Key."
+
+msgid "Save Client ID and API Key first."
+msgstr "Сначала сохраните Client ID и API Key."
+
+msgid "No snapshot available for import."
+msgstr "Нет готового снапшота для импорта."
+
+msgid "Snapshot is missing."
+msgstr "Снапшот отсутствует."
+
+msgid "Invalid parameters."
+msgstr "Некорректные параметры."
+
+msgid "Type not found."
+msgstr "Тип не найден."
+
+msgid "Category not found."
+msgstr "Категория не найдена."
+
+msgid "Stock not found."
+msgstr "Склад не найден."
+
+msgid "Import everything automatically"
+msgstr "Импортировать все-все-все автоматически"
+
+msgid "Import mode"
+msgstr "Режим импорта"
+
+msgid "Full auto import"
+msgstr "Автоматический импорт"
+
+msgid "Manual import"
+msgstr "Ручной режим"
+
+msgid "Create and copy the API key in the <a href=\"https://seller.ozon.ru/app/settings/api-keys\">Seller API</a> section of your Ozon seller account settings."
+msgstr "В разделе <a href=\"https://seller.ozon.ru/app/settings/api-keys\">Seller API</a> сгенерируйте <b>API ключ</b>, с правами доступа <b>Admin read only</b> и скопируйте его значение."
+
+msgid "Copy the Client ID from the <a href=\"https://seller.ozon.ru/app/settings/api-keys\">Seller API</a> section in your Ozon seller account settings."
+msgstr "Войдите в кабинет продавца на Ozon, откройте настройки, раздел <a href=\"https://seller.ozon.ru/app/settings/api-keys\">Seller API</a> и скопируйте <b>Client ID</b>."
+
+msgid "Debug: purge tables"
+msgstr "Очистка таблиц"
+
+msgid "Cleanup Ozon migration tables"
+msgstr "Очистка таблиц плагина"
+
+msgid "Select tables you want to truncate. Use responsibly!"
+msgstr "Выберите таблицы, которые необходимо очистить. Будьте бдительны!"
+
+msgid "Clear tables"
+msgstr "Очистить таблицы"
+
+msgid "Smart feature import"
+msgstr "Умный импорт характеристик"
+
+msgid "Text-only features"
+msgstr "Текстовые характеристики"
+
+msgid "Smart feature import tooltip"
+msgstr "Пробуем создавать характеристики с правильными типами, форматами и единицами измерения. Это экспериментальный режим."
+
+msgid "Text-only feature tooltip"
+msgstr "Все характеристики будут созданы с текстовым типом."
+
+msgid "Auto mode tooltip"
+msgstr "Рекомендуем использовать этот режим!"
+
+msgid "Import completed successfully"
+msgstr "Импорт завершен!"
+
+msgid "Table"
+msgstr "Таблица"
+
+msgid "Description"
+msgstr "Описание"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "OpenCart 1.5.x"
+msgstr "OpenCart 1.5.x"
+
+msgid "Import from your seller account on a marketplace"
+msgstr "Импортировать из вашего аккаунта продавца на маркетплейсе"
+
+msgid "Migrate my products from another platform"
+msgstr "Скопировать мои товары с другой платформы"
+
+msgid "Other options"
+msgstr "Другие варианты"
+
+msgid "Import data from Tilda using the generated YML feed provided by the source store."
+msgstr "Импортировать данные из Tilda с помощью YML-файла, сгенерированного в исходном магазине."
+
+msgid "Import via the official InSales API using your store credentials."
+msgstr "Импортировать через официальный API InSales с вашими данными доступа."
+
+msgid "Import products and customers from Simpla CMS using the REST API."
+msgstr "Импортировать товары и покупателей из CMS Simpla с использованием REST API."
+
+msgid "Import data from PHPShop using a YML export generated by the source store."
+msgstr "Импортировать данные из PHPShop с помощью YML-файла, сгенерированного в исходном магазине."
+
+msgid "Import data from StoreLand using the generated YML feed provided by the source store."
+msgstr "Импортировать данные из StoreLand с помощью YML-файла, сгенерированного в исходном магазине."

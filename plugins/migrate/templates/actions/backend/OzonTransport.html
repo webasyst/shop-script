@@ -1,0 +1,415 @@
+{literal}
+<style>
+    :root {
+        --ozon-summary-bg: #f5f7ff;
+        --ozon-summary-bg-dark: #2c2f45;
+        --ozon-summary-color-dark: #f4f6ff;
+    }
+    html[data-theme="dark"] {
+        --ozon-summary-bg: var(--ozon-summary-bg-dark);
+        --ozon-summary-color-dark: #f4f6ff;
+    }
+    .s-ozon-layout {max-width: 940px; position: relative;}
+    .s-ozon-card { }
+    .s-ozon-card + .s-ozon-card {margin-top:30px;}
+    .s-ozon-card__header h3 {margin-bottom:4px;color:var(--text-color-strong);}
+    .s-ozon-card__header {margin-bottom:16px;}
+    .s-ozon-summary {display:flex;gap:24px;margin-bottom:16px;}
+    .s-ozon-summary__item {flex:1;background:var(--ozon-summary-bg);border-radius:8px;padding:16px;text-align:center;color:var(--text-color);}
+    .s-ozon-summary__count {font-size:24px;font-weight:600;color:var(--text-color-strong);}
+    .s-ozon-preview-lists {display:flex;gap:32px;margin-bottom:20px;}
+    .s-ozon-preview-lists__col ul {margin:8px 0 0 16px;padding:0;list-style:disc;}
+    .s-ozon-preview-lists__col li {margin-bottom:4px;}
+    .s-ozon-empty {margin:0 0 20px;}
+    .s-ozon-actions {display:flex;align-items:center;gap:20px;margin-top:10px;}
+    .s-ozon-layout.is-loading::after {content:'';position:absolute;inset:0;border-radius:12px;background:rgba(255,255,255,0.7);z-index:10;}
+    .s-ozon-layout.is-loading .s-ozon-loading {display:flex;}
+    .s-ozon-table-block {margin-top:24px;}
+    .s-ozon-table-block h4 {margin-bottom:10px;}
+    .switch-with-text {display:flex;align-items:center;gap:12px;}
+    .switch-with-text label {cursor:pointer;font-size:14px;color:var(--text-color-weak);}
+    .s-ozon-feature-controls {display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+    .s-ozon-col-icon {display:inline-flex;align-items:center;gap:6px;color:var(--text-color-strong);}
+    .s-ozon-col-icon img {width:16px;height:16px;border-radius:3px;}
+    .s-ozon-success-message {font-weight:600;color:var(--success-color,#3c9a3c);display:inline-block;margin-top:6px;}
+    .s-ozon-button-wrapper {position:relative;display:inline-block;}
+    .s-ozon-button-wrapper.is-loading > .button,
+    .s-ozon-button-wrapper.is-loading > .wa-button {position:relative;z-index:2;}
+    .s-ozon-button-pulsar {position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;border-radius:16px;z-index:1;}
+    .s-ozon-button-pulsar {width:90%!important;height:100%!important;border-radius:16px!important;}
+    .s-ozon-button-pulsar.pulsar {animation-direction:reverse!important;}
+    .s-ozon-debug-actions {text-align:right;margin-bottom:12px;}
+    .s-ozon-clean-table {width:100%;color:var(--text-color);}
+    .s-ozon-clean-table th,.s-ozon-clean-table td {padding:8px 10px;text-align:left;}
+    .s-ozon-clean-table tbody tr:nth-child(odd) {background:var(--layer-surface-hover);}
+    #js-ozon-clean-dialog .dialog-body {max-width:640px;min-width:60%;}
+</style>
+{/literal}
+<div class="s-ozon-layout" id="js-ozon-root"
+     data-save-url="?plugin=migrate&action=ozonSaveCredentials"
+     data-test-url="?plugin=migrate&action=ozonTestCredentials"
+     data-load-url="?plugin=migrate&action=ozonLoad"
+     data-import-url="?plugin=migrate&action=ozonImport"
+     data-clean-url="?plugin=migrate&action=ozonCleanup"
+     data-state="{if $ozon_snapshot}import{else}load{/if}"
+     data-load-label="[`Load data`]"
+     data-import-label="[`Import data`]"
+     data-import-success="[`Import completed successfully`]">
+
+    <div class="s-ozon-card">
+        <div class="s-ozon-card__header">
+            <h4>[`Ozon connection`]</h4>
+            <p class="hint">[`Import products from the Ozon seller API.`]</p>
+        </div>
+        <div class="fields form">
+            <div class="field">
+                <div class="name for-input">[`Ozon Client ID`]</div>
+                <div class="value">
+                    <input type="text" class="small" name="ozon_client_id" value="{$ozon_settings.client_id|escape}" placeholder="1234567">
+                    <p class="hint">[`Copy the Client ID from the <a href="https://seller.ozon.ru/app/settings/api-keys">Seller API</a> section in your Ozon seller account settings.`]</p>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name for-input">[`Ozon API Key`]</div>
+                <div class="value">
+                    <input type="password" class="small" name="ozon_api_key" value="{$ozon_settings.api_key|escape}" placeholder="76czxc23-34fds324-243fawsfd234-423fsaf3">
+                    <p class="hint">[`Create and copy the API key in the <a href="https://seller.ozon.ru/app/settings/api-keys">Seller API</a> section of your Ozon seller account settings.`]</p>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name for-input">[`Logging`]</div>
+                <div class="value">
+                    <select name="ozon_log_mode">
+                        <option value="errors"{if $ozon_settings.log_mode == 'errors'} selected{/if}>[`Errors only`]</option>
+                        <option value="full"{if $ozon_settings.log_mode == 'full'} selected{/if}>[`Full`]</option>
+                    </select>
+                </div>
+            </div>
+            <br><hr>
+            <div class="field">
+                <div class="name for-input">[`Connection`]</div>
+                <div class="value">
+                    <button type="button" class="button green js-ozon-save">[`Save`]</button>
+                    <button type="button" class="button light-gray js-ozon-test">[`Test connection`]</button>
+                    <span class="hint js-ozon-status"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {if $ozon_snapshot}
+        <div class="s-ozon-card">
+            <div class="s-ozon-card__header">
+                <h3>[`Ozon snapshot`]</h3>
+                <p class="hint">
+                    [`Snapshot collected at`] {$ozon_snapshot.updated_at|wa_date}
+                </p>
+            </div>
+
+            <div class="s-ozon-summary">
+                <div class="s-ozon-summary__item">
+                    <div class="s-ozon-summary__count">{$ozon_snapshot.meta.products|default:0}</div>
+                    <div class="s-ozon-summary__label">[`Products detected`]</div>
+                </div>
+                <div class="s-ozon-summary__item">
+                    <div class="s-ozon-summary__count">{$ozon_snapshot.meta.categories|default:0}</div>
+                    <div class="s-ozon-summary__label">[`Categories detected`]</div>
+                </div>
+                <div class="s-ozon-summary__item">
+                    <div class="s-ozon-summary__count">{$ozon_snapshot.meta.warehouses|default:0}</div>
+                    <div class="s-ozon-summary__label">[`Warehouses detected`]</div>
+                </div>
+            </div>
+
+            <div class="s-ozon-preview-lists">
+                {if !empty($ozon_mapping.types)}
+                    <div class="s-ozon-preview-lists__col">
+                        <strong>[`Top 5 of your categories`]</strong>
+                        <ul>
+                            {foreach $ozon_mapping.types|@array_slice:0:5 as $row}
+                                <li>{$row.path|escape} <span class="gray">({$row.count})</span></li>
+                            {/foreach}
+                        </ul>
+                    </div>
+                {/if}
+                {if !empty($ozon_mapping.warehouses)}
+                    <div class="s-ozon-preview-lists__col">
+                        <strong>[`Detected warehouses`]</strong>
+                        <ul>
+                            {foreach $ozon_mapping.warehouses|@array_slice:0:5 as $row}
+                                <li>{$row.name|escape}</li>
+                            {/foreach}
+                        </ul>
+                    </div>
+                {/if}
+            </div>
+        </div>
+    {/if}
+
+    <div class="hint js-ozon-progress"></div>
+
+    {if $ozon_snapshot}
+        <div class="s-ozon-card">
+            <div class="s-ozon-card__header">
+                <h3>[`Import mode`]</h3>
+            </div>
+            <div class="fields form">
+                {assign var=ozon_mode_switch_id value=uniqid('ozon-mode-')}
+                <div class="field">
+                    <div class="name">[`Mode`]</div>
+                    <div class="value">
+                        <div class="switch-with-text">
+                            <span class="switch js-ozon-mode-switch" id="{$ozon_mode_switch_id}" data-url="?plugin=migrate&action=ozonMode">
+                                <input type="checkbox" id="{$ozon_mode_switch_id}_checkbox"{if $ozon_settings.mode == 'auto'} checked{/if}>
+                            </span>
+                            <label for="{$ozon_mode_switch_id}_checkbox"
+                                   class="js-ozon-mode-switch-label"
+                                   data-active-text="[`Full auto import`]"
+                                   data-inactive-text="[`Manual import`]"
+                                   data-auto-tooltip="[`Auto mode tooltip`]">
+                                <span class="wa-tooltip js-ozon-mode-switch-tooltip"
+                                      data-wa-tooltip-content="{if $ozon_settings.mode == 'auto'}[`Auto mode tooltip`]{else}{/if}"
+                                      data-wa-tooltip-placement="top">
+                                    <span class="js-ozon-mode-switch-label-text">
+                                        {if $ozon_settings.mode == 'auto'}[`Full auto import`]{else}[`Manual import`]{/if}
+                                    </span>
+                                </span>
+                            </label>
+                                </div>
+                            </div>
+                        </div>
+            </div>
+        </div>
+
+        <div class="s-ozon-card js-ozon-manual-section"{if $ozon_settings.mode == 'auto'} style="display:none"{/if}>
+            <div class="s-ozon-card__header">
+                <h3>[`Manual mapping`]</h3>
+            </div>
+
+            <div class="s-ozon-table-block">
+                <h4><span class="icon"><svg class="svg-inline--fa fa-cubes fa-w-16" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="cubes" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M488.6 250.2L392 214V105.5c0-15-9.3-28.4-23.4-33.7l-100-37.5c-8.1-3.1-17.1-3.1-25.3 0l-100 37.5c-14.1 5.3-23.4 18.7-23.4 33.7V214l-96.6 36.2C9.3 255.5 0 268.9 0 283.9V394c0 13.6 7.7 26.1 19.9 32.2l100 50c10.1 5.1 22.1 5.1 32.2 0l103.9-52 103.9 52c10.1 5.1 22.1 5.1 32.2 0l100-50c12.2-6.1 19.9-18.6 19.9-32.2V283.9c0-15-9.3-28.4-23.4-33.7zM358 214.8l-85 31.9v-68.2l85-37v73.3zM154 104.1l102-38.2 102 38.2v.6l-102 41.4-102-41.4v-.6zm84 291.1l-85 42.5v-79.1l85-38.8v75.4zm0-112l-102 41.4-102-41.4v-.6l102-38.2 102 38.2v.6zm240 112l-85 42.5v-79.1l85-38.8v75.4zm0-112l-102 41.4-102-41.4v-.6l102-38.2 102 38.2v.6z"></path></svg><!-- <i class="fas fa-cubes"></i> Font Awesome fontawesome.com --></span> [`Product types`]</h4>
+                <div class="table-scrollable">
+                    <table class="single-lined">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <span class="s-ozon-col-icon">
+                                        <img src="{$wa_app_static_url}plugins/migrate/img/ozon400x400.png" alt="Ozon">
+                                        <span>[`Ozon category`]</span>
+                                    </span>
+                                </th>
+                                <th>
+                                    <span class="s-ozon-col-icon">
+                                        <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+                                        <span>[`Quantity`]</span>
+                                    </span>
+                                </th>
+                                <th>
+                                    <span class="s-ozon-col-icon">
+                                        <img src="{$wa_app_static_url}img/shop16.png" alt="Shop-Script">
+                                        <span>[`Shop-Script type`]</span>
+                                    </span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {foreach $ozon_mapping.types as $row}
+                                <tr>
+                                    <td>{$row.path|escape}</td>
+                                    <td>{$row.count}</td>
+                                    <td>
+                                        <select class="js-ozon-type-map"
+                                                data-url="?plugin=migrate&action=ozonTypeMap"
+                                                data-category="{$row.description_category_id}"
+                                                data-type="{$row.type_id}">
+                                            <option value="">[`Automatic`]</option>
+                                            {foreach $ozon_lists.types as $type}
+                                                <option value="{$type.id}"{if $row.mapping.shop_type_id == $type.id} selected{/if}>{$type.name|escape}</option>
+                                            {/foreach}
+                                        </select>
+                                    </td>
+                                </tr>
+                            {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="s-ozon-table-block">
+                <h4><span class="icon"><svg class="svg-inline--fa fa-folder fa-w-16" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="folder" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M464 128H272l-64-64H48C21.49 64 0 85.49 0 112v288c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V176c0-26.51-21.49-48-48-48z"></path></svg><!-- <i class="fas fa-folder"></i> Font Awesome fontawesome.com --></span> [`Categories`]</h4>
+                <div class="table-scrollable">
+                    <table class="single-lined">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <span class="s-ozon-col-icon">
+                                        <img src="{$wa_app_static_url}plugins/migrate/img/ozon400x400.png" alt="Ozon">
+                                        <span>[`Ozon category`]</span>
+                                    </span>
+                                </th>
+                                <th>
+                                    <span class="s-ozon-col-icon">
+                                        <img src="{$wa_app_static_url}img/shop16.png" alt="Shop-Script">
+                                        <span>[`Shop-Script category`]</span>
+                                    </span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {foreach $ozon_mapping.categories as $row}
+                                <tr>
+                                    <td>{$row.path|escape}</td>
+                                    <td>
+                                        <select class="js-ozon-category-map"
+                                                data-url="?plugin=migrate&action=ozonCategoryMap"
+                                                data-category="{$row.description_category_id}">
+                                            <option value="">[`Automatic`]</option>
+                                            <option value="skip"{if $row.mapping.action == 'skip'} selected{/if}>[`Skip`]</option>
+                                            {foreach $ozon_lists.categories as $cat_id => $title}
+                                                <option value="{$cat_id}"{if $row.mapping.shop_category_id == $cat_id} selected{/if}>{$title|escape}</option>
+                                            {/foreach}
+                                        </select>
+                                    </td>
+                                </tr>
+                            {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="s-ozon-table-block">
+                <h4><span class="icon"><svg class="svg-inline--fa fa-home fa-w-18" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="home" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg=""><path fill="currentColor" d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"></path></svg><!-- <i class="fas fa-home"></i> Font Awesome fontawesome.com --></span> [`Stock transfer`]</h4>
+                <div class="table-scrollable">
+                    <table class="single-lined">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <span class="s-ozon-col-icon">
+                                        <img src="{$wa_app_static_url}plugins/migrate/img/ozon400x400.png" alt="Ozon">
+                                        <span>[`Ozon warehouse`]</span>
+                                    </span>
+                                </th>
+                                <th>
+                                    <span class="s-ozon-col-icon">
+                                        <img src="{$wa_app_static_url}img/shop16.png" alt="Shop-Script">
+                                        <span>[`Shop-Script stock`]</span>
+                                    </span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {foreach $ozon_mapping.warehouses as $row}
+                                <tr>
+                                    <td>{$row.name|escape}</td>
+                                    <td>
+                                        <select class="js-ozon-stock-map"
+                                                data-url="?plugin=migrate&action=ozonStockMap"
+                                                data-warehouse="{$row.warehouse_id}">
+                                            <option value="">[`Automatic`]</option>
+                                            <option value="skip"{if $row.mapping.action == 'skip'} selected{/if}>[`Skip this stock`]</option>
+                                            {foreach $ozon_lists.stocks as $stock}
+                                                <option value="{$stock.id}"{if $row.mapping.shop_stock_id == $stock.id} selected{/if}>{$stock.name|escape}</option>
+                                            {/foreach}
+                                        </select>
+                                    </td>
+                                </tr>
+                            {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="s-ozon-table-block">
+                <h4><span class="icon"><svg class="svg-inline--fa fa-cubes fa-w-16" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="cubes" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M488.6 250.2L392 214V105.5c0-15-9.3-28.4-23.4-33.7l-100-37.5c-8.1-3.1-17.1-3.1-25.3 0l-100 37.5c-14.1 5.3-23.4 18.7-23.4 33.7V214l-96.6 36.2C9.3 255.5 0 268.9 0 283.9V394c0 13.6 7.7 26.1 19.9 32.2l100 50c10.1 5.1 22.1 5.1 32.2 0l103.9-52 103.9 52c10.1 5.1 22.1 5.1 32.2 0l100-50c12.2-6.1 19.9-18.6 19.9-32.2V283.9c0-15-9.3-28.4-23.4-33.7zM358 214.8l-85 31.9v-68.2l85-37v73.3zM154 104.1l102-38.2 102 38.2v.6l-102 41.4-102-41.4v-.6zm84 291.1l-85 42.5v-79.1l85-38.8v75.4zm0-112l-102 41.4-102-41.4v-.6l102-38.2 102 38.2v.6zm240 112l-85 42.5v-79.1l85-38.8v75.4zm0-112l-102 41.4-102-41.4v-.6l102-38.2 102 38.2v.6z"></path></svg><!-- <i class="fas fa-cubes"></i> Font Awesome fontawesome.com --></span> [`Features`]</h4>
+                <div class="fields form">
+                    <div class="field">
+                        <div class="name">[`Features`]</div>
+                        <div class="value">
+                            {assign var=ozon_feature_switch_id value=uniqid('ozon-feature-')}
+                            <div class="s-ozon-feature-controls">
+                                <select class="js-ozon-feature-mode" data-url="?plugin=migrate&action=ozonFeatureMode">
+                                    <option value="auto"{if $ozon_settings.feature_mode == 'auto'} selected{/if}>[`Import automatically`]</option>
+                                    <option value="skip"{if $ozon_settings.feature_mode == 'skip'} selected{/if}>[`Do not import features`]</option>
+                                </select>
+                                <div class="switch-with-text s-ozon-feature-switch">
+                                    <span class="switch js-ozon-feature-switch" id="{$ozon_feature_switch_id}">
+                                        <input type="checkbox" id="{$ozon_feature_switch_id}_checkbox"{if empty($ozon_settings.force_text_features)} checked{/if}>
+                                    </span>
+                                    <label for="{$ozon_feature_switch_id}_checkbox"
+                                           class="js-ozon-feature-switch-label"
+                                           data-active-text="[`Smart feature import`]"
+                                           data-inactive-text="[`Text-only features`]"
+                                           data-active-tooltip="[`Smart feature import tooltip`]"
+                                           data-inactive-tooltip="[`Text-only feature tooltip`]">
+                                        <span class="wa-tooltip js-ozon-feature-switch-tooltip"
+                                              data-wa-tooltip-content="{if empty($ozon_settings.force_text_features)}[`Smart feature import tooltip`]{else}[`Text-only feature tooltip`]{/if}"
+                                              data-wa-tooltip-placement="top">
+                                            <span class="js-ozon-feature-switch-label-text">
+                                                {if empty($ozon_settings.force_text_features)}[`Smart feature import`]{else}[`Text-only features`]{/if}
+                                            </span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {if $ozon_debug}
+                    <div class="s-ozon-debug-actions">
+                        <button type="button" class="button red js-ozon-clean-open">[`Debug: purge tables`]</button>
+                    </div>
+                {/if}
+            </div>
+        </div>
+    {/if}
+
+    {if $ozon_debug}
+        <script type="text/template" id="js-ozon-clean-dialog-template">
+            <div class="dialog" id="js-ozon-clean-dialog">
+                <div class="dialog-background"></div>
+                <div class="dialog-body">
+                    <a href="#" class="dialog-close js-close-dialog"><i class="fas fa-times"></i></a>
+                    <header class="dialog-header">
+                        <h2>[`Cleanup Ozon migration tables`]</h2>
+                    </header>
+                    <div class="dialog-content">
+                        <p>[`Select tables you want to truncate. Use responsibly!`]</p>
+                        <table class="s-ozon-clean-table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>[`Table`]</th>
+                                    <th>[`Description`]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {foreach $ozon_tables as $table => $info}
+                                <tr>
+                                    <td><input type="checkbox" name="tables[]" value="{$table}"></td>
+                                    <td>{$table}</td>
+                                    <td><strong>{$info.title|escape}</strong><br>{$info.description|escape}</td>
+                                </tr>
+                            {/foreach}
+                            </tbody>
+                        </table>
+                    </div>
+                    <footer class="dialog-footer">
+                        <button class="button red js-ozon-clean-submit" type="button">[`Clear tables`]</button>
+                        <button class="button light-gray js-close-dialog" type="button">[`Close`]</button>
+                    </footer>
+                </div>
+            </div>
+        </script>
+    {/if}
+    <div class="s-ozon-loading"><i class="icon16 loading"></i></div>
+</div>
+
+<script>
+(function ($) {
+    if ($ && $.migrateOzon) {
+        $.migrateOzon.init($('#js-ozon-root'));
+    }
+})(jQuery);
+</script>

@@ -5,7 +5,7 @@
         <h6 class="heading custom-ml-4">[`Source`]</h6>
         <div class="field-group custom-mt-0" id="plugin-migrate-transport-group">
             <div class="field">
-                <div class="name"><label for="plugin-migrate-transport">[`Platform`]</label></div>
+                <div class="name for-input"><label for="plugin-migrate-transport">[`Platform`]</label></div>
                 <div class="value no-shift">
                     <select name="transport" id="plugin-migrate-transport" class="s-plugin-migrate-transport">
                         {$group = false}
@@ -37,28 +37,26 @@
 
         <div class="clear-left"></div>
 
-        <div class="field-group" id="plugin-migrate-submit" style="display: none;">
-            <div class="field">
-                <div class="value submit">
-                    <input type="submit" class="button" data-validate="[`Connect`]" data-import="[`Import data`]" value="[`Connect`]">
-                    <div class="js-progressbar-container" style="display:none;">
-                        <div class="progressbar blue float-left" style="display: none; width: 70%;">
-                            <div class="progressbar-outer">
-                                <div class="progressbar-inner" style="width: 0;"></div>
-                            </div>
-                        </div>
-                        <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
-                        <div class="clear"></div>
-                            <span class="progressbar-description"></span>
-                        <br style="clear: left" />
-                        <br>
-                        <span class="small italic">
-                            [`Please do not close your browser window and do not leave this page until the entire migration process is finished.`]
-                        </span>
-                    </div><br><br class="hidden">
-                    <em class="errormsg state-error-hint"></em>
+        <div class="custom-mx-16 custom-my-20" id="plugin-migrate-submit" style="display: none;">
+
+            <input type="submit" class="button" data-validate="[`Connect`]" data-import="[`Import data`]" value="[`Connect`]">
+            <div class="js-progressbar-container" style="display:none;">
+                <div class="progressbar blue float-left" style="display: none; width: 70%;">
+                    <div class="progressbar-outer">
+                        <div class="progressbar-inner" style="width: 0;"></div>
+                    </div>
                 </div>
-            </div>
+                <img style="float:left; margin-top:8px;" src="{$wa_url}wa-content/img/loading32.gif" />
+                <div class="clear"></div>
+                    <span class="progressbar-description"></span>
+                <br style="clear: left" />
+                <br>
+                <span class="small italic">
+                    [`Please do not close your browser window and do not leave this page until the entire migration process is finished.`]
+                </span>
+            </div><br><br class="hidden">
+            <em class="errormsg state-error-hint"></em>
+
         </div>
         <div class="field-group" id="plugin-migrate-report" style="display: none;">
             <div class="field">
@@ -75,4 +73,9 @@
         'Loading...':'[`Loading...`] <i class="fas fa-spinner wa-animation-spin text-gray"></i>'}
     );
 {include file="../../../js/migrate.js"}
+    {foreach $transports as $id => $t}{if $id}
+        if (!$.importexport.plugins.migrate.{$id}Action) {
+            $.importexport.plugins.migrate.{$id}Action = function(){};
+        }
+    {/if}{/foreach}
 </script>

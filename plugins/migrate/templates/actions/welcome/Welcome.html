@@ -1,54 +1,169 @@
-<div class="fields-group">
+{if $wa->version() < '11'}
 
-    <h5 class="heading">
-        <span>
-            <span class="badge large light-gray custom-mr-4">3</span>
-            [`Import data`]
-        </span>
-    </h5>
+    <div class="custom-mt-24">
 
-    <div class="field">
-        <div class="name for-input">
-            [`Platform`]
-        </div>
-        <div class="value">
-            <div class="wa-select">
-                <select name="migrate_platform" class="width-100 text-ellipsis">
+        <h5 class="heading">
+            <span>
+                <span class="badge large light-gray custom-mr-4">3</span>
+                [`Import data`]
+            </span>
+        </h5>
 
-                    {$group = false}
-                    {foreach $transports as $id => $t}
-                        {if !empty($t.group) && $group != $t.group}
-                            {if !$t@first && $group}
+        <div class="field">
+            <div class="name for-input">
+                [`Platform`]
+            </div>
+            <div class="value">
+                <div class="wa-select">
+                    <select name="migrate_platform" class="width-100 text-ellipsis">
+
+                        {$group = false}
+                        {foreach $transports as $id => $t}
+                            {if !empty($t.group) && $group != $t.group}
+                                {if !$t@first && $group}
+                                </optgroup>
+                                {/if}
+                                {$group = $t.group}
+                                <optgroup label="{$group|escape}">
+                            {/if}
+
+                            <option value="{$id}" title="{$t.description|strip_tags|escape}">{$t.title|escape}</option>
+                            {if $t@last}
                             </optgroup>
                             {/if}
-                            {$group = $t.group}
-                            <optgroup label="{$group|escape}">
-                        {/if}
+                        {/foreach}
 
-                        <option value="{$id}" title="{$t.description|strip_tags|escape}">{$t.title|escape}</option>
-                        {if $t@last}
-                        </optgroup>
-                        {/if}
-                    {/foreach}
-
-                </select>
+                    </select>
+                </div>
+                <p class="js-migrate-platform-hint hint" style="display: none;"><i class="fas fa-check-circle text-green custom-mr-4"></i>[`<b>Great, we can import from that!</b> You will be taken to the import configuration page to provide some more details on your previous store’s setup...`]</p>
             </div>
-            <p class="js-migrate-platform-hint hint" style="display: none;"><i class="fas fa-check-circle text-green custom-mr-4"></i>[`<b>Great, we can import from that!</b> You will be taken to the import configuration page to provide some more details on your previous store’s setup...`]</p>
         </div>
     </div>
-</div>
-<script>(function() { "use strict";
-    const $form = $('form:first');
-    const plugin_id = 'migrate-plugin';
+    <script>
+        (function() { "use strict";
+            const $form = $('form:first');
+            const plugin_id = 'migrate-plugin';
 
-    $('[name="migrate_platform"]', $form).on('change', function () {
-        const platform = $(this).val();
+            $('[name="migrate_platform"]', $form).on('change', function () {
+                const platform = $(this).val();
 
-        $form.find('.js-migrate-platform-hint').toggle(!!platform);
-        $form.find('.migrate-plugin-field').remove();
-        if (platform) {
-            $form.append(`<input class="migrate-plugin-field" type="hidden" name="plugin" value="${ plugin_id }">`);
-            $form.append(`<input class="migrate-plugin-field" type="hidden" name="${ plugin_id }[platform]" value="${ platform }">`);
+                $form.find('.js-migrate-platform-hint').toggle(!!platform);
+                $form.find('.migrate-plugin-field').remove();
+                if (platform) {
+                    $form.append(`<input class="migrate-plugin-field" type="hidden" name="plugin" value="${ plugin_id }">`);
+                    $form.append(`<input class="migrate-plugin-field" type="hidden" name="${ plugin_id }[platform]" value="${ platform }">`);
+                }
+            });
+        })();
+    </script>
+
+{else}
+
+<div class="welcome-migrate-plugin">
+    {$_webasyst_group = []}
+    {$_third_party_group = []}
+    {$_marketplace_group = []}
+    {$_additional_group = []}
+    {$_marketplace_allowed = ['ozon']}
+    {$_third_party_allowed = [ 'woocommerce', 'tilda', 'opencart', 'magento', 'insales', 'simpla', 'phpshop', 'storelandru']}
+    {$_additional_icons = ['yml' => 'fas fa-file-excel text-green']}
+
+    {foreach $transports as $id => $t}
+        {if !empty($t.group) && $t.group == 'Marketplaces'}
+            {if in_array($id, $_marketplace_allowed)}
+                {$_marketplace_group[$id] = $t}
+            {/if}
+        {/if}
+        {if !empty($t.group) && $t.group == 'Webasyst'}
+            {$_webasyst_group[$id] = $t}
+        {/if}
+        {if !empty($t.group) && $t.group == 'YML'}
+            {$_additional_group[$id] = $t}
+        {/if}
+        {if !empty($t.group) && $t.group == '3rdParty'}
+            {if in_array($id, $_third_party_allowed)}
+                {if $id == 'opencart'}{$t.title = '[`OpenCart 1.5.x`]'}{/if}
+                {$_third_party_group[$id] = $t}
+            {/if}
+        {/if}
+    {/foreach}
+
+
+
+    <p class="custom-mb-4 text-gray bold">[`Import from your seller account on a marketplace`]</p>
+    <ul class="chips rounded custom-mt-0">
+    {foreach $_marketplace_group as $id => $t}
+        <li>
+            <label class="chip">
+                <input type="radio" class="hidden" name="migrate_platform" value="{$id}">
+                <img src="{$wa_app_static_url}plugins/migrate/img/{$id}.svg" alt="{$t.title|escape}" class="userpic" >
+                <span title="{$t.description|strip_tags|escape}">{$t.title|escape}</span>
+            </label>
+        </li>
+    {/foreach}
+    </ul>
+
+    <p class="custom-mb-4 text-gray bold">[`Migrate my products from another platform`]</p>
+    <ul class="chips rounded custom-mt-0">
+    {foreach $_third_party_group as $id => $t}
+        <li>
+            <label class="chip">
+                <input type="radio" class="hidden" name="migrate_platform" value="{$id}">
+                <img src="{$wa_app_static_url}plugins/migrate/img/{$id}.svg" alt="{$t.title|escape}" class="userpic" >
+                <span title="{$t.description|strip_tags|escape}">{$t.title|escape}</span>
+            </label>
+        </li>
+    {/foreach}
+    </ul>
+
+    <p class="custom-mb-4 text-gray bold">[`Other options`]</p>
+    <ul class="chips rounded custom-mt-0">
+    {foreach $_additional_group as $id => $t}
+        <li>
+            <label class="chip">
+                <input type="radio" class="hidden" name="migrate_platform" value="{$id}">
+                <i class="{$_additional_icons[$id]}"></i>
+                <span title="{$t.description|strip_tags|escape}">{$t.title|escape}</span>
+            </label>
+        </li>
+    {/foreach}
+    {foreach $_webasyst_group as $id => $t}
+        <li>
+            <label class="chip">
+                <input type="radio" class="hidden" name="migrate_platform" value="{$id}">
+                <img src="{$wa_app_static_url}plugins/migrate/img/ss-old.svg" alt="Shop-Script" class="userpic" />
+                <span title="{$t.description|strip_tags|escape}">{$t.title|escape}</span>
+            </label>
+        </li>
+    {/foreach}
+    </ul>
+
+    <p class="js-migrate-platform-hint bordered-top custom-pt-20" style="display: none;">
+        <i class="fas fa-check-circle text-green custom-mr-4"></i>[`<b>Great, we can import from that!</b> You will be taken to the import configuration page to provide some more details on your previous store’s setup...`]
+    </p>
+
+    <script>
+        (function() { "use strict";
+            const $form = $('form:first');
+            const plugin_id = 'migrate-plugin';
+
+            $('[name="migrate_platform"]', $form).on('change', function () {
+                const platform = $(this).val();
+
+                $form.find('.js-migrate-platform-hint').toggle(!!platform);
+                $form.find('.migrate-plugin-field').remove();
+                if (platform) {
+                    $form.append(`<input class="migrate-plugin-field" type="hidden" name="plugin" value="${ plugin_id }">`);
+                    $form.append(`<input class="migrate-plugin-field" type="hidden" name="${ plugin_id }[platform]" value="${ platform }">`);
+                }
+            });
+        })();
+    </script>
+    <style>
+        .welcome-migrate-plugin .chips .chip:has(input:checked) {
+            color: var(--white) !important;
+            background: var(--accent-color) !important;
         }
-    });
-})();</script>
+    </style>
+</div>
+{/if}

@@ -545,7 +545,7 @@ abstract class shopMigrateTransport implements Serializable
 
         $params = array();
         $params['title_wrapper'] = '<div class="name">%s</div>';
-        $params['description_wrapper'] = '<br><span class="hint">%s</span>';
+        $params['description_wrapper'] = '<p class="hint">%s</p>';
         $params['control_separator'] = '</div><br><div class="value no-shift">';
 
         $params['control_wrapper'] = '
@@ -803,7 +803,7 @@ abstract class shopMigrateTransport implements Serializable
 
             $params['control_wrapper'] = '<tr><td>%1$s %3$s</td><td>&rarr;</td><td>%2$s</td></tr>';
             $params['title_wrapper'] = '%s';
-            $params['description_wrapper'] = '<br><span class="hint">%s</span>';
+            $params['description_wrapper'] = '<p class="hint">%s</p>';
 
             $fields = $params['options'];
             $params['options'] = array();
@@ -919,7 +919,7 @@ abstract class shopMigrateTransport implements Serializable
         waHtmlControl::addNamespace($params, $name);
 
         $params['title_wrapper'] = '%s';
-        $params['description_wrapper'] = '<br><span class="hint">%s</span>';
+        $params['description_wrapper'] = '<p class="hint">%s</p>';
 
         $params['options'] = array();
 
@@ -1137,6 +1137,20 @@ HTML;
         }
 
         return $this;
+    }
+
+    public function __serialize()
+    {
+        return array(
+            'serialized' => $this->serialize(),
+        );
+    }
+
+    public function __unserialize(array $data)
+    {
+        if (isset($data['serialized'])) {
+            $this->unserialize($data['serialized']);
+        }
     }
 
     /**

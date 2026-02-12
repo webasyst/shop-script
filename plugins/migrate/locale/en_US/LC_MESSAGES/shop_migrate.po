@@ -407,3 +407,237 @@ msgstr ""
 
 msgid "Import only orders and customers starting from"
 msgstr ""
+msgid "Import products directly from the Ozon seller API."
+msgstr "Импорт товаров из Ozon (ozon seller API)"
+msgid "Automatic"
+msgstr "Automatic"
+
+msgid "Ozon warehouses"
+msgstr "Ozon warehouses"
+
+msgid "Do not import this warehouse"
+msgstr "Do not import this warehouse"
+
+msgid "Load data to map warehouses."
+msgstr "Load data to map warehouses."
+
+msgid "Select Shop-Script stocks for each Ozon warehouse. Automatic mode will find or create stocks by name."
+msgstr "Select Shop-Script stocks for each Ozon warehouse. Automatic mode will find or create stocks by name."
+
+# UI redesign strings
+msgid "Import products from the Ozon seller API."
+msgstr "Import products from the Ozon seller API."
+
+msgid "Ozon Client ID"
+msgstr "Ozon Client ID"
+
+msgid "Ozon API Key"
+msgstr "Ozon API Key"
+
+msgid "Connection"
+msgstr "Connection"
+
+msgid "Ozon snapshot"
+msgstr "Ozon snapshot"
+
+msgid "Snapshot collected at"
+msgstr "Snapshot collected at"
+
+msgid "Press “Load data” to fetch a fresh snapshot for preview and mapping."
+msgstr "Press “Load data” to fetch a fresh snapshot for preview and mapping."
+
+msgid "Products detected"
+msgstr "Products detected"
+
+msgid "Categories detected"
+msgstr "Categories detected"
+
+msgid "Warehouses detected"
+msgstr "Warehouses detected"
+
+msgid "Top categories"
+msgstr "Top categories"
+
+msgid "Detected warehouses"
+msgstr "Detected warehouses"
+
+msgid "No snapshot yet. Use the button below to prepare data."
+msgstr "No snapshot yet. Use the button below to prepare data."
+
+msgid "Load data"
+msgstr "Load data"
+
+msgid "Import data"
+msgstr "Import data"
+
+msgid "Switch to manual mode to adjust mappings before import."
+msgstr "Switch to manual mode to adjust mappings before import."
+
+msgid "Mode"
+msgstr "Mode"
+
+msgid "Import automatically"
+msgstr "Import automatically"
+
+msgid "Manual mapping"
+msgstr "Manual mapping"
+
+msgid "Override automatic decisions for types, categories and warehouses."
+msgstr "Override automatic decisions for types, categories and warehouses."
+
+# ---- New Ozon UI strings ----
+msgid "Ozon connection"
+msgstr "Ozon connection"
+
+msgid "Logging"
+msgstr "Logging"
+
+msgid "Errors only"
+msgstr "Errors only"
+
+msgid "Full"
+msgstr "Full"
+
+msgid "Save"
+msgstr "Save"
+
+msgid "Test connection"
+msgstr "Test connection"
+
+msgid "Load data from Ozon"
+msgstr "Load data from Ozon"
+
+msgid "Snapshot"
+msgstr "Snapshot"
+
+msgid "updated"
+msgstr "updated"
+
+msgid "Products"
+msgstr "Products"
+
+msgid "Categories"
+msgstr "Categories"
+
+msgid "Warehouses"
+msgstr "Warehouses"
+
+msgid "Snapshot is not ready yet."
+msgstr "Snapshot is not ready yet."
+
+msgid "Load"
+msgstr "Load"
+
+msgid "Import"
+msgstr "Import"
+
+msgid "Transfer stocks"
+msgstr "Transfer stocks"
+
+msgid "Mapping mode"
+msgstr "Mapping mode"
+
+msgid "Auto / Manual"
+msgstr "Auto / Manual"
+
+msgid "Manual mode unlocks mapping tables below."
+msgstr "Manual mode unlocks mapping tables below."
+
+msgid "Features"
+msgstr "Features"
+
+msgid "Automatic"
+msgstr "Automatic"
+
+msgid "Do not import features"
+msgstr "Do not import features"
+
+msgid "Product types"
+msgstr "Product types"
+
+msgid "Ozon category"
+msgstr "Ozon category"
+
+msgid "Quantity"
+msgstr "Quantity"
+
+msgid "Shop-Script type"
+msgstr "Shop-Script type"
+
+msgid "Shop-Script category"
+msgstr "Shop-Script category"
+
+msgid "Skip"
+msgstr "Skip"
+
+msgid "Stock transfer"
+msgstr "Stock transfer"
+
+msgid "Ozon warehouse"
+msgstr "Ozon warehouse"
+
+msgid "Shop-Script stock"
+msgstr "Shop-Script stock"
+
+msgid "Skip this stock"
+msgstr "Skip this stock"
+
+msgid "Saved"
+msgstr "Saved"
+
+msgid "Connection successful"
+msgstr "Connection successful"
+
+msgid "In progress..."
+msgstr "In progress..."
+
+msgid "Done"
+msgstr "Done"
+
+msgid "Request failed"
+msgstr "Request failed"
+
+msgid "Fill in Client ID and API Key."
+msgstr "Fill in Client ID and API Key."
+
+msgid "Fill in Client ID and API Key first."
+msgstr "Fill in Client ID and API Key first."
+
+msgid "Save Client ID and API Key first."
+msgstr "Save Client ID and API Key first."
+
+msgid "No snapshot available for import."
+msgstr "No snapshot available for import."
+
+msgid "Snapshot is missing."
+msgstr "Snapshot is missing."
+
+msgid "Invalid parameters."
+msgstr "Invalid parameters."
+
+msgid "Type not found."
+msgstr "Type not found."
+
+msgid "Category not found."
+msgstr "Category not found."
+
+msgid "Stock not found."
+msgstr "Stock not found."
+
+msgid "Import everything automatically"
+msgstr "Import everything automatically"
+
+msgid "Smart feature import"
+msgstr "Smart feature import"
+
+msgid "Text-only features"
+msgstr "Text-only features"
+
+msgid "Smart feature import tooltip"
+msgstr "The plugin tries to detect attribute types and create proper feature types automatically.(Experimental mode, if some features have not full value or wrong types, use Text-only mode)"
+
+msgid "Text-only feature tooltip"
+msgstr "All attributes will be saved as text features without detection."
+
+msgid "Auto mode tooltip"
+msgstr "We recommend using this mode!"
